@@ -24,3 +24,11 @@ export function randomInt(min, max) {
 export function capitalize(text: string) {
   return text.slice(0, 1).toLocaleUpperCase().concat(text.slice(1))
 }
+
+export const isDefined = <T>(val: T | undefined | null): val is T =>
+  val !== null && val !== undefined
+
+// Explicitly check that all inferred types are used
+export function assertNever(x: never): never {
+  throw new Error(`Unexpected object in assertNever:\n  ${x}`)
+}

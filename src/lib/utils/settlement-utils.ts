@@ -42,7 +42,7 @@ function generateSettlement(
   const population = randomInt(settlementType.minPopulation, settlementType.maxPopulation)
   const hostility = clamp(
     (settlementType.hostileChance + extraHostility) *
-      (race.name !== player.race ? (population > 10000 ? 3 : 2) : 1) *
+      (race.name !== player.leader.race ? (population > 10000 ? 3 : 2) : 1) *
       (Math.random() + 0.5),
     0,
     1

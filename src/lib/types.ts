@@ -9,7 +9,27 @@ export type Action = {
 }
 
 export type Player = {
+  gold: number
+  leader: Character
+  followers: Character[]
+}
+
+export type Character = {
+  level: number
+  hp: number
+  maxHp: number
   race: Race
+  class: Class
+  hitDie: number
+  str: number
+  dex: number
+  vit: number
+  int: number
+  wis: number
+  cha: number
+  xp: number // resets between levels
+  totalXp: number
+  xpToNextLevel: number
 }
 
 export type GameState = { player: Player } & (SettlementGS | TravelGS | CombatGS)
@@ -37,6 +57,9 @@ export type Position = {
 export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'goblin' | 'undead' | 'drake'
 export const raceNames: Race[] = ['human', 'elf', 'dwarf', 'orc', 'goblin', 'undead', 'drake']
 export type RaceDistribution = { name: Race; ratio: number }[]
+
+export type Class = 'fighter' | 'wizard' | 'rogue' | 'cleric'
+export const classNames: Class[] = ['fighter', 'wizard', 'rogue', 'cleric']
 
 // Used for generating a settlement
 export type SettlementType = {

@@ -1,9 +1,14 @@
 <script lang="ts">
   import { generateCountry } from '../utils/settlement-utils'
-  import type { GameState, Player, SettlementGS } from '../types'
   import { capitalize, getRandomValue } from '../utils/general-utils'
+  import { generateCharacter } from '../utils/character-utils'
+  import type { Player, SettlementGS } from '../types'
 
-  const player: Player = { race: 'human' }
+  const player: Player = {
+    gold: 15,
+    leader: generateCharacter(),
+    followers: [],
+  }
   const country = generateCountry(player, true)
   let gameState: { player: Player } & SettlementGS = {
     player,
@@ -28,7 +33,7 @@
 
 <h3>Player Character</h3>
 <pre>
-{Object.entries(player)
+{Object.entries(player.leader)
     .map(([prop, value]) => `${capitalize(prop)}: ${value}\n`)
     .join('')}
 </pre>
