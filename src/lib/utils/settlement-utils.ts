@@ -53,7 +53,7 @@ function generateSettlement(
     population,
     primaryRace: race.name,
     hostility,
-    services: generateSettlementServices(population),
+    services: generateSettlementServices(population, settlementType),
     renown: hostility > 0.8 ? -2 : hostility > 0.4 ? -1 : 0,
   }
 }
@@ -63,7 +63,10 @@ function generateSettlementPosition(settlementType: SettlementType): Position {
   return { x: randomInt(1, 80), y: randomInt(1, 50) }
 }
 
-function generateSettlementServices(population): SettlementService[] {
+function generateSettlementServices(
+  population,
+  settlementType: SettlementType
+): SettlementService[] {
   const index =
     population > 10000
       ? 5 // Metropolis
@@ -78,8 +81,9 @@ function generateSettlementServices(population): SettlementService[] {
       : 0 // Small settlement
   const settlementServices = settlementServicesBySize
     .filter((service) => {
-      const chance = service.ratios[index]
-      return randomInt(1, 20) > chance
+      const tier = clamp(settlementType.type === 'traders' ? index + 1 : index, 0, 5)
+      const chance = service.ratios[tier]
+      return Math.random() < 0.9 && randomInt(1, 20) > chance
     })
     .map(
       (service): SettlementService => ({
