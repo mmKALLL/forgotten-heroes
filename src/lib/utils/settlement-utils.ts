@@ -1,4 +1,4 @@
-import { settlementServiceActions, settlementServicesBySize, settlementTypeData } from '../data'
+import { settlementServiceMetadata, settlementServicesBySize, settlementTypeData } from '../data'
 import { nameGen } from '../generators/towns'
 import {
   raceNames,
@@ -10,6 +10,7 @@ import {
   type SettlementType,
   type SettlementService,
 } from '../types'
+import { generateSettlementServiceItemSaleList } from './data-utils'
 import { getRandomValue, getRandomWeightedValue, clamp, randomInt } from './general-utils'
 
 export function generateCountry(player: Player, isStartingCountry: boolean): Country {
@@ -85,17 +86,18 @@ function generateSettlementServices(
       const chance = service.ratios[tier]
       return Math.random() < 0.9 && randomInt(1, 20) > chance
     })
-    .map(
-      (service): SettlementService => ({
+    .map((service): SettlementService => {
+      const metadata = settlementServiceMetadata[service.id]
+      const quality = Math.random() + Math.log10(population) / 10 - 0.25
+      return {
+        ...metadata,
         ...service,
-        actions: settlementServiceActions[service.id].actions.concat([
-          {
-            label: 'Go back',
-            handler: (gs) =>
-              gs.screen === 'settlement' ? { ...gs, activeService: undefined } : gs,
-          },
-        ]),
-      })
-    )
+        // prettier-ignore
+        quality,
+        purchasePriceMultiplier: 1 + Math.random() / 3,
+        sellPriceMultiplier: 1 - Math.random() / 3,
+        itemSaleList: generateSettlementServiceItemSaleList({ ...metadata, quality }),
+      }
+    })
   return settlementServices
 }

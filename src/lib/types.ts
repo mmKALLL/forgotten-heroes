@@ -1,6 +1,6 @@
 export type Outcome = {
   message: string
-  options: Action
+  options?: Action
 }
 
 export type Action = {
@@ -12,6 +12,7 @@ export type Player = {
   gold: number
   leader: Character
   followers: Character[]
+  inventory: HeldItem[]
 }
 
 export type Character = {
@@ -31,6 +32,49 @@ export type Character = {
   totalXp: number
   xpToNextLevel: number
 }
+
+export type Item = {
+  name: string
+  id: number
+  tags: ItemTag[]
+  equippableSlot?: EquipSlot
+  equipComponents?: EquipComponent[]
+  consumableComponents?: ConsumableComponent[]
+  rarity: number // higher means rarer. Generally 0.0 = common, 0.2 = sturdy, 0.35 = uncommon, 0.5 = fine craft, 0.7 = magical, 0.9 = legendary/artifact
+  price: number
+  purchaseUnit?: number // how many to buy at once, useful for e.g. arrows etc
+}
+
+export type HeldItem = Item & {
+  heldQuantity: number
+  equippedToIndex: number | 'leader' | null
+}
+
+export type ItemTag =
+  | 'consumable'
+  | 'instant-consume-on-buy'
+  | 'food'
+  | 'drink'
+  | 'general-supplies'
+  | 'magical-supplies'
+  | 'armory-supplies'
+  // | 'equipment' // Can check equippableSlot instead
+  | 'trinket'
+  | 'throwable'
+export type EquipSlot = 'weapon' | 'armor' | 'accessory'
+
+export type EquipComponent =
+  | {
+      type: 'weapon'
+      minDamage: number
+      maxDamage: number
+    }
+  | {
+      type: 'passive'
+      statBoosts: Partial<Character>
+    }
+export type Target = 'self' | 'one-ally' | 'all-ally' | 'one-enemy' | 'all-enemy'
+export type ConsumableComponent = { type: 'heal'; target: Target; amount: number }
 
 export type GameState = { player: Player } & (SettlementGS | TravelGS | CombatGS)
 
@@ -97,5 +141,12 @@ export type Country = {
 export type SettlementService = {
   id: number
   name: string
-  actions: Action[]
+  // actions: Action[]
+  quality: number
+  itemSaleTags: ItemTag[]
+  itemSaleList: Item[]
+  typicalRarity: number
+  maxRarity: number
+  purchasePriceMultiplier: number
+  sellPriceMultiplier: number
 }

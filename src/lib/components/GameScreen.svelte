@@ -1,13 +1,15 @@
 <script lang="ts">
   import { generateCountry } from '../utils/settlement-utils'
-  import { capitalize, getRandomValue } from '../utils/general-utils'
+  import { capitalize, getRandomValue, randomInt } from '../utils/general-utils'
   import { generateCharacter } from '../utils/character-utils'
   import type { Player, SettlementGS } from '../types'
+  import { generateSettlementServiceActions } from '../utils/data-utils'
 
   const player: Player = {
-    gold: 15,
+    gold: randomInt(0, 50),
     leader: generateCharacter(),
     followers: [],
+    inventory: [],
   }
   const country = generateCountry(player, true)
   let gameState: { player: Player } & SettlementGS = {
@@ -33,8 +35,14 @@
 
 <h3>Player Character</h3>
 <pre>
+{`Gold: ${gameState.player.gold}`}
 {Object.entries(player.leader)
-    .map(([prop, value]) => `${capitalize(prop)}: ${value}\n`)
+    .map(
+      ([prop, value]) =>
+        `${capitalize(prop)}: ${value}${
+          ['str', 'dex', 'vit', 'int', 'wis'].includes(prop) ? ', ' : '\n'
+        }`
+    )
     .join('')}
 </pre>
 
@@ -60,9 +68,9 @@
       <button on:click={() => enterService(service)}> Visit {service.name} </button>
     {/each}
   {/if}
-
+  <!-- TODO: Add haggling with intimidation (str), evaluation (wis), or negotiation (cha). Potential risk to get copped / sour relations. -->
   {#if gameState.activeService}
-    {#each gameState.activeService.actions as action}
+    {#each generateSettlementServiceActions(gameState.activeService) as action}
       <button on:click={() => (gameState = action.handler(gameState))}> {action.label} </button>
     {/each}
   {/if}
