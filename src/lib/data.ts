@@ -190,6 +190,7 @@ export const settlementServicesBySize = [
   { id: 29, name: 'Stonemason', ratios: [18, 15, 12, 10, 7, 4] },
   { id: 30, name: 'University', ratios: [22, 20, 18, 16, 14, 12] },
   { id: 31, name: 'Mercenaries', ratios: [19, 18, 17, 16, 14, 12] },
+  { id: 32, name: 'Arena', ratios: [19, 18, 16, 12, 10, 8] },
 ]
 
 export const settlementServiceMetadata: {
@@ -201,36 +202,54 @@ export const settlementServiceMetadata: {
   0: {
     id: 0,
     name: 'Inn / Tavern',
-    itemSaleTags: ['drink', 'food'],
+    itemSaleTags: ['drink', 'food', 'inn-service'],
     typicalRarity: 0.1,
     maxRarity: 0.5,
   },
   1: {
     id: 1,
     name: 'Adventuring Supplies',
-    itemSaleTags: ['general-supplies'],
-    typicalRarity: 0.25,
+    itemSaleTags: ['general-supplies', 'food', 'clothing'],
+    typicalRarity: 0.15,
     maxRarity: 0.5,
   },
-  2: { id: 2, name: 'Animals and Mounts', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
+  2: {
+    id: 2,
+    name: 'Animals and Mounts',
+    itemSaleTags: ['mount'],
+    typicalRarity: 0.3,
+    maxRarity: 1,
+  },
   3: {
     id: 3,
     name: 'Books and Maps',
     itemSaleTags: ['magical-supplies'],
+    typicalRarity: 0.15,
+    maxRarity: 1,
+  },
+  4: {
+    id: 4,
+    name: 'Jewelry trader',
+    itemSaleTags: ['trinket', 'jewel'],
+    typicalRarity: 0.25,
+    maxRarity: 0.75,
+  },
+  5: {
+    id: 5,
+    name: 'Armourer',
+    itemSaleTags: ['armor', 'clothing'],
     typicalRarity: 0.25,
     maxRarity: 0.5,
   },
-  4: { id: 4, name: 'Jewelry trader', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
-  5: { id: 5, name: 'Armourer', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
-  6: { id: 6, name: 'Bank', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
-  7: { id: 7, name: 'Finesmith', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
-  8: { id: 8, name: 'Tailor', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
+  6: { id: 6, name: 'Bank', itemSaleTags: ['bank'], typicalRarity: 0.25, maxRarity: 1 },
+  7: { id: 7, name: 'Finesmith', itemSaleTags: ['trinket'], typicalRarity: 0.5, maxRarity: 1 },
+  8: { id: 8, name: 'Tailor', itemSaleTags: ['clothing'], typicalRarity: 0.25, maxRarity: 0.5 },
   9: {
     id: 9,
     name: 'Potions, poisons, herbs',
-    itemSaleTags: [],
-    typicalRarity: 0.25,
-    maxRarity: 0.5,
+    itemSaleTags: ['potion'],
+    typicalRarity: 0.3,
+    maxRarity: 1,
   },
   10: {
     id: 10,
@@ -248,8 +267,8 @@ export const settlementServiceMetadata: {
     typicalRarity: 0.25,
     maxRarity: 0.5,
   },
-  14: { id: 14, name: 'Thieving supplies', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
-  15: { id: 15, name: 'Weapons Shop', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
+  14: { id: 14, name: 'Thieving supplies', itemSaleTags: [], typicalRarity: 0.2, maxRarity: 0.8 },
+  15: { id: 15, name: 'Weapons Shop', itemSaleTags: [], typicalRarity: 0.3, maxRarity: 0.8 },
   16: {
     id: 16,
     name: 'Vehicles and transportation',
@@ -278,29 +297,31 @@ export const settlementServiceMetadata: {
   29: { id: 29, name: 'Stonemason', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
   30: { id: 30, name: 'University', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
   31: { id: 31, name: 'Mercenaries', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
+  32: { id: 32, name: 'Arena', itemSaleTags: [], typicalRarity: 0.25, maxRarity: 0.5 },
 }
 
-export const itemList: Item[] = [
+const itemData: Item[] = [
   {
     name: 'Red potion',
-    id: 1,
-    tags: ['consumable', 'general-supplies', 'stackable'],
-    consumableComponents: [{ type: 'heal', target: 'one-ally', amount: 12 }],
+    id: 'red-potion',
+    tags: ['consumable', 'general-supplies', 'stackable', 'potion'],
+    consumableEffectComponents: [{ type: 'heal', target: 'one-ally', amount: 12 }],
     rarity: 0.3,
     price: 25,
   },
   {
     name: 'Short sword',
-    id: 2,
-    tags: ['armory-supplies'],
+    id: 'short-sword',
+    tags: ['weapon'],
+    equippableSlot: 'weapon',
     rarity: 0.05,
     price: 40,
   },
   {
     name: 'Beers',
-    id: 3,
+    id: 'beers',
     tags: ['instant-consume-on-buy', 'drink'],
-    consumableComponents: [
+    consumableEffectComponents: [
       { type: 'heal', target: 'all-ally', amount: 2 },
       {
         type: 'buff',
@@ -314,3 +335,8 @@ export const itemList: Item[] = [
     price: 2,
   },
 ]
+
+export const itemList = itemData.reduce((acc, cur) => {
+  acc[cur.id] = cur
+  return acc
+}, {} as { [key: string]: Item })

@@ -36,11 +36,11 @@ export type Character = {
 
 export type Item = {
   name: string
-  id: number
+  id: string
   tags: ItemTag[]
   equippableSlot?: EquipSlot
   equipComponents?: EquipComponent[]
-  consumableComponents?: EffectComponent[]
+  consumableEffectComponents?: EffectComponent[]
   rarity: number // higher means rarer. Generally 0.0 = common, 0.2 = sturdy, 0.35 = uncommon, 0.5 = fine craft, 0.7 = magical, 0.9 = legendary/artifact
   price: number
   purchaseUnit?: number // how many to buy at once, useful for e.g. arrows etc
@@ -56,13 +56,24 @@ export type ItemTag =
   | 'instant-consume-on-buy'
   | 'food'
   | 'drink'
+  | 'potion'
   | 'stackable'
+  | 'multi-use'
   | 'general-supplies'
   | 'magical-supplies'
-  | 'armory-supplies'
+  | 'armor'
+  | 'weapon'
+  | 'accessory'
   // | 'equipment' // Can check equippableSlot instead
   | 'trinket'
+  | 'jewel'
   | 'throwable'
+  | 'clothing'
+  | 'inn-service'
+  | 'bank-service'
+  | 'transport-service'
+  | 'real-estate-service'
+  | 'mount'
 export type EquipSlot = 'weapon' | 'armor' | 'accessory'
 
 export type EquipComponent =
@@ -86,6 +97,16 @@ export type Buff = {
   duration: Duration
 }
 export type EffectComponent =
+  | {
+      type: 'attack'
+      target: Target
+      hitType: 'physical' | 'magical' | 'ranged' | 'always-hit'
+      hitStat: Stat | 'armor-class'
+      hitBonus: number
+      effects: EffectComponent[]
+      missEffects?: EffectComponent[]
+    }
+  | { type: 'damage'; target: Target; amount: number }
   | { type: 'heal'; target: Target; amount: number }
   | ({ type: 'buff'; target: Target } & Buff)
 
