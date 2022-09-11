@@ -21,7 +21,7 @@ export function generateSettlementServiceItemSaleList({
   typicalRarity: number
   maxRarity: number
 }): Item[] {
-  const effQuality = quality / 2 + 0.5
+  const effQuality = quality / 2 + 0.6
   return itemList.filter(
     (item) =>
       Math.random() < effQuality * 0.9 &&
@@ -34,7 +34,7 @@ export function generateSettlementServiceItemSaleList({
 
 export function generateSettlementServiceTradingActions(service: SettlementService): Action[] {
   return service.itemSaleList.map((item) => ({
-    label: `Buy ${item}`, // TODO: Fix label
+    label: `Buy ${item.name}`,
     handler: attemptToPurchase(item, item.price * service.purchasePriceMultiplier),
   }))
 }

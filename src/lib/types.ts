@@ -39,7 +39,7 @@ export type Item = {
   tags: ItemTag[]
   equippableSlot?: EquipSlot
   equipComponents?: EquipComponent[]
-  consumableComponents?: ConsumableComponent[]
+  consumableComponents?: EffectComponent[]
   rarity: number // higher means rarer. Generally 0.0 = common, 0.2 = sturdy, 0.35 = uncommon, 0.5 = fine craft, 0.7 = magical, 0.9 = legendary/artifact
   price: number
   purchaseUnit?: number // how many to buy at once, useful for e.g. arrows etc
@@ -55,6 +55,7 @@ export type ItemTag =
   | 'instant-consume-on-buy'
   | 'food'
   | 'drink'
+  | 'stackable'
   | 'general-supplies'
   | 'magical-supplies'
   | 'armory-supplies'
@@ -74,7 +75,7 @@ export type EquipComponent =
       statBoosts: Partial<Character>
     }
 export type Target = 'self' | 'one-ally' | 'all-ally' | 'one-enemy' | 'all-enemy'
-export type ConsumableComponent = { type: 'heal'; target: Target; amount: number }
+export type EffectComponent = { type: 'heal'; target: Target; amount: number }
 
 export type GameState = { player: Player } & (SettlementGS | TravelGS | CombatGS)
 

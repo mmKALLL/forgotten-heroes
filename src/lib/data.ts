@@ -284,7 +284,7 @@ export const itemList: Item[] = [
   {
     name: 'Red potion',
     id: 1,
-    tags: ['consumable', 'general-supplies'],
+    tags: ['consumable', 'general-supplies', 'stackable'],
     consumableComponents: [{ type: 'heal', target: 'one-ally', amount: 12 }],
     rarity: 0.3,
     price: 25,
@@ -297,10 +297,17 @@ export const itemList: Item[] = [
     price: 40,
   },
   {
-    name: 'Beer',
+    name: 'Beers',
     id: 3,
     tags: ['instant-consume-on-buy', 'drink'],
-    consumableComponents: [{ type: 'heal', target: 'one-ally', amount: 2 }],
+    consumableComponents: [
+      { type: 'heal', target: 'all-ally', amount: 2 },
+      {
+        type: 'buff',
+        target: 'all-ally',
+        effects: [{ stat: 'dex', amount: -1, duration: { hours: 8 } }],
+      },
+    ],
     rarity: 0.05,
     price: 2,
   },
