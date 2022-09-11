@@ -114,6 +114,7 @@ export type EffectComponent =
   | { type: 'damage'; target: Target; amount: number }
   | { type: 'heal'; target: Target; amount: number }
   | ({ type: 'buff'; target: Target } & Buff)
+  | { type: 'nourish'; duration: Duration }
 
 export type GameState = { player: Player } & (SettlementGS | TravelGS | CombatGS)
 

@@ -1,3 +1,5 @@
+import type { Duration } from '../types'
+
 export function sum(a: number, b: number): number {
   return a + b
 }
@@ -27,6 +29,14 @@ export function randomInt(min, max) {
 
 export function capitalize(text: string) {
   return text.slice(0, 1).toLocaleUpperCase().concat(text.slice(1))
+}
+
+export function outputDuration(duration: Duration): string {
+  return (
+    Object.entries(duration)
+      .map(([k, v]) => `${v} ${v === 1 ? k.slice(0, -1) : k}`)
+      .join(', ') || 'unknown duration'
+  )
 }
 
 export const isDefined = <T>(val: T | undefined | null): val is T =>

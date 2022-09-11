@@ -1,6 +1,6 @@
 import type { GameState, Item } from '../types'
 import { handleEffectComponents } from './effect-component-handler'
-import { assertNever } from './general-utils'
+import { assertNever, outputDuration } from './general-utils'
 
 export function generateItemDescription(item: Item) {
   return (
@@ -18,6 +18,8 @@ export function generateItemDescription(item: Item) {
           ? 'Does an attack or something TODO.'
           : component.type === 'damage'
           ? 'Deals some damage or something TODO.'
+          : component.type === 'nourish'
+          ? `Provides nourishment to the party for ${outputDuration(component.duration)}.`
           : assertNever(component)
       )
       .join('\n')
@@ -36,7 +38,7 @@ export function attemptToPurchase<T extends GameState>(item: Item): (gs: T) => T
         if (itemIndex === -1) {
           newPlayer.inventory.push({
             ...item,
-            heldQuantity: item.purchaseUnit,
+            heldQuantity: item.purchaseUnit ?? 1,
             equippedToIndex: null,
           })
         } else {
@@ -45,7 +47,7 @@ export function attemptToPurchase<T extends GameState>(item: Item): (gs: T) => T
       } else {
         newPlayer.inventory.push({
           ...item,
-          heldQuantity: item.purchaseUnit,
+          heldQuantity: item.purchaseUnit ?? 1,
           equippedToIndex: null,
         })
       }

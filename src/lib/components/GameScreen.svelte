@@ -7,7 +7,7 @@
   import { generateItemDescription } from '../utils/item-utils'
 
   const player: Player = {
-    gold: randomInt(0, 50),
+    gold: randomInt(20, 50),
     leader: generateCharacter(),
     followers: [],
     inventory: [],
@@ -38,7 +38,7 @@
   }
 </script>
 
-<div style="min-height: 2.5em">{renderState.activeDescText ?? ''}</div>
+<div style="min-height: 2.8em">{renderState.activeDescText ?? ''}</div>
 
 <div style="display: flex;">
   <div
@@ -67,7 +67,7 @@
   >
     <h3>Inventory</h3>
     <pre>{#each gameState.player.inventory as item}
-        {item.name} - {generateItemDescription(item)}<br />
+        {item.heldQuantity}x {item.name} - {generateItemDescription(item)}<br />
       {/each}
   </pre>
   </div>
