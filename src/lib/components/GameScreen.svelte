@@ -4,6 +4,8 @@
   import { generateCharacter } from '../utils/character-utils'
   import type { Player, SettlementGS } from '../types'
   import { generateSettlementServiceActions } from '../utils/data-utils'
+  import { generateItemDescription } from '../utils/item-utils'
+  import { itemList } from '../data'
 
   const player: Player = {
     gold: randomInt(0, 50),
@@ -16,6 +18,10 @@
     player,
     screen: 'settlement',
     map: country.settlements[0],
+  }
+
+  let renderState: {
+    activeDescText: null
   }
 
   function lessHostility() {
@@ -33,18 +39,38 @@
   }
 </script>
 
-<h3>Player Character</h3>
-<pre>
-{`Gold: ${gameState.player.gold}`}
-{Object.entries(player.leader)
-    .map(
-      ([prop, value]) =>
-        `${['maxHp'].includes(prop) ? '' : `${capitalize(prop)}: `}` +
-        `${prop === 'buffs' ? JSON.stringify(value) : value}` +
-        `${['str', 'dex', 'vit', 'int', 'wis'].includes(prop) ? ', ' : prop === 'hp' ? '/' : '\n'}`
-    )
-    .join('')}
-</pre>
+<div style="display: flex;">
+  <div
+    style="max-width: 50%; display: flex; flex-direction:column; margin-right: 1em; white-space: pre-wrap;"
+  >
+    <h3 style="display:inline-block ">Player Character</h3>
+    <pre>{`Gold: ${gameState.player.gold}\n` +
+        Object.entries(gameState.player.leader)
+          .map(
+            ([prop, value]) =>
+              `${['maxHp'].includes(prop) ? '' : `${capitalize(prop)}: `}` +
+              `${prop === 'buffs' ? JSON.stringify(value) : value}` +
+              `${
+                ['str', 'dex', 'vit', 'int', 'wis'].includes(prop)
+                  ? ', '
+                  : prop === 'hp'
+                  ? '/'
+                  : '\n'
+              }`
+          )
+          .join('')}
+    </pre>
+  </div>
+  <div
+    style="max-width: 50%; min-width: 30%; display: flex; flex-direction:column; margin-right: 1em; white-space: pre-wrap;"
+  >
+    <h3>Inventory</h3>
+    <pre>{#each gameState.player.inventory as item}
+        {item.name} - {generateItemDescription(item)}<br />
+      {/each}
+  </pre>
+  </div>
+</div>
 
 <h3>Current Map</h3>
 <pre>
