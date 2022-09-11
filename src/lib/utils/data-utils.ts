@@ -34,7 +34,7 @@ export function generateSettlementServiceItemSaleList({
 
 export function generateSettlementServiceTradingActions(service: SettlementService): Action[] {
   return service.itemSaleList.map((item) => ({
-    label: `Buy ${item}`,
+    label: `Buy ${item}`, // TODO: Fix label
     handler: attemptToPurchase(item, item.price * service.purchasePriceMultiplier),
   }))
 }

@@ -16,6 +16,7 @@ export type Player = {
 }
 
 export type Character = {
+  name: string
   level: number
   hp: number
   maxHp: number
@@ -30,7 +31,6 @@ export type Character = {
   cha: number
   xp: number // resets between levels
   totalXp: number
-  xpToNextLevel: number
 }
 
 export type Item = {
