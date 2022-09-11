@@ -149,6 +149,7 @@ export type SettlementType = {
   type: 'lifeplace' | 'traders' | 'military' | 'other'
   minPopulation: number
   maxPopulation: number
+  maxServices: number
   ratio: number // ratio among settlements in an country
   predominantRace: Race
   hostileChance: number

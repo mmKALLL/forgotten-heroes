@@ -99,5 +99,8 @@ function generateSettlementServices(
         itemSaleList: generateSettlementServiceItemSaleList({ ...metadata, quality }),
       }
     })
+    .slice()
+    .sort((a, b) => a.quality - b.quality)
+    .slice(0, settlementType.maxServices)
   return settlementServices
 }
