@@ -305,7 +305,9 @@ export const itemList: Item[] = [
       {
         type: 'buff',
         target: 'all-ally',
-        effects: [{ stat: 'dex', amount: -1, duration: { hours: 8 } }],
+        stat: 'dex',
+        amount: -1,
+        duration: { hours: 8 },
       },
     ],
     rarity: 0.05,

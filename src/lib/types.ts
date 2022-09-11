@@ -18,10 +18,11 @@ export type Player = {
 export type Character = {
   name: string
   level: number
-  hp: number
-  maxHp: number
   race: Race
   class: Class
+  hp: number
+  maxHp: number
+  buffs: Buff[] // also includes debuffs
   hitDie: number
   str: number
   dex: number
@@ -47,7 +48,7 @@ export type Item = {
 
 export type HeldItem = Item & {
   heldQuantity: number
-  equippedToIndex: number | 'leader' | null
+  equippedToIndex?: number | 'leader' | null
 }
 
 export type ItemTag =
@@ -75,7 +76,18 @@ export type EquipComponent =
       statBoosts: Partial<Character>
     }
 export type Target = 'self' | 'one-ally' | 'all-ally' | 'one-enemy' | 'all-enemy'
-export type EffectComponent = { type: 'heal'; target: Target; amount: number }
+export type Moment = { year: number; month: number; week: number; day: number; hour: number }
+export type Duration = { months?: number; weeks?: number; days?: number; hours?: number }
+
+export type Stat = 'str' | 'dex' | 'vit' | 'int' | 'wis' | 'cha'
+export type Buff = {
+  stat: Stat
+  amount: number
+  duration: Duration
+}
+export type EffectComponent =
+  | { type: 'heal'; target: Target; amount: number }
+  | ({ type: 'buff'; target: Target } & Buff)
 
 export type GameState = { player: Player } & (SettlementGS | TravelGS | CombatGS)
 

@@ -63,7 +63,7 @@ const statSpreads: {
   fighter: { hitDie: 10, str: 16, dex: 10, vit: 14, int: 10, wis: 12, cha: 8 },
   cleric: { hitDie: 8, str: 14, dex: 8, vit: 12, int: 10, wis: 10, cha: 16 },
   rogue: { hitDie: 8, str: 10, dex: 16, vit: 10, int: 8, wis: 14, cha: 12 },
-  wizard: { hitDie: 6, str: 8, dex: 10, vit: 12, int: 16, wis: 14, cha: 10 },
+  wizard: { hitDie: 6, str: 8, dex: 12, vit: 10, int: 16, wis: 14, cha: 10 },
 }
 
 const statSpreadKeys = ['str', 'dex', 'vit', 'int', 'wis', 'cha']
@@ -77,10 +77,11 @@ export function generateCharacter(): Character {
   return {
     name: generateHumanName(),
     level: 1,
-    hp: maxHp,
-    maxHp,
     race,
     class: className,
+    hp: maxHp,
+    maxHp,
+    buffs: [],
     ...statSpread,
     xp: 0,
     totalXp: 0,
