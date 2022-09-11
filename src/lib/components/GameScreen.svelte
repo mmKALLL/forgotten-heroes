@@ -5,7 +5,6 @@
   import type { Player, SettlementGS } from '../types'
   import { generateSettlementServiceActions } from '../utils/data-utils'
   import { generateItemDescription } from '../utils/item-utils'
-  import { itemList } from '../data'
 
   const player: Player = {
     gold: randomInt(0, 50),
@@ -20,8 +19,8 @@
     map: country.settlements[0],
   }
 
-  let renderState: {
-    activeDescText: null
+  let renderState = {
+    activeDescText: null,
   }
 
   function lessHostility() {
@@ -38,6 +37,8 @@
     if (gameState.screen === 'settlement') gameState.activeService = service
   }
 </script>
+
+<div style="min-height: 2.5em">{renderState.activeDescText ?? ''}</div>
 
 <div style="display: flex;">
   <div
@@ -94,10 +95,22 @@
       <button on:click={() => enterService(service)}> Visit {service.name} </button>
     {/each}
   {/if}
-  <!-- TODO: Add haggling with intimidation (str), evaluation (wis), or negotiation (cha). Potential risk to get copped / sour relations. -->
   {#if gameState.activeService}
     {#each generateSettlementServiceActions(gameState.activeService) as action}
-      <button on:click={() => (gameState = action.handler(gameState))}> {action.label} </button>
+      <button
+        on:mouseenter={() => {
+          renderState.activeDescText = action.description
+        }}
+        on:mouseleave={() => {
+          renderState.activeDescText = null
+        }}
+        on:click={() => {
+          gameState = action.handler(gameState)
+          renderState.activeDescText = null
+        }}
+      >
+        {action.label}
+      </button>
     {/each}
   {/if}
 </div>

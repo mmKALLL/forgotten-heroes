@@ -5,6 +5,7 @@ export type Outcome = {
 
 export type Action = {
   label: string
+  description?: string
   handler: <T extends GameState>(gs: T) => T
 }
 

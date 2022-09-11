@@ -13,11 +13,11 @@ export function generateItemDescription(item: Item) {
               component.stat
             } to ${component.target}.`
           : component.type === 'heal'
-          ? 'Heals a bit or something TODO'
+          ? 'Heals a bit or something TODO.'
           : component.type === 'attack'
-          ? 'Does an attack or something TODO'
+          ? 'Does an attack or something TODO.'
           : component.type === 'damage'
-          ? 'Deals some damage or something TODO'
+          ? 'Deals some damage or something TODO.'
           : assertNever(component)
       )
       .join('\n')
@@ -25,10 +25,10 @@ export function generateItemDescription(item: Item) {
 }
 
 // Curry the item and price into a callback
-export function attemptToPurchase<T extends GameState>(item: Item, price: number): (gs: T) => T {
+export function attemptToPurchase<T extends GameState>(item: Item): (gs: T) => T {
   return (gs: T) => {
-    if (gs.player.gold >= price) {
-      let newPlayer = { ...gs.player, gold: gs.player.gold - price }
+    if (gs.player.gold >= item.price) {
+      let newPlayer = { ...gs.player, gold: Math.round(gs.player.gold - item.price) }
       if (item.tags.includes('instant-consume-on-buy')) {
         return handleEffectComponents({ ...gs, player: newPlayer }, item.consumableEffectComponents)
       } else if (item.tags.includes('stackable')) {

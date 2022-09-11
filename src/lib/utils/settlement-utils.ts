@@ -89,14 +89,19 @@ function generateSettlementServices(
     .map((service): SettlementService => {
       const metadata = settlementServiceMetadata[service.id]
       const quality = Math.random() + Math.log10(population) / 10 - 0.25
+      const purchasePriceMultiplier = 1 + Math.random() / 3
       return {
         ...metadata,
         ...service,
         // prettier-ignore
         quality,
-        purchasePriceMultiplier: 1 + Math.random() / 3,
+        purchasePriceMultiplier: purchasePriceMultiplier,
         sellPriceMultiplier: 1 - Math.random() / 3,
-        itemSaleList: generateSettlementServiceItemSaleList({ ...metadata, quality }),
+        itemSaleList: generateSettlementServiceItemSaleList({
+          ...metadata,
+          quality,
+          purchasePriceMultiplier,
+        }),
       }
     })
     .slice()
