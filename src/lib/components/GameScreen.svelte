@@ -39,9 +39,9 @@
 {Object.entries(player.leader)
     .map(
       ([prop, value]) =>
-        `${capitalize(prop)}: ${value}${
-          ['str', 'dex', 'vit', 'int', 'wis'].includes(prop) ? ', ' : '\n'
-        }`
+        `${['maxHp'].includes(prop) ? '' : `${capitalize(prop)}: `}` +
+        `${prop === 'buffs' ? JSON.stringify(value) : value}` +
+        `${['str', 'dex', 'vit', 'int', 'wis'].includes(prop) ? ', ' : prop === 'hp' ? '/' : '\n'}`
     )
     .join('')}
 </pre>
