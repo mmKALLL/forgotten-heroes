@@ -16,12 +16,15 @@ import { getRandomValue, getRandomWeightedValue, clamp, randomInt } from './gene
 export function generateCountry(player: Player, isStartingCountry: boolean): Country {
   const primaryRace = getRandomValue(raceNames)
   const raceDistribution = [
-    { name: primaryRace, ratio: 0.8 },
-    { name: getRandomValue(raceNames), ratio: 0.15 },
-    { name: getRandomValue(raceNames), ratio: 0.05 },
+    { name: primaryRace, ratio: 6 },
+    { name: getRandomValue(raceNames), ratio: 2 },
+    { name: getRandomValue(raceNames), ratio: 1 },
+    { name: getRandomValue(raceNames), ratio: 0.5 },
   ]
   const extraHostility = isStartingCountry ? 0 : randomInt(-10, 40) / 100
-  const settlements = [...Array(20)]
+  const settlements = (
+    isStartingCountry ? [...Array(randomInt(5, 8))] : [...Array(randomInt(4, 30))]
+  )
     .map((_, i) => generateSettlement(player, raceDistribution, extraHostility))
     .map((settlement) => ({ ...settlement, ...generateSettlementPosition(settlement.type) }))
 
