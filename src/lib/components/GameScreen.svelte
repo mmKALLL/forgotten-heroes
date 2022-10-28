@@ -28,8 +28,8 @@
   }
   function changeTowns() {
     if (gameState.screen === 'settlement') {
-      gameState.map = getRandomValue(country.settlements)
       gameState.activeService = undefined
+      gameState.map = getRandomValue(country.settlements)
     }
   }
 
@@ -37,8 +37,6 @@
     if (gameState.screen === 'settlement') gameState.activeService = service
   }
 </script>
-
-<div style="min-height: 2.8em">{renderState.activeDescText ?? ''}</div>
 
 <div style="display: flex;">
   <div
@@ -88,6 +86,8 @@
   <button on:click={lessHostility}> Decrease hostility </button>
   <button on:click={changeTowns}> Travel </button>
 </div>
+
+<div style="min-height: 2.8em">{renderState.activeDescText ?? 'No description'}</div>
 
 <div>
   {#if !gameState.activeService}
