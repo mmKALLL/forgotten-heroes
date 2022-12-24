@@ -1,12 +1,24 @@
 export type Outcome = {
   message: string
-  options?: Action
+  options?: FixedAction
 }
 
-export type Action = {
+export type BaseAction = {
   label: string
   description?: string
+}
+export type Action = FixedAction | RandomAction
+export type FixedAction = BaseAction & {
   handler: <T extends GameState>(gs: T) => T
+}
+export type RandomAction = BaseAction & {
+  outcomeDistribution: OutComeDistribution
+}
+
+export type OutComeDistribution = {
+  modifierDescription: string
+  modifierFunction: ModifierFunction
+  outcomes: Outcome & { d20max: number | null }
 }
 
 export type Player = {
@@ -116,26 +128,47 @@ export type EffectComponent =
   | ({ type: 'buff'; target: Target } & Buff)
   | { type: 'nourish'; duration: Duration }
 
-export type GameState = { player: Player } & (SettlementGS | TravelGS | CombatGS)
+type LogEntry = string
 
-export type SettlementGS = {
+export type GameStateBase = { player: Player; gameLog: LogEntry[] }
+export type GameState = SettlementGS | TravelGS | CombatGS
+
+export type SettlementGS = GameStateBase & {
   screen: 'settlement'
   map: Settlement
   activeService?: SettlementService
 }
 
-// TODO: Boilerplate
-export type TravelGS = {
+export type TravelGS = GameStateBase & {
   screen: 'travel'
+  destination: Settlement
+  currentEncounter: Encounter
+  encountersLeft: number
+  encounterFriendlinessModifier: number
 }
 
-export type CombatGS = {
+// TODO: Boilerplate
+export type CombatGS = GameStateBase & {
   screen: 'combat'
+  factions: {
+    type: 'player' | 'ally' | 'neutral' | 'enemy'
+    characters: Character[] & { x: number }
+  }
 }
 
 export type Position = {
   x: number
   y: number
+}
+
+// Function for calculating numeric modifiers to an outcome distribution
+export type ModifierFunction = (gs: GameState) => number
+
+export type Encounter = {
+  greeting: string
+  characters: Character[]
+  distance: number
+  actions: Action[]
 }
 
 export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'goblin' | 'undead' | 'drake'
@@ -165,7 +198,7 @@ export type Settlement = {
   type: SettlementType
   population: number
   primaryRace: Race
-  hostility: number
+  friendliness: number // [-10, 10]
   renown: number
   services: SettlementService[]
   x: number

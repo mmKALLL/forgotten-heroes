@@ -1,5 +1,5 @@
 import { itemList } from '../data'
-import type { Action, GameState, Item, ItemTag, SettlementService } from '../types'
+import type { FixedAction, GameState, Item, ItemTag, SettlementService } from '../types'
 import { attemptToPurchase, generateItemDescription } from './item-utils'
 
 export function generateSettlementServiceActions(service: SettlementService) {
@@ -38,7 +38,7 @@ export function generateSettlementServiceItemSaleList({
     .map((item) => ({ ...item, price: Math.round(item.price * purchasePriceMultiplier) }))
 }
 
-export function generateSettlementServiceTradingActions(service: SettlementService): Action[] {
+export function generateSettlementServiceTradingActions(service: SettlementService): FixedAction[] {
   return service.itemSaleList.map((item) => ({
     label: `Buy ${item.name}`,
     description: `Cost: ${item.price}. ${generateItemDescription(item)}`,
