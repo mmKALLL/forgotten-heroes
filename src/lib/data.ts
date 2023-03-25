@@ -1,4 +1,4 @@
-import type { Item, ItemTag, SettlementService, SettlementType } from './types'
+import type { Event, Item, ItemTag, SettlementService, SettlementType } from './types'
 
 export const settlementTypeData: SettlementType[] = [
   {
@@ -456,3 +456,7 @@ export const itemList = itemData.reduce((acc, cur) => {
   acc[cur.id] = cur
   return acc
 }, {} as { [key: string]: Item })
+
+export const eventData: Event[] = [
+  
+]

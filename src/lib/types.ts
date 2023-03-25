@@ -1,3 +1,12 @@
+export type NatureBiome = 'plains' | 'forest' | 'hills' | 'mountains' | 'sea' | 'river' | 'swamp' | 'desert' | 'road' | 'tundra'
+export type Biome = SettlementBiome | NatureBiome
+
+export type Event = Outcome & {
+  participants: Pick<Character, 'race' | 'class' | 'level'>[]
+  biomes: Biome[]
+  rarity: number // Probability weight between [0, 1]
+}
+
 export type Outcome = {
   message: string
   options?: Action
@@ -146,9 +155,10 @@ export type Class = 'fighter' | 'wizard' | 'rogue' | 'cleric'
 export const classNames: Class[] = ['fighter', 'wizard', 'rogue', 'cleric']
 
 // Used for generating a settlement
+export type SettlementBiome = 'lifeplace' | 'traders' | 'military' | 'other'
 export type SettlementType = {
   name: string
-  type: 'lifeplace' | 'traders' | 'military' | 'other'
+  type: SettlementBiome
   minPopulation: number
   maxPopulation: number
   maxServices: number
