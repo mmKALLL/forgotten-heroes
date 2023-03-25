@@ -7,7 +7,7 @@ export function generateItemDescription(item: Item) {
     item.tags.map((tag) => `[${tag}]`).join('') +
     ' ' +
     item.consumableEffectComponents
-      .map((component) =>
+      ?.map((component) =>
         component.type === 'buff'
           ? `Provides a ${component.amount} ${component.amount > 0 ? 'buff' : 'debuff'} on ${
               component.stat

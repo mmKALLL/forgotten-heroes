@@ -21,11 +21,11 @@ export function generateCountry(player: Player, isStartingCountry: boolean): Cou
     { name: getRandomValue(raceNames), ratio: 1 },
     { name: getRandomValue(raceNames), ratio: 0.5 },
   ]
-  const extraHostility = isStartingCountry ? 0 : randomInt(-10, 40) / 100
+  const extraFriendliness = isStartingCountry ? 0 : randomInt(-2, 8)
   const settlements = (
     isStartingCountry ? [...Array(randomInt(5, 8))] : [...Array(randomInt(4, 30))]
   )
-    .map((_, i) => generateSettlement(player, raceDistribution, extraHostility))
+    .map((_, i) => generateSettlement(player, raceDistribution, extraFriendliness))
     .map((settlement) => ({ ...settlement, ...generateSettlementPosition(settlement.type) }))
 
   return {
@@ -39,13 +39,13 @@ export function generateCountry(player: Player, isStartingCountry: boolean): Cou
 function generateSettlement(
   player: Player,
   raceDistribution: RaceDistribution,
-  extraHostility: number
+  extraFriendliness: number
 ): Omit<Settlement, 'x' | 'y'> {
   const settlementType = getRandomWeightedValue(settlementTypeData)
   const race = getRandomWeightedValue(raceDistribution)
   const population = randomInt(settlementType.minPopulation, settlementType.maxPopulation)
-  const hostility = clamp(
-    (settlementType.hostileChance + extraHostility) *
+  const friendliness = clamp(
+    (settlementType.hostileChance + extraFriendliness) *
       (race.name !== player.leader.race ? (population > 10000 ? 3 : 2) : 1) *
       (Math.random() + 0.5),
     0,
@@ -56,9 +56,9 @@ function generateSettlement(
     type: settlementType,
     population,
     primaryRace: race.name,
-    hostility,
+    friendliness,
     services: generateSettlementServices(population, settlementType),
-    renown: hostility > 0.8 ? -2 : hostility > 0.4 ? -1 : 0,
+    renown: friendliness > 0.8 ? -2 : friendliness > 0.4 ? -1 : 0,
   }
 }
 
@@ -111,4 +111,8 @@ function generateSettlementServices(
     .sort((a, b) => a.quality - b.quality)
     .slice(0, settlementType.maxServices)
   return settlementServices
+}
+
+export function formatSettlementName(settlement: Settlement): string {
+  return `${settlement.type.name} of ${settlement.name}`
 }

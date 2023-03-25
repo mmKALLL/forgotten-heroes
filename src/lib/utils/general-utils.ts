@@ -1,4 +1,4 @@
-import type { Duration } from '../types'
+import type { Duration, Position } from '../types'
 
 export function sum(a: number, b: number): number {
   return a + b
@@ -45,4 +45,19 @@ export const isDefined = <T>(val: T | undefined | null): val is T =>
 // Explicitly check that all inferred types are used
 export function assertNever(x: never): never {
   throw new Error(`Unexpected object in assertNever:\n  ${x}`)
+}
+
+// From T pick a set of properties K
+export function pick<T, K extends keyof T>(obj: T, ...keys: K[]): Pick<T, K> {
+  const ret: any = {}
+  keys.forEach((key) => {
+    ret[key] = obj[key]
+  })
+  return ret
+}
+
+export function distance(origin: Position, destination: Position): number {
+  return Math.round(
+    Math.sqrt(Math.pow(origin.x - destination.x, 2) + Math.pow(origin.y - destination.y, 2))
+  )
 }

@@ -1,8 +1,8 @@
 <script lang="ts">
-  import { generateCountry } from '../utils/settlement-utils'
-  import { capitalize, getRandomValue, randomInt } from '../utils/general-utils'
+  import { formatSettlementName, generateCountry } from '../utils/settlement-utils'
+  import { capitalize, distance, getRandomValue, pick, randomInt } from '../utils/general-utils'
   import { generateCharacter } from '../utils/character-utils'
-  import type { Player, SettlementGS } from '../types'
+  import type { GameState, Player, SettlementGS, TravelGS } from '../types'
   import { generateSettlementServiceActions } from '../utils/data-utils'
   import { generateItemDescription } from '../utils/item-utils'
 
@@ -13,8 +13,13 @@
     inventory: [],
   }
   const country = generateCountry(player, true)
-  let gameState: { player: Player } & SettlementGS = {
+  let gameState: GameState = {
     player,
+    gameLog: [
+      `Your journey starts at the ${formatSettlementName(
+        country.settlements[0]
+      )}. Where do you want to go?`,
+    ],
     screen: 'settlement',
     map: country.settlements[0],
   }
@@ -23,13 +28,26 @@
     activeDescText: null,
   }
 
-  function lessHostility() {
-    if (gameState.screen === 'settlement') gameState.map.hostility -= 0.01
+  function lessFriendliness() {
+    if (gameState.screen === 'settlement') gameState.map.friendliness -= 0.01
   }
   function changeTowns() {
     if (gameState.screen === 'settlement') {
-      gameState.map = getRandomValue(country.settlements)
-      gameState.activeService = undefined
+      const destination = getRandomValue(
+        country.settlements.filter(
+          (s) => gameState.screen === 'settlement' && s.name !== gameState.map.name
+        )
+      )
+      // TODO: Why is undefined accepted for currentEncounter here???
+      const travelGS: TravelGS = {
+        ...pick(gameState, 'player', 'gameLog'),
+        screen: 'travel',
+        destination,
+        currentEncounter: undefined,
+        encountersLeft: randomInt(0, Math.log10(distance(gameState.map, destination)) + 1),
+        encounterFriendlinessModifier: (gameState.map.friendliness + destination.friendliness) / 2,
+      }
+      gameState = travelGS
     }
   }
 
@@ -37,8 +55,6 @@
     if (gameState.screen === 'settlement') gameState.activeService = service
   }
 </script>
-
-<div style="min-height: 2.8em">{renderState.activeDescText ?? ''}</div>
 
 <div style="display: flex;">
   <div
@@ -73,44 +89,71 @@
   </div>
 </div>
 
-<h3>Current Map</h3>
-<pre>
-{gameState.map.type.name} of {gameState.map.name}
+{#if gameState.screen === 'settlement'}
+  <h3>Current Map</h3>
+  <pre>
+{formatSettlementName(gameState.map)}
 
 {Object.entries(gameState.map)
-    .map(([prop, value]) =>
-      !['name', 'type', 'services'].includes(prop) ? `${capitalize(prop)}: ${value}\n` : ''
-    )
-    .join('')}
+      .map(([prop, value]) =>
+        !['name', 'type', 'services'].includes(prop) ? `${capitalize(prop)}: ${value}\n` : ''
+      )
+      .join('')}
 </pre>
 
-<div>
-  <button on:click={lessHostility}> Decrease hostility </button>
-  <button on:click={changeTowns}> Travel </button>
-</div>
+  <div>
+    <button on:click={lessFriendliness}> Decrease friendliness </button>
+    <button on:click={changeTowns}> Travel </button>
+  </div>
+
+  <div>
+    {#if !gameState.activeService}
+      {#each gameState.map.services as service}
+        <button on:click={() => enterService(service)}> Visit {service.name} </button>
+      {/each}
+    {/if}
+    {#if gameState.activeService}
+      {#each generateSettlementServiceActions(gameState.activeService) as action}
+        <button
+          on:mouseenter={() => {
+            renderState.activeDescText = action.description
+          }}
+          on:mouseleave={() => {
+            renderState.activeDescText = null
+          }}
+          on:click={() => {
+            gameState = action.handler(gameState)
+            renderState.activeDescText = null
+          }}
+        >
+          {action.label}
+        </button>
+      {/each}
+    {/if}
+  </div>
+{/if}
+
+{#if gameState.screen === 'travel'}
+  <div>
+    On the way to {gameState.destination.name}...
+    {#each Object.entries(pick(gameState, 'encounterFriendlinessModifier')) as entry}
+      {entry}
+    {/each}
+  </div>
+  <div>
+    {#if gameState.encountersLeft > 0}
+      <button>Next encounter</button>
+    {/if}
+    {#if gameState.encountersLeft === 0}
+      <button>Enter destination</button>
+    {/if}
+  </div>
+{/if}
+
+<div style="min-height: 3em">{renderState.activeDescText ?? 'No description'}</div>
 
 <div>
-  {#if !gameState.activeService}
-    {#each gameState.map.services as service}
-      <button on:click={() => enterService(service)}> Visit {service.name} </button>
-    {/each}
-  {/if}
-  {#if gameState.activeService}
-    {#each generateSettlementServiceActions(gameState.activeService) as action}
-      <button
-        on:mouseenter={() => {
-          renderState.activeDescText = action.description
-        }}
-        on:mouseleave={() => {
-          renderState.activeDescText = null
-        }}
-        on:click={() => {
-          gameState = action.handler(gameState)
-          renderState.activeDescText = null
-        }}
-      >
-        {action.label}
-      </button>
-    {/each}
-  {/if}
+  {#each Object.values(gameState.gameLog) as logEntry}
+    <div>{logEntry}</div>
+  {/each}
 </div>

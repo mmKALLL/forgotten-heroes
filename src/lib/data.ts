@@ -458,5 +458,5 @@ export const itemList = itemData.reduce((acc, cur) => {
 }, {} as { [key: string]: Item })
 
 export const eventData: Event[] = [
-  
+
 ]
