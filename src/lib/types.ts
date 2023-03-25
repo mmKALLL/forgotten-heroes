@@ -1,34 +1,49 @@
-export type NatureBiome = 'plains' | 'forest' | 'hills' | 'mountains' | 'sea' | 'river' | 'swamp' | 'desert' | 'road' | 'tundra'
-export type Biome = SettlementBiome | NatureBiome
+export type NatureBiome =
+  | 'plains'
+  | 'forest'
+  | 'hills'
+  | 'mountains'
+  | 'sea'
+  | 'river'
+  | 'swamp'
+  | 'desert'
+  | 'road'
+  | 'tundra'
+
+export type SettlementBiome = 'lifeplace' | 'traders' | 'military' | 'other'
+
+export type DungeonBiome = 'fortress' | 'ruins' | 'safe-storage' | 'inhabited-cave' | 'natural-cave' // https://www.d20srd.org/srd/dungeons.htm
+
+export type Biome = SettlementBiome | NatureBiome | DungeonBiome
 
 export type Event = Outcome & {
-  participants: Pick<Character, 'race' | 'class' | 'level'>[]
+  participants: (Pick<Character, 'race' | 'class' | 'level'> & { amount?: number })[]
   biomes: Biome[]
   rarity: number // Probability weight between [0, 1]
+  secret: string
 }
 
-export type Outcome = {
-  message: string
-  options?: FixedAction
-}
+export type Outcome =
+  | string
+  | {
+      message: string
+      options?: Action[]
+    }
 
 export type BaseAction = {
   label: string
   description?: string
+  condition?: (gs: GameState) => boolean
 }
 export type Action = FixedAction | RandomAction
-export type FixedAction = BaseAction & {
-  handler: <T extends GameState>(gs: T) => T
-}
-export type RandomAction = BaseAction & {
-  outcomeDistribution: OutComeDistribution
-}
 
-export type OutComeDistribution = {
-  modifierDescription: string
-  modifierFunction: ModifierFunction
-  outcomes: Outcome & { d20max: number | null }
+export type FixedAction = BaseAction & {
+  handler: Outcome | (<T extends GameState>(gs: T) => T)
 }
+export type RandomAction = BaseAction & { handler: SkillCheck }
+
+export type MultiOutcome = (Outcome & { d20max?: number | null })[]
+export type SkillCheck = { stat: Stat | null; modifier?: number; outcomes: MultiOutcome }
 
 export type Player = {
   gold: number
@@ -140,15 +155,15 @@ export type EffectComponent =
 type LogEntry = string
 
 export type GameStateBase = { player: Player; gameLog: LogEntry[] }
-export type GameState = SettlementGS | TravelGS | CombatGS
+export type GameState = GameStateBase & (SettlementGS | TravelGS | CombatGS)
 
-export type SettlementGS = GameStateBase & {
+export type SettlementGS = {
   screen: 'settlement'
   map: Settlement
   activeService?: SettlementService
 }
 
-export type TravelGS = GameStateBase & {
+export type TravelGS = {
   screen: 'travel'
   destination: Settlement
   currentEncounter: Encounter
@@ -157,7 +172,7 @@ export type TravelGS = GameStateBase & {
 }
 
 // TODO: Boilerplate
-export type CombatGS = GameStateBase & {
+export type CombatGS = {
   screen: 'combat'
   factions: {
     type: 'player' | 'ally' | 'neutral' | 'enemy'
@@ -184,11 +199,10 @@ export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'goblin' | 'undead' | 'dr
 export const raceNames: Race[] = ['human', 'elf', 'dwarf', 'orc', 'goblin', 'undead', 'drake']
 export type RaceDistribution = { name: Race; ratio: number }[]
 
-export type Class = 'fighter' | 'wizard' | 'rogue' | 'cleric'
-export const classNames: Class[] = ['fighter', 'wizard', 'rogue', 'cleric']
+export type Class = 'fighter' | 'wizard' | 'rogue' | 'cleric' | 'commoner'
+export const classNames: Class[] = ['fighter', 'wizard', 'rogue', 'cleric', 'commoner']
 
 // Used for generating a settlement
-export type SettlementBiome = 'lifeplace' | 'traders' | 'military' | 'other'
 export type SettlementType = {
   name: string
   type: SettlementBiome
