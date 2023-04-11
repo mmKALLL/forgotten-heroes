@@ -5,6 +5,7 @@
   import type { GameState, Player, SettlementGS, TravelGS } from '../types'
   import { generateSettlementServiceActions } from '../utils/data-utils'
   import { generateItemDescription } from '../utils/item-utils'
+  import { handleOutcome } from '../utils/event-utils'
 
   const player: Player = {
     gold: randomInt(20, 50),
@@ -13,6 +14,7 @@
     inventory: [],
   }
   const country = generateCountry(player, true)
+  // TODO: Rename to gs
   let gameState: GameState = {
     player,
     gameLog: [
@@ -22,6 +24,7 @@
     ],
     screen: 'settlement',
     map: country.settlements[0],
+    currentEvent: null,
   }
 
   let renderState = {
@@ -107,26 +110,45 @@
   </div>
 
   <div>
-    {#if !gameState.activeService}
+    {#if !gameState.activeService && !gameState.currentEvent}
       {#each gameState.map.services as service}
         <button on:click={() => enterService(service)}> Visit {service.name} </button>
       {/each}
     {/if}
     {#if gameState.activeService}
-      {#each generateSettlementServiceActions(gameState.activeService) as action}
+      {#each generateSettlementServiceActions(gameState.activeService) as option}
         <button
           on:mouseenter={() => {
-            renderState.activeDescText = action.description
+            renderState.activeDescText = option.description
           }}
           on:mouseleave={() => {
             renderState.activeDescText = null
           }}
           on:click={() => {
-            gameState = action.handler(gameState)
+            gameState = option.handler(gameState)
             renderState.activeDescText = null
           }}
         >
-          {action.label}
+          {option.label}
+        </button>
+      {/each}
+    {/if}
+    {#if gameState.currentEvent}
+      {gameState.currentEvent.message}
+      {#each gameState.currentEvent.options as option}
+        <button
+          on:mouseenter={() => {
+            renderState.activeDescText = option.description ?? null
+          }}
+          on:mouseleave={() => {
+            renderState.activeDescText = null
+          }}
+          on:click={() => {
+            gameState = option.callback(gameState)
+            renderState.activeDescText = null
+          }}
+        >
+          {option.label}
         </button>
       {/each}
     {/if}
