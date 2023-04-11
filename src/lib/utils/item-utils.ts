@@ -54,9 +54,11 @@ export function attemptToPurchase<T extends GameState>(item: Item): (gs: T) => T
 
       return {
         ...gs,
+        gameLog: gs.gameLog.concat(`Successfully purchased a ${item.name}!`),
         player: newPlayer,
       }
     }
-    return gs
+
+    return { ...gs, gameLog: gs.gameLog.concat(`Not enough gold to purchase a ${item.name}!`) }
   }
 }

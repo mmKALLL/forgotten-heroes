@@ -1,8 +1,8 @@
 export type NatureBiome =
   | 'plains'
   | 'forest'
-  | 'hills'
-  | 'mountains'
+  | 'hill'
+  | 'mountain'
   | 'sea'
   | 'river'
   | 'swamp'
@@ -16,10 +16,15 @@ export type DungeonBiome = 'fortress' | 'ruins' | 'safe-storage' | 'inhabited-ca
 
 export type Biome = SettlementBiome | NatureBiome | DungeonBiome
 
+export type EventHandler = <T extends GameState>(gs: T, event?: Event) => T
+
+export type Participant = Pick<Character, 'race' | 'class' | 'level'> & { amount?: number }
 export type Event = Outcome & {
-  participants: (Pick<Character, 'race' | 'class' | 'level'> & { amount?: number })[]
+  participants: Participant[]
+  participantsHidden?: boolean
   biomes: Biome[]
   rarity: number // Probability weight between [0, 1]
+  message: string
   secret: string
 }
 
@@ -27,6 +32,7 @@ export type Outcome =
   | string
   | {
       message: string
+      callback?: EventHandler
       options?: Action[]
     }
 
@@ -38,7 +44,7 @@ export type BaseAction = {
 export type Action = FixedAction | RandomAction
 
 export type FixedAction = BaseAction & {
-  handler: Outcome | (<T extends GameState>(gs: T) => T)
+  handler: Outcome | Outcome[] | EventHandler
 }
 export type RandomAction = BaseAction & { handler: SkillCheck }
 
@@ -154,7 +160,18 @@ export type EffectComponent =
 
 type LogEntry = string
 
-export type GameStateBase = { player: Player; gameLog: LogEntry[] }
+export type GameStateBase = {
+  player: Player
+  gameLog: LogEntry[]
+  currentEvent: {
+    message: string
+    options: {
+      label: string
+      description?: string
+      callback: (gameState: GameState) => GameState
+    }[]
+  } | null
+}
 export type GameState = GameStateBase & (SettlementGS | TravelGS | CombatGS)
 
 export type SettlementGS = {
@@ -195,12 +212,30 @@ export type Encounter = {
   actions: Action[]
 }
 
-export type Race = 'human' | 'elf' | 'dwarf' | 'orc' | 'goblin' | 'undead' | 'drake'
+export type Race = 'human' | 'elf' | 'half-elf' | 'dwarf' | 'orc' | 'goblin' | 'undead' | 'drake'
 export const raceNames: Race[] = ['human', 'elf', 'dwarf', 'orc', 'goblin', 'undead', 'drake']
 export type RaceDistribution = { name: Race; ratio: number }[]
 
-export type Class = 'fighter' | 'wizard' | 'rogue' | 'cleric' | 'commoner'
-export const classNames: Class[] = ['fighter', 'wizard', 'rogue', 'cleric', 'commoner']
+export type Class =
+  | 'fighter'
+  | 'wizard'
+  | 'rogue'
+  | 'cleric'
+  | 'bard'
+  | 'ranger'
+  | 'paladin'
+  | 'commoner'
+
+export const classNames: Class[] = [
+  'fighter',
+  'wizard',
+  'rogue',
+  'cleric',
+  'bard',
+  'ranger',
+  'paladin',
+  'commoner',
+]
 
 // Used for generating a settlement
 export type SettlementType = {

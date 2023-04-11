@@ -42,6 +42,9 @@ export function generateSettlementServiceTradingActions(service: SettlementServi
   return service.itemSaleList.map((item) => ({
     label: `Buy ${item.name}`,
     description: `Cost: ${item.price}. ${generateItemDescription(item)}`,
-    handler: attemptToPurchase(item),
+    handler: {
+      message: '',
+      callback: attemptToPurchase(item),
+    },
   }))
 }
