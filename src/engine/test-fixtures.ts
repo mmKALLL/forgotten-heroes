@@ -389,6 +389,207 @@ const stranger = {
   },
 }
 
+const settlementType = (
+  id: string,
+  minPopulation: number,
+  maxPopulation: number,
+  maxServices: number,
+  ratio: number
+) => ({
+  id,
+  name: id[0].toUpperCase() + id.slice(1),
+  category: id === 'fort' ? 'military' : 'lifeplace',
+  minPopulation,
+  maxPopulation,
+  maxServices,
+  ratio,
+  hostileChance: 0.1,
+  predominantAncestry: 'human',
+})
+
+const service = (id: string, name: string, presenceThresholdBySize: number[]) => ({
+  id,
+  name,
+  presenceThresholdBySize,
+  itemSaleTags: [],
+  typicalRarity: 0,
+  maxRarity: 0,
+})
+
+/**
+ * A tiny world: Greenvale (plains) and Ashmoor (marsh) on the mainland, and Far Isle across the
+ * sea. Greenvale 1 and Far Isle 1 have capital markers. Distances fit the 4.84 px/km scale.
+ */
+export const testWorld: Record<string, unknown> = {
+  'data/original/settlement-types.json': {
+    kind: 'settlementTypes',
+    source: 'original',
+    entries: [
+      settlementType('hamlet', 50, 150, 4, 2.5),
+      settlementType('village', 300, 1200, 6, 2),
+      settlementType('town', 1000, 6000, 8, 1),
+      settlementType('city', 4000, 15000, 10, 0.5),
+      settlementType('capital', 12000, 50000, 12, 0.1),
+      settlementType('fort', 200, 400, 4, 0.75),
+    ],
+  },
+  'data/original/services.json': {
+    kind: 'services',
+    source: 'original',
+    entries: [
+      service('inn-tavern', 'Inn/Tavern', [10, 8, 6, 4, 2, 1]),
+      service('port', 'Port', [19, 18, 16, 14, 12, 10]),
+      service('magic-items', 'Magic items', [25, 22, 19, 16, 15, 14]),
+    ],
+  },
+  'data/claude/regions.json': {
+    kind: 'regions',
+    source: 'claude',
+    entries: [
+      { id: 'greenvale', name: 'Greenvale', biome: 'plains', label: { x: 1150, y: 950 } },
+      { id: 'ashmoor', name: 'Ashmoor', biome: 'marsh', label: { x: 1300, y: 1350 } },
+      { id: 'farisle', name: 'Far Isle', biome: 'forest', label: { x: 2000, y: 1250 } },
+    ],
+  },
+  'data/claude/settlements.json': {
+    kind: 'settlements',
+    source: 'claude',
+    entries: [
+      {
+        id: 'greenvale-1',
+        at: { x: 1000, y: 1000 },
+        region: 'greenvale',
+        island: 'mainland',
+        capital: true,
+        coastal: true,
+      },
+      { id: 'greenvale-2', at: { x: 1300, y: 1000 }, region: 'greenvale', island: 'mainland' },
+      {
+        id: 'ashmoor-1',
+        at: { x: 1300, y: 1300 },
+        region: 'ashmoor',
+        island: 'mainland',
+        coastal: true,
+      },
+      {
+        id: 'farisle-1',
+        at: { x: 2000, y: 1300 },
+        region: 'farisle',
+        island: 'farisle',
+        capital: true,
+        coastal: true,
+      },
+    ],
+  },
+  'data/claude/routes.json': {
+    kind: 'routes',
+    source: 'claude',
+    entries: [
+      {
+        id: 'greenvale-1-greenvale-2',
+        from: 'greenvale-1',
+        to: 'greenvale-2',
+        km: 75,
+        terrain: 'plains',
+        danger: 0,
+      },
+      {
+        id: 'ashmoor-1-greenvale-2',
+        from: 'greenvale-2',
+        to: 'ashmoor-1',
+        km: 75,
+        terrain: 'marsh',
+        danger: 2,
+      },
+      {
+        id: 'ashmoor-1-greenvale-1',
+        from: 'greenvale-1',
+        to: 'ashmoor-1',
+        km: 105,
+        terrain: 'forest',
+        danger: 1,
+      },
+      {
+        id: 'ashmoor-1-farisle-1',
+        from: 'ashmoor-1',
+        to: 'farisle-1',
+        km: 160,
+        terrain: 'sea',
+        danger: 1,
+      },
+    ],
+  },
+  'data/original/towns.json': {
+    kind: 'towns',
+    source: 'original',
+    entries: [
+      {
+        id: 'harbourne',
+        name: 'Harbourne',
+        description: 'rich seaside town',
+        alignment: 'LN',
+        size: 'town',
+        biomes: ['plains'],
+        coastal: true,
+        wealth: 2,
+        banner: 'town maps/Harbourne - rich seaside town - LN.jpg',
+      },
+      {
+        id: 'mirefold',
+        name: 'Mirefold',
+        description: 'poor marsh village',
+        size: 'village',
+        biomes: ['marsh'],
+        wealth: -2,
+      },
+    ],
+  },
+  'data/original/place-names.json': {
+    kind: 'placeNames',
+    source: 'original',
+    entries: [
+      {
+        id: 'test-compound',
+        style: 'english',
+        first: ['raven', 'stone', 'ash'],
+        second: ['ford', 'hold', 'stone'],
+      },
+    ],
+  },
+  'data/claude/threats.json': {
+    kind: 'threats',
+    source: 'claude',
+    entries: [
+      {
+        id: 'orc-warband',
+        name: 'Orc warband',
+        description: 'Raiders.',
+        biomes: ['hills', 'mountains'],
+        strength: { min: 2, max: 4 },
+      },
+      {
+        id: 'bog-cult',
+        name: 'Bog cult',
+        description: 'Drowners.',
+        biomes: ['marsh'],
+        strength: { min: 1, max: 3 },
+      },
+      { id: 'bandits', name: 'Bandits', description: 'Thieves.', strength: { min: 1, max: 2 } },
+    ],
+  },
+  'data/claude/world-parts.json': {
+    kind: 'partsTables',
+    source: 'claude',
+    entries: [
+      {
+        id: 'realm-name',
+        description: 'Realm names',
+        rows: [{ text: 'Kingdom of {place}' }, { text: '{Place} Marches' }],
+      },
+    ],
+  },
+}
+
 export function fixtureContent(): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
@@ -493,6 +694,7 @@ export function fixtureContent(): Content {
         },
       ],
     },
+    ...testWorld,
   })
   if (errors.length > 0) throw new Error(JSON.stringify(errors, null, 2))
   return content
