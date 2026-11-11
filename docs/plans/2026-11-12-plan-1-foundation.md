@@ -2496,8 +2496,9 @@ Every file declares `kind` and `source`, and VS Code validates it through `$sche
 
 ## Credits
 
-- Portraits: Terrible Character Portraits (CC BY 3.0). Kept locally in `assets/` and not committed; restore them from tag `v0.1.0-svelte-final` (see `assets.manifest.txt`).
-- World map of Altaeus by @scenerydnd (personal use; not redistributed).
+Committed third-party assets that require attribution are listed here. A full local record of every asset used, including the ones that are not committed, is kept in `CREDITS.md` (gitignored).
+
+- None yet. Game-icons.net icons (CC BY 3.0) will be credited here when they are added.
 ```
 
 **Step 2: Full verification**

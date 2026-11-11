@@ -56,7 +56,8 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - `~/dnd5e` is about 170 GB. Copy single files or small subdirectories only, never whole trees.
 - Every copied path is listed in `assets.manifest.txt`, relative to `~/dnd5e`. The whole `assets/` folder is gitignored.
 - Town-map filenames follow `Name - description - alignment`. Parse them for town names and hints.
-- Icons come from game-icons.net (CC BY 3.0, via `~/dnd5e/rpg-cards`). Credit them in the README.
+- Icons come from game-icons.net (CC BY 3.0, via `~/dnd5e/rpg-cards`).
+- **Credits.** Add a row to `CREDITS.md` (gitignored, local) for every third-party asset or text copied into `assets/` or `data/`: author, licence, and whether it is committed. Anything committed that requires attribution (e.g. CC BY icons) must also be credited in the public `README.md`.
 
 ## Working conventions
 
