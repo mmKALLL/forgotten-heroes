@@ -1,0 +1,117 @@
+Links and tools
+Always open:
+https://koboldplus.club/#/encounter-builder 
+https://improvedinitiative.app/e/ 
+https://donjon.bin.sh/5e/quickref/ 
+https://fantabulous-tech.github.io/solo-adventurers-toolbox/ 
+https://5e.tools/dmscreen.html 
+https://5e.tools/adventures.html 
+https://www.dndbeyond.com/characters 
+https://chatgpt.com/
+
+Page 37 (entering rooms) of TSAT2
+file://./dnd5e/adventures%20-%20solo/5e-The_Solo_Adventurers_Toolbox_Part_Two_by_Paul_Bimler-parchment.pdf 
+
+Character creation:
+https://www.dndbeyond.com/characters 
+https://fastcharacter.com/ 
+
+Dungeon contents:
+https://donjon.bin.sh/5e/dungeon/ 
+https://fantabulous-tech.github.io/solo-adventurers-toolbox/ 
+
+
+Pillars of play:
+
+Interaction:
+Use 6d12 or DMG p.73 goal generator (D = dungeon / W = wilderness / O = other goals)
+First three quest sources are “high rank” and give nicer rewards, but have requirements
+Latter three sources are “low rank” and require 1 gp per quest generation
+Roll 1d4 to find out which reward is given in addition to milestone XP
+Roll 1d4 to find out quest length (-1 for low-rank): short / medium / long / epic
+Biome is based on world map location
+Can find quests from (d6 or roleplay):
+Nobility like the king, counts, dukes, and barons (20% D / 20% W / 60% O)
+Need: to increase realm standing or gain access to elusive people / items
+Reward: magical item / masterwork equip / personal favor / campaign clue
+Requirement: 8 renown or aristocratic lifestyle, 10 gp / day and up
+Guilds or factions, based on each faction’s motivations (25% D / 25% W / 50% O)
+Need: hamper / manipulate / ransack rivals, or gain access to people
+Reward: hireling / skill proficiency / item mastery / guild-specific equipment
+Requirement: 5 renown, membership in guild or wealthy lifestyle, 4 gp / day
+City council, based on needs of the city’s leadership (60% D / 30% W / 10% O)
+Need: to prevent threats to the stability of factions, guilds, or city safety
+Reward: bounties for lots of money / renown, rarely anything else
+Requirement: 3 renown or comfortable lifestyle, 2 gp / day
+Barkeep, based on rumors (50% D / 50% W)
+Need: visit a mysterious settlement, faction, person, or location
+Reward: quest lead / objective with hoard / magical item / campaign clue
+Requirement: 1 renown or 10 gp
+Bar visitors like caravan traders, adventuring parties, mysterious figures, and common folk (75% D / 25% W)
+Need: take care of things that threaten safety on the road
+Reward: quest lead / low bounty / objective with hoard / campaign clue
+Shopkeepers, craftsmen, and other individuals (25% D / 75% W)
+Need: solve personal problems, acquire an uncommon item, etc.
+Reward: based on shop type - discounts / favors / money / renown
+
+Exploration:
+Must rest a minimum of a week between adventures.
+Modest lifestyle confers no penalty nor benefit, -1/+1 to proficiency bonus for next adventure per lifestyle tier decrease/increase
+Travel 3 hexes (= 30 km) per day, strict rationing needed
+Suffer an exhaustion level per day without rations
+Successful Survival check (DC15) can prevent exhaustion
+Short rest allows using Hit Die, long rest recovers HP and Hit Die
+Long rest consumes healing kits for each PC whose HP is restored (1 gp each)
+If you don’t have a healing kit when stabilizing, the roll is done at disadvantage
+(Optional) First death is an inconvenience (failed quest and lost GP), second is a temporary injury (-4 to two random stats, heals 1 per week), third onwards is (randomly) a permanent loss of 1 class level or 2 random stat points. This is tracked separately for each character.
+
+Dungeons:
+Use a cool dungeon map; use solo adventurer’s guide or donjon for generating contents.
+Use kobold fight club or GPT for encounters; set creature type and environment.
+Use TSAT2 “entering rooms” (p.51) with story points or 6d12 for rooms
+Only generate the BBEG once enough clues are found, based on story. DMG p.74
+Inspiration points (green): receive 3 after each long rest or with great roleplaying
+Inspiration is shared with the party
+Can use 1 to reroll any failure or gain a spent hit die
+Can use 2 to gain an extra action, negate an instance of incoming damage
+Clue points (blue): receive 1 when you enter an empty room
+2 needed for unlocking BBEG lair in short dungeon, 3 in medium and 4 in long
+Collecting a multiple of the amount lets you choose one (= push your luck):
+Gain knowledge about a secret weakness of the BBEG
+Gain knowledge of a hidden magic item in BBEG hoard
+You’re allowed to revisit old rooms; roll contents in each case
+Alert points (red): scale between 0 and 9, represents how aggressive the dungeon is
+0: Undetected, standard sneaking and surprise rules
+For each point: -10 to surprise/ambush roll and +1 to enemy passive perception
+4+: Sneaking and dungeon crawl combat AI are disabled, BBEG has traps
+Get -2 from clearing a level
+Get +1 from short rest or if an enemy shouts a warning
+Get +2 from an alert trap or if a warning horn is blown
+Get +3 if an enemy flees combat
+Empty rooms allow a short rest
+Empty floors allow a long rest - but with alert you need to roll a deadly random encounter
+
+Combat:
+No initiative order: everyone in player party moves first, then everyone in enemy party
+Randomly choose between dungeon crawl event system (easy), combat AI (normal), and tactical positioning beatdown (hard). Can choose for an entire quest for less hassle.
+Normal enemies get weaker as they’re damaged, incentivizing spreading of damage. (Also use morale for party dynamics.)
+BBEGs get stronger or more desperate as they’re damaged, incentivizing epic setups.
+Use kobold fight club to generate enemies, don't worry too much about theme for now
+Roll d100 to determine surprise. reduce 10 per alert level, add 20 if whole party had successful stealth check against enemy passive perception
+1-10: ambush with extra traps and tactical advantage
+11-20: ambush with extra traps
+21-35: enemy surprise turn
+36-60: neutral combat start - only half of player party moves
+61-80: player notices enemy first; parley or surprise from outside room
+81-100: player sneaks on enemy: surprise from within room
+Choose between ⅔ speed with diagonals or full speed with FE style.
+Flanking rules: 8-way combat only confers advantage from behind, 4-way FE style provides advantage for both flankers (since AOO take more manouvering to avoid)
+Prioritize actions that might make for a better story over strictly following the combat AI.
+
+XP gain:
+¼ of standard combat exp is awarded
+¼ of level exp gained for every 2 story points
+(multi-level) descending a floor, (single-level) midway point, defeating a midboss
+Approx. 2 in a short dungeon, 3 in a mid, 4 in a long, 5+ in an epic
+¼ of level exp gained as quest reward (divided equally among main objectives)
+¼ of level exp gained from optional high-risk treasure / objectives
