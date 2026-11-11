@@ -36,3 +36,29 @@ export type Tier = (typeof TIERS)[number]
 /** DCs are whole numbers in this range; the engine clamps anything else into it. */
 export const MIN_DC = 1
 export const MAX_DC = 40
+
+/** An encounter's position: Edge gives advantage on the next check, Exposed disadvantage. */
+export const POSITIONS = ['normal', 'edge', 'exposed'] as const
+export type Position = (typeof POSITIONS)[number]
+
+export const LOG_TONES = ['info', 'good', 'bad', 'crit'] as const
+export type LogTone = (typeof LOG_TONES)[number]
+
+/** SRD creature types. */
+export const CREATURE_TYPES = [
+  'aberration',
+  'beast',
+  'celestial',
+  'construct',
+  'dragon',
+  'elemental',
+  'fey',
+  'fiend',
+  'giant',
+  'humanoid',
+  'monstrosity',
+  'ooze',
+  'plant',
+  'undead',
+] as const
+export type CreatureType = (typeof CREATURE_TYPES)[number]

@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AbilityScoresSchema, IdSchema, SkillSchema } from './common'
+import { AbilitySchema, AbilityScoresSchema, IdSchema, LogToneSchema, SkillSchema } from './common'
 import { ABILITIES, SKILLS, TIERS } from './constants'
 
 export const CharacterSchema = z.object({
@@ -21,6 +21,8 @@ export const CheckStatSchema = z.enum([...SKILLS, ...ABILITIES])
 
 export const RollRecordSchema = z.object({
   stat: CheckStatSchema,
+  /** Set when the check overrides the skill's default ability, e.g. Intimidation (CHA). */
+  ability: AbilitySchema.optional(),
   actorId: z.string(),
   dice: z.array(z.number().int().min(1).max(20)),
   kept: z.number().int(),
@@ -36,7 +38,7 @@ export type RollRecord = z.infer<typeof RollRecordSchema>
 export const LogEntrySchema = z.object({
   day: z.number().int(),
   text: z.string(),
-  tone: z.enum(['info', 'good', 'bad', 'crit']),
+  tone: LogToneSchema,
 })
 export type LogEntry = z.infer<typeof LogEntrySchema>
 

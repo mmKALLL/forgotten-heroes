@@ -1,0 +1,99 @@
+import { describe, expect, test } from 'vitest'
+import {
+  DcSchema,
+  EffectSchema,
+  OptionSchema,
+  SituationSchema,
+  SituationTemplateSchema,
+  SlotSourceSchema,
+} from './encounter'
+
+const fixed = (id: string) => ({ id, kind: 'fixed', label: id, outcome: { text: `You ${id}.` } })
+
+describe('effects', () => {
+  test('parse with defaults', () => {
+    expect(EffectSchema.parse({ effect: 'followUp', situation: 'ambush' })).toEqual({
+      effect: 'followUp',
+      situation: 'ambush',
+      after: 0,
+    })
+    expect(EffectSchema.parse({ effect: 'log', text: 'Rain.' })).toEqual({ effect: 'log', text: 'Rain.', tone: 'info' })
+  })
+
+  test('reject unknown effects, missing targets and bad positions', () => {
+    expect(EffectSchema.safeParse({ effect: 'goods', amount: 1 }).success).toBe(false)
+    expect(EffectSchema.safeParse({ effect: 'hp', amount: -3 }).success).toBe(false)
+    expect(EffectSchema.safeParse({ effect: 'exhaustion', amount: 1, target: 'random' }).success).toBe(false)
+    expect(EffectSchema.safeParse({ effect: 'position', position: 'advantage' }).success).toBe(false)
+    expect(EffectSchema.safeParse({ effect: 'days', amount: 0 }).success).toBe(false)
+  })
+})
+
+describe('DCs', () => {
+  test.each([14, 1, 40, 'dc', 'dc+2', 'dc-1'])('%s is valid', (dc) => {
+    expect(DcSchema.safeParse(dc).success).toBe(true)
+  })
+  test.each([0, 41, 12.5, 'dc*2', 'DC+1', '14'])('%s is invalid', (dc) => {
+    expect(DcSchema.safeParse(dc).success).toBe(false)
+  })
+})
+
+describe('options', () => {
+  test('a check option with an ability override; crit tiers are optional', () => {
+    const option = OptionSchema.parse({
+      id: 'threaten',
+      kind: 'check',
+      label: 'Veiled threat',
+      check: { skill: 'intimidation', ability: 'cha', dc: 13 },
+      outcomes: {
+        fail: { text: 'They laugh.', effects: [{ effect: 'position', position: 'exposed' }], stay: true },
+        partial: { text: 'They hesitate.' },
+        success: { text: 'They back off.', twist: { text: 'It was a feint.' } },
+      },
+    })
+    expect(option.kind === 'check' && option.check.ability).toBe('cha')
+    expect(option.requires).toEqual([])
+  })
+
+  test('a check option needs fail, partial and success', () => {
+    const bad = { id: 'x', kind: 'check', label: 'x', check: { skill: 'stealth', dc: 12 }, outcomes: { fail: { text: '' } } }
+    expect(OptionSchema.safeParse(bad).success).toBe(false)
+  })
+})
+
+describe('situations', () => {
+  test('defaults: start stage, weight, slots, not a wonder', () => {
+    const s = SituationSchema.parse({
+      id: 'quiet-road',
+      title: 'Quiet road',
+      stages: { start: { text: 'Nothing stirs.', options: [fixed('wait'), fixed('go')] } },
+    })
+    expect(s).toMatchObject({ start: 'start', weight: 1, wonder: false, followUpOnly: false, slots: {}, tags: [] })
+  })
+
+  test('stage ids must be kebab-case', () => {
+    const bad = { id: 'x', title: 'x', stages: { Start: { text: '' } } }
+    expect(SituationSchema.safeParse(bad).success).toBe(false)
+  })
+
+  test('slot sources', () => {
+    expect(SlotSourceSchema.parse({ from: 'creature', types: ['humanoid'] })).toEqual({
+      from: 'creature',
+      types: ['humanoid'],
+      form: 'group',
+    })
+    expect(SlotSourceSchema.safeParse({ from: 'creature', types: ['robot'] }).success).toBe(false)
+  })
+
+  test('a template is an archetype plus text and slots', () => {
+    const t = SituationTemplateSchema.parse({
+      id: 'roadside-plea',
+      title: 'Roadside plea',
+      text: '{Who} waves you down.',
+      slots: { who: { from: 'table', table: 'who' } },
+      archetype: { id: 'someone-in-need' },
+      twist: { chance: 0.3, what: 'it is a trap' },
+    })
+    expect(t.archetype).toEqual({ id: 'someone-in-need', dc: 13, reward: 1 })
+  })
+})
