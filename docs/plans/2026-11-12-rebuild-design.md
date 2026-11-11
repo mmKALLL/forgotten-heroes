@@ -138,7 +138,7 @@ The town map image is a banner and backdrop.
 
 - **Travel steps by day:** consume essentials (or make a check / gain exhaustion), possibly have an encounter, make camp and keep watch. Days without an encounter collapse into a single summary line.
 - **Travel pace** is chosen per journey:
-  - **Cautious:** ⅔ speed and the most supplies per km. Fewer encounters, and ambushes meet the party on normal footing, or with Edge if it has covered its tracks. Covering tracks makes pursuers lose the trail.
+  - **Cautious:** ⅔ speed and the most supplies per km. Pleasant and neutral encounters happen at the usual rate, but the party automatically avoids some of the hostile ones. Ambushes that still happen meet it on normal footing, or with Edge if it has covered its tracks. Situations therefore carry a disposition tag: `hostile`, `neutral` or `pleasant`. Covering tracks makes pursuers lose the trail.
   - **Steady:** normal speed.
   - **Brisk:** 1.25× speed and the fewest supplies per km. More encounters, ambushes meet the party Exposed, and it outruns slow pursuers.
   - **Forced march:** 1.5× speed, with a CON check each day against exhaustion. It also uses more supplies per km, so it's only worth it when saving time matters for another reason, such as a quest deadline, a pursuer or a market window. Quests and goals with time pressure should exist to make it meaningful.
