@@ -141,7 +141,7 @@ The town map image is a banner and backdrop.
 1. **Situations:** the core premise. They come from every provenance.
 2. **Archetypes:** reusable option sets, for example:
    - *Hostile group:* fight, sneak, negotiate, bribe, flee.
-   - *Someone in need:* trusting help (bigger reward, worse when betrayed), cautious help (smaller reward, protected), ignore, exploit, plus an optional Insight check. What a twist would do (its outcome branches and its chance) stays hidden, shown as "???", until the party passes the Insight check. A failed Insight check keeps it hidden and also gives −2 to the party's next check in that encounter (they misread the situation).
+   - *Someone in need:* trusting help (bigger reward, worse when betrayed), cautious help (smaller reward, protected), ignore, exploit, plus an optional Insight check. What a betrayal would do (the twist outcomes) is always shown, but how likely it is stays hidden until the party passes the Insight check. A failed Insight check keeps the chance hidden and also gives −2 to the party's next check in that encounter (they misread the situation).
 
    Archetypes make one-line imported d100 entries playable without writing options by hand.
 3. **Parts tables:** actor (ancestry, occupation, attitude), motive, complication, stakes. These are filled in according to world state: regional threat, goods carried, low supplies, time of day.
