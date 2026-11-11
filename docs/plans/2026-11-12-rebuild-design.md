@@ -152,6 +152,19 @@ The town map image is a banner and backdrop.
 - **Outcome tiers:** each option shows the acting member, skill, DC and % chance, and every outcome tier (critical fail, fail, partial, success, critical success) before the player commits.
 - **Combat** is resolved as a graded check in slice 1. The linear-distance combat system comes in a later phase.
 
+### Encounter format (Plan 2)
+
+- **Situations** are small stage graphs. Each option is either a graded check (`{ skill, ability?, dc }`, with an outcome per tier) or a fixed choice (requirements and effects, no roll). An outcome may `goto` a stage or `stay`; otherwise the encounter ends. Missing critical tiers fall back to fail and success.
+- **Effects** are declarative: gold, HP (actor, all or random), exhaustion, inspiration, days, position, next-check modifier (with an optional reason such as "misread", shown on the option cards), follow-up, reveal twist, and log. Goods arrive in Plan 4.
+- **Position:** a check rolls with advantage from Edge or disadvantage from Exposed, then the position resets unless the outcome sets it again.
+- **Twists** are rolled secretly at the start. Outcomes may carry a twist branch. The player always sees what the twist would be; Insight reveals its odds.
+- **Archetypes** are option sets with a relative DC (`"dc+2"`) and a reward multiplier for gold. **Templates** are archetypes dressed with parts-table slots. **Slots** are filled at the start; `{actor}` names whoever rolled.
+- **Follow-ups:** `after: N` means N other encounters happen first. Every encounter that starts (a random draw, a due follow-up, or "Play" in the Deck) moves the other queued follow-ups one closer. A due follow-up comes first in a random draw, whatever the source filter; one whose situation no longer exists is dropped. A new encounter can't start while one is in progress.
+- **Saves** store a compiled snapshot of the active situation, so editing content never breaks a save.
+- **High-stakes rolls** (slow, glowing dice) are flagged by content, or are close calls (25–75%) where an outcome costs HP.
+- **Skill uses** from encounter checks are recorded for Strain (Plan 3).
+- Every bundled situation is tested for playability (reachable stages, valid gotos, slots, archetypes, follow-ups) and the quality rules (at least 2 options per regular stage, at least one of them neither `once` nor gated by requirements so no stage is a dead end; wonders cost nothing).
+
 ## 8. Reputation, accessories and modifiers
 
 - **Reputation tiers:** individuals (shopkeepers, notables), settlements, kingdoms, and threat factions.

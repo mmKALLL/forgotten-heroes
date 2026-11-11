@@ -42,7 +42,9 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
   - `procedural/`: parts tables that runtime combinators assemble.
   - `claude/`: everything Claude writes goes here, never into `original/`.
 - **Skills** live in `data/original/skills.json` (default abilities are editable there; new skill ids must also be added to `src/schema/constants.ts`).
+- **Encounters** live in `situations.json` files in any source, plus `archetypes`, `situationTemplates`, `partsTables` and `creatures`. `pnpm test` checks every situation for playability and the quality rules. The Encounter Deck (right column) plays any situation and shows a ⚠ count for broken ones.
 - **No AI generation at play time.** Content is written ahead of time and committed as editable data.
+- `pnpm build` bundles `data/imported-private/` when present locally — never publish a build made with private content.
 
 ## Design principles to respect
 
