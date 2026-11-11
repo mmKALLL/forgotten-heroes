@@ -8,3 +8,79 @@
 
 world maps/altaeus map.jpg
 town maps/__altaeus
+
+# Town banners (one file each; data/original/towns.json and data/imported-private/towns.json name them)
+town maps/Absalom - temperate struggling capital - CN.jpeg
+town maps/Albridge - temperate hamlet - NG.jpeg
+town maps/Amington - elf:halfling village - NG.jpeg
+town maps/Arindholm - hobgoblin city - LE.jpeg
+town maps/Ashenport - poor foresty port town - NE.jpeg
+town maps/Asrathrad - wood elf city - CN.jpeg
+town maps/Athens - arid plains capital - LN.jpg
+town maps/Barovia - hillsy village - TN.jpeg
+town maps/Berem - forest cliff town - TN.jpeg
+town maps/Bridge Hamlet - plains river hamlet - CG.jpeg
+town maps/Brindol - temperate river city - NG.jpg
+town maps/Deadwood - forest village - NG.jpg
+town maps/Emon - temperate city - LN.webp
+town maps/Erika - dwarf mountain city - LN.jpg
+town maps/Eshenoris - elf forest hamlet - CG.png
+town maps/Fallcrest - inequal temperate cliffy town - LG.jpeg
+town maps/Fort Lud - active dark castle - CE.jpeg
+town maps/Fort Toller - dwarf mountain castle - LG.jpeg
+town maps/Gemhold - poor temperate city - CN.jpeg
+town maps/Glade Hamlet - foresty town - NG.jpg
+town maps/Gleamshore - seclusive wood elf hamlet - CG.jpeg
+town maps/Gondolin - high elf capitol - CG.jpeg
+town maps/Grasshopper City - mountain spire gnome city - TN.jpeg
+town maps/Grunak - orc mountain village - CE.jpg
+town maps/Guild City Hustleflow - temperate city - LG.jpeg
+town maps/Hochock - riverside rich city - CG.jpeg
+town maps/Imystrahl - temperate cliffside port city - NG.jpg
+town maps/Iron Edge - dwarf prosperous town - LG.jpeg
+town maps/Karapesh - desert port city - LN.jpeg
+town maps/Kashir - mountain cliff city - TN.jpeg
+town maps/Katalal - stressful temperate capitol - CE.jpeg
+town maps/Kingston - coastal rich village - LG.jpeg
+town maps/Kir Sabal - cliff thorp - LN.webp
+town maps/Kuo Lath - tropical island hamlet - CE.png
+town maps/Lar Tarambar - temperate capital - LG.jpg
+town maps/Lhen - forest-river village - NG.jpeg
+town maps/Lindley - temperate hillsy hamlet - TN.jpg
+town maps/Lowmarsh - poor marsh village - CN.jpeg
+town maps/Maarup - forest coastal rich town - LG.png
+town maps/Mistwood - forest lake village - CN.jpeg
+town maps/Moria - dwarf cave capital - LG.jpeg
+town maps/Mytros - temperate rich port city - LG.jpeg
+town maps/Necropolis - arctic city - CE.webp
+town maps/Nevatra - foresty town - TN.jpg
+town maps/Neverwinter - temperate capital - CN.jpeg
+town maps/Nimduin - high elf cliff town.jpeg
+town maps/Nimlaur - high elf cliff town - CG.jpeg
+town maps/Oakspire - elf treetop hamlet - CN.jpeg
+town maps/Old Hamlet - cliff hillsy forest village - TN.jpeg
+town maps/Omu - temperate city - NE.webp
+town maps/Pike downs - desert town - CN.jpg
+town maps/Port Nyanzaru - rich port city - LN.jpeg
+town maps/Ramos - cliffside forest village - CN.jpeg
+town maps/Redwall - desert cliff city - CN.jpeg
+town maps/Riverlands - half-elf capitol - CG.jpeg
+town maps/Riverton - prosperous temperate village - NG.jpeg
+town maps/Riverwatch - temperate river city - CN.jpg
+town maps/Runeport - temperate port city - NG.jpeg
+town maps/Seelie Market - forest encampment - CN.webp
+town maps/Shantytown - coastal hamlet - CE.jpeg
+town maps/Silverkeep - coastal temperate village - TN.webp
+town maps/Skullport - rich but packed cliff town - CN.jpeg
+town maps/Smallwood - forest village stronghold - NG.jpeg
+town maps/Stormcliff - rich coastal town - LN.jpg
+town maps/Stronghall - orc cavern village - NE.jpg
+town maps/Taquela - desert city military quarters - LN.jpeg
+town maps/Thelonor - cliff elven hidden castle of forgotten royalty - LN.jpeg
+town maps/Thornwall - halfling-elf city - TN.jpeg
+town maps/Tiquan - prosperous valley village - NG.jpeg
+town maps/Torjhi - drow treetop city - NE.jpeg
+town maps/Waterdeep - temperate harbor capital - LN.jpeg
+town maps/White Hill - declining cliff city - TN.jpeg
+town maps/Winnowing Reach - swamp town - CE.webp
+town maps/Xiousing District - temperate town - LN.jpg
