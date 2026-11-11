@@ -1,0 +1,10 @@
+# Assets copied from the dnd5e folder (DND5E_DIR, default ~/dnd5e) into ./assets/, keeping its structure.
+# One path per line, relative to the dnd5e folder. A directory copies everything inside it.
+# Copy single files or small subdirectories only: the source folder is very large.
+# Recreate everything with: pnpm sync-assets
+#
+# Not from dnd5e: assets/Terrible Character Portraits/ (CC BY 3.0). Restore it with:
+#   git checkout v0.1.0-svelte-final -- "assets/Terrible Character Portraits" && git restore --staged assets
+
+world maps/altaeus map.jpg
+town maps/__altaeus
