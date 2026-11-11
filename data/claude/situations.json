@@ -5,6 +5,446 @@
   "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders.",
   "entries": [
     {
+      "id": "flooded-ferry",
+      "title": "The flooded ferry",
+      "tags": ["river"],
+      "stages": {
+        "start": {
+          "text": "Spring melt has swollen the river to a brown roar. The ferry rope still holds, and so does the ferrywoman, Ilse, who has tripled her price and isn't ashamed of it.",
+          "options": [
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Pay Ilse's price",
+              "requires": [{ "req": "gold", "min": 12 }],
+              "outcome": {
+                "text": "Ilse counts the coins, spits for luck, and hauls you across.",
+                "effects": [{ "effect": "gold", "amount": -12 }]
+              }
+            },
+            {
+              "id": "haggle",
+              "kind": "check",
+              "label": "Haggle",
+              "description": "She enjoys a haggle. She also enjoys winning one.",
+              "requires": [{ "req": "gold", "min": 6 }],
+              "once": true,
+              "check": { "skill": "persuasion", "dc": 14 },
+              "outcomes": {
+                "fail": { "text": "Ilse folds her arms. The price stands.", "stay": true },
+                "partial": {
+                  "text": "She knocks a little off, muttering.",
+                  "effects": [{ "effect": "gold", "amount": -9 }]
+                },
+                "success": {
+                  "text": "Ilse laughs and takes half.",
+                  "effects": [{ "effect": "gold", "amount": -6 }]
+                },
+                "critSuccess": {
+                  "text": "Ilse takes you across for a song. {actor} has to sing it, all the way over."
+                }
+              }
+            },
+            {
+              "id": "ford",
+              "kind": "check",
+              "label": "Ford the river upstream",
+              "description": "Free, if the river lets you.",
+              "highStakes": true,
+              "check": { "skill": "athletics", "dc": 15 },
+              "outcomes": {
+                "critFail": {
+                  "text": "The current takes {actor} off their feet and a long way downstream. You find them half-drowned an hour later.",
+                  "effects": [
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "exhaustion", "amount": 1, "target": "actor" }
+                  ]
+                },
+                "fail": { "text": "Halfway across, the bottom drops away.", "goto": "midstream" },
+                "partial": {
+                  "text": "You make it across, soaked and shaking.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": { "text": "{actor} finds the shallows and leads you over." }
+              }
+            },
+            {
+              "id": "wait",
+              "kind": "fixed",
+              "label": "Wait for the water to drop",
+              "requires": [{ "req": "gold", "min": 4 }],
+              "outcome": {
+                "text": "Two days of drizzle and bad food in Ilse's lean-to. Then the river calms, and she takes you over at her usual price.",
+                "effects": [{ "effect": "days", "amount": 2 }, { "effect": "gold", "amount": -4 }]
+              }
+            }
+          ]
+        },
+        "midstream": {
+          "text": "The river has you. Your packs drag at you, and the far bank is still a long way off.",
+          "options": [
+            {
+              "id": "swim",
+              "kind": "check",
+              "label": "Swim for it",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "You crawl out a mile downstream, battered by every rock in the river.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You make the bank, minus a pack.",
+                  "effects": [{ "effect": "gold", "amount": -8 }]
+                },
+                "success": { "text": "{actor} drags everyone to the far bank." }
+              }
+            },
+            {
+              "id": "drop-packs",
+              "kind": "fixed",
+              "label": "Cut your packs loose",
+              "outcome": {
+                "text": "You let the river have your packs, and the coin in them, and swim free.",
+                "effects": [{ "effect": "gold", "amount": -15 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "hedge-witch",
+      "title": "The hedge-witch's price",
+      "tags": ["marsh", "forest"],
+      "notes": "Most useful when the party is hurt. Arcana-heavy parties get a cheaper deal.",
+      "stages": {
+        "start": {
+          "text": "Smoke rises from a turf hut at the edge of the bog. The old woman inside looks at your wounds before she looks at your faces. 'I can mend that,' she says. 'Everything has a price.'",
+          "options": [
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Pay in coin",
+              "requires": [{ "req": "gold", "min": 10 }],
+              "outcome": {
+                "text": "She takes the silver without looking at it and smears something green into your cuts.",
+                "effects": [
+                  { "effect": "gold", "amount": -10 },
+                  { "effect": "hp", "amount": 6, "target": "all" }
+                ]
+              }
+            },
+            {
+              "id": "work",
+              "kind": "fixed",
+              "label": "Work it off",
+              "description": "A day of cutting turf and hauling water.",
+              "outcome": {
+                "text": "A long day cutting turf and hauling water. That night she sees to your wounds.",
+                "effects": [
+                  { "effect": "days", "amount": 1 },
+                  { "effect": "hp", "amount": 6, "target": "all" }
+                ]
+              }
+            },
+            {
+              "id": "trade-lore",
+              "kind": "check",
+              "label": "Trade her a secret of the craft",
+              "description": "She collects spells the way magpies collect spoons.",
+              "once": true,
+              "check": { "skill": "arcana", "dc": 13 },
+              "outcomes": {
+                "fail": { "text": "She isn't impressed. 'Coin or sweat,' she says.", "stay": true },
+                "partial": {
+                  "text": "She takes the lore, grudgingly, and does half the job.",
+                  "effects": [{ "effect": "hp", "amount": 3, "target": "all" }]
+                },
+                "success": {
+                  "text": "Her eyes light up. She mends you and sends you off with her blessing.",
+                  "effects": [
+                    { "effect": "hp", "amount": 6, "target": "all" },
+                    { "effect": "inspiration", "amount": 1 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Thank her and go",
+              "outcome": { "text": "She shrugs and goes back to her pot." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pilgrims-at-dusk",
+      "title": "Pilgrims at dusk",
+      "tags": ["road"],
+      "twist": {
+        "chance": 0.35,
+        "what": "the pilgrims are ghoul-touched, and hungry for more than bread"
+      },
+      "stages": {
+        "start": {
+          "text": "At dusk, three pilgrims in grey ask to share your fire. They are polite and hungry, and one of them never seems to blink.",
+          "options": [
+            {
+              "id": "welcome",
+              "kind": "fixed",
+              "label": "Share your fire",
+              "outcome": {
+                "text": "You make room. They eat like they haven't in weeks, and say little.",
+                "goto": "night"
+              }
+            },
+            {
+              "id": "read",
+              "kind": "check",
+              "label": "Watch them over the fire",
+              "description": "Insight shows how likely the worst is. Misreading them puts you off your next move.",
+              "once": true,
+              "check": { "skill": "insight", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "{actor} stares too long. The pilgrims fall silent and stare back, and {actor} reads it all wrong.",
+                  "effects": [
+                    { "effect": "position", "position": "exposed" },
+                    { "effect": "nextCheckModifier", "amount": -2 }
+                  ],
+                  "stay": true
+                },
+                "fail": {
+                  "text": "Grief, maybe. Or hunger. {actor} settles on the wrong answer.",
+                  "effects": [{ "effect": "nextCheckModifier", "amount": -2 }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "Something about them is wrong. {actor} can't say how wrong.",
+                  "effects": [{ "effect": "revealTwist" }],
+                  "stay": true
+                },
+                "success": {
+                  "text": "{actor} studies them over the fire and gets the measure of them.",
+                  "effects": [{ "effect": "revealTwist" }],
+                  "stay": true
+                }
+              }
+            },
+            {
+              "id": "send-away",
+              "kind": "fixed",
+              "label": "Send them on",
+              "outcome": {
+                "text": "They bow and walk on into the dark. You sleep badly, but you sleep.",
+                "twist": {
+                  "text": "They bow and walk on into the dark. Later, you hear something screaming, far down the road."
+                }
+              }
+            }
+          ]
+        },
+        "night": {
+          "text": "The fire burns low. The pilgrims sleep, or seem to.",
+          "options": [
+            {
+              "id": "sleep",
+              "kind": "fixed",
+              "label": "Sleep",
+              "outcome": {
+                "text": "You wake at dawn to find them gone, and a sprig of rowan tucked into each of your packs.",
+                "effects": [{ "effect": "inspiration", "amount": 1 }],
+                "twist": {
+                  "text": "You wake to cold hands and teeth.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "random" }],
+                  "goto": "attack"
+                }
+              }
+            },
+            {
+              "id": "watch",
+              "kind": "check",
+              "label": "Keep watch through the night",
+              "description": "Costs someone a night's sleep.",
+              "check": { "skill": "perception", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} nods off. At dawn the pilgrims are gone.",
+                  "twist": {
+                    "text": "{actor} nods off, and wakes to teeth.",
+                    "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }],
+                    "goto": "attack"
+                  }
+                },
+                "partial": {
+                  "text": "A long, cold night. At dawn the pilgrims are gone.",
+                  "effects": [{ "effect": "exhaustion", "amount": 1, "target": "actor" }],
+                  "twist": { "text": "{actor} sees them rise just in time.", "goto": "attack" }
+                },
+                "success": {
+                  "text": "{actor} keeps a sharp watch. At dawn the pilgrims leave rowan sprigs by the fire.",
+                  "effects": [
+                    { "effect": "exhaustion", "amount": 1, "target": "actor" },
+                    { "effect": "inspiration", "amount": 1 }
+                  ],
+                  "twist": {
+                    "text": "{actor} sees them rise, grey and silent, and shouts the camp awake.",
+                    "effects": [{ "effect": "position", "position": "edge" }],
+                    "goto": "attack"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "attack": {
+          "text": "The pilgrims are on you, grey-skinned and silent, with nails like hooks.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight",
+              "check": { "skill": "athletics", "dc": 13, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "You drive them off, but their touch leaves you numb and torn.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You drive them off into the dark.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "success": {
+                  "text": "You put them down. Their purses hold old, grave-cold coins.",
+                  "effects": [{ "effect": "gold", "amount": 12 }]
+                }
+              }
+            },
+            {
+              "id": "flee",
+              "kind": "check",
+              "label": "Grab what you can and run",
+              "check": { "skill": "acrobatics", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "They drag at you as you go, and you drop half your coin.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "random" },
+                    { "effect": "gold", "amount": -10 }
+                  ]
+                },
+                "partial": {
+                  "text": "You get away, leaving half your camp behind.",
+                  "effects": [{ "effect": "gold", "amount": -10 }]
+                },
+                "success": { "text": "You run, and they don't follow past the firelight." }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ambush-at-the-narrows",
+      "title": "Ambush at the narrows",
+      "tags": ["road", "hill"],
+      "slots": { "foe": { "from": "creature", "types": ["humanoid"], "maxCr": 1 } },
+      "stages": {
+        "start": {
+          "text": "The road squeezes between two boulders, and {foe} step out to fill the gap. Their leader grins and nods at your packs.",
+          "archetype": { "id": "hostile-group", "dc": 13, "reward": 1 },
+          "options": [
+            {
+              "id": "veiled-threat",
+              "kind": "check",
+              "label": "A quiet word about the last lot",
+              "description": "Intimidation (CHA): a calm, specific threat. Better from a silver tongue than a big arm.",
+              "once": true,
+              "check": { "skill": "intimidation", "ability": "cha", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "Their leader laughs. 'Nice try.'",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They let you pass, but they'll remember your faces.",
+                  "effects": [
+                    { "effect": "followUp", "situation": "grudge-on-the-road", "after": 3 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor}'s quiet words do what swords couldn't. They melt back into the rocks."
+                },
+                "critSuccess": {
+                  "text": "They melt back into the rocks, and one of them leaves an apology in silver.",
+                  "effects": [{ "effect": "gold", "amount": 5 }]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "mapmakers-apprentice",
+      "title": "The mapmaker's apprentice",
+      "tags": ["road"],
+      "twist": {
+        "chance": 0.3,
+        "what": "the 'apprentice' is the thief, and his friends are waiting for whoever stops to help"
+      },
+      "stages": {
+        "start": {
+          "text": "A young man in ink-stained sleeves sits by a broken surveying tripod, crying with rage. His master's instruments were stolen in the night, he says, and he will be beaten for it.",
+          "archetype": { "id": "someone-in-need", "dc": 12, "reward": 1.5 },
+          "options": [
+            {
+              "id": "track",
+              "kind": "check",
+              "label": "Follow the thieves' trail",
+              "description": "Survival-minded parties can sort this out properly, for a day's work.",
+              "check": { "skill": "survival", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The trail goes cold in the bracken. A wasted day.",
+                  "effects": [{ "effect": "days", "amount": 1 }],
+                  "twist": {
+                    "text": "The trail loops back to the boy, and his friends are waiting for {actor}.",
+                    "effects": [
+                      { "effect": "hp", "amount": -4, "target": "actor" },
+                      { "effect": "days", "amount": 1 }
+                    ]
+                  }
+                },
+                "partial": {
+                  "text": "You find the instruments dumped in a ditch, half of them broken. He pays what he can.",
+                  "effects": [{ "effect": "gold", "amount": 6 }, { "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "You find the thieves' camp and take the instruments back. His master pays well.",
+                  "effects": [
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "days", "amount": 1 }
+                  ],
+                  "twist": {
+                    "text": "The trail loops straight back to the 'apprentice'. His friends didn't expect you from behind, and leave their takings.",
+                    "effects": [
+                      { "effect": "gold", "amount": 10 },
+                      { "effect": "days", "amount": 1 }
+                    ]
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
       "id": "grudge-on-the-road",
       "title": "An old grudge",
       "followUpOnly": true,
@@ -81,6 +521,113 @@
                   "effects": [{ "effect": "days", "amount": 1 }]
                 },
                 "success": { "text": "You are across the ford before they can reach it." }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lantern-moths",
+      "title": "Lantern moths",
+      "wonder": true,
+      "weight": 0.3,
+      "tags": ["marsh"],
+      "stages": {
+        "start": {
+          "text": "As the marsh grows dark, the reeds light up: thousands of moths, each carrying a cold spark, rise in slow spirals over the water.",
+          "options": [
+            {
+              "id": "watch",
+              "kind": "fixed",
+              "label": "Watch until the last light fades",
+              "outcome": {
+                "text": "For a while nobody speaks. Later, nobody can agree on how long you stood there.",
+                "effects": [{ "effect": "inspiration", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "singing-stones",
+      "title": "The singing stones",
+      "wonder": true,
+      "weight": 0.3,
+      "tags": ["hill"],
+      "stages": {
+        "start": {
+          "text": "On the ridge, a ring of standing stones hums in the wind, each a different note. Together they almost make a tune you know.",
+          "options": [
+            {
+              "id": "listen",
+              "kind": "fixed",
+              "label": "Listen",
+              "outcome": {
+                "text": "You stop and listen until the wind changes. The tune stays with you for days."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lizardfolk-herb",
+      "title": "The lizardfolk's herb",
+      "followUpOnly": true,
+      "tags": ["swamp"],
+      "notes": "Follow-up completing the trade in the ported 'lizardfolk-ritual' (data/original).",
+      "stages": {
+        "start": {
+          "text": "Two days on, you find the jungle the lizardfolk spoke of: wet green dark, loud with insects. Somewhere in here grows the herb they want.",
+          "options": [
+            {
+              "id": "search",
+              "kind": "check",
+              "label": "Search for the herb",
+              "check": { "skill": "nature", "dc": 14 },
+              "outcomes": {
+                "critFail": {
+                  "text": "{actor} brushes a nettle-vine that leaves an arm numb and swollen. No herb.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "days", "amount": 1 }
+                  ]
+                },
+                "fail": {
+                  "text": "A day of searching, and nothing to show for it.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "partial": {
+                  "text": "You find it after a long, leech-ridden day. The lizardfolk keep their word: the artifact is yours.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    {
+                      "effect": "log",
+                      "text": "Weather-calling artifact (items arrive in a later plan).",
+                      "tone": "crit"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "You find the herb at the foot of a drowned tree. The lizardfolk keep their word: the artifact is yours.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "Weather-calling artifact (items arrive in a later plan).",
+                      "tone": "crit"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "give-up",
+              "kind": "fixed",
+              "label": "Give up on the trade",
+              "outcome": {
+                "text": "You leave the herb to the jungle, and the artifact to the lizardfolk."
               }
             }
           ]

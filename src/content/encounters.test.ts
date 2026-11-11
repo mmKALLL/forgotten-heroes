@@ -61,3 +61,25 @@ test('SRD creatures are imported, and parts tables feed three templates', () => 
   )
   expect(Object.keys(content.situationTemplates).sort()).toEqual(['night-visitor', 'roadside-plea', 'toll-gang'])
 })
+
+const idsFrom = (source: string) =>
+  Object.values(content.situations)
+    .filter((s) => s.source === source)
+    .map((s) => s.id)
+    .sort()
+
+test('Claude wrote eight situations, two of them wonders, plus the follow-up for the lizardfolk port', () => {
+  expect(idsFrom('claude')).toEqual([
+    'ambush-at-the-narrows',
+    'flooded-ferry',
+    'grudge-on-the-road',
+    'hedge-witch',
+    'lantern-moths',
+    'lizardfolk-herb',
+    'mapmakers-apprentice',
+    'pilgrims-at-dusk',
+    'singing-stones',
+  ])
+  const wonders = Object.values(content.situations).filter((s) => s.source === 'claude' && s.wonder)
+  expect(wonders.map((s) => s.id).sort()).toEqual(['lantern-moths', 'singing-stones'])
+})
