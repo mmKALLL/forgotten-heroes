@@ -482,14 +482,14 @@
           "$ref": "#/$defs/__schema23"
         },
         "goto": {
-          "$ref": "#/$defs/__schema38"
+          "$ref": "#/$defs/__schema39"
         },
         "stay": {
-          "$ref": "#/$defs/__schema39"
+          "$ref": "#/$defs/__schema40"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema41"
+          "$ref": "#/$defs/__schema42"
         }
       },
       "required": [
@@ -634,6 +634,22 @@
             "properties": {
               "effect": {
                 "$ref": "#/$defs/__schema37"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema25"
+              }
+            },
+            "required": [
+              "effect",
+              "amount"
+            ],
+            "description": "Add to the party's next check in this encounter (e.g. −2 after misreading a situation)"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema38"
               }
             },
             "required": [
@@ -739,20 +755,24 @@
     },
     "__schema37": {
       "type": "string",
-      "const": "revealTwist"
+      "const": "nextCheckModifier"
     },
     "__schema38": {
+      "type": "string",
+      "const": "revealTwist"
+    },
+    "__schema39": {
       "description": "Next stage. Without goto or stay, the encounter ends.",
       "$ref": "#/$defs/__schema0"
     },
-    "__schema39": {
-      "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema40"
-    },
     "__schema40": {
-      "type": "boolean"
+      "description": "Stay on the current stage",
+      "$ref": "#/$defs/__schema41"
     },
     "__schema41": {
+      "type": "boolean"
+    },
+    "__schema42": {
       "type": "object",
       "properties": {
         "text": {
@@ -762,10 +782,10 @@
           "$ref": "#/$defs/__schema23"
         },
         "goto": {
-          "$ref": "#/$defs/__schema38"
+          "$ref": "#/$defs/__schema39"
         },
         "stay": {
-          "$ref": "#/$defs/__schema39"
+          "$ref": "#/$defs/__schema40"
         }
       },
       "required": [

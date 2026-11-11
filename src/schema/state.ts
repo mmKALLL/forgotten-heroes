@@ -72,6 +72,8 @@ export const EncounterStateSchema = z.object({
   /** The hidden twist, rolled at the start. The UI must not show it. */
   twist: z.boolean(),
   twistRevealed: z.boolean(),
+  /** Added to the party's next check in this encounter, then reset to 0 (e.g. −2 after a failed Insight). */
+  nextCheckModifier: z.number().int().default(0),
   /** "stage/option" keys of `once` options already chosen. */
   used: z.array(z.string()),
   log: z.array(EncounterLogEntrySchema),

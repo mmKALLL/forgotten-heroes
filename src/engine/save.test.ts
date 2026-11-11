@@ -1,12 +1,18 @@
 import { expect, test } from 'vitest'
 import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize } from './save'
 import { newGame, step } from './state'
-import { fixtureContent, makeCharacter } from './test-fixtures'
+import { fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
 import type { RollMode } from './rules/checks'
 
 test('round trip', () => {
   const state = newGame(5, fixtureContent())
   expect(deserialize(serialize(state))).toEqual(state)
+})
+
+test('a v2 save from before nextCheckModifier existed still loads, with 0', () => {
+  const { nextCheckModifier: _dropped, ...older } = makeEncounter()
+  const state = makeState({ encounter: makeEncounter() })
+  expect(deserialize(JSON.stringify({ ...state, encounter: older }))).toEqual(state)
 })
 
 test('garbage and wrong versions load as null', () => {

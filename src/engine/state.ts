@@ -1,18 +1,18 @@
 import type { Content } from '../content/build'
 import { MAX_DC, MIN_DC } from '../schema/constants'
-import type { GameState, LogEntry } from '../schema/state'
+import type { GameState } from '../schema/state'
 import { formatModifier } from './format'
+import { TIER_TONE, appendLog } from './log'
 import { generateParty } from './party'
 import { previewCheck, type CheckPreview } from './preview'
 import { createRng } from './rng'
 import { CURRENT_SAVE_VERSION } from './save'
 import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
-import { TIER_LABELS, normalizeDc, rollCheck, type RollMode, type Tier } from './rules/checks'
+import { TIER_LABELS, normalizeDc, rollCheck, type RollMode } from './rules/checks'
 
 export const STARTING_PARTY_SIZE = 2
 export const STARTING_GOLD = 50
-const LOG_LIMIT = 200
 // These moved out so the encounter engine can use them without importing this module.
 // Re-exported so existing imports from './state' keep working.
 export { MAX_DC, MIN_DC, normalizeDc, previewCheck, type CheckPreview }
@@ -44,18 +44,6 @@ export function newGame(seed: number, content: Content, partySize = STARTING_PAR
   }
 }
 
-function appendLog(state: GameState, text: string, tone: LogEntry['tone']): GameState {
-  return { ...state, log: [...state.log, { day: state.day, text, tone }].slice(-LOG_LIMIT) }
-}
-
-const TONE: Record<Tier, LogEntry['tone']> = {
-  critFail: 'bad',
-  fail: 'bad',
-  partial: 'info',
-  success: 'good',
-  critSuccess: 'crit',
-}
-
 export function step(state: GameState, action: Action): GameState {
   switch (action.type) {
     case 'practiceCheck': {
@@ -74,7 +62,7 @@ export function step(state: GameState, action: Action): GameState {
         `${name} rolls ${statLabel(action.stat)}: ${roll.kept} ${formatModifier(roll.modifier)} = ${roll.total}` +
         ` vs DC ${roll.dc}. ${TIER_LABELS[roll.tier]}.` +
         (crit ? ' Inspiration gained!' : '')
-      return appendLog(next, text, TONE[roll.tier])
+      return appendLog(next, text, TIER_TONE[roll.tier])
     }
   }
 }

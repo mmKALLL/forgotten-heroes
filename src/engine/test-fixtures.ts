@@ -1,5 +1,7 @@
 import { buildContent, type Content } from '../content/build'
-import type { Character } from '../schema/state'
+import { SituationSchema } from '../schema/encounter'
+import type { Character, EncounterState, GameState } from '../schema/state'
+import { newGame } from './state'
 
 export function fixtureContent(): Content {
   const { content, errors } = buildContent({
@@ -43,6 +45,45 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     hp: 10,
     maxHp: 10,
     exhaustion: 0,
+    ...overrides,
+  }
+}
+
+/** A fighter and a bard with known stats, for encounter tests. */
+export const brom = makeCharacter({
+  id: 'brom',
+  name: 'Brom',
+  abilities: { str: 16, dex: 10, con: 14, int: 10, wis: 12, cha: 8 },
+  skillProficiencies: ['athletics', 'intimidation'],
+  hp: 20,
+  maxHp: 20,
+})
+export const lyra = makeCharacter({
+  id: 'lyra',
+  name: 'Lyra',
+  classId: 'bard',
+  abilities: { str: 8, dex: 14, con: 12, int: 10, wis: 10, cha: 16 },
+  skillProficiencies: ['persuasion', 'deception', 'insight'],
+  hp: 16,
+  maxHp: 16,
+})
+
+export function makeState(overrides: Partial<GameState> = {}): GameState {
+  return { ...newGame(1, fixtureContent()), party: [brom, lyra], gold: 20, ...overrides }
+}
+
+export function makeEncounter(overrides: Partial<EncounterState> = {}): EncounterState {
+  return {
+    situation: SituationSchema.parse({ id: 'test-road', title: 'Test road', stages: { start: { text: 'A road.' } } }),
+    source: 'original',
+    stage: 'start',
+    position: 'normal',
+    slots: {},
+    twist: false,
+    twistRevealed: false,
+    nextCheckModifier: 0,
+    used: [],
+    log: [],
     ...overrides,
   }
 }
