@@ -57,7 +57,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - Every copied path is listed in `assets.manifest.txt`, relative to `~/dnd5e`. The whole `assets/` folder is gitignored.
 - Town-map filenames follow `Name - description - alignment`. Parse them for town names and hints.
 - Icons come from game-icons.net (CC BY 3.0, via `~/dnd5e/rpg-cards`).
-- **Credits.** Add a row to `CREDITS.md` (gitignored, local) for every third-party asset or text copied into `assets/` or `data/`: author, licence, and whether it is committed. Anything committed that requires attribution (e.g. CC BY icons) must also be credited in the public `README.md`.
+- **Credits.** Add a row to `CREDITS.md` (gitignored, local) for every third-party asset or text copied into `assets/` or `data/`: author, licence, and whether it is committed. Authors are recorded on a good-guess basis: use filenames, watermarks and the manifest's source paths as clues, and mark uncertain entries "(guess)". Anything committed that requires attribution (e.g. CC BY icons) must also be credited in the public `README.md`.
 
 ## Working conventions
 
