@@ -27,6 +27,25 @@ export function fixtureContent(): Content {
       source: 'original',
       entries: [{ id: 'test-names', ancestries: ['human'], given: ['Ada', 'Bram'], family: ['Stone'] }],
     },
+    'data/procedural/parts.json': {
+      kind: 'partsTables',
+      source: 'procedural',
+      entries: [
+        { id: 'who', description: 'A stranger', rows: [{ text: '{who-attitude} {who-job}' }] },
+        { id: 'who-attitude', description: 'Attitude', rows: [{ text: 'a wary' }, { text: 'an angry', weight: 0 }] },
+        { id: 'who-job', description: 'Job', rows: [{ text: 'tinker' }, { text: 'pilgrim' }] },
+        { id: 'stakes', description: 'Stakes', rows: [{ text: 'A child waits at home.' }] },
+      ],
+    },
+    'data/imported/creatures.json': {
+      kind: 'creatures',
+      source: 'imported',
+      entries: [
+        { id: 'wolf', name: 'Wolf', group: 'a pack of wolves', type: 'beast', cr: 0.25, description: 'Hungry.' },
+        { id: 'bandit', name: 'Bandit', group: 'a band of bandits', type: 'humanoid', cr: 0.125, description: 'Armed.' },
+        { id: 'ogre', name: 'Ogre', group: 'an ogre and its cronies', type: 'giant', cr: 2, description: 'Big.' },
+      ],
+    },
   })
   if (errors.length > 0) throw new Error(JSON.stringify(errors, null, 2))
   return content
