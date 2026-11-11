@@ -31,6 +31,7 @@ describe('abilities', () => {
   test('skills map to abilities; abilities map to themselves', () => {
     expect(abilityOf('persuasion')).toBe('cha')
     expect(abilityOf('sleightOfHand')).toBe('dex')
+    expect(abilityOf('intimidation')).toBe('str') // designer change: DMG variant Strength (Intimidation)
     expect(abilityOf('con')).toBe('con')
     expect(isSkill('stealth')).toBe(true)
     expect(isSkill('str')).toBe(false)

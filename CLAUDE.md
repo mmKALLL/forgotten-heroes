@@ -41,6 +41,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
   - `imported-private/`: material from copyrighted books and PDFs. Gitignored. Never commit copyrighted text anywhere else.
   - `procedural/`: parts tables that runtime combinators assemble.
   - `claude/`: everything Claude writes goes here, never into `original/`.
+- **Skills** live in `data/original/skills.json` (default abilities are editable there; new skill ids must also be added to `src/schema/constants.ts`).
 - **No AI generation at play time.** Content is written ahead of time and committed as editable data.
 
 ## Design principles to respect

@@ -55,6 +55,7 @@ The old Svelte code is removed on this branch. The useful types and data are por
 
 - **Party size:** soft range of 2–6. The starting size is a setting; 2 is suggested. Camaraderie and upkeep get steeply harder past about 7, so a party of 8+ is possible only with heavy late-game investment.
 - **Characters:** full 5e ability scores, skill proficiencies, HP, hit dice, exhaustion, and conditions.
+- Skills are defined in `data/original/skills.json`. Intimidation defaults to STR. Encounter checks may pair a skill with a different ability, e.g. Intimidation (CHA) for a veiled threat (Plan 2).
 - **Who acts:** every check auto-selects the best-suited member by their current effective modifier. The UI shows who acts and the odds, and the player may override the choice.
 - **Edge and Exposed** replace 5e Help, which does not exist here.
   - Succeeding on a risky option grants Edge: advantage on the next check in the same encounter.

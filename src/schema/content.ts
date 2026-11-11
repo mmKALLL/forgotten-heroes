@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { AbilityScoresSchema, IdSchema, SkillSchema, SourceSchema } from './common'
+import { AbilitySchema, AbilityScoresSchema, IdSchema, SkillSchema, SourceSchema } from './common'
 
 export const ClassDefSchema = z.object({
   id: IdSchema,
@@ -53,12 +53,21 @@ export const ServiceDefSchema = z.object({
 })
 export type ServiceDef = z.infer<typeof ServiceDefSchema>
 
+export const SkillDefSchema = z.object({
+  id: SkillSchema,
+  name: z.string(),
+  ability: AbilitySchema.describe('Default ability for checks with this skill'),
+  description: z.string(),
+})
+export type SkillDef = z.infer<typeof SkillDefSchema>
+
 export const CONTENT_KINDS = {
   classes: ClassDefSchema,
   ancestries: AncestryDefSchema,
   names: NameTableSchema,
   settlementTypes: SettlementTypeDefSchema,
   services: ServiceDefSchema,
+  skills: SkillDefSchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS
 export type ContentEntry<K extends ContentKind> = z.infer<(typeof CONTENT_KINDS)[K]>

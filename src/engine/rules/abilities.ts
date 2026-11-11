@@ -1,49 +1,28 @@
+import skillsJson from '../../../data/original/skills.json'
 import { ABILITIES, SKILLS, type Ability, type CheckStat, type Skill } from '../../schema/constants'
+import { contentFileSchema } from '../../schema/content'
 
 export { ABILITIES, SKILLS }
 export type { Ability, CheckStat, Skill }
 
-export const SKILL_ABILITY: Record<Skill, Ability> = {
-  acrobatics: 'dex',
-  animalHandling: 'wis',
-  arcana: 'int',
-  athletics: 'str',
-  deception: 'cha',
-  history: 'int',
-  insight: 'wis',
-  intimidation: 'cha',
-  investigation: 'int',
-  medicine: 'wis',
-  nature: 'int',
-  perception: 'wis',
-  performance: 'cha',
-  persuasion: 'cha',
-  religion: 'int',
-  sleightOfHand: 'dex',
-  stealth: 'dex',
-  survival: 'wis',
+// Skills are content: data/original/skills.json is the single source of truth for each skill's
+// default ability and label. It is parsed once at module load so the engine stays synchronous.
+const skillsFile = contentFileSchema('skills').parse(skillsJson)
+const skillDefs = new Map(skillsFile.entries.map((def) => [def.id, def]))
+const missing = SKILLS.filter((id) => !skillDefs.has(id))
+if (missing.length > 0 || skillDefs.size !== skillsFile.entries.length) {
+  throw new Error(
+    `data/original/skills.json must define each skill in SKILLS exactly once (missing: ${missing.join(', ') || 'none'})`
+  )
 }
 
-const SKILL_LABELS: Record<Skill, string> = {
-  acrobatics: 'Acrobatics',
-  animalHandling: 'Animal Handling',
-  arcana: 'Arcana',
-  athletics: 'Athletics',
-  deception: 'Deception',
-  history: 'History',
-  insight: 'Insight',
-  intimidation: 'Intimidation',
-  investigation: 'Investigation',
-  medicine: 'Medicine',
-  nature: 'Nature',
-  perception: 'Perception',
-  performance: 'Performance',
-  persuasion: 'Persuasion',
-  religion: 'Religion',
-  sleightOfHand: 'Sleight of Hand',
-  stealth: 'Stealth',
-  survival: 'Survival',
-}
+export const SKILL_ABILITY: Readonly<Record<Skill, Ability>> = Object.fromEntries(
+  SKILLS.map((id) => [id, skillDefs.get(id)!.ability])
+) as Record<Skill, Ability>
+
+const SKILL_LABELS: Readonly<Record<Skill, string>> = Object.fromEntries(
+  SKILLS.map((id) => [id, skillDefs.get(id)!.name])
+) as Record<Skill, string>
 
 export const isSkill = (stat: CheckStat): stat is Skill => Object.hasOwn(SKILL_ABILITY, stat)
 

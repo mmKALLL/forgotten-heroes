@@ -28,6 +28,7 @@ describe('actor selection', () => {
   test('the best-suited member acts', () => {
     expect(chooseActor([fighter, bard], 'persuasion')?.characterId).toBe('bard')
     expect(chooseActor([fighter, bard], 'athletics')?.characterId).toBe('fighter')
+    expect(chooseActor([fighter, bard], 'intimidation')?.characterId).toBe('fighter') // STR-based
   })
   test('conditions can change who is best', () => {
     const tired = { ...bard, exhaustion: 4 }

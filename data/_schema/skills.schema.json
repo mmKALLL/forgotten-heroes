@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "skills"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "acrobatics",
+              "animalHandling",
+              "arcana",
+              "athletics",
+              "deception",
+              "history",
+              "insight",
+              "intimidation",
+              "investigation",
+              "medicine",
+              "nature",
+              "perception",
+              "performance",
+              "persuasion",
+              "religion",
+              "sleightOfHand",
+              "stealth",
+              "survival"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "ability": {
+            "type": "string",
+            "enum": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ],
+            "description": "Default ability for checks with this skill"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "ability",
+          "description"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ]
+}
