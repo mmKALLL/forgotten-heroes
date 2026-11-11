@@ -1,0 +1,21 @@
+{
+  "$schema": "../_schema/partsTables.schema.json",
+  "kind": "partsTables",
+  "source": "claude",
+  "notes": "Realm-name forms for the political layer. {place} is a generated place name.",
+  "entries": [
+    {
+      "id": "realm-name",
+      "description": "The name of a kingdom or realm, from a place name",
+      "rows": [
+        { "text": "Kingdom of {place}", "weight": 4 },
+        { "text": "Principality of {place}", "weight": 2 },
+        { "text": "Duchy of {place}", "weight": 2 },
+        { "text": "{Place} Marches" },
+        { "text": "{Place} Dominion" },
+        { "text": "Free Cities of {place}", "weight": 0.5 },
+        { "text": "Theocracy of {place}", "weight": 0.5 }
+      ]
+    }
+  ]
+}

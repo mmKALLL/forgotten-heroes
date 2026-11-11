@@ -1,7 +1,9 @@
 import { describe, expect, test } from 'vitest'
 import { PUBLISHED_TOWNS } from '../../scripts/port/town-maps'
+import { slotNames } from '../engine/encounters/slots'
 import { routesFrom } from '../engine/world/geo'
 import { worldIssues } from '../engine/world/validate'
+import { BIOMES } from '../schema/constants'
 import { loadBundledContent } from './bundled'
 
 const content = loadBundledContent()
@@ -53,5 +55,22 @@ describe('place names', () => {
       'french-soft',
       'spanish',
     ])
+  })
+})
+
+describe('threats and realm names', () => {
+  test('at least eight threats, and every biome but the sea has a favoured one', () => {
+    const threats = Object.values(content.threats)
+    expect(threats.length).toBeGreaterThanOrEqual(8)
+    for (const biome of BIOMES.filter((b) => b !== 'sea')) {
+      expect(threats.some((t) => t.biomes.includes(biome))).toBe(true)
+    }
+    for (const t of threats) expect(t.strength.min).toBeLessThanOrEqual(t.strength.max)
+  })
+
+  test('realm names only use the {place} slot', () => {
+    const rows = content.partsTables['realm-name'].rows
+    expect(rows.length).toBeGreaterThanOrEqual(5)
+    for (const row of rows) expect(slotNames(row.text)).toEqual(['place'])
   })
 })
