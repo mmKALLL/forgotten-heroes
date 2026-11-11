@@ -6,8 +6,10 @@ import type { GameState } from '../schema/state'
 
 type UiAction = Action | { type: 'replace'; state: GameState }
 
-const reducer = (state: GameState, action: UiAction): GameState =>
-  action.type === 'replace' ? action.state : step(state, action)
+const reducer =
+  (content: Content) =>
+  (state: GameState, action: UiAction): GameState =>
+    action.type === 'replace' ? action.state : step(state, action, content)
 
 export const randomSeed = (): number => Math.floor(Math.random() * 2 ** 32)
 
@@ -32,7 +34,7 @@ function loadSaved(): GameState | null {
 }
 
 export function useGame(content: Content) {
-  const [state, dispatch] = useReducer(reducer, null, () => loadSaved() ?? newGame(randomSeed(), content))
+  const [state, dispatch] = useReducer(reducer(content), null, () => loadSaved() ?? newGame(randomSeed(), content))
   useEffect(() => {
     try {
       localStorage.setItem(SAVE_KEY, serialize(state))

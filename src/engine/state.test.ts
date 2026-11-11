@@ -28,7 +28,7 @@ describe('practiceCheck', () => {
   test('rolls with the best actor, advances rng, logs, and does not mutate input', () => {
     const before = base()
     const snapshot = structuredClone(before)
-    const after = step(before, { type: 'practiceCheck', stat: 'persuasion', dc: 12, mode: 'normal' })
+    const after = step(before, { type: 'practiceCheck', stat: 'persuasion', dc: 12, mode: 'normal' }, content)
     expect(before).toEqual(snapshot)
     expect(after.rng).not.toEqual(before.rng)
     expect(after.lastRoll?.actorId).toBe('bard')
@@ -41,7 +41,7 @@ describe('practiceCheck', () => {
     let state = base()
     let crits = 0
     for (let i = 0; i < 400; i++) {
-      state = step(state, { type: 'practiceCheck', stat: 'persuasion', dc: 12, mode: 'normal' })
+      state = step(state, { type: 'practiceCheck', stat: 'persuasion', dc: 12, mode: 'normal' }, content)
       if (state.lastRoll?.tier === 'critSuccess') crits++
     }
     expect(crits).toBeGreaterThan(0)
@@ -50,7 +50,7 @@ describe('practiceCheck', () => {
 
   test('nobody able to act logs and changes nothing else', () => {
     const state = { ...base(), party: base().party.map((c) => ({ ...c, hp: 0 })) }
-    const after = step(state, { type: 'practiceCheck', stat: 'persuasion', dc: 12, mode: 'normal' })
+    const after = step(state, { type: 'practiceCheck', stat: 'persuasion', dc: 12, mode: 'normal' }, content)
     expect(after.rng).toEqual(state.rng)
     expect(after.log.at(-1)?.tone).toBe('bad')
   })

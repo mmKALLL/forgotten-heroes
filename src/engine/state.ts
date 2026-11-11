@@ -6,6 +6,7 @@ import { TIER_TONE, appendLog } from './log'
 import { generateParty } from './party'
 import { previewCheck, type CheckPreview } from './preview'
 import { createRng } from './rng'
+import { stepEncounter, type EncounterAction } from './encounters/run'
 import { CURRENT_SAVE_VERSION } from './save'
 import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
@@ -17,13 +18,9 @@ export const STARTING_GOLD = 50
 // Re-exported so existing imports from './state' keep working.
 export { MAX_DC, MIN_DC, normalizeDc, previewCheck, type CheckPreview }
 
-export type Action = {
-  type: 'practiceCheck'
-  stat: CheckStat
-  dc: number
-  mode: RollMode
-  actorId?: string
-}
+export type Action =
+  | { type: 'practiceCheck'; stat: CheckStat; dc: number; mode: RollMode; actorId?: string }
+  | EncounterAction
 
 export function newGame(seed: number, content: Content, partySize = STARTING_PARTY_SIZE): GameState {
   const [party, rng] = generateParty(createRng(seed), content, partySize)
@@ -44,7 +41,7 @@ export function newGame(seed: number, content: Content, partySize = STARTING_PAR
   }
 }
 
-export function step(state: GameState, action: Action): GameState {
+export function step(state: GameState, action: Action, content: Content): GameState {
   switch (action.type) {
     case 'practiceCheck': {
       const actor = chooseActor(state.party, action.stat, action.actorId)
@@ -64,5 +61,7 @@ export function step(state: GameState, action: Action): GameState {
         (crit ? ' Inspiration gained!' : '')
       return appendLog(next, text, TIER_TONE[roll.tier])
     }
+    default:
+      return stepEncounter(state, action, content)
   }
 }

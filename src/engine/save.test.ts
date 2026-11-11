@@ -4,6 +4,8 @@ import { newGame, step } from './state'
 import { fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
 import type { RollMode } from './rules/checks'
 
+const content = fixtureContent()
+
 test('round trip', () => {
   const state = newGame(5, fixtureContent())
   expect(deserialize(serialize(state))).toEqual(state)
@@ -26,7 +28,7 @@ test('states produced by step always survive a save round trip, even with odd DC
   const modes: RollMode[] = ['normal', 'advantage', 'disadvantage']
   for (let i = 0; i < 21; i++) {
     const dc = dcs[i % dcs.length]
-    state = step(state, { type: 'practiceCheck', stat: 'athletics', dc, mode: modes[i % 3] })
+    state = step(state, { type: 'practiceCheck', stat: 'athletics', dc, mode: modes[i % 3] }, content)
     expect(deserialize(serialize(state))).toEqual(state)
   }
   expect(state.lastRoll?.dc).toBe(15)
@@ -35,7 +37,7 @@ test('states produced by step always survive a save round trip, even with odd DC
 test('practiceCheck clamps DCs to whole numbers in 1..40', () => {
   const start = newGame(11, fixtureContent())
   const dcAfter = (dc: number) =>
-    step(start, { type: 'practiceCheck', stat: 'athletics', dc, mode: 'normal' }).lastRoll?.dc
+    step(start, { type: 'practiceCheck', stat: 'athletics', dc, mode: 'normal' }, content).lastRoll?.dc
   expect(dcAfter(12.5)).toBe(13)
   expect(dcAfter(0)).toBe(1)
   expect(dcAfter(99)).toBe(40)

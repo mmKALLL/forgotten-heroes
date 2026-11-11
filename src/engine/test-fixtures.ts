@@ -32,7 +32,7 @@ const testNeed = {
       once: true,
       check: { skill: 'insight', dc: 'dc' },
       outcomes: {
-        fail: { text: 'You cannot tell.', stay: true },
+        fail: { text: 'You cannot tell.', effects: [{ effect: 'nextCheckModifier', amount: -2 }], stay: true },
         partial: { text: 'Something is off.', effects: [{ effect: 'revealTwist' }], stay: true },
         success: { text: '{actor} reads them.', effects: [{ effect: 'revealTwist' }, { effect: 'position', position: 'edge' }], stay: true },
       },
