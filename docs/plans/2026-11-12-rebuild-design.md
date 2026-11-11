@@ -149,7 +149,9 @@ The town map image is a banner and backdrop.
 
 ### Resolution
 
-- **Outcome tiers:** each option shows the acting member, skill, DC and % chance, and every outcome tier (critical fail, fail, partial, success, critical success) before the player commits. Cards stay compact: hovering or focusing an option shows its tiers in one shared, fixed-size Outcomes panel below the cards.
+- **Outcome tiers:** each option shows the acting member, skill, DC and the odds of every tier before the player commits.
+  - **What's revealed:** the fail, partial and success outcomes are shown. Critical failure and critical success are deliberately kept as "?", because they are usually more extreme and the surprise is part of the fun. Their odds still show on the bar.
+  - **Card layout:** cards stay compact, and clicking a card chooses it. Hovering or focusing an option shows its outcomes in one shared, fixed-size Outcomes panel below the cards.
 - **Combat** is resolved as a graded check in slice 1. The linear-distance combat system comes in a later phase.
 
 ### Encounter format (Plan 2)
