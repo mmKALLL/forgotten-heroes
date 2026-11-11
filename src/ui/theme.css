@@ -495,6 +495,11 @@ label.inline {
     filter: none;
   }
 }
+.card-name {
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+}
 .card-toggle {
   display: flex;
   width: 100%;
@@ -563,4 +568,8 @@ label.inline {
 .prof-mark {
   color: var(--accent);
   font-size: 0.7rem;
+}
+/* Headings focused from script (e.g. a new encounter's title) need no focus ring. */
+h2[tabindex='-1']:focus {
+  outline: none;
 }

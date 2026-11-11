@@ -4,7 +4,8 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, expect, test } from 'vitest'
 import { step, type Action } from '../../engine/state'
-import { fixtureContent, makeState } from '../../engine/test-fixtures'
+import { fixtureContent, makeEncounter, makeState } from '../../engine/test-fixtures'
+import { SituationSchema } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { EncounterView } from './EncounterView'
 
@@ -131,4 +132,56 @@ test('a party too hurt to roll, with nothing affordable left, can only close', a
   expect(screen.getByText('The encounter is over.')).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Close' }))
   expect(screen.getByText('closed')).toBeTruthy()
+})
+
+test('focus follows the play: the dice, then the first option that can be chosen, then Close', async () => {
+  const state = started('roadside')
+  render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
+  await userEvent.click(screen.getByRole('button', { name: 'Choose Read them' }))
+  const skip = screen.getByRole('button', { name: 'Skip dice animation' })
+  expect(document.activeElement).toBe(skip)
+  await userEvent.keyboard('{Enter}')
+  const firstAvailable = screen
+    .getAllByRole('button', { name: /^Choose / })
+    .find((b) => !(b as HTMLButtonElement).disabled)
+  expect(document.activeElement).toBe(firstAvailable)
+  await userEvent.click(screen.getByRole('button', { name: 'Choose Help carefully' }))
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }))
+})
+
+test('an actor picked for an option does not carry over to a same-named option on the next stage', async () => {
+  const go = (goto?: string) => ({
+    id: 'go',
+    kind: 'check',
+    label: 'Go on',
+    check: { skill: 'athletics', dc: 10 },
+    outcomes: {
+      fail: { text: 'On.', goto },
+      partial: { text: 'On.', goto },
+      success: { text: 'On.', goto },
+    },
+  })
+  const situation = SituationSchema.parse({
+    id: 'two-stages',
+    title: 'Two stages',
+    stages: {
+      start: { text: 'First.', options: [go('next')] },
+      next: { text: 'Second.', options: [go()] },
+    },
+  })
+  render(
+    <Harness
+      initial={makeState({
+        encounter: makeEncounter({ situation, log: [{ text: 'First.', tone: 'info' }] }),
+      })}
+    />
+  )
+  const actor = () => screen.getByRole('combobox', { name: 'Actor for Go on' }) as HTMLSelectElement
+  await userEvent.selectOptions(actor(), 'lyra')
+  expect(actor().value).toBe('lyra')
+  await userEvent.click(screen.getByRole('button', { name: 'Choose Go on' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Skip dice animation' }))
+  expect(screen.getByText('Second.')).toBeTruthy()
+  expect(actor().value).toBe('')
+  expect(actor().options[0].textContent).toBe('Auto: Brom')
 })

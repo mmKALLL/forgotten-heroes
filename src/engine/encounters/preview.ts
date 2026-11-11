@@ -3,7 +3,15 @@ import type { GameState } from '../../schema/state'
 import { previewCheck, type CheckPreview } from '../preview'
 import { checkLabel } from '../rules/abilities'
 import { rankActors } from '../rules/character'
-import { TIERS, successChance, tierOdds, type RollMode, type Tier } from '../rules/checks'
+import {
+  TIERS,
+  successChance,
+  tierFaces,
+  tierOdds,
+  type FaceRange,
+  type RollMode,
+  type Tier,
+} from '../rules/checks'
 import { describeEffect } from './effects'
 import { isHighStakes, tierOutcome } from './outcomes'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
@@ -25,8 +33,13 @@ export type OptionCheckPreview = CheckPreview & {
   situationalReason: string | null
   successChance: number
   highStakes: boolean
+  /** The d20 faces for each tier, with the effective modifier (actor's plus situational). */
+  faces: Record<Tier, FaceRange | null>
   /** Everyone able to act, best first, for the actor picker. */
   actors: { id: string; name: string; modifier: number }[]
+  /** Who acts when the player doesn't pick: the best of `actors`. */
+  autoActorId: string
+  autoActorName: string
 }
 
 export type OptionPreview = {
@@ -107,7 +120,13 @@ export function encounterOptions(
     const values = { ...encounter.slots, actor: preview.actorName }
     const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
     // The same effective modifier `chooseOption` rolls with.
-    const odds = tierOdds(preview.modifier + situationalModifier, preview.dc, mode)
+    const effective = preview.modifier + situationalModifier
+    const odds = tierOdds(effective, preview.dc, mode)
+    const actors = rankActors(state.party, skill, ability).map((r) => ({
+      id: r.characterId,
+      name: nameOf(r.characterId),
+      modifier: r.modifier,
+    }))
     const check: OptionCheckPreview = {
       ...preview,
       odds,
@@ -117,11 +136,11 @@ export function encounterOptions(
       situationalReason: encounter.nextCheckReason,
       successChance: successChance(odds),
       highStakes: isHighStakes(option, odds),
-      actors: rankActors(state.party, skill, ability).map((r) => ({
-        id: r.characterId,
-        name: nameOf(r.characterId),
-        modifier: r.modifier,
-      })),
+      faces: tierFaces(effective, preview.dc),
+      actors,
+      // previewCheck found an actor, so someone can act.
+      autoActorId: actors[0].id,
+      autoActorName: actors[0].name,
     }
     const outcomes = TIERS.map((tier) =>
       outcomePreview(tierOutcome(option, tier), tier, values, preview.actorName)

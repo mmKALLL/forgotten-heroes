@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { GameState } from '../../schema/state'
-import { TIERS, tierOdds } from '../rules/checks'
+import { TIERS, tierFaces, tierOdds } from '../rules/checks'
 import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { applyEffects } from './effects'
@@ -45,6 +45,13 @@ describe('encounterOptions', () => {
       actorId: 'brom',
       modifier: 1,
     })
+  })
+
+  test('the d20 faces use the effective modifier; the auto actor is named even when overridden', () => {
+    const misread = applyEffects(roadside, [{ effect: 'nextCheckModifier', amount: -2 }])
+    const read = byId(misread, { read: 'brom' }).read
+    expect(read.check?.faces).toEqual(tierFaces(1 - 2, 12))
+    expect(read.check).toMatchObject({ autoActorId: 'lyra', autoActorName: 'Lyra' })
   })
 
   test('the position sets the roll mode', () => {

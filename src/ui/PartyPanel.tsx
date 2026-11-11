@@ -57,7 +57,7 @@ function CharacterCard({
     .slice(0, 3)
   return (
     <article className={expanded ? 'card expanded' : 'card'} aria-label={c.name}>
-      <header>
+      <h3 className="card-name">
         <button
           type="button"
           className="card-toggle card-head"
@@ -73,7 +73,7 @@ function CharacterCard({
             </span>
           </span>
         </button>
-      </header>
+      </h3>
       <div
         className="hp"
         role="meter"
@@ -93,53 +93,53 @@ function CharacterCard({
           <span className="badge condition">Exhaustion {c.exhaustion}</span>
         </p>
       )}
-      {expanded ? (
-        <div id={sheetId} className="sheet">
-          <dl className="abilities">
-            {ABILITIES.map((a) => (
-              <div key={a}>
-                <dt>{a.toUpperCase()}</dt>
-                <dd>
-                  {c.abilities[a]} <small>{formatModifier(abilityModifier(c.abilities[a]))}</small>
-                </dd>
-              </div>
-            ))}
-          </dl>
-          <div className="skill-groups">
-            {SKILL_GROUPS.map(({ ability, skills }) => (
-              <div key={ability} className="skill-group">
-                <h4>{ability.toUpperCase()}</h4>
-                <ul className="skills">
-                  {skills.map((s) => {
-                    const proficient = c.skillProficiencies.includes(s)
-                    const uses = usesToday.filter((u) => u.skill === s).length
-                    return (
-                      <li key={s} className={proficient ? 'proficient' : undefined}>
-                        {proficient ? (
-                          <span
-                            className="prof-mark"
-                            role="img"
-                            aria-label="proficient"
-                            title="Proficient"
-                          >
-                            ●
-                          </span>
-                        ) : (
-                          <span className="prof-mark" aria-hidden="true" />
-                        )}
-                        <span className="skill-name">{statLabel(s)}</span>
-                        <span className="skill-mod">{formatModifier(statModifier(c, s))}</span>
-                        {uses > 0 && <span className="skill-uses muted small">{uses}× today</span>}
-                      </li>
-                    )
-                  })}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <p className="muted small">● proficient · modifiers include proficiency and exhaustion</p>
+      {/* Always in the page, so aria-controls has a target; hidden while collapsed. */}
+      <div id={sheetId} className="sheet" hidden={!expanded}>
+        <dl className="abilities">
+          {ABILITIES.map((a) => (
+            <div key={a}>
+              <dt>{a.toUpperCase()}</dt>
+              <dd>
+                {c.abilities[a]} <small>{formatModifier(abilityModifier(c.abilities[a]))}</small>
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div className="skill-groups">
+          {SKILL_GROUPS.map(({ ability, skills }) => (
+            <div key={ability} className="skill-group">
+              <h4>{ability.toUpperCase()}</h4>
+              <ul className="skills">
+                {skills.map((s) => {
+                  const proficient = c.skillProficiencies.includes(s)
+                  const uses = usesToday.filter((u) => u.skill === s).length
+                  return (
+                    <li key={s} className={proficient ? 'proficient' : undefined}>
+                      {proficient ? (
+                        <span
+                          className="prof-mark"
+                          role="img"
+                          aria-label="proficient"
+                          title="Proficient"
+                        >
+                          ●
+                        </span>
+                      ) : (
+                        <span className="prof-mark" aria-hidden="true" />
+                      )}
+                      <span className="skill-name">{statLabel(s)}</span>
+                      <span className="skill-mod">{formatModifier(statModifier(c, s))}</span>
+                      {uses > 0 && <span className="skill-uses muted small">{uses}× today</span>}
+                    </li>
+                  )
+                })}
+              </ul>
+            </div>
+          ))}
         </div>
-      ) : (
+        <p className="muted small">● proficient · modifiers include proficiency and exhaustion</p>
+      </div>
+      {!expanded && (
         <p className="muted small">
           Best: {best.map((b) => `${statLabel(b.s)} ${formatModifier(b.m)}`).join(' · ')}
         </p>

@@ -18,8 +18,24 @@ test('cards are compact by default: name, class, HP, best three skills', () => {
   expect(toggle('Brom').getAttribute('aria-expanded')).toBe('false')
   expect(b.getByRole('meter', { name: 'Brom HP' })).toBeTruthy()
   expect(b.getByText(/^Best: Athletics \+5/)).toBeTruthy()
-  expect(b.queryByText('STR')).toBeNull()
-  expect(b.queryByText('Sleight of Hand')).toBeNull()
+  // The sheet is in the page (so aria-controls points at it) but hidden.
+  const sheet = document.getElementById(toggle('Brom').getAttribute('aria-controls') ?? '')
+  expect(sheet?.hidden).toBe(true)
+  expect(sheet?.contains(b.getByText('Sleight of Hand'))).toBe(true)
+  expect(b.queryByRole('heading', { name: 'STR' })).toBeNull() // hidden from the accessibility tree
+})
+
+test('headings nest: Party, then each name, then the sheet groups', async () => {
+  render(<PartyPanel party={[brom, lyra]} />)
+  expect(screen.getByRole('heading', { level: 2, name: 'Party' })).toBeTruthy()
+  const name = card('Brom').getByRole('heading', { level: 3 })
+  expect(name.textContent).toMatch(/^Brom/)
+  expect(name.contains(toggle('Brom'))).toBe(true)
+  await userEvent.click(toggle('Brom'))
+  expect(card('Brom').getByRole('heading', { level: 4, name: 'STR' })).toBeTruthy()
+  expect(document.getElementById(toggle('Brom').getAttribute('aria-controls') ?? '')?.hidden).toBe(
+    false
+  )
 })
 
 test('expanding shows the full sheet: abilities, all 18 skills, proficiency marked', async () => {

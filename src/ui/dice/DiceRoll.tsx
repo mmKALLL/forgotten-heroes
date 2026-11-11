@@ -27,6 +27,7 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
   const [reduced] = useState(prefersReducedMotion)
   const [settled, setSettled] = useState(() => roll.dice.map(() => reduced))
   const [faces, setFaces] = useState(() => (reduced ? roll.dice : roll.dice.map(randomFace)))
+  const buttonRef = useRef<HTMLButtonElement>(null)
   const timers = useRef<number[]>([])
   const done = useRef(false)
   const onDoneRef = useRef(onDone)
@@ -52,31 +53,35 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
       finish()
       return
     }
+    buttonRef.current?.focus() // Enter or Space skips
     const times = settleTimes(roll.dice.length, highStakes)
     const last = roll.dice.length - 1
     roll.dice.forEach((face, i) => {
+      // Each die settles at its scheduled time from the start, however late the flickers run.
+      let landed = false
+      timers.current.push(
+        window.setTimeout(() => {
+          landed = true
+          setSettled((s) => replaced(s, i, true))
+          setFaces((f) => replaced(f, i, face))
+          if (i === last) finish()
+        }, times[i])
+      )
       const slow = highStakes && i === last
       let elapsed = 0
-      const tick = () => {
+      const flicker = () => {
         const delay = flickerDelay(times[i] - elapsed, slow)
-        if (elapsed + delay >= times[i]) {
-          const settle = () => {
-            setSettled((s) => replaced(s, i, true))
-            setFaces((f) => replaced(f, i, face))
-            if (i === last) finish()
-          }
-          timers.current.push(window.setTimeout(settle, times[i] - elapsed))
-          return
-        }
+        if (elapsed + delay >= times[i]) return
         timers.current.push(
           window.setTimeout(() => {
+            if (landed) return
             elapsed += delay
             setFaces((f) => replaced(f, i, randomFace()))
-            tick()
+            flicker()
           }, delay)
         )
       }
-      tick()
+      flicker()
     })
     return clearTimers
     // The roll is fixed for this component's lifetime (callers key it per roll).
@@ -85,8 +90,11 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
   const allSettled = settled.every(Boolean)
   return (
     <button
+      ref={buttonRef}
       type="button"
       className="dice-roll"
+      // Once settled it is just the result: focus moves on to what comes next.
+      tabIndex={allSettled ? -1 : 0}
       onClick={finish}
       aria-label={allSettled ? `Rolled ${roll.dice.join(' and ')}` : 'Skip dice animation'}
     >

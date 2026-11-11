@@ -1,6 +1,6 @@
 import { formatModifier, formatPercent } from '../../engine/format'
 import type { BranchPreview, OptionPreview } from '../../engine/encounters/preview'
-import { TIER_LABELS, tierFaces } from '../../engine/rules/checks'
+import { TIER_LABELS } from '../../engine/rules/checks'
 import { OddsBar, ROLL_MODE_SUFFIX, neededFace, type OddsLabelMode } from '../OddsBar'
 
 type Props = {
@@ -39,8 +39,6 @@ export function OptionCard({
   labelMode = 'faces',
 }: Props) {
   const { check } = option
-  // Faces for the modifier actually rolled: the actor's plus the situational one.
-  const faces = check ? tierFaces(check.modifier + check.situationalModifier, check.dc) : null
   return (
     <article className="option-card" aria-label={option.label}>
       <header className="card-head">
@@ -53,17 +51,18 @@ export function OptionCard({
         )}
       </header>
       {option.description && <p className="muted small">{option.description}</p>}
-      {check && faces && (
+      {check && (
         <>
           <p className="small">
             <label>
               Actor{' '}
               <select
                 aria-label={`Actor for ${option.label}`}
-                value={actorId}
+                // An override for someone who can no longer act falls back to Auto.
+                value={check.actors.some((a) => a.id === actorId) ? actorId : ''}
                 onChange={(e) => onActor(e.target.value)}
               >
-                <option value="">Auto: {check.actors[0]?.name}</option>
+                <option value="">Auto: {check.autoActorName}</option>
                 {check.actors.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.name} {formatModifier(a.modifier)}
@@ -77,7 +76,8 @@ export function OptionCard({
             :{' '}
             {labelMode === 'faces' ? (
               <>
-                needs <strong>{neededFace(faces)}+</strong> on the d20{ROLL_MODE_SUFFIX[check.mode]}
+                needs <strong>{neededFace(check.faces)}+</strong> on the d20
+                {ROLL_MODE_SUFFIX[check.mode]}
               </>
             ) : (
               <>
@@ -85,7 +85,7 @@ export function OptionCard({
               </>
             )}
           </p>
-          <OddsBar odds={check.odds} faces={faces} labelMode={labelMode} />
+          <OddsBar odds={check.odds} faces={check.faces} labelMode={labelMode} />
         </>
       )}
       <ul className="outcomes">
@@ -103,7 +103,7 @@ export function OptionCard({
       </ul>
       {option.unmet.length > 0 && <p className="tone-bad small">{option.unmet.join(', ')}</p>}
       <button
-        className="primary"
+        className="primary next"
         disabled={!option.available}
         onClick={onChoose}
         aria-label={`Choose ${option.label}`}
