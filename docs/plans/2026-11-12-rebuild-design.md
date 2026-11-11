@@ -182,7 +182,7 @@ The town map image is a banner and backdrop.
   - Right: the Altaeus map with the route and log.
   - Bottom: the goods bar by category, a capacity meter, and a visible-wealth indicator.
 - **Style:** the prototype only had the Vite default stylesheet, so the visual style is a fresh pass. Parchment and ink tones suit the Altaeus map.
-- **Dice animation:** flat d20 outlines whose faces flicker, then settle in quick succession, in at most 1.5 s. On high-stakes rolls the last die slows and glows, with the DC drawn as a line. A click skips it, and reduced-motion is respected.
+- **Dice animation:** flat d20 outlines whose faces flicker, then settle in quick succession, in at most 1.5 s. Every roll draws the DC as a short line beside the dice, with the total marked once they settle. On high-stakes rolls the last die slows and glows while it rolls; once settled, only a natural 20 (gold) or natural 1 (red) stays highlighted. A click skips it, and reduced-motion is respected.
 - **Encounter Deck** (dev panel): every encounter, filterable by source and playable on demand, for comparing which provenance feels most exciting.
 - **Demand visualisation** on the world map is to be designed later.
 

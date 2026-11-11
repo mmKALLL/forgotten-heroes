@@ -20,7 +20,8 @@ type Props = {
 
 /**
  * Flat d20 outlines whose faces flicker, then settle one after another (at most 1.5 s).
- * High-stakes rolls hold back the last die, make it glow while it rolls and draw the DC line.
+ * Every roll draws the DC line. High-stakes rolls hold back the last die and make it glow while
+ * it rolls.
  * Once settled, only a critical keeps a glow: gold on a natural 20, red on a natural 1.
  * A click skips; reduced motion shows the result at once.
  * Layout: one row, the dice beside the DC track; the outcome text goes below it (the caller's).
@@ -115,7 +116,7 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
           />
         ))}
       </span>
-      {highStakes && <DcLine roll={roll} done={allSettled} />}
+      <DcLine roll={roll} done={allSettled} />
     </button>
   )
 }
@@ -150,7 +151,7 @@ function D20({
     <svg className={className} viewBox="0 0 40 40" width="60" height="60" aria-hidden="true">
       <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" />
       <polygon points="20,2 36,29 4,29" />
-      <text x="20" y="22" textAnchor="middle" dominantBaseline="central">
+      <text x="20" y="20.7" textAnchor="middle" dominantBaseline="central">
         {face}
       </text>
     </svg>

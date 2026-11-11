@@ -369,3 +369,46 @@ test('an actor picked for an option does not carry over to a same-named option o
   expect(actor().value).toBe('brom')
   expect(actor().options).toHaveLength(2)
 })
+
+test('a check that moves to another stage still shows its dice, DC track and outcome', async () => {
+  const situation = SituationSchema.parse({
+    id: 'gate',
+    title: 'Gate',
+    stages: {
+      start: {
+        text: 'A locked gate.',
+        options: [
+          {
+            id: 'pick',
+            kind: 'check',
+            label: 'Pick the lock',
+            check: { skill: 'athletics', dc: 12 },
+            outcomes: {
+              fail: { text: 'It jams.', goto: 'yard' },
+              partial: { text: 'It jams.', goto: 'yard' },
+              success: { text: 'It jams.', goto: 'yard' },
+            },
+          },
+          { id: 'leave', kind: 'fixed', label: 'Leave', outcome: { text: 'Gone.' } },
+        ],
+      },
+      yard: {
+        text: 'A quiet yard.',
+        options: [
+          { id: 'rest', kind: 'fixed', label: 'Rest', outcome: { text: 'Rested.' } },
+          { id: 'go', kind: 'fixed', label: 'Go', outcome: { text: 'Gone.' } },
+        ],
+      },
+    },
+  })
+  const log = [{ text: 'A locked gate.', tone: 'info' as const }]
+  render(<Harness initial={makeState({ encounter: makeEncounter({ situation, log }) })} />)
+  await userEvent.click(choose('Pick the lock'))
+  await userEvent.click(screen.getByRole('button', { name: 'Skip dice animation' }))
+  const roll = screen.getByRole('button', { name: /^Rolled \d+$/ })
+  expect(within(roll).getByText('DC 12')).toBeTruthy()
+  expect(roll.querySelector('.dc-total')).toBeTruthy()
+  expect(screen.getByText(/^It jams\./)).toBeTruthy()
+  expect(screen.getByText('A quiet yard.')).toBeTruthy()
+  expect(choose('Rest')).toBeTruthy()
+})
