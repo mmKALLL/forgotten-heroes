@@ -2,10 +2,34 @@ import { useState } from 'react'
 import { formatModifier, formatPercent } from '../engine/format'
 import { ABILITIES, SKILLS, statLabel, type CheckStat } from '../engine/rules/abilities'
 import { rankActors } from '../engine/rules/character'
-import { TIER_LABELS, successChance, type RollMode } from '../engine/rules/checks'
+import { TIER_LABELS, successChance, tierFaces, type RollMode } from '../engine/rules/checks'
 import { MAX_DC, MIN_DC, previewCheck, type Action } from '../engine/state'
 import type { GameState } from '../schema/state'
-import { OddsBar } from './OddsBar'
+import { OddsBar, type OddsLabelMode } from './OddsBar'
+
+const ODDS_LABEL_KEY = 'forgotten-heroes/ui/odds-label'
+
+function loadOddsLabelMode(): OddsLabelMode {
+  try {
+    return localStorage.getItem(ODDS_LABEL_KEY) === 'faces' ? 'faces' : 'percent'
+  } catch {
+    return 'percent'
+  }
+}
+
+function saveOddsLabelMode(mode: OddsLabelMode) {
+  try {
+    localStorage.setItem(ODDS_LABEL_KEY, mode)
+  } catch {
+    // Storage unavailable (private mode, quota): the choice just won't persist.
+  }
+}
+
+const MODE_SUFFIX: Record<RollMode, string> = {
+  normal: '',
+  advantage: ' (best of 2)',
+  disadvantage: ' (worst of 2)',
+}
 
 const STATS: CheckStat[] = [...SKILLS, ...ABILITIES]
 
@@ -16,11 +40,19 @@ export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a
   const dc = dcText.trim() === '' ? Number.NaN : Number(dcText)
   const [mode, setMode] = useState<RollMode>('normal')
   const [actorId, setActorId] = useState('')
+  const [labelMode, setLabelMode] = useState<OddsLabelMode>(loadOddsLabelMode)
+  const chooseLabelMode = (m: OddsLabelMode) => {
+    setLabelMode(m)
+    saveOddsLabelMode(m)
+  }
   // An override can outlive its character (e.g. after "New party"): fall back to Auto.
   const selected = state.party.some((c) => c.id === actorId) ? actorId : ''
   const preview = previewCheck(state, stat, dc, mode, selected || undefined)
   const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
   const roll = state.lastRoll
+  const faces = preview ? tierFaces(preview.modifier, preview.dc) : null
+  // Lowest kept face that succeeds; only the natural 20 when the DC is out of reach.
+  const needs = faces ? (faces.success?.min ?? 20) : 20
 
   return (
     <section className="panel" aria-label="Practice check">
@@ -72,9 +104,31 @@ export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a
         <>
           <p>
             {preview.actorName} rolls {statLabel(stat)} {formatModifier(preview.modifier)} vs DC {preview.dc}:{' '}
-            <strong>{formatPercent(successChance(preview.odds))}</strong> to succeed
+            {labelMode === 'faces' ? (
+              <>
+                needs <strong>{needs}+</strong> on the d20{MODE_SUFFIX[mode]}
+              </>
+            ) : (
+              <>
+                <strong>{formatPercent(successChance(preview.odds))}</strong> to succeed
+              </>
+            )}
           </p>
-          <OddsBar odds={preview.odds} />
+          <div className="odds-row">
+            <OddsBar odds={preview.odds} faces={faces ?? undefined} labelMode={labelMode} />
+            <div className="seg-toggle" role="group" aria-label="Odds labels">
+              {(
+                [
+                  ['percent', '%'],
+                  ['faces', 'd20'],
+                ] as const
+              ).map(([m, text]) => (
+                <button key={m} aria-pressed={labelMode === m} onClick={() => chooseLabelMode(m)}>
+                  {text}
+                </button>
+              ))}
+            </div>
+          </div>
         </>
       ) : (
         <p className="muted">No one is able to act.</p>

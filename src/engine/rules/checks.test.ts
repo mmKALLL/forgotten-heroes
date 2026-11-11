@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { createRng } from '../rng'
-import { TIERS, rollCheck, successChance, tierFor, tierOdds } from './checks'
+import { TIERS, rollCheck, successChance, tierFaces, tierFor, tierOdds } from './checks'
 
 const sum = (odds: Record<string, number>) => Object.values(odds).reduce((a, b) => a + b, 0)
 
@@ -43,6 +43,43 @@ describe('tierOdds', () => {
 
   test.each(['normal', 'advantage', 'disadvantage'] as const)('%s odds sum to 1', (mode) => {
     for (const dc of [5, 10, 15, 20, 25]) expect(sum(tierOdds(3, dc, mode))).toBeCloseTo(1)
+  })
+})
+
+describe('tierFaces', () => {
+  test('modifier +0 vs DC 11', () => {
+    expect(tierFaces(0, 11)).toEqual({
+      critFail: { min: 1, max: 1 },
+      fail: { min: 2, max: 7 },
+      partial: { min: 8, max: 10 },
+      success: { min: 11, max: 19 },
+      critSuccess: { min: 20, max: 20 },
+    })
+  })
+
+  test('an out-of-reach DC has no success faces', () => {
+    const faces = tierFaces(5, 25)
+    expect(faces.success).toBeNull()
+    expect(faces.partial).toEqual({ min: 17, max: 19 })
+    expect(faces.critSuccess).toEqual({ min: 20, max: 20 })
+  })
+
+  test('a very easy check has no fail or partial faces', () => {
+    const faces = tierFaces(10, 5)
+    expect(faces.fail).toBeNull()
+    expect(faces.partial).toBeNull()
+    expect(faces.success).toEqual({ min: 2, max: 19 })
+  })
+
+  test('face ranges agree with normal-roll odds', () => {
+    for (const dc of [5, 10, 15, 20, 25, 30]) {
+      const faces = tierFaces(3, dc)
+      const odds = tierOdds(3, dc)
+      for (const t of TIERS) {
+        const r = faces[t]
+        expect(r ? (r.max - r.min + 1) / 20 : 0).toBeCloseTo(odds[t])
+      }
+    }
   })
 })
 

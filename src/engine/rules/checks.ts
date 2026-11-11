@@ -60,6 +60,33 @@ export function tierOdds(
   return odds
 }
 
+export type FaceRange = { min: number; max: number }
+
+/**
+ * The d20 faces (of the kept die) that land in each tier, or null when none do.
+ * Tiers are monotonic in the face, so each tier's faces form one contiguous range.
+ */
+export function tierFaces(modifier: number, dc: number): Record<Tier, FaceRange | null> {
+  const faces: Record<Tier, FaceRange | null> = {
+    critFail: null,
+    fail: null,
+    partial: null,
+    success: null,
+    critSuccess: null,
+  }
+  for (let f = 1; f <= 20; f++) {
+    const tier = tierFor(f, f + modifier, dc)
+    const range = faces[tier]
+    if (!range) faces[tier] = { min: f, max: f }
+    else if (range.max === f - 1) range.max = f
+    else
+      throw new Error(
+        `tierFaces: ${tier} faces are not contiguous (modifier ${modifier}, DC ${dc})`
+      )
+  }
+  return faces
+}
+
 export const successChance = (odds: Record<Tier, number>): number => odds.success + odds.critSuccess
 
 export type RollOutcome = {

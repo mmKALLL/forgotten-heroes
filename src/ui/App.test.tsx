@@ -87,3 +87,23 @@ test('a readable save leaves no backup behind', () => {
   render(<App />)
   expect(localStorage.getItem(UNREADABLE_SAVE_KEY)).toBeNull()
 })
+
+test('the odds bar can label tiers with d20 faces, and remembers the choice', async () => {
+  const { unmount } = render(<App />)
+  const bar = () => screen.getByRole('img', { name: /Success/ })
+  const panelText = () => screen.getByRole('region', { name: 'Practice check' }).textContent
+  expect(bar().textContent).toMatch(/%/)
+  await userEvent.click(screen.getByRole('button', { name: 'd20' }))
+  expect(screen.getByRole('button', { name: 'd20' }).getAttribute('aria-pressed')).toBe('true')
+  expect(bar().textContent).toMatch(/\d+–\d+/)
+  expect(bar().getAttribute('aria-label')).toMatch(/Success: \d+–\d+ \(\d+%\)/)
+  expect(panelText()).toMatch(/: needs \d+\+ on the d20/)
+  expect(localStorage.getItem('forgotten-heroes/ui/odds-label')).toBe('faces')
+  unmount()
+  render(<App />)
+  expect(bar().textContent).toMatch(/\d+–\d+/)
+  expect(panelText()).toMatch(/: needs \d+\+ on the d20/)
+  await userEvent.click(screen.getByRole('button', { name: '%' }))
+  expect(panelText()).toMatch(/\d+% to succeed/)
+  expect(panelText()).not.toMatch(/on the d20/)
+})
