@@ -408,38 +408,59 @@ label.inline {
 .option-card .card-head {
   align-items: baseline;
 }
-/* The odds stay readable but quieter than the text: tier colours mixed toward the panel. */
+/* The odds stay readable but a little quieter than the text: tier colours mixed slightly toward
+   the panel. Each label takes whichever text colour keeps at least 4.5:1 on its segment. */
 .option-card .odds-bar {
-  --seg-mix: var(--panel);
-  --seg-amount: 55%;
-  --seg-ink: var(--ink);
+  --seg-amount: 72%;
+  --seg-dark-text: #2b2118;
+  --seg-light-text: #fff8ec;
   height: 1.1rem;
   margin: 0.1rem 0;
 }
-@media (prefers-color-scheme: dark) {
-  .option-card .odds-bar {
-    --seg-mix: var(--muted);
-    --seg-amount: 45%;
-    --seg-ink: var(--bg);
-  }
-}
 .option-card .odds-seg {
-  color: var(--seg-ink);
+  color: var(--seg-dark-text);
 }
 .option-card .tier-critFail.odds-seg {
-  background: color-mix(in srgb, var(--tier-critFail) var(--seg-amount), var(--seg-mix));
+  background: color-mix(in srgb, var(--tier-critFail) var(--seg-amount), var(--panel));
+  color: var(--seg-light-text);
 }
 .option-card .tier-fail.odds-seg {
-  background: color-mix(in srgb, var(--tier-fail) var(--seg-amount), var(--seg-mix));
+  background: color-mix(in srgb, var(--tier-fail) var(--seg-amount), var(--panel));
 }
 .option-card .tier-partial.odds-seg {
-  background: color-mix(in srgb, var(--tier-partial) var(--seg-amount), var(--seg-mix));
+  background: color-mix(in srgb, var(--tier-partial) var(--seg-amount), var(--panel));
 }
 .option-card .tier-success.odds-seg {
-  background: color-mix(in srgb, var(--tier-success) var(--seg-amount), var(--seg-mix));
+  background: color-mix(in srgb, var(--tier-success) var(--seg-amount), var(--panel));
 }
 .option-card .tier-critSuccess.odds-seg {
-  background: color-mix(in srgb, var(--tier-critSuccess) var(--seg-amount), var(--seg-mix));
+  background: color-mix(in srgb, var(--tier-critSuccess) var(--seg-amount), var(--panel));
+}
+@media (prefers-color-scheme: dark) {
+  /* Mixed toward the dark panel, the red and green segments need light labels. */
+  .option-card .tier-fail.odds-seg,
+  .option-card .tier-success.odds-seg {
+    color: var(--seg-light-text);
+  }
+  .option-card .odds-bar {
+    --seg-dark-text: #1d1914;
+  }
+}
+/* Choose is a quiet dark button, not the accent: the cards' text leads. */
+.option-card button.next {
+  background: #2b2118;
+  border-color: #2b2118;
+  color: #fff8ec;
+}
+@media (prefers-color-scheme: dark) {
+  .option-card button.next {
+    background: #3d352a;
+    border-color: #6b5c47;
+  }
+}
+.option-card button.next:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .choose-row {
   display: flex;
