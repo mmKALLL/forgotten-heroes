@@ -1,0 +1,544 @@
+{
+  "$schema": "../_schema/routes.schema.json",
+  "kind": "routes",
+  "source": "claude",
+  "notes": "Routes follow the dashed roads on the Altaeus map where it draws them (proposed by scripts/map/route_candidates.py, hand-picked). km = straight line (4.84 px per km) × 1.2 on land, × 1.1 at sea. Terrain and danger are Claude's reading of the map. Sea crossings link each island to its nearest coast, plus a Crystal Bay ferry (avarus-4 to avarus-5), which saves a long detour round the bay. The high Reapers Pass (norrikk-3 to reapers-pass-3), the Putrid Vale and the Barren Expanse crossing are danger 3.",
+  "entries": [
+    {
+      "id": "ard-jurgenvren-1-ard-jurgenvren-2",
+      "from": "ard-jurgenvren-1",
+      "to": "ard-jurgenvren-2",
+      "km": 136,
+      "terrain": "mountains",
+      "danger": 2
+    },
+    {
+      "id": "ard-jurgenvren-1-ard-jurgenvren-3",
+      "from": "ard-jurgenvren-1",
+      "to": "ard-jurgenvren-3",
+      "km": 169,
+      "terrain": "mountains",
+      "danger": 1
+    },
+    {
+      "id": "ard-jurgenvren-2-ard-jurgenvren-3",
+      "from": "ard-jurgenvren-2",
+      "to": "ard-jurgenvren-3",
+      "km": 136,
+      "terrain": "mountains",
+      "danger": 2
+    },
+    {
+      "id": "ard-jurgenvren-2-kard-krait-1",
+      "from": "ard-jurgenvren-2",
+      "to": "kard-krait-1",
+      "km": 91,
+      "terrain": "sea",
+      "danger": 1
+    },
+    {
+      "id": "avarus-1-avarus-2",
+      "from": "avarus-1",
+      "to": "avarus-2",
+      "km": 55,
+      "terrain": "forest",
+      "danger": 0
+    },
+    {
+      "id": "avarus-1-avarus-4",
+      "from": "avarus-1",
+      "to": "avarus-4",
+      "km": 71,
+      "terrain": "forest",
+      "danger": 0
+    },
+    {
+      "id": "avarus-1-deaddar-marsh-4",
+      "from": "avarus-1",
+      "to": "deaddar-marsh-4",
+      "km": 97,
+      "terrain": "hills",
+      "danger": 2
+    },
+    {
+      "id": "avarus-2-avarus-3",
+      "from": "avarus-2",
+      "to": "avarus-3",
+      "km": 50,
+      "terrain": "forest",
+      "danger": 1
+    },
+    {
+      "id": "avarus-3-hyron-3",
+      "from": "avarus-3",
+      "to": "hyron-3",
+      "km": 41,
+      "terrain": "jungle",
+      "danger": 1
+    },
+    {
+      "id": "avarus-3-putrid-vale-2",
+      "from": "avarus-3",
+      "to": "putrid-vale-2",
+      "km": 48,
+      "terrain": "marsh",
+      "danger": 2
+    },
+    {
+      "id": "avarus-4-avarus-5",
+      "from": "avarus-4",
+      "to": "avarus-5",
+      "km": 63,
+      "terrain": "sea",
+      "danger": 1
+    },
+    {
+      "id": "avarus-5-deadcliff-mesa-1",
+      "from": "avarus-5",
+      "to": "deadcliff-mesa-1",
+      "km": 87,
+      "terrain": "desert",
+      "danger": 2
+    },
+    {
+      "id": "avarus-5-falholt-1",
+      "from": "avarus-5",
+      "to": "falholt-1",
+      "km": 76,
+      "terrain": "forest",
+      "danger": 1
+    },
+    {
+      "id": "barren-expanse-1-barren-expanse-2",
+      "from": "barren-expanse-1",
+      "to": "barren-expanse-2",
+      "km": 150,
+      "terrain": "desert",
+      "danger": 2
+    },
+    {
+      "id": "barren-expanse-1-barren-expanse-4",
+      "from": "barren-expanse-1",
+      "to": "barren-expanse-4",
+      "km": 137,
+      "terrain": "desert",
+      "danger": 2
+    },
+    {
+      "id": "barren-expanse-2-barren-expanse-3",
+      "from": "barren-expanse-2",
+      "to": "barren-expanse-3",
+      "km": 111,
+      "terrain": "desert",
+      "danger": 2
+    },
+    {
+      "id": "barren-expanse-3-barren-expanse-4",
+      "from": "barren-expanse-3",
+      "to": "barren-expanse-4",
+      "km": 78,
+      "terrain": "desert",
+      "danger": 3
+    },
+    {
+      "id": "barren-expanse-3-hyron-1",
+      "from": "barren-expanse-3",
+      "to": "hyron-1",
+      "km": 83,
+      "terrain": "hills",
+      "danger": 2
+    },
+    {
+      "id": "barren-expanse-3-putrid-vale-1",
+      "from": "barren-expanse-3",
+      "to": "putrid-vale-1",
+      "km": 100,
+      "terrain": "marsh",
+      "danger": 3
+    },
+    {
+      "id": "barren-expanse-4-hyron-1",
+      "from": "barren-expanse-4",
+      "to": "hyron-1",
+      "km": 84,
+      "terrain": "hills",
+      "danger": 2
+    },
+    {
+      "id": "caerdydd-1-norrikk-1",
+      "from": "caerdydd-1",
+      "to": "norrikk-1",
+      "km": 84,
+      "terrain": "sea",
+      "danger": 1
+    },
+    {
+      "id": "deadcliff-mesa-1-deadcliff-mesa-2",
+      "from": "deadcliff-mesa-1",
+      "to": "deadcliff-mesa-2",
+      "km": 82,
+      "terrain": "desert",
+      "danger": 1
+    },
+    {
+      "id": "deadcliff-mesa-1-deadcliff-mesa-3",
+      "from": "deadcliff-mesa-1",
+      "to": "deadcliff-mesa-3",
+      "km": 53,
+      "terrain": "desert",
+      "danger": 1
+    },
+    {
+      "id": "deaddar-marsh-1-deaddar-marsh-2",
+      "from": "deaddar-marsh-1",
+      "to": "deaddar-marsh-2",
+      "km": 90,
+      "terrain": "marsh",
+      "danger": 2
+    },
+    {
+      "id": "deaddar-marsh-1-deaddar-marsh-3",
+      "from": "deaddar-marsh-1",
+      "to": "deaddar-marsh-3",
+      "km": 101,
+      "terrain": "marsh",
+      "danger": 1
+    },
+    {
+      "id": "deaddar-marsh-2-deaddar-marsh-4",
+      "from": "deaddar-marsh-2",
+      "to": "deaddar-marsh-4",
+      "km": 67,
+      "terrain": "marsh",
+      "danger": 1
+    },
+    {
+      "id": "deaddar-marsh-2-putrid-vale-1",
+      "from": "deaddar-marsh-2",
+      "to": "putrid-vale-1",
+      "km": 94,
+      "terrain": "hills",
+      "danger": 2
+    },
+    {
+      "id": "deaddar-marsh-2-westreach-1",
+      "from": "deaddar-marsh-2",
+      "to": "westreach-1",
+      "km": 98,
+      "terrain": "plains",
+      "danger": 1
+    },
+    {
+      "id": "deaddar-marsh-3-deaddar-marsh-5",
+      "from": "deaddar-marsh-3",
+      "to": "deaddar-marsh-5",
+      "km": 78,
+      "terrain": "marsh",
+      "danger": 1
+    },
+    {
+      "id": "deaddar-marsh-3-norrikk-1",
+      "from": "deaddar-marsh-3",
+      "to": "norrikk-1",
+      "km": 69,
+      "terrain": "hills",
+      "danger": 1
+    },
+    {
+      "id": "deaddar-marsh-4-deaddar-marsh-5",
+      "from": "deaddar-marsh-4",
+      "to": "deaddar-marsh-5",
+      "km": 53,
+      "terrain": "marsh",
+      "danger": 2
+    },
+    {
+      "id": "deaddar-marsh-5-falholt-1",
+      "from": "deaddar-marsh-5",
+      "to": "falholt-1",
+      "km": 90,
+      "terrain": "hills",
+      "danger": 1
+    },
+    {
+      "id": "falholt-1-falholt-2",
+      "from": "falholt-1",
+      "to": "falholt-2",
+      "km": 63,
+      "terrain": "mountains",
+      "danger": 2
+    },
+    {
+      "id": "falholt-2-norrikk-3",
+      "from": "falholt-2",
+      "to": "norrikk-3",
+      "km": 73,
+      "terrain": "mountains",
+      "danger": 2
+    },
+    {
+      "id": "falholt-2-reapers-pass-3",
+      "from": "falholt-2",
+      "to": "reapers-pass-3",
+      "km": 73,
+      "terrain": "mountains",
+      "danger": 2
+    },
+    {
+      "id": "hyron-1-hyron-2",
+      "from": "hyron-1",
+      "to": "hyron-2",
+      "km": 82,
+      "terrain": "jungle",
+      "danger": 2
+    },
+    {
+      "id": "hyron-1-hyron-3",
+      "from": "hyron-1",
+      "to": "hyron-3",
+      "km": 88,
+      "terrain": "jungle",
+      "danger": 2
+    },
+    {
+      "id": "hyron-3-hyron-4",
+      "from": "hyron-3",
+      "to": "hyron-4",
+      "km": 83,
+      "terrain": "jungle",
+      "danger": 1
+    },
+    {
+      "id": "hyron-4-kard-krait-1",
+      "from": "hyron-4",
+      "to": "kard-krait-1",
+      "km": 93,
+      "terrain": "sea",
+      "danger": 1
+    },
+    {
+      "id": "kard-krait-1-kard-krait-2",
+      "from": "kard-krait-1",
+      "to": "kard-krait-2",
+      "km": 78,
+      "terrain": "forest",
+      "danger": 1
+    },
+    {
+      "id": "kard-krait-2-kard-krait-3",
+      "from": "kard-krait-2",
+      "to": "kard-krait-3",
+      "km": 96,
+      "terrain": "mountains",
+      "danger": 2
+    },
+    {
+      "id": "kard-krait-3-olsari-1",
+      "from": "kard-krait-3",
+      "to": "olsari-1",
+      "km": 62,
+      "terrain": "sea",
+      "danger": 1
+    },
+    {
+      "id": "norrikk-1-norrikk-2",
+      "from": "norrikk-1",
+      "to": "norrikk-2",
+      "km": 64,
+      "terrain": "mountains",
+      "danger": 1
+    },
+    {
+      "id": "norrikk-1-norrikk-3",
+      "from": "norrikk-1",
+      "to": "norrikk-3",
+      "km": 98,
+      "terrain": "hills",
+      "danger": 1
+    },
+    {
+      "id": "norrikk-2-norrikk-3",
+      "from": "norrikk-2",
+      "to": "norrikk-3",
+      "km": 59,
+      "terrain": "mountains",
+      "danger": 1
+    },
+    {
+      "id": "norrikk-2-norrikk-4",
+      "from": "norrikk-2",
+      "to": "norrikk-4",
+      "km": 73,
+      "terrain": "mountains",
+      "danger": 2
+    },
+    {
+      "id": "norrikk-3-reapers-pass-3",
+      "from": "norrikk-3",
+      "to": "reapers-pass-3",
+      "km": 104,
+      "terrain": "mountains",
+      "danger": 3
+    },
+    {
+      "id": "olsari-1-olsari-2",
+      "from": "olsari-1",
+      "to": "olsari-2",
+      "km": 77,
+      "terrain": "jungle",
+      "danger": 2
+    },
+    {
+      "id": "providence-1-providence-2",
+      "from": "providence-1",
+      "to": "providence-2",
+      "km": 79,
+      "terrain": "forest",
+      "danger": 0
+    },
+    {
+      "id": "providence-1-providence-3",
+      "from": "providence-1",
+      "to": "providence-3",
+      "km": 64,
+      "terrain": "plains",
+      "danger": 0
+    },
+    {
+      "id": "providence-1-reapers-pass-2",
+      "from": "providence-1",
+      "to": "reapers-pass-2",
+      "km": 54,
+      "terrain": "plains",
+      "danger": 0
+    },
+    {
+      "id": "providence-2-providence-4",
+      "from": "providence-2",
+      "to": "providence-4",
+      "km": 51,
+      "terrain": "forest",
+      "danger": 0
+    },
+    {
+      "id": "providence-2-reapers-pass-3",
+      "from": "providence-2",
+      "to": "reapers-pass-3",
+      "km": 74,
+      "terrain": "forest",
+      "danger": 1
+    },
+    {
+      "id": "providence-2-tradal-2",
+      "from": "providence-2",
+      "to": "tradal-2",
+      "km": 48,
+      "terrain": "hills",
+      "danger": 0
+    },
+    {
+      "id": "providence-3-providence-6",
+      "from": "providence-3",
+      "to": "providence-6",
+      "km": 91,
+      "terrain": "plains",
+      "danger": 1
+    },
+    {
+      "id": "providence-4-providence-5",
+      "from": "providence-4",
+      "to": "providence-5",
+      "km": 51,
+      "terrain": "forest",
+      "danger": 0
+    },
+    {
+      "id": "providence-5-providence-6",
+      "from": "providence-5",
+      "to": "providence-6",
+      "km": 94,
+      "terrain": "plains",
+      "danger": 0
+    },
+    {
+      "id": "providence-5-tradal-3",
+      "from": "providence-5",
+      "to": "tradal-3",
+      "km": 90,
+      "terrain": "forest",
+      "danger": 1
+    },
+    {
+      "id": "providence-6-providence-7",
+      "from": "providence-6",
+      "to": "providence-7",
+      "km": 53,
+      "terrain": "sea",
+      "danger": 1
+    },
+    {
+      "id": "putrid-vale-1-putrid-vale-2",
+      "from": "putrid-vale-1",
+      "to": "putrid-vale-2",
+      "km": 78,
+      "terrain": "marsh",
+      "danger": 3
+    },
+    {
+      "id": "reapers-pass-1-reapers-pass-2",
+      "from": "reapers-pass-1",
+      "to": "reapers-pass-2",
+      "km": 61,
+      "terrain": "hills",
+      "danger": 1
+    },
+    {
+      "id": "reapers-pass-2-reapers-pass-3",
+      "from": "reapers-pass-2",
+      "to": "reapers-pass-3",
+      "km": 66,
+      "terrain": "hills",
+      "danger": 2
+    },
+    {
+      "id": "reapers-pass-3-tradal-1",
+      "from": "reapers-pass-3",
+      "to": "tradal-1",
+      "km": 86,
+      "terrain": "hills",
+      "danger": 1
+    },
+    {
+      "id": "tradal-1-tradal-2",
+      "from": "tradal-1",
+      "to": "tradal-2",
+      "km": 35,
+      "terrain": "forest",
+      "danger": 0
+    },
+    {
+      "id": "tradal-1-tradal-3",
+      "from": "tradal-1",
+      "to": "tradal-3",
+      "km": 76,
+      "terrain": "plains",
+      "danger": 0
+    },
+    {
+      "id": "tradal-2-tradal-3",
+      "from": "tradal-2",
+      "to": "tradal-3",
+      "km": 51,
+      "terrain": "forest",
+      "danger": 0
+    },
+    {
+      "id": "westreach-1-westreach-2",
+      "from": "westreach-1",
+      "to": "westreach-2",
+      "km": 57,
+      "terrain": "plains",
+      "danger": 0
+    }
+  ]
+}
