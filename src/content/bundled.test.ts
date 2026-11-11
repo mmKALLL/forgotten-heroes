@@ -39,6 +39,14 @@ test('cross-references point at existing ancestries, and the essentials exist', 
 test('data/imported-private/ is optional: absent locally means no private files, present means loaded', () => {
   const present = existsSync(new URL('../../data/imported-private/', import.meta.url))
   const privateFiles = Object.keys(bundledFiles).filter((file) => file.includes('/data/imported-private/'))
-  if (present) expect(loadBundledContent()).toBeTruthy()
-  else expect(privateFiles).toEqual([])
+  if (!present) {
+    expect(privateFiles).toEqual([])
+    return
+  }
+  expect(privateFiles.length).toBeGreaterThan(0)
+  const content = loadBundledContent()
+  const privateEntries = [...Object.values(content.situations), ...Object.values(content.situationTemplates)].filter(
+    (s) => s.source === 'imported-private'
+  )
+  expect(privateEntries.length).toBeGreaterThan(0)
 })

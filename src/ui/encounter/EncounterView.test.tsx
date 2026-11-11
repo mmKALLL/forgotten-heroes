@@ -90,3 +90,12 @@ test('a revealed twist shows its chance', () => {
   render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twistRevealed: true } }} />)
   expect(screen.getByText('Possible twist: it is a trap (chance: 50%)')).toBeTruthy()
 })
+
+test('a stage that does not exist offers no options, only Close', async () => {
+  const state = started('roadside')
+  render(<Harness initial={{ ...state, encounter: { ...state.encounter!, stage: 'toString' } }} />)
+  expect(screen.queryByRole('button', { name: /^Choose / })).toBeNull()
+  expect(screen.getByText('The encounter is over.')).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(screen.getByText('closed')).toBeTruthy()
+})

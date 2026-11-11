@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import { SituationSchema } from '../../schema/encounter'
+import type { Content } from '../../content/build'
+import { SituationSchema, SituationTemplateSchema } from '../../schema/encounter'
 import { fixtureContent } from '../test-fixtures'
 import { contentIssues, lintSituation, validateSituation } from './validate'
 
@@ -15,6 +16,7 @@ const check = (id: string, outcomes: object, dc: number | string = 12) => ({
   outcomes: { fail: { text: 'No.' }, partial: { text: 'Meh.' }, success: { text: 'Yes.' }, ...outcomes },
 })
 const issues = (stages: object, extra?: object) => validateSituation(situation(stages, extra), content)
+const table = (id: string, rows: { text: string; weight: number }[]) => ({ id, description: '', rows, source: 'procedural' as const, file: 'x' })
 
 describe('validateSituation', () => {
   test('the fixture content is clean', () => {
@@ -85,6 +87,35 @@ describe('validateSituation', () => {
     ])
   })
 
+  test('a parts table needs at least one row with weight > 0, nested tables included', () => {
+    const zeroed: Content = {
+      ...content,
+      partsTables: {
+        ...content.partsTables,
+        outer: table('outer', [{ text: '{never}', weight: 1 }]),
+        never: table('never', [{ text: 'a', weight: 0 }, { text: 'b', weight: 0 }]),
+      },
+    }
+    const s = situation({ start: { text: '{x}', options: [fixed('a'), fixed('b')] } }, { slots: { x: { from: 'table', table: 'outer' } } })
+    expect(validateSituation(s, zeroed)).toEqual(['slot x: parts table "never" has no row with weight > 0'])
+  })
+
+  test('the title and the twist may use declared slots only', () => {
+    expect(
+      issues(
+        { start: { text: '{who}', options: [fixed('a'), fixed('b')] } },
+        {
+          title: 'Meeting {who} and {gone}',
+          slots: { who: { from: 'table', table: 'who' } },
+          twist: { chance: 0.5, what: '{Who} is bait for {actor}' },
+        }
+      )
+    ).toEqual([
+      'title: slot {gone} is not declared',
+      'twist: {actor} only works in check outcomes',
+    ])
+  })
+
   test('effects: follow-up targets, actor targets in fixed options, twists without a twist', () => {
     expect(
       issues({
@@ -105,11 +136,34 @@ describe('validateSituation', () => {
   })
 })
 
+describe('contentIssues', () => {
+  test('an id shared by a situation and a template is reported, and both keep their issues', () => {
+    const broken = SituationSchema.parse({ id: 'plea', title: 'Plea', stages: { start: { text: '{gone}', options: [fixed('a'), fixed('b')] } } })
+    const template = SituationTemplateSchema.parse({ ...content.situationTemplates.plea, text: '{lost}' })
+    const clash: Content = {
+      ...content,
+      situations: { ...content.situations, plea: { ...broken, source: 'original', file: 'x' } },
+      situationTemplates: { plea: { ...template, source: 'procedural', file: 'y' } },
+    }
+    expect(contentIssues(clash)).toEqual({
+      plea: ['duplicate situation id "plea"', 'stage start: slot {gone} is not declared', 'stage start: slot {lost} is not declared'],
+    })
+  })
+})
+
 describe('lintSituation', () => {
   test('regular stages need at least 2 options', () => {
     expect(lintSituation(situation({ start: { text: '', options: [fixed('a')] } }), content)).toEqual([
       'stage start has 1 option(s); regular encounters need at least 2',
     ])
+  })
+
+  test('every regular stage keeps an option that is neither once nor gated by requirements', () => {
+    const gated = (id: string) => ({ ...fixed(id), requires: [{ req: 'gold', min: 5 }] })
+    expect(lintSituation(situation({ start: { text: '', options: [{ ...fixed('a'), once: true }, gated('b')] } }), content)).toEqual([
+      'stage start: every option is once or has requirements, so the stage can become a dead end',
+    ])
+    expect(lintSituation(situation({ start: { text: '', options: [{ ...fixed('a'), once: true }, fixed('b')] } }), content)).toEqual([])
   })
 
   test('wonders are one stage, one fixed option, and never cost anything', () => {

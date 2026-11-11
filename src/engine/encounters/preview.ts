@@ -74,7 +74,12 @@ export function encounterOptions(state: GameState, actorIds: Readonly<Record<str
   const situationalModifier = encounter.nextCheckModifier
   return currentOptions(encounter).map((option) => {
     const unmet = unmetRequirements(state, option.requires)
-    const base = { id: option.id, label: option.label, description: option.description, kind: option.kind }
+    const base = {
+      id: option.id,
+      label: fillText(option.label, encounter.slots),
+      description: option.description && fillText(option.description, encounter.slots),
+      kind: option.kind,
+    }
     if (option.kind === 'fixed') {
       const outcomes = [outcomePreview(option.outcome, null, encounter.slots, 'someone')]
       return { ...base, available: unmet.length === 0, unmet, check: null, outcomes }

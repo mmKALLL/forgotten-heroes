@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { EffectSchema, type Effect } from '../../schema/encounter'
+import { createRng } from '../rng'
 import { makeEncounter, makeState } from '../test-fixtures'
 import { applyEffects, describeEffect } from './effects'
 
@@ -29,6 +30,10 @@ describe('applyEffects', () => {
     expect(hp(a).filter((h, i) => h !== hp(state)[i])).toHaveLength(1)
     const bromDown = { ...state, party: state.party.map((c) => (c.id === 'brom' ? { ...c, hp: 0 } : c)) }
     expect(hp(applyEffects(bromDown, effects))).toEqual([0, 13])
+    const bromSpent = { ...state, party: state.party.map((c) => (c.id === 'brom' ? { ...c, exhaustion: 6 } : c)) }
+    for (let seed = 0; seed < 20; seed++) {
+      expect(hp(applyEffects({ ...bromSpent, rng: createRng(seed) }, effects))).toEqual([20, 13])
+    }
   })
 
   test('an actor effect without an actor falls back to a random conscious member', () => {

@@ -17,7 +17,8 @@ const withTwist = (outcome: Outcome): [string, OutcomeBranch][] =>
   outcome.twist ? [['', outcome], [' twist', outcome.twist]] : [['', outcome]]
 
 function textsOf(situation: Situation): Text[] {
-  const texts: Text[] = []
+  const texts: Text[] = [{ text: situation.title, where: 'title', actorAllowed: false }]
+  if (situation.twist) texts.push({ text: situation.twist.what, where: 'twist', actorAllowed: false })
   for (const [stageId, stage] of Object.entries(situation.stages)) {
     texts.push({ text: stage.text, where: `stage ${stageId}`, actorAllowed: false })
     for (const option of stage.options) {
@@ -50,12 +51,14 @@ const allEffects = (situation: Situation): { effect: Effect; option: Option; whe
     )
   )
 
-/** Parts-table problems reachable from `tableId`: unknown tables and reference loops. */
+/** Parts-table problems reachable from `tableId`: unknown tables, loops, nothing to pick. */
 function tableIssues(content: Content, tableId: string, path: string[] = []): string[] {
   if (path.includes(tableId)) return [`parts table loop: ${[...path, tableId].join(' → ')}`]
   if (!Object.hasOwn(content.partsTables, tableId)) return [`unknown parts table "${tableId}"`]
-  const refs = new Set(content.partsTables[tableId].rows.flatMap((r) => slotNames(r.text)))
-  return [...refs].flatMap((ref) => tableIssues(content, ref, [...path, tableId]))
+  const { rows } = content.partsTables[tableId]
+  const own = rows.some((r) => r.weight > 0) ? [] : [`parts table "${tableId}" has no row with weight > 0`]
+  const refs = new Set(rows.flatMap((r) => slotNames(r.text)))
+  return [...own, ...[...refs].flatMap((ref) => tableIssues(content, ref, [...path, tableId]))]
 }
 
 /**
@@ -148,16 +151,22 @@ const isCost = (e: Effect) =>
   (e.effect === 'position' && e.position === 'exposed')
 
 /**
- * Design quality rules (design §7). Regular stages offer at least 2 options. Wonders are one
- * stage with one fixed option and never cost anything.
+ * Design quality rules (design §7). Regular stages offer at least 2 options, and at least one of
+ * them is neither `once` nor gated by requirements, so a stage can't become a dead end. Wonders
+ * are one stage with one fixed option and never cost anything.
  */
 export function lintSituation(situation: Situation, content: Content): string[] {
   const compiled = compileSituation(situation, content)
   const stages = Object.entries(compiled.stages)
   if (!compiled.wonder) {
-    return stages.flatMap(([id, stage]) =>
-      stage.options.length >= 2 ? [] : [`stage ${id} has ${stage.options.length} option(s); regular encounters need at least 2`]
-    )
+    return stages.flatMap(([id, stage]) => [
+      ...(stage.options.length >= 2
+        ? []
+        : [`stage ${id} has ${stage.options.length} option(s); regular encounters need at least 2`]),
+      ...(stage.options.length === 0 || stage.options.some((o) => !o.once && o.requires.length === 0)
+        ? []
+        : [`stage ${id}: every option is once or has requirements, so the stage can become a dead end`]),
+    ])
   }
   const issues: string[] = []
   const options = stages.flatMap(([, stage]) => stage.options)
@@ -170,13 +179,21 @@ export function lintSituation(situation: Situation, content: Content): string[] 
   return issues
 }
 
-/** Validation and lint issues for every situation and template, keyed by situation id. */
+/**
+ * Validation and lint issues for every situation and template, keyed by situation id. An id used
+ * by more than one entry is reported, and the issues of every entry with that id are kept.
+ */
 export function contentIssues(content: Content): Record<string, string[]> {
   const issues: Record<string, string[]> = {}
+  const add = (id: string, found: string[]) => {
+    if (found.length > 0) issues[id] = [...(Object.hasOwn(issues, id) ? issues[id] : []), ...found]
+  }
+  const counts = new Map<string, number>()
+  for (const { id } of allSituations(content)) counts.set(id, (counts.get(id) ?? 0) + 1)
+  for (const [id, count] of counts) if (count > 1) add(id, [`duplicate situation id "${id}"`])
   for (const situation of allSituations(content)) {
     const structural = validateSituation(situation, content)
-    const found = structural.length > 0 ? structural : lintSituation(situation, content)
-    if (found.length > 0) issues[situation.id] = found
+    add(situation.id, structural.length > 0 ? structural : lintSituation(situation, content))
   }
   return issues
 }

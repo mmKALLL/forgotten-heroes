@@ -3,6 +3,7 @@ import type { GameState } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { withRng, type Rng } from '../rng'
+import { canAct } from '../rules/character'
 
 export const MAX_EXHAUSTION = 6
 
@@ -15,9 +16,9 @@ function targetIds(state: GameState, target: 'actor' | 'all' | 'random', ctx: Ef
   if (target === 'all') return [state.party.map((c) => c.id), state.rng]
   if (target === 'actor' && state.party.some((c) => c.id === ctx.actorId)) return [[ctx.actorId!], state.rng]
   // "random", or "actor" with no actor (the content validator forbids that in fixed options).
-  const conscious = state.party.filter((c) => c.hp > 0)
-  if (conscious.length === 0) return [[], state.rng]
-  const [id, rng] = withRng(state.rng, (d) => d.pick(conscious).id)
+  const able = state.party.filter(canAct)
+  if (able.length === 0) return [[], state.rng]
+  const [id, rng] = withRng(state.rng, (d) => d.pick(able).id)
   return [[id], rng]
 }
 

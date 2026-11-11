@@ -42,6 +42,17 @@ describe('instantiateArchetype', () => {
     const free = instantiateArchetype(content.archetypes['test-need'], { id: 'test-need', dc: 12, reward: 0 })
     expect(free.find((o) => o.id === 'donate')?.requires).toEqual([])
   })
+
+  test('gold effects that scale to 0 (or −0) are dropped', () => {
+    const free = instantiateArchetype(content.archetypes['test-need'], { id: 'test-need', dc: 12, reward: 0 })
+    const trust = free.find((o) => o.id === 'trust') as FixedOption
+    expect(trust.outcome.effects).toEqual([])
+    expect(trust.outcome.twist?.effects).toEqual([{ effect: 'hp', amount: -3, target: 'random' }])
+    const tiny = instantiateArchetype(content.archetypes['test-need'], { id: 'test-need', dc: 12, reward: 0.04 })
+    expect((tiny.find((o) => o.id === 'trust') as FixedOption).outcome.twist?.effects).toEqual([
+      { effect: 'hp', amount: -3, target: 'random' },
+    ])
+  })
 })
 
 describe('compileSituation', () => {

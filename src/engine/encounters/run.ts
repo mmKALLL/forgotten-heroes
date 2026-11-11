@@ -30,14 +30,35 @@ export const POSITION_MODE: Record<Position, RollMode> = {
 /** Skill uses older than this many days are dropped; Strain (Plan 3) looks back at most a week. */
 export const SKILL_USE_DAYS = 7
 
+/** True while an encounter is open and not yet over. */
+export const inProgress = (state: GameState): boolean => state.encounter != null && state.encounter.stage !== null
+
+const BUSY = 'Finish the current encounter first.'
+
+/** Every encounter that starts moves each queued follow-up one encounter closer. */
+const advanceFollowUps = (state: GameState): GameState => ({
+  ...state,
+  followUps: state.followUps.map((f) => ({ ...f, wait: Math.max(0, f.wait - 1) })),
+})
+
 export function startEncounter(state: GameState, content: Content, situationId: string): GameState {
+  if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   const found = allSituations(content).find((s) => s.id === situationId)
   if (!found) return appendLog(state, `Unknown encounter "${situationId}".`, 'bad')
-  const situation = compileSituation(found, content)
+  const compiled = compileSituation(found, content)
+  if (!Object.hasOwn(compiled.stages, compiled.start)) {
+    return appendLog(state, `${compiled.title} has no stage "${compiled.start}".`, 'bad')
+  }
   const [{ slots, twist }, rng] = withRng(state.rng, (d) => ({
-    slots: rollSlots(d, content, situation.slots),
-    twist: situation.twist ? d.float() < situation.twist.chance : false,
+    slots: rollSlots(d, content, compiled.slots),
+    twist: compiled.twist ? d.float() < compiled.twist.chance : false,
   }))
+  // The title and the twist are filled once, here; other text is filled as it is shown.
+  const situation = {
+    ...compiled,
+    title: fillText(compiled.title, slots),
+    ...(compiled.twist && { twist: { ...compiled.twist, what: fillText(compiled.twist.what, slots) } }),
+  }
   const text = fillText(situation.stages[situation.start].text, slots)
   const encounter: EncounterState = {
     situation,
@@ -51,25 +72,29 @@ export function startEncounter(state: GameState, content: Content, situationId: 
     used: [],
     log: [{ text, tone: 'info' }],
   }
-  return appendLog({ ...state, rng, encounter }, `${situation.title}. ${text}`, 'info')
+  return appendLog(advanceFollowUps({ ...state, rng, encounter }), `${situation.title}. ${text}`, 'info')
 }
 
 /**
- * A due follow-up (wait 0) comes first, whatever the source filter. Otherwise a weighted random
- * pick, never a followUpOnly situation, and every queued follow-up moves one encounter closer.
+ * A due follow-up (wait 0) comes first, whatever the source filter; one whose situation no longer
+ * exists is dropped. Otherwise a weighted random pick, never a followUpOnly situation. Either way
+ * the encounter that starts moves the other queued follow-ups one closer (see startEncounter).
  */
 export function drawEncounter(state: GameState, content: Content, sources?: readonly Source[]): GameState {
-  const due = state.followUps.findIndex((f) => f.wait === 0)
+  if (inProgress(state)) return appendLog(state, BUSY, 'bad')
+  const situations = allSituations(content)
+  const known = new Set(situations.map((s) => s.id))
+  const followUps = state.followUps.filter((f) => f.wait > 0 || known.has(f.situationId))
+  const due = followUps.findIndex((f) => f.wait === 0)
   if (due >= 0) {
-    const followUps = state.followUps.filter((_, i) => i !== due)
-    return startEncounter({ ...state, followUps }, content, state.followUps[due].situationId)
+    const rest = followUps.filter((_, i) => i !== due)
+    return startEncounter({ ...state, followUps: rest }, content, followUps[due].situationId)
   }
-  const candidates = allSituations(content).filter(
+  const candidates = situations.filter(
     (s) => !s.followUpOnly && s.weight > 0 && (!sources || sources.includes(s.source))
   )
   if (candidates.length === 0) return appendLog(state, 'No encounters match that filter.', 'bad')
   const [picked, rng] = withRng(state.rng, (d) => d.weighted(candidates, (s) => s.weight))
-  const followUps = state.followUps.map((f) => ({ ...f, wait: Math.max(0, f.wait - 1) }))
   return startEncounter({ ...state, rng, followUps }, content, picked.id)
 }
 
@@ -82,11 +107,9 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
 
 /** The current stage's options that can still be chosen (used `once` options are gone). */
 export function currentOptions(encounter: EncounterState): Option[] {
-  if (encounter.stage === null) return []
   const stageId = encounter.stage
-  const stage = encounter.situation.stages[stageId]
-  if (!stage) return []
-  return stage.options.filter((o) => !(o.once && encounter.used.includes(`${stageId}/${o.id}`)))
+  if (stageId === null || !Object.hasOwn(encounter.situation.stages, stageId)) return []
+  return encounter.situation.stages[stageId].options.filter((o) => !(o.once && encounter.used.includes(`${stageId}/${o.id}`)))
 }
 
 const nameOf = (state: GameState, id: string | undefined) => state.party.find((c) => c.id === id)?.name
@@ -130,7 +153,9 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
   const option = currentOptions(encounter).find((o) => o.id === optionId)
   if (!option) return state
   const unmet = unmetRequirements(state, option.requires)
-  if (unmet.length > 0) return appendLog(state, `${option.label}: ${unmet.join(', ')}.`, 'bad')
+  if (unmet.length > 0) {
+    return appendLog(state, `${fillText(option.label, encounter.slots)}: ${unmet.join(', ')}.`, 'bad')
+  }
 
   const used = option.once ? [...encounter.used, `${encounter.stage}/${option.id}`] : encounter.used
   if (option.kind === 'fixed') {

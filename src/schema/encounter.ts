@@ -19,7 +19,7 @@ export const EffectSchema = z.discriminatedUnion('effect', [
   z.object({ effect: z.literal('gold'), amount }).describe('Gain or lose gold; gold never drops below 0'),
   z
     .object({ effect: z.literal('hp'), amount, target: z.enum(['actor', 'all', 'random']) })
-    .describe('Heal (+) or hurt (−) the acting member, everyone, or one random conscious member'),
+    .describe('Heal (+) or hurt (−) the acting member, everyone, or one random member who can still act'),
   z
     .object({ effect: z.literal('exhaustion'), amount, target: z.enum(['actor', 'all']) })
     .describe('Add (+) or remove (−) exhaustion levels'),

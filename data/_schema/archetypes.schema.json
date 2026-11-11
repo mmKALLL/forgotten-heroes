@@ -348,7 +348,7 @@
               "amount",
               "target"
             ],
-            "description": "Heal (+) or hurt (−) the acting member, everyone, or one random conscious member"
+            "description": "Heal (+) or hurt (−) the acting member, everyone, or one random member who can still act"
           },
           {
             "type": "object",

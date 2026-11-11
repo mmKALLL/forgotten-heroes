@@ -50,14 +50,14 @@ export function EncounterDeck({ content, state, onAction }: Props) {
             </h3>
             <ul className="deck-list">
               {group.map((s) => (
-                <li key={s.id}>
+                <li key={`${s.file}/${s.id}`}>
                   <span>
                     {s.title}
                     {s.wonder && <span className="muted small"> · wonder</span>}
                     {s.followUpOnly && <span className="muted small"> · follow-up</span>}
                     {s.twist && <span className="muted small"> · twist</span>}
                   </span>
-                  {issues[s.id] && (
+                  {Object.hasOwn(issues, s.id) && (
                     <span className="tone-bad small" title={issues[s.id].join('\n')}>
                       ⚠ {issues[s.id].length}
                     </span>

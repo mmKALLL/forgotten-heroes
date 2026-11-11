@@ -32,6 +32,9 @@ export function EncounterView({ state, onAction }: { state: GameState; onAction:
   const animating = rollIndex > shownRoll
   const visible = animating ? encounter.log.slice(0, rollIndex + 1) : encounter.log
   const twist = twistInfo(state)
+  const options = encounterOptions(state, actorIds)
+  // An ended encounter, or a stage that offers nothing (e.g. a save from older content), can only close.
+  const over = encounter.stage === null || options.length === 0
 
   return (
     <section className="panel encounter" aria-label="Encounter">
@@ -61,7 +64,7 @@ export function EncounterView({ state, onAction }: { state: GameState; onAction:
           </li>
         ))}
       </ol>
-      {animating ? null : encounter.stage === null ? (
+      {animating ? null : over ? (
         <div>
           <p className="muted">The encounter is over.</p>
           <button className="primary" onClick={() => onAction({ type: 'closeEncounter' })}>
@@ -70,7 +73,7 @@ export function EncounterView({ state, onAction }: { state: GameState; onAction:
         </div>
       ) : (
         <div className="options">
-          {encounterOptions(state, actorIds).map((option) => (
+          {options.map((option) => (
             <OptionCard
               key={`${encounter.stage}/${option.id}`}
               option={option}

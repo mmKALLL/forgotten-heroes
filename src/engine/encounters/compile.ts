@@ -24,11 +24,15 @@ export function resolveDc(dc: number | string, base: number): number {
   return normalizeDc(match ? base + Number(match[1] ?? 0) : Number.NaN)
 }
 
-const scaleEffect = (effect: Effect, reward: number): Effect =>
-  effect.effect === 'gold' ? { ...effect, amount: Math.round(effect.amount * reward) } : effect
+/** Gold scales by `reward`; a gold effect that scales to 0 (or −0) is dropped. */
+const scaleEffect = (effect: Effect, reward: number): Effect[] => {
+  if (effect.effect !== 'gold') return [effect]
+  const amount = Math.round(effect.amount * reward)
+  return amount === 0 ? [] : [{ ...effect, amount }]
+}
 
 function scaleBranch<T extends OutcomeBranch | Outcome>(branch: T, reward: number): T {
-  const scaled = { ...branch, effects: branch.effects.map((e) => scaleEffect(e, reward)) }
+  const scaled = { ...branch, effects: branch.effects.flatMap((e) => scaleEffect(e, reward)) }
   if ('twist' in scaled && scaled.twist) scaled.twist = scaleBranch(scaled.twist, reward)
   return scaled
 }
@@ -85,7 +89,11 @@ export function templateToSituation(template: SituationTemplate): Situation {
   }
 }
 
-/** Every situation the deck can play: hand-written situations plus compiled templates, by id. */
+/**
+ * Every situation the deck can play: hand-written situations plus compiled templates, by id.
+ * Ids should be unique across both (contentIssues reports a clash); if one clashes anyway, the
+ * hand-written situation comes first, so it is the one that plays.
+ */
 export function allSituations(content: Content): Sourced<Situation>[] {
   const templates = Object.values(content.situationTemplates).map((t) => ({
     ...templateToSituation(t),

@@ -89,6 +89,15 @@ describe('encounterOptions', () => {
     expect(byId(roadside).read.check?.highStakes).toBe(false) // nothing costs HP
   })
 
+  test('slots fill option labels and descriptions', () => {
+    const roadside = content.situations.roadside
+    const leave = { id: 'leave', kind: 'fixed' as const, label: 'Leave {who} be', description: '{Who} watches.', requires: [], outcome: { text: '', effects: [] } }
+    const labelled = { ...content, situations: { ...content.situations, roadside: { ...roadside, stages: { start: { ...roadside.stages.start, options: [leave] } } } } }
+    const state = step(makeState(), { type: 'startEncounter', situationId: 'roadside' }, labelled)
+    const who = state.encounter!.slots.who
+    expect(byId(state).leave).toMatchObject({ label: `Leave ${who} be`, description: `${who.replace('a', 'A')} watches.` })
+  })
+
   test('no encounter, no options', () => {
     expect(encounterOptions(makeState())).toEqual([])
   })

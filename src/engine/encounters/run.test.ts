@@ -4,6 +4,8 @@ import { createRng } from '../rng'
 import { applyEffects } from './effects'
 import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
+import type { Content } from '../../content/build'
+import { SituationSchema } from '../../schema/encounter'
 import { currentOptions } from './run'
 
 const content = fixtureContent()
@@ -36,6 +38,40 @@ describe('startEncounter', () => {
     expect(share).toBeGreaterThan(0.35)
     expect(share).toBeLessThan(0.65)
     expect(start('cliff').encounter!.twist).toBe(false) // no twist defined
+  })
+
+  test('a start stage that does not exist (even an Object.prototype key) logs and starts nothing', () => {
+    for (const start of ['nowhere', 'constructor']) {
+      const bad = SituationSchema.parse({ id: 'bad', title: 'Bad', start, stages: { begin: { text: '' } } })
+      const broken: Content = { ...content, situations: { ...content.situations, bad: { ...bad, source: 'original', file: 'x' } } }
+      const state = step(makeState(), { type: 'startEncounter', situationId: 'bad' }, broken)
+      expect(state.encounter).toBeNull()
+      expect(state.log.at(-1)).toMatchObject({ text: `Bad has no stage "${start}".`, tone: 'bad' })
+    }
+  })
+
+  test('another encounter cannot start while one is in progress', () => {
+    const roadside = start('roadside', makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] }))
+    for (const action of [{ type: 'startEncounter', situationId: 'cliff' }, { type: 'drawEncounter' }] as const) {
+      const after = step(roadside, action, content)
+      expect({ ...after, log: roadside.log }).toEqual(roadside)
+      expect(after.log.at(-1)).toMatchObject({ text: 'Finish the current encounter first.', tone: 'bad' })
+    }
+    const over = { ...roadside, encounter: { ...roadside.encounter!, stage: null } }
+    expect(start('cliff', over).encounter?.situation.id).toBe('cliff')
+  })
+
+  test('slots fill the title and the twist', () => {
+    const roadside = content.situations.roadside
+    const titled: Content = {
+      ...content,
+      situations: { ...content.situations, roadside: { ...roadside, title: 'Meeting {who}', twist: { chance: 0.5, what: '{Who} is bait' } } },
+    }
+    const state = step(makeState(), { type: 'startEncounter', situationId: 'roadside' }, titled)
+    const who = state.encounter!.slots.who
+    expect(state.log.at(-1)?.text).toMatch(new RegExp(`^Meeting ${who}\\. `))
+    expect(state.encounter!.situation.title).toBe(`Meeting ${who}`)
+    expect(state.encounter!.situation.twist?.what).toBe(`${who.replace('a', 'A')} is bait`)
   })
 
   test('an unknown situation logs and starts nothing', () => {
@@ -75,6 +111,15 @@ describe('check options', () => {
   test('roll with the best actor for the skill, or the player\'s choice', () => {
     expect(choose(start('roadside'), 'read').lastRoll).toMatchObject({ stat: 'insight', actorId: 'lyra', dc: 12 })
     expect(choose(start('roadside'), 'read', 'brom').lastRoll?.actorId).toBe('brom')
+  })
+
+  test('an unknown stage (even an Object.prototype key) has no options, and choosing does nothing', () => {
+    const roadside = start('roadside')
+    for (const stage of ['nowhere', 'toString']) {
+      const lost = { ...roadside, encounter: { ...roadside.encounter!, stage } }
+      expect(currentOptions(lost.encounter)).toEqual([])
+      expect(choose(lost, 'trust')).toEqual(lost)
+    }
   })
 
   test('once options stay on the stage, then disappear; choosing them again is a no-op', () => {
@@ -216,6 +261,32 @@ describe('drawing encounters and follow-ups', () => {
     const second = draw(step(first, { type: 'closeEncounter' }, content), ['procedural'])
     expect(second.encounter?.situation.id).toBe('grudge')
     expect(second.followUps).toEqual([])
+  })
+
+  test('every encounter that starts moves the other queued follow-ups one closer', () => {
+    const queued = makeState({ followUps: [{ situationId: 'grudge', wait: 2 }] })
+    expect(start('cliff', queued).followUps).toEqual([{ situationId: 'grudge', wait: 1 }])
+    const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }, { situationId: 'cliff', wait: 2 }] })
+    const after = draw(due)
+    expect(after.encounter?.situation.id).toBe('grudge')
+    expect(after.followUps).toEqual([{ situationId: 'cliff', wait: 1 }])
+  })
+
+  test('a due follow-up to a situation that no longer exists is dropped, and the draw is random', () => {
+    const stale = makeState({ followUps: [{ situationId: 'gone', wait: 0 }, { situationId: 'grudge', wait: 1 }] })
+    const after = draw(stale, ['procedural'])
+    expect(after.encounter?.situation.id).toBe('plea')
+    expect(after.followUps).toEqual([{ situationId: 'grudge', wait: 0 }])
+  })
+
+  test('follow-ups queued during an encounter are not moved by its own start', () => {
+    for (let seed = 0; seed < 200; seed++) {
+      const after = choose(reseed(start('roadside'), seed), 'rob', 'lyra')
+      if (after.lastRoll?.tier !== 'success') continue
+      expect(after.followUps).toEqual([{ situationId: 'grudge', wait: 1 }])
+      return
+    }
+    throw new Error('no successful robbery in 200 seeds')
   })
 
   test('closeEncounter clears the encounter', () => {
