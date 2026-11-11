@@ -146,6 +146,12 @@ The town map image is a banner and backdrop.
    Archetypes make one-line imported d100 entries playable without writing options by hand.
 3. **Parts tables:** actor (ancestry, occupation, attitude), motive, complication, stakes. These are filled in according to world state: regional threat, goods carried, low supplies, time of day.
 4. **Follow-ups:** an outcome may queue a later encounter, which is the main source of surprise.
+5. **Escalation (tug of war):** encounters should rarely end on a single roll. Partial successes, failures and twists move the encounter into a further stage instead of resolving it outright, and earlier choices set your footing (Edge, Normal or Exposed) for that stage.
+   - *Someone in need, when the twist is an ambush:* the twist always escalates into an ambush stage (fight, flee, negotiate or bribe).
+     - Trusting help: you start Exposed and take an opening hit.
+     - Cautious help: you start on Normal footing with no opening hit.
+     - A passed Insight read beforehand upgrades cautious help to Edge.
+   - Apply the same thinking across other encounters wherever it fits.
 
 ### Resolution
 
