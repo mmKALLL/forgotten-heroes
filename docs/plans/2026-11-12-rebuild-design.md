@@ -65,6 +65,13 @@ The old Svelte code is removed on this branch. The useful types and data are por
 - **Inspiration:** a natural 20 on a non-combat check grants Inspiration, which can be spent for a reroll and similar uses.
 - **Carrying capacity:** each member's contribution scales with STR, from about 0.8× at STR 8 to about 1.8× at STR 18 (2.25× at most). Pack animals and carts add more. Magical alternatives (floating disk, unseen porters, teleport circles) come later.
 - **Endurance:** forced-march days before exhaustion scale with CON.
+- **Strain (working name):** this discourages leaning on one specialist and rewards spreading work across the party.
+  - **What counts:** using the same skill in encounters past a threshold (about 3 times a day or 10 times a week, to tune) adds a Strain stack to that character's skill. Practice rolls don't count.
+  - **Effect:** each stack is −1 to that skill and lowers the character's mood.
+  - **Recovery:** one stack fades per day, slower in poor lodging and faster in good lodging (ties into inn quality and lifestyle).
+  - **Visibility:** Strain shows in the actor preview, so the automatic actor choice rotates on its own.
+  - **Timing:** encounters record skill uses from Plan 2. Strain itself comes with daily travel (Plan 3), and the lodging effects with towns (Plan 4).
+  - **Open:** is mood per character (rolling up into party camaraderie) or a single party camaraderie value?
 
 ## 4. Goods and economy
 
