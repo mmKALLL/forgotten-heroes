@@ -147,7 +147,15 @@ The town map image is a banner and backdrop.
 3. **Parts tables:** actor (ancestry, occupation, attitude), motive, complication, stakes. These are filled in according to world state: regional threat, goods carried, low supplies, time of day.
 4. **Follow-ups:** an outcome may queue a later encounter, which is the main source of surprise.
 5. **Escalation (tug of war):** encounters should rarely end on a single roll. Partial successes, failures and twists move the encounter into a further stage instead of resolving it outright, and earlier choices set your footing (Edge, Normal or Exposed) for that stage.
-   - *Someone in need, when the twist is an ambush:* the twist always escalates into an ambush stage (fight, flee, negotiate or bribe).
+   - *Someone in need:* the twist is drawn from a weighted twist table in `data/procedural/`, which can be extended. A situation may instead define its own bespoke twist. Each twist kind escalates into its own stage:
+     - **Ambush:** a fight stage, described below.
+     - **Theft:** they slip off with goods or gold, then a chase (Survival or Athletics).
+     - **Lure:** they lead the party into a lair, hazard or toll gang, then a hazard stage.
+     - **Contagion or curse:** the helper is afflicted, then treatment or cleansing (Medicine or Religion), or a later follow-up if ignored.
+     - **Fugitive:** hunters or guards arrive, now or as a follow-up. The party can talk, hand them over or run, with reputation consequences.
+     - **False claim:** they accuse the party, then a social stage with a crowd or the guards.
+     - The help choice sets the party's footing and exposure in every kind: trusting is worse, cautious is milder.
+   - *When the twist is an ambush:* it escalates into an ambush stage (fight, flee, negotiate or bribe).
      - Trusting help: you start Exposed and take an opening hit.
      - Cautious help: you start on Normal footing with no opening hit.
      - A passed Insight read beforehand upgrades cautious help to Edge.
@@ -191,6 +199,10 @@ The town map image is a banner and backdrop.
 - **Dice animation:** flat d20 outlines whose faces flicker, then settle in quick succession, in at most 1.5 s. Every roll draws the DC as a short line beside the dice, with the total marked once they settle. On high-stakes rolls the last die slows and glows while it rolls; once settled, only a natural 20 (gold) or natural 1 (red) stays highlighted. A click skips it, and reduced-motion is respected.
 - **Encounter Deck** (dev panel): every encounter, filterable by source and playable on demand, for comparing which provenance feels most exciting.
 - **Demand visualisation** on the world map is to be designed later.
+- **Localization:** English is the main language; Japanese is an optional setting, switchable at any time from the top bar ("EN / 日本語", remembered per viewer). It is rough on purpose: UI widths are not adjusted, and anything untranslated falls back to English.
+  - UI strings live in `src/ui/i18n/` dictionaries: `en.ts` defines the keys, other languages are partial.
+  - Content is translated by overlay files of kind `translations` in `data/locales/<locale>/` (e.g. `data/locales/ja/skills.json`). Each entry names an entry id of the `target` kind and maps dotted paths (`stages.start.options.read.label`; array items by id or index) to text. Each file keeps a `source` for who wrote the translation. Loading checks every id and path; the UI overlays the strings at render time, so the engine and saves stay language-agnostic.
+  - Engine-made text (roll lines, effect chips such as "−2 gp", unmet requirements, the journal) and slot values stay English for now. The encounter view swaps log lines by matching them against the English text they came from. TODO: the engine should emit structured messages (a key plus values) that the UI renders in either language.
 
 ## 10. Testing
 
