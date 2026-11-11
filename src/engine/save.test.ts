@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize } from './save'
 import { newGame, step } from './state'
-import { fixtureContent } from './test-fixtures'
+import { fixtureContent, makeCharacter } from './test-fixtures'
 import type { RollMode } from './rules/checks'
 
 test('round trip', () => {
@@ -57,4 +57,34 @@ test('migrate refuses unknown or missing versions', () => {
   expect(() => migrate({})).toThrow(/version/)
   expect(() => migrate(null)).toThrow(/version/)
   expect(() => migrate([1])).toThrow(/version/)
+})
+
+/** A save as Plan 1 wrote it. */
+const V1_SAVE = {
+  version: 1,
+  seed: 5,
+  rng: { state: 12345 },
+  day: 3,
+  party: [makeCharacter({ id: 'c-ada', name: 'Ada Stone' })],
+  gold: 42,
+  inspiration: 1,
+  log: [{ day: 1, text: 'Ada Stone set out.', tone: 'info' }],
+  lastRoll: null,
+}
+
+test('a version 1 save loads as version 2 with no encounter, follow-ups or skill uses', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(2)
+  expect(deserialize(JSON.stringify(V1_SAVE))).toEqual({
+    ...V1_SAVE,
+    version: 2,
+    encounter: null,
+    followUps: [],
+    skillUses: [],
+  })
+})
+
+test('migrating a v1 save does not mutate the parsed object', () => {
+  const raw = structuredClone(V1_SAVE)
+  migrate(raw)
+  expect(raw).toEqual(V1_SAVE)
 })

@@ -5,9 +5,18 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 1
+export const CURRENT_SAVE_VERSION = 2
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
+
+/** v1 → v2 (Plan 2): no encounter in progress, an empty follow-up queue and no skill uses yet. */
+export const v1ToV2 = (raw: Record<string, unknown>): Record<string, unknown> => ({
+  ...raw,
+  version: 2,
+  encounter: null,
+  followUps: [],
+  skillUses: [],
+})
 
 /**
  * Upgrades a parsed save to the current version, one step at a time.
@@ -20,6 +29,8 @@ export function migrate(raw: unknown): unknown {
       ? (raw as { version?: unknown }).version
       : undefined
   switch (version) {
+    case 1:
+      return migrate(v1ToV2(raw as Record<string, unknown>))
     case CURRENT_SAVE_VERSION:
       return raw
     default:

@@ -38,6 +38,9 @@ export function newGame(seed: number, content: Content, partySize = STARTING_PAR
     inspiration: 0,
     log: [{ day: 1, text: `${names} set out together.`, tone: 'info' }],
     lastRoll: null,
+    encounter: null,
+    followUps: [],
+    skillUses: [],
   }
 }
 

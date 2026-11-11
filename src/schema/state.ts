@@ -1,6 +1,15 @@
 import { z } from 'zod'
-import { AbilitySchema, AbilityScoresSchema, IdSchema, LogToneSchema, SkillSchema } from './common'
+import {
+  AbilitySchema,
+  AbilityScoresSchema,
+  IdSchema,
+  LogToneSchema,
+  PositionSchema,
+  SkillSchema,
+  SourceSchema,
+} from './common'
 import { ABILITIES, SKILLS, TIERS } from './constants'
+import { SituationSchema } from './encounter'
 
 export const CharacterSchema = z.object({
   id: z.string(),
@@ -42,8 +51,50 @@ export const LogEntrySchema = z.object({
 })
 export type LogEntry = z.infer<typeof LogEntrySchema>
 
+export const EncounterLogEntrySchema = z.object({
+  text: z.string(),
+  tone: LogToneSchema,
+  /** The roll behind this entry, so the UI can animate it. */
+  roll: RollRecordSchema.optional(),
+  highStakes: z.boolean().optional(),
+})
+export type EncounterLogEntry = z.infer<typeof EncounterLogEntrySchema>
+
+export const EncounterStateSchema = z.object({
+  /** A compiled snapshot (archetypes expanded, DCs numeric), so editing data never breaks a save. */
+  situation: SituationSchema,
+  source: SourceSchema,
+  /** The current stage, or null once the encounter has ended. */
+  stage: IdSchema.nullable(),
+  position: PositionSchema,
+  /** Slot values filled when the encounter started, e.g. { who: "a wary dwarf tinker" }. */
+  slots: z.record(z.string(), z.string()),
+  /** The hidden twist, rolled at the start. The UI must not show it. */
+  twist: z.boolean(),
+  twistRevealed: z.boolean(),
+  /** "stage/option" keys of `once` options already chosen. */
+  used: z.array(z.string()),
+  log: z.array(EncounterLogEntrySchema),
+})
+export type EncounterState = z.infer<typeof EncounterStateSchema>
+
+export const FollowUpSchema = z.object({
+  situationId: IdSchema,
+  /** Other encounters that must happen before this one is drawn. */
+  wait: z.number().int().min(0),
+})
+export type FollowUp = z.infer<typeof FollowUpSchema>
+
+/** One encounter check by one character. Strain (Plan 3) counts these per day and week. */
+export const SkillUseSchema = z.object({
+  day: z.number().int().min(1),
+  characterId: z.string(),
+  skill: SkillSchema,
+})
+export type SkillUse = z.infer<typeof SkillUseSchema>
+
 export const GameStateSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -52,5 +103,8 @@ export const GameStateSchema = z.object({
   inspiration: z.number().int().min(0),
   log: z.array(LogEntrySchema),
   lastRoll: RollRecordSchema.nullable(),
+  encounter: EncounterStateSchema.nullable(),
+  followUps: z.array(FollowUpSchema),
+  skillUses: z.array(SkillUseSchema),
 })
 export type GameState = z.infer<typeof GameStateSchema>
