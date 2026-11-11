@@ -393,35 +393,132 @@ label.inline {
 .option-card {
   border: 1px solid var(--line);
   border-radius: 4px;
-  padding: 0.6rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+/* Only the border colour changes, so hovering never moves anything. */
+.option-card.previewed {
+  border-color: var(--accent);
+}
+.option-card p {
+  margin: 0;
+}
+.option-card .card-head {
+  align-items: baseline;
+}
+/* The odds stay readable but quieter than the text: tier colours mixed toward the panel. */
+.option-card .odds-bar {
+  --seg-mix: var(--panel);
+  --seg-amount: 55%;
+  --seg-ink: var(--ink);
+  height: 1.1rem;
+  margin: 0.1rem 0;
+}
+@media (prefers-color-scheme: dark) {
+  .option-card .odds-bar {
+    --seg-mix: var(--muted);
+    --seg-amount: 45%;
+    --seg-ink: var(--bg);
+  }
+}
+.option-card .odds-seg {
+  color: var(--seg-ink);
+}
+.option-card .tier-critFail.odds-seg {
+  background: color-mix(in srgb, var(--tier-critFail) var(--seg-amount), var(--seg-mix));
+}
+.option-card .tier-fail.odds-seg {
+  background: color-mix(in srgb, var(--tier-fail) var(--seg-amount), var(--seg-mix));
+}
+.option-card .tier-partial.odds-seg {
+  background: color-mix(in srgb, var(--tier-partial) var(--seg-amount), var(--seg-mix));
+}
+.option-card .tier-success.odds-seg {
+  background: color-mix(in srgb, var(--tier-success) var(--seg-amount), var(--seg-mix));
+}
+.option-card .tier-critSuccess.odds-seg {
+  background: color-mix(in srgb, var(--tier-critSuccess) var(--seg-amount), var(--seg-mix));
+}
+.choose-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.15rem;
+}
+/* Thinner than the Choose button beside it. */
+.choose-row select {
+  min-width: 0;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.3rem;
+}
+.outcomes-panel {
+  margin-top: 0.75rem;
+}
+.outcomes-panel h3 {
+  font-size: 0.85rem;
+  margin: 0 0 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+}
+/* A fixed height, room for five tiers and a twist line: changing what it shows never moves the
+   cards above it. Longer text scrolls inside. */
+.outcomes-box {
+  height: 11rem;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+}
+.outcomes-box p {
+  margin: 0 0 0.3rem;
 }
 .outcomes {
   list-style: none;
   padding: 0;
-  margin: 0.4rem 0 0.6rem;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.9rem;
 }
 .outcomes li {
-  border-left: 3px solid var(--line);
-  padding-left: 0.5rem;
+  display: flex;
+  gap: 0.45rem;
 }
-.outcomes li.tier-critFail {
-  border-color: var(--tier-critFail);
+.tier-marker {
+  flex: none;
+  width: 0.4rem;
+  border-radius: 2px;
+  background: var(--line);
 }
-.outcomes li.tier-fail {
-  border-color: var(--tier-fail);
+.tier-marker.tier-critFail {
+  background: var(--tier-critFail);
 }
-.outcomes li.tier-partial {
-  border-color: var(--tier-partial);
+.tier-marker.tier-fail {
+  background: var(--tier-fail);
 }
-.outcomes li.tier-success {
-  border-color: var(--tier-success);
+.tier-marker.tier-partial {
+  background: var(--tier-partial);
 }
-.outcomes li.tier-critSuccess {
-  border-color: var(--tier-critSuccess);
+.tier-marker.tier-success {
+  background: var(--tier-success);
+}
+.tier-marker.tier-critSuccess {
+  background: var(--tier-critSuccess);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 .twist {
   color: var(--bad);

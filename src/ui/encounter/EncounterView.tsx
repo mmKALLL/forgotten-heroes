@@ -1,12 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { encounterOptions, twistInfo } from '../../engine/encounters/preview'
 import { encounterOver } from '../../engine/encounters/run'
-import { formatPercent } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
 import { DiceRoll } from '../dice/DiceRoll'
 import { SourceBadge } from '../SourceBadge'
 import { OptionCard } from './OptionCard'
+import { OutcomesPanel } from './OutcomesPanel'
 import { lastRollIndex } from './rolls'
 
 /**
@@ -30,11 +30,15 @@ export function EncounterView({
   const [seen, setSeen] = useState(() => ({ first, baseline: lastRollIndex(encounter) }))
   const [shownRoll, setShownRoll] = useState(seen.baseline)
   const [actorIds, setActorIds] = useState<Record<string, string>>({})
+  // The option (stage/id) whose outcomes the shared panel shows: the last one hovered or focused.
+  const [previewKey, setPreviewKey] = useState<string | null>(null)
+  const outcomesId = useId()
   if (seen.first !== first) {
     const baseline = lastRollIndex(encounter)
     setSeen({ first, baseline })
     setShownRoll(baseline)
     setActorIds({})
+    setPreviewKey(null)
   }
 
   const rollIndex = lastRollIndex(encounter)
@@ -49,6 +53,7 @@ export function EncounterView({
     if (key.startsWith(prefix)) stageActorIds[key.slice(prefix.length)] = actorId
   }
   const options = encounterOptions(state, stageActorIds)
+  const previewed = options.find((o) => keyOf(o.id) === previewKey) ?? null
   // Ended, or nothing can be chosen any more (e.g. the party is down): it can only close.
   const over = encounterOver(state)
 
@@ -85,12 +90,6 @@ export function EncounterView({
           )}
         </span>
       </header>
-      {twist && (
-        <p className="muted small">
-          Possible twist: {twist.what} (chance:{' '}
-          {twist.chance === null ? '?' : formatPercent(twist.chance)})
-        </p>
-      )}
       <ol className="encounter-log" aria-live="polite">
         {visible.map((entry, i) => (
           <li key={i} className={`tone-${entry.tone}`}>
@@ -117,24 +116,28 @@ export function EncounterView({
           </button>
         </div>
       ) : (
-        <div className="options" ref={nextRef}>
-          {options.map((option) => (
-            <OptionCard
-              key={keyOf(option.id)}
-              option={option}
-              twistWhat={twist?.what ?? null}
-              actorId={stageActorIds[option.id] ?? ''}
-              onActor={(id) => setActorIds({ ...actorIds, [keyOf(option.id)]: id })}
-              onChoose={() =>
-                onAction({
-                  type: 'chooseOption',
-                  optionId: option.id,
-                  actorId: stageActorIds[option.id] || undefined,
-                })
-              }
-            />
-          ))}
-        </div>
+        <>
+          <div className="options" ref={nextRef}>
+            {options.map((option) => (
+              <OptionCard
+                key={keyOf(option.id)}
+                option={option}
+                onActor={(id) => setActorIds({ ...actorIds, [keyOf(option.id)]: id })}
+                onPreview={() => setPreviewKey(keyOf(option.id))}
+                previewed={previewed === option}
+                outcomesId={outcomesId}
+                onChoose={() =>
+                  onAction({
+                    type: 'chooseOption',
+                    optionId: option.id,
+                    actorId: stageActorIds[option.id] || undefined,
+                  })
+                }
+              />
+            ))}
+          </div>
+          <OutcomesPanel id={outcomesId} option={previewed} twist={twist} />
+        </>
       )}
     </section>
   )

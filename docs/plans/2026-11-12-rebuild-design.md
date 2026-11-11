@@ -149,7 +149,7 @@ The town map image is a banner and backdrop.
 
 ### Resolution
 
-- **Outcome tiers:** each option shows the acting member, skill, DC and % chance, and every outcome tier (critical fail, fail, partial, success, critical success) before the player commits.
+- **Outcome tiers:** each option shows the acting member, skill, DC and % chance, and every outcome tier (critical fail, fail, partial, success, critical success) before the player commits. Cards stay compact: hovering or focusing an option shows its tiers in one shared, fixed-size Outcomes panel below the cards.
 - **Combat** is resolved as a graded check in slice 1. The linear-distance combat system comes in a later phase.
 
 ### Encounter format (Plan 2)
@@ -176,7 +176,7 @@ The town map image is a banner and backdrop.
 
 - **Layout:**
   - Left: party portraits with HP, conditions and key modifiers.
-  - Centre: a backdrop image (a battle map chosen by biome tag, or the town map), the narrative, and option cards with odds bars and outcome tiers.
+  - Centre: a backdrop image (a battle map chosen by biome tag, or the town map), the narrative, and compact option cards with odds bars, plus a shared Outcomes panel for the hovered or focused option.
   - Right: the Altaeus map with the route and log.
   - Bottom: the goods bar by category, a capacity meter, and a visible-wealth indicator.
 - **Style:** the prototype only had the Vite default stylesheet, so the visual style is a fresh pass. Parchment and ink tones suit the Altaeus map.

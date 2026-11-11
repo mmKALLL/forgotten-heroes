@@ -2,7 +2,7 @@ import type { Outcome, OutcomeBranch } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { previewCheck, type CheckPreview } from '../preview'
 import { checkLabel } from '../rules/abilities'
-import { rankActors } from '../rules/character'
+import { canAct, rankActors } from '../rules/character'
 import {
   TIERS,
   successChance,
@@ -37,6 +37,8 @@ export type OptionCheckPreview = CheckPreview & {
   faces: Record<Tier, FaceRange | null>
   /** Everyone able to act, best first, for the actor picker. */
   actors: { id: string; name: string; modifier: number }[]
+  /** Party members who can't act (downed or too exhausted), in party order, shown disabled. */
+  unableActors: { id: string; name: string }[]
   /** Who acts when the player doesn't pick: the best of `actors`. */
   autoActorId: string
   autoActorName: string
@@ -138,6 +140,7 @@ export function encounterOptions(
       highStakes: isHighStakes(option, odds),
       faces: tierFaces(effective, preview.dc),
       actors,
+      unableActors: state.party.filter((c) => !canAct(c)).map((c) => ({ id: c.id, name: c.name })),
       // previewCheck found an actor, so someone can act.
       autoActorId: actors[0].id,
       autoActorName: actors[0].name,

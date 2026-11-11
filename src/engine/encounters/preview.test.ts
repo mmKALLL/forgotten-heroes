@@ -38,6 +38,17 @@ describe('encounterOptions', () => {
       twist: null,
     })
     expect(read.check?.actors.map((a) => a.id)).toEqual(['lyra', 'brom'])
+    expect(read.check?.unableActors).toEqual([])
+  })
+
+  test('party members who cannot act are listed apart, so the picker can show them disabled', () => {
+    const hurt = {
+      ...roadside,
+      party: roadside.party.map((c) => (c.id === 'lyra' ? { ...c, hp: 0 } : c)),
+    }
+    const read = byId(hurt).read
+    expect(read.check?.actors.map((a) => a.id)).toEqual(['brom'])
+    expect(read.check?.unableActors).toEqual([{ id: 'lyra', name: 'Lyra' }])
   })
 
   test('an actor override changes the preview', () => {

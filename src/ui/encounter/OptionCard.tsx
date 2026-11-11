@@ -1,79 +1,57 @@
+import type { OptionPreview } from '../../engine/encounters/preview'
 import { formatModifier, formatPercent } from '../../engine/format'
-import type { BranchPreview, OptionPreview } from '../../engine/encounters/preview'
-import { TIER_LABELS } from '../../engine/rules/checks'
 import { OddsBar, ROLL_MODE_SUFFIX, neededFace, type OddsLabelMode } from '../OddsBar'
 
 type Props = {
   option: OptionPreview
-  /** What the twist would be, e.g. "they are bait for an ambush", or null if there is none. */
-  twistWhat: string | null
-  actorId: string
   onActor: (actorId: string) => void
   onChoose: () => void
+  /** Hovering or focusing the card shows its outcomes in the shared panel. */
+  onPreview: () => void
+  /** True while the shared outcomes panel shows this option (only the border colour changes). */
+  previewed: boolean
+  /** The shared outcomes panel's id, which describes the Choose button. */
+  outcomesId: string
   /** d20 faces by default, like the practice check; '%' stays available for a future setting. */
   labelMode?: OddsLabelMode
 }
 
-const NEXT = { end: 'ends', stay: 'continues', stage: 'continues' } as const
-
-function Branch({ branch }: { branch: BranchPreview }) {
-  return (
-    <>
-      {branch.text}
-      {branch.effects.map((e) => (
-        <span key={e} className="chip">
-          {e}
-        </span>
-      ))}
-      <span className="muted small"> · {NEXT[branch.next]}</span>
-    </>
-  )
-}
-
+/**
+ * A compact option: title with skill and DC, description, the face it needs, the odds, and a row
+ * with Choose and the actor picker. Its outcome tiers show in the shared OutcomesPanel instead.
+ */
 export function OptionCard({
   option,
-  twistWhat,
-  actorId,
   onActor,
   onChoose,
+  onPreview,
+  previewed,
+  outcomesId,
   labelMode = 'faces',
 }: Props) {
   const { check } = option
   return (
-    <article className="option-card" aria-label={option.label}>
+    <article
+      className={previewed ? 'option-card previewed' : 'option-card'}
+      aria-label={option.label}
+      onMouseEnter={onPreview}
+      onFocus={onPreview}
+    >
       <header className="card-head">
         <strong>{option.label}</strong>
         {check && (
-          <span className="muted">
+          <span>
             {check.label} vs DC {check.dc}
             {check.mode !== 'normal' && ` · ${check.mode === 'advantage' ? 'Edge' : 'Exposed'}`}
           </span>
         )}
       </header>
-      {option.description && <p className="muted small">{option.description}</p>}
+      {option.description && <p className="small">{option.description}</p>}
       {check && (
         <>
-          <p className="small">
-            <label>
-              Actor{' '}
-              <select
-                aria-label={`Actor for ${option.label}`}
-                // An override for someone who can no longer act falls back to Auto.
-                value={check.actors.some((a) => a.id === actorId) ? actorId : ''}
-                onChange={(e) => onActor(e.target.value)}
-              >
-                <option value="">Auto: {check.autoActorName}</option>
-                {check.actors.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.name} {formatModifier(a.modifier)}
-                  </option>
-                ))}
-              </select>
-            </label>{' '}
-            {check.actorName} {formatModifier(check.modifier)}
+          <p className="muted small">
             {check.situationalModifier !== 0 &&
-              ` ${formatModifier(check.situationalModifier)} (${check.situationalReason ?? 'situational'})`}
-            :{' '}
+              `${formatModifier(check.situationalModifier)} (${check.situationalReason ?? 'situational'}) · `}
             {labelMode === 'faces' ? (
               <>
                 needs <strong>{neededFace(check.faces)}+</strong> on the d20
@@ -88,28 +66,37 @@ export function OptionCard({
           <OddsBar odds={check.odds} faces={check.faces} labelMode={labelMode} />
         </>
       )}
-      <ul className="outcomes">
-        {[...option.outcomes].reverse().map((o) => (
-          <li key={o.tier ?? 'fixed'} className={o.tier ? `tier-${o.tier}` : undefined}>
-            {o.tier && <strong>{TIER_LABELS[o.tier]}: </strong>}
-            <Branch branch={o} />
-            {o.twist && (
-              <div className="twist small">
-                If {twistWhat ?? 'there is a twist'}: <Branch branch={o.twist} />
-              </div>
-            )}
-          </li>
-        ))}
-      </ul>
       {option.unmet.length > 0 && <p className="tone-bad small">{option.unmet.join(', ')}</p>}
-      <button
-        className="primary next"
-        disabled={!option.available}
-        onClick={onChoose}
-        aria-label={`Choose ${option.label}`}
-      >
-        Choose
-      </button>
+      <div className="choose-row">
+        <button
+          className="primary next"
+          disabled={!option.available}
+          onClick={onChoose}
+          aria-label={`Choose ${option.label}`}
+          aria-describedby={outcomesId}
+        >
+          Choose
+        </button>
+        {check && (
+          <select
+            aria-label={`Actor for ${option.label}`}
+            // The engine's actor: the player's pick while they can act, otherwise the best.
+            value={check.actorId}
+            onChange={(e) => onActor(e.target.value)}
+          >
+            {check.actors.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name} {formatModifier(a.modifier)}
+              </option>
+            ))}
+            {check.unableActors.map((a) => (
+              <option key={a.id} value={a.id} disabled>
+                {a.name} (can't act)
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
     </article>
   )
 }
