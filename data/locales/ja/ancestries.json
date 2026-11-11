@@ -1,0 +1,58 @@
+{
+  "$schema": "../../_schema/translations.schema.json",
+  "kind": "translations",
+  "source": "claude",
+  "locale": "ja",
+  "target": "ancestries",
+  "notes": "Ancestry names in katakana, as in the Japanese D&D 5e books.",
+  "entries": [
+    {
+      "id": "human",
+      "fields": {
+        "name": "ヒューマン"
+      }
+    },
+    {
+      "id": "elf",
+      "fields": {
+        "name": "エルフ"
+      }
+    },
+    {
+      "id": "half-elf",
+      "fields": {
+        "name": "ハーフエルフ"
+      }
+    },
+    {
+      "id": "dwarf",
+      "fields": {
+        "name": "ドワーフ"
+      }
+    },
+    {
+      "id": "orc",
+      "fields": {
+        "name": "オーク"
+      }
+    },
+    {
+      "id": "goblin",
+      "fields": {
+        "name": "ゴブリン"
+      }
+    },
+    {
+      "id": "undead",
+      "fields": {
+        "name": "アンデッド"
+      }
+    },
+    {
+      "id": "drake",
+      "fields": {
+        "name": "ドレイク"
+      }
+    }
+  ]
+}

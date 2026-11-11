@@ -1,0 +1,136 @@
+{
+  "$schema": "../../_schema/translations.schema.json",
+  "kind": "translations",
+  "source": "claude",
+  "locale": "ja",
+  "target": "skills",
+  "notes": "Skill names follow the Japanese D&D 5e books (Hobby Japan).",
+  "entries": [
+    {
+      "id": "acrobatics",
+      "fields": {
+        "name": "軽業",
+        "description": "凍った道や吊り橋、揺れる甲板で足場を保ち、転落から身をかわす。"
+      }
+    },
+    {
+      "id": "animalHandling",
+      "fields": {
+        "name": "動物使い",
+        "description": "一行と荷を運ぶ馬やラバなどの獣をなだめ、御し、世話をする。"
+      }
+    },
+    {
+      "id": "arcana",
+      "fields": {
+        "name": "魔法学",
+        "description": "呪文や魔法の品、秘術の危険を見抜き、魔力を帯びた品の値打ちを見定める。"
+      }
+    },
+    {
+      "id": "athletics",
+      "fields": {
+        "name": "運動",
+        "description": "登攀、水泳、重荷の運搬。ぬかるみや塞がれた峠で荷車を押し通す。"
+      }
+    },
+    {
+      "id": "deception",
+      "fields": {
+        "name": "ペテン",
+        "description": "関所や衛兵をはったりでやり過ごし、品物を実際より良く見せ、平然とした顔を保つ。"
+      }
+    },
+    {
+      "id": "history",
+      "fields": {
+        "name": "歴史",
+        "description": "通りかかる土地、遺跡、名家、古い交易路の来歴を知っている。"
+      }
+    },
+    {
+      "id": "insight",
+      "fields": {
+        "name": "看破",
+        "description": "商人の本心を読み、嘘を見抜き、取引やよそ者の怪しさを感じ取る。"
+      }
+    },
+    {
+      "id": "intimidation",
+      "fields": {
+        "name": "威圧",
+        "description": "力を見せつけ、本気と思わせる脅しで、山賊や値切り屋やならず者を引き下がらせる。"
+      }
+    },
+    {
+      "id": "investigation",
+      "fields": {
+        "name": "捜査",
+        "description": "手がかりを探し、隠し場所を見つけ、打ち捨てられた野営地で何が起きたかを突き止める。"
+      }
+    },
+    {
+      "id": "medicine",
+      "fields": {
+        "name": "医術",
+        "description": "旅の途中で傷や病を手当てし、食べ物や水が安全かを見極める。"
+      }
+    },
+    {
+      "id": "nature",
+      "fields": {
+        "name": "自然",
+        "description": "草木、獣、天候、地形を知り、野の恵みのどれが値打ち物でどれが危険かを見分ける。"
+      }
+    },
+    {
+      "id": "perception",
+      "fields": {
+        "name": "知覚",
+        "description": "待ち伏せ、足跡、目印など、街道や町で場違いなものに気づく。"
+      }
+    },
+    {
+      "id": "performance",
+      "fields": {
+        "name": "芸能",
+        "description": "音楽や物語や見世物で人々を楽しませ、銭や好意、ただの一夜の宿を得る。"
+      }
+    },
+    {
+      "id": "persuasion",
+      "fields": {
+        "name": "説得",
+        "description": "まっとうな値で交渉し、便宜を引き出し、誠実な言葉と人柄で人を動かす。"
+      }
+    },
+    {
+      "id": "religion",
+      "fields": {
+        "name": "宗教",
+        "description": "神々や儀式、祠や修道会を知り、信心深い人々と礼を尽くして接する。"
+      }
+    },
+    {
+      "id": "sleightOfHand",
+      "fields": {
+        "name": "手先の早業",
+        "description": "スリ、小さな品のすり替え、検問官の目から禁制品を隠すこと。"
+      }
+    },
+    {
+      "id": "stealth",
+      "fields": {
+        "name": "隠密",
+        "description": "見回りや怪物の目を盗んで通り抜け、一行と積み荷を静かに運ぶ。"
+      }
+    },
+    {
+      "id": "survival",
+      "fields": {
+        "name": "生存",
+        "description": "道を見つけ、食料を探し、足跡を追い、荒野に安全な野営地を張る。"
+      }
+    }
+  ]
+}

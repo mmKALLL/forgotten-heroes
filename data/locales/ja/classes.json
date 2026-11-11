@@ -1,0 +1,52 @@
+{
+  "$schema": "../../_schema/translations.schema.json",
+  "kind": "translations",
+  "source": "claude",
+  "locale": "ja",
+  "target": "classes",
+  "notes": "Class names in katakana, as in the Japanese D&D 5e books.",
+  "entries": [
+    {
+      "id": "fighter",
+      "fields": {
+        "name": "ファイター"
+      }
+    },
+    {
+      "id": "cleric",
+      "fields": {
+        "name": "クレリック"
+      }
+    },
+    {
+      "id": "rogue",
+      "fields": {
+        "name": "ローグ"
+      }
+    },
+    {
+      "id": "wizard",
+      "fields": {
+        "name": "ウィザード"
+      }
+    },
+    {
+      "id": "bard",
+      "fields": {
+        "name": "バード"
+      }
+    },
+    {
+      "id": "ranger",
+      "fields": {
+        "name": "レンジャー"
+      }
+    },
+    {
+      "id": "paladin",
+      "fields": {
+        "name": "パラディン"
+      }
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { existsSync } from 'node:fs'
 import { expect, test } from 'vitest'
 import { buildContent } from './build'
 import { bundledFiles, loadBundledContent } from './bundled'
+import { translationKey } from './localize'
 
 test('every data file is valid', () => {
   const { errors } = buildContent(bundledFiles)
@@ -52,4 +53,16 @@ test('data/imported-private/ is optional: absent locally means no private files,
     ...Object.values(content.situationTemplates),
   ].filter((s) => s.source === 'imported-private')
   expect(privateEntries.length).toBeGreaterThan(0)
+})
+
+test('bundled Japanese translations cover every skill, class and ancestry, plus sample encounters', () => {
+  const content = loadBundledContent()
+  const missing = (['skills', 'classes', 'ancestries'] as const).flatMap((kind) =>
+    Object.keys(content[kind])
+      .filter((id) => !Object.hasOwn(content.translations, translationKey('ja', kind, id)))
+      .map((id) => `${kind} ${id}`)
+  )
+  expect(missing).toEqual([])
+  const situations = Object.values(content.translations).filter((t) => t.target === 'situations')
+  expect(situations.length).toBeGreaterThanOrEqual(3)
 })

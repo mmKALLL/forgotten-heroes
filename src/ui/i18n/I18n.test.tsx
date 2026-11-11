@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, test } from 'vitest'
 import { App } from '../App'
@@ -60,5 +60,33 @@ describe('language toggle', () => {
     unmount()
     render(<App />)
     expect(screen.getByRole('heading', { name: '忘れられし英雄たち' })).toBeTruthy()
+  })
+})
+
+describe('content in Japanese', () => {
+  test('party cards and practice checks use translated skill, class and ancestry names', async () => {
+    localStorage.setItem(LANGUAGE_KEY, 'ja')
+    render(<App />)
+    expect(screen.getByRole('option', { name: '説得' })).toBeTruthy()
+    expect(screen.getByRole('option', { name: '魅力' })).toBeTruthy()
+    const summaries = screen
+      .getAllByRole('article')
+      .map((a) => a.querySelector('.muted')!.textContent)
+    expect(summaries.every((s) => /^\S+・\S+ · Lv\d/.test(s ?? ''))).toBe(true)
+  })
+
+  test('a translated encounter plays in Japanese; toggling back shows it in English', async () => {
+    localStorage.setItem('forgotten-heroes/ui/deck-expanded', 'true')
+    localStorage.setItem(LANGUAGE_KEY, 'ja')
+    render(<App />)
+    await userEvent.click(screen.getByRole('button', { name: '「増水した渡し場」をプレイ' }))
+    const encounter = screen.getByRole('region', { name: '遭遇' })
+    expect(within(encounter).getByRole('heading', { name: '増水した渡し場' })).toBeTruthy()
+    expect(within(encounter).getByText(/^雪解けで川は/)).toBeTruthy()
+    expect(within(encounter).getByRole('button', { name: '「値切る」を選ぶ' })).toBeTruthy()
+    expect(within(encounter).getByText(/^説得、DC 14/)).toBeTruthy()
+    await userEvent.click(screen.getByRole('button', { name: 'EN' }))
+    expect(within(encounter).getByRole('heading', { name: 'The flooded ferry' })).toBeTruthy()
+    expect(within(encounter).getByText(/^Spring melt has swollen/)).toBeTruthy()
   })
 })
