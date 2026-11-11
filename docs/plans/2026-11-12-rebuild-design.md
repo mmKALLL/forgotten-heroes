@@ -1,0 +1,191 @@
+# Forgotten Heroes — Rebuild Design
+
+Date: 2026-11-12 · Branch: `rebuild` · Supersedes the Svelte prototype (tag `v0.1.0-svelte-final`)
+
+Source material: [design-doc.txt](../design-doc.txt), [solo-dm-notes.txt](../solo-dm-notes.txt).
+
+## 1. Goals
+
+A gritty, magical D&D 5e–flavoured travel-and-trade sim (Spice & Wolf / Frieren mood, Battle Brothers / Mount & Blade structure). Out-of-dungeon adventurer life: profit, travel, curious encounters, a living world. Click-and-choose play, text-forward, data-heavy screens are welcome.
+
+Pillars:
+
+- **Input randomness.** Odds, DCs and outcomes are shown before the player commits.
+- **Few, meaningful decisions.** No grind of trivial encounters.
+- **Surprise without runtime AI.** Content is authored ahead of time (by hand, imported, procedurally combined, or written by Claude Code), but the player can't predict what comes next.
+- **Streamlined resources, deep strategy.** Few resource types, each with a distinct reason to matter.
+- **Hand-tweakable.** All content is plain JSON, separated by provenance.
+
+Target session: about 30 minutes, inside a persistent campaign (section 6).
+
+## 2. Architecture
+
+- **Stack:** Vite, React and strict TypeScript, using pnpm. Tests use Vitest.
+- **Engine** (`src/engine/`) is pure TypeScript with no UI dependency, shaped as `step(state, action) → state`.
+  - `GameState` is plain serialisable data and includes the RNG seed and cursor, so runs are reproducible and saving is a JSON dump to localStorage.
+  - The engine exposes `availableActions(state)`, which returns each action with its precomputed odds and outcome previews.
+- **UI** (`src/ui/`) renders `GameState` and `availableActions`, and dispatches actions. React holds the single state via `useReducer`; there is no state library.
+- **No functions in data.** Conditions, checks, effects and rule hooks are small typed objects, such as `{ "check": "persuasion", "dc": 14 }`, `{ "effect": "gold", "amount": -5 }` and `{ "on": "natural1", "do": [...] }`, interpreted by the engine. This keeps odds computable, state serialisable, and content editable by hand or by Claude.
+
+### Repository layout
+
+```
+src/engine/              pure TS: state, rng, checks, travel, market, encounters, world sim, hooks
+src/ui/                  React components
+src/schema/              zod schemas → TS types + generated JSON Schema (for editor autocompletion)
+data/original/           human-authored: settlement types, services, names, items ported from the prototype
+data/imported/           SRD 5.1/5.2-derived content (CC-BY-4.0) — committed
+data/imported-private/   entries from copyrighted books/PDFs (d100 tables etc.) — GITIGNORED
+data/procedural/         parts tables (JSON) + combinator code (TS) that assemble content at runtime
+data/claude/             content authored by Claude Code
+assets/                  GITIGNORED; copied from ~/dnd5e, preserving its directory structure
+assets.manifest.txt      committed: dnd5e-relative paths of every copied file/subdirectory
+scripts/sync-assets.ts   re-copies everything in the manifest (DND5E_DIR env var, default ~/dnd5e)
+```
+
+- **Data format:** content files are JSON, validated against zod schemas when loaded and in tests. Each data folder gets a generated `$schema` file, so VS Code autocompletes and flags errors while you hand-edit.
+- **Provenance:** every content entry has `"source": "original" | "imported" | "imported-private" | "procedural" | "claude"`, shown as a badge in the UI.
+- **Icons:** from game-icons.net, via `~/dnd5e/rpg-cards`. They are CC BY 3.0 and committed with credits.
+- **Images** (town maps, battle maps, the Altaeus world map) are gitignored assets, copied individually or by subdirectory and listed in the manifest.
+
+The old Svelte code is removed on this branch. The useful types and data are ported to `data/original/` and `src/schema/`.
+
+## 3. Characters and party
+
+- **Party size:** soft range of 2–6. The starting size is a setting; 2 is suggested. Camaraderie and upkeep get steeply harder past about 7, so a party of 8+ is possible only with heavy late-game investment.
+- **Characters:** full 5e ability scores, skill proficiencies, HP, hit dice, exhaustion, and conditions.
+- **Who acts:** every check auto-selects the best-suited member by their current effective modifier. The UI shows who acts and the odds, and the player may override the choice.
+- **Edge and Exposed** replace 5e Help, which does not exist here.
+  - Succeeding on a risky option grants Edge: advantage on the next check in the same encounter.
+  - Some failures inflict Exposed: disadvantage on the next check.
+  - Advantage must be earned through earlier risk.
+- **Inspiration:** a natural 20 on a non-combat check grants Inspiration, which can be spent for a reroll and similar uses.
+- **Carrying capacity:** each member's contribution scales with STR, from about 0.8× at STR 8 to about 1.8× at STR 18 (2.25× at most). Pack animals and carts add more. Magical alternatives (floating disk, unseen porters, teleport circles) come later.
+- **Endurance:** forced-march days before exhaustion scale with CON.
+
+## 4. Goods and economy
+
+There are 15 goods in 5 categories. They are tracked as quantities, never as individual items.
+
+| Category | Goods | Strategic role |
+|---|---|---|
+| Essentials | Food, Water, Fuel | Consumed daily. Water dominates in deserts, fuel in tundra and winter. Food spoils. |
+| Consumables | Healing, Alchemicals, Arcana | Spent to unlock or boost encounter options |
+| Equipment | Arms, Armour, Gear | Demand spikes with war and raids. Gear unlocks terrain options. |
+| Materials | Timber, Stone, Metal | Heavy and cheap, but huge demand where regions are rebuilding |
+| Precious | Gems, Art & Relics, Luxuries | Light and valuable; they attract thieves |
+
+- **Local prices** come from supply and demand. Each settlement's supply and demand is driven by its type, its biome, its region's state, and recent events. Prices drift daily, and bulk selling depresses them.
+- **Price book:** the player only knows prices they have observed or heard through rumours, and each entry shows its age. Trading on stale information is part of the game.
+- **Visible wealth:** the value of precious goods carried raises the odds of thieves and tolls. Party size deters them.
+- **Character gear:** one weapon, armour and accessory slot per character, each with quality tiers. Separate from trade goods.
+- **Accessories:** mid- and high-tier accessories carry procedurally rolled **rule hooks** that change how the game plays (section 8).
+
+## 5. Towns: the ledger screen
+
+There are many establishment types (ported from the prototype's services), so towns can specialise. Everything is on one screen with no modal open and close:
+
+1. **Market panel:** the 15 goods grouped by category, with columns for buy, sell, local supply and demand, the best shop, and the price-book comparison (*"31 gp in Avarus, 12 days ago"*).
+2. **Services panel:** one row per establishment, grouped by function (Trade, Rest & Recovery, Hire & Contracts, Temple & Arcane, Underworld). Each row shows quality, specialty, your reputation there, and inline action buttons.
+3. **People panel:** notable NPCs and your reputation with each.
+
+The town map image is a banner and backdrop.
+
+## 6. World and campaign structure
+
+- **Altaeus** is the fixed geography, taken from the world map. About 14 named regions and about 45 settlement markers form a graph: nodes are settlements and points of interest at the marker coordinates, and edges are routes with a distance (km, from the 100 km scale bar), a terrain type, and a danger level.
+- **Political layer:** this is the randomised part.
+  - Each region has a local threat or usurper (orcs, undead, a cult...) with its own strength.
+  - Kingdoms own one or more regions.
+  - A kingdom's defence is split across its regions, so growth thins its garrisons and lets threats rise.
+- **New world:** re-rolls the political layer on top of the fixed geography: borders, ruling ancestries, threats, and settlement names and types.
+
+### Persistent world with successive parties
+
+- **Party wipes are permanent** (ironman), but the world continues.
+- **Years pass between parties.** The next party starts 5–20 simulated years later.
+- **The fallen party's legacy** shows up in the new run as rumours, graves, their gear in shops or in enemy hands, the businesses they owned, and their grudges. These are the *forgotten heroes*.
+- **Fresh per-party modifiers:** each new party draws or picks modifiers, Slice & Dice style.
+
+### Counterbalances, so the world doesn't drift too far from its setup
+
+- **Decaying hero pressure.** Player actions push regional values (prosperity, threat strength, a kingdom's grip) as pressure that wears off over about a season. Only structural acts, such as founding, conquering or destroying, change things permanently.
+- **Regional baselines.** Each region's terrain, culture and resources act as an attractor that prosperity and population drift back toward.
+- **Grip.** Holding territory costs upkeep. Grip weakens with size, time, and the ruler's absence, and low grip spawns usurpers. This applies to a realm the player unites, too.
+- **Time skips between parties** let all of the above act, so most of a party's impact fades while their legend remains.
+
+## 7. Travel and encounters
+
+- **Travel steps by day:** consume essentials (or make a check / gain exhaustion), possibly have an encounter, make camp and keep watch. Days without an encounter collapse into a single summary line.
+- **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4. The chance scales with route danger, regional threat and visible wealth.
+- **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation), with no option that always wins. The simulation test flags options that win in every case.
+- **Wonders:** a separate kind of encounter. Rare, one click, flavour only, never a burden.
+
+### Encounter composition (all JSON)
+
+1. **Situations:** the core premise. They come from every provenance.
+2. **Archetypes:** reusable option sets, for example:
+   - *Hostile group:* fight, sneak, negotiate, bribe, flee.
+   - *Someone in need:* trusting help (bigger reward, worse when betrayed), cautious help (smaller reward, protected), ignore, exploit, plus an optional Insight check that reveals the odds of a twist.
+
+   Archetypes make one-line imported d100 entries playable without writing options by hand.
+3. **Parts tables:** actor (ancestry, occupation, attitude), motive, complication, stakes. These are filled in according to world state: regional threat, goods carried, low supplies, time of day.
+4. **Follow-ups:** an outcome may queue a later encounter, which is the main source of surprise.
+
+### Resolution
+
+- **Outcome tiers:** each option shows the acting member, skill, DC and % chance, and every outcome tier (critical fail, fail, partial, success, critical success) before the player commits.
+- **Combat** is resolved as a graded check in slice 1. The linear-distance combat system comes in a later phase.
+
+## 8. Reputation, accessories and modifiers
+
+- **Reputation tiers:** individuals (shopkeepers, notables), settlements, kingdoms, and threat factions.
+- **What reputation does:** affects prices, service access, rumour quality, and special encounter options, and unlocks quest types.
+- **Spending reputation:** call in a favour for a guaranteed success or a large bonus. Using one faction's favour in front of its rival costs reputation with the rival.
+- **Rule hooks:** one declarative mechanism, such as `{ "on": "sellGoods", "category": "precious", "modify": {...} }`. It powers both accessory effects and per-party modifiers, which are composable, random, and allowed to bend the rules.
+
+## 9. UI
+
+- **Layout:**
+  - Left: party portraits with HP, conditions and key modifiers.
+  - Centre: a backdrop image (a battle map chosen by biome tag, or the town map), the narrative, and option cards with odds bars and outcome tiers.
+  - Right: the Altaeus map with the route and log.
+  - Bottom: the goods bar by category, a capacity meter, and a visible-wealth indicator.
+- **Style:** the prototype only had the Vite default stylesheet, so the visual style is a fresh pass. Parchment and ink tones suit the Altaeus map.
+- **Dice animation:** flat d20 outlines whose faces flicker, then settle in quick succession, in at most 1.5 s. On high-stakes rolls the last die slows and glows, with the DC drawn as a line. A click skips it, and reduced-motion is respected.
+- **Encounter Deck** (dev panel): every encounter, filterable by source and playable on demand, for comparing which provenance feels most exciting.
+- **Demand visualisation** on the world map is to be designed later.
+
+## 10. Testing
+
+- Every data file validates against its schema.
+- Check odds match exact probabilities, including advantage and disadvantage.
+- A seeded replay produces identical state.
+- Simulation smoke test: about 1,000 automated journeys with a random-choice policy. It must not crash, and it reports death rate, profit distribution, and options that win in every case.
+
+## 11. Scope
+
+**Slice 1 (first playable):**
+- The Altaeus graph with one generated political layer.
+- Towns with the ledger screen.
+- Party creation (2 members), travel, essentials consumption.
+- The market and price book.
+- Encounters from all provenances (situations, archetypes, parts, follow-ups), Edge and Exposed, and Inspiration.
+- Basic reputation (individual and settlement).
+- Dice animation, the Encounter Deck, save and load, and run end on a party wipe.
+
+**Later:**
+- World simulation ticks and the counterbalances.
+- Successive parties and legacy.
+- Accessories with hooks, and per-party modifiers.
+- Kingdom- and faction-level reputation with favours.
+- Dungeons (alarm level, rooms) and linear combat.
+- Owned businesses and mercenary companies.
+- Demand visualisation.
+
+## 12. Open questions
+
+- Exact goods weights, prices and spoilage rates (to be tuned through the simulation test).
+- What reputation affects beyond the initial set.
+- Town naming scheme for generated worlds.
+- What triggers a world re-randomise (manual only, or offered after N parties).
