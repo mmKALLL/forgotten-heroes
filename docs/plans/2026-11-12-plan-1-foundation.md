@@ -2527,7 +2527,7 @@ Each plan is written in full once the previous one lands, so it can take the use
   - The d20 dice animation.
 - **Plan 3: World and travel.**
   - The Altaeus graph (marker coordinates, regions, routes) and the political-layer generator (kingdoms and threats).
-  - Ported place-name generators.
+  - Town names parsed from the town-map filenames (`Name - description - alignment`) into `data/original/towns.json`, with the parsed hints and banner image paths, plus manifest entries for those maps. The ported `towns.ts` generators cover any settlements left over.
   - The daily travel loop with essentials, encounter budgets and a map view.
   - Assets manifest entries for battle-map backdrops by biome.
 - **Plan 4: Towns and economy.**

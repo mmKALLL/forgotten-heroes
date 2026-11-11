@@ -100,6 +100,7 @@ The town map image is a banner and backdrop.
   - Kingdoms own one or more regions.
   - A kingdom's defence is split across its regions, so growth thins its garrisons and lets threats rise.
 - **New world:** re-rolls the political layer on top of the fixed geography: borders, ruling ancestries, threats, and settlement names and types.
+- **Town names** come first from the town-map filenames in `~/dnd5e/town maps/` (including `__altaeus/`). Their `Name - description - alignment` pattern also hints at the settlement type, biome, wealth and alignment, and the map image becomes that town's banner. The generators from the prototype's `towns.ts` (English, French and Spanish style compounds) fill any remaining settlements.
 
 ### Persistent world with successive parties
 
@@ -188,5 +189,4 @@ The town map image is a banner and backdrop.
 
 - Exact goods weights, prices and spoilage rates (to be tuned through the simulation test).
 - What reputation affects beyond the initial set.
-- Town naming scheme for generated worlds.
 - What triggers a world re-randomise (manual only, or offered after N parties).
