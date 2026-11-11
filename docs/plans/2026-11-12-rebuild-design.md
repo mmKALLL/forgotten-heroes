@@ -39,6 +39,7 @@ data/imported/           SRD 5.1/5.2-derived content (CC-BY-4.0) — committed
 data/imported-private/   entries from copyrighted books/PDFs (d100 tables etc.) — GITIGNORED
 data/procedural/         parts tables (JSON) + combinator code (TS) that assemble content at runtime
 data/claude/             content authored by Claude Code
+data/locales/<locale>/   content translations (e.g. ja/), overlaid on entries at render time
 assets/                  GITIGNORED; copied from ~/dnd5e, preserving its directory structure
 assets.manifest.txt      committed: dnd5e-relative paths of every copied file/subdirectory
 scripts/sync-assets.ts   re-copies everything in the manifest (DND5E_DIR env var, default ~/dnd5e)
@@ -154,6 +155,11 @@ The town map image is a banner and backdrop.
      - **Contagion or curse:** the helper is afflicted, then treatment or cleansing (Medicine or Religion), or a later follow-up if ignored.
      - **Fugitive:** hunters or guards arrive, now or as a follow-up. The party can talk, hand them over or run, with reputation consequences.
      - **False claim:** they accuse the party, then a social stage with a crowd or the guards.
+     - **Informant:** they sell the party's route and cargo, so a deadlier ambush follow-up waits on the road. Cautious help means they saw less.
+     - **Predator bait:** their blood or wound draws beasts (SRD creatures), then a fight-or-flee stage.
+     - **Fey bargain (changeling):** they take something intangible, such as Inspiration, a skill's edge or a memory, then a bargaining stage (Arcana or Persuasion) to win it back.
+     - **Recruiter:** a cultist works on one party member. A Wisdom or Insight contest follows; on a failure that member has a penalty to their next checks until talked down (a mood hit once mood exists).
+     - The target is about 10 kinds, weighted by region and threat where it makes sense.
      - The help choice sets the party's footing and exposure in every kind: trusting is worse, cautious is milder.
    - *When the twist is an ambush:* it escalates into an ambush stage (fight, flee, negotiate or bribe).
      - Trusting help: you start Exposed and take an opening hit.
