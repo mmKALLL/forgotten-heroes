@@ -21,10 +21,22 @@ type Props = {
 const stop = (e: SyntheticEvent) => e.stopPropagation()
 
 /**
+ * A fixed option's effects as the engine describes them, e.g. "−25 gp, 1 day passes", so the
+ * player needn't open the outcomes panel for it. Null for checks, and when nothing is listable.
+ */
+function fixedSummary(option: OptionPreview): string | null {
+  if (option.kind !== 'fixed') return null
+  const outcome = option.outcomes[0]
+  if (!outcome || outcome.hidden || outcome.effects.length === 0) return null
+  return outcome.effects.join(', ')
+}
+
+/**
  * A compact option: title and description on the left; skill, DC, any situational modifier and
  * the actor picker on the right; the odds below. Clicking anywhere but the picker chooses it.
  * The keyboard target is the title area (role="button"), which sits beside the picker rather
- * than around it. Its outcome tiers show in the shared OutcomesPanel instead.
+ * than around it. Its outcome tiers show in the shared OutcomesPanel instead, except that a fixed
+ * option's effects also show in the card, after its description (or its label if it has none).
  */
 export function OptionCard({
   option,
@@ -37,6 +49,11 @@ export function OptionCard({
 }: Props) {
   const { check, available } = option
   const descriptionId = useId()
+  const summaryId = useId()
+  const summary = fixedSummary(option)
+  const summaryText = summary && <span className="effect-summary">({summary})</span>
+  const hasDescription = Boolean(option.description) || option.unmet.length > 0
+  const summaryOnLabel = Boolean(summary) && !option.description
   const choose = () => {
     if (available) onChoose()
   }
@@ -68,16 +85,29 @@ export function OptionCard({
           tabIndex={0}
           aria-disabled={!available || undefined}
           aria-label={`Choose ${option.label}`}
-          aria-describedby={
-            option.description || option.unmet.length > 0
-              ? `${descriptionId} ${outcomesId}`
-              : outcomesId
-          }
+          aria-describedby={[
+            summaryOnLabel && summaryId,
+            hasDescription && descriptionId,
+            outcomesId,
+          ]
+            .filter(Boolean)
+            .join(' ')}
           onKeyDown={onKeyDown}
         >
           <strong>{option.label}</strong>
+          {summaryOnLabel && (
+            <span id={summaryId} className="small">
+              {' '}
+              {summaryText}
+            </span>
+          )}
           <div id={descriptionId}>
-            {option.description && <p className="small">{option.description}</p>}
+            {option.description && (
+              <p className="small">
+                {option.description}
+                {summaryText && <> {summaryText}</>}
+              </p>
+            )}
             {option.unmet.length > 0 && <p className="tone-bad small">{option.unmet.join(', ')}</p>}
           </div>
         </div>

@@ -426,6 +426,11 @@ label.inline {
   min-width: 0;
   border-radius: 2px;
 }
+/* A fixed option's effects, after its label or description: same ink, quieter than the label. */
+.effect-summary {
+  font-weight: normal;
+  font-variant-numeric: tabular-nums;
+}
 .card-choose:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

@@ -136,6 +136,62 @@ test('a fixed option ends the encounter, and Close clears it', async () => {
   expect(screen.getByText('closed')).toBeTruthy()
 })
 
+test("a fixed option's effects show in its card, after its description or else its label", () => {
+  const situation = SituationSchema.parse({
+    id: 'toll',
+    title: 'Toll',
+    stages: {
+      start: {
+        text: 'Bandits block the road.',
+        options: [
+          {
+            id: 'surrender',
+            kind: 'fixed',
+            label: 'Surrender',
+            description: 'Nobody gets hurt. Everybody gets poorer.',
+            outcome: { text: 'They take it.', effects: [{ effect: 'gold', amount: -25 }] },
+          },
+          {
+            id: 'pay',
+            kind: 'fixed',
+            label: 'Pay them',
+            outcome: {
+              text: 'They count it.',
+              effects: [
+                { effect: 'log', text: 'Coins clink.' },
+                { effect: 'gold', amount: -18 },
+                { effect: 'days', amount: 1 },
+              ],
+            },
+          },
+          { id: 'wait', kind: 'fixed', label: 'Wait', outcome: { text: 'Time passes.' } },
+          {
+            id: 'fight',
+            kind: 'check',
+            label: 'Fight',
+            check: { skill: 'athletics', dc: 12 },
+            outcomes: {
+              fail: { text: 'Ouch.', effects: [{ effect: 'gold', amount: -25 }] },
+              partial: { text: 'Meh.', effects: [{ effect: 'gold', amount: -5 }] },
+              success: { text: 'Ha.', effects: [{ effect: 'gold', amount: 10 }] },
+            },
+          },
+        ],
+      },
+    },
+  })
+  const log = [{ text: 'Bandits block the road.', tone: 'info' as const }]
+  render(<Harness initial={makeState({ encounter: makeEncounter({ situation, log }) })} />)
+  const surrender = card('Surrender').querySelector('.card-choose p')!
+  expect(surrender.textContent).toBe('Nobody gets hurt. Everybody gets poorer. (−25 gp)')
+  // Log lines are not listed; the summary is read with the choose target.
+  const pay = within(card('Pay them')).getByText('(−18 gp, 1 day passes)')
+  expect(choose('Pay them').getAttribute('aria-describedby')).toContain(pay.parentElement!.id)
+  expect(card('Wait').querySelector('.effect-summary')).toBeNull()
+  expect(card('Fight').querySelector('.effect-summary')).toBeNull()
+  expect(within(card('Fight')).queryByText(/gp/)).toBeNull()
+})
+
 test('a check animates the dice and hides the result until they settle (click skips)', async () => {
   render(<Harness initial={started('cliff')} />)
   await userEvent.click(choose('Climb'))
