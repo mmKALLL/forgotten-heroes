@@ -3,6 +3,7 @@ import type { FixedOption } from '../schema/encounter'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
+import { encounterOver } from '../engine/encounters/run'
 import { lintSituation, validateSituation } from '../engine/encounters/validate'
 import { newGame, step } from '../engine/state'
 import { loadBundledContent } from './bundled'
@@ -120,4 +121,16 @@ test('the six prototype events are ported to original/', () => {
     'unburnt-grove',
     'wolves-and-goats',
   ])
+})
+
+test('a party downed mid-encounter on the wolf path can still close it', () => {
+  const started = step(
+    newGame(1, content),
+    { type: 'startEncounter', situationId: 'wolves-and-goats' },
+    content
+  )
+  expect(encounterOver(started)).toBe(false)
+  const downed = { ...started, party: started.party.map((c) => ({ ...c, hp: 0 })) }
+  expect(encounterOptions(downed).some((o) => o.available)).toBe(false)
+  expect(encounterOver(downed)).toBe(true)
 })

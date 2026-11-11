@@ -6,7 +6,7 @@ import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import type { Content } from '../../content/build'
 import { SituationSchema } from '../../schema/encounter'
-import { currentOptions } from './run'
+import { currentOptions, encounterOver, inProgress } from './run'
 
 const content = fixtureContent()
 const start = (situationId: string, state: GameState = makeState()) =>
@@ -95,6 +95,21 @@ describe('startEncounter', () => {
     }
     const over = { ...roadside, encounter: { ...roadside.encounter!, stage: null } }
     expect(start('cliff', over).encounter?.situation.id).toBe('cliff')
+  })
+
+  test('no one fit to travel: starting or drawing logs and starts nothing', () => {
+    const downed = makeState({
+      party: makeState().party.map((c) => ({ ...c, hp: 0 })),
+      followUps: [{ situationId: 'grudge', wait: 0 }],
+    })
+    for (const action of [
+      { type: 'startEncounter', situationId: 'cliff' },
+      { type: 'drawEncounter' },
+    ] as const) {
+      const after = step(downed, action, content)
+      expect({ ...after, log: downed.log }).toEqual(downed) // the due follow-up stays queued
+      expect(after.log.at(-1)).toMatchObject({ text: 'No one is fit to travel on.', tone: 'bad' })
+    }
   })
 
   test('slots fill the title and the twist', () => {
@@ -298,6 +313,34 @@ describe('check options', () => {
     const snapshot = structuredClone(before)
     choose(before, 'climb')
     expect(before).toEqual(snapshot)
+  })
+})
+
+describe('encounterOver', () => {
+  const down = (state: GameState): GameState => ({
+    ...state,
+    party: state.party.map((c) => ({ ...c, hp: 0 })),
+  })
+
+  test('is true with no encounter or an ended one, false while options can be chosen', () => {
+    expect(encounterOver(makeState())).toBe(true)
+    const cliff = start('cliff')
+    expect(encounterOver(cliff)).toBe(false)
+    expect(inProgress(cliff)).toBe(true)
+    expect(encounterOver({ ...cliff, encounter: { ...cliff.encounter!, stage: null } })).toBe(true)
+  })
+
+  test('a downed party with only checks (or unaffordable options) left is over, and can move on', () => {
+    // Grudge: a check, and a fixed option that needs 5 gp.
+    const stuck = down(start('grudge', makeState({ gold: 0 })))
+    expect(encounterOver(stuck)).toBe(true)
+    expect(inProgress(stuck)).toBe(false)
+    // Fixed options need no one to act: going around the cliff is still possible.
+    expect(encounterOver(down(start('cliff')))).toBe(false)
+    // Closing works, and a new encounter is refused only because no one can travel.
+    expect(step(stuck, { type: 'closeEncounter' }, content).encounter).toBeNull()
+    const again = step(stuck, { type: 'startEncounter', situationId: 'cliff' }, content)
+    expect(again.log.at(-1)?.text).toBe('No one is fit to travel on.')
   })
 })
 

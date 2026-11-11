@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Content } from '../../content/build'
 import { allSituations } from '../../engine/encounters/compile'
+import { inProgress } from '../../engine/encounters/run'
 import { contentIssues } from '../../engine/encounters/validate'
 import type { Action } from '../../engine/state'
 import { SOURCES, type Source } from '../../schema/common'
@@ -18,6 +19,7 @@ export function EncounterDeck({ content, state, onAction }: Props) {
     setSources(
       sources.includes(source) ? sources.filter((s) => s !== source) : [...sources, source]
     )
+  const busy = inProgress(state)
 
   return (
     <section className="panel deck" aria-label="Encounter Deck">
@@ -36,11 +38,12 @@ export function EncounterDeck({ content, state, onAction }: Props) {
       </div>
       <button
         className="primary"
-        disabled={sources.length === 0}
+        disabled={busy || sources.length === 0}
         onClick={() => onAction({ type: 'drawEncounter', sources })}
       >
         Random draw
       </button>
+      {busy && <p className="muted small">Finish or close the current encounter first.</p>}
       {state.followUps.length > 0 && (
         <p className="muted small">
           Queued follow-ups:{' '}
@@ -70,6 +73,7 @@ export function EncounterDeck({ content, state, onAction }: Props) {
                     </span>
                   )}
                   <button
+                    disabled={busy}
                     onClick={() => onAction({ type: 'startEncounter', situationId: s.id })}
                     aria-label={`Play ${s.title}`}
                   >

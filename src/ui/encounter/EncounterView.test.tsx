@@ -124,3 +124,11 @@ test('a stage that does not exist offers no options, only Close', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Close' }))
   expect(screen.getByText('closed')).toBeTruthy()
 })
+
+test('a party too hurt to roll, with nothing affordable left, can only close', async () => {
+  const state = started('grudge', makeState({ gold: 0 }))
+  render(<Harness initial={{ ...state, party: state.party.map((c) => ({ ...c, hp: 0 })) }} />)
+  expect(screen.getByText('The encounter is over.')).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(screen.getByText('closed')).toBeTruthy()
+})

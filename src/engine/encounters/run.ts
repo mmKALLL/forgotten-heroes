@@ -30,11 +30,25 @@ export const POSITION_MODE: Record<Position, RollMode> = {
 /** Skill uses older than this many days are dropped; Strain (Plan 3) looks back at most a week. */
 export const SKILL_USE_DAYS = 7
 
-/** True while an encounter is open and not yet over. */
-export const inProgress = (state: GameState): boolean =>
-  state.encounter != null && state.encounter.stage !== null
+/** An option can be chosen when its requirements are met and, for a check, someone can roll it. */
+export const optionAvailable = (state: GameState, option: Option): boolean =>
+  unmetRequirements(state, option.requires).length === 0 &&
+  (option.kind === 'fixed' || state.party.some(canAct))
+
+/**
+ * Nothing left to do but close: no encounter, an ended one, or a stage where no option can be
+ * chosen (e.g. the party is down and only checks are left, or a save from older content).
+ */
+export const encounterOver = (state: GameState): boolean =>
+  state.encounter == null ||
+  state.encounter.stage === null ||
+  !currentOptions(state.encounter).some((o) => optionAvailable(state, o))
+
+/** True while an encounter is open and something can still be chosen in it. */
+export const inProgress = (state: GameState): boolean => !encounterOver(state)
 
 const BUSY = 'Finish the current encounter first.'
+const UNFIT = 'No one is fit to travel on.'
 
 /** Every encounter that starts moves each queued follow-up one encounter closer. */
 const advanceFollowUps = (state: GameState): GameState => ({
@@ -44,6 +58,7 @@ const advanceFollowUps = (state: GameState): GameState => ({
 
 export function startEncounter(state: GameState, content: Content, situationId: string): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
+  if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
   const found = allSituations(content).find((s) => s.id === situationId)
   if (!found) return appendLog(state, `Unknown encounter "${situationId}".`, 'bad')
   const compiled = compileSituation(found, content)
@@ -94,6 +109,7 @@ export function drawEncounter(
   sources?: readonly Source[]
 ): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
+  if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
   const situations = allSituations(content)
   const known = new Set(situations.map((s) => s.id))
   const followUps = state.followUps.filter((f) => f.wait > 0 || known.has(f.situationId))

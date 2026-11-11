@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { encounterOptions, twistInfo } from '../../engine/encounters/preview'
+import { encounterOver } from '../../engine/encounters/run'
 import { formatPercent } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import type { EncounterState, GameState } from '../../schema/state'
@@ -39,8 +40,8 @@ export function EncounterView({
   const visible = animating ? encounter.log.slice(0, rollIndex + 1) : encounter.log
   const twist = twistInfo(state)
   const options = encounterOptions(state, actorIds)
-  // An ended encounter, or a stage that offers nothing (e.g. a save from older content), can only close.
-  const over = encounter.stage === null || options.length === 0
+  // Ended, or nothing can be chosen any more (e.g. the party is down): it can only close.
+  const over = encounterOver(state)
 
   return (
     <section className="panel encounter" aria-label="Encounter">

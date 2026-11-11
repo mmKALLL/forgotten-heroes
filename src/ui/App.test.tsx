@@ -138,3 +138,19 @@ test('an encounter in progress survives a reload', async () => {
   render(<App />)
   expect(screen.getByRole('heading', { name: 'The singing stones' })).toBeTruthy()
 })
+
+test('the Deck waits while an encounter is in progress, and says why', async () => {
+  render(<App />)
+  const deck = within(screen.getByRole('region', { name: 'Encounter Deck' }))
+  expect(deck.queryByText('Finish or close the current encounter first.')).toBeNull()
+  await userEvent.click(deck.getByRole('button', { name: 'Play The flooded ferry' }))
+  expect(deck.getByText('Finish or close the current encounter first.')).toBeTruthy()
+  const disabled = (name: string) =>
+    (deck.getByRole('button', { name }) as HTMLButtonElement).disabled
+  expect(disabled('Random draw')).toBe(true)
+  expect(disabled('Play The singing stones')).toBe(true)
+  const encounter = within(screen.getByRole('region', { name: 'Encounter' }))
+  await userEvent.click(encounter.getByRole('button', { name: "Choose Pay Ilse's price" }))
+  expect(disabled('Random draw')).toBe(false)
+  expect(deck.queryByText('Finish or close the current encounter first.')).toBeNull()
+})

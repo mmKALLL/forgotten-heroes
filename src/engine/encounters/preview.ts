@@ -6,7 +6,7 @@ import { rankActors } from '../rules/character'
 import { TIERS, successChance, tierOdds, type RollMode, type Tier } from '../rules/checks'
 import { describeEffect } from './effects'
 import { isHighStakes, tierOutcome } from './outcomes'
-import { POSITION_MODE, currentOptions, unmetRequirements } from './run'
+import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
 
 export type BranchPreview = { text: string; effects: string[]; next: 'end' | 'stay' | 'stage' }
@@ -91,7 +91,7 @@ export function encounterOptions(
     }
     if (option.kind === 'fixed') {
       const outcomes = [outcomePreview(option.outcome, null, encounter.slots, 'someone')]
-      return { ...base, available: unmet.length === 0, unmet, check: null, outcomes }
+      return { ...base, available: optionAvailable(state, option), unmet, check: null, outcomes }
     }
     const { skill, ability, dc } = option.check
     const preview = previewCheck(state, skill, Number(dc), mode, actorIds[option.id], ability)
@@ -126,7 +126,7 @@ export function encounterOptions(
     const outcomes = TIERS.map((tier) =>
       outcomePreview(tierOutcome(option, tier), tier, values, preview.actorName)
     )
-    return { ...base, available: unmet.length === 0, unmet, check, outcomes }
+    return { ...base, available: optionAvailable(state, option), unmet, check, outcomes }
   })
 }
 
