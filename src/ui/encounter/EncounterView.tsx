@@ -67,11 +67,12 @@ export function EncounterView({
     if (animating) return
     const before = focusedAt.current
     focusedAt.current = { first, length }
-    if (before?.first === first && before.length === length) return
-    const target =
-      before?.first === first
-        ? nextRef.current?.querySelector<HTMLElement>('.next:not(:disabled):not([aria-disabled])')
-        : null
+    // `before` is null on mount; an empty log has no first entry, so compare against null too.
+    const sameEncounter = before !== null && before.first === first
+    if (sameEncounter && before.length === length) return
+    const target = sameEncounter
+      ? nextRef.current?.querySelector<HTMLElement>('.next:not(:disabled):not([aria-disabled])')
+      : null
     ;(target ?? headingRef.current)?.focus()
   }, [first, length, animating])
 
@@ -90,7 +91,7 @@ export function EncounterView({
           )}
         </span>
       </header>
-      <ol className="encounter-log" aria-live="polite">
+      <ol className="encounter-log" aria-label="Encounter log" aria-live="polite">
         {visible.map((entry, i) => (
           <li key={i} className={`tone-${entry.tone}`}>
             {entry.roll && i === rollIndex && i > seen.baseline && (
@@ -104,7 +105,8 @@ export function EncounterView({
                 }}
               />
             )}
-            {!(animating && i === rollIndex) && <span>{entry.text}</span>}
+            {/* Below the dice and DC row, full width: never beside the dice. */}
+            {!(animating && i === rollIndex) && <p className="log-text">{entry.text}</p>}
           </li>
         ))}
       </ol>

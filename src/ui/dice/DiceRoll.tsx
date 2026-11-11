@@ -20,8 +20,10 @@ type Props = {
 
 /**
  * Flat d20 outlines whose faces flicker, then settle one after another (at most 1.5 s).
- * High-stakes rolls hold back the last die, make it glow and draw the DC line.
+ * High-stakes rolls hold back the last die, make it glow while it rolls and draw the DC line.
+ * Once settled, only a critical keeps a glow: gold on a natural 20, red on a natural 1.
  * A click skips; reduced motion shows the result at once.
+ * Layout: one row, the dice beside the DC track; the outcome text goes below it (the caller's).
  */
 export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
   const [reduced] = useState(prefersReducedMotion)
@@ -88,6 +90,9 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
   }, [])
 
   const allSettled = settled.every(Boolean)
+  const last = roll.dice.length - 1
+  const natural = roll.dice[roll.keptIndex]
+  const crit = !allSettled ? null : natural === 20 ? 'success' : natural === 1 ? 'fail' : null
   return (
     <button
       ref={buttonRef}
@@ -105,7 +110,8 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
             face={faces[i]}
             settled={settled[i]}
             kept={allSettled && i === roll.keptIndex}
-            glow={highStakes && i === roll.dice.length - 1 && settled[i]}
+            glow={highStakes && i === last && !settled[i]}
+            crit={crit !== null && i === roll.keptIndex ? crit : null}
           />
         ))}
       </span>
@@ -119,20 +125,32 @@ function D20({
   settled,
   kept,
   glow,
+  crit,
 }: {
   face: number
   settled: boolean
   kept: boolean
+  /** The held-back high-stakes die, while it rolls. */
   glow: boolean
+  /** The settled kept die on a natural 20 or 1. */
+  crit: 'success' | 'fail' | null
 }) {
-  const className = ['d20', settled && 'settled', kept && 'kept', glow && 'glow']
+  const className = [
+    'd20',
+    settled && 'settled',
+    kept && 'kept',
+    glow && 'glow',
+    crit && `crit-${crit}`,
+  ]
     .filter(Boolean)
     .join(' ')
+  // The front face spans the hexagon's top and lower corners, so its incircle (centre ≈ y 20,
+  // r ≈ 9) has room for a two-digit face with clearance from the strokes.
   return (
-    <svg className={className} viewBox="0 0 40 40" width="44" height="44" aria-hidden="true">
+    <svg className={className} viewBox="0 0 40 40" width="60" height="60" aria-hidden="true">
       <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" />
-      <polygon points="20,8 31,27 9,27" />
-      <text x="20" y="21" textAnchor="middle" dominantBaseline="middle">
+      <polygon points="20,2 36,29 4,29" />
+      <text x="20" y="22" textAnchor="middle" dominantBaseline="central">
         {face}
       </text>
     </svg>

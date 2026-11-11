@@ -391,6 +391,15 @@ label.inline {
   flex-direction: column;
   gap: 0.5rem;
 }
+/* A roll's entry: the dice row first, then its outcome text below, full width. */
+.encounter-log li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.log-text {
+  margin: 0;
+}
 .options {
   display: grid;
   gap: 0.75rem;
@@ -570,42 +579,64 @@ label.inline {
   border-radius: 3px;
   background: color-mix(in srgb, var(--line) 45%, transparent);
 }
+/* One row: the dice, then the DC track centred against them in the remaining width. */
 .dice-roll {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 1rem;
   background: none;
   border: none;
   padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.dice {
+  display: flex;
+  flex: none;
+  gap: 0.3rem;
 }
 .d20 {
+  display: block;
   stroke: var(--line);
-  stroke-width: 1.5;
+  stroke-width: 0.9;
+  stroke-linejoin: round;
   fill: none;
-  margin-right: 0.3rem;
 }
 .d20 text {
   stroke: none;
   fill: var(--ink);
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: bold;
+  font-variant-numeric: tabular-nums;
 }
 .d20.settled {
   stroke: var(--ink);
 }
 .d20.kept {
   stroke: var(--accent);
-  stroke-width: 2.5;
+  stroke-width: 1.5;
 }
+/* The held-back high-stakes die, only while it rolls. */
 .d20.glow {
   filter: drop-shadow(0 0 6px var(--crit));
   stroke: var(--crit);
 }
+/* Settled criticals: the only highlight that stays. */
+.d20.crit-success {
+  filter: drop-shadow(0 0 6px var(--tier-critSuccess));
+  stroke: var(--tier-critSuccess);
+}
+.d20.crit-fail {
+  filter: drop-shadow(0 0 6px var(--tier-critFail));
+  stroke: var(--tier-critFail);
+}
 .dc-track {
   position: relative;
   display: block;
-  width: 12rem;
+  flex: 1;
+  min-width: 6rem;
   height: 1.1rem;
   border-bottom: 1px solid var(--line);
 }
@@ -616,6 +647,7 @@ label.inline {
   border-left: 2px solid var(--bad);
   font-size: 0.7rem;
   padding-left: 0.2rem;
+  white-space: nowrap;
 }
 .dc-total {
   position: absolute;

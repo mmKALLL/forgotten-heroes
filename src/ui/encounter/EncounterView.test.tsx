@@ -203,6 +203,23 @@ test('a check animates the dice and hides the result until they settle (click sk
   expect(screen.getAllByRole('button', { name: /^Choose / }).length).toBeGreaterThan(0)
 })
 
+test('the outcome text starts below the dice and DC row, never beside it', async () => {
+  render(<Harness initial={started('cliff')} />)
+  await userEvent.click(choose('Climb'))
+  await userEvent.click(screen.getByRole('button', { name: 'Skip dice animation' }))
+  const row = screen.getByRole('button', { name: /^Rolled \d+$/ })
+  const text = screen.getByText(/^(Brom slips\.|A scraped climb\.|Up you go\.)/)
+  expect(row.contains(text)).toBe(false)
+  expect(text.classList.contains('log-text')).toBe(true)
+  expect(row.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+test('an encounter with an empty log still renders', () => {
+  render(<Harness initial={makeState({ encounter: makeEncounter({ log: [] }) })} />)
+  expect(screen.getByRole('heading', { name: 'Test road' })).toBeTruthy()
+  expect(screen.getByRole('list', { name: 'Encounter log' }).children).toHaveLength(0)
+})
+
 test('unmet requirements disable the option and say why, and clicking it does nothing', async () => {
   render(<Harness initial={started('roadside', makeState({ gold: 5 }))} />)
   const donate = choose('Give them money')

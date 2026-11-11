@@ -55,6 +55,9 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
   }
   const listId = useId()
   const shown = situations.filter((s) => sources.includes(s.source))
+  // Collapsed, the toggle keeps the warnings visible: how many shown encounters are broken.
+  const invalid = shown.filter((s) => Object.hasOwn(issues, s.id)).length
+  const collapsedLabel = `Show encounters (${shown.length}${invalid > 0 ? ` · ⚠ ${invalid}` : ''})`
 
   return (
     <section className="panel deck" aria-label="Encounter Deck">
@@ -91,7 +94,7 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
         aria-controls={listId}
         onClick={toggleExpanded}
       >
-        {expanded ? 'Hide encounters' : `Show encounters (${shown.length})`}
+        {expanded ? 'Hide encounters' : collapsedLabel}
       </button>
       <div id={listId} hidden={!expanded}>
         {SOURCES.filter((source) => sources.includes(source)).map((source) => {

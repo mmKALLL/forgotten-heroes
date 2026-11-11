@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test } from 'vitest'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
+import { SituationSchema } from '../../schema/encounter'
 import { EncounterDeck } from './EncounterDeck'
 
 const content = fixtureContent()
@@ -44,4 +45,18 @@ test('the expanded state is remembered across renders', async () => {
   renderDeck()
   expect(toggle().getAttribute('aria-expanded')).toBe('true')
   expect(plays().length).toBeGreaterThan(0)
+})
+
+test('collapsed, the toggle also shows how many encounters are invalid', () => {
+  const broken = (id: string) => ({
+    ...SituationSchema.parse({ id, title: id, stages: { start: { text: '{gone}' } } }),
+    source: 'original' as const,
+    file: 'x',
+  })
+  const withBroken = {
+    ...content,
+    situations: { ...content.situations, 'bad-a': broken('bad-a'), 'bad-b': broken('bad-b') },
+  }
+  render(<EncounterDeck content={withBroken} state={makeState()} onAction={() => {}} />)
+  expect(toggle().textContent).toMatch(/^Show encounters \(\d+ · ⚠ 2\)$/)
 })
