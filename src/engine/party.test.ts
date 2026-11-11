@@ -8,7 +8,9 @@ const content = fixtureContent()
 
 describe('generation', () => {
   test('is deterministic for a seed', () => {
-    expect(generateCharacter(createRng(1), content)).toEqual(generateCharacter(createRng(1), content))
+    expect(generateCharacter(createRng(1), content)).toEqual(
+      generateCharacter(createRng(1), content)
+    )
   })
 
   test('produces schema-valid characters from content', () => {
@@ -50,7 +52,11 @@ describe('generation', () => {
   })
 
   test('ids naming Object.prototype properties are unknown, not inherited', () => {
-    expect(() => generateCharacter(createRng(1), content, { classId: 'constructor' })).toThrow(/unknown class/)
-    expect(() => generateCharacter(createRng(1), content, { ancestryId: 'toString' })).toThrow(/unknown ancestry/)
+    expect(() => generateCharacter(createRng(1), content, { classId: 'constructor' })).toThrow(
+      /unknown class/
+    )
+    expect(() => generateCharacter(createRng(1), content, { ancestryId: 'toString' })).toThrow(
+      /unknown ancestry/
+    )
   })
 })

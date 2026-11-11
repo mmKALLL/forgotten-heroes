@@ -22,7 +22,11 @@ export type Action =
   | { type: 'practiceCheck'; stat: CheckStat; dc: number; mode: RollMode; actorId?: string }
   | EncounterAction
 
-export function newGame(seed: number, content: Content, partySize = STARTING_PARTY_SIZE): GameState {
+export function newGame(
+  seed: number,
+  content: Content,
+  partySize = STARTING_PARTY_SIZE
+): GameState {
   const [party, rng] = generateParty(createRng(seed), content, partySize)
   const names = party.map((c) => c.name).join(' and ')
   return {

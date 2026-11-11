@@ -15,7 +15,9 @@ export function EncounterDeck({ content, state, onAction }: Props) {
   const issues = useMemo(() => contentIssues(content), [content])
   const [sources, setSources] = useState<Source[]>([...SOURCES])
   const toggle = (source: Source) =>
-    setSources(sources.includes(source) ? sources.filter((s) => s !== source) : [...sources, source])
+    setSources(
+      sources.includes(source) ? sources.filter((s) => s !== source) : [...sources, source]
+    )
 
   return (
     <section className="panel deck" aria-label="Encounter Deck">
@@ -23,7 +25,11 @@ export function EncounterDeck({ content, state, onAction }: Props) {
       <div className="controls">
         {SOURCES.map((source) => (
           <label key={source} className="inline">
-            <input type="checkbox" checked={sources.includes(source)} onChange={() => toggle(source)} />{' '}
+            <input
+              type="checkbox"
+              checked={sources.includes(source)}
+              onChange={() => toggle(source)}
+            />{' '}
             {SOURCE_LABELS[source]} ({situations.filter((s) => s.source === source).length})
           </label>
         ))}
@@ -37,7 +43,8 @@ export function EncounterDeck({ content, state, onAction }: Props) {
       </button>
       {state.followUps.length > 0 && (
         <p className="muted small">
-          Queued follow-ups: {state.followUps.map((f) => `${f.situationId} (after ${f.wait})`).join(', ')}
+          Queued follow-ups:{' '}
+          {state.followUps.map((f) => `${f.situationId} (after ${f.wait})`).join(', ')}
         </p>
       )}
       {SOURCES.filter((source) => sources.includes(source)).map((source) => {

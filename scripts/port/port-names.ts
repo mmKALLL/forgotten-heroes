@@ -9,12 +9,16 @@ const source = execFileSync(
   { encoding: 'utf8' }
 )
 const lists = new Map(
-  [...source.matchAll(/var (nm\d+) = (\[[^\]]*\]);/g)].map((m) => [m[1], JSON.parse(m[2]) as string[]])
+  [...source.matchAll(/var (nm\d+) = (\[[^\]]*\]);/g)].map((m) => [
+    m[1],
+    JSON.parse(m[2]) as string[],
+  ])
 )
 const givenKeys = ['nm1', 'nm2', 'nm3', 'nm4', 'nm5', 'nm6', 'nm7', 'nm8', 'nm9', 'nm10']
 const given = [...new Set(givenKeys.flatMap((k) => lists.get(k) ?? []))].sort()
 const family = [...new Set(lists.get('nm11') ?? [])].sort()
-if (given.length === 0 || family.length === 0) throw new Error('name lists not found in the tagged source')
+if (given.length === 0 || family.length === 0)
+  throw new Error('name lists not found in the tagged source')
 
 const file = {
   $schema: '../_schema/names.schema.json',

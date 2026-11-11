@@ -9,12 +9,20 @@ export type GenerateOptions = { classId?: string; ancestryId?: string }
 const lookup = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
 
-export function generateCharacter(rng: Rng, content: Content, options: GenerateOptions = {}): [Character, Rng] {
+export function generateCharacter(
+  rng: Rng,
+  content: Content,
+  options: GenerateOptions = {}
+): [Character, Rng] {
   return withRng(rng, (d) => {
-    const cls = options.classId ? lookup(content.classes, options.classId) : d.pick(sortedEntries(content.classes))
+    const cls = options.classId
+      ? lookup(content.classes, options.classId)
+      : d.pick(sortedEntries(content.classes))
     if (!cls) throw new Error(`unknown class ${options.classId}`)
     const playable = sortedEntries(content.ancestries).filter((a) => a.playable)
-    const ancestry = options.ancestryId ? lookup(content.ancestries, options.ancestryId) : d.pick(playable)
+    const ancestry = options.ancestryId
+      ? lookup(content.ancestries, options.ancestryId)
+      : d.pick(playable)
     if (!ancestry) throw new Error(`unknown ancestry ${options.ancestryId}`)
 
     const abilities = { ...cls.baseAbilities }
@@ -52,7 +60,9 @@ export function generateParty(rng: Rng, content: Content, size: number): [Charac
   for (let i = 0; i < size; i++) {
     const used = new Set(party.map((c) => c.classId))
     const available = classIds.filter((id) => !used.has(id))
-    const [classId, afterPick] = withRng(current, (d) => d.pick(available.length > 0 ? available : classIds))
+    const [classId, afterPick] = withRng(current, (d) =>
+      d.pick(available.length > 0 ? available : classIds)
+    )
     const [character, afterGen] = generateCharacter(afterPick, content, { classId })
     party.push(character)
     current = afterGen

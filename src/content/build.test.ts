@@ -16,7 +16,9 @@ const classesFile = (source: string, entries: unknown[] = [fighter]) => ({
 
 describe('buildContent', () => {
   test('loads valid entries and tags them with source and file', () => {
-    const { content, errors } = buildContent({ '../../data/original/classes.json': classesFile('original') })
+    const { content, errors } = buildContent({
+      '../../data/original/classes.json': classesFile('original'),
+    })
     expect(errors).toEqual([])
     expect(content.classes.fighter).toMatchObject({
       name: 'Fighter',
@@ -26,13 +28,17 @@ describe('buildContent', () => {
   })
 
   test('rejects unknown kinds', () => {
-    const { errors } = buildContent({ 'data/original/x.json': { kind: 'spaceships', source: 'original', entries: [] } })
+    const { errors } = buildContent({
+      'data/original/x.json': { kind: 'spaceships', source: 'original', entries: [] },
+    })
     expect(errors[0].message).toMatch(/unknown kind/)
   })
 
   test('rejects schema violations with a readable message', () => {
     const bad = { ...fighter, hitDie: 7 }
-    const { errors } = buildContent({ 'data/original/classes.json': classesFile('original', [bad]) })
+    const { errors } = buildContent({
+      'data/original/classes.json': classesFile('original', [bad]),
+    })
     expect(errors).toHaveLength(1)
     expect(errors[0].message).toMatch(/hitDie/)
   })
@@ -72,7 +78,9 @@ describe('buildContent', () => {
 
   test('an entry id that names an Object.prototype property loads without a bogus duplicate', () => {
     const entry = { ...fighter, id: 'constructor' }
-    const { content, errors } = buildContent({ 'data/original/classes.json': classesFile('original', [entry]) })
+    const { content, errors } = buildContent({
+      'data/original/classes.json': classesFile('original', [entry]),
+    })
     expect(errors).toEqual([])
     expect(Object.hasOwn(content.classes, 'constructor')).toBe(true)
     expect(content.classes.constructor.name).toBe('Fighter')
@@ -85,13 +93,20 @@ describe('encounter content kinds', () => {
       'data/claude/situations.json': {
         kind: 'situations',
         source: 'claude',
-        entries: [{ id: 'quiet-road', title: 'Quiet road', stages: { start: { text: 'Nothing stirs.' } } }],
+        entries: [
+          { id: 'quiet-road', title: 'Quiet road', stages: { start: { text: 'Nothing stirs.' } } },
+        ],
       },
       'data/claude/archetypes.json': {
         kind: 'archetypes',
         source: 'claude',
         entries: [
-          { id: 'tiny', name: 'Tiny', description: 'One option', options: [{ id: 'go', kind: 'fixed', label: 'Go', outcome: { text: 'You go.' } }] },
+          {
+            id: 'tiny',
+            name: 'Tiny',
+            description: 'One option',
+            options: [{ id: 'go', kind: 'fixed', label: 'Go', outcome: { text: 'You go.' } }],
+          },
         ],
       },
       'data/procedural/parts.json': {
@@ -102,12 +117,29 @@ describe('encounter content kinds', () => {
       'data/procedural/templates.json': {
         kind: 'situationTemplates',
         source: 'procedural',
-        entries: [{ id: 'grim-road', title: 'Grim road', text: 'A {mood} road.', slots: { mood: { from: 'table', table: 'mood' } }, archetype: { id: 'tiny' } }],
+        entries: [
+          {
+            id: 'grim-road',
+            title: 'Grim road',
+            text: 'A {mood} road.',
+            slots: { mood: { from: 'table', table: 'mood' } },
+            archetype: { id: 'tiny' },
+          },
+        ],
       },
       'data/imported/creatures.json': {
         kind: 'creatures',
         source: 'imported',
-        entries: [{ id: 'wolf', name: 'Wolf', group: 'a pack of wolves', type: 'beast', cr: 0.25, description: 'A hungry hunter.' }],
+        entries: [
+          {
+            id: 'wolf',
+            name: 'Wolf',
+            group: 'a pack of wolves',
+            type: 'beast',
+            cr: 0.25,
+            description: 'A hungry hunter.',
+          },
+        ],
       },
       'data/imported-private/situations.json': {
         kind: 'situations',
@@ -116,10 +148,18 @@ describe('encounter content kinds', () => {
       },
     })
     expect(errors).toEqual([])
-    expect(content.situations['quiet-road']).toMatchObject({ source: 'claude', start: 'start', wonder: false })
+    expect(content.situations['quiet-road']).toMatchObject({
+      source: 'claude',
+      start: 'start',
+      wonder: false,
+    })
     expect(content.archetypes.tiny.options).toHaveLength(1)
     expect(content.partsTables.mood.rows[0]).toEqual({ text: 'grim', weight: 1 })
-    expect(content.situationTemplates['grim-road'].archetype).toEqual({ id: 'tiny', dc: 13, reward: 1 })
+    expect(content.situationTemplates['grim-road'].archetype).toEqual({
+      id: 'tiny',
+      dc: 13,
+      reward: 1,
+    })
     expect(content.creatures.wolf.source).toBe('imported')
     expect(content.situations['private-one'].source).toBe('imported-private')
   })

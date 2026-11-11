@@ -3,11 +3,13 @@ import type { RollRecord } from '../../schema/state'
 import { flickerDelay, settleTimes } from './schedule'
 
 export const prefersReducedMotion = (): boolean =>
-  typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  typeof window.matchMedia === 'function' &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 /** Presentation only: the engine decided the roll before this component mounted. */
 const randomFace = () => 1 + Math.floor(Math.random() * 20)
-const replaced = <T,>(list: T[], index: number, value: T) => list.map((v, i) => (i === index ? value : v))
+const replaced = <T,>(list: T[], index: number, value: T) =>
+  list.map((v, i) => (i === index ? value : v))
 
 type Props = {
   /** Mount one DiceRoll per roll (give it a key), so each roll animates once. */
@@ -104,8 +106,20 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
   )
 }
 
-function D20({ face, settled, kept, glow }: { face: number; settled: boolean; kept: boolean; glow: boolean }) {
-  const className = ['d20', settled && 'settled', kept && 'kept', glow && 'glow'].filter(Boolean).join(' ')
+function D20({
+  face,
+  settled,
+  kept,
+  glow,
+}: {
+  face: number
+  settled: boolean
+  kept: boolean
+  glow: boolean
+}) {
+  const className = ['d20', settled && 'settled', kept && 'kept', glow && 'glow']
+    .filter(Boolean)
+    .join(' ')
   return (
     <svg className={className} viewBox="0 0 40 40" width="44" height="44" aria-hidden="true">
       <polygon points="20,2 36,11 36,29 20,38 4,29 4,11" />

@@ -75,7 +75,10 @@
               "requires": [{ "req": "gold", "min": 4 }],
               "outcome": {
                 "text": "Two days of drizzle and bad food in Ilse's lean-to. Then the river calms, and she takes you over at her usual price.",
-                "effects": [{ "effect": "days", "amount": 2 }, { "effect": "gold", "amount": -4 }]
+                "effects": [
+                  { "effect": "days", "amount": 2 },
+                  { "effect": "gold", "amount": -4 }
+                ]
               }
             }
           ]
@@ -422,7 +425,10 @@
                 },
                 "partial": {
                   "text": "You find the instruments dumped in a ditch, half of them broken. He pays what he can.",
-                  "effects": [{ "effect": "gold", "amount": 6 }, { "effect": "days", "amount": 1 }]
+                  "effects": [
+                    { "effect": "gold", "amount": 6 },
+                    { "effect": "days", "amount": 1 }
+                  ]
                 },
                 "success": {
                   "text": "You find the thieves' camp and take the instruments back. His master pays well.",

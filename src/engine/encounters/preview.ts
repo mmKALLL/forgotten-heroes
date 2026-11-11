@@ -44,7 +44,11 @@ export type OptionPreview = {
 /** What the twist would be is always shown (its outcome branches are); the odds only once revealed. */
 export type TwistInfo = { what: string; chance: number | null }
 
-function branchPreview(branch: OutcomeBranch, values: Record<string, string>, actorName: string): BranchPreview {
+function branchPreview(
+  branch: OutcomeBranch,
+  values: Record<string, string>,
+  actorName: string
+): BranchPreview {
   return {
     text: fillText(branch.text, values),
     effects: branch.effects.flatMap((e) => describeEffect(e, actorName) ?? []),
@@ -69,7 +73,10 @@ function outcomePreview(
  * Everything the player sees before committing (design §7): the acting member, skill, DC, odds
  * and every outcome tier. `actorIds` maps option ids to the player's actor overrides.
  */
-export function encounterOptions(state: GameState, actorIds: Readonly<Record<string, string>> = {}): OptionPreview[] {
+export function encounterOptions(
+  state: GameState,
+  actorIds: Readonly<Record<string, string>> = {}
+): OptionPreview[] {
   const encounter = state.encounter
   if (!encounter) return []
   const mode = POSITION_MODE[encounter.position]
@@ -89,7 +96,13 @@ export function encounterOptions(state: GameState, actorIds: Readonly<Record<str
     const { skill, ability, dc } = option.check
     const preview = previewCheck(state, skill, Number(dc), mode, actorIds[option.id], ability)
     if (!preview) {
-      return { ...base, available: false, unmet: [...unmet, 'no one can act'], check: null, outcomes: [] }
+      return {
+        ...base,
+        available: false,
+        unmet: [...unmet, 'no one can act'],
+        check: null,
+        outcomes: [],
+      }
     }
     const values = { ...encounter.slots, actor: preview.actorName }
     const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
@@ -104,9 +117,15 @@ export function encounterOptions(state: GameState, actorIds: Readonly<Record<str
       situationalReason: encounter.nextCheckReason,
       successChance: successChance(odds),
       highStakes: isHighStakes(option, odds),
-      actors: rankActors(state.party, skill, ability).map((r) => ({ id: r.characterId, name: nameOf(r.characterId), modifier: r.modifier })),
+      actors: rankActors(state.party, skill, ability).map((r) => ({
+        id: r.characterId,
+        name: nameOf(r.characterId),
+        modifier: r.modifier,
+      })),
     }
-    const outcomes = TIERS.map((tier) => outcomePreview(tierOutcome(option, tier), tier, values, preview.actorName))
+    const outcomes = TIERS.map((tier) =>
+      outcomePreview(tierOutcome(option, tier), tier, values, preview.actorName)
+    )
     return { ...base, available: unmet.length === 0, unmet, check, outcomes }
   })
 }

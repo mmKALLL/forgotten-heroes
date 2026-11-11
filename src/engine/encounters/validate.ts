@@ -10,28 +10,38 @@ type Text = { text: string; where: string; actorAllowed: boolean }
 
 function branches(option: Option): [string, Outcome][] {
   if (option.kind === 'fixed') return [['outcome', option.outcome]]
-  return Object.entries(option.outcomes).flatMap(([tier, o]) => (o ? [[tier, o] as [string, Outcome]] : []))
+  return Object.entries(option.outcomes).flatMap(([tier, o]) =>
+    o ? [[tier, o] as [string, Outcome]] : []
+  )
 }
 
 const withTwist = (outcome: Outcome): [string, OutcomeBranch][] =>
-  outcome.twist ? [['', outcome], [' twist', outcome.twist]] : [['', outcome]]
+  outcome.twist
+    ? [
+        ['', outcome],
+        [' twist', outcome.twist],
+      ]
+    : [['', outcome]]
 
 function textsOf(situation: Situation): Text[] {
   const texts: Text[] = [{ text: situation.title, where: 'title', actorAllowed: false }]
-  if (situation.twist) texts.push({ text: situation.twist.what, where: 'twist', actorAllowed: false })
+  if (situation.twist)
+    texts.push({ text: situation.twist.what, where: 'twist', actorAllowed: false })
   for (const [stageId, stage] of Object.entries(situation.stages)) {
     texts.push({ text: stage.text, where: `stage ${stageId}`, actorAllowed: false })
     for (const option of stage.options) {
       const at = `${stageId}/${option.id}`
       texts.push({ text: option.label, where: `${at} label`, actorAllowed: false })
-      if (option.description) texts.push({ text: option.description, where: `${at} description`, actorAllowed: false })
+      if (option.description)
+        texts.push({ text: option.description, where: `${at} description`, actorAllowed: false })
       for (const [name, outcome] of branches(option)) {
         for (const [suffix, branch] of withTwist(outcome)) {
           const where = `${at} ${name}${suffix}`
           const actorAllowed = option.kind === 'check'
           texts.push({ text: branch.text, where, actorAllowed })
           for (const effect of branch.effects) {
-            if (effect.effect === 'log') texts.push({ text: effect.text, where: `${where} log`, actorAllowed })
+            if (effect.effect === 'log')
+              texts.push({ text: effect.text, where: `${where} log`, actorAllowed })
           }
         }
       }
@@ -45,7 +55,11 @@ const allEffects = (situation: Situation): { effect: Effect; option: Option; whe
     stage.options.flatMap((option) =>
       branches(option).flatMap(([name, outcome]) =>
         withTwist(outcome).flatMap(([suffix, branch]) =>
-          branch.effects.map((effect) => ({ effect, option, where: `${stageId}/${option.id} ${name}${suffix}` }))
+          branch.effects.map((effect) => ({
+            effect,
+            option,
+            where: `${stageId}/${option.id} ${name}${suffix}`,
+          }))
         )
       )
     )
@@ -56,7 +70,9 @@ function tableIssues(content: Content, tableId: string, path: string[] = []): st
   if (path.includes(tableId)) return [`parts table loop: ${[...path, tableId].join(' → ')}`]
   if (!Object.hasOwn(content.partsTables, tableId)) return [`unknown parts table "${tableId}"`]
   const { rows } = content.partsTables[tableId]
-  const own = rows.some((r) => r.weight > 0) ? [] : [`parts table "${tableId}" has no row with weight > 0`]
+  const own = rows.some((r) => r.weight > 0)
+    ? []
+    : [`parts table "${tableId}" has no row with weight > 0`]
   const refs = new Set(rows.flatMap((r) => slotNames(r.text)))
   return [...own, ...[...refs].flatMap((ref) => tableIssues(content, ref, [...path, tableId]))]
 }
@@ -73,7 +89,9 @@ export function validateSituation(situation: Situation, content: Content): strin
     }
     for (const option of stage.options) {
       if (option.kind === 'check' && typeof option.check.dc === 'string' && !stage.archetype) {
-        issues.push(`${stageId}/${option.id}: DC "${option.check.dc}" needs an archetype on its stage`)
+        issues.push(
+          `${stageId}/${option.id}: DC "${option.check.dc}" needs an archetype on its stage`
+        )
       }
     }
   }
@@ -92,7 +110,8 @@ export function validateSituation(situation: Situation, content: Content): strin
       for (const [name, outcome] of branches(option)) {
         for (const [suffix, branch] of withTwist(outcome)) {
           const where = `${stageId}/${option.id} ${name}${suffix}`
-          if (suffix && !compiled.twist) issues.push(`${where}: twist branch but the situation has no twist`)
+          if (suffix && !compiled.twist)
+            issues.push(`${where}: twist branch but the situation has no twist`)
           if (branch.goto && branch.stay) issues.push(`${where}: both goto and stay`)
           if (!branch.goto) continue
           if (stageIds.has(branch.goto)) targets.push(branch.goto)
@@ -110,13 +129,15 @@ export function validateSituation(situation: Situation, content: Content): strin
     reached.add(stageId)
     queue.push(...edges.get(stageId)!)
   }
-  for (const stageId of stageIds) if (!reached.has(stageId)) issues.push(`stage ${stageId} is unreachable`)
+  for (const stageId of stageIds)
+    if (!reached.has(stageId)) issues.push(`stage ${stageId} is unreachable`)
 
   const declared = new Set([...Object.keys(compiled.slots), ...BUILT_IN_SLOTS])
   for (const { text, where, actorAllowed } of textsOf(compiled)) {
     for (const name of slotNames(text)) {
       if (!declared.has(name)) issues.push(`${where}: slot {${name}} is not declared`)
-      else if (name === 'actor' && !actorAllowed) issues.push(`${where}: {actor} only works in check outcomes`)
+      else if (name === 'actor' && !actorAllowed)
+        issues.push(`${where}: {actor} only works in check outcomes`)
     }
   }
   for (const [name, source] of Object.entries(compiled.slots)) {
@@ -125,7 +146,9 @@ export function validateSituation(situation: Situation, content: Content): strin
       continue
     }
     const any = Object.values(content.creatures).some(
-      (c) => (source.types.length === 0 || source.types.includes(c.type)) && (source.maxCr === undefined || c.cr <= source.maxCr)
+      (c) =>
+        (source.types.length === 0 || source.types.includes(c.type)) &&
+        (source.maxCr === undefined || c.cr <= source.maxCr)
     )
     if (!any) issues.push(`slot ${name}: no creature matches`)
   }
@@ -135,16 +158,22 @@ export function validateSituation(situation: Situation, content: Content): strin
     if (effect.effect === 'followUp' && !situationIds.has(effect.situation)) {
       issues.push(`${where}: follow-up to unknown situation "${effect.situation}"`)
     }
-    if ((effect.effect === 'hp' || effect.effect === 'exhaustion') && effect.target === 'actor' && option.kind === 'fixed') {
+    if (
+      (effect.effect === 'hp' || effect.effect === 'exhaustion') &&
+      effect.target === 'actor' &&
+      option.kind === 'fixed'
+    ) {
       issues.push(`${where}: fixed options have no actor; use "all" or "random"`)
     }
-    if (effect.effect === 'revealTwist' && !compiled.twist) issues.push(`${where}: revealTwist but the situation has no twist`)
+    if (effect.effect === 'revealTwist' && !compiled.twist)
+      issues.push(`${where}: revealTwist but the situation has no twist`)
   }
   return [...new Set(issues)]
 }
 
 const isCost = (e: Effect) =>
-  ((e.effect === 'gold' || e.effect === 'hp' || e.effect === 'nextCheckModifier') && e.amount < 0) ||
+  ((e.effect === 'gold' || e.effect === 'hp' || e.effect === 'nextCheckModifier') &&
+    e.amount < 0) ||
   (e.effect === 'exhaustion' && e.amount > 0) ||
   e.effect === 'days' ||
   e.effect === 'followUp' ||
@@ -162,10 +191,15 @@ export function lintSituation(situation: Situation, content: Content): string[] 
     return stages.flatMap(([id, stage]) => [
       ...(stage.options.length >= 2
         ? []
-        : [`stage ${id} has ${stage.options.length} option(s); regular encounters need at least 2`]),
-      ...(stage.options.length === 0 || stage.options.some((o) => !o.once && o.requires.length === 0)
+        : [
+            `stage ${id} has ${stage.options.length} option(s); regular encounters need at least 2`,
+          ]),
+      ...(stage.options.length === 0 ||
+      stage.options.some((o) => !o.once && o.requires.length === 0)
         ? []
-        : [`stage ${id}: every option is once or has requirements, so the stage can become a dead end`]),
+        : [
+            `stage ${id}: every option is once or has requirements, so the stage can become a dead end`,
+          ]),
     ])
   }
   const issues: string[] = []

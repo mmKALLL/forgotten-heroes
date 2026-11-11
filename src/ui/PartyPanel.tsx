@@ -1,6 +1,12 @@
 import { useId, useState } from 'react'
 import { formatModifier } from '../engine/format'
-import { ABILITIES, SKILLS, SKILL_ABILITY, abilityModifier, statLabel } from '../engine/rules/abilities'
+import {
+  ABILITIES,
+  SKILLS,
+  SKILL_ABILITY,
+  abilityModifier,
+  statLabel,
+} from '../engine/rules/abilities'
 import { statModifier } from '../engine/rules/character'
 import type { Character, SkillUse } from '../schema/state'
 
@@ -19,7 +25,11 @@ export function PartyPanel({ party, skillUses = [], day }: Props) {
         <CharacterCard
           key={c.id}
           character={c}
-          usesToday={day === undefined ? [] : skillUses.filter((u) => u.characterId === c.id && u.day === day)}
+          usesToday={
+            day === undefined
+              ? []
+              : skillUses.filter((u) => u.characterId === c.id && u.day === day)
+          }
         />
       ))}
     </section>
@@ -33,7 +43,13 @@ const SKILL_GROUPS = ABILITIES.map((ability) => ({
 })).filter((g) => g.skills.length > 0)
 
 /** Compact by default; the header button expands it into a full character sheet (UI state only). */
-function CharacterCard({ character: c, usesToday }: { character: Character; usesToday: SkillUse[] }) {
+function CharacterCard({
+  character: c,
+  usesToday,
+}: {
+  character: Character
+  usesToday: SkillUse[]
+}) {
   const [expanded, setExpanded] = useState(false)
   const sheetId = useId()
   const best = SKILLS.map((s) => ({ s, m: statModifier(c, s) }))
@@ -100,7 +116,12 @@ function CharacterCard({ character: c, usesToday }: { character: Character; uses
                     return (
                       <li key={s} className={proficient ? 'proficient' : undefined}>
                         {proficient ? (
-                          <span className="prof-mark" role="img" aria-label="proficient" title="Proficient">
+                          <span
+                            className="prof-mark"
+                            role="img"
+                            aria-label="proficient"
+                            title="Proficient"
+                          >
                             ●
                           </span>
                         ) : (

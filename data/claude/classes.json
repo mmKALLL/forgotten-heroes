@@ -4,8 +4,26 @@
   "source": "claude",
   "notes": "Spreads for classes the prototype listed without stats. Each sums to 70, matching the original spreads.",
   "entries": [
-    { "id": "bard", "name": "Bard", "hitDie": 8, "baseAbilities": { "str": 8, "dex": 14, "con": 12, "int": 10, "wis": 10, "cha": 16 }, "skillProficiencies": ["persuasion", "performance", "insight"] },
-    { "id": "ranger", "name": "Ranger", "hitDie": 10, "baseAbilities": { "str": 12, "dex": 16, "con": 12, "int": 8, "wis": 14, "cha": 8 }, "skillProficiencies": ["survival", "nature", "perception"] },
-    { "id": "paladin", "name": "Paladin", "hitDie": 10, "baseAbilities": { "str": 16, "dex": 8, "con": 14, "int": 8, "wis": 10, "cha": 14 }, "skillProficiencies": ["athletics", "religion", "insight"] }
+    {
+      "id": "bard",
+      "name": "Bard",
+      "hitDie": 8,
+      "baseAbilities": { "str": 8, "dex": 14, "con": 12, "int": 10, "wis": 10, "cha": 16 },
+      "skillProficiencies": ["persuasion", "performance", "insight"]
+    },
+    {
+      "id": "ranger",
+      "name": "Ranger",
+      "hitDie": 10,
+      "baseAbilities": { "str": 12, "dex": 16, "con": 12, "int": 8, "wis": 14, "cha": 8 },
+      "skillProficiencies": ["survival", "nature", "perception"]
+    },
+    {
+      "id": "paladin",
+      "name": "Paladin",
+      "hitDie": 10,
+      "baseAbilities": { "str": 16, "dex": 8, "con": 14, "int": 8, "wis": 10, "cha": 14 },
+      "skillProficiencies": ["athletics", "religion", "insight"]
+    }
   ]
 }

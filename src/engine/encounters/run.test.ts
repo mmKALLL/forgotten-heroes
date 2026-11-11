@@ -15,7 +15,10 @@ const choose = (state: GameState, optionId: string, actorId?: string) =>
   step(state, { type: 'chooseOption', optionId, actorId }, content)
 /** The same state with a different RNG seed, to sample many rolls. */
 const reseed = (state: GameState, seed: number): GameState => ({ ...state, rng: createRng(seed) })
-const withTwist = (state: GameState, twist: boolean): GameState => ({ ...state, encounter: { ...state.encounter!, twist } })
+const withTwist = (state: GameState, twist: boolean): GameState => ({
+  ...state,
+  encounter: { ...state.encounter!, twist },
+})
 
 describe('startEncounter', () => {
   test('compiles the situation, fills slots and opens on the start stage', () => {
@@ -26,15 +29,30 @@ describe('startEncounter', () => {
     expect(encounter.position).toBe('normal')
     expect(encounter.nextCheckReason).toBeNull()
     expect(encounter.slots.who).toMatch(/^a wary (tinker|pilgrim)$/)
-    expect(encounter.log).toEqual([{ text: `${encounter.slots.who.replace('a', 'A')} begs for help. A child waits at home.`, tone: 'info' }])
-    expect(currentOptions(encounter).map((o) => o.id)).toEqual(['trust', 'careful', 'read', 'rob', 'donate', 'leave'])
+    expect(encounter.log).toEqual([
+      {
+        text: `${encounter.slots.who.replace('a', 'A')} begs for help. A child waits at home.`,
+        tone: 'info',
+      },
+    ])
+    expect(currentOptions(encounter).map((o) => o.id)).toEqual([
+      'trust',
+      'careful',
+      'read',
+      'rob',
+      'donate',
+      'leave',
+    ])
     expect(state.log.at(-1)?.text).toMatch(/^Roadside\. A wary/)
     expect(GameStateSchema.parse(state)).toEqual(state)
   })
 
   test('is deterministic, and the hidden twist follows its chance', () => {
     expect(start('roadside')).toEqual(start('roadside'))
-    const twists = Array.from({ length: 200 }, (_, seed) => start('roadside', reseed(makeState(), seed)).encounter!.twist)
+    const twists = Array.from(
+      { length: 200 },
+      (_, seed) => start('roadside', reseed(makeState(), seed)).encounter!.twist
+    )
     const share = twists.filter(Boolean).length / twists.length
     expect(share).toBeGreaterThan(0.35)
     expect(share).toBeLessThan(0.65)
@@ -43,8 +61,16 @@ describe('startEncounter', () => {
 
   test('a start stage that does not exist (even an Object.prototype key) logs and starts nothing', () => {
     for (const start of ['nowhere', 'constructor']) {
-      const bad = SituationSchema.parse({ id: 'bad', title: 'Bad', start, stages: { begin: { text: '' } } })
-      const broken: Content = { ...content, situations: { ...content.situations, bad: { ...bad, source: 'original', file: 'x' } } }
+      const bad = SituationSchema.parse({
+        id: 'bad',
+        title: 'Bad',
+        start,
+        stages: { begin: { text: '' } },
+      })
+      const broken: Content = {
+        ...content,
+        situations: { ...content.situations, bad: { ...bad, source: 'original', file: 'x' } },
+      }
       const state = step(makeState(), { type: 'startEncounter', situationId: 'bad' }, broken)
       expect(state.encounter).toBeNull()
       expect(state.log.at(-1)).toMatchObject({ text: `Bad has no stage "${start}".`, tone: 'bad' })
@@ -52,11 +78,20 @@ describe('startEncounter', () => {
   })
 
   test('another encounter cannot start while one is in progress', () => {
-    const roadside = start('roadside', makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] }))
-    for (const action of [{ type: 'startEncounter', situationId: 'cliff' }, { type: 'drawEncounter' }] as const) {
+    const roadside = start(
+      'roadside',
+      makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] })
+    )
+    for (const action of [
+      { type: 'startEncounter', situationId: 'cliff' },
+      { type: 'drawEncounter' },
+    ] as const) {
       const after = step(roadside, action, content)
       expect({ ...after, log: roadside.log }).toEqual(roadside)
-      expect(after.log.at(-1)).toMatchObject({ text: 'Finish the current encounter first.', tone: 'bad' })
+      expect(after.log.at(-1)).toMatchObject({
+        text: 'Finish the current encounter first.',
+        tone: 'bad',
+      })
     }
     const over = { ...roadside, encounter: { ...roadside.encounter!, stage: null } }
     expect(start('cliff', over).encounter?.situation.id).toBe('cliff')
@@ -66,7 +101,14 @@ describe('startEncounter', () => {
     const roadside = content.situations.roadside
     const titled: Content = {
       ...content,
-      situations: { ...content.situations, roadside: { ...roadside, title: 'Meeting {who}', twist: { chance: 0.5, what: '{Who} is bait' } } },
+      situations: {
+        ...content.situations,
+        roadside: {
+          ...roadside,
+          title: 'Meeting {who}',
+          twist: { chance: 0.5, what: '{Who} is bait' },
+        },
+      },
     }
     const state = step(makeState(), { type: 'startEncounter', situationId: 'roadside' }, titled)
     const who = state.encounter!.slots.who
@@ -109,8 +151,12 @@ describe('fixed options', () => {
 })
 
 describe('check options', () => {
-  test('roll with the best actor for the skill, or the player\'s choice', () => {
-    expect(choose(start('roadside'), 'read').lastRoll).toMatchObject({ stat: 'insight', actorId: 'lyra', dc: 12 })
+  test("roll with the best actor for the skill, or the player's choice", () => {
+    expect(choose(start('roadside'), 'read').lastRoll).toMatchObject({
+      stat: 'insight',
+      actorId: 'lyra',
+      dc: 12,
+    })
     expect(choose(start('roadside'), 'read', 'brom').lastRoll?.actorId).toBe('brom')
   })
 
@@ -133,9 +179,15 @@ describe('check options', () => {
 
   test('Edge rolls with advantage, Exposed with disadvantage, and the roll spends the position', () => {
     const cliff = start('cliff')
-    const edge = choose({ ...cliff, encounter: { ...cliff.encounter!, position: 'edge' } }, 'around')
+    const edge = choose(
+      { ...cliff, encounter: { ...cliff.encounter!, position: 'edge' } },
+      'around'
+    )
     expect(edge.encounter?.position).toBe('edge') // fixed options don't spend it
-    for (const [position, mode] of [['edge', 'advantage'], ['exposed', 'disadvantage']] as const) {
+    for (const [position, mode] of [
+      ['edge', 'advantage'],
+      ['exposed', 'disadvantage'],
+    ] as const) {
       const after = choose({ ...cliff, encounter: { ...cliff.encounter!, position } }, 'climb')
       expect(after.lastRoll?.mode).toBe(mode)
       expect(after.lastRoll?.dice).toHaveLength(2)
@@ -145,11 +197,16 @@ describe('check options', () => {
   test('a nextCheckModifier applies to the next roll only, then resets', () => {
     const cliff = start('cliff')
     const normal = choose(cliff, 'climb', 'brom').lastRoll!.modifier
-    const penalised = applyEffects(cliff, [{ effect: 'nextCheckModifier', amount: -2, reason: 'misread' }])
+    const penalised = applyEffects(cliff, [
+      { effect: 'nextCheckModifier', amount: -2, reason: 'misread' },
+    ])
     const first = choose(penalised, 'climb', 'brom')
     expect(first.lastRoll?.modifier).toBe(normal - 2)
     expect(first.encounter).toMatchObject({ nextCheckModifier: 0, nextCheckReason: null })
-    const again = { ...first, encounter: { ...first.encounter!, stage: 'start', position: 'normal' as const } }
+    const again = {
+      ...first,
+      encounter: { ...first.encounter!, stage: 'start', position: 'normal' as const },
+    }
     expect(choose(again, 'climb', 'brom').lastRoll?.modifier).toBe(normal)
   })
 
@@ -178,7 +235,8 @@ describe('check options', () => {
         critSuccess: ['edge', 'ledge'],
       }[tier]
       expect([after.encounter?.position, after.encounter?.stage]).toEqual(expected)
-      if (after.encounter?.stage === 'ledge') expect(after.encounter.log.at(-1)?.text).toBe('A gap yawns on the ledge.')
+      if (after.encounter?.stage === 'ledge')
+        expect(after.encounter.log.at(-1)?.text).toBe('A gap yawns on the ledge.')
     }
   })
 
@@ -210,8 +268,15 @@ describe('check options', () => {
     const old = { day: 1, characterId: 'brom', skill: 'stealth' as const }
     const state = start('cliff', makeState({ day: 9, skillUses: [old, { ...old, day: 3 }] }))
     const after = choose(state, 'climb')
-    expect(after.skillUses).toEqual([{ ...old, day: 3 }, { day: 9, characterId: 'brom', skill: 'athletics' }])
-    const practised = step(makeState(), { type: 'practiceCheck', stat: 'athletics', dc: 10, mode: 'normal' }, content)
+    expect(after.skillUses).toEqual([
+      { ...old, day: 3 },
+      { day: 9, characterId: 'brom', skill: 'athletics' },
+    ])
+    const practised = step(
+      makeState(),
+      { type: 'practiceCheck', stat: 'athletics', dc: 10, mode: 'normal' },
+      content
+    )
     expect(practised.skillUses).toEqual([])
   })
 
@@ -267,14 +332,24 @@ describe('drawing encounters and follow-ups', () => {
   test('every encounter that starts moves the other queued follow-ups one closer', () => {
     const queued = makeState({ followUps: [{ situationId: 'grudge', wait: 2 }] })
     expect(start('cliff', queued).followUps).toEqual([{ situationId: 'grudge', wait: 1 }])
-    const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }, { situationId: 'cliff', wait: 2 }] })
+    const due = makeState({
+      followUps: [
+        { situationId: 'grudge', wait: 0 },
+        { situationId: 'cliff', wait: 2 },
+      ],
+    })
     const after = draw(due)
     expect(after.encounter?.situation.id).toBe('grudge')
     expect(after.followUps).toEqual([{ situationId: 'cliff', wait: 1 }])
   })
 
   test('a due follow-up to a situation that no longer exists is dropped, and the draw is random', () => {
-    const stale = makeState({ followUps: [{ situationId: 'gone', wait: 0 }, { situationId: 'grudge', wait: 1 }] })
+    const stale = makeState({
+      followUps: [
+        { situationId: 'gone', wait: 0 },
+        { situationId: 'grudge', wait: 1 },
+      ],
+    })
     const after = draw(stale, ['procedural'])
     expect(after.encounter?.situation.id).toBe('plea')
     expect(after.followUps).toEqual([{ situationId: 'grudge', wait: 0 }])

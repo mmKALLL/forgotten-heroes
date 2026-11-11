@@ -16,14 +16,24 @@ const testNeed = {
       outcome: {
         text: '{Who} thanks you.',
         effects: [{ effect: 'gold', amount: 10 }],
-        twist: { text: 'A trap!', effects: [{ effect: 'gold', amount: -10 }, { effect: 'hp', amount: -3, target: 'random' }] },
+        twist: {
+          text: 'A trap!',
+          effects: [
+            { effect: 'gold', amount: -10 },
+            { effect: 'hp', amount: -3, target: 'random' },
+          ],
+        },
       },
     },
     {
       id: 'careful',
       kind: 'fixed',
       label: 'Help carefully',
-      outcome: { text: 'You help, warily.', effects: [{ effect: 'gold', amount: 4 }], twist: { text: 'You saw it coming.' } },
+      outcome: {
+        text: 'You help, warily.',
+        effects: [{ effect: 'gold', amount: 4 }],
+        twist: { text: 'You saw it coming.' },
+      },
     },
     {
       id: 'read',
@@ -32,9 +42,17 @@ const testNeed = {
       once: true,
       check: { skill: 'insight', dc: 'dc' },
       outcomes: {
-        fail: { text: 'You cannot tell.', effects: [{ effect: 'nextCheckModifier', amount: -2 }], stay: true },
+        fail: {
+          text: 'You cannot tell.',
+          effects: [{ effect: 'nextCheckModifier', amount: -2 }],
+          stay: true,
+        },
         partial: { text: 'Something is off.', effects: [{ effect: 'revealTwist' }], stay: true },
-        success: { text: '{actor} reads them.', effects: [{ effect: 'revealTwist' }, { effect: 'position', position: 'edge' }], stay: true },
+        success: {
+          text: '{actor} reads them.',
+          effects: [{ effect: 'revealTwist' }, { effect: 'position', position: 'edge' }],
+          stay: true,
+        },
       },
     },
     {
@@ -46,7 +64,13 @@ const testNeed = {
         critFail: { text: 'Caught!', effects: [{ effect: 'hp', amount: -4, target: 'actor' }] },
         fail: { text: 'They run.' },
         partial: { text: 'A few coins.', effects: [{ effect: 'gold', amount: 3 }] },
-        success: { text: 'Their purse.', effects: [{ effect: 'gold', amount: 12 }, { effect: 'followUp', situation: 'grudge', after: 1 }] },
+        success: {
+          text: 'Their purse.',
+          effects: [
+            { effect: 'gold', amount: 12 },
+            { effect: 'followUp', situation: 'grudge', after: 1 },
+          ],
+        },
       },
     },
     {
@@ -69,7 +93,9 @@ const testSituations = [
       start: {
         text: '{Who} begs for help. {stakes}',
         archetype: { id: 'test-need', dc: 12, reward: 2 },
-        options: [{ id: 'leave', kind: 'fixed', label: 'Leave', outcome: { text: 'You walk on.' } }],
+        options: [
+          { id: 'leave', kind: 'fixed', label: 'Leave', outcome: { text: 'You walk on.' } },
+        ],
       },
     },
   },
@@ -86,12 +112,32 @@ const testSituations = [
             label: 'Climb',
             check: { skill: 'athletics', dc: 12 },
             outcomes: {
-              fail: { text: '{actor} slips.', effects: [{ effect: 'hp', amount: -3, target: 'actor' }, { effect: 'position', position: 'exposed' }], stay: true },
-              partial: { text: 'A scraped climb.', effects: [{ effect: 'hp', amount: -1, target: 'actor' }], goto: 'ledge' },
-              success: { text: 'Up you go.', effects: [{ effect: 'position', position: 'edge' }], goto: 'ledge' },
+              fail: {
+                text: '{actor} slips.',
+                effects: [
+                  { effect: 'hp', amount: -3, target: 'actor' },
+                  { effect: 'position', position: 'exposed' },
+                ],
+                stay: true,
+              },
+              partial: {
+                text: 'A scraped climb.',
+                effects: [{ effect: 'hp', amount: -1, target: 'actor' }],
+                goto: 'ledge',
+              },
+              success: {
+                text: 'Up you go.',
+                effects: [{ effect: 'position', position: 'edge' }],
+                goto: 'ledge',
+              },
             },
           },
-          { id: 'around', kind: 'fixed', label: 'Go around', outcome: { text: 'A long detour.', effects: [{ effect: 'days', amount: 1 }] } },
+          {
+            id: 'around',
+            kind: 'fixed',
+            label: 'Go around',
+            outcome: { text: 'A long detour.', effects: [{ effect: 'days', amount: 1 }] },
+          },
         ],
       },
       ledge: {
@@ -103,8 +149,14 @@ const testSituations = [
             label: 'Jump',
             check: { skill: 'acrobatics', dc: 14 },
             outcomes: {
-              fail: { text: 'A bad fall.', effects: [{ effect: 'hp', amount: -6, target: 'actor' }] },
-              partial: { text: 'You make it, bruised.', effects: [{ effect: 'hp', amount: -2, target: 'actor' }] },
+              fail: {
+                text: 'A bad fall.',
+                effects: [{ effect: 'hp', amount: -6, target: 'actor' }],
+              },
+              partial: {
+                text: 'You make it, bruised.',
+                effects: [{ effect: 'hp', amount: -2, target: 'actor' }],
+              },
               success: { text: 'You find a cache.', effects: [{ effect: 'gold', amount: 15 }] },
             },
           },
@@ -126,9 +178,19 @@ const testSituations = [
             kind: 'check',
             label: 'Fight',
             check: { skill: 'athletics', dc: 13, combat: true },
-            outcomes: { fail: { text: 'Beaten.', effects: [{ effect: 'hp', amount: -4, target: 'all' }] }, partial: { text: 'A draw.' }, success: { text: 'They flee.' } },
+            outcomes: {
+              fail: { text: 'Beaten.', effects: [{ effect: 'hp', amount: -4, target: 'all' }] },
+              partial: { text: 'A draw.' },
+              success: { text: 'They flee.' },
+            },
           },
-          { id: 'pay', kind: 'fixed', label: 'Pay them back', requires: [{ req: 'gold', min: 5 }], outcome: { text: 'You pay.', effects: [{ effect: 'gold', amount: -5 }] } },
+          {
+            id: 'pay',
+            kind: 'fixed',
+            label: 'Pay them back',
+            requires: [{ req: 'gold', min: 5 }],
+            outcome: { text: 'You pay.', effects: [{ effect: 'gold', amount: -5 }] },
+          },
         ],
       },
     },
@@ -141,7 +203,14 @@ const testSituations = [
     stages: {
       start: {
         text: 'Stars fall over the hills.',
-        options: [{ id: 'watch', kind: 'fixed', label: 'Watch', outcome: { text: 'You watch.', effects: [{ effect: 'inspiration', amount: 1 }] } }],
+        options: [
+          {
+            id: 'watch',
+            kind: 'fixed',
+            label: 'Watch',
+            outcome: { text: 'You watch.', effects: [{ effect: 'inspiration', amount: 1 }] },
+          },
+        ],
       },
     },
   },
@@ -153,8 +222,20 @@ export function fixtureContent(): Content {
       kind: 'classes',
       source: 'original',
       entries: [
-        { id: 'fighter', name: 'Fighter', hitDie: 10, baseAbilities: { str: 16, dex: 10, con: 14, int: 10, wis: 12, cha: 8 }, skillProficiencies: ['athletics', 'intimidation'] },
-        { id: 'bard', name: 'Bard', hitDie: 8, baseAbilities: { str: 8, dex: 14, con: 12, int: 10, wis: 10, cha: 16 }, skillProficiencies: ['persuasion', 'performance'] },
+        {
+          id: 'fighter',
+          name: 'Fighter',
+          hitDie: 10,
+          baseAbilities: { str: 16, dex: 10, con: 14, int: 10, wis: 12, cha: 8 },
+          skillProficiencies: ['athletics', 'intimidation'],
+        },
+        {
+          id: 'bard',
+          name: 'Bard',
+          hitDie: 8,
+          baseAbilities: { str: 8, dex: 14, con: 12, int: 10, wis: 10, cha: 16 },
+          skillProficiencies: ['persuasion', 'performance'],
+        },
       ],
     },
     'data/original/ancestries.json': {
@@ -169,14 +250,20 @@ export function fixtureContent(): Content {
     'data/original/names.json': {
       kind: 'names',
       source: 'original',
-      entries: [{ id: 'test-names', ancestries: ['human'], given: ['Ada', 'Bram'], family: ['Stone'] }],
+      entries: [
+        { id: 'test-names', ancestries: ['human'], given: ['Ada', 'Bram'], family: ['Stone'] },
+      ],
     },
     'data/procedural/parts.json': {
       kind: 'partsTables',
       source: 'procedural',
       entries: [
         { id: 'who', description: 'A stranger', rows: [{ text: '{who-attitude} {who-job}' }] },
-        { id: 'who-attitude', description: 'Attitude', rows: [{ text: 'a wary' }, { text: 'an angry', weight: 0 }] },
+        {
+          id: 'who-attitude',
+          description: 'Attitude',
+          rows: [{ text: 'a wary' }, { text: 'an angry', weight: 0 }],
+        },
         { id: 'who-job', description: 'Job', rows: [{ text: 'tinker' }, { text: 'pilgrim' }] },
         { id: 'stakes', description: 'Stakes', rows: [{ text: 'A child waits at home.' }] },
       ],
@@ -185,13 +272,38 @@ export function fixtureContent(): Content {
       kind: 'creatures',
       source: 'imported',
       entries: [
-        { id: 'wolf', name: 'Wolf', group: 'a pack of wolves', type: 'beast', cr: 0.25, description: 'Hungry.' },
-        { id: 'bandit', name: 'Bandit', group: 'a band of bandits', type: 'humanoid', cr: 0.125, description: 'Armed.' },
-        { id: 'ogre', name: 'Ogre', group: 'an ogre and its cronies', type: 'giant', cr: 2, description: 'Big.' },
+        {
+          id: 'wolf',
+          name: 'Wolf',
+          group: 'a pack of wolves',
+          type: 'beast',
+          cr: 0.25,
+          description: 'Hungry.',
+        },
+        {
+          id: 'bandit',
+          name: 'Bandit',
+          group: 'a band of bandits',
+          type: 'humanoid',
+          cr: 0.125,
+          description: 'Armed.',
+        },
+        {
+          id: 'ogre',
+          name: 'Ogre',
+          group: 'an ogre and its cronies',
+          type: 'giant',
+          cr: 2,
+          description: 'Big.',
+        },
       ],
     },
     'data/claude/archetypes.json': { kind: 'archetypes', source: 'claude', entries: [testNeed] },
-    'data/original/situations.json': { kind: 'situations', source: 'original', entries: testSituations },
+    'data/original/situations.json': {
+      kind: 'situations',
+      source: 'original',
+      entries: testSituations,
+    },
     'data/procedural/templates.json': {
       kind: 'situationTemplates',
       source: 'procedural',
@@ -253,7 +365,11 @@ export function makeState(overrides: Partial<GameState> = {}): GameState {
 
 export function makeEncounter(overrides: Partial<EncounterState> = {}): EncounterState {
   return {
-    situation: SituationSchema.parse({ id: 'test-road', title: 'Test road', stages: { start: { text: 'A road.' } } }),
+    situation: SituationSchema.parse({
+      id: 'test-road',
+      title: 'Test road',
+      stages: { start: { text: 'A road.' } },
+    }),
     source: 'original',
     stage: 'start',
     position: 'normal',

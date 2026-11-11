@@ -7,16 +7,33 @@ import { contentIssues, lintSituation, validateSituation } from './validate'
 const content = fixtureContent()
 const situation = (stages: object, extra: object = {}) =>
   SituationSchema.parse({ id: 'broken', title: 'Broken', ...extra, stages })
-const fixed = (id: string, outcome: object = { text: 'Done.' }) => ({ id, kind: 'fixed', label: id, outcome })
+const fixed = (id: string, outcome: object = { text: 'Done.' }) => ({
+  id,
+  kind: 'fixed',
+  label: id,
+  outcome,
+})
 const check = (id: string, outcomes: object, dc: number | string = 12) => ({
   id,
   kind: 'check',
   label: id,
   check: { skill: 'athletics', dc },
-  outcomes: { fail: { text: 'No.' }, partial: { text: 'Meh.' }, success: { text: 'Yes.' }, ...outcomes },
+  outcomes: {
+    fail: { text: 'No.' },
+    partial: { text: 'Meh.' },
+    success: { text: 'Yes.' },
+    ...outcomes,
+  },
 })
-const issues = (stages: object, extra?: object) => validateSituation(situation(stages, extra), content)
-const table = (id: string, rows: { text: string; weight: number }[]) => ({ id, description: '', rows, source: 'procedural' as const, file: 'x' })
+const issues = (stages: object, extra?: object) =>
+  validateSituation(situation(stages, extra), content)
+const table = (id: string, rows: { text: string; weight: number }[]) => ({
+  id,
+  description: '',
+  rows,
+  source: 'procedural' as const,
+  file: 'x',
+})
 
 describe('validateSituation', () => {
   test('the fixture content is clean', () => {
@@ -24,7 +41,9 @@ describe('validateSituation', () => {
   })
 
   test('unknown archetypes, and DC expressions outside archetypes', () => {
-    expect(issues({ start: { text: '', archetype: { id: 'nope' } } })).toEqual(['stage start: unknown archetype "nope"'])
+    expect(issues({ start: { text: '', archetype: { id: 'nope' } } })).toEqual([
+      'stage start: unknown archetype "nope"',
+    ])
     expect(issues({ start: { text: '', options: [check('a', {}, 'dc+1'), fixed('b')] } })).toEqual([
       'start/a: DC "dc+1" needs an archetype on its stage',
     ])
@@ -32,7 +51,13 @@ describe('validateSituation', () => {
 
   test('missing and unreachable stages, duplicate ids, goto with stay', () => {
     const found = issues({
-      start: { text: '', options: [check('a', { success: { text: '', goto: 'nowhere' } }), fixed('a', { text: '', goto: 'start', stay: true })] },
+      start: {
+        text: '',
+        options: [
+          check('a', { success: { text: '', goto: 'nowhere' } }),
+          fixed('a', { text: '', goto: 'start', stay: true }),
+        ],
+      },
       island: { text: '', options: [fixed('x'), fixed('y')] },
     })
     expect(found).toEqual([
@@ -41,7 +66,9 @@ describe('validateSituation', () => {
       'start/a outcome: both goto and stay',
       'stage island is unreachable',
     ])
-    expect(issues({ only: { text: '' } }, { start: 'begin' })).toContain('start stage "begin" does not exist')
+    expect(issues({ only: { text: '' } }, { start: 'begin' })).toContain(
+      'start stage "begin" does not exist'
+    )
   })
 
   test('slots must be declared, and {actor} only appears in check outcomes', () => {
@@ -49,7 +76,10 @@ describe('validateSituation', () => {
       issues({
         start: {
           text: '{Who} and {actor} wait.',
-          options: [check('a', { success: { text: '{actor} wins {loot}.' } }), fixed('b', { text: '{actor} leaves.' })],
+          options: [
+            check('a', { success: { text: '{actor} wins {loot}.' } }),
+            fixed('b', { text: '{actor} leaves.' }),
+          ],
         },
       })
     ).toEqual([
@@ -65,8 +95,20 @@ describe('validateSituation', () => {
       ...content,
       partsTables: {
         ...content.partsTables,
-        a: { id: 'a', description: '', rows: [{ text: '{b}', weight: 1 }], source: 'procedural' as const, file: 'x' },
-        b: { id: 'b', description: '', rows: [{ text: '{a} {gone}', weight: 1 }], source: 'procedural' as const, file: 'x' },
+        a: {
+          id: 'a',
+          description: '',
+          rows: [{ text: '{b}', weight: 1 }],
+          source: 'procedural' as const,
+          file: 'x',
+        },
+        b: {
+          id: 'b',
+          description: '',
+          rows: [{ text: '{a} {gone}', weight: 1 }],
+          source: 'procedural' as const,
+          file: 'x',
+        },
       },
     }
     const s = situation(
@@ -93,11 +135,19 @@ describe('validateSituation', () => {
       partsTables: {
         ...content.partsTables,
         outer: table('outer', [{ text: '{never}', weight: 1 }]),
-        never: table('never', [{ text: 'a', weight: 0 }, { text: 'b', weight: 0 }]),
+        never: table('never', [
+          { text: 'a', weight: 0 },
+          { text: 'b', weight: 0 },
+        ]),
       },
     }
-    const s = situation({ start: { text: '{x}', options: [fixed('a'), fixed('b')] } }, { slots: { x: { from: 'table', table: 'outer' } } })
-    expect(validateSituation(s, zeroed)).toEqual(['slot x: parts table "never" has no row with weight > 0'])
+    const s = situation(
+      { start: { text: '{x}', options: [fixed('a'), fixed('b')] } },
+      { slots: { x: { from: 'table', table: 'outer' } } }
+    )
+    expect(validateSituation(s, zeroed)).toEqual([
+      'slot x: parts table "never" has no row with weight > 0',
+    ])
   })
 
   test('the title and the twist may use declared slots only', () => {
@@ -110,10 +160,7 @@ describe('validateSituation', () => {
           twist: { chance: 0.5, what: '{Who} is bait for {actor}' },
         }
       )
-    ).toEqual([
-      'title: slot {gone} is not declared',
-      'twist: {actor} only works in check outcomes',
-    ])
+    ).toEqual(['title: slot {gone} is not declared', 'twist: {actor} only works in check outcomes'])
   })
 
   test('effects: follow-up targets, actor targets in fixed options, twists without a twist', () => {
@@ -122,8 +169,20 @@ describe('validateSituation', () => {
         start: {
           text: '',
           options: [
-            fixed('a', { text: '', effects: [{ effect: 'followUp', situation: 'nope' }, { effect: 'hp', amount: -1, target: 'actor' }] }),
-            check('b', { success: { text: '', effects: [{ effect: 'revealTwist' }], twist: { text: 'Gotcha.' } } }),
+            fixed('a', {
+              text: '',
+              effects: [
+                { effect: 'followUp', situation: 'nope' },
+                { effect: 'hp', amount: -1, target: 'actor' },
+              ],
+            }),
+            check('b', {
+              success: {
+                text: '',
+                effects: [{ effect: 'revealTwist' }],
+                twist: { text: 'Gotcha.' },
+              },
+            }),
           ],
         },
       })
@@ -138,48 +197,86 @@ describe('validateSituation', () => {
 
 describe('contentIssues', () => {
   test('an id shared by a situation and a template is reported, and both keep their issues', () => {
-    const broken = SituationSchema.parse({ id: 'plea', title: 'Plea', stages: { start: { text: '{gone}', options: [fixed('a'), fixed('b')] } } })
-    const template = SituationTemplateSchema.parse({ ...content.situationTemplates.plea, text: '{lost}' })
+    const broken = SituationSchema.parse({
+      id: 'plea',
+      title: 'Plea',
+      stages: { start: { text: '{gone}', options: [fixed('a'), fixed('b')] } },
+    })
+    const template = SituationTemplateSchema.parse({
+      ...content.situationTemplates.plea,
+      text: '{lost}',
+    })
     const clash: Content = {
       ...content,
       situations: { ...content.situations, plea: { ...broken, source: 'original', file: 'x' } },
       situationTemplates: { plea: { ...template, source: 'procedural', file: 'y' } },
     }
     expect(contentIssues(clash)).toEqual({
-      plea: ['duplicate situation id "plea"', 'stage start: slot {gone} is not declared', 'stage start: slot {lost} is not declared'],
+      plea: [
+        'duplicate situation id "plea"',
+        'stage start: slot {gone} is not declared',
+        'stage start: slot {lost} is not declared',
+      ],
     })
   })
 })
 
 describe('lintSituation', () => {
   test('regular stages need at least 2 options', () => {
-    expect(lintSituation(situation({ start: { text: '', options: [fixed('a')] } }), content)).toEqual([
-      'stage start has 1 option(s); regular encounters need at least 2',
-    ])
+    expect(
+      lintSituation(situation({ start: { text: '', options: [fixed('a')] } }), content)
+    ).toEqual(['stage start has 1 option(s); regular encounters need at least 2'])
   })
 
   test('every regular stage keeps an option that is neither once nor gated by requirements', () => {
     const gated = (id: string) => ({ ...fixed(id), requires: [{ req: 'gold', min: 5 }] })
-    expect(lintSituation(situation({ start: { text: '', options: [{ ...fixed('a'), once: true }, gated('b')] } }), content)).toEqual([
+    expect(
+      lintSituation(
+        situation({ start: { text: '', options: [{ ...fixed('a'), once: true }, gated('b')] } }),
+        content
+      )
+    ).toEqual([
       'stage start: every option is once or has requirements, so the stage can become a dead end',
     ])
-    expect(lintSituation(situation({ start: { text: '', options: [{ ...fixed('a'), once: true }, fixed('b')] } }), content)).toEqual([])
+    expect(
+      lintSituation(
+        situation({ start: { text: '', options: [{ ...fixed('a'), once: true }, fixed('b')] } }),
+        content
+      )
+    ).toEqual([])
   })
 
   test('wonders are one stage, one fixed option, and never cost anything', () => {
-    const wonder = (options: object[]) => situation({ start: { text: '', options } }, { wonder: true })
-    expect(lintSituation(wonder([fixed('look', { text: '', effects: [{ effect: 'inspiration', amount: 1 }] })]), content)).toEqual([])
-    expect(lintSituation(wonder([fixed('a'), fixed('b')]), content)).toEqual(['a wonder is one stage with one fixed option'])
-    expect(lintSituation(wonder([fixed('a', { text: '', effects: [{ effect: 'days', amount: 1 }] })]), content)).toEqual([
-      'start/a outcome: wonders never cost anything (days)',
+    const wonder = (options: object[]) =>
+      situation({ start: { text: '', options } }, { wonder: true })
+    expect(
+      lintSituation(
+        wonder([fixed('look', { text: '', effects: [{ effect: 'inspiration', amount: 1 }] })]),
+        content
+      )
+    ).toEqual([])
+    expect(lintSituation(wonder([fixed('a'), fixed('b')]), content)).toEqual([
+      'a wonder is one stage with one fixed option',
     ])
-    expect(lintSituation(wonder([fixed('a', { text: '', effects: [{ effect: 'nextCheckModifier', amount: -2 }] })]), content)).toEqual([
-      'start/a outcome: wonders never cost anything (nextCheckModifier)',
-    ])
+    expect(
+      lintSituation(
+        wonder([fixed('a', { text: '', effects: [{ effect: 'days', amount: 1 }] })]),
+        content
+      )
+    ).toEqual(['start/a outcome: wonders never cost anything (days)'])
+    expect(
+      lintSituation(
+        wonder([fixed('a', { text: '', effects: [{ effect: 'nextCheckModifier', amount: -2 }] })]),
+        content
+      )
+    ).toEqual(['start/a outcome: wonders never cost anything (nextCheckModifier)'])
   })
 
   test('archetype options count towards the minimum', () => {
-    const s = situation({ start: { text: '{who}', archetype: { id: 'test-need' } } }, { slots: { who: { from: 'table', table: 'who' } } })
+    const s = situation(
+      { start: { text: '{who}', archetype: { id: 'test-need' } } },
+      { slots: { who: { from: 'table', table: 'who' } } }
+    )
     expect(lintSituation(s, content)).toEqual([])
   })
 })

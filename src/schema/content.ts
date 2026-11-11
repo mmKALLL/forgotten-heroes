@@ -26,7 +26,9 @@ export type AncestryDef = z.infer<typeof AncestryDefSchema>
 
 export const NameTableSchema = z.object({
   id: IdSchema,
-  ancestries: z.array(IdSchema).describe('Ancestry ids this table names; others fall back to any table'),
+  ancestries: z
+    .array(IdSchema)
+    .describe('Ancestry ids this table names; others fall back to any table'),
   given: z.array(z.string()).min(1),
   family: z.array(z.string()).default([]),
 })

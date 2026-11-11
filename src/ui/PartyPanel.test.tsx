@@ -27,7 +27,8 @@ test('expanding shows the full sheet: abilities, all 18 skills, proficiency mark
   await userEvent.click(toggle('Brom'))
   expect(toggle('Brom').getAttribute('aria-expanded')).toBe('true')
   const b = card('Brom')
-  for (const a of ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA']) expect(b.getAllByText(a).length).toBeGreaterThan(0)
+  for (const a of ['STR', 'DEX', 'CON', 'INT', 'WIS', 'CHA'])
+    expect(b.getAllByText(a).length).toBeGreaterThan(0)
   expect(SKILLS).toHaveLength(18)
   for (const s of SKILLS) expect(b.getByText(statLabel(s))).toBeTruthy()
   // Brom is proficient in Athletics and Intimidation only.

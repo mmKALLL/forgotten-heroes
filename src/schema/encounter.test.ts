@@ -17,14 +17,22 @@ describe('effects', () => {
       situation: 'ambush',
       after: 0,
     })
-    expect(EffectSchema.parse({ effect: 'log', text: 'Rain.' })).toEqual({ effect: 'log', text: 'Rain.', tone: 'info' })
+    expect(EffectSchema.parse({ effect: 'log', text: 'Rain.' })).toEqual({
+      effect: 'log',
+      text: 'Rain.',
+      tone: 'info',
+    })
   })
 
   test('reject unknown effects, missing targets and bad positions', () => {
     expect(EffectSchema.safeParse({ effect: 'goods', amount: 1 }).success).toBe(false)
     expect(EffectSchema.safeParse({ effect: 'hp', amount: -3 }).success).toBe(false)
-    expect(EffectSchema.safeParse({ effect: 'exhaustion', amount: 1, target: 'random' }).success).toBe(false)
-    expect(EffectSchema.safeParse({ effect: 'position', position: 'advantage' }).success).toBe(false)
+    expect(
+      EffectSchema.safeParse({ effect: 'exhaustion', amount: 1, target: 'random' }).success
+    ).toBe(false)
+    expect(EffectSchema.safeParse({ effect: 'position', position: 'advantage' }).success).toBe(
+      false
+    )
     expect(EffectSchema.safeParse({ effect: 'days', amount: 0 }).success).toBe(false)
   })
 })
@@ -46,7 +54,11 @@ describe('options', () => {
       label: 'Veiled threat',
       check: { skill: 'intimidation', ability: 'cha', dc: 13 },
       outcomes: {
-        fail: { text: 'They laugh.', effects: [{ effect: 'position', position: 'exposed' }], stay: true },
+        fail: {
+          text: 'They laugh.',
+          effects: [{ effect: 'position', position: 'exposed' }],
+          stay: true,
+        },
         partial: { text: 'They hesitate.' },
         success: { text: 'They back off.', twist: { text: 'It was a feint.' } },
       },
@@ -56,7 +68,13 @@ describe('options', () => {
   })
 
   test('a check option needs fail, partial and success', () => {
-    const bad = { id: 'x', kind: 'check', label: 'x', check: { skill: 'stealth', dc: 12 }, outcomes: { fail: { text: '' } } }
+    const bad = {
+      id: 'x',
+      kind: 'check',
+      label: 'x',
+      check: { skill: 'stealth', dc: 12 },
+      outcomes: { fail: { text: '' } },
+    }
     expect(OptionSchema.safeParse(bad).success).toBe(false)
   })
 })
@@ -68,7 +86,14 @@ describe('situations', () => {
       title: 'Quiet road',
       stages: { start: { text: 'Nothing stirs.', options: [fixed('wait'), fixed('go')] } },
     })
-    expect(s).toMatchObject({ start: 'start', weight: 1, wonder: false, followUpOnly: false, slots: {}, tags: [] })
+    expect(s).toMatchObject({
+      start: 'start',
+      weight: 1,
+      wonder: false,
+      followUpOnly: false,
+      slots: {},
+      tags: [],
+    })
   })
 
   test('stage ids must be kebab-case', () => {

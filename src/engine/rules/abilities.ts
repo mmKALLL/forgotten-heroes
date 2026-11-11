@@ -33,7 +33,9 @@ export const statLabel = (stat: CheckStat): string =>
 
 /** "Intimidation", or "Intimidation (CHA)" when a check pairs the skill with another ability. */
 export const checkLabel = (stat: CheckStat, ability?: Ability): string =>
-  ability && ability !== abilityOf(stat) ? `${statLabel(stat)} (${ability.toUpperCase()})` : statLabel(stat)
+  ability && ability !== abilityOf(stat)
+    ? `${statLabel(stat)} (${ability.toUpperCase()})`
+    : statLabel(stat)
 
 export const abilityModifier = (score: number): number => Math.floor((score - 10) / 2)
 

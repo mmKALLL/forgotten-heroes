@@ -17,6 +17,7 @@ export function renderSchema(kind: ContentKind): string {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   mkdirSync(SCHEMA_DIR, { recursive: true })
-  for (const kind of schemaKinds) writeFileSync(`${SCHEMA_DIR}${kind}.schema.json`, renderSchema(kind))
+  for (const kind of schemaKinds)
+    writeFileSync(`${SCHEMA_DIR}${kind}.schema.json`, renderSchema(kind))
   console.log(`wrote ${schemaKinds.length} schemas to data/_schema/`)
 }

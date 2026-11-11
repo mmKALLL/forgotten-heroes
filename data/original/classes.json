@@ -4,9 +4,33 @@
   "source": "original",
   "notes": "Stat spreads and hit dice from the prototype (vit renamed to con). Skill proficiencies were added during the rebuild port.",
   "entries": [
-    { "id": "fighter", "name": "Fighter", "hitDie": 10, "baseAbilities": { "str": 16, "dex": 10, "con": 14, "int": 10, "wis": 12, "cha": 8 }, "skillProficiencies": ["athletics", "intimidation", "survival"] },
-    { "id": "cleric", "name": "Cleric", "hitDie": 8, "baseAbilities": { "str": 14, "dex": 8, "con": 12, "int": 10, "wis": 10, "cha": 16 }, "skillProficiencies": ["medicine", "religion", "persuasion"] },
-    { "id": "rogue", "name": "Rogue", "hitDie": 8, "baseAbilities": { "str": 10, "dex": 16, "con": 10, "int": 8, "wis": 14, "cha": 12 }, "skillProficiencies": ["stealth", "sleightOfHand", "deception", "perception"] },
-    { "id": "wizard", "name": "Wizard", "hitDie": 6, "baseAbilities": { "str": 8, "dex": 12, "con": 10, "int": 16, "wis": 14, "cha": 10 }, "skillProficiencies": ["arcana", "history", "investigation"] }
+    {
+      "id": "fighter",
+      "name": "Fighter",
+      "hitDie": 10,
+      "baseAbilities": { "str": 16, "dex": 10, "con": 14, "int": 10, "wis": 12, "cha": 8 },
+      "skillProficiencies": ["athletics", "intimidation", "survival"]
+    },
+    {
+      "id": "cleric",
+      "name": "Cleric",
+      "hitDie": 8,
+      "baseAbilities": { "str": 14, "dex": 8, "con": 12, "int": 10, "wis": 10, "cha": 16 },
+      "skillProficiencies": ["medicine", "religion", "persuasion"]
+    },
+    {
+      "id": "rogue",
+      "name": "Rogue",
+      "hitDie": 8,
+      "baseAbilities": { "str": 10, "dex": 16, "con": 10, "int": 8, "wis": 14, "cha": 12 },
+      "skillProficiencies": ["stealth", "sleightOfHand", "deception", "perception"]
+    },
+    {
+      "id": "wizard",
+      "name": "Wizard",
+      "hitDie": 6,
+      "baseAbilities": { "str": 8, "dex": 12, "con": 10, "int": 16, "wis": 14, "cha": 10 },
+      "skillProficiencies": ["arcana", "history", "investigation"]
+    }
   ]
 }

@@ -16,10 +16,14 @@ import { MAX_DC, MIN_DC } from './constants'
 const amount = z.number().int()
 
 export const EffectSchema = z.discriminatedUnion('effect', [
-  z.object({ effect: z.literal('gold'), amount }).describe('Gain or lose gold; gold never drops below 0'),
+  z
+    .object({ effect: z.literal('gold'), amount })
+    .describe('Gain or lose gold; gold never drops below 0'),
   z
     .object({ effect: z.literal('hp'), amount, target: z.enum(['actor', 'all', 'random']) })
-    .describe('Heal (+) or hurt (−) the acting member, everyone, or one random member who can still act'),
+    .describe(
+      'Heal (+) or hurt (−) the acting member, everyone, or one random member who can still act'
+    ),
   z
     .object({ effect: z.literal('exhaustion'), amount, target: z.enum(['actor', 'all']) })
     .describe('Add (+) or remove (−) exhaustion levels'),
@@ -41,7 +45,9 @@ export const EffectSchema = z.discriminatedUnion('effect', [
       amount,
       reason: z.string().optional().describe('Shown next to the modifier, e.g. "misread"'),
     })
-    .describe("Add to the party's next check in this encounter (e.g. −2 after misreading a situation)"),
+    .describe(
+      "Add to the party's next check in this encounter (e.g. −2 after misreading a situation)"
+    ),
   z.object({ effect: z.literal('revealTwist') }).describe('Show the odds of the hidden twist'),
   z.object({ effect: z.literal('log'), text: z.string(), tone: LogToneSchema.default('info') }),
   // Extension point: Plan 4 adds { "effect": "goods", "good": "food", "amount": -2 } here.
@@ -90,7 +96,9 @@ export type OutcomeBranch = z.infer<typeof OutcomeBranchSchema>
 
 export const OutcomeSchema = z.object({
   ...outcomeFields,
-  twist: OutcomeBranchSchema.optional().describe('Replaces this outcome when the hidden twist is true'),
+  twist: OutcomeBranchSchema.optional().describe(
+    'Replaces this outcome when the hidden twist is true'
+  ),
 })
 export type Outcome = z.infer<typeof OutcomeSchema>
 
@@ -133,8 +141,19 @@ export type Option = z.infer<typeof OptionSchema>
 
 export const ArchetypeRefSchema = z.object({
   id: IdSchema,
-  dc: z.number().int().min(MIN_DC).max(MAX_DC).default(13).describe('What "dc" means in the archetype'),
-  reward: z.number().min(0).max(10).default(1).describe('Multiplies every gold amount in the archetype'),
+  dc: z
+    .number()
+    .int()
+    .min(MIN_DC)
+    .max(MAX_DC)
+    .default(13)
+    .describe('What "dc" means in the archetype'),
+  reward: z
+    .number()
+    .min(0)
+    .max(10)
+    .default(1)
+    .describe('Multiplies every gold amount in the archetype'),
 })
 export type ArchetypeRef = z.infer<typeof ArchetypeRefSchema>
 
@@ -148,7 +167,9 @@ export type Archetype = z.infer<typeof ArchetypeSchema>
 
 export const StageSchema = z.object({
   text: z.string(),
-  archetype: ArchetypeRefSchema.optional().describe('Its options come first, then this stage\'s own'),
+  archetype: ArchetypeRefSchema.optional().describe(
+    "Its options come first, then this stage's own"
+  ),
   options: z.array(OptionSchema).default([]),
 })
 export type Stage = z.infer<typeof StageSchema>
@@ -166,7 +187,9 @@ export type SlotSource = z.infer<typeof SlotSourceSchema>
 
 export const TwistSchema = z.object({
   chance: z.number().min(0).max(1).describe('Rolled secretly when the encounter starts'),
-  what: z.string().describe('Always shown, e.g. "they are bait for an ambush"; Insight reveals the chance'),
+  what: z
+    .string()
+    .describe('Always shown, e.g. "they are bait for an ambush"; Insight reveals the chance'),
 })
 export type Twist = z.infer<typeof TwistSchema>
 
@@ -176,14 +199,20 @@ const situationFields = {
   notes: z.string().optional(),
   weight: z.number().min(0).default(1).describe('Relative chance in a random draw'),
   tags: z.array(z.string()).default([]).describe('Biomes and themes, for later plans'),
-  slots: z.record(IdSchema, SlotSourceSchema).default({}).describe('Filled when the encounter starts'),
+  slots: z
+    .record(IdSchema, SlotSourceSchema)
+    .default({})
+    .describe('Filled when the encounter starts'),
   twist: TwistSchema.optional(),
 }
 
 export const SituationSchema = z.object({
   ...situationFields,
   wonder: z.boolean().default(false).describe('One click, flavour only, never a cost'),
-  followUpOnly: z.boolean().default(false).describe('Never drawn at random; only queued by followUp'),
+  followUpOnly: z
+    .boolean()
+    .default(false)
+    .describe('Never drawn at random; only queued by followUp'),
   start: IdSchema.default('start'),
   stages: z.record(IdSchema, StageSchema),
 })
@@ -205,7 +234,12 @@ export const PartsTableSchema = z.object({
   id: IdSchema,
   description: z.string(),
   rows: z
-    .array(z.object({ text: z.string().describe('May contain {other-table}'), weight: z.number().min(0).default(1) }))
+    .array(
+      z.object({
+        text: z.string().describe('May contain {other-table}'),
+        weight: z.number().min(0).default(1),
+      })
+    )
     .min(1),
 })
 export type PartsTable = z.infer<typeof PartsTableSchema>

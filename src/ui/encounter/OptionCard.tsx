@@ -30,7 +30,14 @@ function Branch({ branch }: { branch: BranchPreview }) {
   )
 }
 
-export function OptionCard({ option, twistWhat, actorId, onActor, onChoose, labelMode = 'faces' }: Props) {
+export function OptionCard({
+  option,
+  twistWhat,
+  actorId,
+  onActor,
+  onChoose,
+  labelMode = 'faces',
+}: Props) {
   const { check } = option
   // Faces for the modifier actually rolled: the actor's plus the situational one.
   const faces = check ? tierFaces(check.modifier + check.situationalModifier, check.dc) : null
@@ -51,7 +58,11 @@ export function OptionCard({ option, twistWhat, actorId, onActor, onChoose, labe
           <p className="small">
             <label>
               Actor{' '}
-              <select aria-label={`Actor for ${option.label}`} value={actorId} onChange={(e) => onActor(e.target.value)}>
+              <select
+                aria-label={`Actor for ${option.label}`}
+                value={actorId}
+                onChange={(e) => onActor(e.target.value)}
+              >
                 <option value="">Auto: {check.actors[0]?.name}</option>
                 {check.actors.map((a) => (
                   <option key={a.id} value={a.id}>
@@ -62,7 +73,8 @@ export function OptionCard({ option, twistWhat, actorId, onActor, onChoose, labe
             </label>{' '}
             {check.actorName} {formatModifier(check.modifier)}
             {check.situationalModifier !== 0 &&
-              ` ${formatModifier(check.situationalModifier)} (${check.situationalReason ?? 'situational'})`}:{' '}
+              ` ${formatModifier(check.situationalModifier)} (${check.situationalReason ?? 'situational'})`}
+            :{' '}
             {labelMode === 'faces' ? (
               <>
                 needs <strong>{neededFace(faces)}+</strong> on the d20{ROLL_MODE_SUFFIX[check.mode]}
@@ -90,7 +102,12 @@ export function OptionCard({ option, twistWhat, actorId, onActor, onChoose, labe
         ))}
       </ul>
       {option.unmet.length > 0 && <p className="tone-bad small">{option.unmet.join(', ')}</p>}
-      <button className="primary" disabled={!option.available} onClick={onChoose} aria-label={`Choose ${option.label}`}>
+      <button
+        className="primary"
+        disabled={!option.available}
+        onClick={onChoose}
+        aria-label={`Choose ${option.label}`}
+      >
         Choose
       </button>
     </article>

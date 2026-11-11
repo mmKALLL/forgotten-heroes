@@ -16,6 +16,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - `pnpm dev`: run the game
 - `pnpm test`: all tests (engine, content validation, UI)
 - `pnpm typecheck`, `pnpm build`
+- `pnpm format`: format the codebase with Prettier (`pnpm format:check` only checks). `docs/` and generated files are ignored (see `.prettierignore`)
 - `pnpm schemas`: regenerate `data/_schema/` after changing `src/schema/` (a test fails if stale)
 - `pnpm sync-assets`: copy the assets listed in `assets.manifest.txt` from `~/dnd5e`
 

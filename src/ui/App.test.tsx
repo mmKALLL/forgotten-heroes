@@ -26,7 +26,9 @@ test('the game survives a reload via localStorage', async () => {
   const names = screen.getAllByRole('article').map((a) => a.querySelector('strong')?.textContent)
   unmount()
   render(<App />)
-  expect(screen.getAllByRole('article').map((a) => a.querySelector('strong')?.textContent)).toEqual(names)
+  expect(screen.getAllByRole('article').map((a) => a.querySelector('strong')?.textContent)).toEqual(
+    names
+  )
 })
 
 test('the DC field can be cleared and retyped, and previews the DC the roll will use', async () => {
@@ -41,7 +43,9 @@ test('the DC field can be cleared and retyped, and previews the DC the roll will
   await userEvent.type(dc, '99')
   expect(screen.getByText(/vs DC 40:/)).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
-  expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(/vs DC 40\./)
+  expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(
+    /vs DC 40\./
+  )
 })
 
 test('an actor override from a previous party falls back to Auto', async () => {
@@ -52,7 +56,9 @@ test('an actor override from a previous party falls back to Auto', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'New party' }))
   expect(actor.value).toBe('')
   await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
-  expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(/rolls/)
+  expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(
+    /rolls/
+  )
 })
 
 test('the roll announcer exists before the first roll, and HP bars are meters', async () => {
@@ -94,7 +100,9 @@ test('the odds bar labels tiers with d20 thresholds by default, with no label to
   expect(bar.textContent).toMatch(/\d+\+/)
   expect(bar.textContent).not.toMatch(/–|%/)
   expect(bar.getAttribute('aria-label')).toMatch(/Success: \d+–\d+ \(\d+%\)/)
-  expect(screen.getByRole('region', { name: 'Practice check' }).textContent).toMatch(/: needs \d+\+ on the d20/)
+  expect(screen.getByRole('region', { name: 'Practice check' }).textContent).toMatch(
+    /: needs \d+\+ on the d20/
+  )
   expect(screen.queryByRole('group', { name: 'Odds labels' })).toBeNull()
 })
 
@@ -118,7 +126,9 @@ test('random draw honours the source filter', async () => {
     await userEvent.click(deck.getByRole('checkbox', { name: new RegExp(`^${label} \\(`) }))
   }
   await userEvent.click(deck.getByRole('button', { name: 'Random draw' }))
-  expect(within(screen.getByRole('region', { name: 'Encounter' })).getByText('Procedural')).toBeTruthy()
+  expect(
+    within(screen.getByRole('region', { name: 'Encounter' })).getByText('Procedural')
+  ).toBeTruthy()
 })
 
 test('an encounter in progress survives a reload', async () => {

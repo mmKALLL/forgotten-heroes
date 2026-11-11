@@ -14,7 +14,13 @@ const lastRollIndex = (encounter: EncounterState) => encounter.log.findLastIndex
  * encounterOptions() and dispatches the player's choice. A new roll animates, and what it led to
  * stays hidden until the dice settle. Rolls already in the log when the view opened don't animate.
  */
-export function EncounterView({ state, onAction }: { state: GameState; onAction: (a: Action) => void }) {
+export function EncounterView({
+  state,
+  onAction,
+}: {
+  state: GameState
+  onAction: (a: Action) => void
+}) {
   const encounter = state.encounter!
   // The first log entry is kept by every step, so a new one means a new encounter started here.
   const first = encounter.log[0]
@@ -51,14 +57,19 @@ export function EncounterView({ state, onAction }: { state: GameState; onAction:
       </header>
       {twist && (
         <p className="muted small">
-          Possible twist: {twist.what} (chance: {twist.chance === null ? '?' : formatPercent(twist.chance)})
+          Possible twist: {twist.what} (chance:{' '}
+          {twist.chance === null ? '?' : formatPercent(twist.chance)})
         </p>
       )}
       <ol className="encounter-log" aria-live="polite">
         {visible.map((entry, i) => (
           <li key={i} className={`tone-${entry.tone}`}>
             {entry.roll && i === rollIndex && i > seen.baseline && (
-              <DiceRoll roll={entry.roll} highStakes={entry.highStakes} onDone={() => setShownRoll(i)} />
+              <DiceRoll
+                roll={entry.roll}
+                highStakes={entry.highStakes}
+                onDone={() => setShownRoll(i)}
+              />
             )}
             {!(animating && i === rollIndex) && <span>{entry.text}</span>}
           </li>
@@ -81,7 +92,11 @@ export function EncounterView({ state, onAction }: { state: GameState; onAction:
               actorId={actorIds[option.id] ?? ''}
               onActor={(id) => setActorIds({ ...actorIds, [option.id]: id })}
               onChoose={() =>
-                onAction({ type: 'chooseOption', optionId: option.id, actorId: actorIds[option.id] || undefined })
+                onAction({
+                  type: 'chooseOption',
+                  optionId: option.id,
+                  actorId: actorIds[option.id] || undefined,
+                })
               }
             />
           ))}

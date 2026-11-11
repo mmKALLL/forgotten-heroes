@@ -12,9 +12,12 @@ const situations = allSituations(content).map((s) => [s.id, s] as const)
 const UNFILLED = /\{[A-Za-z][a-z0-9-]*\}/
 
 describe('every bundled situation', () => {
-  test.each(situations)('%s is playable: stages reachable, gotos, slots, archetypes, follow-ups', (_, s) => {
-    expect(validateSituation(s, content)).toEqual([])
-  })
+  test.each(situations)(
+    '%s is playable: stages reachable, gotos, slots, archetypes, follow-ups',
+    (_, s) => {
+      expect(validateSituation(s, content)).toEqual([])
+    }
+  )
 
   test.each(situations)('%s follows the quality rules', (_, s) => {
     expect(lintSituation(s, content)).toEqual([])
@@ -22,7 +25,11 @@ describe('every bundled situation', () => {
 
   test.each(situations)('%s plays to the end with every slot filled', (id) => {
     for (let seed = 0; seed < 6; seed++) {
-      let state: GameState = step(newGame(seed, content), { type: 'startEncounter', situationId: id }, content)
+      let state: GameState = step(
+        newGame(seed, content),
+        { type: 'startEncounter', situationId: id },
+        content
+      )
       for (let turn = 0; state.encounter?.stage != null && turn < 20; turn++) {
         const available = encounterOptions(state).filter((o) => o.available)
         if (available.length === 0) break
@@ -38,12 +45,20 @@ describe('archetypes', () => {
   test('hostile-group and someone-in-need offer the options the design names', () => {
     const ids = (id: string) => content.archetypes[id].options.map((o) => o.id)
     expect(ids('hostile-group')).toEqual(['fight', 'sneak', 'parley', 'bribe', 'flee'])
-    expect(ids('someone-in-need')).toEqual(['help-trusting', 'help-cautious', 'read-them', 'ignore', 'exploit'])
+    expect(ids('someone-in-need')).toEqual([
+      'help-trusting',
+      'help-cautious',
+      'read-them',
+      'ignore',
+      'exploit',
+    ])
   })
 
   test('trusting help pays more than cautious help, and loses more to a twist', () => {
     const gold = (id: string, twist: boolean) => {
-      const option = content.archetypes['someone-in-need'].options.find((o) => o.id === id) as FixedOption
+      const option = content.archetypes['someone-in-need'].options.find(
+        (o) => o.id === id
+      ) as FixedOption
       const branch = twist ? option.outcome.twist! : option.outcome
       return branch.effects.reduce((sum, e) => sum + (e.effect === 'gold' ? e.amount : 0), 0)
     }
@@ -57,9 +72,21 @@ test('SRD creatures are imported, and parts tables feed three templates', () => 
   expect(creatures.length).toBeGreaterThanOrEqual(15)
   expect(creatures.every((c) => c.source === 'imported')).toBe(true)
   expect(Object.keys(content.partsTables)).toEqual(
-    expect.arrayContaining(['who', 'who-attitude', 'who-ancestry', 'who-occupation', 'motive', 'stakes', 'complication'])
+    expect.arrayContaining([
+      'who',
+      'who-attitude',
+      'who-ancestry',
+      'who-occupation',
+      'motive',
+      'stakes',
+      'complication',
+    ])
   )
-  expect(Object.keys(content.situationTemplates).sort()).toEqual(['night-visitor', 'roadside-plea', 'toll-gang'])
+  expect(Object.keys(content.situationTemplates).sort()).toEqual([
+    'night-visitor',
+    'roadside-plea',
+    'toll-gang',
+  ])
 })
 
 const idsFrom = (source: string) =>

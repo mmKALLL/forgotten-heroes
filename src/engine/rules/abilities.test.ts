@@ -1,6 +1,13 @@
 import { describe, expect, test } from 'vitest'
 import { formatModifier, formatPercent } from '../format'
-import { abilityModifier, abilityOf, checkLabel, isSkill, proficiencyBonus, statLabel } from './abilities'
+import {
+  abilityModifier,
+  abilityOf,
+  checkLabel,
+  isSkill,
+  proficiencyBonus,
+  statLabel,
+} from './abilities'
 
 describe('abilities', () => {
   test.each([

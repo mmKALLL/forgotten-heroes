@@ -16,10 +16,18 @@ describe('applyEffects', () => {
   })
 
   test('hp to the actor or to all, clamped to 0..maxHp', () => {
-    expect(hp(applyEffects(state, fx({ effect: 'hp', amount: -5, target: 'actor' }), { actorId: 'lyra' }))).toEqual([20, 11])
-    expect(hp(applyEffects(state, fx({ effect: 'hp', amount: -30, target: 'all' })))).toEqual([0, 0])
+    expect(
+      hp(
+        applyEffects(state, fx({ effect: 'hp', amount: -5, target: 'actor' }), { actorId: 'lyra' })
+      )
+    ).toEqual([20, 11])
+    expect(hp(applyEffects(state, fx({ effect: 'hp', amount: -30, target: 'all' })))).toEqual([
+      0, 0,
+    ])
     const hurt = { ...state, party: state.party.map((c) => ({ ...c, hp: 5 })) }
-    expect(hp(applyEffects(hurt, fx({ effect: 'hp', amount: 100, target: 'all' })))).toEqual([20, 16])
+    expect(hp(applyEffects(hurt, fx({ effect: 'hp', amount: 100, target: 'all' })))).toEqual([
+      20, 16,
+    ])
   })
 
   test('hp to a random member hits one conscious member, is seeded and advances the rng', () => {
@@ -28,9 +36,15 @@ describe('applyEffects', () => {
     expect(applyEffects(state, effects)).toEqual(a)
     expect(a.rng).not.toEqual(state.rng)
     expect(hp(a).filter((h, i) => h !== hp(state)[i])).toHaveLength(1)
-    const bromDown = { ...state, party: state.party.map((c) => (c.id === 'brom' ? { ...c, hp: 0 } : c)) }
+    const bromDown = {
+      ...state,
+      party: state.party.map((c) => (c.id === 'brom' ? { ...c, hp: 0 } : c)),
+    }
     expect(hp(applyEffects(bromDown, effects))).toEqual([0, 13])
-    const bromSpent = { ...state, party: state.party.map((c) => (c.id === 'brom' ? { ...c, exhaustion: 6 } : c)) }
+    const bromSpent = {
+      ...state,
+      party: state.party.map((c) => (c.id === 'brom' ? { ...c, exhaustion: 6 } : c)),
+    }
     for (let seed = 0; seed < 20; seed++) {
       expect(hp(applyEffects({ ...bromSpent, rng: createRng(seed) }, effects))).toEqual([20, 13])
     }
@@ -44,41 +58,68 @@ describe('applyEffects', () => {
   test('exhaustion is clamped to 0..6', () => {
     const after = applyEffects(state, fx({ effect: 'exhaustion', amount: 9, target: 'all' }))
     expect(after.party.map((c) => c.exhaustion)).toEqual([6, 6])
-    const rested = applyEffects(after, fx({ effect: 'exhaustion', amount: -2, target: 'actor' }), { actorId: 'brom' })
+    const rested = applyEffects(after, fx({ effect: 'exhaustion', amount: -2, target: 'actor' }), {
+      actorId: 'brom',
+    })
     expect(rested.party.map((c) => c.exhaustion)).toEqual([4, 6])
-    expect(applyEffects(state, fx({ effect: 'exhaustion', amount: -1, target: 'all' })).party[0].exhaustion).toBe(0)
+    expect(
+      applyEffects(state, fx({ effect: 'exhaustion', amount: -1, target: 'all' })).party[0]
+        .exhaustion
+    ).toBe(0)
   })
 
   test('inspiration and days', () => {
-    const after = applyEffects(state, fx({ effect: 'inspiration', amount: 1 }, { effect: 'days', amount: 2 }))
+    const after = applyEffects(
+      state,
+      fx({ effect: 'inspiration', amount: 1 }, { effect: 'days', amount: 2 })
+    )
     expect(after.inspiration).toBe(state.inspiration + 1)
     expect(after.day).toBe(state.day + 2)
   })
 
   test('position and revealTwist change the encounter', () => {
-    const after = applyEffects(state, fx({ effect: 'position', position: 'edge' }, { effect: 'revealTwist' }))
+    const after = applyEffects(
+      state,
+      fx({ effect: 'position', position: 'edge' }, { effect: 'revealTwist' })
+    )
     expect(after.encounter?.position).toBe('edge')
     expect(after.encounter?.twistRevealed).toBe(true)
     const noEncounter = makeState()
-    expect(applyEffects(noEncounter, fx({ effect: 'position', position: 'edge' }))).toEqual(noEncounter)
+    expect(applyEffects(noEncounter, fx({ effect: 'position', position: 'edge' }))).toEqual(
+      noEncounter
+    )
   })
 
   test('nextCheckModifier adds up on the encounter, and does nothing outside one', () => {
     const after = applyEffects(state, fx({ effect: 'nextCheckModifier', amount: -2 }))
     expect(after.encounter?.nextCheckModifier).toBe(-2)
-    expect(applyEffects(after, fx({ effect: 'nextCheckModifier', amount: 1 })).encounter?.nextCheckModifier).toBe(-1)
+    expect(
+      applyEffects(after, fx({ effect: 'nextCheckModifier', amount: 1 })).encounter
+        ?.nextCheckModifier
+    ).toBe(-1)
     const noEncounter = makeState()
-    expect(applyEffects(noEncounter, fx({ effect: 'nextCheckModifier', amount: -2 }))).toEqual(noEncounter)
+    expect(applyEffects(noEncounter, fx({ effect: 'nextCheckModifier', amount: -2 }))).toEqual(
+      noEncounter
+    )
   })
 
   test('a nextCheckModifier remembers its reason; the latest reason wins', () => {
-    const misread = applyEffects(state, fx({ effect: 'nextCheckModifier', amount: -2, reason: 'misread' }))
+    const misread = applyEffects(
+      state,
+      fx({ effect: 'nextCheckModifier', amount: -2, reason: 'misread' })
+    )
     expect(misread.encounter).toMatchObject({ nextCheckModifier: -2, nextCheckReason: 'misread' })
-    const shaken = applyEffects(misread, fx({ effect: 'nextCheckModifier', amount: -1, reason: 'shaken' }))
+    const shaken = applyEffects(
+      misread,
+      fx({ effect: 'nextCheckModifier', amount: -1, reason: 'shaken' })
+    )
     expect(shaken.encounter).toMatchObject({ nextCheckModifier: -3, nextCheckReason: 'shaken' })
     const plain = applyEffects(misread, fx({ effect: 'nextCheckModifier', amount: 1 }))
     expect(plain.encounter).toMatchObject({ nextCheckModifier: -1, nextCheckReason: 'misread' })
-    expect(applyEffects(state, fx({ effect: 'nextCheckModifier', amount: -2 })).encounter?.nextCheckReason).toBeNull()
+    expect(
+      applyEffects(state, fx({ effect: 'nextCheckModifier', amount: -2 })).encounter
+        ?.nextCheckReason
+    ).toBeNull()
   })
 
   test('followUp queues a situation', () => {
@@ -94,7 +135,10 @@ describe('applyEffects', () => {
 
   test('effects apply in order and never mutate the input', () => {
     const snapshot = structuredClone(state)
-    const after = applyEffects(state, fx({ effect: 'gold', amount: -10 }, { effect: 'gold', amount: 4 }))
+    const after = applyEffects(
+      state,
+      fx({ effect: 'gold', amount: -10 }, { effect: 'gold', amount: 4 })
+    )
     expect(after.gold).toBe(4)
     expect(state).toEqual(snapshot)
   })

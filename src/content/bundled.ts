@@ -9,7 +9,9 @@ export const bundledFiles: Record<string, unknown> = import.meta.glob(
 export function loadBundledContent(): Content {
   const { content, errors } = buildContent(bundledFiles)
   if (errors.length > 0) {
-    throw new Error('Invalid content:\n' + errors.map((e) => `- ${e.file}: ${e.message}`).join('\n'))
+    throw new Error(
+      'Invalid content:\n' + errors.map((e) => `- ${e.file}: ${e.message}`).join('\n')
+    )
   }
   return content
 }

@@ -45,11 +45,20 @@ const scaleRequirements = (requires: Requirement[], reward: number): Requirement
 
 function resolveOption(option: Option, base: number, reward: number): Option {
   const requires = scaleRequirements(option.requires, reward)
-  if (option.kind === 'fixed') return { ...option, requires, outcome: scaleBranch(option.outcome, reward) }
+  if (option.kind === 'fixed')
+    return { ...option, requires, outcome: scaleBranch(option.outcome, reward) }
   const outcomes = Object.fromEntries(
-    Object.entries(option.outcomes).map(([tier, outcome]) => [tier, outcome && scaleBranch(outcome, reward)])
+    Object.entries(option.outcomes).map(([tier, outcome]) => [
+      tier,
+      outcome && scaleBranch(outcome, reward),
+    ])
   ) as typeof option.outcomes
-  return { ...option, requires, check: { ...option.check, dc: resolveDc(option.check.dc, base) }, outcomes }
+  return {
+    ...option,
+    requires,
+    check: { ...option.check, dc: resolveDc(option.check.dc, base) },
+    outcomes,
+  }
 }
 
 /** An archetype's options with DCs resolved against `ref.dc` and gold scaled by `ref.reward`. */
@@ -71,7 +80,11 @@ function compileStage(stage: Stage, content: Content): Stage {
  * This snapshot is what an encounter stores in GameState.
  */
 export function compileSituation(situation: Situation, content: Content): Situation {
-  const { source: _source, file: _file, ...plain } = situation as Partial<Sourced<Situation>> & Situation
+  const {
+    source: _source,
+    file: _file,
+    ...plain
+  } = situation as Partial<Sourced<Situation>> & Situation
   const stages = Object.fromEntries(
     Object.entries(situation.stages).map(([id, stage]) => [id, compileStage(stage, content)])
   )

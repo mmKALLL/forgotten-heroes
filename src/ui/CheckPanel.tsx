@@ -108,7 +108,8 @@ export function CheckPanel({
       {preview ? (
         <>
           <p>
-            {preview.actorName} rolls {statLabel(stat)} {formatModifier(preview.modifier)} vs DC {preview.dc}:{' '}
+            {preview.actorName} rolls {statLabel(stat)} {formatModifier(preview.modifier)} vs DC{' '}
+            {preview.dc}:{' '}
             {labelMode === 'faces' ? (
               <>
                 needs <strong>{needs}+</strong> on the d20{ROLL_MODE_SUFFIX[mode]}
@@ -144,7 +145,9 @@ export function CheckPanel({
       <button
         className="primary"
         disabled={!preview}
-        onClick={() => onAction({ type: 'practiceCheck', stat, dc, mode, actorId: selected || undefined })}
+        onClick={() =>
+          onAction({ type: 'practiceCheck', stat, dc, mode, actorId: selected || undefined })
+        }
       >
         Roll
       </button>

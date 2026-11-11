@@ -1,5 +1,11 @@
 import { formatFaces, formatFacesShort, formatPercent } from '../engine/format'
-import { TIERS, TIER_LABELS, type FaceRange, type RollMode, type Tier } from '../engine/rules/checks'
+import {
+  TIERS,
+  TIER_LABELS,
+  type FaceRange,
+  type RollMode,
+  type Tier,
+} from '../engine/rules/checks'
 
 export type OddsLabelMode = 'percent' | 'faces'
 
@@ -11,7 +17,8 @@ export const ROLL_MODE_SUFFIX: Record<RollMode, string> = {
 }
 
 /** Lowest kept face that succeeds; only the natural 20 when the DC is out of reach. */
-export const neededFace = (faces: Record<Tier, FaceRange | null>): number => faces.success?.min ?? 20
+export const neededFace = (faces: Record<Tier, FaceRange | null>): number =>
+  faces.success?.min ?? 20
 
 /** Segments narrower than this keep their label in the tooltip only. */
 const MIN_LABEL_WIDTH = 0.08
@@ -46,7 +53,12 @@ export function OddsBar({
       aria-label={TIERS.map(describe).join(', ')}
     >
       {TIERS.filter((t) => odds[t] > 0).map((t) => (
-        <span key={t} className={`odds-seg tier-${t}`} style={{ flexGrow: odds[t] }} title={describe(t)}>
+        <span
+          key={t}
+          className={`odds-seg tier-${t}`}
+          style={{ flexGrow: odds[t] }}
+          title={describe(t)}
+        >
           {label(t)}
         </span>
       ))}

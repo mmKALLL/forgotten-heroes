@@ -1,1 +1,8 @@
 *.js
+dist
+node_modules
+pnpm-lock.yaml
+data/_schema
+assets
+data/imported-private
+docs

@@ -37,11 +37,21 @@ describe('actor selection', () => {
   test('downed members cannot act', () => {
     const downed = { ...bard, hp: 0 }
     expect(canAct(downed)).toBe(false)
-    expect(rankActors([fighter, downed], 'persuasion').map((r) => r.characterId)).toEqual(['fighter'])
+    expect(rankActors([fighter, downed], 'persuasion').map((r) => r.characterId)).toEqual([
+      'fighter',
+    ])
   })
   test('ties go to the higher raw ability score, then party order', () => {
-    const a = makeCharacter({ id: 'a', abilities: { ...bard.abilities, cha: 16 }, skillProficiencies: [] })
-    const b = makeCharacter({ id: 'b', abilities: { ...bard.abilities, cha: 17 }, skillProficiencies: [] })
+    const a = makeCharacter({
+      id: 'a',
+      abilities: { ...bard.abilities, cha: 16 },
+      skillProficiencies: [],
+    })
+    const b = makeCharacter({
+      id: 'b',
+      abilities: { ...bard.abilities, cha: 17 },
+      skillProficiencies: [],
+    })
     expect(chooseActor([a, b], 'persuasion')?.characterId).toBe('b') // both +3
     expect(chooseActor([a, { ...a, id: 'a2' }], 'persuasion')?.characterId).toBe('a')
   })
@@ -66,6 +76,8 @@ describe('ability override', () => {
   test('the best actor depends on the skill and ability pairing', () => {
     expect(chooseActor([fighter, bard], 'intimidation')?.characterId).toBe('fighter')
     expect(chooseActor([fighter, bard], 'intimidation', undefined, 'cha')?.characterId).toBe('bard')
-    expect(rankActors([fighter, bard], 'intimidation', 'cha').map((r) => r.modifier)).toEqual([3, 1])
+    expect(rankActors([fighter, bard], 'intimidation', 'cha').map((r) => r.modifier)).toEqual([
+      3, 1,
+    ])
   })
 })

@@ -26,15 +26,23 @@ export const MAX_TABLE_DEPTH = 5
 
 /** Picks a weighted row and expands any {other-table} references inside it. */
 export function rollTable(d: Draw, content: Content, tableId: string, depth = 0): string {
-  if (depth > MAX_TABLE_DEPTH) throw new Error(`parts table "${tableId}" is too deeply nested (a loop?)`)
-  if (!Object.hasOwn(content.partsTables, tableId)) throw new Error(`unknown parts table "${tableId}"`)
+  if (depth > MAX_TABLE_DEPTH)
+    throw new Error(`parts table "${tableId}" is too deeply nested (a loop?)`)
+  if (!Object.hasOwn(content.partsTables, tableId))
+    throw new Error(`unknown parts table "${tableId}"`)
   const row = d.weighted(content.partsTables[tableId].rows, (r) => r.weight)
-  const values = Object.fromEntries(slotNames(row.text).map((name) => [name, rollTable(d, content, name, depth + 1)]))
+  const values = Object.fromEntries(
+    slotNames(row.text).map((name) => [name, rollTable(d, content, name, depth + 1)])
+  )
   return fillText(row.text, values)
 }
 
 /** Fills a situation's declared slots. Slots are rolled in id order so a seed always gives the same text. */
-export function rollSlots(d: Draw, content: Content, slots: Readonly<Record<string, SlotSource>>): Record<string, string> {
+export function rollSlots(
+  d: Draw,
+  content: Content,
+  slots: Readonly<Record<string, SlotSource>>
+): Record<string, string> {
   const values: Record<string, string> = {}
   for (const name of Object.keys(slots).sort(byCodeUnit)) {
     const source = slots[name]

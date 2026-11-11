@@ -41,7 +41,9 @@ describe('isHighStakes', () => {
     expect(isHighStakes(option(), tierOdds(-4, 12, 'normal'))).toBe(true) // 25%: the band is inclusive
   })
   test('not when nothing costs HP, unless the content says so', () => {
-    const safe = option({ outcomes: { fail: { text: 'No.' }, partial: { text: 'Meh.' }, success: { text: 'Yes.' } } })
+    const safe = option({
+      outcomes: { fail: { text: 'No.' }, partial: { text: 'Meh.' }, success: { text: 'Yes.' } },
+    })
     expect(isHighStakes(safe, tierOdds(0, 12, 'normal'))).toBe(false)
     expect(isHighStakes({ ...safe, highStakes: true }, tierOdds(8, 12, 'normal'))).toBe(true)
   })
@@ -50,7 +52,10 @@ describe('isHighStakes', () => {
       outcomes: {
         fail: { text: 'No.' },
         partial: { text: 'Meh.' },
-        success: { text: 'Yes.', twist: { text: 'Ow.', effects: [{ effect: 'hp', amount: -1, target: 'all' }] } },
+        success: {
+          text: 'Yes.',
+          twist: { text: 'Ow.', effects: [{ effect: 'hp', amount: -1, target: 'all' }] },
+        },
       },
     })
     expect(isHighStakes(twisty, tierOdds(0, 12, 'normal'))).toBe(true)

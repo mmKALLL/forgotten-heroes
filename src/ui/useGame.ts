@@ -34,7 +34,11 @@ function loadSaved(): GameState | null {
 }
 
 export function useGame(content: Content) {
-  const [state, dispatch] = useReducer(reducer(content), null, () => loadSaved() ?? newGame(randomSeed(), content))
+  const [state, dispatch] = useReducer(
+    reducer(content),
+    null,
+    () => loadSaved() ?? newGame(randomSeed(), content)
+  )
   useEffect(() => {
     try {
       localStorage.setItem(SAVE_KEY, serialize(state))

@@ -8,7 +8,12 @@ const content = fixtureContent()
 
 describe('text slots', () => {
   test('slotNames lists each slot once, lower-casing a capitalised first letter', () => {
-    expect(slotNames('{Who} meets {who} about {stakes}; {actor} {who-job}')).toEqual(['who', 'stakes', 'actor', 'who-job'])
+    expect(slotNames('{Who} meets {who} about {stakes}; {actor} {who-job}')).toEqual([
+      'who',
+      'stakes',
+      'actor',
+      'who-job',
+    ])
     expect(slotNames('no slots, {not a slot}, {}')).toEqual([])
   })
 
@@ -26,15 +31,30 @@ describe('text slots', () => {
 
 describe('parts tables', () => {
   test('rollTable expands nested table references and respects zero weights', () => {
-    const [values] = withRng(createRng(3), (d) => Array.from({ length: 40 }, () => rollTable(d, content, 'who')))
+    const [values] = withRng(createRng(3), (d) =>
+      Array.from({ length: 40 }, () => rollTable(d, content, 'who'))
+    )
     expect(new Set(values)).toEqual(new Set(['a wary tinker', 'a wary pilgrim']))
   })
 
   test('rollTable throws on an unknown table and on a reference loop', () => {
-    expect(() => withRng(createRng(1), (d) => rollTable(d, content, 'nope'))).toThrow(/unknown parts table "nope"/)
-    const loop = (id: string, next: string) => ({ id, description: '', rows: [{ text: `{${next}}`, weight: 1 }], source: 'procedural' as const, file: 'x' })
-    const looped = { ...content, partsTables: { ...content.partsTables, a: loop('a', 'b'), b: loop('b', 'a') } }
-    expect(() => withRng(createRng(1), (d) => rollTable(d, looped, 'a'))).toThrow(/too deeply nested/)
+    expect(() => withRng(createRng(1), (d) => rollTable(d, content, 'nope'))).toThrow(
+      /unknown parts table "nope"/
+    )
+    const loop = (id: string, next: string) => ({
+      id,
+      description: '',
+      rows: [{ text: `{${next}}`, weight: 1 }],
+      source: 'procedural' as const,
+      file: 'x',
+    })
+    const looped = {
+      ...content,
+      partsTables: { ...content.partsTables, a: loop('a', 'b'), b: loop('b', 'a') },
+    }
+    expect(() => withRng(createRng(1), (d) => rollTable(d, looped, 'a'))).toThrow(
+      /too deeply nested/
+    )
   })
 })
 
@@ -56,6 +76,8 @@ describe('rollSlots', () => {
 
   test('a creature filter that matches nothing throws', () => {
     const none = { foe: SlotSourceSchema.parse({ from: 'creature', types: ['dragon'] }) }
-    expect(() => withRng(createRng(1), (d) => rollSlots(d, content, none))).toThrow(/no creature matches slot "foe"/)
+    expect(() => withRng(createRng(1), (d) => rollSlots(d, content, none))).toThrow(
+      /no creature matches slot "foe"/
+    )
   })
 })

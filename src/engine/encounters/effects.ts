@@ -12,9 +12,14 @@ export type EffectContext = { actorId?: string }
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
-function targetIds(state: GameState, target: 'actor' | 'all' | 'random', ctx: EffectContext): [string[], Rng] {
+function targetIds(
+  state: GameState,
+  target: 'actor' | 'all' | 'random',
+  ctx: EffectContext
+): [string[], Rng] {
   if (target === 'all') return [state.party.map((c) => c.id), state.rng]
-  if (target === 'actor' && state.party.some((c) => c.id === ctx.actorId)) return [[ctx.actorId!], state.rng]
+  if (target === 'actor' && state.party.some((c) => c.id === ctx.actorId))
+    return [[ctx.actorId!], state.rng]
   // "random", or "actor" with no actor (the content validator forbids that in fixed options).
   const able = state.party.filter(canAct)
   if (able.length === 0) return [[], state.rng]
@@ -36,7 +41,9 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     case 'exhaustion': {
       const [ids, rng] = targetIds(state, effect.target, ctx)
       const party = state.party.map((c) =>
-        ids.includes(c.id) ? { ...c, exhaustion: clamp(c.exhaustion + effect.amount, 0, MAX_EXHAUSTION) } : c
+        ids.includes(c.id)
+          ? { ...c, exhaustion: clamp(c.exhaustion + effect.amount, 0, MAX_EXHAUSTION) }
+          : c
       )
       return { ...state, rng, party }
     }
@@ -45,9 +52,14 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     case 'days':
       return { ...state, day: state.day + effect.amount }
     case 'position':
-      return state.encounter ? { ...state, encounter: { ...state.encounter, position: effect.position } } : state
+      return state.encounter
+        ? { ...state, encounter: { ...state.encounter, position: effect.position } }
+        : state
     case 'followUp':
-      return { ...state, followUps: [...state.followUps, { situationId: effect.situation, wait: effect.after }] }
+      return {
+        ...state,
+        followUps: [...state.followUps, { situationId: effect.situation, wait: effect.after }],
+      }
     case 'nextCheckModifier':
       if (!state.encounter) return state
       return {
@@ -59,7 +71,9 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         },
       }
     case 'revealTwist':
-      return state.encounter ? { ...state, encounter: { ...state.encounter, twistRevealed: true } } : state
+      return state.encounter
+        ? { ...state, encounter: { ...state.encounter, twistRevealed: true } }
+        : state
     case 'log': {
       const next = appendLog(state, effect.text, effect.tone)
       if (!next.encounter) return next
@@ -70,7 +84,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
 }
 
 /** Pure: applies effects in order. Random targets draw from the state's RNG. */
-export function applyEffects(state: GameState, effects: readonly Effect[], ctx: EffectContext = {}): GameState {
+export function applyEffects(
+  state: GameState,
+  effects: readonly Effect[],
+  ctx: EffectContext = {}
+): GameState {
   return effects.reduce((current, effect) => applyEffect(current, effect, ctx), state)
 }
 

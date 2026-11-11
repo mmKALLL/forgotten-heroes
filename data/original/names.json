@@ -6,10 +6,7 @@
   "entries": [
     {
       "id": "human-english",
-      "ancestries": [
-        "human",
-        "half-elf"
-      ],
+      "ancestries": ["human", "half-elf"],
       "given": [
         "Aaliyah",
         "Aaron",

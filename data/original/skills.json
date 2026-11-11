@@ -4,23 +4,113 @@
   "source": "original",
   "notes": "The 18 skills of 5e (SRD). Designer change: Intimidation uses STR by default (DMG variant Strength (Intimidation)); individual checks may override the ability later.",
   "entries": [
-    { "id": "acrobatics", "name": "Acrobatics", "ability": "dex", "description": "Keeping your footing on ice, rope bridges and rocking decks, and tumbling clear of a fall." },
-    { "id": "animalHandling", "name": "Animal Handling", "ability": "wis", "description": "Calming, driving and caring for horses, mules and other beasts that carry the party and its goods." },
-    { "id": "arcana", "name": "Arcana", "ability": "int", "description": "Recognising spells, magical items and arcane hazards, and judging what enchanted goods are worth." },
-    { "id": "athletics", "name": "Athletics", "ability": "str", "description": "Climbing, swimming, hauling heavy loads and forcing a cart through mud or a blocked pass." },
-    { "id": "deception", "name": "Deception", "ability": "cha", "description": "Bluffing past tolls and guards, passing off goods as better than they are, and keeping a straight face." },
-    { "id": "history", "name": "History", "ability": "int", "description": "Knowing the past of the lands, ruins, noble houses and old trade routes the party passes through." },
-    { "id": "insight", "name": "Insight", "ability": "wis", "description": "Reading a trader's true intent, spotting a lie, and sensing when a deal or a stranger is wrong." },
-    { "id": "intimidation", "name": "Intimidation", "ability": "str", "description": "Backing down bandits, hagglers and thugs with a show of force or a threat they believe." },
-    { "id": "investigation", "name": "Investigation", "ability": "int", "description": "Searching for clues, finding hidden compartments, and working out what happened at an abandoned camp." },
-    { "id": "medicine", "name": "Medicine", "ability": "wis", "description": "Treating wounds and sickness on the road and judging whether food and water are safe." },
-    { "id": "nature", "name": "Nature", "ability": "int", "description": "Knowing plants, beasts, weather and terrain, and which wild goods are valuable or dangerous." },
-    { "id": "perception", "name": "Perception", "ability": "wis", "description": "Noticing ambushes, tracks, landmarks and anything out of place on the road or in town." },
-    { "id": "performance", "name": "Performance", "ability": "cha", "description": "Entertaining a crowd with music, stories or show to earn coin, goodwill or a free night's lodging." },
-    { "id": "persuasion", "name": "Persuasion", "ability": "cha", "description": "Haggling fair prices, winning favours, and talking people into helping through honest argument and charm." },
-    { "id": "religion", "name": "Religion", "ability": "int", "description": "Knowing gods, rites, shrines and holy orders, and dealing respectfully with the faithful." },
-    { "id": "sleightOfHand", "name": "Sleight of Hand", "ability": "dex", "description": "Picking pockets, palming small goods, and hiding contraband from inspectors." },
-    { "id": "stealth", "name": "Stealth", "ability": "dex", "description": "Slipping past patrols and monsters unseen, and moving the party and its cargo quietly." },
-    { "id": "survival", "name": "Survival", "ability": "wis", "description": "Finding the way, foraging, tracking, and making a safe camp in the wilds." }
+    {
+      "id": "acrobatics",
+      "name": "Acrobatics",
+      "ability": "dex",
+      "description": "Keeping your footing on ice, rope bridges and rocking decks, and tumbling clear of a fall."
+    },
+    {
+      "id": "animalHandling",
+      "name": "Animal Handling",
+      "ability": "wis",
+      "description": "Calming, driving and caring for horses, mules and other beasts that carry the party and its goods."
+    },
+    {
+      "id": "arcana",
+      "name": "Arcana",
+      "ability": "int",
+      "description": "Recognising spells, magical items and arcane hazards, and judging what enchanted goods are worth."
+    },
+    {
+      "id": "athletics",
+      "name": "Athletics",
+      "ability": "str",
+      "description": "Climbing, swimming, hauling heavy loads and forcing a cart through mud or a blocked pass."
+    },
+    {
+      "id": "deception",
+      "name": "Deception",
+      "ability": "cha",
+      "description": "Bluffing past tolls and guards, passing off goods as better than they are, and keeping a straight face."
+    },
+    {
+      "id": "history",
+      "name": "History",
+      "ability": "int",
+      "description": "Knowing the past of the lands, ruins, noble houses and old trade routes the party passes through."
+    },
+    {
+      "id": "insight",
+      "name": "Insight",
+      "ability": "wis",
+      "description": "Reading a trader's true intent, spotting a lie, and sensing when a deal or a stranger is wrong."
+    },
+    {
+      "id": "intimidation",
+      "name": "Intimidation",
+      "ability": "str",
+      "description": "Backing down bandits, hagglers and thugs with a show of force or a threat they believe."
+    },
+    {
+      "id": "investigation",
+      "name": "Investigation",
+      "ability": "int",
+      "description": "Searching for clues, finding hidden compartments, and working out what happened at an abandoned camp."
+    },
+    {
+      "id": "medicine",
+      "name": "Medicine",
+      "ability": "wis",
+      "description": "Treating wounds and sickness on the road and judging whether food and water are safe."
+    },
+    {
+      "id": "nature",
+      "name": "Nature",
+      "ability": "int",
+      "description": "Knowing plants, beasts, weather and terrain, and which wild goods are valuable or dangerous."
+    },
+    {
+      "id": "perception",
+      "name": "Perception",
+      "ability": "wis",
+      "description": "Noticing ambushes, tracks, landmarks and anything out of place on the road or in town."
+    },
+    {
+      "id": "performance",
+      "name": "Performance",
+      "ability": "cha",
+      "description": "Entertaining a crowd with music, stories or show to earn coin, goodwill or a free night's lodging."
+    },
+    {
+      "id": "persuasion",
+      "name": "Persuasion",
+      "ability": "cha",
+      "description": "Haggling fair prices, winning favours, and talking people into helping through honest argument and charm."
+    },
+    {
+      "id": "religion",
+      "name": "Religion",
+      "ability": "int",
+      "description": "Knowing gods, rites, shrines and holy orders, and dealing respectfully with the faithful."
+    },
+    {
+      "id": "sleightOfHand",
+      "name": "Sleight of Hand",
+      "ability": "dex",
+      "description": "Picking pockets, palming small goods, and hiding contraband from inspectors."
+    },
+    {
+      "id": "stealth",
+      "name": "Stealth",
+      "ability": "dex",
+      "description": "Slipping past patrols and monsters unseen, and moving the party and its cargo quietly."
+    },
+    {
+      "id": "survival",
+      "name": "Survival",
+      "ability": "wis",
+      "description": "Finding the way, foraging, tracking, and making a safe camp in the wilds."
+    }
   ]
 }

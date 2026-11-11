@@ -23,6 +23,8 @@ export function isHighStakes(option: CheckOption, odds: Record<Tier, number>): b
   if (chance < HIGH_STAKES_BAND[0] || chance > HIGH_STAKES_BAND[1]) return false
   return TIERS.some((tier) => {
     const outcome = tierOutcome(option, tier)
-    return [outcome, outcome.twist].some((b) => b?.effects.some((e) => e.effect === 'hp' && e.amount < 0))
+    return [outcome, outcome.twist].some((b) =>
+      b?.effects.some((e) => e.effect === 'hp' && e.amount < 0)
+    )
   })
 }

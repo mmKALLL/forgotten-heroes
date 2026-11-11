@@ -31,7 +31,8 @@ export const POSITION_MODE: Record<Position, RollMode> = {
 export const SKILL_USE_DAYS = 7
 
 /** True while an encounter is open and not yet over. */
-export const inProgress = (state: GameState): boolean => state.encounter != null && state.encounter.stage !== null
+export const inProgress = (state: GameState): boolean =>
+  state.encounter != null && state.encounter.stage !== null
 
 const BUSY = 'Finish the current encounter first.'
 
@@ -57,7 +58,9 @@ export function startEncounter(state: GameState, content: Content, situationId: 
   const situation = {
     ...compiled,
     title: fillText(compiled.title, slots),
-    ...(compiled.twist && { twist: { ...compiled.twist, what: fillText(compiled.twist.what, slots) } }),
+    ...(compiled.twist && {
+      twist: { ...compiled.twist, what: fillText(compiled.twist.what, slots) },
+    }),
   }
   const text = fillText(situation.stages[situation.start].text, slots)
   const encounter: EncounterState = {
@@ -73,7 +76,11 @@ export function startEncounter(state: GameState, content: Content, situationId: 
     used: [],
     log: [{ text, tone: 'info' }],
   }
-  return appendLog(advanceFollowUps({ ...state, rng, encounter }), `${situation.title}. ${text}`, 'info')
+  return appendLog(
+    advanceFollowUps({ ...state, rng, encounter }),
+    `${situation.title}. ${text}`,
+    'info'
+  )
 }
 
 /**
@@ -81,7 +88,11 @@ export function startEncounter(state: GameState, content: Content, situationId: 
  * exists is dropped. Otherwise a weighted random pick, never a followUpOnly situation. Either way
  * the encounter that starts moves the other queued follow-ups one closer (see startEncounter).
  */
-export function drawEncounter(state: GameState, content: Content, sources?: readonly Source[]): GameState {
+export function drawEncounter(
+  state: GameState,
+  content: Content,
+  sources?: readonly Source[]
+): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   const situations = allSituations(content)
   const known = new Set(situations.map((s) => s.id))
@@ -110,10 +121,13 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
 export function currentOptions(encounter: EncounterState): Option[] {
   const stageId = encounter.stage
   if (stageId === null || !Object.hasOwn(encounter.situation.stages, stageId)) return []
-  return encounter.situation.stages[stageId].options.filter((o) => !(o.once && encounter.used.includes(`${stageId}/${o.id}`)))
+  return encounter.situation.stages[stageId].options.filter(
+    (o) => !(o.once && encounter.used.includes(`${stageId}/${o.id}`))
+  )
 }
 
-const nameOf = (state: GameState, id: string | undefined) => state.party.find((c) => c.id === id)?.name
+const nameOf = (state: GameState, id: string | undefined) =>
+  state.party.find((c) => c.id === id)?.name
 
 function resolve(
   state: GameState,
@@ -126,7 +140,9 @@ function resolve(
   const actorName = nameOf(state, actorId)
   const values = actorName ? { ...encounter.slots, actor: actorName } : encounter.slots
   const fill = (text: string) => fillText(text, values)
-  const effects: Effect[] = branch.effects.map((e) => (e.effect === 'log' ? { ...e, text: fill(e.text) } : e))
+  const effects: Effect[] = branch.effects.map((e) =>
+    e.effect === 'log' ? { ...e, text: fill(e.text) } : e
+  )
   const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone') ?? [])
   const text = fill(branch.text) + (chips.length > 0 ? ` (${chips.join(', ')})` : '')
 
@@ -155,7 +171,11 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
   if (!option) return state
   const unmet = unmetRequirements(state, option.requires)
   if (unmet.length > 0) {
-    return appendLog(state, `${fillText(option.label, encounter.slots)}: ${unmet.join(', ')}.`, 'bad')
+    return appendLog(
+      state,
+      `${fillText(option.label, encounter.slots)}: ${unmet.join(', ')}.`,
+      'bad'
+    )
   }
 
   const used = option.once ? [...encounter.used, `${encounter.stage}/${option.id}`] : encounter.used
@@ -191,16 +211,30 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
       skillUses,
       inspiration: state.inspiration + (inspired ? 1 : 0),
       // Edge, Exposed and any next-check modifier are spent by this roll; the outcome may set new ones.
-      encounter: { ...encounter, position: 'normal', nextCheckModifier: 0, nextCheckReason: null, used },
+      encounter: {
+        ...encounter,
+        position: 'normal',
+        nextCheckModifier: 0,
+        nextCheckReason: null,
+        used,
+      },
     },
     rollText,
     TIER_TONE[roll.tier]
   )
   const branch = branchFor(tierOutcome(option, roll.tier), encounter.twist)
-  return resolve(rolled, branch, actor.characterId, { tone: TIER_TONE[roll.tier], roll: record, highStakes })
+  return resolve(rolled, branch, actor.characterId, {
+    tone: TIER_TONE[roll.tier],
+    roll: record,
+    highStakes,
+  })
 }
 
-export function stepEncounter(state: GameState, action: EncounterAction, content: Content): GameState {
+export function stepEncounter(
+  state: GameState,
+  action: EncounterAction,
+  content: Content
+): GameState {
   switch (action.type) {
     case 'startEncounter':
       return startEncounter(state, content, action.situationId)

@@ -62,7 +62,9 @@ test('a check animates the dice and hides the result until they settle (click sk
 
 test('unmet requirements disable the option and say why', () => {
   render(<Harness initial={started('roadside', makeState({ gold: 5 }))} />)
-  expect((screen.getByRole('button', { name: 'Choose Give them money' }) as HTMLButtonElement).disabled).toBe(true)
+  expect(
+    (screen.getByRole('button', { name: 'Choose Give them money' }) as HTMLButtonElement).disabled
+  ).toBe(true)
   expect(screen.getByText('needs 20 gp')).toBeTruthy()
 })
 
@@ -76,7 +78,12 @@ test('the player can pick who acts', async () => {
 test("a situational modifier shows next to the actor's, and Edge reads as best of 2", () => {
   const state = started('roadside')
   render(
-    <Harness initial={{ ...state, encounter: { ...state.encounter!, nextCheckModifier: -2, position: 'edge' } }} />
+    <Harness
+      initial={{
+        ...state,
+        encounter: { ...state.encounter!, nextCheckModifier: -2, position: 'edge' },
+      }}
+    />
   )
   const read = within(screen.getByRole('article', { name: 'Read them' }))
   expect(read.getByText(/on the d20/).textContent).toMatch(
@@ -87,14 +94,25 @@ test("a situational modifier shows next to the actor's, and Edge reads as best o
 
 test('a situational modifier with a reason shows the reason', () => {
   const state = started('roadside')
-  render(<Harness initial={{ ...state, encounter: { ...state.encounter!, nextCheckModifier: -2, nextCheckReason: 'misread' } }} />)
+  render(
+    <Harness
+      initial={{
+        ...state,
+        encounter: { ...state.encounter!, nextCheckModifier: -2, nextCheckReason: 'misread' },
+      }}
+    />
+  )
   const read = within(screen.getByRole('article', { name: 'Read them' }))
-  expect(read.getByText(/on the d20/).textContent).toMatch(/ Lyra \+2 −2 \(misread\): needs \d+\+ on the d20$/)
+  expect(read.getByText(/on the d20/).textContent).toMatch(
+    / Lyra \+2 −2 \(misread\): needs \d+\+ on the d20$/
+  )
 })
 
 test('a revealed twist shows its chance', () => {
   const state = started('roadside')
-  render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twistRevealed: true } }} />)
+  render(
+    <Harness initial={{ ...state, encounter: { ...state.encounter!, twistRevealed: true } }} />
+  )
   expect(screen.getByText('Possible twist: it is a trap (chance: 50%)')).toBeTruthy()
 })
 

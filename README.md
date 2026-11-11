@@ -18,13 +18,13 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game. See [the design](doc
 
 All game content is JSON under `data/`, split by provenance:
 
-| Folder | What | Committed |
-|---|---|---|
-| `data/original/` | Hand-authored by the designer | yes |
-| `data/imported/` | Open-licensed (SRD, CC-BY) | yes |
+| Folder                   | What                                      | Committed           |
+| ------------------------ | ----------------------------------------- | ------------------- |
+| `data/original/`         | Hand-authored by the designer             | yes                 |
+| `data/imported/`         | Open-licensed (SRD, CC-BY)                | yes                 |
 | `data/imported-private/` | From copyrighted books, for personal play | **no** (gitignored) |
-| `data/procedural/` | Parts tables used by runtime combinators | yes |
-| `data/claude/` | Authored by Claude Code | yes |
+| `data/procedural/`       | Parts tables used by runtime combinators  | yes                 |
+| `data/claude/`           | Authored by Claude Code                   | yes                 |
 
 Every file declares `kind` and `source`, and VS Code validates it through `$schema`.
 

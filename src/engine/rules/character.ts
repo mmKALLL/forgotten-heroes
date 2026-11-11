@@ -26,7 +26,8 @@ export function statModifier(
   return score + proficiency - EXHAUSTION_PENALTY * character.exhaustion
 }
 
-export const canAct = (character: Character): boolean => character.hp > 0 && character.exhaustion < 6
+export const canAct = (character: Character): boolean =>
+  character.hp > 0 && character.exhaustion < 6
 
 export type ActorRank = { characterId: string; modifier: number }
 
@@ -36,7 +37,11 @@ export function rankActors(
   ability: Ability = abilityOf(stat)
 ): ActorRank[] {
   return party
-    .map((character, order) => ({ character, order, modifier: statModifier(character, stat, ability) }))
+    .map((character, order) => ({
+      character,
+      order,
+      modifier: statModifier(character, stat, ability),
+    }))
     .filter(({ character }) => canAct(character))
     .sort(
       (a, b) =>

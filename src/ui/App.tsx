@@ -16,7 +16,9 @@ export function App() {
         <h1>Forgotten Heroes</h1>
         <span>Day {state.day}</span>
         <span>{state.gold} gp</span>
-        <span title="Gained from natural 20s; spend for rerolls (coming soon)">✦ {state.inspiration} inspiration</span>
+        <span title="Gained from natural 20s; spend for rerolls (coming soon)">
+          ✦ {state.inspiration} inspiration
+        </span>
         <span className="spacer" />
         <span className="muted small">seed {state.seed}</span>
         <button onClick={restart}>New party</button>

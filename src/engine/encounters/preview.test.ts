@@ -17,7 +17,15 @@ describe('encounterOptions', () => {
 
   test('check options show actor, skill, DC, exact odds and all five tiers', () => {
     const read = byId(roadside).read
-    expect(read.check).toMatchObject({ actorId: 'lyra', actorName: 'Lyra', label: 'Insight', modifier: 2, situationalModifier: 0, dc: 12, mode: 'normal' })
+    expect(read.check).toMatchObject({
+      actorId: 'lyra',
+      actorName: 'Lyra',
+      label: 'Insight',
+      modifier: 2,
+      situationalModifier: 0,
+      dc: 12,
+      mode: 'normal',
+    })
     expect(read.check?.odds).toEqual(tierOdds(2, 12, 'normal'))
     expect(read.check?.successChance).toBeCloseTo(0.55)
     expect(read.outcomes.map((o) => o.tier)).toEqual([...TIERS])
@@ -33,7 +41,10 @@ describe('encounterOptions', () => {
   })
 
   test('an actor override changes the preview', () => {
-    expect(byId(roadside, { read: 'brom' }).read.check).toMatchObject({ actorId: 'brom', modifier: 1 })
+    expect(byId(roadside, { read: 'brom' }).read.check).toMatchObject({
+      actorId: 'brom',
+      modifier: 1,
+    })
   })
 
   test('the position sets the roll mode', () => {
@@ -45,9 +56,18 @@ describe('encounterOptions', () => {
   test('a next-check modifier shows separately and goes into the odds, as the roll uses it', () => {
     const misread = applyEffects(roadside, [{ effect: 'nextCheckModifier', amount: -2 }])
     const read = byId(misread).read
-    expect(read.check).toMatchObject({ modifier: 2, situationalModifier: -2, situationalReason: null })
-    const reasoned = applyEffects(roadside, [{ effect: 'nextCheckModifier', amount: -2, reason: 'misread' }])
-    expect(byId(reasoned).read.check).toMatchObject({ situationalModifier: -2, situationalReason: 'misread' })
+    expect(read.check).toMatchObject({
+      modifier: 2,
+      situationalModifier: -2,
+      situationalReason: null,
+    })
+    const reasoned = applyEffects(roadside, [
+      { effect: 'nextCheckModifier', amount: -2, reason: 'misread' },
+    ])
+    expect(byId(reasoned).read.check).toMatchObject({
+      situationalModifier: -2,
+      situationalReason: 'misread',
+    })
     expect(read.check?.odds).toEqual(tierOdds(2 - 2, 12, 'normal'))
     expect(read.check?.actors.find((a) => a.id === 'lyra')?.modifier).toBe(2)
   })
@@ -83,7 +103,11 @@ describe('encounterOptions', () => {
     const afterRead = step(roadside, { type: 'chooseOption', optionId: 'read' }, content)
     expect(Object.keys(byId(afterRead))).not.toContain('read')
     const downed = { ...roadside, party: roadside.party.map((c) => ({ ...c, hp: 0 })) }
-    expect(byId(downed).rob).toMatchObject({ available: false, unmet: ['no one can act'], check: null })
+    expect(byId(downed).rob).toMatchObject({
+      available: false,
+      unmet: ['no one can act'],
+      check: null,
+    })
   })
 
   test('the high-stakes flag comes from the odds and the outcomes', () => {
@@ -93,11 +117,30 @@ describe('encounterOptions', () => {
 
   test('slots fill option labels and descriptions', () => {
     const roadside = content.situations.roadside
-    const leave = { id: 'leave', kind: 'fixed' as const, label: 'Leave {who} be', description: '{Who} watches.', requires: [], outcome: { text: '', effects: [] } }
-    const labelled = { ...content, situations: { ...content.situations, roadside: { ...roadside, stages: { start: { ...roadside.stages.start, options: [leave] } } } } }
+    const leave = {
+      id: 'leave',
+      kind: 'fixed' as const,
+      label: 'Leave {who} be',
+      description: '{Who} watches.',
+      requires: [],
+      outcome: { text: '', effects: [] },
+    }
+    const labelled = {
+      ...content,
+      situations: {
+        ...content.situations,
+        roadside: {
+          ...roadside,
+          stages: { start: { ...roadside.stages.start, options: [leave] } },
+        },
+      },
+    }
     const state = step(makeState(), { type: 'startEncounter', situationId: 'roadside' }, labelled)
     const who = state.encounter!.slots.who
-    expect(byId(state).leave).toMatchObject({ label: `Leave ${who} be`, description: `${who.replace('a', 'A')} watches.` })
+    expect(byId(state).leave).toMatchObject({
+      label: `Leave ${who} be`,
+      description: `${who.replace('a', 'A')} watches.`,
+    })
   })
 
   test('no encounter, no options', () => {

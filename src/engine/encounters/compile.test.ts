@@ -1,7 +1,13 @@
 import { describe, expect, test } from 'vitest'
 import { SituationSchema, type CheckOption, type FixedOption } from '../../schema/encounter'
 import { fixtureContent } from '../test-fixtures'
-import { allSituations, compileSituation, instantiateArchetype, resolveDc, templateToSituation } from './compile'
+import {
+  allSituations,
+  compileSituation,
+  instantiateArchetype,
+  resolveDc,
+  templateToSituation,
+} from './compile'
 
 const content = fixtureContent()
 
@@ -19,7 +25,11 @@ describe('resolveDc', () => {
 })
 
 describe('instantiateArchetype', () => {
-  const options = instantiateArchetype(content.archetypes['test-need'], { id: 'test-need', dc: 12, reward: 2 })
+  const options = instantiateArchetype(content.archetypes['test-need'], {
+    id: 'test-need',
+    dc: 12,
+    reward: 2,
+  })
   const byId = Object.fromEntries(options.map((o) => [o.id, o]))
 
   test('resolves relative DCs', () => {
@@ -35,20 +45,35 @@ describe('instantiateArchetype', () => {
       { effect: 'hp', amount: -3, target: 'random' },
     ])
     expect((byId.donate as FixedOption).requires).toEqual([{ req: 'gold', min: 20 }])
-    expect((byId.rob as CheckOption).outcomes.success.effects[0]).toEqual({ effect: 'gold', amount: 24 })
+    expect((byId.rob as CheckOption).outcomes.success.effects[0]).toEqual({
+      effect: 'gold',
+      amount: 24,
+    })
   })
 
   test('a zero reward drops gold requirements that would scale to 0', () => {
-    const free = instantiateArchetype(content.archetypes['test-need'], { id: 'test-need', dc: 12, reward: 0 })
+    const free = instantiateArchetype(content.archetypes['test-need'], {
+      id: 'test-need',
+      dc: 12,
+      reward: 0,
+    })
     expect(free.find((o) => o.id === 'donate')?.requires).toEqual([])
   })
 
   test('gold effects that scale to 0 (or −0) are dropped', () => {
-    const free = instantiateArchetype(content.archetypes['test-need'], { id: 'test-need', dc: 12, reward: 0 })
+    const free = instantiateArchetype(content.archetypes['test-need'], {
+      id: 'test-need',
+      dc: 12,
+      reward: 0,
+    })
     const trust = free.find((o) => o.id === 'trust') as FixedOption
     expect(trust.outcome.effects).toEqual([])
     expect(trust.outcome.twist?.effects).toEqual([{ effect: 'hp', amount: -3, target: 'random' }])
-    const tiny = instantiateArchetype(content.archetypes['test-need'], { id: 'test-need', dc: 12, reward: 0.04 })
+    const tiny = instantiateArchetype(content.archetypes['test-need'], {
+      id: 'test-need',
+      dc: 12,
+      reward: 0.04,
+    })
     expect((tiny.find((o) => o.id === 'trust') as FixedOption).outcome.twist?.effects).toEqual([
       { effect: 'hp', amount: -3, target: 'random' },
     ])
@@ -56,9 +81,16 @@ describe('instantiateArchetype', () => {
 })
 
 describe('compileSituation', () => {
-  test('puts archetype options before the stage\'s own and drops the reference', () => {
+  test("puts archetype options before the stage's own and drops the reference", () => {
     const compiled = compileSituation(content.situations.roadside, content)
-    expect(compiled.stages.start.options.map((o) => o.id)).toEqual(['trust', 'careful', 'read', 'rob', 'donate', 'leave'])
+    expect(compiled.stages.start.options.map((o) => o.id)).toEqual([
+      'trust',
+      'careful',
+      'read',
+      'rob',
+      'donate',
+      'leave',
+    ])
     expect(compiled.stages.start.archetype).toBeUndefined()
     expect(SituationSchema.parse(compiled)).toEqual(compiled)
   })
@@ -71,7 +103,10 @@ describe('compileSituation', () => {
   })
 
   test('an unknown archetype throws', () => {
-    const broken = { ...content.situations.roadside, stages: { start: { text: '', options: [], archetype: { id: 'nope', dc: 13, reward: 1 } } } }
+    const broken = {
+      ...content.situations.roadside,
+      stages: { start: { text: '', options: [], archetype: { id: 'nope', dc: 13, reward: 1 } } },
+    }
     expect(() => compileSituation(broken, content)).toThrow(/unknown archetype "nope"/)
   })
 })
@@ -79,8 +114,17 @@ describe('compileSituation', () => {
 describe('templates', () => {
   test('a template becomes a one-stage situation that compiles', () => {
     const situation = templateToSituation(content.situationTemplates.plea)
-    expect(situation).toMatchObject({ id: 'plea', start: 'start', wonder: false, followUpOnly: false })
-    expect(situation.stages.start).toEqual({ text: '{Who} needs help.', archetype: { id: 'test-need', dc: 13, reward: 1 }, options: [] })
+    expect(situation).toMatchObject({
+      id: 'plea',
+      start: 'start',
+      wonder: false,
+      followUpOnly: false,
+    })
+    expect(situation.stages.start).toEqual({
+      text: '{Who} needs help.',
+      archetype: { id: 'test-need', dc: 13, reward: 1 },
+      options: [],
+    })
     expect(compileSituation(situation, content).stages.start.options).toHaveLength(5)
   })
 
