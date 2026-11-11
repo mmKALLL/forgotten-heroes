@@ -1,0 +1,16 @@
+{
+  "$schema": "../_schema/ancestries.schema.json",
+  "kind": "ancestries",
+  "source": "original",
+  "notes": "The prototype's Race type. Undead and drake were NPC-only.",
+  "entries": [
+    { "id": "human", "name": "Human", "playable": true },
+    { "id": "elf", "name": "Elf", "playable": true },
+    { "id": "half-elf", "name": "Half-elf", "playable": true },
+    { "id": "dwarf", "name": "Dwarf", "playable": true },
+    { "id": "orc", "name": "Orc", "playable": true },
+    { "id": "goblin", "name": "Goblin", "playable": true },
+    { "id": "undead", "name": "Undead", "playable": false },
+    { "id": "drake", "name": "Drake", "playable": false }
+  ]
+}
