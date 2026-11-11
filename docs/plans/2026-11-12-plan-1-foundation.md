@@ -155,16 +155,21 @@ test('test runner works', () => {
 })
 ```
 
-**Step 9: Update `.gitignore`.** Append:
+**Step 9: Update `.gitignore`, then stop tracking the portrait pack.** Append to `.gitignore`:
 
 ```gitignore
 
-# Assets copied from ~/dnd5e (see assets.manifest.txt). The portrait pack is already tracked (CC BY 3.0) and is not in ~/dnd5e.
-/assets/*
-!/assets/Terrible Character Portraits/
+# Local assets: copied from ~/dnd5e (see assets.manifest.txt), plus the portrait pack (restore it from tag v0.1.0-svelte-final)
+/assets/
 
 # Copyrighted imports for personal use only
 /data/imported-private/
+```
+
+Then untrack the already-committed portraits. This leaves the files on disk; only git stops following them:
+
+```bash
+git rm -r -q --cached "assets/Terrible Character Portraits"
 ```
 
 **Step 10: Replace `.vscode/extensions.json`**
@@ -179,7 +184,8 @@ test('test runner works', () => {
 
 Run: `pnpm test`. Expected: 1 passed.
 Run: `pnpm build`. Expected: exits 0 and writes `dist/`.
-Run: `git status --short assets | head`. Expected: no portrait files listed as deleted.
+Run: `ls "assets/Terrible Character Portraits" | wc -l`. Expected: about 110 (the files are still on disk).
+Run: `git ls-files assets | wc -l`. Expected: 0 once committed (git no longer tracks anything under `assets/`).
 
 **Step 12: Commit**
 
@@ -2427,6 +2433,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
 # One path per line, relative to the dnd5e folder. A directory copies everything inside it.
 # Copy single files or small subdirectories only: the source folder is very large.
 # Recreate everything with: pnpm sync-assets
+#
+# Not from dnd5e: assets/Terrible Character Portraits/ (CC BY 3.0). Restore it with:
+#   git checkout v0.1.0-svelte-final -- "assets/Terrible Character Portraits" && git restore --staged assets
 
 world maps/altaeus map.jpg
 town maps/__altaeus
@@ -2487,7 +2496,7 @@ Every file declares `kind` and `source`, and VS Code validates it through `$sche
 
 ## Credits
 
-- Portraits: Terrible Character Portraits (CC BY 3.0), in `assets/Terrible Character Portraits/`.
+- Portraits: Terrible Character Portraits (CC BY 3.0). Kept locally in `assets/` and not committed; restore them from tag `v0.1.0-svelte-final` (see `assets.manifest.txt`).
 - World map of Altaeus by @scenerydnd (personal use; not redistributed).
 ```
 
