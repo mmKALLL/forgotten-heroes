@@ -140,8 +140,8 @@ The town map image is a banner and backdrop.
 - **Travel pace** is chosen per journey:
   - **Cautious:** ⅔ speed and the most supplies per km. Fewer encounters, and ambushes meet the party on normal footing, or with Edge if it has covered its tracks. Covering tracks makes pursuers lose the trail.
   - **Steady:** normal speed.
-  - **Brisk:** 4⁄3 speed and the fewest supplies per km. More encounters, ambushes meet the party Exposed, and it outruns slow pursuers.
-  - **Forced march:** 5⁄3 speed, with a CON check each day against exhaustion.
+  - **Brisk:** 1.25× speed and the fewest supplies per km. More encounters, ambushes meet the party Exposed, and it outruns slow pursuers.
+  - **Forced march:** 1.5× speed, with a CON check each day against exhaustion. It also uses more supplies per km, so it's only worth it when saving time matters for another reason, such as a quest deadline, a pursuer or a market window. Quests and goals with time pressure should exist to make it meaningful.
   - **Hired horses** (Plan 4, from Animals and Mounts): 2× speed for gold, and mounts change carrying capacity.
   - **Magical travel** (later): near-instant and very expensive.
 - **Pursuit:** follow-ups can be flagged as pursuit (thieves' friends, informant ambushes, wardens). When one comes due, the party's pace since it was queued decides whether it catches up:
