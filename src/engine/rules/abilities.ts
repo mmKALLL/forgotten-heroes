@@ -68,7 +68,7 @@ const SKILL_LABELS: Record<Skill, string> = {
   survival: 'Survival',
 }
 
-export const isSkill = (stat: CheckStat): stat is Skill => stat in SKILL_ABILITY
+export const isSkill = (stat: CheckStat): stat is Skill => Object.hasOwn(SKILL_ABILITY, stat)
 
 export const abilityOf = (stat: CheckStat): Ability => (isSkill(stat) ? SKILL_ABILITY[stat] : stat)
 

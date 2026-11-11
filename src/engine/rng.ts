@@ -25,15 +25,23 @@ export interface Draw {
 /**
  * Run several draws with a local cursor and get the advanced RNG back.
  * The mutation stays inside this call, so callers remain pure.
+ * The Draw is only valid during `fn`; using it afterwards throws, so leaked state can't be reused.
  */
 export function withRng<T>(rng: Rng, fn: (draw: Draw) => T): [T, Rng] {
   let current = rng
+  let finished = false
   const float = () => {
+    if (finished) throw new Error('this Draw is finished: it was used after withRng returned')
     const [value, next] = nextFloat(current)
     current = next
     return value
   }
-  const int = (min: number, max: number) => min + Math.floor(float() * (max - min + 1))
+  const int = (min: number, max: number) => {
+    if (!Number.isInteger(min) || !Number.isInteger(max) || max < min) {
+      throw new RangeError(`int(min, max) needs integers with min <= max, got (${min}, ${max})`)
+    }
+    return min + Math.floor(float() * (max - min + 1))
+  }
   const pickOne = <U>(items: readonly U[]): U => {
     if (items.length === 0) throw new Error('cannot pick from an empty list')
     return items[int(0, items.length - 1)]
@@ -49,8 +57,12 @@ export function withRng<T>(rng: Rng, fn: (draw: Draw) => T): [T, Rng] {
     }
     return positive[positive.length - 1]
   }
-  const result = fn({ float, int, pick: pickOne, weighted })
-  return [result, current]
+  try {
+    const result = fn({ float, int, pick: pickOne, weighted })
+    return [result, current]
+  } finally {
+    finished = true
+  }
 }
 
 export const nextInt = (rng: Rng, min: number, max: number) => withRng(rng, (d) => d.int(min, max))

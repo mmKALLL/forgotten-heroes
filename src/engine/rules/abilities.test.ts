@@ -36,6 +36,11 @@ describe('abilities', () => {
     expect(isSkill('str')).toBe(false)
   })
 
+  test('isSkill ignores inherited object keys', () => {
+    expect(isSkill('constructor' as never)).toBe(false)
+    expect(isSkill('toString' as never)).toBe(false)
+  })
+
   test('labels', () => {
     expect(statLabel('sleightOfHand')).toBe('Sleight of Hand')
     expect(statLabel('wis')).toBe('WIS')
@@ -46,5 +51,14 @@ describe('abilities', () => {
     expect(formatModifier(0)).toBe('+0')
     expect(formatModifier(-2)).toBe('−2')
     expect(formatPercent(0.4999)).toBe('50%')
+  })
+
+  test.each([
+    [0, '0%'],
+    [1, '100%'],
+    [0.0025, '<1%'],
+    [0.9975, '>99%'],
+  ])('formatPercent(%s) is %s', (p, text) => {
+    expect(formatPercent(p)).toBe(text)
   })
 })

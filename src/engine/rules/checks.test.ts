@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { createRng, withRng } from '../rng'
+import { createRng } from '../rng'
 import { TIERS, rollCheck, successChance, tierFor, tierOdds } from './checks'
 
 const sum = (odds: Record<string, number>) => Object.values(odds).reduce((a, b) => a + b, 0)
@@ -22,7 +22,7 @@ describe('tierOdds', () => {
     expect(odds.critFail).toBeCloseTo(1 / 20)
     expect(odds.fail).toBeCloseTo(6 / 20) // d20 2..7
     expect(odds.partial).toBeCloseTo(3 / 20) // d20 8..10
-    expect(odds.success).toBeCloseTo(9 / 20) // d20 11..19
+    expect(odds.success).toBe(9 / 20) // d20 11..19
     expect(odds.critSuccess).toBeCloseTo(1 / 20)
     expect(successChance(odds)).toBeCloseTo(0.5)
   })
@@ -38,6 +38,7 @@ describe('tierOdds', () => {
     expect(tierOdds(0, 11, 'advantage').critSuccess).toBeCloseTo(39 / 400)
     expect(tierOdds(0, 11, 'advantage').critFail).toBeCloseTo(1 / 400)
     expect(tierOdds(0, 11, 'disadvantage').critFail).toBeCloseTo(39 / 400)
+    expect(tierOdds(0, 11, 'disadvantage').critSuccess).toBeCloseTo(1 / 400)
   })
 
   test.each(['normal', 'advantage', 'disadvantage'] as const)('%s odds sum to 1', (mode) => {
@@ -46,19 +47,26 @@ describe('tierOdds', () => {
 })
 
 describe('rollCheck', () => {
-  test('result is consistent with tierFor', () => {
-    const [results] = withRng(createRng(11), () => null)
-    expect(results).toBeNull()
-    let rng = createRng(11)
-    for (let i = 0; i < 200; i++) {
-      const [roll, next] = rollCheck(rng, 2, 13, 'advantage')
-      expect(roll.dice).toHaveLength(2)
-      expect(roll.kept).toBe(Math.max(...roll.dice))
-      expect(roll.total).toBe(roll.kept + 2)
-      expect(roll.tier).toBe(tierFor(roll.kept, roll.total, 13))
-      rng = next
+  const keptDie = {
+    normal: (dice: number[]) => dice[0],
+    advantage: (dice: number[]) => Math.max(...dice),
+    disadvantage: (dice: number[]) => Math.min(...dice),
+  }
+
+  test.each(['normal', 'advantage', 'disadvantage'] as const)(
+    '%s result is consistent with tierFor',
+    (mode) => {
+      let rng = createRng(11)
+      for (let i = 0; i < 200; i++) {
+        const [roll, next] = rollCheck(rng, 2, 13, mode)
+        expect(roll.dice).toHaveLength(mode === 'normal' ? 1 : 2)
+        expect(roll.kept).toBe(keptDie[mode](roll.dice))
+        expect(roll.total).toBe(roll.kept + 2)
+        expect(roll.tier).toBe(tierFor(roll.kept, roll.total, 13))
+        rng = next
+      }
     }
-  })
+  )
 
   test('empirical frequencies match exact odds', () => {
     const counts = Object.fromEntries(TIERS.map((t) => [t, 0])) as Record<string, number>

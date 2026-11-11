@@ -34,18 +34,28 @@ const emptyOdds = (): Record<Tier, number> => ({
 })
 
 /** Exact tier probabilities by enumerating every die outcome (20 or 400 cases). */
-export function tierOdds(modifier: number, dc: number, mode: RollMode = 'normal'): Record<Tier, number> {
-  const odds = emptyOdds()
+export function tierOdds(
+  modifier: number,
+  dc: number,
+  mode: RollMode = 'normal'
+): Record<Tier, number> {
+  // Count whole outcomes, then divide once, so no float error accumulates.
+  const counts = emptyOdds()
+  let cases: number
   if (mode === 'normal') {
-    for (let d = 1; d <= 20; d++) odds[tierFor(d, d + modifier, dc)] += 1 / 20
-    return odds
-  }
-  for (let a = 1; a <= 20; a++) {
-    for (let b = 1; b <= 20; b++) {
-      const kept = mode === 'advantage' ? Math.max(a, b) : Math.min(a, b)
-      odds[tierFor(kept, kept + modifier, dc)] += 1 / 400
+    cases = 20
+    for (let d = 1; d <= 20; d++) counts[tierFor(d, d + modifier, dc)]++
+  } else {
+    cases = 400
+    for (let a = 1; a <= 20; a++) {
+      for (let b = 1; b <= 20; b++) {
+        const kept = mode === 'advantage' ? Math.max(a, b) : Math.min(a, b)
+        counts[tierFor(kept, kept + modifier, dc)]++
+      }
     }
   }
+  const odds = emptyOdds()
+  for (const tier of TIERS) odds[tier] = counts[tier] / cases
   return odds
 }
 
@@ -70,7 +80,11 @@ export function rollCheck(
   return withRng(rng, (d) => {
     const dice = mode === 'normal' ? [d.int(1, 20)] : [d.int(1, 20), d.int(1, 20)]
     const kept =
-      mode === 'advantage' ? Math.max(...dice) : mode === 'disadvantage' ? Math.min(...dice) : dice[0]
+      mode === 'advantage'
+        ? Math.max(...dice)
+        : mode === 'disadvantage'
+          ? Math.min(...dice)
+          : dice[0]
     const total = kept + modifier
     return { dice, kept, modifier, total, dc, mode, tier: tierFor(kept, total, dc) }
   })
