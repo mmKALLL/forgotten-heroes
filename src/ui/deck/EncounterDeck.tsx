@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import type { Content } from '../../content/build'
 import { allSituations } from '../../engine/encounters/compile'
 import { inProgress } from '../../engine/encounters/run'
@@ -16,7 +16,29 @@ type Props = {
   onAction: (a: Action) => void
 }
 
-/** Dev panel: every situation by source, playable on demand, plus a filtered random draw. */
+const EXPANDED_KEY = 'forgotten-heroes/ui/deck-expanded'
+
+/** Whether this viewer last left the encounter list open; collapsed by default. */
+function loadExpanded(): boolean {
+  try {
+    return localStorage.getItem(EXPANDED_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function saveExpanded(expanded: boolean) {
+  try {
+    localStorage.setItem(EXPANDED_KEY, String(expanded))
+  } catch {
+    // Storage unavailable (private mode, quota): the choice just won't persist.
+  }
+}
+
+/**
+ * Dev panel: every situation by source, playable on demand, plus a filtered random draw. The list
+ * of situations starts collapsed; the filter and the draw stay visible either way.
+ */
 export function EncounterDeck({ content, state, rolling = false, onAction }: Props) {
   const situations = useMemo(() => allSituations(content), [content])
   const issues = useMemo(() => contentIssues(content), [content])
@@ -26,6 +48,13 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
       sources.includes(source) ? sources.filter((s) => s !== source) : [...sources, source]
     )
   const busy = rolling || inProgress(state)
+  const [expanded, setExpanded] = useState(loadExpanded)
+  const toggleExpanded = () => {
+    setExpanded(!expanded)
+    saveExpanded(!expanded)
+  }
+  const listId = useId()
+  const shown = situations.filter((s) => sources.includes(s.source))
 
   return (
     <section className="panel deck" aria-label="Encounter Deck">
@@ -56,41 +85,51 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
           {state.followUps.map((f) => `${f.situationId} (after ${f.wait})`).join(', ')}
         </p>
       )}
-      {SOURCES.filter((source) => sources.includes(source)).map((source) => {
-        const group = situations.filter((s) => s.source === source)
-        if (group.length === 0) return null
-        return (
-          <div key={source}>
-            <h3>
-              <SourceBadge source={source} />
-            </h3>
-            <ul className="deck-list">
-              {group.map((s) => (
-                <li key={`${s.file}/${s.id}`}>
-                  <span>
-                    {s.title}
-                    {s.wonder && <span className="muted small"> · wonder</span>}
-                    {s.followUpOnly && <span className="muted small"> · follow-up</span>}
-                    {s.twist && <span className="muted small"> · twist</span>}
-                  </span>
-                  {Object.hasOwn(issues, s.id) && (
-                    <span className="tone-bad small" title={issues[s.id].join('\n')}>
-                      ⚠ {issues[s.id].length}
+      <button
+        className="deck-toggle"
+        aria-expanded={expanded}
+        aria-controls={listId}
+        onClick={toggleExpanded}
+      >
+        {expanded ? 'Hide encounters' : `Show encounters (${shown.length})`}
+      </button>
+      <div id={listId} hidden={!expanded}>
+        {SOURCES.filter((source) => sources.includes(source)).map((source) => {
+          const group = shown.filter((s) => s.source === source)
+          if (group.length === 0) return null
+          return (
+            <div key={source}>
+              <h3>
+                <SourceBadge source={source} />
+              </h3>
+              <ul className="deck-list">
+                {group.map((s) => (
+                  <li key={`${s.file}/${s.id}`}>
+                    <span>
+                      {s.title}
+                      {s.wonder && <span className="muted small"> · wonder</span>}
+                      {s.followUpOnly && <span className="muted small"> · follow-up</span>}
+                      {s.twist && <span className="muted small"> · twist</span>}
                     </span>
-                  )}
-                  <button
-                    disabled={busy}
-                    onClick={() => onAction({ type: 'startEncounter', situationId: s.id })}
-                    aria-label={`Play ${s.title}`}
-                  >
-                    Play
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )
-      })}
+                    {Object.hasOwn(issues, s.id) && (
+                      <span className="tone-bad small" title={issues[s.id].join('\n')}>
+                        ⚠ {issues[s.id].length}
+                      </span>
+                    )}
+                    <button
+                      disabled={busy}
+                      onClick={() => onAction({ type: 'startEncounter', situationId: s.id })}
+                      aria-label={`Play ${s.title}`}
+                    >
+                      Play
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )
+        })}
+      </div>
     </section>
   )
 }

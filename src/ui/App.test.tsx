@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize } from '../engine/save'
 import { App } from './App'
+
+// These tests play situations from the Deck's list, so they start with it expanded.
+beforeEach(() => localStorage.setItem('forgotten-heroes/ui/deck-expanded', 'true'))
 
 afterEach(() => {
   cleanup()

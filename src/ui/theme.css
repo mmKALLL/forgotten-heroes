@@ -352,6 +352,10 @@ input {
   border-color: var(--bad);
   color: var(--bad);
 }
+.deck-toggle {
+  display: block;
+  margin-top: 0.5rem;
+}
 .deck h3 {
   margin: 0.8rem 0 0.3rem;
 }
