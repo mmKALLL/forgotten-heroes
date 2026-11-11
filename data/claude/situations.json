@@ -262,7 +262,10 @@
                 "effects": [{ "effect": "inspiration", "amount": 1 }],
                 "twist": {
                   "text": "You wake to cold hands and teeth.",
-                  "effects": [{ "effect": "hp", "amount": -5, "target": "random" }],
+                  "effects": [
+                    { "effect": "hp", "amount": -5, "target": "random" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
                   "goto": "attack"
                 }
               }
@@ -278,7 +281,10 @@
                   "text": "{actor} nods off. At dawn the pilgrims are gone.",
                   "twist": {
                     "text": "{actor} nods off, and wakes to teeth.",
-                    "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }],
+                    "effects": [
+                      { "effect": "hp", "amount": -5, "target": "actor" },
+                      { "effect": "position", "position": "exposed" }
+                    ],
                     "goto": "attack"
                   }
                 },
@@ -398,7 +404,9 @@
       "tags": ["road"],
       "twist": {
         "chance": 0.3,
-        "what": "the 'apprentice' is the thief, and his friends are waiting for whoever stops to help"
+        "what": "the 'apprentice' is the thief, and his friends are waiting for whoever stops to help",
+        "stage": "ambush",
+        "opening": [{ "effect": "hp", "amount": -4, "target": "random" }]
       },
       "stages": {
         "start": {
@@ -418,9 +426,11 @@
                   "twist": {
                     "text": "The trail loops back to the boy, and his friends are waiting for {actor}.",
                     "effects": [
-                      { "effect": "hp", "amount": -4, "target": "actor" },
-                      { "effect": "days", "amount": 1 }
-                    ]
+                      { "effect": "hp", "amount": -2, "target": "actor" },
+                      { "effect": "days", "amount": 1 },
+                      { "effect": "position", "position": "exposed" }
+                    ],
+                    "goto": "@twist"
                   }
                 },
                 "partial": {
@@ -437,18 +447,24 @@
                     { "effect": "days", "amount": 1 }
                   ],
                   "twist": {
-                    "text": "The trail loops straight back to the 'apprentice'. His friends didn't expect you from behind, and leave their takings.",
+                    "text": "The trail loops straight back to the 'apprentice', and you come up behind his waiting friends.",
                     "effects": [
-                      { "effect": "gold", "amount": 10 },
-                      { "effect": "days", "amount": 1 }
-                    ]
+                      { "effect": "days", "amount": 1 },
+                      { "effect": "position", "position": "edge" }
+                    ],
+                    "goto": "@twist"
                   }
                 }
               }
             }
           ]
+        },
+        "ambush": {
+          "text": "His friends step out of the bracken with cudgels, and the 'apprentice' wipes his eyes, grins and joins them.",
+          "archetype": { "id": "hostile-group", "dc": 12, "reward": 1 }
         }
-      }
+      },
+      "notes": "A bespoke twist: every twist escalates into the 'ambush' stage, with footing set by how you helped."
     },
     {
       "id": "grudge-on-the-road",
@@ -602,8 +618,9 @@
                   ]
                 },
                 "fail": {
-                  "text": "A day of searching, and nothing to show for it.",
-                  "effects": [{ "effect": "days", "amount": 1 }]
+                  "text": "A day of searching, and nothing to show for it. The herb is still out there.",
+                  "effects": [{ "effect": "days", "amount": 1 }],
+                  "stay": true
                 },
                 "partial": {
                   "text": "You find it after a long, leech-ridden day. The lizardfolk keep their word: the artifact is yours.",

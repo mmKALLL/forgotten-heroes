@@ -55,16 +55,25 @@ describe('archetypes', () => {
     ])
   })
 
-  test('trusting help pays more than cautious help, and loses more to a twist', () => {
-    const gold = (id: string, twist: boolean) => {
-      const option = content.archetypes['someone-in-need'].options.find(
-        (o) => o.id === id
-      ) as FixedOption
-      const branch = twist ? option.outcome.twist! : option.outcome
-      return branch.effects.reduce((sum, e) => sum + (e.effect === 'gold' ? e.amount : 0), 0)
-    }
-    expect(gold('help-trusting', false)).toBeGreaterThan(gold('help-cautious', false))
-    expect(gold('help-trusting', true)).toBeLessThan(gold('help-cautious', true))
+  test('trusting help pays more than cautious help, and walks into the twist worse', () => {
+    const outcome = (id: string) =>
+      (content.archetypes['someone-in-need'].options.find((o) => o.id === id) as FixedOption)
+        .outcome
+    const gold = (id: string) =>
+      outcome(id).effects.reduce((sum, e) => sum + (e.effect === 'gold' ? e.amount : 0), 0)
+    expect(gold('help-trusting')).toBeGreaterThan(gold('help-cautious'))
+    // Both escalate into the twist; trusting goes in Exposed and takes the opening hit.
+    expect(outcome('help-trusting').twist).toMatchObject({
+      goto: '@twist',
+      effects: [{ effect: 'position', position: 'exposed' }, { effect: 'openingHit' }],
+    })
+    expect(outcome('help-cautious').twist).toMatchObject({
+      goto: '@twist',
+      effects: [
+        { effect: 'position', position: 'normal' },
+        { effect: 'position', position: 'edge', if: { cond: 'twistRevealed' } },
+      ],
+    })
   })
 })
 

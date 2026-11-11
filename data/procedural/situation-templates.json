@@ -2,7 +2,7 @@
   "$schema": "../_schema/situationTemplates.schema.json",
   "kind": "situationTemplates",
   "source": "procedural",
-  "notes": "Archetypes dressed with parts tables. Each becomes a one-stage situation when played.",
+  "notes": "Archetypes dressed with parts tables. Each becomes a one-stage situation when played. Someone-in-need templates draw their twist from the twist table (twists.json).",
   "entries": [
     {
       "id": "roadside-plea",
@@ -13,7 +13,7 @@
         "motive": { "from": "table", "table": "motive" },
         "stakes": { "from": "table", "table": "stakes" }
       },
-      "twist": { "chance": 0.25, "what": "they are bait for an ambush" },
+      "twist": { "chance": 0.25, "what": "they are not what they seem", "table": true },
       "archetype": { "id": "someone-in-need", "dc": 13, "reward": 1 }
     },
     {
@@ -34,7 +34,12 @@
         "who": { "from": "table", "table": "who" },
         "motive": { "from": "table", "table": "motive" }
       },
-      "twist": { "chance": 0.4, "what": "they were sent to scout your camp" },
+      "twist": {
+        "chance": 0.4,
+        "what": "they did not find your fire by chance",
+        "table": true,
+        "kinds": ["ambush", "theft", "informant", "recruiter"]
+      },
       "archetype": { "id": "someone-in-need", "dc": 14, "reward": 0.8 }
     }
   ]

@@ -154,22 +154,23 @@
     {
       "id": "someone-in-need",
       "name": "Someone in need",
-      "description": "Someone asks for help. Needs a twist on the situation: it means they are not what they seem, and mean you harm.",
+      "description": "Someone asks for help. Needs a twist on the situation: it means they are not what they seem, and mean you harm. The help options' twists escalate with \"@twist\", so the twist uses the twist table (\"table\": true) or names its own \"stage\" and \"opening\".",
       "options": [
         {
           "id": "help-trusting",
           "kind": "fixed",
           "label": "Help them, no questions",
-          "description": "Your full effort and your trust. The bigger reward, and the bigger loss if it's a trick.",
+          "description": "Your full effort and your trust. The bigger reward; if it's a trick, you walk into it Exposed and take the first hit.",
           "outcome": {
             "text": "You throw yourselves into it. Afterwards they press coin on you and won't hear no.",
             "effects": [{ "effect": "gold", "amount": 15 }],
             "twist": {
-              "text": "It was a setup. While you were busy, their friends went through your packs, and one of them had a knife.",
+              "text": "You were all in, and that was the opening they wanted.",
               "effects": [
-                { "effect": "gold", "amount": -15 },
-                { "effect": "hp", "amount": -4, "target": "random" }
-              ]
+                { "effect": "position", "position": "exposed" },
+                { "effect": "openingHit" }
+              ],
+              "goto": "@twist"
             }
           }
         },
@@ -177,12 +178,17 @@
           "id": "help-cautious",
           "kind": "fixed",
           "label": "Help, but stay on guard",
-          "description": "A smaller reward, and nothing lost if it's a trick.",
+          "description": "A smaller reward. If it's a trick, you meet it on even footing, or with the Edge if you read them first.",
           "outcome": {
             "text": "You help, with one eye on the treeline. They thank you with what they can spare.",
             "effects": [{ "effect": "gold", "amount": 6 }],
             "twist": {
-              "text": "When their friends step out of the trees, you are ready for them. They melt away, and you lose nothing."
+              "text": "You kept one eye on them, so when it turns, you aren't caught flat-footed.",
+              "effects": [
+                { "effect": "position", "position": "normal" },
+                { "effect": "position", "position": "edge", "if": { "cond": "twistRevealed" } }
+              ],
+              "goto": "@twist"
             }
           }
         },
@@ -190,7 +196,7 @@
           "id": "read-them",
           "kind": "check",
           "label": "Read them first",
-          "description": "Insight shows how likely a trick is. Misreading them puts you off your next move.",
+          "description": "Insight shows how likely a trick is, and a great read shows what kind. Misreading them puts you off your next move.",
           "once": true,
           "check": { "skill": "insight", "dc": "dc" },
           "outcomes": {
@@ -220,7 +226,7 @@
             "critSuccess": {
               "text": "{actor} reads them like a ledger, and knows exactly how to play this.",
               "effects": [
-                { "effect": "revealTwist" },
+                { "effect": "revealTwist", "kind": true },
                 { "effect": "position", "position": "edge" }
               ],
               "stay": true

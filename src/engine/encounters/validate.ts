@@ -258,10 +258,6 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
       else if (compiled.twist && compiled.twist.opening.length === 0)
         issues.push(`${where}: openingHit but the twist has no opening hit`)
     }
-    if (effect.effect === 'revealTwist' && effect.kind && compiled.twist && !compiled.twist.table)
-      issues.push(
-        `${where}: revealTwist "kind" needs a twist table (a bespoke twist is shown already)`
-      )
     if (effect.effect === 'followUp' && !situationIds.has(effect.situation)) {
       issues.push(`${where}: follow-up to unknown situation "${effect.situation}"`)
     }
