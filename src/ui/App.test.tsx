@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test } from 'vitest'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize } from '../engine/save'
@@ -96,4 +96,35 @@ test('the odds bar labels tiers with d20 thresholds by default, with no label to
   expect(bar.getAttribute('aria-label')).toMatch(/Success: \d+–\d+ \(\d+%\)/)
   expect(screen.getByRole('region', { name: 'Practice check' }).textContent).toMatch(/: needs \d+\+ on the d20/)
   expect(screen.queryByRole('group', { name: 'Odds labels' })).toBeNull()
+})
+
+test('the Encounter Deck plays any situation, and the encounter shows its source', async () => {
+  render(<App />)
+  const deck = within(screen.getByRole('region', { name: 'Encounter Deck' }))
+  await userEvent.click(deck.getByRole('button', { name: 'Play The flooded ferry' }))
+  const encounter = within(screen.getByRole('region', { name: 'Encounter' }))
+  expect(encounter.getByRole('heading', { name: 'The flooded ferry' })).toBeTruthy()
+  expect(encounter.getByText('Claude')).toBeTruthy()
+  await userEvent.click(encounter.getByRole('button', { name: "Choose Pay Ilse's price" }))
+  expect(encounter.getByText('The encounter is over.')).toBeTruthy()
+  await userEvent.click(encounter.getByRole('button', { name: 'Close' }))
+  expect(screen.getByRole('region', { name: 'Practice check' })).toBeTruthy()
+})
+
+test('random draw honours the source filter', async () => {
+  render(<App />)
+  const deck = within(screen.getByRole('region', { name: 'Encounter Deck' }))
+  for (const label of ['Original', 'SRD', 'Private', 'Claude']) {
+    await userEvent.click(deck.getByRole('checkbox', { name: new RegExp(`^${label} \\(`) }))
+  }
+  await userEvent.click(deck.getByRole('button', { name: 'Random draw' }))
+  expect(within(screen.getByRole('region', { name: 'Encounter' })).getByText('Procedural')).toBeTruthy()
+})
+
+test('an encounter in progress survives a reload', async () => {
+  const { unmount } = render(<App />)
+  await userEvent.click(screen.getByRole('button', { name: 'Play The singing stones' }))
+  unmount()
+  render(<App />)
+  expect(screen.getByRole('heading', { name: 'The singing stones' })).toBeTruthy()
 })

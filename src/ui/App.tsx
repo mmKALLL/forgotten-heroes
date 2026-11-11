@@ -1,5 +1,7 @@
 import { loadBundledContent } from '../content/bundled'
 import { CheckPanel } from './CheckPanel'
+import { EncounterDeck } from './deck/EncounterDeck'
+import { EncounterView } from './encounter/EncounterView'
 import { LogPanel } from './LogPanel'
 import { PartyPanel } from './PartyPanel'
 import { useGame } from './useGame'
@@ -21,8 +23,15 @@ export function App() {
       </header>
       <main className="layout">
         <PartyPanel party={state.party} />
-        <CheckPanel state={state} onAction={dispatch} />
-        <LogPanel log={state.log} />
+        {state.encounter ? (
+          <EncounterView state={state} onAction={dispatch} />
+        ) : (
+          <CheckPanel state={state} onAction={dispatch} />
+        )}
+        <div className="side">
+          <EncounterDeck content={content} state={state} onAction={dispatch} />
+          <LogPanel log={state.log} />
+        </div>
       </main>
     </div>
   )
