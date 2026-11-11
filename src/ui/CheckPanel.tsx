@@ -3,7 +3,7 @@ import { formatModifier, formatPercent } from '../engine/format'
 import { ABILITIES, SKILLS, statLabel, type CheckStat } from '../engine/rules/abilities'
 import { rankActors } from '../engine/rules/character'
 import { TIER_LABELS, successChance, type RollMode } from '../engine/rules/checks'
-import { previewCheck, type Action } from '../engine/state'
+import { MAX_DC, MIN_DC, previewCheck, type Action } from '../engine/state'
 import type { GameState } from '../schema/state'
 import { OddsBar } from './OddsBar'
 
@@ -11,10 +11,14 @@ const STATS: CheckStat[] = [...SKILLS, ...ABILITIES]
 
 export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a: Action) => void }) {
   const [stat, setStat] = useState<CheckStat>('persuasion')
-  const [dc, setDc] = useState(13)
+  // Keep the raw text so the field can be cleared and retyped; the engine normalises the number.
+  const [dcText, setDcText] = useState('13')
+  const dc = dcText.trim() === '' ? Number.NaN : Number(dcText)
   const [mode, setMode] = useState<RollMode>('normal')
   const [actorId, setActorId] = useState('')
-  const preview = previewCheck(state, stat, dc, mode, actorId || undefined)
+  // An override can outlive its character (e.g. after "New party"): fall back to Auto.
+  const selected = state.party.some((c) => c.id === actorId) ? actorId : ''
+  const preview = previewCheck(state, stat, dc, mode, selected || undefined)
   const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
   const roll = state.lastRoll
 
@@ -34,7 +38,14 @@ export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a
         </label>
         <label>
           DC
-          <input type="number" min={1} max={35} value={dc} onChange={(e) => setDc(Number(e.target.value) || 1)} />
+          <input
+            type="number"
+            min={MIN_DC}
+            max={MAX_DC}
+            step={1}
+            value={dcText}
+            onChange={(e) => setDcText(e.target.value)}
+          />
         </label>
         <label>
           Position
@@ -46,7 +57,7 @@ export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a
         </label>
         <label>
           Actor
-          <select value={actorId} onChange={(e) => setActorId(e.target.value)}>
+          <select value={selected} onChange={(e) => setActorId(e.target.value)}>
             <option value="">Auto (best)</option>
             {rankActors(state.party, stat).map((r) => (
               <option key={r.characterId} value={r.characterId}>
@@ -60,7 +71,7 @@ export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a
       {preview ? (
         <>
           <p>
-            {preview.actorName} rolls {statLabel(stat)} {formatModifier(preview.modifier)} vs DC {dc}:{' '}
+            {preview.actorName} rolls {statLabel(stat)} {formatModifier(preview.modifier)} vs DC {preview.dc}:{' '}
             <strong>{formatPercent(successChance(preview.odds))}</strong> to succeed
           </p>
           <OddsBar odds={preview.odds} />
@@ -72,25 +83,28 @@ export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a
       <button
         className="primary"
         disabled={!preview}
-        onClick={() => onAction({ type: 'practiceCheck', stat, dc, mode, actorId: actorId || undefined })}
+        onClick={() => onAction({ type: 'practiceCheck', stat, dc, mode, actorId: selected || undefined })}
       >
         Roll
       </button>
 
-      {roll && (
-        <div className={`roll tier-${roll.tier}`} aria-live="polite">
-          <span className="dice">
-            {roll.dice.map((d, i) => (
-              <span key={i} className={d === roll.kept && (i === 0 || roll.dice[0] !== d) ? 'die kept' : 'die'}>
-                {d}
-              </span>
-            ))}
-          </span>
-          <span>
-            {formatModifier(roll.modifier)} = {roll.total} vs DC {roll.dc}: <strong>{TIER_LABELS[roll.tier]}</strong>
-          </span>
-        </div>
-      )}
+      <div className={roll ? `roll tier-${roll.tier}` : 'roll'} aria-live="polite">
+        {roll && (
+          <>
+            <span className="dice">
+              {roll.dice.map((d, i) => (
+                <span key={i} className={i === roll.keptIndex ? 'die kept' : 'die'}>
+                  {d}
+                </span>
+              ))}
+            </span>
+            <span>
+              {formatModifier(roll.modifier)} = {roll.total} vs DC {roll.dc}:{' '}
+              <strong>{TIER_LABELS[roll.tier]}</strong>
+            </span>
+          </>
+        )}
+      </div>
     </section>
   )
 }

@@ -68,6 +68,26 @@ describe('rollCheck', () => {
     }
   )
 
+  test.each(['normal', 'advantage', 'disadvantage'] as const)(
+    '%s keptIndex points at the kept die (the first one on a tie)',
+    (mode) => {
+      let rng = createRng(7)
+      let ties = 0
+      for (let i = 0; i < 400; i++) {
+        const [roll, next] = rollCheck(rng, 0, 10, mode)
+        expect(roll.dice[roll.keptIndex]).toBe(roll.kept)
+        expect(roll.keptIndex).toBe(roll.dice.indexOf(roll.kept))
+        if (roll.dice.length === 2 && roll.dice[0] === roll.dice[1]) {
+          ties++
+          expect(roll.keptIndex).toBe(0)
+        }
+        if (mode === 'normal') expect(roll.keptIndex).toBe(0)
+        rng = next
+      }
+      if (mode !== 'normal') expect(ties).toBeGreaterThan(0)
+    }
+  )
+
   test('empirical frequencies match exact odds', () => {
     const counts = Object.fromEntries(TIERS.map((t) => [t, 0])) as Record<string, number>
     let rng = createRng(2024)

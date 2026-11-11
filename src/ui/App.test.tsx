@@ -27,3 +27,46 @@ test('the game survives a reload via localStorage', async () => {
   render(<App />)
   expect(screen.getAllByRole('article').map((a) => a.querySelector('strong')?.textContent)).toEqual(names)
 })
+
+test('the DC field can be cleared and retyped, and previews the DC the roll will use', async () => {
+  render(<App />)
+  const dc = screen.getByRole('spinbutton', { name: 'DC' }) as HTMLInputElement
+  await userEvent.clear(dc)
+  expect(dc.value).toBe('')
+  await userEvent.type(dc, '12')
+  expect(dc.value).toBe('12')
+  expect(screen.getByText(/vs DC 12:/)).toBeTruthy()
+  await userEvent.clear(dc)
+  await userEvent.type(dc, '99')
+  expect(screen.getByText(/vs DC 40:/)).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
+  expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(/vs DC 40\./)
+})
+
+test('an actor override from a previous party falls back to Auto', async () => {
+  render(<App />)
+  const actor = screen.getByRole('combobox', { name: 'Actor' }) as HTMLSelectElement
+  await userEvent.selectOptions(actor, actor.options[1].value)
+  expect(actor.value).not.toBe('')
+  await userEvent.click(screen.getByRole('button', { name: 'New party' }))
+  expect(actor.value).toBe('')
+  await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
+  expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(/rolls/)
+})
+
+test('the roll announcer exists before the first roll, and HP bars are meters', async () => {
+  render(<App />)
+  const live = document.querySelector('[aria-live="polite"]')
+  expect(live).toBeTruthy()
+  expect(live?.textContent).toBe('')
+  await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
+  expect(document.querySelector('[aria-live="polite"]')).toBe(live)
+  expect(live?.querySelector('.die.kept')).toBeTruthy()
+  const meters = screen.getAllByRole('meter')
+  expect(meters).toHaveLength(2)
+  for (const m of meters) {
+    expect(Number(m.getAttribute('aria-valuenow'))).toBeGreaterThan(0)
+    expect(m.getAttribute('aria-valuemin')).toBe('0')
+    expect(Number(m.getAttribute('aria-valuemax'))).toBeGreaterThan(0)
+  }
+})

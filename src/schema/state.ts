@@ -25,6 +25,7 @@ export const RollRecordSchema = z.object({
   actorId: z.string(),
   dice: z.array(z.number().int().min(1).max(20)),
   kept: z.number().int(),
+  keptIndex: z.number().int().min(0),
   modifier: z.number().int(),
   total: z.number().int(),
   dc: z.number().int(),

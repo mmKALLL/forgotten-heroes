@@ -12,7 +12,9 @@ export function parseManifest(text: string): string[] {
     .filter((line) => line !== '' && !line.startsWith('#'))
     .map((line) => {
       const path = normalize(line).replace(/\/+$/, '')
-      if (isAbsolute(path) || path.startsWith('..')) {
+      // Reject the whole folder ('.', './', 'a/..') and any parent segment, but allow '..foo'.
+      const escapes = path === '.' || path === '' || path.split(/[\\/]/).includes('..')
+      if (isAbsolute(path) || escapes) {
         throw new Error(`manifest paths must be relative to the dnd5e folder: ${line}`)
       }
       return path
@@ -28,7 +30,7 @@ export function syncAssets(paths: string[], fromDir: string, toDir: string) {
       missing.push(path)
       continue
     }
-    cpSync(source, join(toDir, path), { recursive: true })
+    cpSync(source, join(toDir, path), { recursive: true, dereference: true })
     copied.push(path)
   }
   return { copied, missing }

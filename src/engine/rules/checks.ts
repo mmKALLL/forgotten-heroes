@@ -64,6 +64,8 @@ export const successChance = (odds: Record<Tier, number>): number => odds.succes
 export type RollOutcome = {
   dice: number[]
   kept: number
+  /** Index into `dice` of the kept die (the first one when both dice match). */
+  keptIndex: number
   modifier: number
   total: number
   dc: number
@@ -85,7 +87,8 @@ export function rollCheck(
         : mode === 'disadvantage'
           ? Math.min(...dice)
           : dice[0]
+    const keptIndex = dice.indexOf(kept)
     const total = kept + modifier
-    return { dice, kept, modifier, total, dc, mode, tier: tierFor(kept, total, dc) }
+    return { dice, kept, keptIndex, modifier, total, dc, mode, tier: tierFor(kept, total, dc) }
   })
 }

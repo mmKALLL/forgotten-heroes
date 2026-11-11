@@ -8,7 +8,6 @@
   --good: #3f6b35;
   --bad: #9c2f24;
   --crit: #b58500;
-  --partial: #a7743a;
   --tier-critFail: #7d2018;
   --tier-fail: #c0634f;
   --tier-partial: #d9a75f;
@@ -29,6 +28,11 @@
     --good: #8cbf78;
     --bad: #e07a68;
     --crit: #e3bd45;
+    --tier-critFail: #c9473a;
+    --tier-fail: #cf6f55;
+    --tier-partial: #e0b56e;
+    --tier-success: #649c50;
+    --tier-critSuccess: #e3bd45;
   }
 }
 * { box-sizing: border-box; }
@@ -61,10 +65,15 @@ select, input { font: inherit; background: var(--panel); color: var(--ink); bord
 .odds-seg { display: flex; align-items: center; justify-content: center; color: #fff8ec; min-width: 2px; }
 .tier-critFail.odds-seg { background: var(--tier-critFail); }
 .tier-fail.odds-seg { background: var(--tier-fail); }
-.tier-partial.odds-seg { background: var(--tier-partial); }
+.tier-partial.odds-seg { background: var(--tier-partial); color: #2b2118; }
 .tier-success.odds-seg { background: var(--tier-success); }
-.tier-critSuccess.odds-seg { background: var(--tier-critSuccess); }
+.tier-critSuccess.odds-seg { background: var(--tier-critSuccess); color: #2b2118; }
 .roll { margin-top: 0.9rem; display: flex; align-items: center; gap: 0.75rem; }
+.roll.tier-critFail { border-left: 4px solid var(--tier-critFail); padding-left: 0.6rem; }
+.roll.tier-fail { border-left: 4px solid var(--tier-fail); padding-left: 0.6rem; }
+.roll.tier-partial { border-left: 4px solid var(--tier-partial); padding-left: 0.6rem; }
+.roll.tier-success { border-left: 4px solid var(--tier-success); padding-left: 0.6rem; }
+.roll.tier-critSuccess { border-left: 4px solid var(--tier-critSuccess); padding-left: 0.6rem; }
 .die { display: inline-grid; place-items: center; width: 2.2rem; height: 2.2rem; border: 2px solid var(--line); border-radius: 6px; margin-right: 0.25rem; font-weight: bold; opacity: 0.5; }
 .die.kept { opacity: 1; border-color: var(--accent); }
 .log { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; max-height: 70vh; overflow: auto; }

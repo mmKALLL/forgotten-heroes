@@ -26,7 +26,15 @@ function CharacterCard({ character: c }: { character: Character }) {
           {c.ancestry} {c.classId} · lv {c.level}
         </span>
       </header>
-      <div className="hp" aria-label={`HP ${c.hp} of ${c.maxHp}`}>
+      <div
+        className="hp"
+        role="meter"
+        aria-label={`${c.name} HP`}
+        aria-valuenow={Math.max(0, c.hp)}
+        aria-valuemin={0}
+        aria-valuemax={c.maxHp}
+        aria-valuetext={`${c.hp} of ${c.maxHp} HP`}
+      >
         <span className="hp-fill" style={{ width: `${(100 * Math.max(0, c.hp)) / c.maxHp}%` }} />
         <span className="hp-text">
           {c.hp}/{c.maxHp} HP

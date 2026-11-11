@@ -80,6 +80,8 @@ export type CheckPreview = {
   actorId: string
   actorName: string
   modifier: number
+  /** The DC the roll will actually use (normalised, like `step` does). */
+  dc: number
   odds: Record<Tier, number>
 }
 
@@ -93,5 +95,12 @@ export function previewCheck(
   const actor = chooseActor(state.party, stat, actorId)
   if (!actor) return null
   const actorName = state.party.find((c) => c.id === actor.characterId)?.name ?? '?'
-  return { actorId: actor.characterId, actorName, modifier: actor.modifier, odds: tierOdds(actor.modifier, dc, mode) }
+  const rollDc = normalizeDc(dc)
+  return {
+    actorId: actor.characterId,
+    actorName,
+    modifier: actor.modifier,
+    dc: rollDc,
+    odds: tierOdds(actor.modifier, rollDc, mode),
+  }
 }

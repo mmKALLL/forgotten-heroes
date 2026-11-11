@@ -1,7 +1,7 @@
-import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { describe, expect, test } from 'vitest'
+import { afterEach, describe, expect, test } from 'vitest'
 import { parseManifest, syncAssets } from './sync-assets'
 
 describe('parseManifest', () => {
@@ -15,12 +15,31 @@ describe('parseManifest', () => {
     expect(() => parseManifest('../secrets')).toThrow(/relative/)
     expect(() => parseManifest('/etc/passwd')).toThrow(/relative/)
   })
+  test.each(['.', './', 'a/..', 'a/../', '..', 'a/../../b', 'a\\..\\b'])(
+    'rejects %j (the whole folder, or a parent segment)',
+    (line) => {
+      expect(() => parseManifest(line)).toThrow(/relative/)
+    }
+  )
+  test('allows names that merely start with two dots', () => {
+    expect(parseManifest('..foo/x\nmaps/..bar')).toEqual(['..foo/x', 'maps/..bar'])
+  })
 })
 
 describe('syncAssets', () => {
+  const temps: string[] = []
+  const tempDir = (prefix: string) => {
+    const dir = mkdtempSync(join(tmpdir(), prefix))
+    temps.push(dir)
+    return dir
+  }
+  afterEach(() => {
+    for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })
+  })
+
   test('copies files and directories, preserving structure, and reports missing', () => {
-    const from = mkdtempSync(join(tmpdir(), 'fh-from-'))
-    const to = mkdtempSync(join(tmpdir(), 'fh-to-'))
+    const from = tempDir('fh-from-')
+    const to = tempDir('fh-to-')
     mkdirSync(join(from, 'town maps/__altaeus'), { recursive: true })
     writeFileSync(join(from, 'town maps/__altaeus/a.jpg'), 'A')
     mkdirSync(join(from, 'world maps'))
@@ -34,5 +53,18 @@ describe('syncAssets', () => {
     })
     expect(readFileSync(join(to, 'town maps/__altaeus/a.jpg'), 'utf8')).toBe('A')
     expect(existsSync(join(to, 'world maps/w.jpg'))).toBe(true)
+  })
+
+  test('copies the target of a symlink, not the link', () => {
+    const from = tempDir('fh-from-')
+    const to = tempDir('fh-to-')
+    const outside = tempDir('fh-outside-')
+    writeFileSync(join(outside, 'real.jpg'), 'R')
+    symlinkSync(join(outside, 'real.jpg'), join(from, 'link.jpg'))
+
+    syncAssets(['link.jpg'], from, to)
+
+    rmSync(outside, { recursive: true, force: true })
+    expect(readFileSync(join(to, 'link.jpg'), 'utf8')).toBe('R')
   })
 })

@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { GameStateSchema, type GameState } from '../schema/state'
+import { tierOdds } from './rules/checks'
 import { newGame, previewCheck, step } from './state'
 import { fixtureContent, makeCharacter } from './test-fixtures'
 
@@ -71,8 +72,17 @@ describe('previewCheck', () => {
       actorId: 'bard',
       actorName: 'Lyra',
       modifier: 5,
+      dc: 15,
       odds: { critFail: 1 / 20, fail: 5 / 20, partial: 3 / 20, success: 10 / 20, critSuccess: 1 / 20 },
     })
+  })
+
+  test('previews the same normalised DC that step rolls against', () => {
+    const preview = previewCheck(state, 'persuasion', 12.4, 'normal')
+    expect(preview?.dc).toBe(12)
+    expect(preview?.odds).toEqual(tierOdds(5, 12, 'normal'))
+    expect(previewCheck(state, 'persuasion', 99, 'normal')?.dc).toBe(40)
+    expect(previewCheck(state, 'persuasion', Number.NaN, 'normal')?.dc).toBe(1)
   })
 
   test('honours an actor override', () => {
