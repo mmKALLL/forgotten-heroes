@@ -60,6 +60,7 @@ The old Svelte code is removed on this branch. The useful types and data are por
   - Succeeding on a risky option grants Edge: advantage on the next check in the same encounter.
   - Some failures inflict Exposed: disadvantage on the next check.
   - Advantage must be earned through earlier risk.
+  - **Odds bounds:** a normal roll always stays within 5–95%, because a natural 1 is a critical failure and a natural 20 a critical success. Edge and Exposed use standard 2d20 keep-highest or keep-lowest. A critical failure with Edge therefore needs both dice to show 1 (0.25%), and odds can reach 0.25–99.75%. This is intentional: the extreme odds are the reward, or the penalty, for a position reached through earlier risk or cost.
 - **Inspiration:** a natural 20 on a non-combat check grants Inspiration, which can be spent for a reroll and similar uses.
 - **Carrying capacity:** each member's contribution scales with STR, from about 0.8× at STR 8 to about 1.8× at STR 18 (2.25× at most). Pack animals and carts add more. Magical alternatives (floating disk, unseen porters, teleport circles) come later.
 - **Endurance:** forced-march days before exhaustion scale with CON.
