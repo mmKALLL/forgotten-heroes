@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, describe, expect, test } from 'vitest'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize } from '../engine/save'
 import { App } from './App'
 
@@ -153,4 +153,53 @@ test('the Deck waits while an encounter is in progress, and says why', async () 
   await userEvent.click(encounter.getByRole('button', { name: "Choose Pay Ilse's price" }))
   expect(disabled('Random draw')).toBe(false)
   expect(deck.queryByText('Finish or close the current encounter first.')).toBeNull()
+})
+
+describe('a new roll keeps its result hidden until the dice settle', () => {
+  const hp = () => screen.getAllByRole('meter').map((m) => m.getAttribute('aria-valuenow'))
+  /** Plays a check whose failure costs HP; returns the party's HP before the roll. */
+  const sneak = async () => {
+    render(<App />)
+    await userEvent.click(screen.getByRole('button', { name: 'Play Wolves on the mountain path' }))
+    const before = hp()
+    await userEvent.click(screen.getByRole('button', { name: 'Choose Sneak past the wolves' }))
+    return before
+  }
+  const journal = () => screen.getByRole('list', { name: 'Log' }).textContent
+
+  afterEach(() => {
+    Reflect.deleteProperty(window, 'matchMedia')
+  })
+
+  test('the journal, party and top bar wait for the dice, and the Deck stays disabled', async () => {
+    const before = await sneak()
+    expect(journal()).not.toMatch(/rolls Stealth/)
+    expect(hp()).toEqual(before)
+    const deck = within(screen.getByRole('region', { name: 'Encounter Deck' }))
+    expect((deck.getByRole('button', { name: 'Random draw' }) as HTMLButtonElement).disabled).toBe(
+      true
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Skip dice animation' }))
+    expect(journal()).toMatch(/rolls Stealth/)
+    expect((deck.getByRole('button', { name: 'Random draw' }) as HTMLButtonElement).disabled).toBe(
+      false
+    )
+  })
+
+  test('a reload mid-roll just shows the current state', async () => {
+    await sneak()
+    cleanup()
+    render(<App />)
+    expect(screen.queryByRole('button', { name: 'Skip dice animation' })).toBeNull()
+    expect(journal()).toMatch(/rolls Stealth/)
+  })
+
+  test('with reduced motion the result shows at once', async () => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: (query: string) => ({ matches: query.includes('reduce'), media: query }),
+    })
+    await sneak()
+    expect(journal()).toMatch(/rolls Stealth/)
+  })
 })

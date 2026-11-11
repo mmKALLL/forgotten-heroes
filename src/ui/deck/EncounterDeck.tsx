@@ -8,10 +8,16 @@ import { SOURCES, type Source } from '../../schema/common'
 import type { GameState } from '../../schema/state'
 import { SOURCE_LABELS, SourceBadge } from '../SourceBadge'
 
-type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
+type Props = {
+  content: Content
+  state: GameState
+  /** A roll is still animating: wait for it, even if it ended the encounter. */
+  rolling?: boolean
+  onAction: (a: Action) => void
+}
 
 /** Dev panel: every situation by source, playable on demand, plus a filtered random draw. */
-export function EncounterDeck({ content, state, onAction }: Props) {
+export function EncounterDeck({ content, state, rolling = false, onAction }: Props) {
   const situations = useMemo(() => allSituations(content), [content])
   const issues = useMemo(() => contentIssues(content), [content])
   const [sources, setSources] = useState<Source[]>([...SOURCES])
@@ -19,7 +25,7 @@ export function EncounterDeck({ content, state, onAction }: Props) {
     setSources(
       sources.includes(source) ? sources.filter((s) => s !== source) : [...sources, source]
     )
-  const busy = inProgress(state)
+  const busy = rolling || inProgress(state)
 
   return (
     <section className="panel deck" aria-label="Encounter Deck">

@@ -3,12 +3,11 @@ import { encounterOptions, twistInfo } from '../../engine/encounters/preview'
 import { encounterOver } from '../../engine/encounters/run'
 import { formatPercent } from '../../engine/format'
 import type { Action } from '../../engine/state'
-import type { EncounterState, GameState } from '../../schema/state'
+import type { GameState } from '../../schema/state'
 import { DiceRoll } from '../dice/DiceRoll'
 import { SourceBadge } from '../SourceBadge'
 import { OptionCard } from './OptionCard'
-
-const lastRollIndex = (encounter: EncounterState) => encounter.log.findLastIndex((e) => e.roll)
+import { lastRollIndex } from './rolls'
 
 /**
  * Renders the active encounter. The rules live in the engine: this shows the previews from
@@ -18,9 +17,12 @@ const lastRollIndex = (encounter: EncounterState) => encounter.log.findLastIndex
 export function EncounterView({
   state,
   onAction,
+  onRevealed,
 }: {
   state: GameState
   onAction: (a: Action) => void
+  /** Called when a new roll's dice settle or are skipped, so the rest of the page can catch up. */
+  onRevealed?: () => void
 }) {
   const encounter = state.encounter!
   // The first log entry is kept by every step, so a new one means a new encounter started here.
@@ -69,7 +71,10 @@ export function EncounterView({
               <DiceRoll
                 roll={entry.roll}
                 highStakes={entry.highStakes}
-                onDone={() => setShownRoll(i)}
+                onDone={() => {
+                  setShownRoll(i)
+                  onRevealed?.()
+                }}
               />
             )}
             {!(animating && i === rollIndex) && <span>{entry.text}</span>}
