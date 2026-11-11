@@ -1,14 +1,9 @@
 import { useId, useState } from 'react'
 import { formatModifier } from '../engine/format'
-import {
-  ABILITIES,
-  SKILLS,
-  SKILL_ABILITY,
-  abilityModifier,
-  statLabel,
-} from '../engine/rules/abilities'
+import { ABILITIES, SKILLS, SKILL_ABILITY, abilityModifier } from '../engine/rules/abilities'
 import { statModifier } from '../engine/rules/character'
 import type { Character, SkillUse } from '../schema/state'
+import { useI18n } from './i18n/I18n'
 
 type Props = {
   party: Character[]
@@ -18,9 +13,10 @@ type Props = {
 }
 
 export function PartyPanel({ party, skillUses = [], day }: Props) {
+  const { t } = useI18n()
   return (
-    <section className="panel" aria-label="Party">
-      <h2>Party</h2>
+    <section className="panel" aria-label={t('party.heading')}>
+      <h2>{t('party.heading')}</h2>
       {party.map((c) => (
         <CharacterCard
           key={c.id}
@@ -50,6 +46,7 @@ function CharacterCard({
   character: Character
   usesToday: SkillUse[]
 }) {
+  const { t, stat, name } = useI18n()
   const [expanded, setExpanded] = useState(false)
   const sheetId = useId()
   const best = SKILLS.map((s) => ({ s, m: statModifier(c, s) }))
@@ -67,7 +64,11 @@ function CharacterCard({
         >
           <strong>{c.name}</strong>{' '}
           <span className="muted">
-            {c.ancestry} {c.classId} · lv {c.level}{' '}
+            {t('party.summary', {
+              ancestry: name('ancestries', c.ancestry, c.ancestry),
+              class: name('classes', c.classId, c.classId),
+              level: c.level,
+            })}{' '}
             <span className="chevron" aria-hidden="true">
               {expanded ? '▾' : '▸'}
             </span>
@@ -77,11 +78,11 @@ function CharacterCard({
       <div
         className="hp"
         role="meter"
-        aria-label={`${c.name} HP`}
+        aria-label={t('party.hpLabel', { name: c.name })}
         aria-valuenow={Math.max(0, c.hp)}
         aria-valuemin={0}
         aria-valuemax={c.maxHp}
-        aria-valuetext={`${c.hp} of ${c.maxHp} HP`}
+        aria-valuetext={t('party.hpValue', { hp: c.hp, max: c.maxHp })}
       >
         <span className="hp-fill" style={{ width: `${(100 * Math.max(0, c.hp)) / c.maxHp}%` }} />
         <span className="hp-text">
@@ -90,7 +91,7 @@ function CharacterCard({
       </div>
       {c.exhaustion > 0 && (
         <p className="conditions small">
-          <span className="badge condition">Exhaustion {c.exhaustion}</span>
+          <span className="badge condition">{t('party.exhaustion', { n: c.exhaustion })}</span>
         </p>
       )}
       {/* Always in the page, so aria-controls has a target; hidden while collapsed. */}
@@ -98,7 +99,7 @@ function CharacterCard({
         <dl className="abilities">
           {ABILITIES.map((a) => (
             <div key={a}>
-              <dt>{a.toUpperCase()}</dt>
+              <dt>{stat(a)}</dt>
               <dd>
                 {c.abilities[a]} <small>{formatModifier(abilityModifier(c.abilities[a]))}</small>
               </dd>
@@ -108,7 +109,7 @@ function CharacterCard({
         <div className="skill-groups">
           {SKILL_GROUPS.map(({ ability, skills }) => (
             <div key={ability} className="skill-group">
-              <h4>{ability.toUpperCase()}</h4>
+              <h4>{stat(ability)}</h4>
               <ul className="skills">
                 {skills.map((s) => {
                   const proficient = c.skillProficiencies.includes(s)
@@ -119,17 +120,21 @@ function CharacterCard({
                         <span
                           className="prof-mark"
                           role="img"
-                          aria-label="proficient"
-                          title="Proficient"
+                          aria-label={t('party.proficient')}
+                          title={t('party.proficient')}
                         >
                           ●
                         </span>
                       ) : (
                         <span className="prof-mark" aria-hidden="true" />
                       )}
-                      <span className="skill-name">{statLabel(s)}</span>
+                      <span className="skill-name">{stat(s)}</span>
                       <span className="skill-mod">{formatModifier(statModifier(c, s))}</span>
-                      {uses > 0 && <span className="skill-uses muted small">{uses}× today</span>}
+                      {uses > 0 && (
+                        <span className="skill-uses muted small">
+                          {t('party.usesToday', { n: uses })}
+                        </span>
+                      )}
                     </li>
                   )
                 })}
@@ -137,11 +142,13 @@ function CharacterCard({
             </div>
           ))}
         </div>
-        <p className="muted small">● proficient · modifiers include proficiency and exhaustion</p>
+        <p className="muted small">{t('party.legend')}</p>
       </div>
       {!expanded && (
         <p className="muted small">
-          Best: {best.map((b) => `${statLabel(b.s)} ${formatModifier(b.m)}`).join(' · ')}
+          {t('party.best', {
+            list: best.map((b) => `${stat(b.s)} ${formatModifier(b.m)}`).join(' · '),
+          })}
         </p>
       )}
     </article>

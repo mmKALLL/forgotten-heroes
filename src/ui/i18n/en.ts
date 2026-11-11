@@ -1,0 +1,114 @@
+/**
+ * UI strings in English: the source of truth for message keys. Other languages are Partial and
+ * fall back to these. `{name}` placeholders are filled by t(key, { name }).
+ */
+export const en = {
+  'app.title': 'Forgotten Heroes',
+  'top.day': 'Day {day}',
+  'top.gold': '{gold} gp',
+  'top.inspiration': '✦ {n} inspiration',
+  'top.inspirationHint': 'Gained from natural 20s; spend for rerolls (coming soon)',
+  'top.seed': 'seed {seed}',
+  'top.newParty': 'New party',
+  'top.language': 'Language',
+
+  'ability.str': 'STR',
+  'ability.dex': 'DEX',
+  'ability.con': 'CON',
+  'ability.int': 'INT',
+  'ability.wis': 'WIS',
+  'ability.cha': 'CHA',
+  /** A skill checked with another ability, e.g. "Intimidation (CHA)". */
+  'check.withAbility': '{skill} ({ability})',
+
+  'tier.critFail': 'Critical failure',
+  'tier.fail': 'Failure',
+  'tier.partial': 'Partial success',
+  'tier.success': 'Success',
+  'tier.critSuccess': 'Critical success',
+
+  'position.edge': 'Edge',
+  'position.exposed': 'Exposed',
+
+  'source.original': 'Original',
+  'source.imported': 'SRD',
+  'source.imported-private': 'Private',
+  'source.procedural': 'Procedural',
+  'source.claude': 'Claude',
+  'source.hint': 'Content source: data/{source}/',
+
+  'party.heading': 'Party',
+  'party.summary': '{ancestry} {class} · lv {level}',
+  'party.hpLabel': '{name} HP',
+  'party.hpValue': '{hp} of {max} HP',
+  'party.exhaustion': 'Exhaustion {n}',
+  'party.proficient': 'Proficient',
+  'party.usesToday': '{n}× today',
+  'party.legend': '● proficient · modifiers include proficiency and exhaustion',
+  'party.best': 'Best: {list}',
+
+  'practice.heading': 'Practice check',
+  'practice.check': 'Check',
+  'practice.dc': 'DC',
+  'practice.position': 'Position',
+  'practice.normal': 'Normal',
+  'practice.edge': 'Edge (advantage)',
+  'practice.exposed': 'Exposed (disadvantage)',
+  'practice.actor': 'Actor',
+  'practice.auto': 'Auto (best)',
+  'practice.rolls': '{actor} rolls {stat} {modifier} vs DC {dc}: ',
+  'practice.needsBefore': 'needs ',
+  'practice.needsAfter': ' on the d20{suffix}',
+  'practice.toSucceed': ' to succeed',
+  'practice.oddsLabels': 'Odds labels',
+  'practice.noOne': 'No one is able to act.',
+  'practice.roll': 'Roll',
+  'roll.vsDc': '{modifier} = {total} vs DC {dc}: ',
+  'roll.best': ' (best of 2)',
+  'roll.worst': ' (worst of 2)',
+
+  'deck.heading': 'Encounter Deck',
+  'deck.draw': 'Random draw',
+  'deck.busy': 'Finish or close the current encounter first.',
+  'deck.followUps': 'Queued follow-ups: ',
+  'deck.followUp': '{id} (after {n})',
+  'deck.show': 'Show encounters ({n})',
+  'deck.showWarnings': 'Show encounters ({n} · ⚠ {invalid})',
+  'deck.hide': 'Hide encounters',
+  'deck.wonder': ' · wonder',
+  'deck.followUpOnly': ' · follow-up',
+  'deck.twist': ' · twist',
+  'deck.play': 'Play',
+  'deck.playLabel': 'Play {title}',
+
+  'dice.rolled': 'Rolled {dice}',
+  'dice.and': ' and ',
+  'dice.skip': 'Skip dice animation',
+  'dice.dc': 'DC {dc}',
+
+  'encounter.heading': 'Encounter',
+  'encounter.log': 'Encounter log',
+  'encounter.over': 'The encounter is over.',
+  'encounter.close': 'Close',
+
+  'option.situational': 'situational',
+  'option.choose': 'Choose {label}',
+  'option.vsDc': '{check} vs DC {dc}',
+  'option.actorFor': 'Actor for {label}',
+  'option.cantAct': "{name} (can't act)",
+
+  'outcomes.heading': 'Outcomes',
+  'outcomes.twist': 'Possible twist: {what} (chance: {chance})',
+  'outcomes.hint': 'Hover or focus an option to see its outcomes.',
+  'outcomes.acts': ' · {name} acts',
+  'outcomes.nothing': 'Nothing can happen.',
+  'outcomes.if': 'If {what}: ',
+  'outcomes.someTwist': 'there is a twist',
+
+  'journal.heading': 'Journal',
+  'journal.log': 'Log',
+  'journal.day': 'Day {day}',
+}
+
+export type MessageKey = keyof typeof en
+export type Messages = Record<MessageKey, string>

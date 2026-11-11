@@ -2,13 +2,22 @@ import { z } from 'zod'
 import type { Source } from '../schema/common'
 import {
   CONTENT_KINDS,
-  contentFileSchema,
+  fileSchemaFor,
   type ContentEntry,
   type ContentKind,
+  type Locale,
+  type TranslatableKind,
+  type TranslationEntry,
+  type TranslationsFile,
 } from '../schema/content'
+import { translationErrors, translationKey } from './localize'
 
 export type Sourced<T> = T & { source: Source; file: string }
-export type Content = { [K in ContentKind]: Record<string, Sourced<ContentEntry<K>>> }
+/** A loaded translation: its entry plus the file's locale and target kind. */
+export type Translation = TranslationEntry & { locale: Locale; target: TranslatableKind }
+type Stored<K extends ContentKind> = K extends 'translations' ? Translation : ContentEntry<K>
+/** Every kind by id; translations are keyed "<locale>/<target>/<id>" (see translationKey). */
+export type Content = { [K in ContentKind]: Record<string, Sourced<Stored<K>>> }
 export type ContentError = { file: string; message: string }
 
 export const emptyContent = (): Content => ({
@@ -23,6 +32,7 @@ export const emptyContent = (): Content => ({
   archetypes: {},
   partsTables: {},
   creatures: {},
+  translations: {},
 })
 
 const isKind = (kind: unknown): kind is ContentKind =>
@@ -32,6 +42,8 @@ const isKind = (kind: unknown): kind is ContentKind =>
 export const byCodeUnit = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
 
 const FOLDER = /(?:^|\/)data\/([^/]+)\//
+/** Translations live apart from the source folders: data/locales/<locale>/. */
+const LOCALE_FOLDER = /(?:^|\/)data\/locales\/([^/]+)\//
 
 /** Pure: validates and merges JSON files keyed by path. Never throws; collects errors. */
 export function buildContent(files: Record<string, unknown>): {
@@ -49,6 +61,11 @@ export function buildContent(files: Record<string, unknown>): {
       continue
     }
     if (folder === '_schema') continue
+    const localeFolder = folder === 'locales' ? LOCALE_FOLDER.exec(file)?.[1] : undefined
+    if (folder === 'locales' && !localeFolder) {
+      errors.push({ file, message: 'translation files must live in data/locales/<locale>/' })
+      continue
+    }
 
     const kind = (json as { kind?: unknown } | null)?.kind
     if (!isKind(kind)) {
@@ -59,12 +76,52 @@ export function buildContent(files: Record<string, unknown>): {
       })
       continue
     }
+    if (localeFolder && kind !== 'translations') {
+      errors.push({ file, message: `only translations belong in data/locales/, not ${kind}` })
+      continue
+    }
+    if (!localeFolder && kind === 'translations') {
+      errors.push({ file, message: 'translations must live in data/locales/<locale>/' })
+      continue
+    }
 
-    const parsed = contentFileSchema(kind).safeParse(json)
+    const parsed = fileSchemaFor(kind).safeParse(json)
     if (!parsed.success) {
       errors.push({ file, message: z.prettifyError(parsed.error) })
       continue
     }
+
+    if (localeFolder) {
+      // A translation's source says who wrote it; the folder names the locale instead.
+      const data = parsed.data as TranslationsFile
+      if (data.locale !== localeFolder) {
+        errors.push({
+          file,
+          message: `locale "${data.locale}" does not match folder data/locales/${localeFolder}/`,
+        })
+        continue
+      }
+      for (const entry of data.entries) {
+        const key = translationKey(data.locale, data.target, entry.id)
+        if (Object.hasOwn(content.translations, key)) {
+          const existing = content.translations[key]
+          errors.push({
+            file,
+            message: `duplicate ${data.locale} translation of ${data.target} "${entry.id}" (already in ${existing.file})`,
+          })
+          continue
+        }
+        content.translations[key] = {
+          ...entry,
+          locale: data.locale,
+          target: data.target,
+          source: data.source,
+          file,
+        }
+      }
+      continue
+    }
+
     if (parsed.data.source !== folder) {
       errors.push({
         file,
@@ -86,6 +143,8 @@ export function buildContent(files: Record<string, unknown>): {
       table[entry.id] = { ...entry, source: parsed.data.source, file }
     }
   }
+  // Translations can only be checked once everything they point at has loaded.
+  errors.push(...translationErrors(content))
   return { content, errors }
 }
 

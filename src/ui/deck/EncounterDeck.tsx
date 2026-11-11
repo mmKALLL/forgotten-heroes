@@ -6,7 +6,8 @@ import { contentIssues } from '../../engine/encounters/validate'
 import type { Action } from '../../engine/state'
 import { SOURCES, type Source } from '../../schema/common'
 import type { GameState } from '../../schema/state'
-import { SOURCE_LABELS, SourceBadge } from '../SourceBadge'
+import { useI18n } from '../i18n/I18n'
+import { SourceBadge } from '../SourceBadge'
 
 type Props = {
   content: Content
@@ -40,6 +41,7 @@ function saveExpanded(expanded: boolean) {
  * of situations starts collapsed; the filter and the draw stay visible either way.
  */
 export function EncounterDeck({ content, state, rolling = false, onAction }: Props) {
+  const { t, localize } = useI18n()
   const situations = useMemo(() => allSituations(content), [content])
   const issues = useMemo(() => contentIssues(content), [content])
   const [sources, setSources] = useState<Source[]>([...SOURCES])
@@ -57,11 +59,14 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
   const shown = situations.filter((s) => sources.includes(s.source))
   // Collapsed, the toggle keeps the warnings visible: how many shown encounters are broken.
   const invalid = shown.filter((s) => Object.hasOwn(issues, s.id)).length
-  const collapsedLabel = `Show encounters (${shown.length}${invalid > 0 ? ` · ⚠ ${invalid}` : ''})`
+  const collapsedLabel =
+    invalid > 0
+      ? t('deck.showWarnings', { n: shown.length, invalid })
+      : t('deck.show', { n: shown.length })
 
   return (
-    <section className="panel deck" aria-label="Encounter Deck">
-      <h2>Encounter Deck</h2>
+    <section className="panel deck" aria-label={t('deck.heading')}>
+      <h2>{t('deck.heading')}</h2>
       <div className="controls">
         {SOURCES.map((source) => (
           <label key={source} className="inline">
@@ -70,7 +75,7 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
               checked={sources.includes(source)}
               onChange={() => toggle(source)}
             />{' '}
-            {SOURCE_LABELS[source]} ({situations.filter((s) => s.source === source).length})
+            {t(`source.${source}`)} ({situations.filter((s) => s.source === source).length})
           </label>
         ))}
       </div>
@@ -79,13 +84,15 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
         disabled={busy || sources.length === 0}
         onClick={() => onAction({ type: 'drawEncounter', sources })}
       >
-        Random draw
+        {t('deck.draw')}
       </button>
-      {busy && <p className="muted small">Finish or close the current encounter first.</p>}
+      {busy && <p className="muted small">{t('deck.busy')}</p>}
       {state.followUps.length > 0 && (
         <p className="muted small">
-          Queued follow-ups:{' '}
-          {state.followUps.map((f) => `${f.situationId} (after ${f.wait})`).join(', ')}
+          {t('deck.followUps')}
+          {state.followUps
+            .map((f) => t('deck.followUp', { id: f.situationId, n: f.wait }))
+            .join(', ')}
         </p>
       )}
       <button
@@ -94,7 +101,7 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
         aria-controls={listId}
         onClick={toggleExpanded}
       >
-        {expanded ? 'Hide encounters' : collapsedLabel}
+        {expanded ? t('deck.hide') : collapsedLabel}
       </button>
       <div id={listId} hidden={!expanded}>
         {SOURCES.filter((source) => sources.includes(source)).map((source) => {
@@ -106,28 +113,34 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
                 <SourceBadge source={source} />
               </h3>
               <ul className="deck-list">
-                {group.map((s) => (
-                  <li key={`${s.file}/${s.id}`}>
-                    <span>
-                      {s.title}
-                      {s.wonder && <span className="muted small"> · wonder</span>}
-                      {s.followUpOnly && <span className="muted small"> · follow-up</span>}
-                      {s.twist && <span className="muted small"> · twist</span>}
-                    </span>
-                    {Object.hasOwn(issues, s.id) && (
-                      <span className="tone-bad small" title={issues[s.id].join('\n')}>
-                        ⚠ {issues[s.id].length}
+                {group.map((s) => {
+                  // Templates arrive here as situations too; only situations are translated so far.
+                  const title = localize(s, 'situations').title
+                  return (
+                    <li key={`${s.file}/${s.id}`}>
+                      <span>
+                        {title}
+                        {s.wonder && <span className="muted small">{t('deck.wonder')}</span>}
+                        {s.followUpOnly && (
+                          <span className="muted small">{t('deck.followUpOnly')}</span>
+                        )}
+                        {s.twist && <span className="muted small">{t('deck.twist')}</span>}
                       </span>
-                    )}
-                    <button
-                      disabled={busy}
-                      onClick={() => onAction({ type: 'startEncounter', situationId: s.id })}
-                      aria-label={`Play ${s.title}`}
-                    >
-                      Play
-                    </button>
-                  </li>
-                ))}
+                      {Object.hasOwn(issues, s.id) && (
+                        <span className="tone-bad small" title={issues[s.id].join('\n')}>
+                          ⚠ {issues[s.id].length}
+                        </span>
+                      )}
+                      <button
+                        disabled={busy}
+                        onClick={() => onAction({ type: 'startEncounter', situationId: s.id })}
+                        aria-label={t('deck.playLabel', { title })}
+                      >
+                        {t('deck.play')}
+                      </button>
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )

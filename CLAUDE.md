@@ -44,6 +44,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
   - `claude/`: everything Claude writes goes here, never into `original/`.
 - **Skills** live in `data/original/skills.json` (default abilities are editable there; new skill ids must also be added to `src/schema/constants.ts`).
 - **Encounters** live in `situations.json` files in any source, plus `archetypes`, `situationTemplates`, `partsTables` and `creatures`. `pnpm test` checks every situation for playability and the quality rules. The Encounter Deck (right column) plays any situation and shows a ⚠ count for broken ones.
+- **Localization** (design §9): English is the default; Japanese is optional and rough. UI strings are in `src/ui/i18n/` (`en.ts` defines the keys; `ja.ts` is partial and falls back to English). Content translations are `translations` files in `data/locales/<locale>/` that overlay text fields of entries by id and dotted path; loading validates ids and paths. Engine-made text (roll lines, effect chips, the journal) is still English; it should become structured messages later.
 - **No AI generation at play time.** Content is written ahead of time and committed as editable data.
 - `pnpm build` bundles `data/imported-private/` when present locally — never publish a build made with private content.
 

@@ -1,0 +1,105 @@
+import type { Messages } from './en'
+
+/**
+ * UI strings in Japanese (rough, by Claude). Missing keys fall back to English: the content-source
+ * badges stay English on purpose, as dev labels. Terms follow the Japanese D&D 5e books where they
+ * exist (能力値, 技能, 有利/不利, インスピレーション).
+ */
+export const ja: Partial<Messages> = {
+  'app.title': '忘れられし英雄たち',
+  'top.day': '{day}日目',
+  'top.gold': '{gold} gp',
+  'top.inspiration': '✦ インスピレーション {n}',
+  'top.inspirationHint': '出目20で得られる。振り直しに使える（近日実装）',
+  'top.seed': 'シード {seed}',
+  'top.newParty': '新しいパーティ',
+  'top.language': '言語',
+
+  'ability.str': '筋力',
+  'ability.dex': '敏捷力',
+  'ability.con': '耐久力',
+  'ability.int': '知力',
+  'ability.wis': '判断力',
+  'ability.cha': '魅力',
+  'check.withAbility': '{skill}（{ability}）',
+
+  'tier.critFail': '大失敗',
+  'tier.fail': '失敗',
+  'tier.partial': '部分的成功',
+  'tier.success': '成功',
+  'tier.critSuccess': '大成功',
+
+  'position.edge': '好機',
+  'position.exposed': '窮地',
+
+  'party.heading': 'パーティ',
+  'party.summary': '{ancestry}・{class} · Lv{level}',
+  'party.hpLabel': '{name}のHP',
+  'party.hpValue': 'HP {hp}／{max}',
+  'party.exhaustion': '消耗 {n}',
+  'party.proficient': '習熟',
+  'party.usesToday': '今日{n}回',
+  'party.legend': '● 習熟 · 修正値は習熟と消耗を含む',
+  'party.best': '得意: {list}',
+
+  'practice.heading': '練習判定',
+  'practice.check': '判定',
+  'practice.dc': 'DC',
+  'practice.position': '状況',
+  'practice.normal': '通常',
+  'practice.edge': '好機（有利）',
+  'practice.exposed': '窮地（不利）',
+  'practice.actor': '担当',
+  'practice.auto': '自動（最適）',
+  'practice.rolls': '{actor}の{stat}判定 {modifier}、DC {dc}：',
+  'practice.needsBefore': 'd20で',
+  'practice.needsAfter': 'が必要{suffix}',
+  'practice.toSucceed': 'で成功',
+  'practice.oddsLabels': '確率の表示',
+  'practice.noOne': '行動できる者がいない。',
+  'practice.roll': '振る',
+  'roll.vsDc': '{modifier} = {total}、DC {dc}：',
+  'roll.best': '（2回振って高い方）',
+  'roll.worst': '（2回振って低い方）',
+
+  'deck.heading': '遭遇デッキ',
+  'deck.draw': 'ランダムに引く',
+  'deck.busy': '先に現在の遭遇を終えるか閉じること。',
+  'deck.followUps': '予約中の続き：',
+  'deck.followUp': '{id}（あと{n}回）',
+  'deck.show': '遭遇一覧を表示（{n}）',
+  'deck.showWarnings': '遭遇一覧を表示（{n} · ⚠ {invalid}）',
+  'deck.hide': '遭遇一覧を隠す',
+  'deck.wonder': ' · 驚異',
+  'deck.followUpOnly': ' · 続き専用',
+  'deck.twist': ' · 裏あり',
+  'deck.play': 'プレイ',
+  'deck.playLabel': '「{title}」をプレイ',
+
+  'dice.rolled': '出目 {dice}',
+  'dice.and': '・',
+  'dice.skip': 'ダイスの演出を飛ばす',
+
+  'encounter.heading': '遭遇',
+  'encounter.log': '遭遇の記録',
+  'encounter.over': '遭遇は終わった。',
+  'encounter.close': '閉じる',
+
+  'option.situational': '状況',
+  'option.choose': '「{label}」を選ぶ',
+  'option.vsDc': '{check}、DC {dc}',
+  'option.actorFor': '「{label}」の担当',
+  'option.cantAct': '{name}（行動不能）',
+
+  'outcomes.heading': '結果',
+  'outcomes.twist': '裏があるかも：{what}（確率：{chance}）',
+  'outcomes.hint': '選択肢にカーソルを合わせるかフォーカスすると結果が表示される。',
+  'outcomes.acts': ' · {name}が行う',
+  'outcomes.nothing': '何も起こりえない。',
+  'outcomes.if': '{what}なら：',
+  'outcomes.someTwist': '裏がある',
+
+  'journal.heading': '冒険日誌',
+  'journal.log': '記録',
+  'journal.day': '{day}日目',
+}

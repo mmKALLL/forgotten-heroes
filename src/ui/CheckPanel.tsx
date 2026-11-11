@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { formatModifier, formatPercent } from '../engine/format'
-import { ABILITIES, SKILLS, statLabel, type CheckStat } from '../engine/rules/abilities'
+import { ABILITIES, SKILLS, type CheckStat } from '../engine/rules/abilities'
 import { rankActors } from '../engine/rules/character'
-import { TIER_LABELS, successChance, tierFaces, type RollMode } from '../engine/rules/checks'
+import { successChance, tierFaces, type RollMode } from '../engine/rules/checks'
 import { MAX_DC, MIN_DC, previewCheck, type Action } from '../engine/state'
 import type { GameState } from '../schema/state'
+import { useI18n } from './i18n/I18n'
 import { OddsBar, ROLL_MODE_SUFFIX, neededFace, type OddsLabelMode } from './OddsBar'
 
 const ODDS_LABEL_KEY = 'forgotten-heroes/ui/odds-label'
@@ -38,6 +39,7 @@ export function CheckPanel({
   /** The %/d20 toggle is hidden for now; it will move to a settings view. Hidden, the default applies. */
   showLabelToggle?: boolean
 }) {
+  const { t, stat: statName, tier: tierName } = useI18n()
   const [stat, setStat] = useState<CheckStat>('persuasion')
   // Keep the raw text so the field can be cleared and retyped; the engine normalises the number.
   const [dcText, setDcText] = useState('13')
@@ -58,23 +60,24 @@ export function CheckPanel({
   const roll = state.lastRoll
   const faces = preview ? tierFaces(preview.modifier, preview.dc) : null
   const needs = faces ? neededFace(faces) : 20
+  const suffix = ROLL_MODE_SUFFIX[mode]
 
   return (
-    <section className="panel" aria-label="Practice check">
-      <h2>Practice check</h2>
+    <section className="panel" aria-label={t('practice.heading')}>
+      <h2>{t('practice.heading')}</h2>
       <div className="controls">
         <label>
-          Check
+          {t('practice.check')}
           <select value={stat} onChange={(e) => setStat(e.target.value as CheckStat)}>
             {STATS.map((s) => (
               <option key={s} value={s}>
-                {statLabel(s)}
+                {statName(s)}
               </option>
             ))}
           </select>
         </label>
         <label>
-          DC
+          {t('practice.dc')}
           <input
             type="number"
             min={MIN_DC}
@@ -85,17 +88,17 @@ export function CheckPanel({
           />
         </label>
         <label>
-          Position
+          {t('practice.position')}
           <select value={mode} onChange={(e) => setMode(e.target.value as RollMode)}>
-            <option value="normal">Normal</option>
-            <option value="advantage">Edge (advantage)</option>
-            <option value="disadvantage">Exposed (disadvantage)</option>
+            <option value="normal">{t('practice.normal')}</option>
+            <option value="advantage">{t('practice.edge')}</option>
+            <option value="disadvantage">{t('practice.exposed')}</option>
           </select>
         </label>
         <label>
-          Actor
+          {t('practice.actor')}
           <select value={selected} onChange={(e) => setActorId(e.target.value)}>
-            <option value="">Auto (best)</option>
+            <option value="">{t('practice.auto')}</option>
             {rankActors(state.party, stat).map((r) => (
               <option key={r.characterId} value={r.characterId}>
                 {nameOf(r.characterId)} {formatModifier(r.modifier)}
@@ -108,22 +111,29 @@ export function CheckPanel({
       {preview ? (
         <>
           <p>
-            {preview.actorName} rolls {statLabel(stat)} {formatModifier(preview.modifier)} vs DC{' '}
-            {preview.dc}:{' '}
+            {t('practice.rolls', {
+              actor: preview.actorName,
+              stat: statName(stat),
+              modifier: formatModifier(preview.modifier),
+              dc: preview.dc,
+            })}
             {labelMode === 'faces' ? (
               <>
-                needs <strong>{needs}+</strong> on the d20{ROLL_MODE_SUFFIX[mode]}
+                {t('practice.needsBefore')}
+                <strong>{needs}+</strong>
+                {t('practice.needsAfter', { suffix: suffix ? t(suffix) : '' })}
               </>
             ) : (
               <>
-                <strong>{formatPercent(successChance(preview.odds))}</strong> to succeed
+                <strong>{formatPercent(successChance(preview.odds))}</strong>
+                {t('practice.toSucceed')}
               </>
             )}
           </p>
           <div className="odds-row">
             <OddsBar odds={preview.odds} faces={faces ?? undefined} labelMode={labelMode} />
             {showLabelToggle && (
-              <div className="seg-toggle" role="group" aria-label="Odds labels">
+              <div className="seg-toggle" role="group" aria-label={t('practice.oddsLabels')}>
                 {(
                   [
                     ['percent', '%'],
@@ -139,7 +149,7 @@ export function CheckPanel({
           </div>
         </>
       ) : (
-        <p className="muted">No one is able to act.</p>
+        <p className="muted">{t('practice.noOne')}</p>
       )}
 
       <button
@@ -149,7 +159,7 @@ export function CheckPanel({
           onAction({ type: 'practiceCheck', stat, dc, mode, actorId: selected || undefined })
         }
       >
-        Roll
+        {t('practice.roll')}
       </button>
 
       <div className={roll ? `roll tier-${roll.tier}` : 'roll'} aria-live="polite">
@@ -163,8 +173,12 @@ export function CheckPanel({
               ))}
             </span>
             <span>
-              {formatModifier(roll.modifier)} = {roll.total} vs DC {roll.dc}:{' '}
-              <strong>{TIER_LABELS[roll.tier]}</strong>
+              {t('roll.vsDc', {
+                modifier: formatModifier(roll.modifier),
+                total: roll.total,
+                dc: roll.dc,
+              })}
+              <strong>{tierName(roll.tier)}</strong>
             </span>
           </>
         )}

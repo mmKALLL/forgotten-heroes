@@ -1,9 +1,11 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { encounterOptions, twistInfo } from '../../engine/encounters/preview'
-import { encounterOver } from '../../engine/encounters/run'
+import { currentOptions, encounterOver } from '../../engine/encounters/run'
 import type { Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
 import { DiceRoll } from '../dice/DiceRoll'
+import { localizeEncounterState } from '../i18n/encounter'
+import { useI18n } from '../i18n/I18n'
 import { SourceBadge } from '../SourceBadge'
 import { OptionCard } from './OptionCard'
 import { OutcomesPanel } from './OutcomesPanel'
@@ -24,7 +26,12 @@ export function EncounterView({
   /** Called when a new roll's dice settle or are skipped, so the rest of the page can catch up. */
   onRevealed?: () => void
 }) {
+  const { t, fields, check: checkName } = useI18n()
   const encounter = state.encounter!
+  // What the player reads: the situation and its log lines in the UI language, where translated.
+  // The rest of this component keys on `encounter`, which never changes with the language.
+  const view = localizeEncounterState(state, fields('situations', encounter.situation.id))
+  const shown = view.encounter!
   // The first log entry is kept by every step, so a new one means a new encounter started here.
   const first = encounter.log[0]
   const [seen, setSeen] = useState(() => ({ first, baseline: lastRollIndex(encounter) }))
@@ -43,8 +50,8 @@ export function EncounterView({
 
   const rollIndex = lastRollIndex(encounter)
   const animating = rollIndex > shownRoll
-  const visible = animating ? encounter.log.slice(0, rollIndex + 1) : encounter.log
-  const twist = twistInfo(state)
+  const visible = animating ? shown.log.slice(0, rollIndex + 1) : shown.log
+  const twist = twistInfo(view)
   // Actor overrides are kept per stage and option: another stage may reuse an option id.
   const prefix = `${encounter.stage}/`
   const keyOf = (optionId: string) => prefix + optionId
@@ -52,7 +59,10 @@ export function EncounterView({
   for (const [key, actorId] of Object.entries(actorIds)) {
     if (key.startsWith(prefix)) stageActorIds[key.slice(prefix.length)] = actorId
   }
-  const options = encounterOptions(state, stageActorIds)
+  const options = encounterOptions(view, stageActorIds)
+  const checks = new Map(
+    currentOptions(encounter).flatMap((o) => (o.kind === 'check' ? [[o.id, o.check]] : []))
+  )
   const previewed = options.find((o) => keyOf(o.id) === previewKey) ?? null
   // Ended, or nothing can be chosen any more (e.g. the party is down): it can only close.
   const over = encounterOver(state)
@@ -77,21 +87,21 @@ export function EncounterView({
   }, [first, length, animating])
 
   return (
-    <section className="panel encounter" aria-label="Encounter">
+    <section className="panel encounter" aria-label={t('encounter.heading')}>
       <header className="card-head">
         <h2 ref={headingRef} tabIndex={-1}>
-          {encounter.situation.title}
+          {shown.situation.title}
         </h2>
         <span>
           <SourceBadge source={encounter.source} />
           {encounter.position !== 'normal' && (
             <span className={`badge position-${encounter.position}`}>
-              {encounter.position === 'edge' ? 'Edge' : 'Exposed'}
+              {t(encounter.position === 'edge' ? 'position.edge' : 'position.exposed')}
             </span>
           )}
         </span>
       </header>
-      <ol className="encounter-log" aria-label="Encounter log" aria-live="polite">
+      <ol className="encounter-log" aria-label={t('encounter.log')} aria-live="polite">
         {visible.map((entry, i) => (
           <li key={i} className={`tone-${entry.tone}`}>
             {entry.roll && i === rollIndex && i > seen.baseline && (
@@ -112,31 +122,35 @@ export function EncounterView({
       </ol>
       {animating ? null : over ? (
         <div ref={nextRef}>
-          <p className="muted">The encounter is over.</p>
+          <p className="muted">{t('encounter.over')}</p>
           <button className="primary next" onClick={() => onAction({ type: 'closeEncounter' })}>
-            Close
+            {t('encounter.close')}
           </button>
         </div>
       ) : (
         <>
           <div className="options" ref={nextRef}>
-            {options.map((option) => (
-              <OptionCard
-                key={keyOf(option.id)}
-                option={option}
-                onActor={(id) => setActorIds({ ...actorIds, [keyOf(option.id)]: id })}
-                onPreview={() => setPreviewKey(keyOf(option.id))}
-                previewed={previewed === option}
-                outcomesId={outcomesId}
-                onChoose={() =>
-                  onAction({
-                    type: 'chooseOption',
-                    optionId: option.id,
-                    actorId: stageActorIds[option.id] || undefined,
-                  })
-                }
-              />
-            ))}
+            {options.map((option) => {
+              const check = checks.get(option.id)
+              return (
+                <OptionCard
+                  key={keyOf(option.id)}
+                  option={option}
+                  checkLabel={check && checkName(check.skill, check.ability)}
+                  onActor={(id) => setActorIds({ ...actorIds, [keyOf(option.id)]: id })}
+                  onPreview={() => setPreviewKey(keyOf(option.id))}
+                  previewed={previewed === option}
+                  outcomesId={outcomesId}
+                  onChoose={() =>
+                    onAction({
+                      type: 'chooseOption',
+                      optionId: option.id,
+                      actorId: stageActorIds[option.id] || undefined,
+                    })
+                  }
+                />
+              )
+            })}
           </div>
           <OutcomesPanel id={outcomesId} option={previewed} twist={twist} />
         </>

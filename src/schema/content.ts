@@ -70,6 +70,41 @@ export const SkillDefSchema = z.object({
 })
 export type SkillDef = z.infer<typeof SkillDefSchema>
 
+/** Locales with content translations. English is the source language and needs none. */
+export const LOCALES = ['ja'] as const
+export const LocaleSchema = z.enum(LOCALES)
+export type Locale = z.infer<typeof LocaleSchema>
+
+/** Content kinds a translation can target (every kind but translations itself). */
+export const TRANSLATABLE_KINDS = [
+  'classes',
+  'ancestries',
+  'names',
+  'settlementTypes',
+  'services',
+  'skills',
+  'situations',
+  'situationTemplates',
+  'archetypes',
+  'partsTables',
+  'creatures',
+] as const
+export type TranslatableKind = (typeof TRANSLATABLE_KINDS)[number]
+
+export const TranslationEntrySchema = z.object({
+  id: z
+    .string()
+    .min(1)
+    .describe("The translated entry's id in the target kind (skill ids are camelCase)"),
+  fields: z
+    .record(z.string(), z.string())
+    .describe(
+      'Dotted path → translated text, e.g. "title", "stages.start.text" or ' +
+        '"stages.start.options.read.outcomes.success.text". Array items are addressed by id, or by index.'
+    ),
+})
+export type TranslationEntry = z.infer<typeof TranslationEntrySchema>
+
 export const CONTENT_KINDS = {
   classes: ClassDefSchema,
   ancestries: AncestryDefSchema,
@@ -82,6 +117,7 @@ export const CONTENT_KINDS = {
   archetypes: ArchetypeSchema,
   partsTables: PartsTableSchema,
   creatures: CreatureSchema,
+  translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS
 export type ContentEntry<K extends ContentKind> = z.infer<(typeof CONTENT_KINDS)[K]>
@@ -95,3 +131,14 @@ export function contentFileSchema<K extends ContentKind>(kind: K) {
     entries: z.array(CONTENT_KINDS[kind]),
   })
 }
+
+/** Translation files live in data/locales/<locale>/ and name their locale and target kind. */
+export const TranslationsFileSchema = contentFileSchema('translations').extend({
+  locale: LocaleSchema,
+  target: z.enum(TRANSLATABLE_KINDS),
+})
+export type TranslationsFile = z.infer<typeof TranslationsFileSchema>
+
+/** The schema a file of this kind must match (translations carry extra envelope fields). */
+export const fileSchemaFor = (kind: ContentKind) =>
+  kind === 'translations' ? TranslationsFileSchema : contentFileSchema(kind)

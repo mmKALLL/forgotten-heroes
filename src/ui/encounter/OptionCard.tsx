@@ -1,6 +1,7 @@
 import { useId, type KeyboardEvent, type SyntheticEvent } from 'react'
 import type { OptionPreview } from '../../engine/encounters/preview'
 import { formatModifier } from '../../engine/format'
+import { useI18n } from '../i18n/I18n'
 import { OddsBar, type OddsLabelMode } from '../OddsBar'
 
 type Props = {
@@ -15,6 +16,8 @@ type Props = {
   outcomesId: string
   /** d20 faces by default, like the practice check; '%' stays available for a future setting. */
   labelMode?: OddsLabelMode
+  /** The check's skill in the UI language; the engine's English label when absent. */
+  checkLabel?: string
 }
 
 /** Keeps the actor picker's clicks and keys from choosing the card around it. */
@@ -46,7 +49,9 @@ export function OptionCard({
   previewed,
   outcomesId,
   labelMode = 'faces',
+  checkLabel,
 }: Props) {
+  const { t } = useI18n()
   const { check, available } = option
   const descriptionId = useId()
   const summaryId = useId()
@@ -64,10 +69,12 @@ export function OptionCard({
   }
   const modifier =
     check && check.situationalModifier !== 0
-      ? ` · ${formatModifier(check.situationalModifier)} ${check.situationalReason ?? 'situational'}`
+      ? ` · ${formatModifier(check.situationalModifier)} ${check.situationalReason ?? t('option.situational')}`
       : ''
   const position =
-    check && check.mode !== 'normal' ? ` · ${check.mode === 'advantage' ? 'Edge' : 'Exposed'}` : ''
+    check && check.mode !== 'normal'
+      ? ` · ${t(check.mode === 'advantage' ? 'position.edge' : 'position.exposed')}`
+      : ''
   const classes = ['option-card', previewed && 'previewed', !available && 'unavailable']
   return (
     // Mouse convenience only: the role="button" area below is the keyboard and screen-reader target.
@@ -84,7 +91,7 @@ export function OptionCard({
           role="button"
           tabIndex={0}
           aria-disabled={!available || undefined}
-          aria-label={`Choose ${option.label}`}
+          aria-label={t('option.choose', { label: option.label })}
           aria-describedby={[
             summaryOnLabel && summaryId,
             hasDescription && descriptionId,
@@ -114,12 +121,12 @@ export function OptionCard({
         {check && (
           <div className="card-side">
             <span className="small check-line">
-              {check.label} vs DC {check.dc}
+              {t('option.vsDc', { check: checkLabel ?? check.label, dc: check.dc })}
               {modifier}
               {position}
             </span>
             <select
-              aria-label={`Actor for ${option.label}`}
+              aria-label={t('option.actorFor', { label: option.label })}
               // The engine's actor: the player's pick while they can act, otherwise the best.
               value={check.actorId}
               onChange={(e) => onActor(e.target.value)}
@@ -133,7 +140,7 @@ export function OptionCard({
               ))}
               {check.unableActors.map((a) => (
                 <option key={a.id} value={a.id} disabled>
-                  {a.name} (can't act)
+                  {t('option.cantAct', { name: a.name })}
                 </option>
               ))}
             </select>

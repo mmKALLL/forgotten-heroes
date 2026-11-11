@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "translations"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The translated entry's id in the target kind (skill ids are camelCase)"
+          },
+          "fields": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema1"
+            },
+            "description": "Dotted path → translated text, e.g. \"title\", \"stages.start.text\" or \"stages.start.options.read.outcomes.success.text\". Array items are addressed by id, or by index."
+          }
+        },
+        "required": [
+          "id",
+          "fields"
+        ]
+      }
+    },
+    "locale": {
+      "type": "string",
+      "enum": [
+        "ja"
+      ]
+    },
+    "target": {
+      "type": "string",
+      "enum": [
+        "classes",
+        "ancestries",
+        "names",
+        "settlementTypes",
+        "services",
+        "skills",
+        "situations",
+        "situationTemplates",
+        "archetypes",
+        "partsTables",
+        "creatures"
+      ]
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries",
+    "locale",
+    "target"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string"
+    },
+    "__schema1": {
+      "type": "string"
+    }
+  }
+}

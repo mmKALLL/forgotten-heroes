@@ -187,3 +187,80 @@ describe('locale-independent ordering', () => {
     expect(errors[0].file).toBe('data/original/z.json')
   })
 })
+
+describe('translations', () => {
+  const jaClasses = (overrides: Record<string, unknown> = {}) => ({
+    kind: 'translations',
+    source: 'claude',
+    locale: 'ja',
+    target: 'classes',
+    entries: [{ id: 'fighter', fields: { name: 'ファイター' } }],
+    ...overrides,
+  })
+  const withFighter = (files: Record<string, unknown>) =>
+    buildContent({ 'data/original/classes.json': classesFile('original'), ...files })
+
+  test('load from data/locales/<locale>/, keyed by locale, target and id', () => {
+    const { content, errors } = withFighter({ 'data/locales/ja/classes.json': jaClasses() })
+    expect(errors).toEqual([])
+    expect(content.translations['ja/classes/fighter']).toMatchObject({
+      fields: { name: 'ファイター' },
+      locale: 'ja',
+      target: 'classes',
+      source: 'claude',
+      file: 'data/locales/ja/classes.json',
+    })
+  })
+
+  test('source is checked against the source list, not the folder', () => {
+    const { errors } = withFighter({
+      'data/locales/ja/classes.json': jaClasses({ source: 'nobody' }),
+    })
+    expect(errors[0].message).toMatch(/source/)
+  })
+
+  test("the file's locale must match its folder", () => {
+    const { errors } = withFighter({ 'data/locales/fr/classes.json': jaClasses() })
+    expect(errors[0].message).toMatch(/locale "ja" does not match folder data\/locales\/fr\//)
+  })
+
+  test('only translations belong in data/locales/, and translations only there', () => {
+    const { errors } = withFighter({
+      'data/locales/ja/x.json': classesFile('claude'),
+      'data/claude/ja-classes.json': jaClasses(),
+      'data/locales/loose.json': jaClasses(),
+    })
+    expect(errors.map((e) => e.file)).toEqual([
+      'data/claude/ja-classes.json',
+      'data/locales/ja/x.json',
+      'data/locales/loose.json',
+    ])
+    expect(errors[0].message).toMatch(/must live in data\/locales\/<locale>\//)
+    expect(errors[1].message).toMatch(/only translations belong in data\/locales\//)
+    expect(errors[2].message).toMatch(/must live in data\/locales\/<locale>\//)
+  })
+
+  test('a translation must name an existing entry and existing text fields', () => {
+    const { errors } = withFighter({
+      'data/locales/ja/classes.json': jaClasses({
+        entries: [
+          { id: 'fighter', fields: { name: 'ファイター', title: '戦士', hitDie: '十' } },
+          { id: 'jester', fields: { name: '道化' } },
+        ],
+      }),
+    })
+    expect(errors.map((e) => e.message)).toEqual([
+      'ja translation of classes "fighter": "title" is not a text field',
+      'ja translation of classes "fighter": "hitDie" is not a text field',
+      'ja translation of unknown classes "jester"',
+    ])
+  })
+
+  test('the same entry translated twice is a duplicate', () => {
+    const { errors } = withFighter({
+      'data/locales/ja/a.json': jaClasses(),
+      'data/locales/ja/b.json': jaClasses(),
+    })
+    expect(errors[0].message).toMatch(/duplicate ja translation of classes "fighter"/)
+  })
+})

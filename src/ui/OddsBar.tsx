@@ -1,19 +1,15 @@
 import { formatFaces, formatFacesShort, formatPercent } from '../engine/format'
-import {
-  TIERS,
-  TIER_LABELS,
-  type FaceRange,
-  type RollMode,
-  type Tier,
-} from '../engine/rules/checks'
+import { TIERS, type FaceRange, type RollMode, type Tier } from '../engine/rules/checks'
+import type { MessageKey } from './i18n/en'
+import { useI18n } from './i18n/I18n'
 
 export type OddsLabelMode = 'percent' | 'faces'
 
-/** Appended to "needs 12+ on the d20" under Edge or Exposed. */
-export const ROLL_MODE_SUFFIX: Record<RollMode, string> = {
-  normal: '',
-  advantage: ' (best of 2)',
-  disadvantage: ' (worst of 2)',
+/** Appended to "needs 12+ on the d20" under Edge or Exposed (message keys; none when normal). */
+export const ROLL_MODE_SUFFIX: Record<RollMode, MessageKey | null> = {
+  normal: null,
+  advantage: 'roll.best',
+  disadvantage: 'roll.worst',
 }
 
 /** Lowest kept face that succeeds; only the natural 20 when the DC is out of reach. */
@@ -32,10 +28,11 @@ export function OddsBar({
   faces?: Record<Tier, FaceRange | null>
   labelMode: OddsLabelMode
 }) {
+  const { tier: tierName } = useI18n()
   const describe = (t: Tier) => {
     const range = faces?.[t]
     const pct = formatPercent(odds[t])
-    return range ? `${TIER_LABELS[t]}: ${formatFaces(range)} (${pct})` : `${TIER_LABELS[t]}: ${pct}`
+    return range ? `${tierName(t)}: ${formatFaces(range)} (${pct})` : `${tierName(t)}: ${pct}`
   }
   const label = (t: Tier) => {
     const range = faces?.[t]

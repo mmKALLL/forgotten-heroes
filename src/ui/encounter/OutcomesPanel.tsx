@@ -5,7 +5,7 @@ import type {
   TwistInfo,
 } from '../../engine/encounters/preview'
 import { formatPercent } from '../../engine/format'
-import { TIER_LABELS } from '../../engine/rules/checks'
+import { useI18n } from '../i18n/I18n'
 
 function Branch({ branch }: { branch: BranchPreview }) {
   return (
@@ -36,29 +36,36 @@ export function OutcomesPanel({
   option: OptionPreview | null
   twist: TwistInfo | null
 }) {
+  const { t, tier: tierName } = useI18n()
   const shown = option?.outcomes.filter((o): o is ShownOutcome => !o.hidden) ?? []
   return (
-    <section className="outcomes-panel" aria-label="Outcomes">
+    <section className="outcomes-panel" aria-label={t('outcomes.heading')}>
       <header className="card-head">
-        <h3>Outcomes</h3>
+        <h3>{t('outcomes.heading')}</h3>
         {twist && (
           <span className="muted small">
-            Possible twist: {twist.what} (chance:{' '}
-            {twist.chance === null ? '?' : formatPercent(twist.chance)})
+            {t('outcomes.twist', {
+              what: twist.what,
+              chance: twist.chance === null ? '?' : formatPercent(twist.chance),
+            })}
           </span>
         )}
       </header>
       <div id={id} className="outcomes-box">
         {!option ? (
-          <p className="muted small">Hover or focus an option to see its outcomes.</p>
+          <p className="muted small">{t('outcomes.hint')}</p>
         ) : (
           <>
             <p className="small outcomes-for">
               <strong>{option.label}</strong>
-              {option.check && <span className="muted"> · {option.check.actorName} acts</span>}
+              {option.check && (
+                <span className="muted">
+                  {t('outcomes.acts', { name: option.check.actorName })}
+                </span>
+              )}
             </p>
             {shown.length === 0 ? (
-              <p className="muted small">{option.unmet.join(', ') || 'Nothing can happen.'}</p>
+              <p className="muted small">{option.unmet.join(', ') || t('outcomes.nothing')}</p>
             ) : (
               <ul className="outcomes">
                 {[...shown].reverse().map((o) => (
@@ -66,15 +73,16 @@ export function OutcomesPanel({
                     {/* The colour names the tier; the name stays in the tooltip and for screen readers. */}
                     <span
                       className={`tier-marker tier-${o.tier ?? 'fixed'}`}
-                      title={o.tier ? TIER_LABELS[o.tier] : undefined}
+                      title={o.tier ? tierName(o.tier) : undefined}
                     >
-                      {o.tier && <span className="sr-only">{TIER_LABELS[o.tier]}: </span>}
+                      {o.tier && <span className="sr-only">{tierName(o.tier)}: </span>}
                     </span>
                     <div>
                       <Branch branch={o} />
                       {o.twist && (
                         <div className="twist small">
-                          If {twist?.what ?? 'there is a twist'}: <Branch branch={o.twist} />
+                          {t('outcomes.if', { what: twist?.what ?? t('outcomes.someTwist') })}
+                          <Branch branch={o.twist} />
                         </div>
                       )}
                     </div>

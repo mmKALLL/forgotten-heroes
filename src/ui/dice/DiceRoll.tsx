@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RollRecord } from '../../schema/state'
+import { useI18n } from '../i18n/I18n'
 import { flickerDelay, settleTimes } from './schedule'
 
 export const prefersReducedMotion = (): boolean =>
@@ -27,6 +28,7 @@ type Props = {
  * Layout: one row, the dice beside the DC track; the outcome text goes below it (the caller's).
  */
 export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
+  const { t } = useI18n()
   const [reduced] = useState(prefersReducedMotion)
   const [settled, setSettled] = useState(() => roll.dice.map(() => reduced))
   const [faces, setFaces] = useState(() => (reduced ? roll.dice : roll.dice.map(randomFace)))
@@ -102,7 +104,9 @@ export function DiceRoll({ roll, highStakes = false, onDone }: Props) {
       // Once settled it is just the result: focus moves on to what comes next.
       tabIndex={allSettled ? -1 : 0}
       onClick={finish}
-      aria-label={allSettled ? `Rolled ${roll.dice.join(' and ')}` : 'Skip dice animation'}
+      aria-label={
+        allSettled ? t('dice.rolled', { dice: roll.dice.join(t('dice.and')) }) : t('dice.skip')
+      }
     >
       <span className="dice">
         {roll.dice.map((_, i) => (
@@ -160,13 +164,14 @@ function D20({
 
 /** The DC as a line on the range of possible totals; the total appears once the dice settle. */
 function DcLine({ roll, done }: { roll: RollRecord; done: boolean }) {
+  const { t } = useI18n()
   const min = 1 + roll.modifier
   const max = 20 + roll.modifier
   const at = (n: number) => `${(100 * (Math.min(max, Math.max(min, n)) - min)) / (max - min)}%`
   return (
     <span className="dc-track" aria-hidden="true">
       <span className="dc-line" style={{ left: at(roll.dc) }}>
-        DC {roll.dc}
+        {t('dice.dc', { dc: roll.dc })}
       </span>
       {done && <span className="dc-total" style={{ left: at(roll.total) }} />}
     </span>
