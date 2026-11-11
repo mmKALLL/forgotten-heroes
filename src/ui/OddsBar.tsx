@@ -1,4 +1,4 @@
-import { formatFaces, formatPercent } from '../engine/format'
+import { formatFaces, formatFacesShort, formatPercent } from '../engine/format'
 import { TIERS, TIER_LABELS, type FaceRange, type Tier } from '../engine/rules/checks'
 
 export type OddsLabelMode = 'percent' | 'faces'
@@ -25,7 +25,7 @@ export function OddsBar({
     if (labelMode === 'faces' && range) {
       // The lone 1 and 20 are short enough to fit even a thin segment.
       const short = range.min === range.max && (range.min === 1 || range.min === 20)
-      return short || odds[t] >= MIN_LABEL_WIDTH ? formatFaces(range) : ''
+      return short || odds[t] >= MIN_LABEL_WIDTH ? formatFacesShort(range) : ''
     }
     return odds[t] >= MIN_LABEL_WIDTH ? formatPercent(odds[t]) : ''
   }

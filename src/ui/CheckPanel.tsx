@@ -8,12 +8,13 @@ import type { GameState } from '../schema/state'
 import { OddsBar, type OddsLabelMode } from './OddsBar'
 
 const ODDS_LABEL_KEY = 'forgotten-heroes/ui/odds-label'
+const DEFAULT_ODDS_LABEL_MODE: OddsLabelMode = 'faces'
 
 function loadOddsLabelMode(): OddsLabelMode {
   try {
-    return localStorage.getItem(ODDS_LABEL_KEY) === 'faces' ? 'faces' : 'percent'
+    return localStorage.getItem(ODDS_LABEL_KEY) === 'percent' ? 'percent' : DEFAULT_ODDS_LABEL_MODE
   } catch {
-    return 'percent'
+    return DEFAULT_ODDS_LABEL_MODE
   }
 }
 
@@ -33,14 +34,25 @@ const MODE_SUFFIX: Record<RollMode, string> = {
 
 const STATS: CheckStat[] = [...SKILLS, ...ABILITIES]
 
-export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a: Action) => void }) {
+export function CheckPanel({
+  state,
+  onAction,
+  showLabelToggle = false,
+}: {
+  state: GameState
+  onAction: (a: Action) => void
+  /** The %/d20 toggle is hidden for now; it will move to a settings view. Hidden, the default applies. */
+  showLabelToggle?: boolean
+}) {
   const [stat, setStat] = useState<CheckStat>('persuasion')
   // Keep the raw text so the field can be cleared and retyped; the engine normalises the number.
   const [dcText, setDcText] = useState('13')
   const dc = dcText.trim() === '' ? Number.NaN : Number(dcText)
   const [mode, setMode] = useState<RollMode>('normal')
   const [actorId, setActorId] = useState('')
-  const [labelMode, setLabelMode] = useState<OddsLabelMode>(loadOddsLabelMode)
+  const [labelMode, setLabelMode] = useState<OddsLabelMode>(() =>
+    showLabelToggle ? loadOddsLabelMode() : DEFAULT_ODDS_LABEL_MODE
+  )
   const chooseLabelMode = (m: OddsLabelMode) => {
     setLabelMode(m)
     saveOddsLabelMode(m)
@@ -116,18 +128,20 @@ export function CheckPanel({ state, onAction }: { state: GameState; onAction: (a
           </p>
           <div className="odds-row">
             <OddsBar odds={preview.odds} faces={faces ?? undefined} labelMode={labelMode} />
-            <div className="seg-toggle" role="group" aria-label="Odds labels">
-              {(
-                [
-                  ['percent', '%'],
-                  ['faces', 'd20'],
-                ] as const
-              ).map(([m, text]) => (
-                <button key={m} aria-pressed={labelMode === m} onClick={() => chooseLabelMode(m)}>
-                  {text}
-                </button>
-              ))}
-            </div>
+            {showLabelToggle && (
+              <div className="seg-toggle" role="group" aria-label="Odds labels">
+                {(
+                  [
+                    ['percent', '%'],
+                    ['faces', 'd20'],
+                  ] as const
+                ).map(([m, text]) => (
+                  <button key={m} aria-pressed={labelMode === m} onClick={() => chooseLabelMode(m)}>
+                    {text}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </>
       ) : (
