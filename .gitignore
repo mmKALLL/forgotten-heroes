@@ -25,3 +25,9 @@ dist-ssr
 
 # Local record of asset credits and licences
 /CREDITS.md
+
+# Local assets: copied from ~/dnd5e (see assets.manifest.txt), plus the portrait pack (restore it from tag v0.1.0-svelte-final)
+/assets/
+
+# Copyrighted imports for personal use only
+/data/imported-private/
