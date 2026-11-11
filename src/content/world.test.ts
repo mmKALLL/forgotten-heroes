@@ -44,3 +44,14 @@ describe('town names', () => {
     }
   })
 })
+
+describe('place names', () => {
+  test('the four ported tables are present', () => {
+    expect(Object.keys(content.placeNames).sort()).toEqual([
+      'english-compound',
+      'french',
+      'french-soft',
+      'spanish',
+    ])
+  })
+})
