@@ -853,10 +853,10 @@ export const ServiceDefSchema = z.object({
   id: IdSchema,
   name: z.string(),
   presenceThresholdBySize: z
-    .array(z.number().int().min(0).max(20))
+    .array(z.number().int().min(0))
     .length(6)
     .describe(
-      'Per settlement size tier (smallest first): the service exists if 1d20 exceeds this value (then a further 90% chance). From the prototype.'
+      'Per settlement size tier (smallest first): the service exists if 1d20 + the settlement wealth bonus exceeds this value (then a further 90% chance). Values above 20 need a wealth bonus, e.g. a prosperous wizard hamlet with a university. From the prototype; needs tuning.'
     ),
   itemSaleTags: z.array(z.string()),
   typicalRarity: z.number().min(0).max(1),
@@ -1084,7 +1084,7 @@ git commit -m "add content schemas and provenance-aware content loader"
     { "id": "weapons-shop", "name": "Weapons Shop", "presenceThresholdBySize": [17, 15, 13, 11, 9, 7], "itemSaleTags": ["weapon"], "typicalRarity": 0.25, "maxRarity": 0.85 },
     { "id": "vehicles-transportation", "name": "Vehicles and transportation", "presenceThresholdBySize": [15, 12, 13, 10, 8, 6], "itemSaleTags": ["transport-service"], "typicalRarity": 0.2, "maxRarity": 0.5 },
     { "id": "adventurers-guild", "name": "Adventurer's Guild", "presenceThresholdBySize": [19, 18, 16, 14, 12, 10], "itemSaleTags": ["general-supplies", "clothing", "weapon", "armor", "magical-supplies"], "typicalRarity": 0.2, "maxRarity": 0.4 },
-    { "id": "magic-items", "name": "Magic Items", "presenceThresholdBySize": [20, 20, 19, 16, 15, 14], "itemSaleTags": ["weapon", "armor", "accessory", "consumable"], "typicalRarity": 0.8, "maxRarity": 1 },
+    { "id": "magic-items", "name": "Magic Items", "presenceThresholdBySize": [25, 22, 19, 16, 15, 14], "itemSaleTags": ["weapon", "armor", "accessory", "consumable"], "typicalRarity": 0.8, "maxRarity": 1 },
     { "id": "blacksmith", "name": "Blacksmith", "presenceThresholdBySize": [12, 10, 8, 6, 4, 2], "itemSaleTags": ["weapon", "armor", "trinket"], "typicalRarity": 0.3, "maxRarity": 0.6 },
     { "id": "necromancer", "name": "Necromancer", "presenceThresholdBySize": [20, 19, 18, 17, 16, 16], "itemSaleTags": ["holy-service", "jewel"], "typicalRarity": 1, "maxRarity": 1 },
     { "id": "couriers", "name": "Couriers", "presenceThresholdBySize": [19, 18, 17, 15, 13, 11], "itemSaleTags": ["transport-service"], "typicalRarity": 0.05, "maxRarity": 0.1 },
@@ -1096,14 +1096,14 @@ git commit -m "add content schemas and provenance-aware content loader"
     { "id": "port", "name": "Port", "presenceThresholdBySize": [19, 18, 16, 14, 12, 10], "itemSaleTags": ["transport-service"], "typicalRarity": 0.25, "maxRarity": 0.5 },
     { "id": "workers-union", "name": "Worker's Union", "presenceThresholdBySize": [19, 18, 16, 11, 9, 7], "itemSaleTags": [], "typicalRarity": 0.25, "maxRarity": 0.5 },
     { "id": "stonemason", "name": "Stonemason", "presenceThresholdBySize": [18, 15, 12, 10, 7, 4], "itemSaleTags": [], "typicalRarity": 0.25, "maxRarity": 0.5 },
-    { "id": "university", "name": "University", "presenceThresholdBySize": [20, 20, 18, 16, 14, 12], "itemSaleTags": [], "typicalRarity": 0.25, "maxRarity": 0.5 },
+    { "id": "university", "name": "University", "presenceThresholdBySize": [22, 20, 18, 16, 14, 12], "itemSaleTags": [], "typicalRarity": 0.25, "maxRarity": 0.5 },
     { "id": "mercenaries", "name": "Mercenaries", "presenceThresholdBySize": [19, 18, 17, 16, 14, 12], "itemSaleTags": [], "typicalRarity": 0.25, "maxRarity": 0.5 },
     { "id": "arena", "name": "Arena", "presenceThresholdBySize": [19, 18, 16, 12, 10, 8], "itemSaleTags": ["arena-service"], "typicalRarity": 0.4, "maxRarity": 1 }
   ]
 }
 ```
 
-Note: the prototype had thresholds above 20 for Magic Items (25, 22) and University (22), which made the service impossible at those sizes. They are clamped to 20 here; say so in the commit message.
+Note: thresholds above 20 are intentional (Magic Items 25 and 22, University 22). A small settlement can only have those services with a wealth bonus. Keep them exactly as written.
 
 **Step 6: Write and run the names port script `scripts/port/port-names.ts`**
 
@@ -1150,9 +1150,7 @@ touch data/imported/.gitkeep data/procedural/.gitkeep
 
 ```bash
 git add data scripts/port
-git commit -m "port original classes, ancestries, settlements, services and names to JSON
-
-Service presence thresholds above 20 (magic items, university) are clamped to 20."
+git commit -m "port original classes, ancestries, settlements, services and names to JSON"
 ```
 
 ---
