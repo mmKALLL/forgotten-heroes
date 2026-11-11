@@ -1,0 +1,107 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "settlements"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "<region>-<n>; names come from the political layer",
+            "$ref": "#/$defs/__schema0"
+          },
+          "at": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "$ref": "#/$defs/__schema1"
+              },
+              "y": {
+                "$ref": "#/$defs/__schema2"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "description": "The marker centre, in map pixels"
+          },
+          "region": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "island": {
+            "description": "The land mass it stands on, e.g. \"mainland\"; land routes stay on one",
+            "$ref": "#/$defs/__schema0"
+          },
+          "capital": {
+            "default": false,
+            "description": "A framed (capital city) marker on the map",
+            "$ref": "#/$defs/__schema3"
+          },
+          "coastal": {
+            "default": false,
+            "description": "By the sea: ports and sea routes need it",
+            "$ref": "#/$defs/__schema4"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "region",
+          "island"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "__schema2": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3072
+    },
+    "__schema3": {
+      "type": "boolean"
+    },
+    "__schema4": {
+      "type": "boolean"
+    }
+  }
+}

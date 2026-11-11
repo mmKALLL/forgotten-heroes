@@ -69,7 +69,13 @@
         "archetypes",
         "partsTables",
         "creatures",
-        "twists"
+        "twists",
+        "regions",
+        "settlements",
+        "routes",
+        "towns",
+        "placeNames",
+        "threats"
       ]
     }
   },

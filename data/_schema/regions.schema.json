@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "regions"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string",
+            "description": "As labelled on the world map"
+          },
+          "biome": {
+            "type": "string",
+            "enum": [
+              "plains",
+              "forest",
+              "hills",
+              "mountains",
+              "marsh",
+              "desert",
+              "jungle",
+              "sea"
+            ],
+            "description": "The dominant terrain"
+          },
+          "label": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "$ref": "#/$defs/__schema0"
+              },
+              "y": {
+                "$ref": "#/$defs/__schema1"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "description": "Where the map prints the name, in map pixels"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "biome",
+          "label"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "__schema1": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3072
+    }
+  }
+}

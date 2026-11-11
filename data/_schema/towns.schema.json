@@ -1,0 +1,158 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "towns"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "description": "From the town-map filename, e.g. \"poor seaside capital\""
+          },
+          "alignment": {
+            "type": "string",
+            "enum": [
+              "LG",
+              "NG",
+              "CG",
+              "LN",
+              "TN",
+              "CN",
+              "LE",
+              "NE",
+              "CE"
+            ]
+          },
+          "size": {
+            "description": "The size its description suggests",
+            "$ref": "#/$defs/__schema1"
+          },
+          "capital": {
+            "default": false,
+            "description": "Described as a capital: prefers a kingdom seat",
+            "$ref": "#/$defs/__schema2"
+          },
+          "biomes": {
+            "default": [],
+            "description": "Terrain its description suggests",
+            "$ref": "#/$defs/__schema3"
+          },
+          "coastal": {
+            "default": false,
+            "description": "Seaside, port or island: only placed by the sea",
+            "$ref": "#/$defs/__schema4"
+          },
+          "wealth": {
+            "default": 0,
+            "description": "Rich +2, poor −2, ...",
+            "$ref": "#/$defs/__schema5"
+          },
+          "ancestry": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "banner": {
+            "description": "Image path under assets/, shown as the town banner",
+            "$ref": "#/$defs/__schema6"
+          },
+          "site": {
+            "description": "Always placed at this settlement (labelled on the map)",
+            "$ref": "#/$defs/__schema0"
+          },
+          "altaeus": {
+            "default": false,
+            "description": "Drawn for Altaeus (town maps/__altaeus/)",
+            "$ref": "#/$defs/__schema7"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "outpost",
+        "hamlet",
+        "village",
+        "town",
+        "city",
+        "metropolis"
+      ]
+    },
+    "__schema2": {
+      "type": "boolean"
+    },
+    "__schema3": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plains",
+          "forest",
+          "hills",
+          "mountains",
+          "marsh",
+          "desert",
+          "jungle",
+          "sea"
+        ]
+      }
+    },
+    "__schema4": {
+      "type": "boolean"
+    },
+    "__schema5": {
+      "type": "integer",
+      "minimum": -3,
+      "maximum": 3
+    },
+    "__schema6": {
+      "type": "string"
+    },
+    "__schema7": {
+      "type": "boolean"
+    }
+  }
+}

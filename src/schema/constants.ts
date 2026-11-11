@@ -62,3 +62,33 @@ export const CREATURE_TYPES = [
   'undead',
 ] as const
 export type CreatureType = (typeof CREATURE_TYPES)[number]
+
+/** Terrain: a region's dominant biome, and a route's terrain ("sea" for a crossing by ship). */
+export const BIOMES = [
+  'plains',
+  'forest',
+  'hills',
+  'mountains',
+  'marsh',
+  'desert',
+  'jungle',
+  'sea',
+] as const
+export type Biome = (typeof BIOMES)[number]
+
+/**
+ * Settlement size tiers, smallest first, as in the prototype. A settlement's tier indexes
+ * ServiceDef.presenceThresholdBySize, so there are exactly six.
+ */
+export const SIZE_TIERS = ['outpost', 'hamlet', 'village', 'town', 'city', 'metropolis'] as const
+export type SizeTier = (typeof SIZE_TIERS)[number]
+
+export const ALIGNMENTS = ['LG', 'NG', 'CG', 'LN', 'TN', 'CN', 'LE', 'NE', 'CE'] as const
+export type Alignment = (typeof ALIGNMENTS)[number]
+
+/**
+ * The goods tracked so far: the essentials consumed every day. Plan 4 adds the other 13 goods
+ * (design §4) to this list. Saves keep loading, because a good that is missing counts as 0.
+ */
+export const GOODS = ['food', 'water'] as const
+export type Good = (typeof GOODS)[number]

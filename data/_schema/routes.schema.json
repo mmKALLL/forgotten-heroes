@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "routes"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\"<from>-<to>\", the two settlement ids in alphabetical order",
+            "$ref": "#/$defs/__schema0"
+          },
+          "from": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "to": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "km": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "Straight-line km (4.84 px per km) × 1.2 on land, × 1.1 at sea"
+          },
+          "terrain": {
+            "type": "string",
+            "enum": [
+              "plains",
+              "forest",
+              "hills",
+              "mountains",
+              "marsh",
+              "desert",
+              "jungle",
+              "sea"
+            ],
+            "description": "What the route mostly crosses; \"sea\" for a crossing by ship"
+          },
+          "danger": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 3,
+            "description": "0 patrolled road, 1 ordinary road, 2 wild track, 3 notorious"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "from",
+          "to",
+          "km",
+          "terrain",
+          "danger"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    }
+  }
+}

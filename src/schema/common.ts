@@ -1,5 +1,15 @@
 import { z } from 'zod'
-import { ABILITIES, CREATURE_TYPES, LOG_TONES, POSITIONS, SKILLS } from './constants'
+import {
+  ABILITIES,
+  ALIGNMENTS,
+  BIOMES,
+  CREATURE_TYPES,
+  GOODS,
+  LOG_TONES,
+  POSITIONS,
+  SIZE_TIERS,
+  SKILLS,
+} from './constants'
 
 export const SOURCES = ['original', 'imported', 'imported-private', 'procedural', 'claude'] as const
 export const SourceSchema = z.enum(SOURCES)
@@ -12,6 +22,10 @@ export const SkillSchema = z.enum(SKILLS)
 export const PositionSchema = z.enum(POSITIONS)
 export const LogToneSchema = z.enum(LOG_TONES)
 export const CreatureTypeSchema = z.enum(CREATURE_TYPES)
+export const BiomeSchema = z.enum(BIOMES)
+export const SizeTierSchema = z.enum(SIZE_TIERS)
+export const AlignmentSchema = z.enum(ALIGNMENTS)
+export const GoodSchema = z.enum(GOODS)
 
 const score = z.number().int().min(1).max(30)
 export const AbilityScoresSchema = z.object({

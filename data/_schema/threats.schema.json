@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "threats"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string",
+            "description": "e.g. \"Orc warband\""
+          },
+          "description": {
+            "type": "string"
+          },
+          "creatureTypes": {
+            "default": [],
+            "description": "For encounter slots, later",
+            "$ref": "#/$defs/__schema0"
+          },
+          "biomes": {
+            "default": [],
+            "description": "Favoured terrain; empty means anywhere",
+            "$ref": "#/$defs/__schema1"
+          },
+          "strength": {
+            "type": "object",
+            "properties": {
+              "min": {
+                "$ref": "#/$defs/__schema2"
+              },
+              "max": {
+                "$ref": "#/$defs/__schema2"
+              }
+            },
+            "required": [
+              "min",
+              "max"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "strength"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "aberration",
+          "beast",
+          "celestial",
+          "construct",
+          "dragon",
+          "elemental",
+          "fey",
+          "fiend",
+          "giant",
+          "humanoid",
+          "monstrosity",
+          "ooze",
+          "plant",
+          "undead"
+        ]
+      }
+    },
+    "__schema1": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plains",
+          "forest",
+          "hills",
+          "mountains",
+          "marsh",
+          "desert",
+          "jungle",
+          "sea"
+        ]
+      }
+    },
+    "__schema2": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 6
+    }
+  }
+}

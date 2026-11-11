@@ -33,6 +33,12 @@ export const emptyContent = (): Content => ({
   partsTables: {},
   creatures: {},
   twists: {},
+  regions: {},
+  settlements: {},
+  routes: {},
+  towns: {},
+  placeNames: {},
+  threats: {},
   translations: {},
 })
 

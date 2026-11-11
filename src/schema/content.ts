@@ -8,6 +8,14 @@ import {
   SituationTemplateSchema,
   TwistKindSchema,
 } from './encounter'
+import {
+  PlaceNameTableSchema,
+  RegionSchema,
+  RouteSchema,
+  SettlementSchema,
+  ThreatSchema,
+  TownSchema,
+} from './world'
 
 export const ClassDefSchema = z.object({
   id: IdSchema,
@@ -90,6 +98,12 @@ export const TRANSLATABLE_KINDS = [
   'partsTables',
   'creatures',
   'twists',
+  'regions',
+  'settlements',
+  'routes',
+  'towns',
+  'placeNames',
+  'threats',
 ] as const
 export type TranslatableKind = (typeof TRANSLATABLE_KINDS)[number]
 
@@ -120,6 +134,12 @@ export const CONTENT_KINDS = {
   partsTables: PartsTableSchema,
   creatures: CreatureSchema,
   twists: TwistKindSchema,
+  regions: RegionSchema,
+  settlements: SettlementSchema,
+  routes: RouteSchema,
+  towns: TownSchema,
+  placeNames: PlaceNameTableSchema,
+  threats: ThreatSchema,
   translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS
