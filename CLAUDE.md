@@ -39,7 +39,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - **Sources:**
   - `original/`: the user's own design. Don't change its substance unless asked. Note any additions in the file's `notes`.
   - `imported/`: open-licensed only (SRD 5.1/5.2, CC-BY). Committed.
-  - `imported-private/`: material from copyrighted books and PDFs. Gitignored. Never commit copyrighted text anywhere else.
+  - `imported-private/`: material from copyrighted books and PDFs, for personal play. Gitignored. Quoting the source verbatim is fine here, including descriptive prose and read-aloud text, and is preferred when it is good. Never commit copyrighted text anywhere else.
   - `procedural/`: parts tables that runtime combinators assemble.
   - `claude/`: everything Claude writes goes here, never into `original/`.
 - **Skills** live in `data/original/skills.json` (default abilities are editable there; new skill ids must also be added to `src/schema/constants.ts`).
