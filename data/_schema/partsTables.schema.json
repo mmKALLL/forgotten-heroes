@@ -1,0 +1,77 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "partsTables"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "description": {
+            "type": "string"
+          },
+          "rows": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/__schema0"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "description",
+          "rows"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "description": "May contain {other-table}"
+        },
+        "weight": {
+          "default": 1,
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "text"
+      ]
+    }
+  }
+}

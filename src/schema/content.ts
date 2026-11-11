@@ -1,5 +1,12 @@
 import { z } from 'zod'
 import { AbilitySchema, AbilityScoresSchema, IdSchema, SkillSchema, SourceSchema } from './common'
+import {
+  ArchetypeSchema,
+  CreatureSchema,
+  PartsTableSchema,
+  SituationSchema,
+  SituationTemplateSchema,
+} from './encounter'
 
 export const ClassDefSchema = z.object({
   id: IdSchema,
@@ -68,6 +75,11 @@ export const CONTENT_KINDS = {
   settlementTypes: SettlementTypeDefSchema,
   services: ServiceDefSchema,
   skills: SkillDefSchema,
+  situations: SituationSchema,
+  situationTemplates: SituationTemplateSchema,
+  archetypes: ArchetypeSchema,
+  partsTables: PartsTableSchema,
+  creatures: CreatureSchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS
 export type ContentEntry<K extends ContentKind> = z.infer<(typeof CONTENT_KINDS)[K]>

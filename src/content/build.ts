@@ -13,6 +13,11 @@ export const emptyContent = (): Content => ({
   settlementTypes: {},
   services: {},
   skills: {},
+  situations: {},
+  situationTemplates: {},
+  archetypes: {},
+  partsTables: {},
+  creatures: {},
 })
 
 const isKind = (kind: unknown): kind is ContentKind =>

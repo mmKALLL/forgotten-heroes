@@ -28,8 +28,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            "$ref": "#/$defs/__schema0"
           },
           "name": {
             "type": "string"
@@ -69,8 +68,7 @@
             "maximum": 1
           },
           "predominantAncestry": {
-            "type": "string",
-            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            "$ref": "#/$defs/__schema0"
           }
         },
         "required": [
@@ -91,5 +89,11 @@
     "kind",
     "source",
     "entries"
-  ]
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    }
+  }
 }

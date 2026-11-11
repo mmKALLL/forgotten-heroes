@@ -79,6 +79,52 @@ describe('buildContent', () => {
   })
 })
 
+describe('encounter content kinds', () => {
+  test('situations, archetypes, parts tables, templates and creatures load with their source', () => {
+    const { content, errors } = buildContent({
+      'data/claude/situations.json': {
+        kind: 'situations',
+        source: 'claude',
+        entries: [{ id: 'quiet-road', title: 'Quiet road', stages: { start: { text: 'Nothing stirs.' } } }],
+      },
+      'data/claude/archetypes.json': {
+        kind: 'archetypes',
+        source: 'claude',
+        entries: [
+          { id: 'tiny', name: 'Tiny', description: 'One option', options: [{ id: 'go', kind: 'fixed', label: 'Go', outcome: { text: 'You go.' } }] },
+        ],
+      },
+      'data/procedural/parts.json': {
+        kind: 'partsTables',
+        source: 'procedural',
+        entries: [{ id: 'mood', description: 'Moods', rows: [{ text: 'grim' }] }],
+      },
+      'data/procedural/templates.json': {
+        kind: 'situationTemplates',
+        source: 'procedural',
+        entries: [{ id: 'grim-road', title: 'Grim road', text: 'A {mood} road.', slots: { mood: { from: 'table', table: 'mood' } }, archetype: { id: 'tiny' } }],
+      },
+      'data/imported/creatures.json': {
+        kind: 'creatures',
+        source: 'imported',
+        entries: [{ id: 'wolf', name: 'Wolf', group: 'a pack of wolves', type: 'beast', cr: 0.25, description: 'A hungry hunter.' }],
+      },
+      'data/imported-private/situations.json': {
+        kind: 'situations',
+        source: 'imported-private',
+        entries: [{ id: 'private-one', title: 'Private', stages: { start: { text: '…' } } }],
+      },
+    })
+    expect(errors).toEqual([])
+    expect(content.situations['quiet-road']).toMatchObject({ source: 'claude', start: 'start', wonder: false })
+    expect(content.archetypes.tiny.options).toHaveLength(1)
+    expect(content.partsTables.mood.rows[0]).toEqual({ text: 'grim', weight: 1 })
+    expect(content.situationTemplates['grim-road'].archetype).toEqual({ id: 'tiny', dc: 13, reward: 1 })
+    expect(content.creatures.wolf.source).toBe('imported')
+    expect(content.situations['private-one'].source).toBe('imported-private')
+  })
+})
+
 describe('locale-independent ordering', () => {
   test('byCodeUnit compares by UTF-16 code unit', () => {
     expect(['z-x', 'aa-b', 'y-c', 'i-j'].sort(byCodeUnit)).toEqual(['aa-b', 'i-j', 'y-c', 'z-x'])

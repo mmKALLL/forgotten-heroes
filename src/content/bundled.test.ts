@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs'
 import { expect, test } from 'vitest'
 import { buildContent } from './build'
 import { bundledFiles, loadBundledContent } from './bundled'
@@ -33,4 +34,11 @@ test('cross-references point at existing ancestries, and the essentials exist', 
   expect(Object.keys(content.classes).length).toBeGreaterThan(0)
   expect(Object.values(content.ancestries).some((a) => a.playable)).toBe(true)
   expect(Object.keys(content.names).length).toBeGreaterThan(0)
+})
+
+test('data/imported-private/ is optional: absent locally means no private files, present means loaded', () => {
+  const present = existsSync(new URL('../../data/imported-private/', import.meta.url))
+  const privateFiles = Object.keys(bundledFiles).filter((file) => file.includes('/data/imported-private/'))
+  if (present) expect(loadBundledContent()).toBeTruthy()
+  else expect(privateFiles).toEqual([])
 })

@@ -28,14 +28,12 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            "$ref": "#/$defs/__schema0"
           },
           "ancestries": {
             "type": "array",
             "items": {
-              "type": "string",
-              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+              "$ref": "#/$defs/__schema0"
             },
             "description": "Ancestry ids this table names; others fall back to any table"
           },
@@ -43,7 +41,7 @@
             "minItems": 1,
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/$defs/__schema1"
             }
           },
           "family": {
@@ -66,5 +64,14 @@
     "kind",
     "source",
     "entries"
-  ]
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "string"
+    }
+  }
 }

@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "creatures"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "group": {
+            "type": "string",
+            "description": "How a group reads in text, e.g. \"a band of bandits\""
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "aberration",
+              "beast",
+              "celestial",
+              "construct",
+              "dragon",
+              "elemental",
+              "fey",
+              "fiend",
+              "giant",
+              "humanoid",
+              "monstrosity",
+              "ooze",
+              "plant",
+              "undead"
+            ]
+          },
+          "cr": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": {
+            "type": "string",
+            "description": "One line, in our own words"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "group",
+          "type",
+          "cr",
+          "description"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ]
+}

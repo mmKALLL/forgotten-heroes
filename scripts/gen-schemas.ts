@@ -10,7 +10,9 @@ export const schemaKinds = Object.keys(CONTENT_KINDS) as ContentKind[]
 
 export function renderSchema(kind: ContentKind): string {
   // io: 'input' keeps fields with defaults optional for people editing by hand.
-  return JSON.stringify(z.toJSONSchema(contentFileSchema(kind), { io: 'input' }), null, 2) + '\n'
+  // reused: 'ref' moves repeated shapes (options, outcomes, effects) into $defs, keeping files small.
+  const schema = z.toJSONSchema(contentFileSchema(kind), { io: 'input', reused: 'ref' })
+  return JSON.stringify(schema, null, 2) + '\n'
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
