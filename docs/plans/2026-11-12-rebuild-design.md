@@ -137,6 +137,18 @@ The town map image is a banner and backdrop.
 ## 7. Travel and encounters
 
 - **Travel steps by day:** consume essentials (or make a check / gain exhaustion), possibly have an encounter, make camp and keep watch. Days without an encounter collapse into a single summary line.
+- **Travel pace** is chosen per journey:
+  - **Cautious:** ⅔ speed and the most supplies per km. Fewer encounters, and ambushes meet the party on normal footing, or with Edge if it has covered its tracks. Covering tracks makes pursuers lose the trail.
+  - **Steady:** normal speed.
+  - **Brisk:** 4⁄3 speed and the fewest supplies per km. More encounters, ambushes meet the party Exposed, and it outruns slow pursuers.
+  - **Forced march:** 5⁄3 speed, with a CON check each day against exhaustion.
+  - **Hired horses** (Plan 4, from Animals and Mounts): 2× speed for gold, and mounts change carrying capacity.
+  - **Magical travel** (later): near-instant and very expensive.
+- **Pursuit:** follow-ups can be flagged as pursuit (thieves' friends, informant ambushes, wardens). When one comes due, the party's pace since it was queued decides whether it catches up:
+  - Cautious with covered tracks loses it.
+  - Brisk or faster usually outruns it.
+  - Steady lets it catch up.
+- **Timing:** Plan 3 builds Cautious, Steady, Brisk, Forced march and pursuit.
 - **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4. The chance scales with route danger, regional threat and visible wealth.
 - **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.
 - **Wonders:** a separate kind of encounter. Rare, one click, flavour only, never a burden.
