@@ -73,7 +73,7 @@ There are 15 goods in 5 categories. They are tracked as quantities, never as ind
 | Consumables | Healing, Alchemicals, Arcana | Spent to unlock or boost encounter options |
 | Equipment | Arms, Armour, Gear | Demand spikes with war and raids. Gear unlocks terrain options. |
 | Materials | Timber, Stone, Metal | Heavy and cheap, but huge demand where regions are rebuilding |
-| Precious | Gems, Art & Relics, Luxuries | Light and valuable; they attract thieves |
+| Precious | Gems, Relics, Luxuries | Light and valuable; they attract thieves. Relics are mostly found in dungeons and ruins. Luxuries covers spice, silk, wine and art. |
 
 - **Local prices** come from supply and demand. Each settlement's supply and demand is driven by its type, its biome, its region's state, and recent events. Prices drift daily, and bulk selling depresses them.
 - **Price book:** the player only knows prices they have observed or heard through rumours, and each entry shows its age. Trading on stale information is part of the game.
