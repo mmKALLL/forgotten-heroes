@@ -104,3 +104,45 @@ export const ThreatSchema = z.object({
   strength: z.object({ min: strength, max: strength }),
 })
 export type Threat = z.infer<typeof ThreatSchema>
+
+// ---------------------------------------------------------------------------------------------
+// The political layer: rolled for each world and kept in GameState.world.
+// ---------------------------------------------------------------------------------------------
+
+export const KingdomSchema = z.object({
+  id: IdSchema,
+  name: z.string(),
+  ancestry: IdSchema.describe('The ruling ancestry'),
+  capital: IdSchema.describe('The settlement that is its seat'),
+  regions: z.array(IdSchema).min(1),
+  defence: z.number().int().min(0).describe('Split evenly across its regions as garrisons'),
+})
+export type Kingdom = z.infer<typeof KingdomSchema>
+
+export const RegionStateSchema = z.object({
+  kingdom: IdSchema,
+  threat: IdSchema,
+  threatStrength: z.number().int().min(1).max(6),
+  threatLevel: z.number().int().min(0).max(3).describe('How far the threat outweighs the garrison'),
+})
+export type RegionState = z.infer<typeof RegionStateSchema>
+
+export const SettlementStateSchema = z.object({
+  name: z.string(),
+  town: IdSchema.nullable().describe('The towns entry it is named after, for the banner'),
+  type: IdSchema.describe('A settlementTypes id'),
+  population: z.number().int().min(0),
+  sizeTier: z.number().int().min(0).max(5),
+  wealth: z.number().int(),
+  ancestry: IdSchema,
+  services: z.array(IdSchema),
+})
+export type SettlementState = z.infer<typeof SettlementStateSchema>
+
+export const WorldStateSchema = z.object({
+  seed: z.number().int().min(0).max(0xffffffff),
+  kingdoms: z.array(KingdomSchema),
+  regions: z.record(IdSchema, RegionStateSchema),
+  settlements: z.record(IdSchema, SettlementStateSchema),
+})
+export type WorldState = z.infer<typeof WorldStateSchema>
