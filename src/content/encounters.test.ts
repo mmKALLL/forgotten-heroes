@@ -4,7 +4,7 @@ import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
 import { encounterOver } from '../engine/encounters/run'
-import { lintSituation, validateSituation } from '../engine/encounters/validate'
+import { lintSituation, validateSituation, validateTwistKind } from '../engine/encounters/validate'
 import { newGame, step } from '../engine/state'
 import { loadBundledContent } from './bundled'
 
@@ -68,6 +68,28 @@ describe('archetypes', () => {
   })
 })
 
+describe('the twist table', () => {
+  test('has the ten kinds the design names', () => {
+    expect(Object.keys(content.twists).sort()).toEqual([
+      'ambush',
+      'contagion',
+      'false-claim',
+      'fey-bargain',
+      'fugitive',
+      'informant',
+      'lure',
+      'predator-bait',
+      'recruiter',
+      'theft',
+    ])
+    expect(Object.values(content.twists).every((k) => k.source === 'procedural')).toBe(true)
+  })
+
+  test.each(Object.keys(content.twists))('%s is a valid escalation', (id) => {
+    expect(validateTwistKind(content.twists[id], content)).toEqual([])
+  })
+})
+
 test('SRD creatures are imported, and parts tables feed three templates', () => {
   const creatures = Object.values(content.creatures)
   expect(creatures.length).toBeGreaterThanOrEqual(15)
@@ -96,9 +118,10 @@ const idsFrom = (source: string) =>
     .map((s) => s.id)
     .sort()
 
-test('Claude wrote eight situations, two of them wonders, plus the follow-up for the lizardfolk port', () => {
+test('Claude wrote eight situations, two of them wonders, plus follow-ups for the lizardfolk port and the twist table', () => {
   expect(idsFrom('claude')).toEqual([
     'ambush-at-the-narrows',
+    'creeping-fever',
     'flooded-ferry',
     'grudge-on-the-road',
     'hedge-witch',
@@ -107,6 +130,8 @@ test('Claude wrote eight situations, two of them wonders, plus the follow-up for
     'mapmakers-apprentice',
     'pilgrims-at-dusk',
     'singing-stones',
+    'sold-out-ambush',
+    'wardens-on-your-trail',
   ])
   const wonders = Object.values(content.situations).filter((s) => s.source === 'claude' && s.wonder)
   expect(wonders.map((s) => s.id).sort()).toEqual(['lantern-moths', 'singing-stones'])

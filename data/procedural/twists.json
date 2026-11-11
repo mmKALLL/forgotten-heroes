@@ -1,0 +1,728 @@
+{
+  "$schema": "../_schema/twists.schema.json",
+  "kind": "twists",
+  "source": "procedural",
+  "notes": "The twist table for someone in need (design §7, escalation). A situation uses it with \"twist\": { \"chance\", \"what\", \"table\": true } (and optionally \"kinds\"); the kind is drawn by weight when the encounter starts, and \"@twist\" in a twist branch goes to its start stage. \"opening\" is the hit trusting help takes (via { \"effect\": \"openingHit\" }). Texts say \"they\" so any situation can use them. regions and threats are for later weighting and unused for now. Written by Claude; tune freely.",
+  "entries": [
+    {
+      "id": "ambush",
+      "name": "Ambush",
+      "weight": 3,
+      "what": "they were bait for an ambush",
+      "opening": [{ "effect": "hp", "amount": -4, "target": "random" }],
+      "slots": { "ambushers": { "from": "creature", "types": ["humanoid"], "maxCr": 1 } },
+      "regions": ["road", "forest", "hill"],
+      "threats": ["bandits"],
+      "stages": {
+        "start": {
+          "text": "{Ambushers} come out of cover on both sides of the road, and the one you helped is already backing away to join them.",
+          "archetype": { "id": "hostile-group", "dc": 13, "reward": 1 }
+        }
+      }
+    },
+    {
+      "id": "theft",
+      "name": "Theft",
+      "weight": 2,
+      "what": "they meant to rob you while you were busy",
+      "opening": [{ "effect": "gold", "amount": -10 }],
+      "regions": ["road", "town"],
+      "stages": {
+        "start": {
+          "text": "A cut strap, an open pouch, and quick footsteps going away. They are off with what they could grab, and they have a head start.",
+          "options": [
+            {
+              "id": "run-down",
+              "kind": "check",
+              "label": "Run them down",
+              "description": "Fast and tiring. Whoever runs pays for it if they get away.",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "They know the ground and you don't. {actor} comes back blown and empty-handed.",
+                  "effects": [{ "effect": "exhaustion", "amount": 1, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "{actor} closes the gap at a ruined wall, where they turn with a knife.",
+                  "goto": "cornered"
+                },
+                "success": {
+                  "text": "{actor} brings them down in the mud and takes back your purse, and theirs.",
+                  "effects": [{ "effect": "gold", "amount": 12 }]
+                }
+              }
+            },
+            {
+              "id": "track",
+              "kind": "check",
+              "label": "Track them",
+              "description": "Slower but surer: it costs a day.",
+              "check": { "skill": "survival", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "The trail splits and splits again. A day lost for nothing.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "partial": {
+                  "text": "You follow their tracks to a hollow where they are counting your coins.",
+                  "effects": [{ "effect": "days", "amount": 1 }],
+                  "goto": "cornered"
+                },
+                "success": {
+                  "text": "You find their stash before they do, and empty it.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 12 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "let-go",
+              "kind": "fixed",
+              "label": "Let them go",
+              "outcome": { "text": "You let them run. Some lessons cost coin." }
+            }
+          ]
+        },
+        "cornered": {
+          "text": "Cornered, they snarl and show a blade. Your purse is tucked in their belt.",
+          "options": [
+            {
+              "id": "grab",
+              "kind": "check",
+              "label": "Take it back by force",
+              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "The knife finds {actor}'s arm, and they slip away again.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "{actor} wrestles back half the coin and takes a cut for it.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "gold", "amount": 6 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} twists the knife away. Your purse comes back fuller than it left.",
+                  "effects": [{ "effect": "gold", "amount": 12 }]
+                }
+              }
+            },
+            {
+              "id": "scare",
+              "kind": "check",
+              "label": "Scare them into dropping it",
+              "once": true,
+              "check": { "skill": "intimidation", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "They laugh, and now they're on guard.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They throw down a handful of coins and bolt.",
+                  "effects": [{ "effect": "gold", "amount": 5 }]
+                },
+                "success": {
+                  "text": "They drop everything and run.",
+                  "effects": [{ "effect": "gold", "amount": 12 }]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave them to it",
+              "outcome": { "text": "Not worth a knife in the ribs. You walk away." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lure",
+      "name": "Lure",
+      "weight": 2,
+      "what": "they meant to lead you into a trap",
+      "opening": [{ "effect": "hp", "amount": -2, "target": "all" }],
+      "regions": ["forest", "hill", "marsh"],
+      "stages": {
+        "start": {
+          "text": "They lead you off the road by a short cut that only they know, and then they are simply gone. The ground gives way under you: an old pit, half full of stakes and bones.",
+          "options": [
+            {
+              "id": "climb",
+              "kind": "check",
+              "label": "Climb out",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "A stake opens {actor}'s leg on the way up.",
+                  "effects": [
+                    { "effect": "hp", "amount": -5, "target": "actor" },
+                    { "effect": "exhaustion", "amount": 1, "target": "actor" }
+                  ]
+                },
+                "fail": {
+                  "text": "{actor} slides back twice before you get out, scraped raw.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "You get out, slowly and painfully.",
+                  "effects": [{ "effect": "hp", "amount": -1, "target": "all" }]
+                },
+                "success": { "text": "{actor} finds the handholds and hauls everyone out." }
+              }
+            },
+            {
+              "id": "search",
+              "kind": "check",
+              "label": "Look for whoever dug it",
+              "once": true,
+              "check": { "skill": "perception", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "Something moves at the lip of the pit, and you weren't watching.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "You spot the old way out the trappers used, and take it.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "{actor} spots the trappers' cache hidden in the pit wall before you leave.",
+                  "effects": [{ "effect": "gold", "amount": 10 }]
+                }
+              }
+            },
+            {
+              "id": "dig",
+              "kind": "fixed",
+              "label": "Dig your way out",
+              "outcome": {
+                "text": "It takes the rest of the day and every tool you have.",
+                "effects": [{ "effect": "days", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "contagion",
+      "name": "Contagion or curse",
+      "weight": 1,
+      "what": "they carried a sickness, or a curse",
+      "opening": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "fevered" }],
+      "regions": ["marsh", "town"],
+      "threats": ["plague"],
+      "stages": {
+        "start": {
+          "text": "By evening, whoever touched them most has a grey fever and a black mark spreading across one palm.",
+          "options": [
+            {
+              "id": "treat",
+              "kind": "check",
+              "label": "Treat the fever",
+              "check": { "skill": "medicine", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The fever breaks the worst way: through everyone. It isn't finished with you.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "followUp", "situation": "creeping-fever", "after": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "A long night of cold cloths and bitter tea. It passes, slowly.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": { "text": "{actor} knows this fever, and the herbs that break it." }
+              }
+            },
+            {
+              "id": "cleanse",
+              "kind": "check",
+              "label": "Cleanse the mark",
+              "once": true,
+              "check": { "skill": "religion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "The mark only darkens under {actor}'s prayers.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "The mark fades, and takes some strength with it.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor}'s prayer burns the mark away, and you all feel lighter for it.",
+                  "effects": [{ "effect": "inspiration", "amount": 1 }]
+                }
+              }
+            },
+            {
+              "id": "ignore",
+              "kind": "fixed",
+              "label": "Ignore it and press on",
+              "outcome": {
+                "text": "You bind the hand and walk on. It will probably pass.",
+                "effects": [{ "effect": "followUp", "situation": "creeping-fever", "after": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fugitive",
+      "name": "Fugitive",
+      "weight": 1.5,
+      "what": "they were running from the law, and the hunters are close",
+      "opening": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "caught hiding them" }],
+      "regions": ["road", "town"],
+      "threats": ["tyranny"],
+      "stages": {
+        "start": {
+          "text": "Riders in the duke's colours come up the road, asking after a runaway. The one you helped is crouched behind your packs.",
+          "options": [
+            {
+              "id": "hand-over",
+              "kind": "fixed",
+              "label": "Hand them over",
+              "outcome": {
+                "text": "The riders take them away in chains, and pay a bounty. Nobody meets your eyes for a while.",
+                "effects": [{ "effect": "gold", "amount": 8 }]
+              }
+            },
+            {
+              "id": "lie",
+              "kind": "check",
+              "label": "Lie for them",
+              "check": { "skill": "deception", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "The captain doesn't believe a word, and fines you for trying.",
+                  "effects": [
+                    { "effect": "gold", "amount": -8 },
+                    { "effect": "followUp", "situation": "wardens-on-your-trail", "after": 2 }
+                  ]
+                },
+                "partial": {
+                  "text": "They ride on, but the captain looks back twice.",
+                  "effects": [
+                    { "effect": "followUp", "situation": "wardens-on-your-trail", "after": 3 }
+                  ]
+                },
+                "success": {
+                  "text": "The riders thank you for your help and ride the wrong way. The runaway presses a ring into your hand.",
+                  "effects": [{ "effect": "gold", "amount": 10 }]
+                }
+              }
+            },
+            {
+              "id": "run",
+              "kind": "check",
+              "label": "Run with them",
+              "check": { "skill": "stealth", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The riders run you down in a field. You get away bruised, and now they know your faces.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "followUp", "situation": "wardens-on-your-trail", "after": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "You lose them in the woods, and lose a day with them.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "followUp", "situation": "wardens-on-your-trail", "after": 3 }
+                  ]
+                },
+                "success": {
+                  "text": "You slip away through the hedgerows. At the next crossroads the runaway thanks you and is gone.",
+                  "effects": [{ "effect": "inspiration", "amount": 1 }]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "false-claim",
+      "name": "False claim",
+      "weight": 1.5,
+      "what": "they meant to accuse you of a crime",
+      "opening": [{ "effect": "gold", "amount": -6 }],
+      "regions": ["town", "road"],
+      "stages": {
+        "start": {
+          "text": "At the next village they point at you and wail that you robbed them. A crowd gathers, and the reeve pushes through it.",
+          "options": [
+            {
+              "id": "plead",
+              "kind": "check",
+              "label": "Plead your case",
+              "check": { "skill": "persuasion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "The crowd has made up its mind. The reeve fines you and sends you on your way.",
+                  "effects": [{ "effect": "gold", "amount": -10 }]
+                },
+                "partial": {
+                  "text": "The reeve isn't sure, and splits the difference.",
+                  "effects": [{ "effect": "gold", "amount": -4 }]
+                },
+                "success": {
+                  "text": "{actor} talks the crowd round, and the reeve turns a cold eye on the accuser."
+                }
+              }
+            },
+            {
+              "id": "expose",
+              "kind": "check",
+              "label": "Catch them in the lie",
+              "once": true,
+              "check": { "skill": "insight", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} presses, and it sounds like bullying.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": { "text": "Their story wobbles enough that the reeve lets you go." },
+                "success": {
+                  "text": "{actor} catches the lie in front of everyone. The reeve makes them pay you for the trouble.",
+                  "effects": [{ "effect": "gold", "amount": 8 }]
+                }
+              }
+            },
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Pay to make it go away",
+              "requires": [{ "req": "gold", "min": 10 }],
+              "outcome": {
+                "text": "You pay. The accuser smiles, and the crowd goes back to its business.",
+                "effects": [{ "effect": "gold", "amount": -10 }]
+              }
+            },
+            {
+              "id": "slip",
+              "kind": "check",
+              "label": "Slip away in the crowd",
+              "check": { "skill": "stealth", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "Hands grab at you as you push out of the square.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "followUp", "situation": "grudge-on-the-road", "after": 2 }
+                  ]
+                },
+                "partial": {
+                  "text": "You get away, but the story will follow you.",
+                  "effects": [
+                    { "effect": "followUp", "situation": "grudge-on-the-road", "after": 3 }
+                  ]
+                },
+                "success": { "text": "You are out of the village before the reeve looks round." }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "informant",
+      "name": "Informant",
+      "weight": 1.5,
+      "what": "they were an informant, selling travellers' routes to raiders",
+      "opening": [{ "effect": "gold", "amount": -6 }],
+      "regions": ["road"],
+      "threats": ["bandits"],
+      "stages": {
+        "start": {
+          "text": "Too late, you remember how closely they watched your packs. By morning they are gone, and someone up the road will soon know your route and what you carry.",
+          "options": [
+            {
+              "id": "hunt",
+              "kind": "check",
+              "label": "Catch them before they sell it",
+              "check": { "skill": "survival", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "Their trail ends at a ford. Somewhere ahead, your route is being sold.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "followUp", "situation": "sold-out-ambush", "after": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "You catch them, but not before they've passed half of it on.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "followUp", "situation": "sold-out-ambush", "after": 2 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} catches them at a crossroads. They never reach their buyers, and their purse is yours.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 8 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "change-route",
+              "kind": "fixed",
+              "label": "Change your route",
+              "outcome": {
+                "text": "You take the long way round. Whoever bought your route will wait in the wrong place.",
+                "effects": [{ "effect": "days", "amount": 2 }]
+              }
+            },
+            {
+              "id": "press-on",
+              "kind": "fixed",
+              "label": "Press on and stay sharp",
+              "outcome": {
+                "text": "You keep to the road and sleep with your boots on.",
+                "effects": [{ "effect": "followUp", "situation": "sold-out-ambush", "after": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "predator-bait",
+      "name": "Predator bait",
+      "weight": 1.5,
+      "what": "their blood would draw predators",
+      "opening": [{ "effect": "hp", "amount": -4, "target": "random" }],
+      "slots": {
+        "predators": { "from": "creature", "types": ["beast", "monstrosity"], "maxCr": 1 }
+      },
+      "regions": ["forest", "hill", "marsh"],
+      "threats": ["beasts"],
+      "stages": {
+        "start": {
+          "text": "Their wound bled all over you, and {predators} have smelled it. They come out of the dusk, circling closer.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight them off",
+              "check": { "skill": "athletics", "dc": 13, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "You drive them off, torn and bitten.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "They break off, but not before {actor} is mauled.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} stands over the fire and they slink back into the dark.",
+                  "effects": [{ "effect": "hp", "amount": -1, "target": "actor" }]
+                }
+              }
+            },
+            {
+              "id": "high-ground",
+              "kind": "check",
+              "label": "Run for high ground",
+              "check": { "skill": "acrobatics", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "They catch the slowest of you on the slope.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "random" },
+                    { "effect": "exhaustion", "amount": 1, "target": "all" }
+                  ]
+                },
+                "partial": {
+                  "text": "You reach the rocks and wait them out, cold and sleepless.",
+                  "effects": [{ "effect": "exhaustion", "amount": 1, "target": "all" }]
+                },
+                "success": {
+                  "text": "You scramble up a crag they can't climb, and they lose interest by midnight."
+                }
+              }
+            },
+            {
+              "id": "fire",
+              "kind": "fixed",
+              "label": "Ring yourselves with fire till dawn",
+              "outcome": {
+                "text": "You burn half a forest's worth of deadwood and lose a day sleeping it off.",
+                "effects": [{ "effect": "days", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fey-bargain",
+      "name": "Fey bargain",
+      "weight": 1,
+      "what": "they were a changeling, and took something you can't see",
+      "opening": [
+        { "effect": "inspiration", "amount": -1 },
+        { "effect": "nextCheckModifier", "amount": -1, "reason": "something missing" }
+      ],
+      "regions": ["forest"],
+      "threats": ["fey"],
+      "stages": {
+        "start": {
+          "text": "Their smile was too wide. When they're gone, something is missing: the end of a song, a sister's name, the reason you set out. A trail of foxglove leads off the road, as if inviting you to come and bargain.",
+          "options": [
+            {
+              "id": "bargain",
+              "kind": "check",
+              "label": "Bargain for it",
+              "check": { "skill": "persuasion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "It laughs and keeps what it took. You walk on with a hole in you.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "partial": {
+                  "text": "It gives most of it back, for a day of your time spent dancing.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "inspiration", "amount": 1 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} strikes a fair bargain, by fey standards.",
+                  "effects": [{ "effect": "inspiration", "amount": 1 }]
+                },
+                "critSuccess": {
+                  "text": "{actor} wins it back, and something extra besides.",
+                  "effects": [{ "effect": "inspiration", "amount": 2 }]
+                }
+              }
+            },
+            {
+              "id": "riddle",
+              "kind": "check",
+              "label": "Out-riddle it",
+              "once": true,
+              "check": { "skill": "arcana", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "It answers {actor}'s riddle with a worse one, and now you can't stop thinking about it.",
+                  "effects": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "riddled" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "A draw. It returns what it took, sulking.",
+                  "effects": [{ "effect": "inspiration", "amount": 1 }]
+                },
+                "success": {
+                  "text": "It has never heard that one. It pays you in luck.",
+                  "effects": [{ "effect": "inspiration", "amount": 2 }]
+                }
+              }
+            },
+            {
+              "id": "let-go",
+              "kind": "fixed",
+              "label": "Let it go",
+              "outcome": { "text": "You walk on lighter, and emptier. The hole closes, mostly." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "recruiter",
+      "name": "Recruiter",
+      "weight": 1,
+      "what": "they were a cult recruiter, working on one of you",
+      "opening": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "whispers" }],
+      "regions": ["town", "road"],
+      "threats": ["cult"],
+      "stages": {
+        "start": {
+          "text": "Long after they've gone, their words keep working. One of you keeps glancing back down the road, humming a hymn none of you know.",
+          "options": [
+            {
+              "id": "talk-down",
+              "kind": "check",
+              "label": "Talk them down",
+              "description": "A Wisdom contest against the recruiter's words. Failing leaves the whispers in your heads.",
+              "check": { "skill": "insight", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} says the wrong thing, and the whispers get louder.",
+                  "effects": [
+                    { "effect": "nextCheckModifier", "amount": -2, "reason": "whispers" }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "It takes all night, but the hymn stops.",
+                  "effects": [{ "effect": "exhaustion", "amount": 1, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} finds the words. Whatever they were promised, it sounds hollow now."
+                }
+              }
+            },
+            {
+              "id": "hunt",
+              "kind": "check",
+              "label": "Find the recruiter",
+              "once": true,
+              "check": { "skill": "investigation", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "A day of asking around. Nobody saw anyone.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "nextCheckModifier", "amount": -2, "reason": "whispers" }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "You find their cell meeting in a barn, and that's enough to break the spell.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "You find the recruiter, and the cult's offering box. The spell breaks.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 12 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "walk-off",
+              "kind": "fixed",
+              "label": "Walk it off",
+              "outcome": {
+                "text": "A day of hard walking and no talking. By evening the hymn has gone.",
+                "effects": [{ "effect": "days", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

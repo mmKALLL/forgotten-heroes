@@ -2,7 +2,7 @@
   "$schema": "../_schema/creatures.schema.json",
   "kind": "creatures",
   "source": "imported",
-  "notes": "Names, types and challenge ratings from the System Reference Document 5.1 by Wizards of the Coast LLC, licensed under CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/legalcode). Groups and descriptions are our own words. Used as the {foe} in hostile-group encounters.",
+  "notes": "Names, types and challenge ratings from the System Reference Document 5.1 by Wizards of the Coast LLC, licensed under CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/legalcode). Groups and descriptions are our own words. Used as the {foe} in hostile-group encounters, and the beasts as predators in the twist table.",
   "entries": [
     {
       "id": "bandit",
@@ -123,6 +123,38 @@
       "type": "undead",
       "cr": 1,
       "description": "Starving dead whose claws lock the living rigid with fear."
+    },
+    {
+      "id": "wolf",
+      "name": "Wolf",
+      "group": "a pack of wolves",
+      "type": "beast",
+      "cr": 0.25,
+      "description": "Lean grey hunters that wear their prey down together."
+    },
+    {
+      "id": "dire-wolf",
+      "name": "Dire Wolf",
+      "group": "a pair of dire wolves",
+      "type": "beast",
+      "cr": 1,
+      "description": "Wolves the size of ponies, patient and terribly strong."
+    },
+    {
+      "id": "brown-bear",
+      "name": "Brown Bear",
+      "group": "a she-bear and her grown cubs",
+      "type": "beast",
+      "cr": 1,
+      "description": "Half a ton of hunger that doesn't care whose meal it takes."
+    },
+    {
+      "id": "giant-spider",
+      "name": "Giant Spider",
+      "group": "a pair of giant spiders",
+      "type": "beast",
+      "cr": 1,
+      "description": "Web-spinners as big as a mule, with a venomous bite."
     }
   ]
 }

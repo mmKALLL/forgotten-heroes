@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders.",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table.",
   "entries": [
     {
       "id": "flooded-ferry",
@@ -634,6 +634,197 @@
               "label": "Give up on the trade",
               "outcome": {
                 "text": "You leave the herb to the jungle, and the artifact to the lizardfolk."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sold-out-ambush",
+      "title": "A route sold",
+      "followUpOnly": true,
+      "tags": ["road"],
+      "notes": "Queued by the informant twist (twists.json): a deadlier ambush that knows you are coming.",
+      "slots": { "raiders": { "from": "creature", "types": ["humanoid"], "maxCr": 2 } },
+      "stages": {
+        "start": {
+          "text": "Your route was sold. {Raiders} are waiting at the one place where the road can't be left, and they know exactly what you carry.",
+          "archetype": { "id": "hostile-group", "dc": 15, "reward": 1.5 },
+          "options": [
+            {
+              "id": "spot",
+              "kind": "check",
+              "label": "Spot their lookouts first",
+              "description": "Whatever you do next goes better if you see them first.",
+              "once": true,
+              "check": { "skill": "perception", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "A lookout whistles before {actor} sees him. They know you've seen the trap.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} spots one lookout, too late to matter.",
+                  "stay": true
+                },
+                "success": {
+                  "text": "{actor} finds the lookouts before they find you. Now you choose how this starts.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "stay": true
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "creeping-fever",
+      "title": "The fever comes back",
+      "followUpOnly": true,
+      "tags": ["road"],
+      "notes": "Queued by the contagion twist (twists.json) when the fever is ignored or badly treated.",
+      "stages": {
+        "start": {
+          "text": "The fever you shrugged off has come back, and brought friends. By noon, two of you are shivering in the saddle.",
+          "options": [
+            {
+              "id": "nurse",
+              "kind": "check",
+              "label": "Nurse it yourselves",
+              "check": { "skill": "medicine", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "Nothing {actor} tries helps. It burns through you all before it breaks.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "days", "amount": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} keeps it in check. A day lost to sweating it out.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "{actor} finally finds the right herb. The fever breaks overnight."
+                }
+              }
+            },
+            {
+              "id": "rest",
+              "kind": "fixed",
+              "label": "Rest until it passes",
+              "outcome": {
+                "text": "Two long days under a hedge, and then it's over.",
+                "effects": [{ "effect": "days", "amount": 2 }]
+              }
+            },
+            {
+              "id": "healer",
+              "kind": "fixed",
+              "label": "Pay a healer",
+              "requires": [{ "req": "gold", "min": 10 }],
+              "outcome": {
+                "text": "A village healer takes your coin and gives you something vile. It works.",
+                "effects": [{ "effect": "gold", "amount": -10 }]
+              }
+            },
+            {
+              "id": "push-on",
+              "kind": "fixed",
+              "label": "Push on regardless",
+              "outcome": {
+                "text": "You march through it, and it takes it out of you.",
+                "effects": [{ "effect": "exhaustion", "amount": 1, "target": "all" }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wardens-on-your-trail",
+      "title": "Wardens on your trail",
+      "followUpOnly": true,
+      "tags": ["road"],
+      "notes": "Queued by the fugitive twist (twists.json) when you lied for or ran with the runaway.",
+      "stages": {
+        "start": {
+          "text": "Riders in the duke's colours catch up with you at a ford. They know you helped the runaway, and they want a word, or a fine, or both.",
+          "options": [
+            {
+              "id": "fine",
+              "kind": "fixed",
+              "label": "Pay the fine",
+              "requires": [{ "req": "gold", "min": 12 }],
+              "outcome": {
+                "text": "The captain counts it slowly and lets you go.",
+                "effects": [{ "effect": "gold", "amount": -12 }]
+              }
+            },
+            {
+              "id": "talk",
+              "kind": "check",
+              "label": "Talk your way out",
+              "once": true,
+              "check": { "skill": "persuasion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "The captain has heard it all before.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They settle for a smaller fine.",
+                  "effects": [{ "effect": "gold", "amount": -6 }]
+                },
+                "success": {
+                  "text": "{actor} convinces the captain you were fooled like everyone else."
+                }
+              }
+            },
+            {
+              "id": "run",
+              "kind": "check",
+              "label": "Make a run for it",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "They ride you down in the shallows.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "gold", "amount": -6 }
+                  ]
+                },
+                "partial": {
+                  "text": "You lose them in the reeds, and most of a day with them.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "You're over the ford and into the woods before they turn their horses."
+                }
+              }
+            },
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight them",
+              "check": { "skill": "athletics", "dc": 15, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "Trained riders against tired travellers. You get away, barely.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You unhorse two, and the rest decide you aren't worth it.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "success": {
+                  "text": "You send them back to the duke with bruised pride and lighter purses.",
+                  "effects": [{ "effect": "gold", "amount": 8 }]
+                }
               }
             }
           ]
