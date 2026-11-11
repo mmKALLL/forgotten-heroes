@@ -85,6 +85,14 @@ describe('previewCheck', () => {
     expect(previewCheck(state, 'persuasion', Number.NaN, 'normal')?.dc).toBe(1)
   })
 
+  test('takes an ability override, e.g. Intimidation (CHA)', () => {
+    expect(previewCheck(state, 'intimidation', 13, 'normal')).toMatchObject({ actorId: 'fighter', modifier: 3 })
+    expect(previewCheck(state, 'intimidation', 13, 'normal', undefined, 'cha')).toMatchObject({
+      actorId: 'bard',
+      modifier: 3,
+    })
+  })
+
   test('honours an actor override', () => {
     const preview = previewCheck(state, 'persuasion', 15, 'normal', 'fighter')
     expect(preview).toMatchObject({ actorId: 'fighter', actorName: 'Brom', modifier: -1 })

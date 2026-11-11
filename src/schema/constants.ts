@@ -32,3 +32,7 @@ export type CheckStat = Skill | Ability
 /** Check outcome tiers, worst to best. */
 export const TIERS = ['critFail', 'fail', 'partial', 'success', 'critSuccess'] as const
 export type Tier = (typeof TIERS)[number]
+
+/** DCs are whole numbers in this range; the engine clamps anything else into it. */
+export const MIN_DC = 1
+export const MAX_DC = 40

@@ -56,3 +56,16 @@ describe('actor selection', () => {
     expect(chooseActor([{ ...bard, hp: 0 }], 'persuasion')).toBeNull()
   })
 })
+
+describe('ability override', () => {
+  test('Intimidation (CHA) uses CHA but keeps the skill proficiency', () => {
+    expect(statModifier(fighter, 'intimidation')).toBe(5) // STR +3, proficiency +2
+    expect(statModifier(fighter, 'intimidation', 'cha')).toBe(1) // CHA −1, proficiency +2
+    expect(statModifier(bard, 'intimidation', 'cha')).toBe(3) // CHA +3, not proficient
+  })
+  test('the best actor depends on the skill and ability pairing', () => {
+    expect(chooseActor([fighter, bard], 'intimidation')?.characterId).toBe('fighter')
+    expect(chooseActor([fighter, bard], 'intimidation', undefined, 'cha')?.characterId).toBe('bard')
+    expect(rankActors([fighter, bard], 'intimidation', 'cha').map((r) => r.modifier)).toEqual([3, 1])
+  })
+})

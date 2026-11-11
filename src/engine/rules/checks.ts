@@ -1,4 +1,4 @@
-import { TIERS, type Tier } from '../../schema/constants'
+import { MAX_DC, MIN_DC, TIERS, type Tier } from '../../schema/constants'
 import { withRng, type Rng } from '../rng'
 
 export { TIERS }
@@ -11,6 +11,10 @@ export const TIER_LABELS: Record<Tier, string> = {
   success: 'Success',
   critSuccess: 'Critical success',
 }
+
+/** Whole-number DC in [MIN_DC, MAX_DC] (NaN → MIN_DC), so every state stays save-valid. */
+export const normalizeDc = (dc: number): number =>
+  Number.isNaN(dc) ? MIN_DC : Math.min(MAX_DC, Math.max(MIN_DC, Math.round(dc)))
 
 /** Edge = advantage, Exposed = disadvantage. Advantage is earned, never free (see design §3). */
 export type RollMode = 'normal' | 'advantage' | 'disadvantage'

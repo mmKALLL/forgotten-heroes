@@ -1,22 +1,21 @@
 import type { Content } from '../content/build'
+import { MAX_DC, MIN_DC } from '../schema/constants'
 import type { GameState, LogEntry } from '../schema/state'
 import { formatModifier } from './format'
 import { generateParty } from './party'
+import { previewCheck, type CheckPreview } from './preview'
 import { createRng } from './rng'
 import { CURRENT_SAVE_VERSION } from './save'
 import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
-import { TIER_LABELS, rollCheck, tierOdds, type RollMode, type Tier } from './rules/checks'
+import { TIER_LABELS, normalizeDc, rollCheck, type RollMode, type Tier } from './rules/checks'
 
 export const STARTING_PARTY_SIZE = 2
 export const STARTING_GOLD = 50
 const LOG_LIMIT = 200
-export const MIN_DC = 1
-export const MAX_DC = 40
-
-/** Whole-number DC in [MIN_DC, MAX_DC] (NaN → MIN_DC), so every state stays save-valid. */
-export const normalizeDc = (dc: number): number =>
-  Number.isNaN(dc) ? MIN_DC : Math.min(MAX_DC, Math.max(MIN_DC, Math.round(dc)))
+// These moved out so the encounter engine can use them without importing this module.
+// Re-exported so existing imports from './state' keep working.
+export { MAX_DC, MIN_DC, normalizeDc, previewCheck, type CheckPreview }
 
 export type Action = {
   type: 'practiceCheck'
@@ -74,34 +73,5 @@ export function step(state: GameState, action: Action): GameState {
         (crit ? ' Inspiration gained!' : '')
       return appendLog(next, text, TONE[roll.tier])
     }
-  }
-}
-
-export type CheckPreview = {
-  actorId: string
-  actorName: string
-  modifier: number
-  /** The DC the roll will actually use (normalised, like `step` does). */
-  dc: number
-  odds: Record<Tier, number>
-}
-
-export function previewCheck(
-  state: GameState,
-  stat: CheckStat,
-  dc: number,
-  mode: RollMode,
-  actorId?: string
-): CheckPreview | null {
-  const actor = chooseActor(state.party, stat, actorId)
-  if (!actor) return null
-  const actorName = state.party.find((c) => c.id === actor.characterId)?.name ?? '?'
-  const rollDc = normalizeDc(dc)
-  return {
-    actorId: actor.characterId,
-    actorName,
-    modifier: actor.modifier,
-    dc: rollDc,
-    odds: tierOdds(actor.modifier, rollDc, mode),
   }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { formatModifier, formatPercent } from '../format'
-import { abilityModifier, abilityOf, isSkill, proficiencyBonus, statLabel } from './abilities'
+import { abilityModifier, abilityOf, checkLabel, isSkill, proficiencyBonus, statLabel } from './abilities'
 
 describe('abilities', () => {
   test.each([
@@ -45,6 +45,12 @@ describe('abilities', () => {
   test('labels', () => {
     expect(statLabel('sleightOfHand')).toBe('Sleight of Hand')
     expect(statLabel('wis')).toBe('WIS')
+  })
+
+  test('check labels name an ability only when it overrides the default', () => {
+    expect(checkLabel('intimidation', 'cha')).toBe('Intimidation (CHA)')
+    expect(checkLabel('intimidation', 'str')).toBe('Intimidation')
+    expect(checkLabel('persuasion')).toBe('Persuasion')
   })
 
   test('formatting', () => {
