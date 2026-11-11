@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "classes"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "hitDie": {
+            "anyOf": [
+              {
+                "type": "number",
+                "const": 6
+              },
+              {
+                "type": "number",
+                "const": 8
+              },
+              {
+                "type": "number",
+                "const": 10
+              },
+              {
+                "type": "number",
+                "const": 12
+              }
+            ]
+          },
+          "baseAbilities": {
+            "type": "object",
+            "properties": {
+              "str": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "dex": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "con": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "int": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "wis": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30
+              },
+              "cha": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 30
+              }
+            },
+            "required": [
+              "str",
+              "dex",
+              "con",
+              "int",
+              "wis",
+              "cha"
+            ]
+          },
+          "skillProficiencies": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "acrobatics",
+                "animalHandling",
+                "arcana",
+                "athletics",
+                "deception",
+                "history",
+                "insight",
+                "intimidation",
+                "investigation",
+                "medicine",
+                "nature",
+                "perception",
+                "performance",
+                "persuasion",
+                "religion",
+                "sleightOfHand",
+                "stealth",
+                "survival"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "hitDie",
+          "baseAbilities",
+          "skillProficiencies"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ]
+}
