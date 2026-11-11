@@ -1,4 +1,9 @@
-import type { BranchPreview, OptionPreview, TwistInfo } from '../../engine/encounters/preview'
+import type {
+  BranchPreview,
+  OptionPreview,
+  ShownOutcome,
+  TwistInfo,
+} from '../../engine/encounters/preview'
 import { formatPercent } from '../../engine/format'
 import { TIER_LABELS } from '../../engine/rules/checks'
 
@@ -18,7 +23,8 @@ function Branch({ branch }: { branch: BranchPreview }) {
 /**
  * The outcome tiers of the option last hovered or focused, shared by every option card. The box
  * keeps a fixed height (long text scrolls inside it) so changing what it shows never moves the
- * cards above it. Each Choose button points here with aria-describedby.
+ * cards above it. Each card's choose target points here with aria-describedby. Critical tiers
+ * arrive hidden from the engine and get no row: only their odds show, on the card's bar.
  */
 export function OutcomesPanel({
   id,
@@ -30,6 +36,7 @@ export function OutcomesPanel({
   option: OptionPreview | null
   twist: TwistInfo | null
 }) {
+  const shown = option?.outcomes.filter((o): o is ShownOutcome => !o.hidden) ?? []
   return (
     <section className="outcomes-panel" aria-label="Outcomes">
       <header className="card-head">
@@ -50,11 +57,11 @@ export function OutcomesPanel({
               <strong>{option.label}</strong>
               {option.check && <span className="muted"> · {option.check.actorName} acts</span>}
             </p>
-            {option.outcomes.length === 0 ? (
+            {shown.length === 0 ? (
               <p className="muted small">{option.unmet.join(', ') || 'Nothing can happen.'}</p>
             ) : (
               <ul className="outcomes">
-                {[...option.outcomes].reverse().map((o) => (
+                {[...shown].reverse().map((o) => (
                   <li key={o.tier ?? 'fixed'}>
                     {/* The colour names the tier; the name stays in the tooltip and for screen readers. */}
                     <span

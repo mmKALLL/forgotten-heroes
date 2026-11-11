@@ -24,6 +24,8 @@ afterEach(cleanup)
 
 const card = (name: string) => screen.getByRole('article', { name })
 const outcomes = () => within(screen.getByRole('region', { name: 'Outcomes' }))
+const choose = (name: string) => screen.getByRole('button', { name: `Choose ${name}` })
+const checkLine = (name: string) => card(name).querySelector('.check-line')!.textContent
 
 test('shows the situation, its source, and every option compactly with its odds', () => {
   const state = started('roadside')
@@ -35,7 +37,7 @@ test('shows the situation, its source, and every option compactly with its odds'
   const read = within(card('Read them'))
   // d20 faces by default, like the practice check: 55% to succeed is 10+ on the d20.
   expect(read.getByText('Insight vs DC 12')).toBeTruthy()
-  expect(read.getByText(/on the d20/).textContent).toBe('needs 10+ on the d20')
+  expect(read.queryByText(/needs|on the d20/)).toBeNull()
   expect(read.getByRole('img', { name: /Success: 10–19 \(50%\)/ })).toBeTruthy()
   // The outcome tiers and twists live in the shared panel, not in the cards.
   expect(read.queryByText(/Lyra reads them\./)).toBeNull()
@@ -48,9 +50,9 @@ test("hovering an option's card shows its outcome tiers, and its twist, in the s
   const state = started('roadside')
   render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
   await userEvent.hover(card('Read them'))
-  expect(outcomes().getAllByText(/Lyra reads them\./)).toHaveLength(2) // success, and critical success by fallback
+  expect(outcomes().getAllByText(/Lyra reads them\./)).toHaveLength(1)
   // The colour marks the tier; its name stays in the tooltip and for screen readers.
-  expect(outcomes().getAllByTitle('Critical success')).toHaveLength(1)
+  expect(outcomes().getByTitle('Success')).toBeTruthy()
   expect(outcomes().getByText('Partial success:', { selector: '.sr-only' })).toBeTruthy()
   expect(outcomes().queryByText(/continues|ends/)).toBeNull()
   await userEvent.hover(card('Help them'))
@@ -62,16 +64,57 @@ test("hovering an option's card shows its outcome tiers, and its twist, in the s
   expect(outcomes().getByText(/If it is a trap:/)).toBeTruthy()
 })
 
-test('focusing anything in a card shows its outcomes, and Choose is described by the panel', async () => {
+test('the outcomes panel shows no rows for the critical tiers, whose odds stay on the bar', async () => {
   render(<Harness initial={started('roadside')} />)
-  const choose = screen.getByRole('button', { name: 'Choose Read them' })
-  act(() => choose.focus())
-  expect(outcomes().getAllByText(/Lyra reads them\./)).toHaveLength(2)
-  const panel = document.getElementById(choose.getAttribute('aria-describedby')!)!
+  await userEvent.hover(card('Rob them'))
+  // Rob them has its own critical failure ("Caught!"): it stays a surprise until rolled.
+  expect(outcomes().getAllByRole('listitem')).toHaveLength(3)
+  expect(outcomes().queryByText(/Caught!/)).toBeNull()
+  expect(outcomes().queryByTitle(/Critical/)).toBeNull()
+  const rob = within(card('Rob them'))
+  expect(rob.getByRole('img', { name: /Critical failure: 1 / })).toBeTruthy()
+  expect(rob.getByRole('img', { name: /Critical success: 20 / })).toBeTruthy()
+})
+
+test('focusing anything in a card shows its outcomes, and its choose target is described by the panel', async () => {
+  render(<Harness initial={started('roadside')} />)
+  const read = choose('Read them')
+  expect(read.tabIndex).toBe(0)
+  act(() => read.focus())
+  expect(outcomes().getAllByText(/Lyra reads them\./)).toHaveLength(1)
+  const ids = read.getAttribute('aria-describedby')!.split(' ')
+  const panel = document.getElementById(ids[ids.length - 1])!
   expect(panel.textContent).toMatch(/Lyra reads them\./)
   act(() => screen.getByRole('combobox', { name: 'Actor for Rob them' }).focus())
-  expect(outcomes().getAllByText(/Their purse\./)).toHaveLength(2)
+  expect(outcomes().getAllByText(/Their purse\./)).toHaveLength(1)
   expect(panel.textContent).toMatch(/Their purse\./)
+})
+
+test('clicking anywhere on a card chooses it', async () => {
+  const state = started('roadside')
+  render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
+  await userEvent.click(card('Help them'))
+  expect(screen.getByText(/thanks you\./)).toBeTruthy()
+})
+
+test.each(['{Enter}', ' '])('%s on a focused card chooses it', async (key) => {
+  const state = started('roadside')
+  render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
+  act(() => choose('Help them').focus())
+  await userEvent.keyboard(key)
+  expect(screen.getByText(/thanks you\./)).toBeTruthy()
+})
+
+test('clicking or changing the actor picker does not choose the card', async () => {
+  render(<Harness initial={started('roadside')} />)
+  const actor = screen.getByRole('combobox', { name: 'Actor for Read them' })
+  await userEvent.click(actor)
+  await userEvent.selectOptions(actor, 'brom')
+  act(() => actor.focus())
+  await userEvent.keyboard('{Enter}')
+  expect(screen.queryByRole('button', { name: 'Skip dice animation' })).toBeNull()
+  expect(choose('Read them')).toBeTruthy()
+  expect((actor as HTMLSelectElement).value).toBe('brom')
 })
 
 test('hovering never changes the cards themselves', async () => {
@@ -86,7 +129,7 @@ test('hovering never changes the cards themselves', async () => {
 test('a fixed option ends the encounter, and Close clears it', async () => {
   const state = started('roadside')
   render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
-  await userEvent.click(screen.getByRole('button', { name: 'Choose Help them' }))
+  await userEvent.click(choose('Help them'))
   expect(screen.getByText(/thanks you\./)).toBeTruthy()
   expect(screen.getByText('The encounter is over.')).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Close' }))
@@ -95,7 +138,7 @@ test('a fixed option ends the encounter, and Close clears it', async () => {
 
 test('a check animates the dice and hides the result until they settle (click skips)', async () => {
   render(<Harness initial={started('cliff')} />)
-  await userEvent.click(screen.getByRole('button', { name: 'Choose Climb' }))
+  await userEvent.click(choose('Climb'))
   const skip = screen.getByRole('button', { name: 'Skip dice animation' })
   expect(screen.queryByRole('button', { name: /^Choose / })).toBeNull()
   await userEvent.click(skip)
@@ -104,12 +147,17 @@ test('a check animates the dice and hides the result until they settle (click sk
   expect(screen.getAllByRole('button', { name: /^Choose / }).length).toBeGreaterThan(0)
 })
 
-test('unmet requirements disable the option and say why', () => {
+test('unmet requirements disable the option and say why, and clicking it does nothing', async () => {
   render(<Harness initial={started('roadside', makeState({ gold: 5 }))} />)
-  expect(
-    (screen.getByRole('button', { name: 'Choose Give them money' }) as HTMLButtonElement).disabled
-  ).toBe(true)
+  const donate = choose('Give them money')
+  expect(donate.getAttribute('aria-disabled')).toBe('true')
+  expect(card('Give them money').classList.contains('unavailable')).toBe(true)
   expect(screen.getByText('needs 20 gp')).toBeTruthy()
+  await userEvent.click(card('Give them money'))
+  act(() => donate.focus())
+  await userEvent.keyboard('{Enter}')
+  expect(screen.queryByText('The encounter is over.')).toBeNull()
+  expect(choose('Give them money')).toBeTruthy()
 })
 
 test('the actor picker lists the whole party, with the best preselected', () => {
@@ -136,14 +184,14 @@ test('the player can pick who acts, which changes the preview', async () => {
   render(<Harness initial={started('roadside')} />)
   const read = within(card('Read them'))
   await userEvent.hover(card('Read them'))
-  expect(read.getByText(/on the d20/).textContent).toMatch(/needs 10\+ on the d20$/)
+  expect(read.getByRole('img', { name: /Success: 10–19/ })).toBeTruthy()
   await userEvent.selectOptions(read.getByRole('combobox', { name: 'Actor for Read them' }), 'brom')
-  expect(read.getByText(/on the d20/).textContent).toMatch(/needs 11\+ on the d20$/)
-  expect(outcomes().getAllByText(/Brom reads them\./)).toHaveLength(2)
+  expect(read.getByRole('img', { name: /Success: 11–19/ })).toBeTruthy()
+  expect(outcomes().getAllByText(/Brom reads them\./)).toHaveLength(1)
   expect(outcomes().getByText(/Brom acts/)).toBeTruthy()
 })
 
-test("a situational modifier shows next to the actor's, and Edge reads as best of 2", () => {
+test('a situational modifier and Edge show beside the skill and DC', () => {
   const state = started('roadside')
   render(
     <Harness
@@ -154,10 +202,7 @@ test("a situational modifier shows next to the actor's, and Edge reads as best o
     />
   )
   const read = within(card('Read them'))
-  expect(read.getByText(/on the d20/).textContent).toMatch(
-    /^−2 \(situational\) · needs \d+\+ on the d20 \(best of 2\)$/
-  )
-  expect(read.getByText('Insight vs DC 12 · Edge')).toBeTruthy()
+  expect(checkLine('Read them')).toBe('Insight vs DC 12 · −2 situational · Edge')
   expect(read.getByRole('option', { name: 'Lyra +2', selected: true })).toBeTruthy()
   expect(screen.getByText('Edge', { selector: '.badge' })).toBeTruthy()
 })
@@ -172,10 +217,7 @@ test('a situational modifier with a reason shows the reason', () => {
       }}
     />
   )
-  const read = within(card('Read them'))
-  expect(read.getByText(/on the d20/).textContent).toMatch(
-    /^−2 \(misread\) · needs \d+\+ on the d20$/
-  )
+  expect(checkLine('Read them')).toBe('Insight vs DC 12 · −2 misread')
 })
 
 test('a revealed twist shows its chance', () => {
@@ -206,15 +248,15 @@ test('a party too hurt to roll, with nothing affordable left, can only close', a
 test('focus follows the play: the dice, then the first option that can be chosen, then Close', async () => {
   const state = started('roadside')
   render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
-  await userEvent.click(screen.getByRole('button', { name: 'Choose Read them' }))
+  await userEvent.click(choose('Read them'))
   const skip = screen.getByRole('button', { name: 'Skip dice animation' })
   expect(document.activeElement).toBe(skip)
   await userEvent.keyboard('{Enter}')
   const firstAvailable = screen
     .getAllByRole('button', { name: /^Choose / })
-    .find((b) => !(b as HTMLButtonElement).disabled)
+    .find((b) => !b.hasAttribute('aria-disabled'))
   expect(document.activeElement).toBe(firstAvailable)
-  await userEvent.click(screen.getByRole('button', { name: 'Choose Help carefully' }))
+  await userEvent.click(choose('Help carefully'))
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close' }))
 })
 
@@ -248,7 +290,7 @@ test('an actor picked for an option does not carry over to a same-named option o
   const actor = () => screen.getByRole('combobox', { name: 'Actor for Go on' }) as HTMLSelectElement
   await userEvent.selectOptions(actor(), 'lyra')
   expect(actor().value).toBe('lyra')
-  await userEvent.click(screen.getByRole('button', { name: 'Choose Go on' }))
+  await userEvent.click(choose('Go on'))
   await userEvent.click(screen.getByRole('button', { name: 'Skip dice animation' }))
   expect(screen.getByText('Second.')).toBeTruthy()
   expect(actor().value).toBe('brom')

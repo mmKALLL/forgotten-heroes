@@ -15,7 +15,7 @@ const byId = (state: GameState, actorIds: Record<string, string> = {}) =>
 describe('encounterOptions', () => {
   const roadside = start('roadside')
 
-  test('check options show actor, skill, DC, exact odds and all five tiers', () => {
+  test('check options show actor, skill, DC, exact odds and all five tiers, criticals hidden', () => {
     const read = byId(roadside).read
     expect(read.check).toMatchObject({
       actorId: 'lyra',
@@ -29,9 +29,10 @@ describe('encounterOptions', () => {
     expect(read.check?.odds).toEqual(tierOdds(2, 12, 'normal'))
     expect(read.check?.successChance).toBeCloseTo(0.55)
     expect(read.outcomes.map((o) => o.tier)).toEqual([...TIERS])
-    expect(read.outcomes[0]).toMatchObject({ text: 'You cannot tell.', next: 'stay' }) // critFail falls back to fail
+    expect(read.outcomes[1]).toMatchObject({ text: 'You cannot tell.', next: 'stay' })
     expect(read.outcomes[3]).toEqual({
       tier: 'success',
+      hidden: false,
       text: 'Lyra reads them.',
       effects: ['reveals how likely the twist is', 'Edge'],
       next: 'stay',
@@ -39,6 +40,21 @@ describe('encounterOptions', () => {
     })
     expect(read.check?.actors.map((a) => a.id)).toEqual(['lyra', 'brom'])
     expect(read.check?.unableActors).toEqual([])
+  })
+
+  test('critical tiers keep their odds but hide what they do, twist branches included', () => {
+    const rob = byId(roadside).rob
+    // Rob's critFail has its own text and effects; the preview must not leak them.
+    expect(rob.outcomes[0]).toEqual({ tier: 'critFail', hidden: true })
+    expect(rob.outcomes[4]).toEqual({ tier: 'critSuccess', hidden: true })
+    expect(JSON.stringify(rob.outcomes)).not.toMatch(/Caught!|−4 HP/)
+    expect(rob.check?.odds.critFail).toBeGreaterThan(0)
+    expect(rob.check?.odds.critSuccess).toBeGreaterThan(0)
+    expect(rob.outcomes.filter((o) => !o.hidden).map((o) => o.tier)).toEqual([
+      'fail',
+      'partial',
+      'success',
+    ])
   })
 
   test('party members who cannot act are listed apart, so the picker can show them disabled', () => {
@@ -104,6 +120,7 @@ describe('encounterOptions', () => {
     expect(trust.outcomes).toEqual([
       {
         tier: null,
+        hidden: false,
         text: `${roadside.encounter!.slots.who.replace('a', 'A')} thanks you.`,
         effects: ['+20 gp'],
         next: 'end',

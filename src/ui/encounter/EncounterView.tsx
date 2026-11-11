@@ -58,7 +58,7 @@ export function EncounterView({
   const over = encounterOver(state)
 
   // A new encounter focuses its title; after each choice (once any dice settle), focus moves to
-  // the first option that can be chosen, or to Close. The dice take focus while they roll.
+  // the first option card that can be chosen, or to Close. The dice take focus while they roll.
   const headingRef = useRef<HTMLHeadingElement>(null)
   const nextRef = useRef<HTMLDivElement>(null)
   const focusedAt = useRef<{ first: typeof first; length: number } | null>(null)
@@ -70,7 +70,7 @@ export function EncounterView({
     if (before?.first === first && before.length === length) return
     const target =
       before?.first === first
-        ? nextRef.current?.querySelector<HTMLButtonElement>('button.next:not(:disabled)')
+        ? nextRef.current?.querySelector<HTMLElement>('.next:not(:disabled):not([aria-disabled])')
         : null
     ;(target ?? headingRef.current)?.focus()
   }, [first, length, animating])

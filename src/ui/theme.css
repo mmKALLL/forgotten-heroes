@@ -12,7 +12,8 @@
   --tier-fail: #c0634f;
   --tier-partial: #d9a75f;
   --tier-success: #6f9a5b;
-  --tier-critSuccess: #c9a227;
+  /* A bright yellow that takes dark (ink) labels: at least 10:1 in both themes. */
+  --tier-critSuccess: #f5cf3a;
   font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   color: var(--ink);
   background: var(--bg);
@@ -32,7 +33,7 @@
     --tier-fail: #cf6f55;
     --tier-partial: #e0b56e;
     --tier-success: #649c50;
-    --tier-critSuccess: #e3bd45;
+    --tier-critSuccess: #f7d34a;
   }
 }
 * {
@@ -397,6 +398,15 @@ label.inline {
   display: flex;
   flex-direction: column;
   gap: 0.3rem;
+  cursor: pointer;
+}
+.option-card.unavailable {
+  cursor: default;
+}
+/* The card itself looks disabled; its actor picker stays usable. */
+.option-card.unavailable .card-choose,
+.option-card.unavailable .odds-bar {
+  opacity: 0.5;
 }
 /* Only the border colour changes, so hovering never moves anything. */
 .option-card.previewed {
@@ -405,8 +415,34 @@ label.inline {
 .option-card p {
   margin: 0;
 }
-.option-card .card-head {
-  align-items: baseline;
+.card-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.card-choose {
+  flex: 1;
+  min-width: 0;
+  border-radius: 2px;
+}
+.card-choose:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.card-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  text-align: right;
+}
+/* Slim, under the skill and DC. */
+.card-side select {
+  max-width: 100%;
+  font-size: 0.8rem;
+  padding: 0 0.25rem;
+  cursor: pointer;
 }
 /* The odds stay readable but a little quieter than the text: tier colours mixed slightly toward
    the panel. Each label takes whichever text colour keeps at least 4.5:1 on its segment. */
@@ -433,8 +469,9 @@ label.inline {
 .option-card .tier-success.odds-seg {
   background: color-mix(in srgb, var(--tier-success) var(--seg-amount), var(--panel));
 }
+/* Mixed less, so it stays bright yellow (and keeps dark labels) on the dark panel too. */
 .option-card .tier-critSuccess.odds-seg {
-  background: color-mix(in srgb, var(--tier-critSuccess) var(--seg-amount), var(--panel));
+  background: color-mix(in srgb, var(--tier-critSuccess) 90%, var(--panel));
 }
 @media (prefers-color-scheme: dark) {
   /* Mixed toward the dark panel, the red and green segments need light labels. */
@@ -446,34 +483,6 @@ label.inline {
     --seg-dark-text: #1d1914;
   }
 }
-/* Choose is a quiet dark button, not the accent: the cards' text leads. */
-.option-card button.next {
-  background: #2b2118;
-  border-color: #2b2118;
-  color: #fff8ec;
-}
-@media (prefers-color-scheme: dark) {
-  .option-card button.next {
-    background: #3d352a;
-    border-color: #6b5c47;
-  }
-}
-.option-card button.next:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-.choose-row {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.15rem;
-}
-/* Thinner than the Choose button beside it. */
-.choose-row select {
-  min-width: 0;
-  font-size: 0.85rem;
-  padding: 0.1rem 0.3rem;
-}
 .outcomes-panel {
   margin-top: 0.75rem;
 }
@@ -484,10 +493,10 @@ label.inline {
   letter-spacing: 0.08em;
   color: var(--accent);
 }
-/* A fixed height, room for five tiers and a twist line: changing what it shows never moves the
-   cards above it. Longer text scrolls inside. */
+/* A fixed height, room for three tiers and a twist line (the critical tiers stay hidden):
+   changing what it shows never moves the cards above it. Longer text scrolls inside. */
 .outcomes-box {
-  height: 11rem;
+  height: 8rem;
   overflow: auto;
   border: 1px solid var(--line);
   border-radius: 4px;

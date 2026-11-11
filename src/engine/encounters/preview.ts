@@ -18,8 +18,23 @@ import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } fro
 import { fillText } from './slots'
 
 export type BranchPreview = { text: string; effects: string[]; next: 'end' | 'stay' | 'stage' }
-/** One row of an option card. `tier` is null for fixed options. `twist` is shown as "if …". */
-export type OutcomePreview = BranchPreview & { tier: Tier | null; twist: BranchPreview | null }
+/** An outcome row the player may read. `tier` is null for fixed options. `twist` shows as "if …". */
+export type ShownOutcome = BranchPreview & {
+  tier: Tier | null
+  hidden: false
+  twist: BranchPreview | null
+}
+/**
+ * A critical tier kept secret before the roll (design §7): its odds show on the bar, but what it
+ * does (text, effects and twist branch) stays a surprise until it is rolled.
+ */
+export type HiddenOutcome = { tier: CriticalTier; hidden: true }
+/** One outcome row, in tier order. */
+export type OutcomePreview = ShownOutcome | HiddenOutcome
+
+type CriticalTier = Extract<Tier, 'critFail' | 'critSuccess'>
+const isCritical = (tier: Tier): tier is CriticalTier =>
+  tier === 'critFail' || tier === 'critSuccess'
 
 export type OptionCheckPreview = CheckPreview & {
   label: string
@@ -76,17 +91,18 @@ function outcomePreview(
   tier: Tier | null,
   values: Record<string, string>,
   actorName: string
-): OutcomePreview {
+): ShownOutcome {
   return {
     ...branchPreview(outcome, values, actorName),
     tier,
+    hidden: false,
     twist: outcome.twist ? branchPreview(outcome.twist, values, actorName) : null,
   }
 }
 
 /**
- * Everything the player sees before committing (design §7): the acting member, skill, DC, odds
- * and every outcome tier. `actorIds` maps option ids to the player's actor overrides.
+ * Everything the player sees before committing (design §7): the acting member, skill, DC, the
+ * odds of every tier, and the outcomes of all but the critical tiers, which stay hidden. `actorIds` maps option ids to the player's actor overrides.
  */
 export function encounterOptions(
   state: GameState,
@@ -145,8 +161,10 @@ export function encounterOptions(
       autoActorId: actors[0].id,
       autoActorName: actors[0].name,
     }
-    const outcomes = TIERS.map((tier) =>
-      outcomePreview(tierOutcome(option, tier), tier, values, preview.actorName)
+    const outcomes = TIERS.map((tier): OutcomePreview =>
+      isCritical(tier)
+        ? { tier, hidden: true }
+        : outcomePreview(tierOutcome(option, tier), tier, values, preview.actorName)
     )
     return { ...base, available: optionAvailable(state, option), unmet, check, outcomes }
   })
