@@ -1,9 +1,11 @@
 import { describe, expect, test } from 'vitest'
 import { PUBLISHED_TOWNS } from '../../scripts/port/town-maps'
 import { slotNames } from '../engine/encounters/slots'
+import { generateWorld, startingSettlement, worldSeed } from '../engine/world/generate'
 import { routesFrom } from '../engine/world/geo'
 import { worldIssues } from '../engine/world/validate'
 import { BIOMES } from '../schema/constants'
+import { WorldStateSchema } from '../schema/world'
 import { loadBundledContent } from './bundled'
 
 const content = loadBundledContent()
@@ -72,5 +74,24 @@ describe('threats and realm names', () => {
     const rows = content.partsTables['realm-name'].rows
     expect(rows.length).toBeGreaterThanOrEqual(5)
     for (const row of rows) expect(slotNames(row.text)).toEqual(['place'])
+  })
+})
+
+describe('generated worlds on Altaeus', () => {
+  test.each([1, 2, 3, 4, 5, 6, 7, 8])('seed %i is valid and fully named', (seed) => {
+    const world = generateWorld(worldSeed(seed), content)
+    expect(WorldStateSchema.parse(world)).toEqual(world)
+    expect(world.kingdoms.length).toBeGreaterThanOrEqual(4)
+    expect(Object.keys(world.regions).sort()).toEqual(Object.keys(content.regions).sort())
+    const names = Object.values(world.settlements).map((s) => s.name)
+    expect(new Set(names).size).toBe(names.length)
+    expect(startingSettlement(world, content)).not.toBeNull()
+    expect(startingSettlement(world, content, 'random')).not.toBeNull()
+  })
+
+  test('most settlements are named after town maps', () => {
+    const world = generateWorld(worldSeed(1), content)
+    const named = Object.values(world.settlements).filter((s) => s.town !== null)
+    expect(named.length).toBeGreaterThan(Object.keys(world.settlements).length / 2)
   })
 })
