@@ -1,0 +1,91 @@
+{
+  "$schema": "../_schema/situations.schema.json",
+  "kind": "situations",
+  "source": "claude",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders.",
+  "entries": [
+    {
+      "id": "grudge-on-the-road",
+      "title": "An old grudge",
+      "followUpOnly": true,
+      "tags": ["road"],
+      "notes": "Queued when you exploit someone in need (the someone-in-need archetype) or leave a threat hanging.",
+      "stages": {
+        "start": {
+          "text": "Someone you wronged on the road has not forgotten. They are waiting at the next bridge, with two cousins and a cudgel each.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight",
+              "description": "Three of them, angry rather than skilled.",
+              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "You win, but the cudgels find their mark first.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "They go into the river, and {actor} nearly goes with them.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                },
+                "success": {
+                  "text": "They go into the river. The bridge-keeper pretends not to see."
+                }
+              }
+            },
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Make it right",
+              "requires": [{ "req": "gold", "min": 10 }],
+              "outcome": {
+                "text": "You pay back what you took, and a little more. They spit, but they let it go.",
+                "effects": [{ "effect": "gold", "amount": -10 }]
+              }
+            },
+            {
+              "id": "apologise",
+              "kind": "check",
+              "label": "Apologise, and mean it",
+              "once": true,
+              "check": { "skill": "persuasion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "They are not interested in words.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They take the apology, and some coin to go with it.",
+                  "effects": [{ "effect": "gold", "amount": -5 }]
+                },
+                "success": { "text": "They grumble, but let you pass. Maybe it ends here." }
+              }
+            },
+            {
+              "id": "run",
+              "kind": "check",
+              "label": "Take the ford instead",
+              "check": { "skill": "acrobatics", "dc": 11 },
+              "outcomes": {
+                "fail": {
+                  "text": "They catch {actor} on the slippery stones.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "days", "amount": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "You lose them, and most of a day, in the reeds.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": { "text": "You are across the ford before they can reach it." }
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

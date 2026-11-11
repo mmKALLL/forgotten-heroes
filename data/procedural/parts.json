@@ -1,0 +1,93 @@
+{
+  "$schema": "../_schema/partsTables.schema.json",
+  "kind": "partsTables",
+  "source": "procedural",
+  "notes": "Parts tables for situation templates (design §7). A row may reference another table as {table-id}. Written by Claude; tune the weights freely. Later plans will filter rows by world state (region, threat, goods carried).",
+  "entries": [
+    {
+      "id": "who",
+      "description": "A stranger on the road: attitude, ancestry, occupation",
+      "rows": [{ "text": "{who-attitude} {who-ancestry} {who-occupation}" }]
+    },
+    {
+      "id": "who-attitude",
+      "description": "How they carry themselves (with the article)",
+      "rows": [
+        { "text": "a nervous" },
+        { "text": "a weary" },
+        { "text": "a cheerful" },
+        { "text": "a suspicious" },
+        { "text": "an exhausted" },
+        { "text": "a proud" },
+        { "text": "a frightened" },
+        { "text": "a soft-spoken" },
+        { "text": "a sharp-eyed" },
+        { "text": "a sullen", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "who-ancestry",
+      "description": "Ancestry, weighted towards the common folk of the roads",
+      "rows": [
+        { "text": "human", "weight": 4 },
+        { "text": "dwarf", "weight": 2 },
+        { "text": "elf" },
+        { "text": "half-elf" },
+        { "text": "orc" },
+        { "text": "goblin" }
+      ]
+    },
+    {
+      "id": "who-occupation",
+      "description": "What they do for a living",
+      "rows": [
+        { "text": "tinker" },
+        { "text": "pilgrim" },
+        { "text": "shepherd" },
+        { "text": "courier" },
+        { "text": "charcoal-burner" },
+        { "text": "tax collector" },
+        { "text": "midwife" },
+        { "text": "salt trader" },
+        { "text": "retired soldier" },
+        { "text": "bookbinder" },
+        { "text": "wandering priest", "weight": 0.5 },
+        { "text": "minstrel", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "motive",
+      "description": "Why they need help (a full sentence)",
+      "rows": [
+        { "text": "Their mule has gone lame a day short of market." },
+        { "text": "A wheel has come off their cart, and the load is too heavy to lift alone." },
+        { "text": "They lost the road in the fog, and their lamp oil is gone." },
+        { "text": "Their companion has a fever and is getting worse." },
+        { "text": "Wolves scattered their flock in the night." },
+        { "text": "They were robbed at the last crossing and have nothing left for the toll." }
+      ]
+    },
+    {
+      "id": "stakes",
+      "description": "What happens if nobody helps (a full sentence)",
+      "rows": [
+        { "text": "If they miss the market, the family goes hungry this winter." },
+        { "text": "A wedding is waiting for them in the next town." },
+        { "text": "The letters they carry are due at the magistrate's by tomorrow." },
+        { "text": "They owe money to people who don't wait." },
+        { "text": "Their child is waiting for them alone at home." }
+      ]
+    },
+    {
+      "id": "complication",
+      "description": "Something that makes a confrontation worse (a full sentence)",
+      "rows": [
+        { "text": "Rain has turned the road to sucking mud." },
+        { "text": "Dusk is falling fast." },
+        { "text": "The road narrows between steep banks here." },
+        { "text": "One of them is barely more than a child." },
+        { "text": "Your pack mule is skittish and close to bolting." }
+      ]
+    }
+  ]
+}

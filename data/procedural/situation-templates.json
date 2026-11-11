@@ -1,0 +1,41 @@
+{
+  "$schema": "../_schema/situationTemplates.schema.json",
+  "kind": "situationTemplates",
+  "source": "procedural",
+  "notes": "Archetypes dressed with parts tables. Each becomes a one-stage situation when played.",
+  "entries": [
+    {
+      "id": "roadside-plea",
+      "title": "A plea at the roadside",
+      "text": "{Who} waves you down at the roadside. {Motive} {Stakes}",
+      "slots": {
+        "who": { "from": "table", "table": "who" },
+        "motive": { "from": "table", "table": "motive" },
+        "stakes": { "from": "table", "table": "stakes" }
+      },
+      "twist": { "chance": 0.25, "what": "they are bait for an ambush" },
+      "archetype": { "id": "someone-in-need", "dc": 13, "reward": 1 }
+    },
+    {
+      "id": "toll-gang",
+      "title": "A toll that isn't",
+      "text": "{Foe} have dragged a log across the road, and want paying to move it. {Complication}",
+      "slots": {
+        "foe": { "from": "creature", "types": ["humanoid", "giant"], "maxCr": 2 },
+        "complication": { "from": "table", "table": "complication" }
+      },
+      "archetype": { "id": "hostile-group", "dc": 13, "reward": 1 }
+    },
+    {
+      "id": "night-visitor",
+      "title": "A visitor in the night",
+      "text": "Late in the night, {who} limps into the light of your fire. {Motive}",
+      "slots": {
+        "who": { "from": "table", "table": "who" },
+        "motive": { "from": "table", "table": "motive" }
+      },
+      "twist": { "chance": 0.4, "what": "they were sent to scout your camp" },
+      "archetype": { "id": "someone-in-need", "dc": 14, "reward": 0.8 }
+    }
+  ]
+}

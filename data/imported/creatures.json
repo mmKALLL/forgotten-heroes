@@ -1,0 +1,23 @@
+{
+  "$schema": "../_schema/creatures.schema.json",
+  "kind": "creatures",
+  "source": "imported",
+  "notes": "Names, types and challenge ratings from the System Reference Document 5.1 by Wizards of the Coast LLC, licensed under CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/legalcode). Groups and descriptions are our own words. Used as the {foe} in hostile-group encounters.",
+  "entries": [
+    { "id": "bandit", "name": "Bandit", "group": "a band of bandits", "type": "humanoid", "cr": 0.125, "description": "Desperate road-thieves who would rather rob the weak than fight the strong." },
+    { "id": "bandit-captain", "name": "Bandit Captain", "group": "a bandit captain and her crew", "type": "humanoid", "cr": 2, "description": "A seasoned outlaw who keeps her gang in line by being the most dangerous of them." },
+    { "id": "thug", "name": "Thug", "group": "a gang of thugs", "type": "humanoid", "cr": 0.5, "description": "Hired muscle that deals in threats and broken fingers." },
+    { "id": "cultist", "name": "Cultist", "group": "a knot of robed cultists", "type": "humanoid", "cr": 0.125, "description": "Zealots of a hidden god, more fervent than skilled." },
+    { "id": "veteran", "name": "Veteran", "group": "a pair of deserters", "type": "humanoid", "cr": 3, "description": "Old soldiers who have seen too many battles to fear one more." },
+    { "id": "goblin", "name": "Goblin", "group": "a mob of goblins", "type": "humanoid", "cr": 0.25, "description": "Small, quick and cruel, and much braver in numbers." },
+    { "id": "hobgoblin", "name": "Hobgoblin", "group": "a squad of hobgoblins", "type": "humanoid", "cr": 0.5, "description": "Disciplined goblinoid soldiers who fight in tight ranks." },
+    { "id": "bugbear", "name": "Bugbear", "group": "a pair of bugbears", "type": "humanoid", "cr": 1, "description": "Hulking goblinoids who prefer an ambush to a fair fight." },
+    { "id": "orc", "name": "Orc", "group": "a war band of orcs", "type": "humanoid", "cr": 0.5, "description": "Fierce raiders who take what the land won't give them." },
+    { "id": "gnoll", "name": "Gnoll", "group": "a pack of gnolls", "type": "humanoid", "cr": 0.5, "description": "Hyena-headed raiders with a hunger that is never satisfied." },
+    { "id": "kobold", "name": "Kobold", "group": "a swarm of kobolds", "type": "humanoid", "cr": 0.125, "description": "Tiny reptilian schemers who trust traps and numbers over courage." },
+    { "id": "lizardfolk", "name": "Lizardfolk", "group": "a hunting party of lizardfolk", "type": "humanoid", "cr": 0.5, "description": "Cold-eyed marsh hunters who see everything as food, threat or tool." },
+    { "id": "ogre", "name": "Ogre", "group": "an ogre and its hangers-on", "type": "giant", "cr": 2, "description": "A brute of enormous strength and very little patience." },
+    { "id": "worg", "name": "Worg", "group": "a pack of worgs", "type": "monstrosity", "cr": 0.5, "description": "Cunning wolf-like beasts that can speak, and hold grudges." },
+    { "id": "ghoul", "name": "Ghoul", "group": "a pack of ghouls", "type": "undead", "cr": 1, "description": "Starving dead whose claws lock the living rigid with fear." }
+  ]
+}

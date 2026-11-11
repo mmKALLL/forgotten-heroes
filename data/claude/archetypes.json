@@ -1,0 +1,279 @@
+{
+  "$schema": "../_schema/archetypes.schema.json",
+  "kind": "archetypes",
+  "source": "claude",
+  "notes": "Reusable option sets from the design (§7). A stage uses one with { \"archetype\": { \"id\", \"dc\", \"reward\" } }: \"dc\" in a check means the stage's DC, and every gold amount is multiplied by reward. Texts say \"they\" so any situation can use them.",
+  "entries": [
+    {
+      "id": "hostile-group",
+      "name": "Hostile group",
+      "description": "Armed people block the way. Fight, slip past, talk, pay, or run.",
+      "options": [
+        {
+          "id": "fight",
+          "kind": "check",
+          "label": "Fight",
+          "description": "Settle it with steel. Resolved as one graded check.",
+          "check": { "skill": "athletics", "dc": "dc", "combat": true },
+          "outcomes": {
+            "critFail": {
+              "text": "The fight goes badly wrong. You break and run, and they loot what you drop.",
+              "effects": [
+                { "effect": "hp", "amount": -6, "target": "all" },
+                { "effect": "gold", "amount": -10 }
+              ]
+            },
+            "fail": {
+              "text": "You drive them off, but every one of you is bleeding.",
+              "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+            },
+            "partial": {
+              "text": "They scatter after a short, ugly fight. {actor} takes the worst of it.",
+              "effects": [
+                { "effect": "hp", "amount": -4, "target": "actor" },
+                { "effect": "gold", "amount": 5 }
+              ]
+            },
+            "success": {
+              "text": "{actor} leads the charge and they flee, leaving a purse behind.",
+              "effects": [
+                { "effect": "hp", "amount": -1, "target": "actor" },
+                { "effect": "gold", "amount": 10 }
+              ]
+            },
+            "critSuccess": {
+              "text": "A rout. They abandon their camp and their takings.",
+              "effects": [{ "effect": "gold", "amount": 20 }]
+            }
+          }
+        },
+        {
+          "id": "sneak",
+          "kind": "check",
+          "label": "Slip past",
+          "description": "Go around them unseen. If they spot you, you face them badly placed.",
+          "once": true,
+          "check": { "skill": "stealth", "dc": "dc+1" },
+          "outcomes": {
+            "critFail": {
+              "text": "A branch snaps under {actor}'s boot, right beside their lookout.",
+              "effects": [
+                { "effect": "hp", "amount": -2, "target": "actor" },
+                { "effect": "position", "position": "exposed" }
+              ],
+              "stay": true
+            },
+            "fail": {
+              "text": "They spot you halfway past. Now you have to deal with them, badly placed.",
+              "effects": [{ "effect": "position", "position": "exposed" }],
+              "stay": true
+            },
+            "partial": {
+              "text": "You slip by, but a strap catches and a purse falls where you can't go back for it.",
+              "effects": [{ "effect": "gold", "amount": -5 }]
+            },
+            "success": { "text": "You slip past without a sound." },
+            "critSuccess": {
+              "text": "You slip past, and {actor} lifts a purse from their camp on the way.",
+              "effects": [{ "effect": "gold", "amount": 8 }]
+            }
+          }
+        },
+        {
+          "id": "parley",
+          "kind": "check",
+          "label": "Parley",
+          "description": "Talk your way through. Failing leaves you on the back foot.",
+          "once": true,
+          "check": { "skill": "persuasion", "dc": "dc+2" },
+          "outcomes": {
+            "critFail": {
+              "text": "Talk sours into insults, and someone throws a stone.",
+              "effects": [
+                { "effect": "hp", "amount": -2, "target": "random" },
+                { "effect": "position", "position": "exposed" }
+              ],
+              "stay": true
+            },
+            "fail": {
+              "text": "They aren't interested in talking.",
+              "effects": [{ "effect": "position", "position": "exposed" }],
+              "stay": true
+            },
+            "partial": {
+              "text": "They let you pass, for a toll.",
+              "effects": [{ "effect": "gold", "amount": -8 }]
+            },
+            "success": { "text": "{actor} talks them down. You pass unharmed." },
+            "critSuccess": {
+              "text": "{actor} talks them round entirely. They share their fire and news of the road.",
+              "effects": [{ "effect": "hp", "amount": 2, "target": "all" }]
+            }
+          }
+        },
+        {
+          "id": "bribe",
+          "kind": "fixed",
+          "label": "Pay them",
+          "requires": [{ "req": "gold", "min": 15 }],
+          "outcome": {
+            "text": "You pay. They count it twice, then wave you through.",
+            "effects": [{ "effect": "gold", "amount": -15 }]
+          }
+        },
+        {
+          "id": "flee",
+          "kind": "check",
+          "label": "Run",
+          "description": "Turn back and outpace them. Costs breath, maybe blood, maybe a day.",
+          "check": { "skill": "athletics", "dc": "dc-2" },
+          "outcomes": {
+            "critFail": {
+              "text": "You scatter in a panic, dropping packs and coin.",
+              "effects": [
+                { "effect": "hp", "amount": -3, "target": "all" },
+                { "effect": "gold", "amount": -10 }
+              ]
+            },
+            "fail": {
+              "text": "You get away, but only after a long, punishing chase.",
+              "effects": [
+                { "effect": "hp", "amount": -2, "target": "all" },
+                { "effect": "exhaustion", "amount": 1, "target": "actor" }
+              ]
+            },
+            "partial": {
+              "text": "You outrun them, but the detour costs you a day.",
+              "effects": [{ "effect": "days", "amount": 1 }]
+            },
+            "success": { "text": "You break away and lose them in the brush." }
+          }
+        }
+      ]
+    },
+    {
+      "id": "someone-in-need",
+      "name": "Someone in need",
+      "description": "Someone asks for help. Needs a twist on the situation: it means they are not what they seem, and mean you harm.",
+      "options": [
+        {
+          "id": "help-trusting",
+          "kind": "fixed",
+          "label": "Help them, no questions",
+          "description": "Your full effort and your trust. The bigger reward, and the bigger loss if it's a trick.",
+          "outcome": {
+            "text": "You throw yourselves into it. Afterwards they press coin on you and won't hear no.",
+            "effects": [{ "effect": "gold", "amount": 15 }],
+            "twist": {
+              "text": "It was a setup. While you were busy, their friends went through your packs, and one of them had a knife.",
+              "effects": [
+                { "effect": "gold", "amount": -15 },
+                { "effect": "hp", "amount": -4, "target": "random" }
+              ]
+            }
+          }
+        },
+        {
+          "id": "help-cautious",
+          "kind": "fixed",
+          "label": "Help, but stay on guard",
+          "description": "A smaller reward, and nothing lost if it's a trick.",
+          "outcome": {
+            "text": "You help, with one eye on the treeline. They thank you with what they can spare.",
+            "effects": [{ "effect": "gold", "amount": 6 }],
+            "twist": {
+              "text": "When their friends step out of the trees, you are ready for them. They melt away, and you lose nothing."
+            }
+          }
+        },
+        {
+          "id": "read-them",
+          "kind": "check",
+          "label": "Read them first",
+          "description": "Insight shows how likely a trick is. Misreading them puts you off your next move.",
+          "once": true,
+          "check": { "skill": "insight", "dc": "dc" },
+          "outcomes": {
+            "critFail": {
+              "text": "{actor} stares a little too long. They notice, their story hardens, and the read comes out all wrong.",
+              "effects": [
+                { "effect": "position", "position": "exposed" },
+                { "effect": "nextCheckModifier", "amount": -2 }
+              ],
+              "stay": true
+            },
+            "fail": {
+              "text": "{actor} misreads them, and you go on with the wrong idea of what they want.",
+              "effects": [{ "effect": "nextCheckModifier", "amount": -2 }],
+              "stay": true
+            },
+            "partial": {
+              "text": "{actor} isn't sure, but has a feel for the odds now.",
+              "effects": [{ "effect": "revealTwist" }],
+              "stay": true
+            },
+            "success": {
+              "text": "{actor} reads them like a ledger.",
+              "effects": [{ "effect": "revealTwist" }],
+              "stay": true
+            },
+            "critSuccess": {
+              "text": "{actor} reads them like a ledger, and knows exactly how to play this.",
+              "effects": [
+                { "effect": "revealTwist" },
+                { "effect": "position", "position": "edge" }
+              ],
+              "stay": true
+            }
+          }
+        },
+        {
+          "id": "ignore",
+          "kind": "fixed",
+          "label": "Leave them to it",
+          "outcome": { "text": "You walk on. Their voice follows you down the road for a while." }
+        },
+        {
+          "id": "exploit",
+          "kind": "check",
+          "label": "Take advantage",
+          "description": "Talk them out of what they have. Word may get around.",
+          "check": { "skill": "deception", "dc": "dc" },
+          "outcomes": {
+            "critFail": {
+              "text": "They see right through you and shout for help. You leave fast, and the story follows you.",
+              "effects": [{ "effect": "followUp", "situation": "grudge-on-the-road", "after": 1 }],
+              "twist": {
+                "text": "They see right through you, and they were the dangerous ones.",
+                "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+              }
+            },
+            "fail": { "text": "They clutch their things and back away from you." },
+            "partial": {
+              "text": "You come away with a few coins and a bad feeling.",
+              "effects": [
+                { "effect": "gold", "amount": 6 },
+                { "effect": "followUp", "situation": "grudge-on-the-road", "after": 2 }
+              ],
+              "twist": {
+                "text": "You come away with a few coins. They were crooks anyway; nobody will miss them.",
+                "effects": [{ "effect": "gold", "amount": 6 }]
+              }
+            },
+            "success": {
+              "text": "You talk them out of their purse.",
+              "effects": [
+                { "effect": "gold", "amount": 15 },
+                { "effect": "followUp", "situation": "grudge-on-the-road", "after": 2 }
+              ],
+              "twist": {
+                "text": "You rob the robbers. They can hardly complain to the watch.",
+                "effects": [{ "effect": "gold", "amount": 20 }]
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
