@@ -22,7 +22,7 @@ export function App() {
         <button onClick={restart}>New party</button>
       </header>
       <main className="layout">
-        <PartyPanel party={state.party} />
+        <PartyPanel party={state.party} skillUses={state.skillUses} day={state.day} />
         {state.encounter ? (
           <EncounterView state={state} onAction={dispatch} />
         ) : (
