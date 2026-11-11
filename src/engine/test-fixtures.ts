@@ -216,6 +216,179 @@ const testSituations = [
   },
 ]
 
+/** A small twist table: ambush (weight 3), theft (weight 1, two stages) and one never drawn. */
+const testTwists = [
+  {
+    id: 'ambush',
+    name: 'Ambush',
+    weight: 3,
+    what: 'they were bait for {ambushers}',
+    opening: [{ effect: 'hp', amount: -3, target: 'random' }],
+    slots: { ambushers: { from: 'creature', types: ['humanoid'] } },
+    stages: {
+      start: {
+        text: '{Ambushers} attack!',
+        options: [
+          {
+            id: 'fight',
+            kind: 'check',
+            label: 'Fight',
+            check: { skill: 'athletics', dc: 12, combat: true },
+            outcomes: {
+              fail: { text: 'Bloodied.', effects: [{ effect: 'hp', amount: -4, target: 'all' }] },
+              partial: {
+                text: 'Bruised.',
+                effects: [{ effect: 'hp', amount: -2, target: 'actor' }],
+              },
+              success: { text: 'They flee.', effects: [{ effect: 'gold', amount: 5 }] },
+            },
+          },
+          {
+            id: 'flee',
+            kind: 'fixed',
+            label: 'Flee',
+            outcome: { text: 'You run.', effects: [{ effect: 'days', amount: 1 }] },
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: 'theft',
+    name: 'Theft',
+    what: 'they meant to rob you',
+    opening: [{ effect: 'gold', amount: -5 }],
+    stages: {
+      start: {
+        text: 'They run off with a purse.',
+        options: [
+          {
+            id: 'chase',
+            kind: 'check',
+            label: 'Chase',
+            check: { skill: 'athletics', dc: 12 },
+            outcomes: {
+              fail: {
+                text: 'Gone.',
+                effects: [{ effect: 'exhaustion', amount: 1, target: 'actor' }],
+              },
+              partial: { text: 'You corner them.', goto: 'cornered' },
+              success: { text: 'Caught.', effects: [{ effect: 'gold', amount: 5 }] },
+            },
+          },
+          { id: 'let-go', kind: 'fixed', label: 'Let them go', outcome: { text: 'Gone.' } },
+        ],
+      },
+      cornered: {
+        text: 'Cornered, they draw a knife.',
+        options: [
+          {
+            id: 'grab',
+            kind: 'check',
+            label: 'Grab the purse',
+            check: { skill: 'athletics', dc: 10 },
+            outcomes: {
+              fail: { text: 'Cut.', effects: [{ effect: 'hp', amount: -2, target: 'actor' }] },
+              partial: { text: 'Half of it.', effects: [{ effect: 'gold', amount: 2 }] },
+              success: { text: 'All of it.', effects: [{ effect: 'gold', amount: 5 }] },
+            },
+          },
+          { id: 'leave', kind: 'fixed', label: 'Leave it', outcome: { text: 'You leave.' } },
+        ],
+      },
+    },
+  },
+  {
+    id: 'never',
+    name: 'Never',
+    weight: 0,
+    what: 'this is never drawn',
+    opening: [{ effect: 'gold', amount: -1 }],
+    stages: {
+      start: {
+        text: 'Never.',
+        options: [
+          { id: 'a', kind: 'fixed', label: 'A', outcome: { text: 'A.' } },
+          {
+            id: 'b',
+            kind: 'fixed',
+            label: 'B',
+            outcome: { text: 'B.', effects: [{ effect: 'days', amount: 1 }] },
+          },
+        ],
+      },
+    },
+  },
+]
+
+/** Someone in need whose twist comes from the twist table. Weight 0: only started on purpose. */
+const stranger = {
+  id: 'stranger',
+  title: 'Stranger',
+  weight: 0,
+  twist: { chance: 0.5, what: 'they are not what they seem', table: true },
+  stages: {
+    start: {
+      text: 'A stranger needs help.',
+      options: [
+        {
+          id: 'trust',
+          kind: 'fixed',
+          label: 'Help them',
+          outcome: {
+            text: 'They pay you.',
+            effects: [{ effect: 'gold', amount: 10 }],
+            twist: {
+              text: 'You walked right into it.',
+              effects: [{ effect: 'position', position: 'exposed' }, { effect: 'openingHit' }],
+              goto: '@twist',
+            },
+          },
+        },
+        {
+          id: 'careful',
+          kind: 'fixed',
+          label: 'Help carefully',
+          outcome: {
+            text: 'They thank you.',
+            effects: [{ effect: 'gold', amount: 4 }],
+            twist: {
+              text: 'You saw it coming.',
+              effects: [
+                { effect: 'position', position: 'normal' },
+                { effect: 'position', position: 'edge', if: { cond: 'twistRevealed' } },
+              ],
+              goto: '@twist',
+            },
+          },
+        },
+        {
+          id: 'read',
+          kind: 'check',
+          label: 'Read them',
+          once: true,
+          check: { skill: 'insight', dc: 10 },
+          outcomes: {
+            fail: {
+              text: 'Misread.',
+              effects: [{ effect: 'nextCheckModifier', amount: -2, reason: 'misread' }],
+              stay: true,
+            },
+            partial: { text: 'Hm.', effects: [{ effect: 'revealTwist' }], stay: true },
+            success: { text: 'Got it.', effects: [{ effect: 'revealTwist' }], stay: true },
+            critSuccess: {
+              text: 'Exactly.',
+              effects: [{ effect: 'revealTwist', kind: true }],
+              stay: true,
+            },
+          },
+        },
+        { id: 'leave', kind: 'fixed', label: 'Leave', outcome: { text: 'You walk on.' } },
+      ],
+    },
+  },
+}
+
 export function fixtureContent(): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
@@ -304,6 +477,8 @@ export function fixtureContent(): Content {
       source: 'original',
       entries: testSituations,
     },
+    'data/procedural/twists.json': { kind: 'twists', source: 'procedural', entries: testTwists },
+    'data/claude/situations.json': { kind: 'situations', source: 'claude', entries: [stranger] },
     'data/procedural/templates.json': {
       kind: 'situationTemplates',
       source: 'procedural',
@@ -376,6 +551,8 @@ export function makeEncounter(overrides: Partial<EncounterState> = {}): Encounte
     slots: {},
     twist: false,
     twistRevealed: false,
+    twistKind: null,
+    twistKindRevealed: false,
     nextCheckModifier: 0,
     nextCheckReason: null,
     used: [],

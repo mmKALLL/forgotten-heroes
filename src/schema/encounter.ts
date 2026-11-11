@@ -15,28 +15,60 @@ import { MAX_DC, MIN_DC } from './constants'
 
 const amount = z.number().int()
 
+// ---------------------------------------------------------------------------------------------
+// Conditions: an effect with `if` only applies when its condition holds.
+// ---------------------------------------------------------------------------------------------
+
+export const ConditionSchema = z.discriminatedUnion('cond', [
+  z
+    .object({
+      cond: z.literal('twistRevealed'),
+      not: z.boolean().optional().describe('True: only when the odds are still hidden'),
+    })
+    .describe("The twist's odds have been revealed earlier in the encounter (e.g. by Insight)"),
+])
+export type Condition = z.infer<typeof ConditionSchema>
+
+/** Every effect may carry a condition. It is checked when the outcome starts to apply. */
+const when = { if: ConditionSchema.optional().describe('Only applies when this holds') }
+
 export const EffectSchema = z.discriminatedUnion('effect', [
   z
-    .object({ effect: z.literal('gold'), amount })
+    .object({ effect: z.literal('gold'), amount, ...when })
     .describe('Gain or lose gold; gold never drops below 0'),
   z
-    .object({ effect: z.literal('hp'), amount, target: z.enum(['actor', 'all', 'random']) })
+    .object({
+      effect: z.literal('hp'),
+      amount,
+      target: z.enum(['actor', 'all', 'random']),
+      ...when,
+    })
     .describe(
       'Heal (+) or hurt (−) the acting member, everyone, or one random member who can still act'
     ),
   z
-    .object({ effect: z.literal('exhaustion'), amount, target: z.enum(['actor', 'all']) })
+    .object({
+      effect: z.literal('exhaustion'),
+      amount,
+      target: z.enum(['actor', 'all']),
+      ...when,
+    })
     .describe('Add (+) or remove (−) exhaustion levels'),
-  z.object({ effect: z.literal('inspiration'), amount: z.number().int().min(1) }),
-  z.object({ effect: z.literal('days'), amount: z.number().int().min(1) }).describe('Time passes'),
   z
-    .object({ effect: z.literal('position'), position: PositionSchema })
+    .object({ effect: z.literal('inspiration'), amount, ...when })
+    .describe('Gain (+) or lose (−) Inspiration; it never drops below 0'),
+  z
+    .object({ effect: z.literal('days'), amount: z.number().int().min(1), ...when })
+    .describe('Time passes'),
+  z
+    .object({ effect: z.literal('position'), position: PositionSchema, ...when })
     .describe('Edge or Exposed for the next check in this encounter'),
   z
     .object({
       effect: z.literal('followUp'),
       situation: IdSchema,
       after: z.number().int().min(0).default(0).describe('Other encounters that happen first'),
+      ...when,
     })
     .describe('Queue a later encounter'),
   z
@@ -44,12 +76,33 @@ export const EffectSchema = z.discriminatedUnion('effect', [
       effect: z.literal('nextCheckModifier'),
       amount,
       reason: z.string().optional().describe('Shown next to the modifier, e.g. "misread"'),
+      ...when,
     })
     .describe(
       "Add to the party's next check in this encounter (e.g. −2 after misreading a situation)"
     ),
-  z.object({ effect: z.literal('revealTwist') }).describe('Show the odds of the hidden twist'),
-  z.object({ effect: z.literal('log'), text: z.string(), tone: LogToneSchema.default('info') }),
+  z
+    .object({
+      effect: z.literal('revealTwist'),
+      kind: z
+        .boolean()
+        .optional()
+        .describe('Also reveal which kind of twist it would be (twist-table twists)'),
+      ...when,
+    })
+    .describe('Show the odds of the hidden twist'),
+  z
+    .object({ effect: z.literal('openingHit'), ...when })
+    .describe(
+      "The twist's opening hit: the drawn twist kind's opening effects, or a bespoke twist's " +
+        '`opening`. Only in twist branches.'
+    ),
+  z.object({
+    effect: z.literal('log'),
+    text: z.string(),
+    tone: LogToneSchema.default('info'),
+    ...when,
+  }),
   // Extension point: Plan 4 adds { "effect": "goods", "good": "food", "amount": -2 } here.
 ])
 export type Effect = z.infer<typeof EffectSchema>
@@ -85,10 +138,19 @@ export const CheckSchema = z.object({
 })
 export type Check = z.infer<typeof CheckSchema>
 
+/** A goto target that means "the twist's escalation stage" (see TwistSchema). */
+export const TWIST_STAGE = '@twist'
+
 const outcomeFields = {
   text: z.string(),
   effects: z.array(EffectSchema).default([]),
-  goto: IdSchema.optional().describe('Next stage. Without goto or stay, the encounter ends.'),
+  goto: z
+    .union([IdSchema, z.literal(TWIST_STAGE)])
+    .optional()
+    .describe(
+      'Next stage. "@twist" (only in twist branches) goes to the twist\'s escalation stage. ' +
+        'Without goto or stay, the encounter ends.'
+    ),
   stay: z.boolean().optional().describe('Stay on the current stage'),
 }
 export const OutcomeBranchSchema = z.object(outcomeFields)
@@ -189,7 +251,31 @@ export const TwistSchema = z.object({
   chance: z.number().min(0).max(1).describe('Rolled secretly when the encounter starts'),
   what: z
     .string()
-    .describe('Always shown, e.g. "they are bait for an ambush"; Insight reveals the chance'),
+    .describe(
+      'Always shown, e.g. "they are bait for an ambush"; Insight reveals the chance. With the ' +
+        'twist table keep it vague ("they are not what they seem"): the kind stays hidden.'
+    ),
+  table: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Draw the twist kind from the twist table (data/procedural) when the encounter starts. ' +
+        'Its stages join the situation, and "@twist" goes to them.'
+    ),
+  kinds: z
+    .array(IdSchema)
+    .optional()
+    .describe('With the table: only these twist kinds can be drawn'),
+  stage: IdSchema.optional().describe(
+    'A bespoke twist\'s escalation stage: where "@twist" goes. Set by the engine for table twists.'
+  ),
+  opening: z
+    .array(EffectSchema)
+    .default([])
+    .describe(
+      'A bespoke twist\'s opening hit, applied by { "effect": "openingHit" }. Set by the engine ' +
+        'for table twists.'
+    ),
 })
 export type Twist = z.infer<typeof TwistSchema>
 
@@ -229,6 +315,39 @@ export type SituationTemplate = z.infer<typeof SituationTemplateSchema>
 // ---------------------------------------------------------------------------------------------
 // Parts tables and creatures.
 // ---------------------------------------------------------------------------------------------
+
+/**
+ * One kind of twist in the twist table (design §7, escalation): what the twist turns out to be,
+ * the opening hit when trusting help walks into it, and the stages it escalates into.
+ */
+export const TwistKindSchema = z.object({
+  id: IdSchema,
+  name: z.string(),
+  notes: z.string().optional(),
+  weight: z.number().min(0).default(1).describe('Relative chance of being drawn'),
+  what: z
+    .string()
+    .describe('What it turns out to be, e.g. "they were bait for an ambush"; shown once known'),
+  opening: z
+    .array(EffectSchema)
+    .default([])
+    .describe(
+      'The opening hit, applied by { "effect": "openingHit" } (trusting help). Fixed options ' +
+        'apply it, so no "actor" targets.'
+    ),
+  slots: z.record(IdSchema, SlotSourceSchema).default({}).describe('Filled when it is drawn'),
+  start: IdSchema.default('start').describe('The escalation stage "@twist" goes to'),
+  stages: z.record(IdSchema, StageSchema),
+  regions: z
+    .array(z.string())
+    .default([])
+    .describe('Regions where it fits; for later weighting, unused for now'),
+  threats: z
+    .array(z.string())
+    .default([])
+    .describe('Regional threats that make it likelier; for later weighting, unused for now'),
+})
+export type TwistKind = z.infer<typeof TwistKindSchema>
 
 export const PartsTableSchema = z.object({
   id: IdSchema,

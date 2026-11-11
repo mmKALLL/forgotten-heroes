@@ -98,6 +98,7 @@ export const ja: Partial<Messages> = {
   'outcomes.nothing': '何も起こりえない。',
   'outcomes.if': '{what}なら：',
   'outcomes.someTwist': '裏がある',
+  'outcomes.escalates': '事態が悪化する',
 
   'journal.heading': '冒険日誌',
   'journal.log': '記録',

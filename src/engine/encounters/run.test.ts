@@ -121,7 +121,7 @@ describe('startEncounter', () => {
         roadside: {
           ...roadside,
           title: 'Meeting {who}',
-          twist: { chance: 0.5, what: '{Who} is bait' },
+          twist: { chance: 0.5, what: '{Who} is bait', table: false, opening: [] },
         },
       },
     }

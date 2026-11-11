@@ -1,5 +1,5 @@
-import type { Effect } from '../../schema/encounter'
-import type { GameState } from '../../schema/state'
+import type { Condition, Effect } from '../../schema/encounter'
+import type { EncounterState, GameState } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { withRng, type Rng } from '../rng'
@@ -27,6 +27,39 @@ function targetIds(
   return [[id], rng]
 }
 
+/** Whether a condition holds in this encounter (no encounter: nothing has been revealed). */
+export function conditionHolds(condition: Condition, encounter: EncounterState | null): boolean {
+  switch (condition.cond) {
+    case 'twistRevealed':
+      return (encounter?.twistRevealed ?? false) !== (condition.not ?? false)
+  }
+}
+
+/** The twist's opening hit: the drawn kind's (merged into the snapshot) or the bespoke twist's. */
+export const openingEffects = (encounter: EncounterState | null): Effect[] =>
+  encounter?.situation.twist?.opening ?? []
+
+/**
+ * The effects an outcome really applies: those whose condition fails are dropped, conditions are
+ * stripped, and `openingHit` becomes the twist's opening effects. Conditions are checked once,
+ * against the encounter as the outcome starts to apply.
+ */
+export function prepareEffects(
+  effects: readonly Effect[],
+  encounter: EncounterState | null
+): Effect[] {
+  return effects.flatMap((effect): Effect[] => {
+    if (effect.if && !conditionHolds(effect.if, encounter)) return []
+    const { if: _if, ...plain } = effect
+    if (plain.effect === 'openingHit')
+      return prepareEffects(
+        openingEffects(encounter).filter((e) => e.effect !== 'openingHit'),
+        encounter
+      )
+    return [plain as Effect]
+  })
+}
+
 function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): GameState {
   switch (effect.effect) {
     case 'gold':
@@ -48,7 +81,7 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       return { ...state, rng, party }
     }
     case 'inspiration':
-      return { ...state, inspiration: state.inspiration + effect.amount }
+      return { ...state, inspiration: Math.max(0, state.inspiration + effect.amount) }
     case 'days':
       return { ...state, day: state.day + effect.amount }
     case 'position':
@@ -71,9 +104,18 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         },
       }
     case 'revealTwist':
-      return state.encounter
-        ? { ...state, encounter: { ...state.encounter, twistRevealed: true } }
-        : state
+      if (!state.encounter) return state
+      return {
+        ...state,
+        encounter: {
+          ...state.encounter,
+          twistRevealed: true,
+          twistKindRevealed: state.encounter.twistKindRevealed || (effect.kind ?? false),
+        },
+      }
+    case 'openingHit':
+      // prepareEffects expands it; reaching here means there was nothing to expand.
+      return state
     case 'log': {
       const next = appendLog(state, effect.text, effect.tone)
       if (!next.encounter) return next
@@ -83,18 +125,35 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
   }
 }
 
-/** Pure: applies effects in order. Random targets draw from the state's RNG. */
+/**
+ * Pure: applies effects in order (after prepareEffects, so conditions are checked against the
+ * state as it was before the first). Random targets draw from the state's RNG.
+ */
 export function applyEffects(
   state: GameState,
   effects: readonly Effect[],
   ctx: EffectContext = {}
 ): GameState {
-  return effects.reduce((current, effect) => applyEffect(current, effect, ctx), state)
+  return prepareEffects(effects, state.encounter).reduce(
+    (current, effect) => applyEffect(current, effect, ctx),
+    state
+  )
 }
 
 const WHO = { all: 'everyone', random: 'someone' } as const
 
-/** A short chip for previews and the journal, e.g. "Lyra −3 HP". Log effects return null. */
+/** How a condition reads after an effect chip in a preview, e.g. "Edge (if you know the odds)". */
+export function describeCondition(condition: Condition): string {
+  switch (condition.cond) {
+    case 'twistRevealed':
+      return condition.not ? 'unless you know the odds' : 'if you know the odds'
+  }
+}
+
+/**
+ * A short chip for previews and the journal, e.g. "Lyra −3 HP". Log effects return null. The
+ * condition is not included (see describeCondition).
+ */
 export function describeEffect(effect: Effect, actorName: string): string | null {
   switch (effect.effect) {
     case 'gold':
@@ -104,7 +163,7 @@ export function describeEffect(effect: Effect, actorName: string): string | null
     case 'exhaustion':
       return `${effect.target === 'actor' ? actorName : WHO.all} ${formatModifier(effect.amount)} exhaustion`
     case 'inspiration':
-      return `+${effect.amount} inspiration`
+      return `${formatModifier(effect.amount)} inspiration`
     case 'days':
       return effect.amount === 1 ? '1 day passes' : `${effect.amount} days pass`
     case 'position':
@@ -114,7 +173,11 @@ export function describeEffect(effect: Effect, actorName: string): string | null
     case 'nextCheckModifier':
       return `${formatModifier(effect.amount)} to the next check`
     case 'revealTwist':
-      return 'reveals how likely the twist is'
+      return effect.kind
+        ? 'reveals what the twist is, and how likely'
+        : 'reveals how likely the twist is'
+    case 'openingHit':
+      return 'an opening hit'
     case 'log':
       return null
   }

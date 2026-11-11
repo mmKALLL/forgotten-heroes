@@ -292,14 +292,14 @@
           "$ref": "#/$defs/__schema15"
         },
         "goto": {
-          "$ref": "#/$defs/__schema33"
+          "$ref": "#/$defs/__schema42"
         },
         "stay": {
-          "$ref": "#/$defs/__schema34"
+          "$ref": "#/$defs/__schema44"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema36"
+          "$ref": "#/$defs/__schema46"
         }
       },
       "required": [
@@ -322,6 +322,9 @@
               },
               "amount": {
                 "$ref": "#/$defs/__schema17"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -334,13 +337,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema18"
+                "$ref": "#/$defs/__schema23"
               },
               "amount": {
                 "$ref": "#/$defs/__schema17"
               },
               "target": {
-                "$ref": "#/$defs/__schema19"
+                "$ref": "#/$defs/__schema24"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -354,13 +360,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema20"
+                "$ref": "#/$defs/__schema25"
               },
               "amount": {
                 "$ref": "#/$defs/__schema17"
               },
               "target": {
-                "$ref": "#/$defs/__schema21"
+                "$ref": "#/$defs/__schema26"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -374,28 +383,32 @@
             "type": "object",
             "properties": {
               "effect": {
-                "type": "string",
-                "const": "inspiration"
+                "$ref": "#/$defs/__schema27"
               },
               "amount": {
-                "type": "integer",
-                "minimum": 1,
-                "maximum": 9007199254740991
+                "$ref": "#/$defs/__schema17"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
               "effect",
               "amount"
-            ]
+            ],
+            "description": "Gain (+) or lose (−) Inspiration; it never drops below 0"
           },
           {
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema22"
+                "$ref": "#/$defs/__schema28"
               },
               "amount": {
-                "$ref": "#/$defs/__schema23"
+                "$ref": "#/$defs/__schema29"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -408,10 +421,13 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema24"
+                "$ref": "#/$defs/__schema30"
               },
               "position": {
-                "$ref": "#/$defs/__schema25"
+                "$ref": "#/$defs/__schema31"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -424,13 +440,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema32"
               },
               "situation": {
                 "$ref": "#/$defs/__schema0"
               },
               "after": {
-                "$ref": "#/$defs/__schema27"
+                "$ref": "#/$defs/__schema33"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -443,13 +462,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema29"
+                "$ref": "#/$defs/__schema35"
               },
               "amount": {
                 "$ref": "#/$defs/__schema17"
               },
               "reason": {
-                "$ref": "#/$defs/__schema30"
+                "$ref": "#/$defs/__schema36"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -462,13 +484,34 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema32"
+                "$ref": "#/$defs/__schema38"
+              },
+              "kind": {
+                "$ref": "#/$defs/__schema39"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
               "effect"
             ],
             "description": "Show the odds of the hidden twist"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema41"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "The twist's opening hit: the drawn twist kind's opening effects, or a bespoke twist's `opening`. Only in twist branches."
           },
           {
             "type": "object",
@@ -489,6 +532,9 @@
                   "bad",
                   "crit"
                 ]
+              },
+              "if": {
+                "$ref": "#/$defs/__schema18"
               }
             },
             "required": [
@@ -509,10 +555,44 @@
       "maximum": 9007199254740991
     },
     "__schema18": {
+      "description": "Only applies when this holds",
+      "$ref": "#/$defs/__schema19"
+    },
+    "__schema19": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "cond": {
+              "$ref": "#/$defs/__schema20"
+            },
+            "not": {
+              "$ref": "#/$defs/__schema21"
+            }
+          },
+          "required": [
+            "cond"
+          ],
+          "description": "The twist's odds have been revealed earlier in the encounter (e.g. by Insight)"
+        }
+      ]
+    },
+    "__schema20": {
+      "type": "string",
+      "const": "twistRevealed"
+    },
+    "__schema21": {
+      "description": "True: only when the odds are still hidden",
+      "$ref": "#/$defs/__schema22"
+    },
+    "__schema22": {
+      "type": "boolean"
+    },
+    "__schema23": {
       "type": "string",
       "const": "hp"
     },
-    "__schema19": {
+    "__schema24": {
       "type": "string",
       "enum": [
         "actor",
@@ -520,31 +600,35 @@
         "random"
       ]
     },
-    "__schema20": {
+    "__schema25": {
       "type": "string",
       "const": "exhaustion"
     },
-    "__schema21": {
+    "__schema26": {
       "type": "string",
       "enum": [
         "actor",
         "all"
       ]
     },
-    "__schema22": {
+    "__schema27": {
+      "type": "string",
+      "const": "inspiration"
+    },
+    "__schema28": {
       "type": "string",
       "const": "days"
     },
-    "__schema23": {
+    "__schema29": {
       "type": "integer",
       "minimum": 1,
       "maximum": 9007199254740991
     },
-    "__schema24": {
+    "__schema30": {
       "type": "string",
       "const": "position"
     },
-    "__schema25": {
+    "__schema31": {
       "type": "string",
       "enum": [
         "normal",
@@ -552,47 +636,69 @@
         "exposed"
       ]
     },
-    "__schema26": {
+    "__schema32": {
       "type": "string",
       "const": "followUp"
     },
-    "__schema27": {
+    "__schema33": {
       "default": 0,
       "description": "Other encounters that happen first",
-      "$ref": "#/$defs/__schema28"
+      "$ref": "#/$defs/__schema34"
     },
-    "__schema28": {
+    "__schema34": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991
     },
-    "__schema29": {
+    "__schema35": {
       "type": "string",
       "const": "nextCheckModifier"
     },
-    "__schema30": {
+    "__schema36": {
       "description": "Shown next to the modifier, e.g. \"misread\"",
-      "$ref": "#/$defs/__schema31"
+      "$ref": "#/$defs/__schema37"
     },
-    "__schema31": {
+    "__schema37": {
       "type": "string"
     },
-    "__schema32": {
+    "__schema38": {
       "type": "string",
       "const": "revealTwist"
     },
-    "__schema33": {
-      "description": "Next stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema0"
+    "__schema39": {
+      "description": "Also reveal which kind of twist it would be (twist-table twists)",
+      "$ref": "#/$defs/__schema40"
     },
-    "__schema34": {
-      "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema35"
-    },
-    "__schema35": {
+    "__schema40": {
       "type": "boolean"
     },
-    "__schema36": {
+    "__schema41": {
+      "type": "string",
+      "const": "openingHit"
+    },
+    "__schema42": {
+      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
+      "$ref": "#/$defs/__schema43"
+    },
+    "__schema43": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/__schema0"
+        },
+        {
+          "type": "string",
+          "const": "@twist"
+        }
+      ]
+    },
+    "__schema44": {
+      "description": "Stay on the current stage",
+      "$ref": "#/$defs/__schema45"
+    },
+    "__schema45": {
+      "type": "boolean"
+    },
+    "__schema46": {
       "type": "object",
       "properties": {
         "text": {
@@ -602,10 +708,10 @@
           "$ref": "#/$defs/__schema15"
         },
         "goto": {
-          "$ref": "#/$defs/__schema33"
+          "$ref": "#/$defs/__schema42"
         },
         "stay": {
-          "$ref": "#/$defs/__schema34"
+          "$ref": "#/$defs/__schema44"
         }
       },
       "required": [

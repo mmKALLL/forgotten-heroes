@@ -1,5 +1,5 @@
-import type { Outcome, OutcomeBranch } from '../../schema/encounter'
-import type { GameState } from '../../schema/state'
+import { TWIST_STAGE, type Effect, type Outcome, type OutcomeBranch } from '../../schema/encounter'
+import type { EncounterState, GameState } from '../../schema/state'
 import { previewCheck, type CheckPreview } from '../preview'
 import { checkLabel } from '../rules/abilities'
 import { canAct, rankActors } from '../rules/character'
@@ -12,12 +12,17 @@ import {
   type RollMode,
   type Tier,
 } from '../rules/checks'
-import { describeEffect } from './effects'
+import { conditionHolds, describeCondition, describeEffect, openingEffects } from './effects'
 import { isHighStakes, tierOutcome } from './outcomes'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
 
-export type BranchPreview = { text: string; effects: string[]; next: 'end' | 'stay' | 'stage' }
+/** `next` is "escalates" for a twist branch that goes on to the twist's escalation stage. */
+export type BranchPreview = {
+  text: string
+  effects: string[]
+  next: 'end' | 'stay' | 'stage' | 'escalates'
+}
 /** An outcome row the player may read. `tier` is null for fixed options. `twist` shows as "if …". */
 export type ShownOutcome = BranchPreview & {
   tier: Tier | null
@@ -74,29 +79,57 @@ export type OptionPreview = {
 /** What the twist would be is always shown (its outcome branches are); the odds only once revealed. */
 export type TwistInfo = { what: string; chance: number | null }
 
+/** Whether the player knows which twist it is: always for a bespoke twist, once revealed for a table one. */
+const twistKindKnown = (encounter: EncounterState): boolean =>
+  encounter.twistKind === null || encounter.twistKindRevealed
+
+/**
+ * Effect chips. A condition that doesn't hold yet is spelled out ("Edge (if you know the odds)"),
+ * and the opening hit stays generic until the player knows which twist it would be.
+ */
+function effectChips(effects: readonly Effect[], encounter: EncounterState, actorName: string) {
+  return effects.flatMap((effect): string[] => {
+    const chips =
+      effect.effect === 'openingHit' && twistKindKnown(encounter)
+        ? openingEffects(encounter).flatMap((e) => describeEffect(e, actorName) ?? [])
+        : [describeEffect(effect, actorName) ?? []].flat()
+    if (!effect.if || conditionHolds(effect.if, encounter)) return chips
+    return chips.map((chip) => `${chip} (${describeCondition(effect.if!)})`)
+  })
+}
+
 function branchPreview(
   branch: OutcomeBranch,
+  encounter: EncounterState,
   values: Record<string, string>,
   actorName: string
 ): BranchPreview {
   return {
     text: fillText(branch.text, values),
-    effects: branch.effects.flatMap((e) => describeEffect(e, actorName) ?? []),
-    next: branch.goto ? 'stage' : branch.stay ? 'stay' : 'end',
+    effects: effectChips(branch.effects, encounter, actorName),
+    next:
+      branch.goto === TWIST_STAGE
+        ? 'escalates'
+        : branch.goto
+          ? 'stage'
+          : branch.stay
+            ? 'stay'
+            : 'end',
   }
 }
 
 function outcomePreview(
   outcome: Outcome,
   tier: Tier | null,
+  encounter: EncounterState,
   values: Record<string, string>,
   actorName: string
 ): ShownOutcome {
   return {
-    ...branchPreview(outcome, values, actorName),
+    ...branchPreview(outcome, encounter, values, actorName),
     tier,
     hidden: false,
-    twist: outcome.twist ? branchPreview(outcome.twist, values, actorName) : null,
+    twist: outcome.twist ? branchPreview(outcome.twist, encounter, values, actorName) : null,
   }
 }
 
@@ -121,7 +154,7 @@ export function encounterOptions(
       kind: option.kind,
     }
     if (option.kind === 'fixed') {
-      const outcomes = [outcomePreview(option.outcome, null, encounter.slots, 'someone')]
+      const outcomes = [outcomePreview(option.outcome, null, encounter, encounter.slots, 'someone')]
       return { ...base, available: optionAvailable(state, option), unmet, check: null, outcomes }
     }
     const { skill, ability, dc } = option.check
@@ -164,15 +197,21 @@ export function encounterOptions(
     const outcomes = TIERS.map((tier): OutcomePreview =>
       isCritical(tier)
         ? { tier, hidden: true }
-        : outcomePreview(tierOutcome(option, tier), tier, values, preview.actorName)
+        : outcomePreview(tierOutcome(option, tier), tier, encounter, values, preview.actorName)
     )
     return { ...base, available: optionAvailable(state, option), unmet, check, outcomes }
   })
 }
 
-/** Null when the situation has no twist. The chance is null until revealed (e.g. by Insight). */
+/**
+ * Null when the situation has no twist. The chance is null until revealed (e.g. by Insight). A
+ * table twist reads as the situation's vague `what` until its kind is known.
+ */
 export function twistInfo(state: GameState): TwistInfo | null {
-  const twist = state.encounter?.situation.twist
-  if (!twist) return null
-  return { what: twist.what, chance: state.encounter!.twistRevealed ? twist.chance : null }
+  const encounter = state.encounter
+  const twist = encounter?.situation.twist
+  if (!encounter || !twist) return null
+  const what =
+    encounter.twistKind && encounter.twistKindRevealed ? encounter.twistKind.what : twist.what
+  return { what, chance: encounter.twistRevealed ? twist.chance : null }
 }

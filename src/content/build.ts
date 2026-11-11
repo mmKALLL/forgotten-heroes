@@ -32,6 +32,7 @@ export const emptyContent = (): Content => ({
   archetypes: {},
   partsTables: {},
   creatures: {},
+  twists: {},
   translations: {},
 })
 

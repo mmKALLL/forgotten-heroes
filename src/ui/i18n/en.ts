@@ -104,6 +104,7 @@ export const en = {
   'outcomes.nothing': 'Nothing can happen.',
   'outcomes.if': 'If {what}: ',
   'outcomes.someTwist': 'there is a twist',
+  'outcomes.escalates': 'it escalates',
 
   'journal.heading': 'Journal',
   'journal.log': 'Log',

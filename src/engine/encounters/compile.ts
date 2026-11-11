@@ -1,6 +1,7 @@
-import { byCodeUnit, type Content, type Sourced } from '../../content/build'
+import { byCodeUnit, sortedEntries, type Content, type Sourced } from '../../content/build'
 import {
   DC_EXPRESSION,
+  TWIST_STAGE,
   type Archetype,
   type ArchetypeRef,
   type Effect,
@@ -11,6 +12,8 @@ import {
   type Situation,
   type SituationTemplate,
   type Stage,
+  type Twist,
+  type TwistKind,
 } from '../../schema/encounter'
 import { normalizeDc } from '../rules/checks'
 
@@ -89,6 +92,61 @@ export function compileSituation(situation: Situation, content: Content): Situat
     Object.entries(situation.stages).map(([id, stage]) => [id, compileStage(stage, content)])
   )
   return { ...plain, stages }
+}
+
+/** A twist kind's stages join a situation under this prefix: its "start" becomes "twist-start". */
+export const TWIST_STAGE_PREFIX = 'twist-'
+
+/** The twist kinds a table twist can draw: weight above 0, limited to `kinds` if given, by id. */
+export const twistKindsFor = (content: Content, twist: Twist): TwistKind[] =>
+  sortedEntries(content.twists).filter(
+    (k) => k.weight > 0 && (twist.kinds === undefined || twist.kinds.includes(k.id))
+  )
+
+/** A twist kind's stages, compiled and renamed with TWIST_STAGE_PREFIX (gotos too). */
+function twistStages(kind: TwistKind, content: Content): Record<string, Stage> {
+  const rename = (id: string | undefined) =>
+    id === undefined || id === TWIST_STAGE ? id : TWIST_STAGE_PREFIX + id
+  const renameBranch = <T extends OutcomeBranch | Outcome>(branch: T): T => {
+    const renamed = { ...branch, goto: rename(branch.goto) }
+    if (renamed.goto === undefined) delete renamed.goto
+    if ('twist' in renamed && renamed.twist) renamed.twist = renameBranch(renamed.twist)
+    return renamed
+  }
+  const renameOption = (option: Option): Option =>
+    option.kind === 'fixed'
+      ? { ...option, outcome: renameBranch(option.outcome) }
+      : {
+          ...option,
+          outcomes: Object.fromEntries(
+            Object.entries(option.outcomes).map(([tier, o]) => [tier, o && renameBranch(o)])
+          ) as typeof option.outcomes,
+        }
+  return Object.fromEntries(
+    Object.entries(kind.stages).map(([id, stage]) => {
+      const compiled = compileStage(stage, content)
+      return [rename(id)!, { ...compiled, options: compiled.options.map(renameOption) }]
+    })
+  )
+}
+
+/**
+ * A compiled situation with a twist kind from the table joined in: the kind's stages (prefixed),
+ * its slots (the situation's own win a clash), and the twist's escalation stage and opening hit,
+ * so "@twist" and openingHit work the same as for a bespoke twist.
+ */
+export function attachTwistKind(
+  situation: Situation,
+  kind: TwistKind,
+  content: Content
+): Situation {
+  if (!situation.twist) return situation
+  return {
+    ...situation,
+    slots: { ...kind.slots, ...situation.slots },
+    stages: { ...situation.stages, ...twistStages(kind, content) },
+    twist: { ...situation.twist, stage: TWIST_STAGE_PREFIX + kind.start, opening: kind.opening },
+  }
 }
 
 export function templateToSituation(template: SituationTemplate): Situation {

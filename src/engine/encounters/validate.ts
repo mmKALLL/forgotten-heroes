@@ -1,6 +1,21 @@
-import type { Content } from '../../content/build'
-import type { Effect, Option, OutcomeBranch, Outcome, Situation } from '../../schema/encounter'
-import { allSituations, compileSituation } from './compile'
+import { sortedEntries, type Content } from '../../content/build'
+import {
+  TWIST_STAGE,
+  type Effect,
+  type Option,
+  type OutcomeBranch,
+  type Outcome,
+  type Situation,
+  type Stage,
+  type TwistKind,
+} from '../../schema/encounter'
+import {
+  TWIST_STAGE_PREFIX,
+  allSituations,
+  attachTwistKind,
+  compileSituation,
+  twistKindsFor,
+} from './compile'
 import { slotNames } from './slots'
 
 /** Slots every check outcome may use without declaring them. */
@@ -50,7 +65,9 @@ function textsOf(situation: Situation): Text[] {
   return texts
 }
 
-const allEffects = (situation: Situation): { effect: Effect; option: Option; where: string }[] =>
+const allEffects = (
+  situation: Situation
+): { effect: Effect; option: Option; where: string; inTwist: boolean }[] =>
   Object.entries(situation.stages).flatMap(([stageId, stage]) =>
     stage.options.flatMap((option) =>
       branches(option).flatMap(([name, outcome]) =>
@@ -59,11 +76,85 @@ const allEffects = (situation: Situation): { effect: Effect; option: Option; whe
             effect,
             option,
             where: `${stageId}/${option.id} ${name}${suffix}`,
+            inTwist: suffix !== '',
           }))
         )
       )
     )
   )
+
+/** Problems an archetype expansion would throw on, so they are reported before compiling. */
+function stageIssues(stages: Record<string, Stage>, content: Content, at = ''): string[] {
+  const issues: string[] = []
+  for (const [stageId, stage] of Object.entries(stages)) {
+    if (stage.archetype && !Object.hasOwn(content.archetypes, stage.archetype.id)) {
+      issues.push(`${at}stage ${stageId}: unknown archetype "${stage.archetype.id}"`)
+    }
+    for (const option of stage.options) {
+      if (option.kind === 'check' && typeof option.check.dc === 'string' && !stage.archetype) {
+        issues.push(
+          `${at}${stageId}/${option.id}: DC "${option.check.dc}" needs an archetype on its stage`
+        )
+      }
+    }
+  }
+  return issues
+}
+
+/** An opening hit is applied by fixed options, so it has no actor, and it can't nest. */
+function openingIssues(opening: readonly Effect[], content: Content, where: string): string[] {
+  const situationIds = new Set(allSituations(content).map((s) => s.id))
+  return opening.flatMap((effect) => {
+    if ((effect.effect === 'hp' || effect.effect === 'exhaustion') && effect.target === 'actor')
+      return [`${where}: an opening hit has no actor; use "all" or "random"`]
+    if (effect.effect === 'openingHit') return [`${where}: an opening hit can't contain openingHit`]
+    if (effect.effect === 'followUp' && !situationIds.has(effect.situation))
+      return [`${where}: follow-up to unknown situation "${effect.situation}"`]
+    return []
+  })
+}
+
+/** Twist kinds that compile: their archetypes exist and relative DCs have one. */
+const compilableKinds = (kinds: TwistKind[], content: Content): TwistKind[] =>
+  kinds.filter((k) => stageIssues(k.stages, content).length === 0)
+
+/** How a situation's twist is set up: the table, its kinds, a bespoke stage and opening. */
+function twistIssues(situation: Situation, content: Content): string[] {
+  const twist = situation.twist
+  if (!twist) return []
+  const issues: string[] = []
+  if (twist.table) {
+    if (twist.stage) issues.push('twist: a table twist gets its stage from the table; drop "stage"')
+    if (twist.opening.length > 0)
+      issues.push('twist: a table twist gets its opening hit from the table; drop "opening"')
+    for (const id of twist.kinds ?? [])
+      if (!Object.hasOwn(content.twists, id)) issues.push(`twist: unknown twist kind "${id}"`)
+    if (twistKindsFor(content, twist).length === 0)
+      issues.push('twist: the twist table has no kind to draw')
+    for (const id of Object.keys(situation.stages))
+      if (id.startsWith(TWIST_STAGE_PREFIX))
+        issues.push(`stage ${id}: ids starting "${TWIST_STAGE_PREFIX}" are for the twist table`)
+    for (const kind of twistKindsFor(content, twist))
+      for (const name of Object.keys(kind.slots))
+        if (Object.hasOwn(situation.slots, name))
+          issues.push(`twist kind ${kind.id}: slot "${name}" clashes with the situation's own`)
+  } else {
+    if (twist.kinds) issues.push('twist: "kinds" only works with "table": true')
+    if (twist.stage && !Object.hasOwn(situation.stages, twist.stage))
+      issues.push(`twist: stage "${twist.stage}" does not exist`)
+    issues.push(...openingIssues(twist.opening, content, 'twist opening'))
+  }
+  return issues
+}
+
+/** A situation as it can play: once per twist kind it could draw, or just itself. */
+function playableForms(compiled: Situation, content: Content): Situation[] {
+  if (!compiled.twist?.table) return [compiled]
+  const kinds = compilableKinds(twistKindsFor(content, compiled.twist), content)
+  return kinds.length === 0
+    ? [compiled]
+    : kinds.map((kind) => attachTwistKind(compiled, kind, content))
+}
 
 /** Parts-table problems reachable from `tableId`: unknown tables, loops, nothing to pick. */
 function tableIssues(content: Content, tableId: string, path: string[] = []): string[] {
@@ -82,22 +173,20 @@ function tableIssues(content: Content, tableId: string, path: string[] = []): st
  * slots, tables, creatures or follow-up targets; unreachable stages; misused {actor} and twists.
  */
 export function validateSituation(situation: Situation, content: Content): string[] {
-  const issues: string[] = []
-  for (const [stageId, stage] of Object.entries(situation.stages)) {
-    if (stage.archetype && !Object.hasOwn(content.archetypes, stage.archetype.id)) {
-      issues.push(`stage ${stageId}: unknown archetype "${stage.archetype.id}"`)
-    }
-    for (const option of stage.options) {
-      if (option.kind === 'check' && typeof option.check.dc === 'string' && !stage.archetype) {
-        issues.push(
-          `${stageId}/${option.id}: DC "${option.check.dc}" needs an archetype on its stage`
-        )
-      }
-    }
-  }
-  if (issues.length > 0) return issues
+  const early = stageIssues(situation.stages, content)
+  if (early.length > 0) return early
   const compiled = compileSituation(situation, content)
+  const issues = twistIssues(compiled, content)
+  for (const form of playableForms(compiled, content))
+    issues.push(...validateCompiled(form, content))
+  return [...new Set(issues)]
+}
+
+/** validateSituation for one compiled form (a table twist's kind already joined in). */
+function validateCompiled(compiled: Situation, content: Content): string[] {
+  const issues: string[] = []
   const stageIds = new Set(Object.keys(compiled.stages))
+  const twistStage = compiled.twist?.stage
 
   if (!stageIds.has(compiled.start)) issues.push(`start stage "${compiled.start}" does not exist`)
   const edges = new Map<string, string[]>()
@@ -114,6 +203,13 @@ export function validateSituation(situation: Situation, content: Content): strin
             issues.push(`${where}: twist branch but the situation has no twist`)
           if (branch.goto && branch.stay) issues.push(`${where}: both goto and stay`)
           if (!branch.goto) continue
+          if (branch.goto === TWIST_STAGE) {
+            if (!suffix) issues.push(`${where}: goto "${TWIST_STAGE}" only works in a twist branch`)
+            else if (!twistStage)
+              issues.push(`${where}: goto "${TWIST_STAGE}" needs a twist table or a twist "stage"`)
+            else if (stageIds.has(twistStage)) targets.push(twistStage)
+            continue
+          }
           if (stageIds.has(branch.goto)) targets.push(branch.goto)
           else issues.push(`${where}: goto unknown stage "${branch.goto}"`)
         }
@@ -154,7 +250,18 @@ export function validateSituation(situation: Situation, content: Content): strin
   }
 
   const situationIds = new Set(allSituations(content).map((s) => s.id))
-  for (const { effect, option, where } of allEffects(compiled)) {
+  for (const { effect, option, where, inTwist } of allEffects(compiled)) {
+    if (effect.if?.cond === 'twistRevealed' && !compiled.twist)
+      issues.push(`${where}: condition twistRevealed but the situation has no twist`)
+    if (effect.effect === 'openingHit') {
+      if (!inTwist) issues.push(`${where}: openingHit only works in a twist branch`)
+      else if (compiled.twist && compiled.twist.opening.length === 0)
+        issues.push(`${where}: openingHit but the twist has no opening hit`)
+    }
+    if (effect.effect === 'revealTwist' && effect.kind && compiled.twist && !compiled.twist.table)
+      issues.push(
+        `${where}: revealTwist "kind" needs a twist table (a bespoke twist is shown already)`
+      )
     if (effect.effect === 'followUp' && !situationIds.has(effect.situation)) {
       issues.push(`${where}: follow-up to unknown situation "${effect.situation}"`)
     }
@@ -168,12 +275,55 @@ export function validateSituation(situation: Situation, content: Content): strin
     if (effect.effect === 'revealTwist' && !compiled.twist)
       issues.push(`${where}: revealTwist but the situation has no twist`)
   }
+  return issues
+}
+
+/**
+ * A twist kind checked as if it were a situation of its own (its stages, slots and opening), plus
+ * what only a twist kind must not do: go to "@twist" from inside the escalation.
+ */
+export function validateTwistKind(kind: TwistKind, content: Content): string[] {
+  const early = stageIssues(kind.stages, content)
+  if (early.length > 0) return early
+  const issues = openingIssues(kind.opening, content, 'opening')
+  const asSituation = twistKindAsSituation(kind)
+  for (const { effect, where } of allEffects(asSituation)) {
+    if (effect.effect === 'openingHit') issues.push(`${where}: openingHit only works in situations`)
+  }
+  for (const [stageId, stage] of Object.entries(asSituation.stages))
+    for (const option of stage.options)
+      for (const [name, outcome] of branches(option))
+        for (const [suffix, branch] of withTwist(outcome))
+          if (branch.goto === TWIST_STAGE)
+            issues.push(
+              `${stageId}/${option.id} ${name}${suffix}: a twist kind can't goto "${TWIST_STAGE}"`
+            )
+  issues.push(...validateSituation(asSituation, content))
+  if (issues.length === 0) issues.push(...lintSituation(asSituation, content))
   return [...new Set(issues)]
 }
 
+/** A twist kind as a stand-alone situation, for checking. Its twist always happens. */
+const twistKindAsSituation = (kind: TwistKind): Situation => ({
+  id: kind.id,
+  title: kind.name,
+  weight: 0,
+  tags: [],
+  slots: kind.slots,
+  twist: { chance: 1, what: kind.what, table: false, stage: kind.start, opening: [] },
+  wonder: false,
+  followUpOnly: true,
+  start: kind.start,
+  stages: kind.stages,
+})
+
 const isCost = (e: Effect) =>
-  ((e.effect === 'gold' || e.effect === 'hp' || e.effect === 'nextCheckModifier') &&
+  ((e.effect === 'gold' ||
+    e.effect === 'hp' ||
+    e.effect === 'nextCheckModifier' ||
+    e.effect === 'inspiration') &&
     e.amount < 0) ||
+  e.effect === 'openingHit' ||
   (e.effect === 'exhaustion' && e.amount > 0) ||
   e.effect === 'days' ||
   e.effect === 'followUp' ||
@@ -186,6 +336,11 @@ const isCost = (e: Effect) =>
  */
 export function lintSituation(situation: Situation, content: Content): string[] {
   const compiled = compileSituation(situation, content)
+  const forms = playableForms(compiled, content)
+  return [...new Set(forms.flatMap((form) => lintCompiled(form)))]
+}
+
+function lintCompiled(compiled: Situation): string[] {
   const stages = Object.entries(compiled.stages)
   if (!compiled.wonder) {
     return stages.flatMap(([id, stage]) => [
@@ -214,7 +369,8 @@ export function lintSituation(situation: Situation, content: Content): string[] 
 }
 
 /**
- * Validation and lint issues for every situation and template, keyed by situation id. An id used
+ * Validation and lint issues for every situation and template, keyed by situation id, and for
+ * every twist kind, keyed "twists/<id>". An id used
  * by more than one entry is reported, and the issues of every entry with that id are kept.
  */
 export function contentIssues(content: Content): Record<string, string[]> {
@@ -229,5 +385,7 @@ export function contentIssues(content: Content): Record<string, string[]> {
     const structural = validateSituation(situation, content)
     add(situation.id, structural.length > 0 ? structural : lintSituation(situation, content))
   }
+  for (const kind of sortedEntries(content.twists))
+    add(`twists/${kind.id}`, validateTwistKind(kind, content))
   return issues
 }

@@ -130,7 +130,14 @@ describe('templates', () => {
 
   test('allSituations lists situations and templates with their source, sorted by id', () => {
     const all = allSituations(content)
-    expect(all.map((s) => s.id)).toEqual(['cliff', 'grudge', 'plea', 'roadside', 'starfall'])
+    expect(all.map((s) => s.id)).toEqual([
+      'cliff',
+      'grudge',
+      'plea',
+      'roadside',
+      'starfall',
+      'stranger',
+    ])
     expect(all.find((s) => s.id === 'plea')?.source).toBe('procedural')
   })
 })

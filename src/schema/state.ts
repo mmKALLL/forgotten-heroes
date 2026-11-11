@@ -72,6 +72,13 @@ export const EncounterStateSchema = z.object({
   /** The hidden twist, rolled at the start. The UI must not show it. */
   twist: z.boolean(),
   twistRevealed: z.boolean(),
+  /**
+   * The kind drawn from the twist table when the encounter started (its stages joined the
+   * situation snapshot), or null for a bespoke twist or none. Hidden until revealed.
+   */
+  twistKind: z.object({ id: IdSchema, what: z.string() }).nullable().default(null),
+  /** Which kind of twist it is has been revealed (a great Insight read, or the twist happened). */
+  twistKindRevealed: z.boolean().default(false),
   /** Added to the party's next check in this encounter, then reset to 0 (e.g. −2 after a failed Insight). */
   nextCheckModifier: z.number().int().default(0),
   /** Why the next check is modified, e.g. "misread". The latest reason wins; cleared with the modifier. */

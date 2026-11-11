@@ -6,6 +6,7 @@ import {
   PartsTableSchema,
   SituationSchema,
   SituationTemplateSchema,
+  TwistKindSchema,
 } from './encounter'
 
 export const ClassDefSchema = z.object({
@@ -88,6 +89,7 @@ export const TRANSLATABLE_KINDS = [
   'archetypes',
   'partsTables',
   'creatures',
+  'twists',
 ] as const
 export type TranslatableKind = (typeof TRANSLATABLE_KINDS)[number]
 
@@ -117,6 +119,7 @@ export const CONTENT_KINDS = {
   archetypes: ArchetypeSchema,
   partsTables: PartsTableSchema,
   creatures: CreatureSchema,
+  twists: TwistKindSchema,
   translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS

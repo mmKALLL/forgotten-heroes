@@ -8,6 +8,7 @@ import { formatPercent } from '../../engine/format'
 import { useI18n } from '../i18n/I18n'
 
 function Branch({ branch }: { branch: BranchPreview }) {
+  const { t } = useI18n()
   return (
     <>
       {branch.text}
@@ -16,6 +17,7 @@ function Branch({ branch }: { branch: BranchPreview }) {
           {e}
         </span>
       ))}
+      {branch.next === 'escalates' && <span className="chip">{t('outcomes.escalates')}</span>}
     </>
   )
 }

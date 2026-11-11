@@ -1,0 +1,908 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "twists"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "name": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          },
+          "weight": {
+            "default": 1,
+            "description": "Relative chance of being drawn",
+            "$ref": "#/$defs/__schema1"
+          },
+          "what": {
+            "type": "string",
+            "description": "What it turns out to be, e.g. \"they were bait for an ambush\"; shown once known"
+          },
+          "opening": {
+            "default": [],
+            "description": "The opening hit, applied by { \"effect\": \"openingHit\" } (trusting help). Fixed options apply it, so no \"actor\" targets.",
+            "$ref": "#/$defs/__schema2"
+          },
+          "slots": {
+            "default": {},
+            "description": "Filled when it is drawn",
+            "$ref": "#/$defs/__schema30"
+          },
+          "start": {
+            "default": "start",
+            "description": "The escalation stage \"@twist\" goes to",
+            "$ref": "#/$defs/__schema0"
+          },
+          "stages": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "archetype": {
+                  "description": "Its options come first, then this stage's own",
+                  "$ref": "#/$defs/__schema32"
+                },
+                "options": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "$ref": "#/$defs/__schema35"
+                          },
+                          "label": {
+                            "$ref": "#/$defs/__schema36"
+                          },
+                          "description": {
+                            "$ref": "#/$defs/__schema37"
+                          },
+                          "requires": {
+                            "$ref": "#/$defs/__schema38"
+                          },
+                          "once": {
+                            "$ref": "#/$defs/__schema39"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "const": "check"
+                          },
+                          "check": {
+                            "type": "object",
+                            "properties": {
+                              "skill": {
+                                "type": "string",
+                                "enum": [
+                                  "acrobatics",
+                                  "animalHandling",
+                                  "arcana",
+                                  "athletics",
+                                  "deception",
+                                  "history",
+                                  "insight",
+                                  "intimidation",
+                                  "investigation",
+                                  "medicine",
+                                  "nature",
+                                  "perception",
+                                  "performance",
+                                  "persuasion",
+                                  "religion",
+                                  "sleightOfHand",
+                                  "stealth",
+                                  "survival"
+                                ]
+                              },
+                              "ability": {
+                                "description": "Overrides the skill's default ability, e.g. \"cha\" for Intimidation (CHA)",
+                                "$ref": "#/$defs/__schema41"
+                              },
+                              "dc": {
+                                "anyOf": [
+                                  {
+                                    "$ref": "#/$defs/__schema42"
+                                  },
+                                  {
+                                    "$ref": "#/$defs/__schema43"
+                                  }
+                                ],
+                                "description": "A DC from 1 to 40, or inside an archetype \"dc\", \"dc+2\" or \"dc-1\""
+                              },
+                              "combat": {
+                                "description": "Combat checks never grant Inspiration on a natural 20",
+                                "$ref": "#/$defs/__schema44"
+                              }
+                            },
+                            "required": [
+                              "skill",
+                              "dc"
+                            ]
+                          },
+                          "highStakes": {
+                            "description": "Force the slow, glowing dice roll",
+                            "$ref": "#/$defs/__schema45"
+                          },
+                          "outcomes": {
+                            "type": "object",
+                            "properties": {
+                              "critFail": {
+                                "description": "Defaults to the fail outcome",
+                                "$ref": "#/$defs/__schema46"
+                              },
+                              "fail": {
+                                "$ref": "#/$defs/__schema46"
+                              },
+                              "partial": {
+                                "$ref": "#/$defs/__schema46"
+                              },
+                              "success": {
+                                "$ref": "#/$defs/__schema46"
+                              },
+                              "critSuccess": {
+                                "description": "Defaults to the success outcome",
+                                "$ref": "#/$defs/__schema46"
+                              }
+                            },
+                            "required": [
+                              "fail",
+                              "partial",
+                              "success"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "kind",
+                          "check",
+                          "outcomes"
+                        ]
+                      },
+                      {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "$ref": "#/$defs/__schema35"
+                          },
+                          "label": {
+                            "$ref": "#/$defs/__schema36"
+                          },
+                          "description": {
+                            "$ref": "#/$defs/__schema37"
+                          },
+                          "requires": {
+                            "$ref": "#/$defs/__schema38"
+                          },
+                          "once": {
+                            "$ref": "#/$defs/__schema39"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "const": "fixed"
+                          },
+                          "outcome": {
+                            "$ref": "#/$defs/__schema46"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "label",
+                          "kind",
+                          "outcome"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "regions": {
+            "default": [],
+            "description": "Regions where it fits; for later weighting, unused for now",
+            "$ref": "#/$defs/__schema54"
+          },
+          "threats": {
+            "default": [],
+            "description": "Regional threats that make it likelier; for later weighting, unused for now",
+            "$ref": "#/$defs/__schema55"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "what",
+          "stages"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema2": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema3"
+      }
+    },
+    "__schema3": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema4"
+            },
+            "amount": {
+              "$ref": "#/$defs/__schema5"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ],
+          "description": "Gain or lose gold; gold never drops below 0"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema11"
+            },
+            "amount": {
+              "$ref": "#/$defs/__schema5"
+            },
+            "target": {
+              "$ref": "#/$defs/__schema12"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "amount",
+            "target"
+          ],
+          "description": "Heal (+) or hurt (−) the acting member, everyone, or one random member who can still act"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "amount": {
+              "$ref": "#/$defs/__schema5"
+            },
+            "target": {
+              "$ref": "#/$defs/__schema14"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "amount",
+            "target"
+          ],
+          "description": "Add (+) or remove (−) exhaustion levels"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema15"
+            },
+            "amount": {
+              "$ref": "#/$defs/__schema5"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ],
+          "description": "Gain (+) or lose (−) Inspiration; it never drops below 0"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema16"
+            },
+            "amount": {
+              "$ref": "#/$defs/__schema17"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ],
+          "description": "Time passes"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema18"
+            },
+            "position": {
+              "$ref": "#/$defs/__schema19"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "position"
+          ],
+          "description": "Edge or Exposed for the next check in this encounter"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema20"
+            },
+            "situation": {
+              "$ref": "#/$defs/__schema0"
+            },
+            "after": {
+              "$ref": "#/$defs/__schema21"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "situation"
+          ],
+          "description": "Queue a later encounter"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema23"
+            },
+            "amount": {
+              "$ref": "#/$defs/__schema5"
+            },
+            "reason": {
+              "$ref": "#/$defs/__schema24"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ],
+          "description": "Add to the party's next check in this encounter (e.g. −2 after misreading a situation)"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema26"
+            },
+            "kind": {
+              "$ref": "#/$defs/__schema27"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect"
+          ],
+          "description": "Show the odds of the hidden twist"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema29"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect"
+          ],
+          "description": "The twist's opening hit: the drawn twist kind's opening effects, or a bespoke twist's `opening`. Only in twist branches."
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "log"
+            },
+            "text": {
+              "type": "string"
+            },
+            "tone": {
+              "default": "info",
+              "type": "string",
+              "enum": [
+                "info",
+                "good",
+                "bad",
+                "crit"
+              ]
+            },
+            "if": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "text"
+          ]
+        }
+      ]
+    },
+    "__schema4": {
+      "type": "string",
+      "const": "gold"
+    },
+    "__schema5": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "__schema6": {
+      "description": "Only applies when this holds",
+      "$ref": "#/$defs/__schema7"
+    },
+    "__schema7": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "cond": {
+              "$ref": "#/$defs/__schema8"
+            },
+            "not": {
+              "$ref": "#/$defs/__schema9"
+            }
+          },
+          "required": [
+            "cond"
+          ],
+          "description": "The twist's odds have been revealed earlier in the encounter (e.g. by Insight)"
+        }
+      ]
+    },
+    "__schema8": {
+      "type": "string",
+      "const": "twistRevealed"
+    },
+    "__schema9": {
+      "description": "True: only when the odds are still hidden",
+      "$ref": "#/$defs/__schema10"
+    },
+    "__schema10": {
+      "type": "boolean"
+    },
+    "__schema11": {
+      "type": "string",
+      "const": "hp"
+    },
+    "__schema12": {
+      "type": "string",
+      "enum": [
+        "actor",
+        "all",
+        "random"
+      ]
+    },
+    "__schema13": {
+      "type": "string",
+      "const": "exhaustion"
+    },
+    "__schema14": {
+      "type": "string",
+      "enum": [
+        "actor",
+        "all"
+      ]
+    },
+    "__schema15": {
+      "type": "string",
+      "const": "inspiration"
+    },
+    "__schema16": {
+      "type": "string",
+      "const": "days"
+    },
+    "__schema17": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "__schema18": {
+      "type": "string",
+      "const": "position"
+    },
+    "__schema19": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "edge",
+        "exposed"
+      ]
+    },
+    "__schema20": {
+      "type": "string",
+      "const": "followUp"
+    },
+    "__schema21": {
+      "default": 0,
+      "description": "Other encounters that happen first",
+      "$ref": "#/$defs/__schema22"
+    },
+    "__schema22": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema23": {
+      "type": "string",
+      "const": "nextCheckModifier"
+    },
+    "__schema24": {
+      "description": "Shown next to the modifier, e.g. \"misread\"",
+      "$ref": "#/$defs/__schema25"
+    },
+    "__schema25": {
+      "type": "string"
+    },
+    "__schema26": {
+      "type": "string",
+      "const": "revealTwist"
+    },
+    "__schema27": {
+      "description": "Also reveal which kind of twist it would be (twist-table twists)",
+      "$ref": "#/$defs/__schema28"
+    },
+    "__schema28": {
+      "type": "boolean"
+    },
+    "__schema29": {
+      "type": "string",
+      "const": "openingHit"
+    },
+    "__schema30": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/__schema0"
+      },
+      "additionalProperties": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "const": "table"
+              },
+              "table": {
+                "description": "A parts table id",
+                "$ref": "#/$defs/__schema0"
+              }
+            },
+            "required": [
+              "from",
+              "table"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "const": "creature"
+              },
+              "types": {
+                "default": [],
+                "description": "Empty means any type",
+                "$ref": "#/$defs/__schema31"
+              },
+              "maxCr": {
+                "type": "number",
+                "minimum": 0
+              },
+              "form": {
+                "default": "group",
+                "type": "string",
+                "enum": [
+                  "group",
+                  "name"
+                ]
+              }
+            },
+            "required": [
+              "from"
+            ]
+          }
+        ]
+      }
+    },
+    "__schema31": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "aberration",
+          "beast",
+          "celestial",
+          "construct",
+          "dragon",
+          "elemental",
+          "fey",
+          "fiend",
+          "giant",
+          "humanoid",
+          "monstrosity",
+          "ooze",
+          "plant",
+          "undead"
+        ]
+      }
+    },
+    "__schema32": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/__schema0"
+        },
+        "dc": {
+          "default": 13,
+          "description": "What \"dc\" means in the archetype",
+          "$ref": "#/$defs/__schema33"
+        },
+        "reward": {
+          "default": 1,
+          "description": "Multiplies every gold amount in the archetype",
+          "$ref": "#/$defs/__schema34"
+        }
+      },
+      "required": [
+        "id"
+      ]
+    },
+    "__schema33": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 40
+    },
+    "__schema34": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema35": {
+      "description": "Unique within its stage",
+      "$ref": "#/$defs/__schema0"
+    },
+    "__schema36": {
+      "type": "string"
+    },
+    "__schema37": {
+      "type": "string"
+    },
+    "__schema38": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "req": {
+                "type": "string",
+                "const": "gold"
+              },
+              "min": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            },
+            "required": [
+              "req",
+              "min"
+            ]
+          }
+        ]
+      }
+    },
+    "__schema39": {
+      "description": "Can only be chosen once per encounter",
+      "$ref": "#/$defs/__schema40"
+    },
+    "__schema40": {
+      "type": "boolean"
+    },
+    "__schema41": {
+      "type": "string",
+      "enum": [
+        "str",
+        "dex",
+        "con",
+        "int",
+        "wis",
+        "cha"
+      ]
+    },
+    "__schema42": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 40
+    },
+    "__schema43": {
+      "type": "string",
+      "pattern": "^dc([+-][0-9]+)?$"
+    },
+    "__schema44": {
+      "type": "boolean"
+    },
+    "__schema45": {
+      "type": "boolean"
+    },
+    "__schema46": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "$ref": "#/$defs/__schema47"
+        },
+        "effects": {
+          "$ref": "#/$defs/__schema48"
+        },
+        "goto": {
+          "$ref": "#/$defs/__schema49"
+        },
+        "stay": {
+          "$ref": "#/$defs/__schema51"
+        },
+        "twist": {
+          "description": "Replaces this outcome when the hidden twist is true",
+          "$ref": "#/$defs/__schema53"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "__schema47": {
+      "type": "string"
+    },
+    "__schema48": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema3"
+      }
+    },
+    "__schema49": {
+      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
+      "$ref": "#/$defs/__schema50"
+    },
+    "__schema50": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/__schema0"
+        },
+        {
+          "type": "string",
+          "const": "@twist"
+        }
+      ]
+    },
+    "__schema51": {
+      "description": "Stay on the current stage",
+      "$ref": "#/$defs/__schema52"
+    },
+    "__schema52": {
+      "type": "boolean"
+    },
+    "__schema53": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "$ref": "#/$defs/__schema47"
+        },
+        "effects": {
+          "$ref": "#/$defs/__schema48"
+        },
+        "goto": {
+          "$ref": "#/$defs/__schema49"
+        },
+        "stay": {
+          "$ref": "#/$defs/__schema51"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    },
+    "__schema54": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "__schema55": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

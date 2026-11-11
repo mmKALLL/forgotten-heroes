@@ -68,7 +68,8 @@
         "situationTemplates",
         "archetypes",
         "partsTables",
-        "creatures"
+        "creatures",
+        "twists"
       ]
     }
   },

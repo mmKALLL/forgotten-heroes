@@ -1,7 +1,14 @@
 import type { Content } from '../../content/build'
 import type { Source } from '../../schema/common'
 import type { Position } from '../../schema/constants'
-import type { Effect, Option, OutcomeBranch, Requirement } from '../../schema/encounter'
+import {
+  TWIST_STAGE,
+  type Effect,
+  type Option,
+  type OutcomeBranch,
+  type Requirement,
+  type TwistKind,
+} from '../../schema/encounter'
 import type { EncounterLogEntry, EncounterState, GameState, RollRecord } from '../../schema/state'
 import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
@@ -9,8 +16,8 @@ import { withRng } from '../rng'
 import { checkLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
-import { allSituations, compileSituation } from './compile'
-import { applyEffects, describeEffect } from './effects'
+import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
+import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
 import { fillText, rollSlots } from './slots'
 
@@ -65,16 +72,25 @@ export function startEncounter(state: GameState, content: Content, situationId: 
   if (!Object.hasOwn(compiled.stages, compiled.start)) {
     return appendLog(state, `${compiled.title} has no stage "${compiled.start}".`, 'bad')
   }
-  const [{ slots, twist }, rng] = withRng(state.rng, (d) => ({
-    slots: rollSlots(d, content, compiled.slots),
-    twist: compiled.twist ? d.float() < compiled.twist.chance : false,
-  }))
+  // Slots, then the hidden twist, then (for a table twist) its kind and the kind's own slots.
+  const [{ slots, twist, kind }, rng] = withRng(state.rng, (d) => {
+    const slots = rollSlots(d, content, compiled.slots)
+    const twist = compiled.twist ? d.float() < compiled.twist.chance : false
+    const kinds = compiled.twist?.table ? twistKindsFor(content, compiled.twist) : []
+    if (kinds.length === 0) return { slots, twist, kind: null as TwistKind | null }
+    const kind = d.weighted(kinds, (k) => k.weight)
+    const own = Object.fromEntries(
+      Object.entries(kind.slots).filter(([name]) => !Object.hasOwn(compiled.slots, name))
+    )
+    return { slots: { ...slots, ...rollSlots(d, content, own) }, twist, kind }
+  })
+  const joined = kind ? attachTwistKind(compiled, kind, content) : compiled
   // The title and the twist are filled once, here; other text is filled as it is shown.
   const situation = {
-    ...compiled,
-    title: fillText(compiled.title, slots),
-    ...(compiled.twist && {
-      twist: { ...compiled.twist, what: fillText(compiled.twist.what, slots) },
+    ...joined,
+    title: fillText(joined.title, slots),
+    ...(joined.twist && {
+      twist: { ...joined.twist, what: fillText(joined.twist.what, slots) },
     }),
   }
   const text = fillText(situation.stages[situation.start].text, slots)
@@ -86,6 +102,8 @@ export function startEncounter(state: GameState, content: Content, situationId: 
     slots,
     twist,
     twistRevealed: false,
+    twistKind: kind && { id: kind.id, what: fillText(kind.what, slots) },
+    twistKindRevealed: false,
     nextCheckModifier: 0,
     nextCheckReason: null,
     used: [],
@@ -156,7 +174,7 @@ function resolve(
   const actorName = nameOf(state, actorId)
   const values = actorName ? { ...encounter.slots, actor: actorName } : encounter.slots
   const fill = (text: string) => fillText(text, values)
-  const effects: Effect[] = branch.effects.map((e) =>
+  const effects: Effect[] = prepareEffects(branch.effects, encounter).map((e) =>
     e.effect === 'log' ? { ...e, text: fill(e.text) } : e
   )
   const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone') ?? [])
@@ -167,8 +185,12 @@ function resolve(
   next = { ...next, encounter: { ...encounter, log: [...encounter.log, { ...entry, text }] } }
   next = applyEffects(next, effects, { actorId })
 
-  const target = branch.goto ?? (branch.stay ? fromStage : null)
+  // "@twist" goes to the twist's escalation stage; once there, which twist it was is no secret.
+  const escalates = branch.goto === TWIST_STAGE
+  const goto = escalates ? encounter.situation.twist?.stage : branch.goto
+  const target = goto ?? (branch.stay ? fromStage : null)
   const stage = target !== null && Object.hasOwn(encounter.situation.stages, target) ? target : null
+  if (escalates) next = { ...next, encounter: { ...next.encounter!, twistKindRevealed: true } }
   let log = next.encounter!.log
   if (stage !== null && stage !== fromStage) {
     log = [...log, { text: fill(encounter.situation.stages[stage].text), tone: 'info' }]
