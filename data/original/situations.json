@@ -1,0 +1,548 @@
+{
+  "$schema": "../_schema/situations.schema.json",
+  "kind": "situations",
+  "source": "original",
+  "notes": "The prototype's six events (src/lib/data.ts at tag v0.1.0-svelte-final), ported as faithfully as possible. The first two were handwritten by the designer; the last four were generated with ChatGPT for the prototype. Each entry's notes list its prototype participants and secret, how prose odds became checks, and any additions.",
+  "entries": [
+    {
+      "id": "fishermen-at-the-pond",
+      "title": "Fishermen at the pond",
+      "weight": 0.75,
+      "tags": ["river", "plains", "lifeplace", "traders"],
+      "notes": "Prototype event 1, handwritten. Participants: 4 human commoners (level 3). Secret: one of them carries an amulet that improves foraging. Conversions: Steal's d20 thresholds (10 / 15 / 20 / above) became Sleight of Hand DC 16, and Fight (combat) became the 'brawl' stage with a graded combat check. Additions: Approach heals 2 HP as a stand-in for food and ale until goods exist (Plan 4); 'Back off' lets you pay your way out of the brawl; the amulet is a log line until items exist.",
+      "stages": {
+        "start": {
+          "text": "A group of fishermen are sitting by a small pond, fishing, drinking ale and laughing at each other's jokes.",
+          "options": [
+            {
+              "id": "approach",
+              "kind": "fixed",
+              "label": "Approach",
+              "description": "Approach the fishermen calmly and join their group.",
+              "outcome": {
+                "text": "They make room by the water and share their food and ale.",
+                "effects": [{ "effect": "hp", "amount": 2, "target": "all" }]
+              }
+            },
+            {
+              "id": "steal",
+              "kind": "check",
+              "label": "Steal",
+              "description": "Try to make off with their valuables while they are distracted.",
+              "check": { "skill": "sleightOfHand", "dc": 16 },
+              "outcomes": {
+                "fail": {
+                  "text": "The fishermen noticed you and prepare for battle!",
+                  "goto": "brawl"
+                },
+                "partial": { "text": "The fishermen noticed you and secured their belongings." },
+                "success": {
+                  "text": "You were able to steal their wallets, containing 4 gp in total.",
+                  "effects": [{ "effect": "gold", "amount": 4 }]
+                },
+                "critSuccess": {
+                  "text": "You were able to pickpocket one of the fishermen. Gained an Amulet of Foraging!",
+                  "effects": [
+                    { "effect": "gold", "amount": 4 },
+                    {
+                      "effect": "log",
+                      "text": "Amulet of Foraging (items arrive in a later plan).",
+                      "tone": "crit"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "fight",
+              "kind": "fixed",
+              "label": "Fight",
+              "description": "Initiate combat.",
+              "outcome": {
+                "text": "You stride towards them with weapons drawn. The laughter stops.",
+                "goto": "brawl"
+              }
+            },
+            {
+              "id": "ignore",
+              "kind": "fixed",
+              "label": "Ignore",
+              "description": "Let them continue in peace.",
+              "outcome": { "text": "Nothing happens." }
+            }
+          ]
+        },
+        "brawl": {
+          "text": "Four fishermen get to their feet with gutting knives and oars.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight",
+              "check": { "skill": "athletics", "dc": 11, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "Oars and fists. You win in the end, but it hurts.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "They break and run, but not before {actor} takes an oar to the head.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "gold", "amount": 4 }
+                  ]
+                },
+                "success": {
+                  "text": "They scatter, leaving their wallets behind.",
+                  "effects": [{ "effect": "gold", "amount": 4 }]
+                }
+              }
+            },
+            {
+              "id": "back-off",
+              "kind": "fixed",
+              "label": "Back off",
+              "description": "Pay for the insult and leave.",
+              "requires": [{ "req": "gold", "min": 4 }],
+              "outcome": {
+                "text": "You toss them a few coins for the trouble and back away.",
+                "effects": [{ "effect": "gold", "amount": -4 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "unburnt-grove",
+      "title": "The unburnt grove",
+      "weight": 0.25,
+      "tags": ["forest"],
+      "notes": "Prototype event 2, handwritten. Secret: the trees are imbued with magic that protects them from fire, left by an ancient ritual at a meeting place of high elves. Conversions: the INT check became Arcana DC 12, with the prototype's two results as the partial and success tiers; a critical success reveals the secret. Changes: Investigate and Arcana can each be tried once before you decide; 'inflammable' became 'fireproof' (the prototype meant the opposite); the bark is a log line until items exist.",
+      "stages": {
+        "start": {
+          "text": "You pass through a barren section of forest that was damaged about a decade ago by a forest fire. In the middle of the desolation, you find a circle of trees that seems untouched by the fire that destroyed the surroundings.",
+          "options": [
+            {
+              "id": "investigate",
+              "kind": "fixed",
+              "label": "Investigate the trees",
+              "description": "See if the trees have anything special about them.",
+              "once": true,
+              "outcome": {
+                "text": "You notice that some of the trees are warm to the touch, but don't have other special characteristics.",
+                "stay": true
+              }
+            },
+            {
+              "id": "arcana",
+              "kind": "check",
+              "label": "Use arcana knowledge",
+              "description": "Try to find clues related to the use of magic.",
+              "once": true,
+              "check": { "skill": "arcana", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "Whatever is here, {actor} can't make sense of it.",
+                  "stay": true
+                },
+                "partial": {
+                  "text": "You notice that the trees are protected against fire.",
+                  "stay": true
+                },
+                "success": {
+                  "text": "You notice that some sort of ritual or enchantment has been placed around the area a long time ago.",
+                  "stay": true
+                },
+                "critSuccess": {
+                  "text": "{actor} recognises the old craft: high elves met here once, and their ritual still guards the trees from fire.",
+                  "stay": true
+                }
+              }
+            },
+            {
+              "id": "burn",
+              "kind": "fixed",
+              "label": "Burn the trees",
+              "description": "Try to set a fire to the remaining trees.",
+              "outcome": {
+                "text": "The fire has trouble catching onto the trees. It's as if the trees are entirely fireproof."
+              }
+            },
+            {
+              "id": "bark",
+              "kind": "fixed",
+              "label": "Rip bark from the trees",
+              "description": "Take a piece of bark with you for future use.",
+              "outcome": {
+                "text": "You gained a piece of bark. What are you going to do with it?",
+                "effects": [
+                  {
+                    "effect": "log",
+                    "text": "Fireproof bark (items arrive in a later plan).",
+                    "tone": "info"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "ignore",
+              "kind": "fixed",
+              "label": "Ignore",
+              "description": "Ignore the trees.",
+              "outcome": { "text": "You ignore the trees and decide to go somewhere else." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "abandoned-dwarven-mine",
+      "title": "The abandoned dwarven mine",
+      "weight": 0.6,
+      "tags": ["mountain"],
+      "notes": "Prototype event 3, generated with ChatGPT for the prototype. Hidden participants: 2 dwarf fighters (level 5) and a human rogue (level 4), unused here as there. Secret: a hidden, heavily trapped passage leads to a treasure room. Conversions: Explore's two results became Investigation DC 13 (finding the map on a success); 'Search for the treasure room' needs the map, so it moved to a second stage as Perception DC 14 against the traps. Additions: a critical failure while exploring brings down rubble; trap damage on the search; the warhammer is a log line until items exist.",
+      "stages": {
+        "start": {
+          "text": "The group stumbles upon an abandoned dwarven mine. It's filled with rubble and looks like it hasn't been used in decades.",
+          "options": [
+            {
+              "id": "explore",
+              "kind": "check",
+              "label": "Explore the mine",
+              "description": "Investigate the abandoned dwarven mine.",
+              "check": { "skill": "investigation", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "A rotten prop gives way, and rubble comes down on {actor}.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "fail": {
+                  "text": "The party finds nothing out of the ordinary, just rubble and old equipment scattered throughout the mine."
+                },
+                "partial": {
+                  "text": "The party finds nothing out of the ordinary, just rubble and old equipment scattered throughout the mine."
+                },
+                "success": {
+                  "text": "The party finds a map that shows the location of a hidden treasure room!",
+                  "goto": "map"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the mine",
+              "description": "Abandon the mine and move on.",
+              "outcome": { "text": "Nothing happens." }
+            }
+          ]
+        },
+        "map": {
+          "text": "The map shows a hidden passage behind a collapsed gallery. Scratched beside it, in old dwarvish: 'mind the floor'.",
+          "options": [
+            {
+              "id": "search",
+              "kind": "check",
+              "label": "Search for the treasure room",
+              "description": "Use the map to find the treasure room.",
+              "check": { "skill": "perception", "dc": 14 },
+              "outcomes": {
+                "critFail": {
+                  "text": "{actor} misses the pressure plate. Darts hiss out of the walls.",
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
+                },
+                "fail": {
+                  "text": "A trap springs on {actor}, and you retreat bleeding and empty-handed.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "You reach the treasure room past one trap too many. There is still gold in the chest.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "gold", "amount": 15 }
+                  ]
+                },
+                "success": {
+                  "text": "The party finds the hidden passage and successfully navigates through the traps to the treasure room. They find a chest filled with gold and gems.",
+                  "effects": [{ "effect": "gold", "amount": 30 }]
+                },
+                "critSuccess": {
+                  "text": "The party finds the hidden passage and successfully navigates through the traps to the treasure room. They find a chest filled with gold and gems, as well as a magical dwarven warhammer.",
+                  "effects": [
+                    { "effect": "gold", "amount": 30 },
+                    {
+                      "effect": "log",
+                      "text": "Magical dwarven warhammer (items arrive in a later plan).",
+                      "tone": "crit"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the mine",
+              "description": "Abandon the mine and move on.",
+              "outcome": { "text": "Nothing happens." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lizardfolk-ritual",
+      "title": "The lizardfolk ritual",
+      "weight": 0.5,
+      "tags": ["swamp"],
+      "notes": "Prototype event 4, generated with ChatGPT for the prototype. Participants: a half-elf bard and a human wizard (level 3), unused. Secret: the sacrifice is a powerful artifact the lizardfolk have guarded for generations, said to control the weather and bring fortune. Conversions: Steal's prose odds (30% unseen, 50% detected and fighting out, 20% an elemental) became Stealth DC 16: success unseen, fail and partial fight their way out, a critical failure summons the elemental. Additions: the trade's herb quest is the follow-up 'lizardfolk-herb' (data/claude); the artifact is a log line until items exist.",
+      "stages": {
+        "start": {
+          "text": "The party encounters a group of lizardfolk who are performing a ritual. They're gathered around a large stone altar and seem to be offering a sacrifice to their deity.",
+          "options": [
+            {
+              "id": "approach",
+              "kind": "fixed",
+              "label": "Approach the lizardfolk",
+              "description": "Attempt to communicate with the lizardfolk and learn more about their ritual.",
+              "outcome": {
+                "text": "The party is able to communicate with the lizardfolk and learn more about their culture and traditions. However, they are unable to learn anything about the artifact."
+              }
+            },
+            {
+              "id": "steal",
+              "kind": "check",
+              "label": "Steal the artifact",
+              "description": "Attempt to steal the artifact while the lizardfolk are distracted.",
+              "check": { "skill": "stealth", "dc": 16 },
+              "outcomes": {
+                "critFail": {
+                  "text": "The lizardfolk call upon their deity and a powerful elemental is summoned to defend the artifact.",
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
+                },
+                "fail": {
+                  "text": "The party is detected and must fight their way out.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "The party is detected at the last moment and fights its way out.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": {
+                  "text": "The party is able to steal the artifact without being detected.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "Weather-calling artifact (items arrive in a later plan).",
+                      "tone": "crit"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "trade",
+              "kind": "fixed",
+              "label": "Trade for the artifact",
+              "description": "Attempt to negotiate with the lizardfolk for the artifact.",
+              "outcome": {
+                "text": "The lizardfolk are willing to trade the artifact for a rare magical herb that grows in the nearby jungle. The party must find the herb and return it to the lizardfolk in exchange for the artifact.",
+                "effects": [{ "effect": "followUp", "situation": "lizardfolk-herb", "after": 1 }]
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the lizardfolk alone",
+              "description": "Ignore the lizardfolk and move on.",
+              "outcome": { "text": "Nothing happens." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "wolves-and-goats",
+      "title": "Wolves on the mountain path",
+      "weight": 0.5,
+      "tags": ["mountain"],
+      "notes": "Prototype event 5, generated with ChatGPT for the prototype. Participant: a half-elf ranger (level 5), unused. Secret: the alpha wolf wears an enchanted collar that only a special key removes (shown on a critical success). Conversions: Fight (50% win, 30% win with losses, 20% lose) became a combat Athletics check at DC 12; Sneak (70% / 30%) Stealth DC 10; Save the wolves (the wolves turn on you, then 70% / 30%) a combat Athletics check at DC 10 where every result costs HP. 'Lose some party members' became heavy HP loss: encounters don't kill outright until the run loop exists (Plan 5).",
+      "stages": {
+        "start": {
+          "text": "As you climb the mountain, you come across a narrow, treacherous path. Suddenly, a group of mountain goats cross your path, but they are being chased by a pack of wolves.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight the wolves",
+              "description": "Attack the wolves and try to save the goats.",
+              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "You lose the fight and scramble back down the path.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You save the goats, but the wolves maul {actor} before they break.",
+                  "effects": [
+                    { "effect": "hp", "amount": -5, "target": "actor" },
+                    { "effect": "hp", "amount": -2, "target": "all" }
+                  ]
+                },
+                "success": { "text": "You defeat the wolves and save the goats." },
+                "critSuccess": {
+                  "text": "You defeat the wolves and save the goats. The alpha wears an enchanted collar with a strange keyhole.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "The alpha's collar needs a special key to remove.",
+                      "tone": "crit"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "sneak",
+              "kind": "check",
+              "label": "Sneak past the wolves",
+              "description": "Try to sneak past the wolves and continue on your journey.",
+              "check": { "skill": "stealth", "dc": 10 },
+              "outcomes": {
+                "fail": {
+                  "text": "You get detected and attacked.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "partial": {
+                  "text": "The wolves notice you at the last moment and snap at your heels as you go.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                },
+                "success": { "text": "You sneak past the wolves and continue on your journey." }
+              }
+            },
+            {
+              "id": "save-wolves",
+              "kind": "check",
+              "label": "Save the wolves",
+              "description": "Attempt to drive the goats away to protect the wolves.",
+              "check": { "skill": "athletics", "dc": 10, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "The wolves become aggressive and attack the party, losing the goats. You lose the fight.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                },
+                "partial": {
+                  "text": "The wolves become aggressive and attack the party, losing the goats. You beat them off, bloodied.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "success": {
+                  "text": "The wolves become aggressive and attack the party, losing the goats. You defeat the wolves.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pit-in-the-cave",
+      "title": "The pit in the cave",
+      "weight": 0.4,
+      "tags": ["hill", "mountain"],
+      "notes": "Prototype event 6, generated with ChatGPT for the prototype. Participant: a dwarf fighter (level 4), unused. Secret: the pit is a trap with spikes at the bottom. Conversions: Investigate became Perception DC 10, tried once, whose success grants Edge for the jump; Jump (50% / 50%) Athletics DC 12; 'Find a way around' leads to the goblins (50% / 50%), a combat check at DC 12. Addition: you can back away from the goblins at the cost of a day.",
+      "stages": {
+        "start": {
+          "text": "You enter a dark cave and are greeted by the sound of dripping water. You notice a deep pit in the ground that is barely visible in the darkness.",
+          "options": [
+            {
+              "id": "investigate",
+              "kind": "check",
+              "label": "Investigate the pit",
+              "description": "Approach and investigate the pit.",
+              "once": true,
+              "check": { "skill": "perception", "dc": 10 },
+              "outcomes": {
+                "critFail": {
+                  "text": "{actor} leans too far over the edge and catches a spike climbing back.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "stay": true
+                },
+                "fail": { "text": "It's too dark to see the bottom.", "stay": true },
+                "partial": {
+                  "text": "You spot the spikes at the bottom and realize that it is a trap, likely set up by goblins or other creatures. Beware.",
+                  "stay": true
+                },
+                "success": {
+                  "text": "You spot the spikes at the bottom and realize that it is a trap, likely set up by goblins or other creatures. Beware. {actor} also finds the best place to jump.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "stay": true
+                }
+              }
+            },
+            {
+              "id": "jump",
+              "kind": "check",
+              "label": "Jump over the pit",
+              "description": "Attempt to jump over the pit.",
+              "check": { "skill": "athletics", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "You fail to jump and fall into the spikes, taking damage.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "You make the jump, barely, and scrape a shin on the far edge.",
+                  "effects": [{ "effect": "hp", "amount": -1, "target": "actor" }]
+                },
+                "success": { "text": "You successfully jump over the pit." }
+              }
+            },
+            {
+              "id": "around",
+              "kind": "fixed",
+              "label": "Find a way around the pit",
+              "description": "Try to find a different way around the pit.",
+              "outcome": {
+                "text": "You manage to find a path that leads around the pit, avoiding the trap. However, you also find a group of goblins waiting for you.",
+                "goto": "goblins"
+              }
+            }
+          ]
+        },
+        "goblins": {
+          "text": "Goblins crouch in the side passage, blades out, grinning.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight the goblins",
+              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "You lose the fight and are driven back out of the cave.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You defeat the goblins, bloodied.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "success": { "text": "You successfully defeat the goblins." }
+              }
+            },
+            {
+              "id": "retreat",
+              "kind": "fixed",
+              "label": "Back away",
+              "outcome": {
+                "text": "You back out of the cave and take the long way round.",
+                "effects": [{ "effect": "days", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

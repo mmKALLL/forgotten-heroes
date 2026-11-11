@@ -83,3 +83,14 @@ test('Claude wrote eight situations, two of them wonders, plus the follow-up for
   const wonders = Object.values(content.situations).filter((s) => s.source === 'claude' && s.wonder)
   expect(wonders.map((s) => s.id).sort()).toEqual(['lantern-moths', 'singing-stones'])
 })
+
+test('the six prototype events are ported to original/', () => {
+  expect(idsFrom('original')).toEqual([
+    'abandoned-dwarven-mine',
+    'fishermen-at-the-pond',
+    'lizardfolk-ritual',
+    'pit-in-the-cave',
+    'unburnt-grove',
+    'wolves-and-goats',
+  ])
+})
