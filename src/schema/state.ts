@@ -74,6 +74,8 @@ export const EncounterStateSchema = z.object({
   twistRevealed: z.boolean(),
   /** Added to the party's next check in this encounter, then reset to 0 (e.g. −2 after a failed Insight). */
   nextCheckModifier: z.number().int().default(0),
+  /** Why the next check is modified, e.g. "misread". The latest reason wins; cleared with the modifier. */
+  nextCheckReason: z.string().nullable().default(null),
   /** "stage/option" keys of `once` options already chosen. */
   used: z.array(z.string()),
   log: z.array(EncounterLogEntrySchema),

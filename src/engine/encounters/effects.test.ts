@@ -71,6 +71,16 @@ describe('applyEffects', () => {
     expect(applyEffects(noEncounter, fx({ effect: 'nextCheckModifier', amount: -2 }))).toEqual(noEncounter)
   })
 
+  test('a nextCheckModifier remembers its reason; the latest reason wins', () => {
+    const misread = applyEffects(state, fx({ effect: 'nextCheckModifier', amount: -2, reason: 'misread' }))
+    expect(misread.encounter).toMatchObject({ nextCheckModifier: -2, nextCheckReason: 'misread' })
+    const shaken = applyEffects(misread, fx({ effect: 'nextCheckModifier', amount: -1, reason: 'shaken' }))
+    expect(shaken.encounter).toMatchObject({ nextCheckModifier: -3, nextCheckReason: 'shaken' })
+    const plain = applyEffects(misread, fx({ effect: 'nextCheckModifier', amount: 1 }))
+    expect(plain.encounter).toMatchObject({ nextCheckModifier: -1, nextCheckReason: 'misread' })
+    expect(applyEffects(state, fx({ effect: 'nextCheckModifier', amount: -2 })).encounter?.nextCheckReason).toBeNull()
+  })
+
   test('followUp queues a situation', () => {
     const after = applyEffects(state, fx({ effect: 'followUp', situation: 'revenge', after: 2 }))
     expect(after.followUps).toEqual([{ situationId: 'revenge', wait: 2 }])

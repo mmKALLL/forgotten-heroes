@@ -85,6 +85,13 @@ test("a situational modifier shows next to the actor's, and Edge reads as best o
   expect(screen.getByText('Edge', { selector: '.badge' })).toBeTruthy()
 })
 
+test('a situational modifier with a reason shows the reason', () => {
+  const state = started('roadside')
+  render(<Harness initial={{ ...state, encounter: { ...state.encounter!, nextCheckModifier: -2, nextCheckReason: 'misread' } }} />)
+  const read = within(screen.getByRole('article', { name: 'Read them' }))
+  expect(read.getByText(/on the d20/).textContent).toMatch(/ Lyra \+2 −2 \(misread\): needs \d+\+ on the d20$/)
+})
+
 test('a revealed twist shows its chance', () => {
   const state = started('roadside')
   render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twistRevealed: true } }} />)

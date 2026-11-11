@@ -11,8 +11,8 @@ test('round trip', () => {
   expect(deserialize(serialize(state))).toEqual(state)
 })
 
-test('a v2 save from before nextCheckModifier existed still loads, with 0', () => {
-  const { nextCheckModifier: _dropped, ...older } = makeEncounter()
+test('a v2 save from before nextCheckModifier and its reason existed still loads, with 0 and null', () => {
+  const { nextCheckModifier: _dropped, nextCheckReason: _reason, ...older } = makeEncounter()
   const state = makeState({ encounter: makeEncounter() })
   expect(deserialize(JSON.stringify({ ...state, encounter: older }))).toEqual(state)
 })

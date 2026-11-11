@@ -198,13 +198,13 @@
               "text": "{actor} stares a little too long. They notice, their story hardens, and the read comes out all wrong.",
               "effects": [
                 { "effect": "position", "position": "exposed" },
-                { "effect": "nextCheckModifier", "amount": -2 }
+                { "effect": "nextCheckModifier", "amount": -2, "reason": "misread" }
               ],
               "stay": true
             },
             "fail": {
               "text": "{actor} misreads them, and you go on with the wrong idea of what they want.",
-              "effects": [{ "effect": "nextCheckModifier", "amount": -2 }],
+              "effects": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "misread" }],
               "stay": true
             },
             "partial": {

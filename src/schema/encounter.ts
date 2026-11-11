@@ -36,7 +36,11 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     })
     .describe('Queue a later encounter'),
   z
-    .object({ effect: z.literal('nextCheckModifier'), amount })
+    .object({
+      effect: z.literal('nextCheckModifier'),
+      amount,
+      reason: z.string().optional().describe('Shown next to the modifier, e.g. "misread"'),
+    })
     .describe("Add to the party's next check in this encounter (e.g. −2 after misreading a situation)"),
   z.object({ effect: z.literal('revealTwist') }).describe('Show the odds of the hidden twist'),
   z.object({ effect: z.literal('log'), text: z.string(), tone: LogToneSchema.default('info') }),

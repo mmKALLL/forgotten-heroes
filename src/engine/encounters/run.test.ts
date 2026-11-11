@@ -24,6 +24,7 @@ describe('startEncounter', () => {
     expect(encounter.stage).toBe('start')
     expect(encounter.source).toBe('original')
     expect(encounter.position).toBe('normal')
+    expect(encounter.nextCheckReason).toBeNull()
     expect(encounter.slots.who).toMatch(/^a wary (tinker|pilgrim)$/)
     expect(encounter.log).toEqual([{ text: `${encounter.slots.who.replace('a', 'A')} begs for help. A child waits at home.`, tone: 'info' }])
     expect(currentOptions(encounter).map((o) => o.id)).toEqual(['trust', 'careful', 'read', 'rob', 'donate', 'leave'])
@@ -144,10 +145,10 @@ describe('check options', () => {
   test('a nextCheckModifier applies to the next roll only, then resets', () => {
     const cliff = start('cliff')
     const normal = choose(cliff, 'climb', 'brom').lastRoll!.modifier
-    const penalised = applyEffects(cliff, [{ effect: 'nextCheckModifier', amount: -2 }])
+    const penalised = applyEffects(cliff, [{ effect: 'nextCheckModifier', amount: -2, reason: 'misread' }])
     const first = choose(penalised, 'climb', 'brom')
     expect(first.lastRoll?.modifier).toBe(normal - 2)
-    expect(first.encounter?.nextCheckModifier).toBe(0)
+    expect(first.encounter).toMatchObject({ nextCheckModifier: 0, nextCheckReason: null })
     const again = { ...first, encounter: { ...first.encounter!, stage: 'start', position: 'normal' as const } }
     expect(choose(again, 'climb', 'brom').lastRoll?.modifier).toBe(normal)
   })

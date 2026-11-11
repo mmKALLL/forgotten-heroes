@@ -69,6 +69,7 @@ export function startEncounter(state: GameState, content: Content, situationId: 
     twist,
     twistRevealed: false,
     nextCheckModifier: 0,
+    nextCheckReason: null,
     used: [],
     log: [{ text, tone: 'info' }],
   }
@@ -190,7 +191,7 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
       skillUses,
       inspiration: state.inspiration + (inspired ? 1 : 0),
       // Edge, Exposed and any next-check modifier are spent by this roll; the outcome may set new ones.
-      encounter: { ...encounter, position: 'normal', nextCheckModifier: 0, used },
+      encounter: { ...encounter, position: 'normal', nextCheckModifier: 0, nextCheckReason: null, used },
     },
     rollText,
     TIER_TONE[roll.tier]

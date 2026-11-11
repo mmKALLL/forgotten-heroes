@@ -21,6 +21,8 @@ export type OptionCheckPreview = CheckPreview & {
    * `modifier` for the roll. `odds`, `successChance` and `highStakes` already include it.
    */
   situationalModifier: number
+  /** Why, e.g. "misread"; null when no reason was given. */
+  situationalReason: string | null
   successChance: number
   highStakes: boolean
   /** Everyone able to act, best first, for the actor picker. */
@@ -99,6 +101,7 @@ export function encounterOptions(state: GameState, actorIds: Readonly<Record<str
       label: checkLabel(skill, ability),
       mode,
       situationalModifier,
+      situationalReason: encounter.nextCheckReason,
       successChance: successChance(odds),
       highStakes: isHighStakes(option, odds),
       actors: rankActors(state.party, skill, ability).map((r) => ({ id: r.characterId, name: nameOf(r.characterId), modifier: r.modifier })),

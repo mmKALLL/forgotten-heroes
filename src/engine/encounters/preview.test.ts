@@ -45,7 +45,9 @@ describe('encounterOptions', () => {
   test('a next-check modifier shows separately and goes into the odds, as the roll uses it', () => {
     const misread = applyEffects(roadside, [{ effect: 'nextCheckModifier', amount: -2 }])
     const read = byId(misread).read
-    expect(read.check).toMatchObject({ modifier: 2, situationalModifier: -2 })
+    expect(read.check).toMatchObject({ modifier: 2, situationalModifier: -2, situationalReason: null })
+    const reasoned = applyEffects(roadside, [{ effect: 'nextCheckModifier', amount: -2, reason: 'misread' }])
+    expect(byId(reasoned).read.check).toMatchObject({ situationalModifier: -2, situationalReason: 'misread' })
     expect(read.check?.odds).toEqual(tierOdds(2 - 2, 12, 'normal'))
     expect(read.check?.actors.find((a) => a.id === 'lyra')?.modifier).toBe(2)
   })

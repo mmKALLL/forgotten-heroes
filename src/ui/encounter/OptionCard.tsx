@@ -61,7 +61,8 @@ export function OptionCard({ option, twistWhat, actorId, onActor, onChoose, labe
               </select>
             </label>{' '}
             {check.actorName} {formatModifier(check.modifier)}
-            {check.situationalModifier !== 0 && ` ${formatModifier(check.situationalModifier)} (situational)`}:{' '}
+            {check.situationalModifier !== 0 &&
+              ` ${formatModifier(check.situationalModifier)} (${check.situationalReason ?? 'situational'})`}:{' '}
             {labelMode === 'faces' ? (
               <>
                 needs <strong>{neededFace(faces)}+</strong> on the d20{ROLL_MODE_SUFFIX[check.mode]}

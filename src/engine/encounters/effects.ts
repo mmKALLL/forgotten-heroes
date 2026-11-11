@@ -52,7 +52,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       if (!state.encounter) return state
       return {
         ...state,
-        encounter: { ...state.encounter, nextCheckModifier: state.encounter.nextCheckModifier + effect.amount },
+        encounter: {
+          ...state.encounter,
+          nextCheckModifier: state.encounter.nextCheckModifier + effect.amount,
+          nextCheckReason: effect.reason ?? state.encounter.nextCheckReason,
+        },
       }
     case 'revealTwist':
       return state.encounter ? { ...state, encounter: { ...state.encounter, twistRevealed: true } } : state
