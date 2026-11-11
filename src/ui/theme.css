@@ -53,9 +53,9 @@ select, input { font: inherit; background: var(--panel); color: var(--ink); bord
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1rem; min-width: 0; }
 .card { border: 1px solid var(--line); border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem; }
 .card-head { display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
-.hp { position: relative; height: 1.1rem; background: color-mix(in srgb, var(--bad) 20%, transparent); border-radius: 3px; margin: 0.4rem 0; overflow: hidden; }
+.hp { position: relative; display: flex; align-items: center; height: 1.1rem; background: color-mix(in srgb, var(--bad) 20%, transparent); border-radius: 3px; margin: 0.4rem 0; overflow: hidden; }
 .hp-fill { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--good) 55%, transparent); }
-.hp-text { position: relative; font-size: 0.75rem; padding-left: 0.4rem; }
+.hp-text { position: relative; font-size: 0.75rem; line-height: 1; padding-left: 0.4rem; }
 .abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.25rem; margin: 0.4rem 0; text-align: center; }
 .abilities dt { font-size: 0.7rem; color: var(--muted); }
 .abilities dd { margin: 0; font-variant-numeric: tabular-nums; }
