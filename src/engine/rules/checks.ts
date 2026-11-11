@@ -1,7 +1,8 @@
+import { TIERS, type Tier } from '../../schema/constants'
 import { withRng, type Rng } from '../rng'
 
-export const TIERS = ['critFail', 'fail', 'partial', 'success', 'critSuccess'] as const
-export type Tier = (typeof TIERS)[number]
+export { TIERS }
+export type { Tier }
 
 export const TIER_LABELS: Record<Tier, string> = {
   critFail: 'Critical failure',

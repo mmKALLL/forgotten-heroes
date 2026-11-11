@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test } from 'vitest'
+import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize } from '../engine/save'
 import { App } from './App'
 
 afterEach(() => {
@@ -69,4 +70,20 @@ test('the roll announcer exists before the first roll, and HP bars are meters', 
     expect(m.getAttribute('aria-valuemin')).toBe('0')
     expect(Number(m.getAttribute('aria-valuemax'))).toBeGreaterThan(0)
   }
+})
+
+test('an unreadable save is kept under a backup key before a new game replaces it', () => {
+  expect(UNREADABLE_SAVE_KEY).toBe(`${SAVE_KEY}/unreadable`)
+  const broken = JSON.stringify({ version: 999, party: 'from the future' })
+  localStorage.setItem(SAVE_KEY, broken)
+  render(<App />)
+  expect(localStorage.getItem(UNREADABLE_SAVE_KEY)).toBe(broken)
+  expect(deserialize(localStorage.getItem(SAVE_KEY) ?? '')).not.toBeNull()
+})
+
+test('a readable save leaves no backup behind', () => {
+  render(<App />)
+  cleanup()
+  render(<App />)
+  expect(localStorage.getItem(UNREADABLE_SAVE_KEY)).toBeNull()
 })

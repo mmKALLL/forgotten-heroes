@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { deserialize, serialize } from './save'
+import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize } from './save'
 import { newGame, step } from './state'
 import { fixtureContent } from './test-fixtures'
 import type { RollMode } from './rules/checks'
@@ -40,4 +40,21 @@ test('an out-of-range rng state loads as null', () => {
   const state = newGame(5, fixtureContent())
   expect(deserialize(JSON.stringify({ ...state, rng: { state: -1 } }))).toBeNull()
   expect(deserialize(JSON.stringify({ ...state, rng: { state: 2 ** 32 } }))).toBeNull()
+})
+
+test('new games are stamped with the current save version', () => {
+  expect(newGame(5, fixtureContent()).version).toBe(CURRENT_SAVE_VERSION)
+})
+
+test('migrate passes a current-version save through unchanged', () => {
+  const raw = JSON.parse(serialize(newGame(5, fixtureContent())))
+  expect(migrate(raw)).toBe(raw)
+})
+
+test('migrate refuses unknown or missing versions', () => {
+  expect(() => migrate({ version: 999 })).toThrow(/version/)
+  expect(() => migrate({ version: 0 })).toThrow(/version/)
+  expect(() => migrate({})).toThrow(/version/)
+  expect(() => migrate(null)).toThrow(/version/)
+  expect(() => migrate([1])).toThrow(/version/)
 })

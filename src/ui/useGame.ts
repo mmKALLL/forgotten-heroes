@@ -1,6 +1,6 @@
 import { useEffect, useReducer } from 'react'
 import type { Content } from '../content/build'
-import { SAVE_KEY, deserialize, serialize } from '../engine/save'
+import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize, serialize } from '../engine/save'
 import { newGame, step, type Action } from '../engine/state'
 import type { GameState } from '../schema/state'
 
@@ -12,12 +12,23 @@ const reducer = (state: GameState, action: UiAction): GameState =>
 export const randomSeed = (): number => Math.floor(Math.random() * 2 ** 32)
 
 function loadSaved(): GameState | null {
+  let text: string | null
   try {
-    const text = localStorage.getItem(SAVE_KEY)
-    return text ? deserialize(text) : null
+    text = localStorage.getItem(SAVE_KEY)
   } catch {
     return null // storage blocked or unavailable
   }
+  if (!text) return null
+  const state = deserialize(text)
+  if (!state) {
+    // The new game about to start would overwrite it: keep a copy for recovery or a future migration.
+    try {
+      localStorage.setItem(UNREADABLE_SAVE_KEY, text)
+    } catch {
+      // storage full or blocked: nothing more we can do
+    }
+  }
+  return state
 }
 
 export function useGame(content: Content) {

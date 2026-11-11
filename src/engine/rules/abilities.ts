@@ -1,30 +1,7 @@
-export const ABILITIES = ['str', 'dex', 'con', 'int', 'wis', 'cha'] as const
-export type Ability = (typeof ABILITIES)[number]
+import { ABILITIES, SKILLS, type Ability, type CheckStat, type Skill } from '../../schema/constants'
 
-export const SKILLS = [
-  'acrobatics',
-  'animalHandling',
-  'arcana',
-  'athletics',
-  'deception',
-  'history',
-  'insight',
-  'intimidation',
-  'investigation',
-  'medicine',
-  'nature',
-  'perception',
-  'performance',
-  'persuasion',
-  'religion',
-  'sleightOfHand',
-  'stealth',
-  'survival',
-] as const
-export type Skill = (typeof SKILLS)[number]
-
-/** A check can test a skill or a raw ability (e.g. a CON check to endure a forced march). */
-export type CheckStat = Skill | Ability
+export { ABILITIES, SKILLS }
+export type { Ability, CheckStat, Skill }
 
 export const SKILL_ABILITY: Record<Skill, Ability> = {
   acrobatics: 'dex',

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { AbilityScoresSchema, IdSchema, SkillSchema } from './common'
-import { SKILLS, ABILITIES } from '../engine/rules/abilities'
-import { TIERS } from '../engine/rules/checks'
+import { ABILITIES, SKILLS, TIERS } from './constants'
 
 export const CharacterSchema = z.object({
   id: z.string(),

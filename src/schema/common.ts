@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { ABILITIES, SKILLS } from '../engine/rules/abilities'
+import { ABILITIES, SKILLS } from './constants'
 
 export const SOURCES = ['original', 'imported', 'imported-private', 'procedural', 'claude'] as const
 export const SourceSchema = z.enum(SOURCES)

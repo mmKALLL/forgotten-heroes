@@ -3,6 +3,7 @@ import type { GameState, LogEntry } from '../schema/state'
 import { formatModifier } from './format'
 import { generateParty } from './party'
 import { createRng } from './rng'
+import { CURRENT_SAVE_VERSION } from './save'
 import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
 import { TIER_LABELS, rollCheck, tierOdds, type RollMode, type Tier } from './rules/checks'
@@ -29,7 +30,7 @@ export function newGame(seed: number, content: Content, partySize = STARTING_PAR
   const [party, rng] = generateParty(createRng(seed), content, partySize)
   const names = party.map((c) => c.name).join(' and ')
   return {
-    version: 1,
+    version: CURRENT_SAVE_VERSION,
     seed,
     rng,
     day: 1,
