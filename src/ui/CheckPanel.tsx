@@ -5,7 +5,7 @@ import { rankActors } from '../engine/rules/character'
 import { TIER_LABELS, successChance, tierFaces, type RollMode } from '../engine/rules/checks'
 import { MAX_DC, MIN_DC, previewCheck, type Action } from '../engine/state'
 import type { GameState } from '../schema/state'
-import { OddsBar, type OddsLabelMode } from './OddsBar'
+import { OddsBar, ROLL_MODE_SUFFIX, neededFace, type OddsLabelMode } from './OddsBar'
 
 const ODDS_LABEL_KEY = 'forgotten-heroes/ui/odds-label'
 const DEFAULT_ODDS_LABEL_MODE: OddsLabelMode = 'faces'
@@ -24,12 +24,6 @@ function saveOddsLabelMode(mode: OddsLabelMode) {
   } catch {
     // Storage unavailable (private mode, quota): the choice just won't persist.
   }
-}
-
-const MODE_SUFFIX: Record<RollMode, string> = {
-  normal: '',
-  advantage: ' (best of 2)',
-  disadvantage: ' (worst of 2)',
 }
 
 const STATS: CheckStat[] = [...SKILLS, ...ABILITIES]
@@ -63,8 +57,7 @@ export function CheckPanel({
   const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
   const roll = state.lastRoll
   const faces = preview ? tierFaces(preview.modifier, preview.dc) : null
-  // Lowest kept face that succeeds; only the natural 20 when the DC is out of reach.
-  const needs = faces ? (faces.success?.min ?? 20) : 20
+  const needs = faces ? neededFace(faces) : 20
 
   return (
     <section className="panel" aria-label="Practice check">
@@ -118,7 +111,7 @@ export function CheckPanel({
             {preview.actorName} rolls {statLabel(stat)} {formatModifier(preview.modifier)} vs DC {preview.dc}:{' '}
             {labelMode === 'faces' ? (
               <>
-                needs <strong>{needs}+</strong> on the d20{MODE_SUFFIX[mode]}
+                needs <strong>{needs}+</strong> on the d20{ROLL_MODE_SUFFIX[mode]}
               </>
             ) : (
               <>

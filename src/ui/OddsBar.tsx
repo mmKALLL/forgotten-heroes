@@ -1,7 +1,17 @@
 import { formatFaces, formatFacesShort, formatPercent } from '../engine/format'
-import { TIERS, TIER_LABELS, type FaceRange, type Tier } from '../engine/rules/checks'
+import { TIERS, TIER_LABELS, type FaceRange, type RollMode, type Tier } from '../engine/rules/checks'
 
 export type OddsLabelMode = 'percent' | 'faces'
+
+/** Appended to "needs 12+ on the d20" under Edge or Exposed. */
+export const ROLL_MODE_SUFFIX: Record<RollMode, string> = {
+  normal: '',
+  advantage: ' (best of 2)',
+  disadvantage: ' (worst of 2)',
+}
+
+/** Lowest kept face that succeeds; only the natural 20 when the DC is out of reach. */
+export const neededFace = (faces: Record<Tier, FaceRange | null>): number => faces.success?.min ?? 20
 
 /** Segments narrower than this keep their label in the tooltip only. */
 const MIN_LABEL_WIDTH = 0.08

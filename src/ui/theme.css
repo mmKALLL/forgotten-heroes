@@ -89,3 +89,39 @@ select, input { font: inherit; background: var(--panel); color: var(--ink); bord
 .tone-good { color: var(--good); }
 .tone-bad { color: var(--bad); }
 .tone-crit { color: var(--crit); font-weight: bold; }
+.side { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.badge { display: inline-block; font-size: 0.7rem; padding: 0.05rem 0.45rem; border-radius: 999px; border: 1px solid var(--line); margin-left: 0.35rem; text-transform: uppercase; letter-spacing: 0.05em; }
+.source-original { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.source-imported { background: color-mix(in srgb, var(--good) 18%, transparent); }
+.source-imported-private { background: color-mix(in srgb, var(--bad) 18%, transparent); }
+.source-procedural { background: color-mix(in srgb, var(--tier-partial) 25%, transparent); }
+.source-claude { background: color-mix(in srgb, var(--crit) 22%, transparent); }
+.position-edge { border-color: var(--good); color: var(--good); }
+.position-exposed { border-color: var(--bad); color: var(--bad); }
+.deck h3 { margin: 0.8rem 0 0.3rem; }
+.deck-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; max-height: 40vh; overflow: auto; }
+.deck-list li { display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; }
+.deck-list button { padding: 0.1rem 0.6rem; }
+label.inline { flex-direction: row; align-items: center; color: var(--ink); }
+.encounter-log { list-style: none; padding: 0; margin: 0 0 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.options { display: grid; gap: 0.75rem; }
+.option-card { border: 1px solid var(--line); border-radius: 4px; padding: 0.6rem 0.75rem; }
+.outcomes { list-style: none; padding: 0; margin: 0.4rem 0 0.6rem; display: flex; flex-direction: column; gap: 0.2rem; font-size: 0.9rem; }
+.outcomes li { border-left: 3px solid var(--line); padding-left: 0.5rem; }
+.outcomes li.tier-critFail { border-color: var(--tier-critFail); }
+.outcomes li.tier-fail { border-color: var(--tier-fail); }
+.outcomes li.tier-partial { border-color: var(--tier-partial); }
+.outcomes li.tier-success { border-color: var(--tier-success); }
+.outcomes li.tier-critSuccess { border-color: var(--tier-critSuccess); }
+.twist { color: var(--bad); }
+.chip { display: inline-block; font-size: 0.75rem; padding: 0 0.4rem; margin-left: 0.3rem; border-radius: 3px; background: color-mix(in srgb, var(--line) 45%, transparent); }
+.dice-roll { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0.3rem; background: none; border: none; padding: 0; }
+.d20 { stroke: var(--line); stroke-width: 1.5; fill: none; margin-right: 0.3rem; }
+.d20 text { stroke: none; fill: var(--ink); font-size: 11px; font-weight: bold; }
+.d20.settled { stroke: var(--ink); }
+.d20.kept { stroke: var(--accent); stroke-width: 2.5; }
+.d20.glow { filter: drop-shadow(0 0 6px var(--crit)); stroke: var(--crit); }
+.dc-track { position: relative; display: block; width: 12rem; height: 1.1rem; border-bottom: 1px solid var(--line); }
+.dc-line { position: absolute; top: 0; bottom: 0; border-left: 2px solid var(--bad); font-size: 0.7rem; padding-left: 0.2rem; }
+.dc-total { position: absolute; bottom: -4px; width: 8px; height: 8px; margin-left: -4px; border-radius: 50%; background: var(--accent); }
+@media (prefers-reduced-motion: reduce) { .d20.glow { filter: none; } }
