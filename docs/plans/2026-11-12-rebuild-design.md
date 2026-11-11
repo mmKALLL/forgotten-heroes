@@ -15,6 +15,7 @@ Pillars:
 - **Surprise without runtime AI.** Content is authored ahead of time (by hand, imported, procedurally combined, or written by Claude Code), but the player can't predict what comes next.
 - **Streamlined resources, deep strategy.** Few resource types, each with a distinct reason to matter.
 - **Hand-tweakable.** All content is plain JSON, separated by provenance.
+- **Reasonable balance, not perfect balance.** The goal is many viable playstyles, strategies and asymmetries for replay value, not game-theoretic optimality. Balancing tools flag only outliers that are clearly broken.
 
 Target session: about 30 minutes, inside a persistent campaign (section 6).
 
@@ -118,7 +119,7 @@ The town map image is a banner and backdrop.
 
 - **Travel steps by day:** consume essentials (or make a check / gain exhaustion), possibly have an encounter, make camp and keep watch. Days without an encounter collapse into a single summary line.
 - **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4. The chance scales with route danger, regional threat and visible wealth.
-- **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation), with no option that always wins. The simulation test flags options that win in every case.
+- **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.
 - **Wonders:** a separate kind of encounter. Rare, one click, flavour only, never a burden.
 
 ### Encounter composition (all JSON)
@@ -161,7 +162,7 @@ The town map image is a banner and backdrop.
 - Every data file validates against its schema.
 - Check odds match exact probabilities, including advantage and disadvantage.
 - A seeded replay produces identical state.
-- Simulation smoke test: about 1,000 automated journeys with a random-choice policy. It must not crash, and it reports death rate, profit distribution, and options that win in every case.
+- Simulation smoke test: about 1,000 automated journeys with a random-choice policy. It must not crash, and it reports death rate, profit distribution, and options that are best almost universally. These reports guide balancing; they are not pass/fail gates.
 
 ## 11. Scope
 
