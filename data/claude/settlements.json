@@ -1,0 +1,530 @@
+{
+  "$schema": "../_schema/settlements.schema.json",
+  "kind": "settlements",
+  "source": "claude",
+  "notes": "Marker positions from scripts/map/detect_markers.py, hand-checked against the map: added the missed capital in the Olsari crater, made the framed Putrid Vale marker a capital, and made the Nörrikk capital (high in the mountains), the Tradal capital (on a river) and the Hyron marker by the lake inland. Capital markers are framed squares. Islands: mainland, caerdydd, providence-islet, olsari, kard-krait, ard-jurgenvren.",
+  "entries": [
+    {
+      "id": "caerdydd-1",
+      "at": {
+        "x": 943,
+        "y": 371
+      },
+      "region": "caerdydd",
+      "island": "caerdydd",
+      "coastal": true
+    },
+    {
+      "id": "norrikk-1",
+      "at": {
+        "x": 1205,
+        "y": 631
+      },
+      "region": "norrikk",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "norrikk-2",
+      "at": {
+        "x": 1446,
+        "y": 541
+      },
+      "region": "norrikk",
+      "island": "mainland"
+    },
+    {
+      "id": "norrikk-3",
+      "at": {
+        "x": 1584,
+        "y": 737
+      },
+      "region": "norrikk",
+      "island": "mainland"
+    },
+    {
+      "id": "norrikk-4",
+      "at": {
+        "x": 1593,
+        "y": 285
+      },
+      "region": "norrikk",
+      "island": "mainland",
+      "capital": true
+    },
+    {
+      "id": "reapers-pass-1",
+      "at": {
+        "x": 1955,
+        "y": 181
+      },
+      "region": "reapers-pass",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "reapers-pass-2",
+      "at": {
+        "x": 1958,
+        "y": 425
+      },
+      "region": "reapers-pass",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "reapers-pass-3",
+      "at": {
+        "x": 1999,
+        "y": 687
+      },
+      "region": "reapers-pass",
+      "island": "mainland"
+    },
+    {
+      "id": "providence-1",
+      "at": {
+        "x": 2166,
+        "y": 364
+      },
+      "region": "providence",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "providence-2",
+      "at": {
+        "x": 2296,
+        "y": 653
+      },
+      "region": "providence",
+      "island": "mainland"
+    },
+    {
+      "id": "providence-3",
+      "at": {
+        "x": 2329,
+        "y": 163
+      },
+      "region": "providence",
+      "island": "mainland",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "providence-4",
+      "at": {
+        "x": 2500,
+        "y": 676
+      },
+      "region": "providence",
+      "island": "mainland"
+    },
+    {
+      "id": "providence-5",
+      "at": {
+        "x": 2668,
+        "y": 558
+      },
+      "region": "providence",
+      "island": "mainland",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "providence-6",
+      "at": {
+        "x": 2697,
+        "y": 178
+      },
+      "region": "providence",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "providence-7",
+      "at": {
+        "x": 2879,
+        "y": 325
+      },
+      "region": "providence",
+      "island": "providence-islet",
+      "coastal": true
+    },
+    {
+      "id": "tradal-1",
+      "at": {
+        "x": 2248,
+        "y": 928
+      },
+      "region": "tradal",
+      "island": "mainland",
+      "capital": true
+    },
+    {
+      "id": "tradal-2",
+      "at": {
+        "x": 2358,
+        "y": 838
+      },
+      "region": "tradal",
+      "island": "mainland"
+    },
+    {
+      "id": "tradal-3",
+      "at": {
+        "x": 2555,
+        "y": 902
+      },
+      "region": "tradal",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "falholt-1",
+      "at": {
+        "x": 1650,
+        "y": 1109
+      },
+      "region": "falholt",
+      "island": "mainland"
+    },
+    {
+      "id": "falholt-2",
+      "at": {
+        "x": 1818,
+        "y": 918
+      },
+      "region": "falholt",
+      "island": "mainland",
+      "capital": true
+    },
+    {
+      "id": "deadcliff-mesa-1",
+      "at": {
+        "x": 2179,
+        "y": 1142
+      },
+      "region": "deadcliff-mesa",
+      "island": "mainland"
+    },
+    {
+      "id": "deadcliff-mesa-2",
+      "at": {
+        "x": 2197,
+        "y": 1473
+      },
+      "region": "deadcliff-mesa",
+      "island": "mainland"
+    },
+    {
+      "id": "deadcliff-mesa-3",
+      "at": {
+        "x": 2370,
+        "y": 1046
+      },
+      "region": "deadcliff-mesa",
+      "island": "mainland"
+    },
+    {
+      "id": "deaddar-marsh-1",
+      "at": {
+        "x": 777,
+        "y": 1087
+      },
+      "region": "deaddar-marsh",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "deaddar-marsh-2",
+      "at": {
+        "x": 893,
+        "y": 1431
+      },
+      "region": "deaddar-marsh",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "deaddar-marsh-3",
+      "at": {
+        "x": 1138,
+        "y": 901
+      },
+      "region": "deaddar-marsh",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "deaddar-marsh-4",
+      "at": {
+        "x": 1144,
+        "y": 1329
+      },
+      "region": "deaddar-marsh",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "deaddar-marsh-5",
+      "at": {
+        "x": 1292,
+        "y": 1174
+      },
+      "region": "deaddar-marsh",
+      "island": "mainland",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "westreach-1",
+      "at": {
+        "x": 517,
+        "y": 1555
+      },
+      "region": "westreach",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "westreach-2",
+      "at": {
+        "x": 591,
+        "y": 1338
+      },
+      "region": "westreach",
+      "island": "mainland",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "avarus-1",
+      "at": {
+        "x": 1478,
+        "y": 1536
+      },
+      "region": "avarus",
+      "island": "mainland"
+    },
+    {
+      "id": "avarus-2",
+      "at": {
+        "x": 1624,
+        "y": 1702
+      },
+      "region": "avarus",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "avarus-3",
+      "at": {
+        "x": 1638,
+        "y": 1902
+      },
+      "region": "avarus",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "avarus-4",
+      "at": {
+        "x": 1763,
+        "y": 1569
+      },
+      "region": "avarus",
+      "island": "mainland",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "avarus-5",
+      "at": {
+        "x": 1876,
+        "y": 1315
+      },
+      "region": "avarus",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "putrid-vale-1",
+      "at": {
+        "x": 1188,
+        "y": 1669
+      },
+      "region": "putrid-vale",
+      "island": "mainland",
+      "capital": true
+    },
+    {
+      "id": "putrid-vale-2",
+      "at": {
+        "x": 1458,
+        "y": 1829
+      },
+      "region": "putrid-vale",
+      "island": "mainland"
+    },
+    {
+      "id": "barren-expanse-1",
+      "at": {
+        "x": 615,
+        "y": 2581
+      },
+      "region": "barren-expanse",
+      "island": "mainland",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "barren-expanse-2",
+      "at": {
+        "x": 659,
+        "y": 1978
+      },
+      "region": "barren-expanse",
+      "island": "mainland"
+    },
+    {
+      "id": "barren-expanse-3",
+      "at": {
+        "x": 1100,
+        "y": 2061
+      },
+      "region": "barren-expanse",
+      "island": "mainland"
+    },
+    {
+      "id": "barren-expanse-4",
+      "at": {
+        "x": 1127,
+        "y": 2374
+      },
+      "region": "barren-expanse",
+      "island": "mainland"
+    },
+    {
+      "id": "hyron-1",
+      "at": {
+        "x": 1410,
+        "y": 2185
+      },
+      "region": "hyron",
+      "island": "mainland"
+    },
+    {
+      "id": "hyron-2",
+      "at": {
+        "x": 1497,
+        "y": 2506
+      },
+      "region": "hyron",
+      "island": "mainland",
+      "coastal": true
+    },
+    {
+      "id": "hyron-3",
+      "at": {
+        "x": 1734,
+        "y": 2039
+      },
+      "region": "hyron",
+      "island": "mainland"
+    },
+    {
+      "id": "hyron-4",
+      "at": {
+        "x": 2062,
+        "y": 1966
+      },
+      "region": "hyron",
+      "island": "mainland",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "kard-krait-1",
+      "at": {
+        "x": 2469,
+        "y": 1958
+      },
+      "region": "kard-krait",
+      "island": "kard-krait",
+      "coastal": true
+    },
+    {
+      "id": "kard-krait-2",
+      "at": {
+        "x": 2745,
+        "y": 1803
+      },
+      "region": "kard-krait",
+      "island": "kard-krait",
+      "capital": true
+    },
+    {
+      "id": "kard-krait-3",
+      "at": {
+        "x": 2917,
+        "y": 1455
+      },
+      "region": "kard-krait",
+      "island": "kard-krait",
+      "coastal": true
+    },
+    {
+      "id": "olsari-1",
+      "at": {
+        "x": 3177,
+        "y": 1369
+      },
+      "region": "olsari",
+      "island": "olsari",
+      "coastal": true
+    },
+    {
+      "id": "olsari-2",
+      "at": {
+        "x": 3360,
+        "y": 1117
+      },
+      "region": "olsari",
+      "island": "olsari",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "ard-jurgenvren-1",
+      "at": {
+        "x": 2272,
+        "y": 2854
+      },
+      "region": "ard-jurgenvren",
+      "island": "ard-jurgenvren",
+      "coastal": true
+    },
+    {
+      "id": "ard-jurgenvren-2",
+      "at": {
+        "x": 2502,
+        "y": 2358
+      },
+      "region": "ard-jurgenvren",
+      "island": "ard-jurgenvren",
+      "capital": true,
+      "coastal": true
+    },
+    {
+      "id": "ard-jurgenvren-3",
+      "at": {
+        "x": 2934,
+        "y": 2693
+      },
+      "region": "ard-jurgenvren",
+      "island": "ard-jurgenvren",
+      "coastal": true
+    }
+  ]
+}

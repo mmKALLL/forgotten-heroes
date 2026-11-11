@@ -1,0 +1,152 @@
+{
+  "$schema": "../_schema/regions.schema.json",
+  "kind": "regions",
+  "source": "claude",
+  "notes": "Region names and label positions read off the Altaeus world map (assets/world maps/altaeus map.jpg, @scenerydnd, not committed). The map spells the marsh \"Deaddar\" and labels the southern island \"Ard Jurgenvren\" over two lines. Biomes are Claude's reading of the drawn terrain.",
+  "entries": [
+    {
+      "id": "caerdydd",
+      "name": "Caerdydd",
+      "biome": "forest",
+      "label": {
+        "x": 570,
+        "y": 450
+      }
+    },
+    {
+      "id": "norrikk",
+      "name": "Nörrikk",
+      "biome": "mountains",
+      "label": {
+        "x": 1600,
+        "y": 400
+      }
+    },
+    {
+      "id": "reapers-pass",
+      "name": "Reapers Pass",
+      "biome": "hills",
+      "label": {
+        "x": 1890,
+        "y": 620
+      }
+    },
+    {
+      "id": "providence",
+      "name": "Providence",
+      "biome": "plains",
+      "label": {
+        "x": 2450,
+        "y": 410
+      }
+    },
+    {
+      "id": "tradal",
+      "name": "Tradal",
+      "biome": "forest",
+      "label": {
+        "x": 2410,
+        "y": 870
+      }
+    },
+    {
+      "id": "falholt",
+      "name": "Falholt",
+      "biome": "mountains",
+      "label": {
+        "x": 1810,
+        "y": 910
+      }
+    },
+    {
+      "id": "deadcliff-mesa",
+      "name": "Deadcliff Mesa",
+      "biome": "desert",
+      "label": {
+        "x": 2275,
+        "y": 1220
+      }
+    },
+    {
+      "id": "deaddar-marsh",
+      "name": "Deaddar Marsh",
+      "biome": "marsh",
+      "label": {
+        "x": 1190,
+        "y": 1100
+      }
+    },
+    {
+      "id": "westreach",
+      "name": "Westreach",
+      "biome": "plains",
+      "label": {
+        "x": 700,
+        "y": 1580
+      }
+    },
+    {
+      "id": "avarus",
+      "name": "Avarus",
+      "biome": "forest",
+      "label": {
+        "x": 1630,
+        "y": 1545
+      }
+    },
+    {
+      "id": "putrid-vale",
+      "name": "Putrid Vale",
+      "biome": "marsh",
+      "label": {
+        "x": 1220,
+        "y": 1860
+      }
+    },
+    {
+      "id": "barren-expanse",
+      "name": "The Barren Expanse",
+      "biome": "desert",
+      "label": {
+        "x": 870,
+        "y": 2150
+      }
+    },
+    {
+      "id": "hyron",
+      "name": "Hyron",
+      "biome": "jungle",
+      "label": {
+        "x": 1620,
+        "y": 2210
+      }
+    },
+    {
+      "id": "kard-krait",
+      "name": "Kard Krait",
+      "biome": "forest",
+      "label": {
+        "x": 2765,
+        "y": 1365
+      }
+    },
+    {
+      "id": "olsari",
+      "name": "Olsari",
+      "biome": "jungle",
+      "label": {
+        "x": 3300,
+        "y": 1370
+      }
+    },
+    {
+      "id": "ard-jurgenvren",
+      "name": "Ard Jurgenvren",
+      "biome": "mountains",
+      "label": {
+        "x": 2740,
+        "y": 2670
+      }
+    }
+  ]
+}
