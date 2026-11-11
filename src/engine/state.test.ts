@@ -56,11 +56,27 @@ describe('practiceCheck', () => {
 })
 
 describe('previewCheck', () => {
-  test('shows actor, modifier and exact odds', () => {
-    const state = newGame(4, content)
-    const preview = previewCheck(state, 'athletics', 10, 'normal')
-    expect(preview).not.toBeNull()
-    const total = Object.values(preview!.odds).reduce((a, b) => a + b, 0)
-    expect(total).toBeCloseTo(1)
+  const state: GameState = {
+    ...newGame(4, content),
+    party: [
+      makeCharacter({ id: 'fighter', name: 'Brom', abilities: { str: 16, dex: 10, con: 14, int: 10, wis: 12, cha: 8 } }),
+      makeCharacter({ id: 'bard', name: 'Lyra', abilities: { str: 8, dex: 14, con: 12, int: 10, wis: 10, cha: 16 }, skillProficiencies: ['persuasion'] }),
+    ],
+  }
+
+  test('shows the best actor, their modifier and exact odds', () => {
+    // CHA 16 (+3) + proficiency (+2) = +5. Vs DC 15 on one d20:
+    // 1 crit fail; 2–6 fail (total < 12); 7–9 partial (12–14); 10–19 success; 20 crit success.
+    expect(previewCheck(state, 'persuasion', 15, 'normal')).toEqual({
+      actorId: 'bard',
+      actorName: 'Lyra',
+      modifier: 5,
+      odds: { critFail: 1 / 20, fail: 5 / 20, partial: 3 / 20, success: 10 / 20, critSuccess: 1 / 20 },
+    })
+  })
+
+  test('honours an actor override', () => {
+    const preview = previewCheck(state, 'persuasion', 15, 'normal', 'fighter')
+    expect(preview).toMatchObject({ actorId: 'fighter', actorName: 'Brom', modifier: -1 })
   })
 })

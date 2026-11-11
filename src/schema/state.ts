@@ -43,7 +43,7 @@ export type LogEntry = z.infer<typeof LogEntrySchema>
 export const GameStateSchema = z.object({
   version: z.literal(1),
   seed: z.number().int(),
-  rng: z.object({ state: z.number().int() }),
+  rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
   party: z.array(CharacterSchema),
   gold: z.number().int(),

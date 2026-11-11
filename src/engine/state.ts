@@ -10,6 +10,12 @@ import { TIER_LABELS, rollCheck, tierOdds, type RollMode, type Tier } from './ru
 export const STARTING_PARTY_SIZE = 2
 export const STARTING_GOLD = 50
 const LOG_LIMIT = 200
+export const MIN_DC = 1
+export const MAX_DC = 40
+
+/** Whole-number DC in [MIN_DC, MAX_DC] (NaN → MIN_DC), so every state stays save-valid. */
+export const normalizeDc = (dc: number): number =>
+  Number.isNaN(dc) ? MIN_DC : Math.min(MAX_DC, Math.max(MIN_DC, Math.round(dc)))
 
 export type Action = {
   type: 'practiceCheck'
@@ -52,7 +58,7 @@ export function step(state: GameState, action: Action): GameState {
     case 'practiceCheck': {
       const actor = chooseActor(state.party, action.stat, action.actorId)
       if (!actor) return appendLog(state, 'No one is able to act.', 'bad')
-      const [roll, rng] = rollCheck(state.rng, actor.modifier, action.dc, action.mode)
+      const [roll, rng] = rollCheck(state.rng, actor.modifier, normalizeDc(action.dc), action.mode)
       const name = state.party.find((c) => c.id === actor.characterId)?.name ?? '?'
       const crit = roll.tier === 'critSuccess'
       const next: GameState = {

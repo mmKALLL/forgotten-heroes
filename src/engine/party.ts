@@ -5,12 +5,16 @@ import { ABILITIES } from './rules/abilities'
 
 export type GenerateOptions = { classId?: string; ancestryId?: string }
 
+/** Own-property lookup, so ids like "constructor" don't resolve to Object.prototype members. */
+const lookup = <T>(table: Record<string, T>, id: string): T | undefined =>
+  Object.hasOwn(table, id) ? table[id] : undefined
+
 export function generateCharacter(rng: Rng, content: Content, options: GenerateOptions = {}): [Character, Rng] {
   return withRng(rng, (d) => {
-    const cls = options.classId ? content.classes[options.classId] : d.pick(sortedEntries(content.classes))
+    const cls = options.classId ? lookup(content.classes, options.classId) : d.pick(sortedEntries(content.classes))
     if (!cls) throw new Error(`unknown class ${options.classId}`)
     const playable = sortedEntries(content.ancestries).filter((a) => a.playable)
-    const ancestry = options.ancestryId ? content.ancestries[options.ancestryId] : d.pick(playable)
+    const ancestry = options.ancestryId ? lookup(content.ancestries, options.ancestryId) : d.pick(playable)
     if (!ancestry) throw new Error(`unknown ancestry ${options.ancestryId}`)
 
     const abilities = { ...cls.baseAbilities }

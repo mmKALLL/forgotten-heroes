@@ -48,4 +48,9 @@ describe('generation', () => {
     const [party] = generateParty(createRng(3), content, 4)
     expect(party).toHaveLength(4)
   })
+
+  test('ids naming Object.prototype properties are unknown, not inherited', () => {
+    expect(() => generateCharacter(createRng(1), content, { classId: 'constructor' })).toThrow(/unknown class/)
+    expect(() => generateCharacter(createRng(1), content, { ancestryId: 'toString' })).toThrow(/unknown ancestry/)
+  })
 })

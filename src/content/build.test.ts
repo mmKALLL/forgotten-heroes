@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { buildContent } from './build'
+import { buildContent, byCodeUnit, sortedEntries } from './build'
 
 const fighter = {
   id: 'fighter',
@@ -57,5 +57,47 @@ describe('buildContent', () => {
     })
     expect(errors).toHaveLength(1)
     expect(errors[0].file).toBe('elsewhere/classes.json')
+  })
+
+  test('prototype property names are not mistaken for kinds', () => {
+    for (const kind of ['toString', '__proto__', 'constructor']) {
+      let result: ReturnType<typeof buildContent> | undefined
+      expect(() => {
+        result = buildContent({ 'data/original/x.json': { kind, source: 'original', entries: [] } })
+      }).not.toThrow()
+      expect(result!.errors).toHaveLength(1)
+      expect(result!.errors[0].message).toMatch(/unknown kind/)
+    }
+  })
+
+  test('an entry id that names an Object.prototype property loads without a bogus duplicate', () => {
+    const entry = { ...fighter, id: 'constructor' }
+    const { content, errors } = buildContent({ 'data/original/classes.json': classesFile('original', [entry]) })
+    expect(errors).toEqual([])
+    expect(Object.hasOwn(content.classes, 'constructor')).toBe(true)
+    expect(content.classes.constructor.name).toBe('Fighter')
+  })
+})
+
+describe('locale-independent ordering', () => {
+  test('byCodeUnit compares by UTF-16 code unit', () => {
+    expect(['z-x', 'aa-b', 'y-c', 'i-j'].sort(byCodeUnit)).toEqual(['aa-b', 'i-j', 'y-c', 'z-x'])
+    // localeCompare would put lowercase before uppercase; code units put 'B' (0x42) first.
+    expect(['b', 'a', 'B'].sort(byCodeUnit)).toEqual(['B', 'a', 'b'])
+    expect(byCodeUnit('x', 'x')).toBe(0)
+  })
+
+  test('sortedEntries uses code-unit order, whatever the runtime locale', () => {
+    const table = Object.fromEntries(['z-x', 'aa-b', 'y-c', 'i-j'].map((id) => [id, { id }]))
+    expect(sortedEntries(table).map((e) => e.id)).toEqual(['aa-b', 'i-j', 'y-c', 'z-x'])
+  })
+
+  test('files are processed in code-unit path order, so the first duplicate wins deterministically', () => {
+    const { content, errors } = buildContent({
+      'data/original/z.json': classesFile('original'),
+      'data/claude/aa.json': classesFile('claude'),
+    })
+    expect(content.classes.fighter.file).toBe('data/claude/aa.json')
+    expect(errors[0].file).toBe('data/original/z.json')
   })
 })

@@ -14,7 +14,11 @@ export const emptyContent = (): Content => ({
   services: {},
 })
 
-const isKind = (kind: unknown): kind is ContentKind => typeof kind === 'string' && kind in CONTENT_KINDS
+const isKind = (kind: unknown): kind is ContentKind =>
+  typeof kind === 'string' && Object.hasOwn(CONTENT_KINDS, kind)
+
+/** Locale-independent string order (UTF-16 code units), so sorting is the same on every machine. */
+export const byCodeUnit = (a: string, b: string): number => (a < b ? -1 : a > b ? 1 : 0)
 
 const FOLDER = /(?:^|\/)data\/([^/]+)\//
 
@@ -22,7 +26,7 @@ const FOLDER = /(?:^|\/)data\/([^/]+)\//
 export function buildContent(files: Record<string, unknown>): { content: Content; errors: ContentError[] } {
   const content = emptyContent()
   const errors: ContentError[] = []
-  const sorted = Object.entries(files).sort(([a], [b]) => a.localeCompare(b))
+  const sorted = Object.entries(files).sort(([a], [b]) => byCodeUnit(a, b))
 
   for (const [file, json] of sorted) {
     const folder = FOLDER.exec(file)?.[1]
@@ -51,8 +55,8 @@ export function buildContent(files: Record<string, unknown>): { content: Content
 
     const table = content[kind] as Record<string, Sourced<{ id: string }>>
     for (const entry of parsed.data.entries as { id: string }[]) {
-      const existing = table[entry.id]
-      if (existing) {
+      if (Object.hasOwn(table, entry.id)) {
+        const existing = table[entry.id]
         errors.push({ file, message: `duplicate ${kind} id "${entry.id}" (already in ${existing.file})` })
         continue
       }
@@ -64,4 +68,4 @@ export function buildContent(files: Record<string, unknown>): { content: Content
 
 /** Entries sorted by id, for deterministic iteration (and so deterministic RNG use). */
 export const sortedEntries = <T extends { id: string }>(table: Record<string, T>): T[] =>
-  Object.values(table).sort((a, b) => a.id.localeCompare(b.id))
+  Object.values(table).sort((a, b) => byCodeUnit(a.id, b.id))
