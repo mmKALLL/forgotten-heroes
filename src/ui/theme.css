@@ -1,0 +1,73 @@
+:root {
+  --bg: #efe6d2;
+  --panel: #f8f2e3;
+  --ink: #2b2118;
+  --muted: #7a6a55;
+  --line: #cdbb98;
+  --accent: #7b3f1d;
+  --good: #3f6b35;
+  --bad: #9c2f24;
+  --crit: #b58500;
+  --partial: #a7743a;
+  --tier-critFail: #7d2018;
+  --tier-fail: #c0634f;
+  --tier-partial: #d9a75f;
+  --tier-success: #6f9a5b;
+  --tier-critSuccess: #c9a227;
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #1d1914;
+    --panel: #26211a;
+    --ink: #eadfc8;
+    --muted: #a8977c;
+    --line: #4a3f30;
+    --accent: #d08a52;
+    --good: #8cbf78;
+    --bad: #e07a68;
+    --crit: #e3bd45;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); }
+h1 { font-size: 1.4rem; margin: 0; letter-spacing: 0.04em; }
+h2 { font-size: 1rem; margin: 0 0 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+button { font: inherit; padding: 0.35rem 0.9rem; border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 4px; cursor: pointer; }
+button.primary { background: var(--accent); color: #fff8ec; border-color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+select, input { font: inherit; background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 0.2rem 0.4rem; }
+.muted { color: var(--muted); }
+.small { font-size: 0.85rem; }
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.topbar { display: flex; align-items: center; gap: 1.25rem; padding: 0.6rem 1rem; border-bottom: 1px solid var(--line); }
+.spacer { flex: 1; }
+.layout { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(320px, 1.4fr) minmax(240px, 1fr); gap: 1rem; padding: 1rem; flex: 1; }
+@media (max-width: 900px) { .layout { grid-template-columns: 1fr; } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 1rem; min-width: 0; }
+.card { border: 1px solid var(--line); border-radius: 4px; padding: 0.6rem 0.75rem; margin-bottom: 0.75rem; }
+.card-head { display: flex; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.hp { position: relative; height: 1.1rem; background: color-mix(in srgb, var(--bad) 20%, transparent); border-radius: 3px; margin: 0.4rem 0; overflow: hidden; }
+.hp-fill { position: absolute; inset: 0 auto 0 0; background: color-mix(in srgb, var(--good) 55%, transparent); }
+.hp-text { position: relative; font-size: 0.75rem; padding-left: 0.4rem; }
+.abilities { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.25rem; margin: 0.4rem 0; text-align: center; }
+.abilities dt { font-size: 0.7rem; color: var(--muted); }
+.abilities dd { margin: 0; font-variant-numeric: tabular-nums; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.75rem; }
+.controls label { display: flex; flex-direction: column; font-size: 0.8rem; color: var(--muted); gap: 0.15rem; }
+.odds-bar { display: flex; height: 1.4rem; border-radius: 3px; overflow: hidden; margin: 0.5rem 0 0.9rem; font-size: 0.75rem; }
+.odds-seg { display: flex; align-items: center; justify-content: center; color: #fff8ec; min-width: 2px; }
+.tier-critFail.odds-seg { background: var(--tier-critFail); }
+.tier-fail.odds-seg { background: var(--tier-fail); }
+.tier-partial.odds-seg { background: var(--tier-partial); }
+.tier-success.odds-seg { background: var(--tier-success); }
+.tier-critSuccess.odds-seg { background: var(--tier-critSuccess); }
+.roll { margin-top: 0.9rem; display: flex; align-items: center; gap: 0.75rem; }
+.die { display: inline-grid; place-items: center; width: 2.2rem; height: 2.2rem; border: 2px solid var(--line); border-radius: 6px; margin-right: 0.25rem; font-weight: bold; opacity: 0.5; }
+.die.kept { opacity: 1; border-color: var(--accent); }
+.log { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.4rem; max-height: 70vh; overflow: auto; }
+.tone-good { color: var(--good); }
+.tone-bad { color: var(--bad); }
+.tone-crit { color: var(--crit); font-weight: bold; }
