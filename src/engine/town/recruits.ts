@@ -8,7 +8,7 @@ import { generateCharacter } from '../party'
 import { withRng, type Rng } from '../rng'
 import { levelTo } from '../rules/progression'
 import { inSettlement } from '../travel/where'
-import { isAlive, isHired, livingMembers } from './camaraderie'
+import { isAlive, isHired, livingMembers, owedTo } from './camaraderie'
 import { boardWeek, keyedRng } from './contracts'
 import {
   PARTY_CAP,
@@ -46,7 +46,7 @@ export type RecruitOffer = {
 
 export type RecruitAction =
   | { type: 'hireRecruit'; offerId: string }
-  /** Part ways with a hired member (founders stay). Owed wages stay owed. */
+  /** Part ways with a hired member (founders stay), settling or writing off their owed wages. */
   | { type: 'dismissMember'; characterId: string }
 
 /** The hiring fee for a recruit of this level at a service with this block. */
@@ -177,22 +177,32 @@ export function hireRecruit(state: GameState, content: Content, offerId: string)
 
 /**
  * Parts ways with a hired member (alive or dead); founders are never dismissed. Their accessory
- * stays with the party's gear, and owed wages stay owed.
+ * stays with the party's gear. Their share of the owed wages (owedTo) is settled in whole gp if the
+ * purse holds it, else written off, so no debt to the departed lingers.
  */
 export function dismissMember(state: GameState, characterId: string): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const c = state.party.find((m) => m.id === characterId)
   if (!c) return appendLog(state, 'There is no such member.', 'bad')
   if (!isHired(c)) return appendLog(state, `${c.name} is a founder and stays.`, 'bad')
-  const next: GameState = {
+  const share = owedTo(state, [c])
+  const settle = Math.ceil(share)
+  const pays = share > 0 && state.gold >= settle
+  let next: GameState = {
     ...state,
     party: state.party.filter((m) => m.id !== c.id),
     gear: c.accessory ? [...state.gear, c.accessory] : state.gear,
+    gold: pays ? state.gold - settle : state.gold,
+    wagesOwed: Math.max(0, Math.round((state.wagesOwed - share) * 100) / 100),
   }
   const text = isAlive(c)
     ? `${c.name} is dismissed and leaves the party.`
     : `${c.name} is laid to rest and left behind.`
-  return appendLog(next, text, 'info')
+  next = appendLog(next, text, 'info')
+  if (share <= 0) return next
+  return pays
+    ? appendLog(next, `${settle} gp of owed wages are settled with ${c.name}.`, 'info')
+    : appendLog(next, `${formatGp(share)} gp owed to ${c.name} is written off.`, 'bad')
 }
 
 export function stepRecruit(state: GameState, action: RecruitAction, content: Content): GameState {

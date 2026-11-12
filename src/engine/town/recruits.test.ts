@@ -115,13 +115,13 @@ describe('hiring and dismissing', () => {
     expect(hired.party).toHaveLength(PARTY_CAP + 1)
   })
 
-  test('founders cannot be dismissed; a hired member can, and owed wages stay owed', () => {
+  test('founders cannot be dismissed; a hired member can, settling their owed wages', () => {
     const s = at({ wagesOwed: 3 })
     expect(act(s, { type: 'dismissMember', characterId: brom.id }).party).toHaveLength(2)
     const hired = act(s, { type: 'hireRecruit', offerId: offers(s)[0].id })
     const recruit = hired.party[2]
     const left = act(hired, { type: 'dismissMember', characterId: recruit.id })
     expect(left.party.map((c) => c.id)).toEqual([brom.id, lyra.id])
-    expect(left.wagesOwed).toBe(3)
+    expect([left.wagesOwed, left.gold]).toEqual([0, hired.gold - 3])
   })
 })

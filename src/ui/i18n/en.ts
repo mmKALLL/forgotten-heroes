@@ -95,7 +95,8 @@ export const en = {
   'party.wage': 'Hired · {gp} gp a day',
   'party.founder': 'Founder: draws no wage and never leaves',
   'party.dismiss': 'Dismiss',
-  'party.dismissAsk': 'Dismiss {name}? Owed wages stay owed.',
+  'party.dismissAsk':
+    'Dismiss {name}? Their share of owed wages is paid if the purse holds it, else written off.',
   'party.dismissYes': 'Dismiss',
   'party.dismissNo': 'Keep',
   'party.layToRest': 'Lay to rest',

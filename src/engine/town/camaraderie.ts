@@ -76,9 +76,21 @@ export const wagesPerDay = (state: Pick<GameState, 'party'>): number =>
     .reduce((sum, c) => sum + c.wage, 0)
 
 /**
+ * The part of the owed wages that is owed to these members: the pool is split by wage among the
+ * hired members still with the party (living or dead).
+ */
+export function owedTo(state: Pick<GameState, 'party' | 'wagesOwed'>, members: Character[]) {
+  const total = state.party.filter(isHired).reduce((s, c) => s + c.wage, 0)
+  const theirs = members.filter(isHired).reduce((s, c) => s + c.wage, 0)
+  if (total <= 0 || state.wagesOwed <= 0) return 0
+  return Math.round(((state.wagesOwed * theirs) / total) * 100) / 100
+}
+
+/**
  * A day's wages, at the end of the day (after the animals' upkeep): owed wages first, then
  * today's, in whole gp as far as the gold goes; the rest is owed (fractions carry quietly). A day
- * that ends with a whole gp owed costs CAMARADERIE_UNPAID.
+ * that ends with a whole gp owed costs CAMARADERIE_UNPAID, but only while a living hired member is
+ * there to be owed (wages owed to the dead are paid when the gold comes, without grumbling).
  */
 export function payWages(state: GameState): GameState {
   const due = wagesPerDay(state) + state.wagesOwed
@@ -86,7 +98,7 @@ export function payWages(state: GameState): GameState {
   const paid = Math.min(Math.max(0, state.gold), Math.floor(due))
   const owed = Math.round((due - paid) * 100) / 100
   let next: GameState = { ...state, gold: state.gold - paid, wagesOwed: owed }
-  if (owed < 1) return next
+  if (owed < 1 || !livingMembers(state).some(isHired)) return next
   if (state.wagesOwed < 1) {
     next = appendLog(next, `There is no coin for the wages: ${formatGp(owed)} gp owed.`, 'bad')
   }
@@ -118,7 +130,7 @@ export function bond(state: GameState): GameState {
 /**
  * On arrival in a settlement, while camaraderie is Fractured, each living hired member deserts
  * with DESERT_CHANCE (seeded). They take no gold or goods (a worn accessory stays in the party's
- * gear), and their share of the owed wages (by wage) is written off. Founders never desert.
+ * gear), and their share of the owed wages (owedTo) is written off. Founders never desert.
  */
 export function desertOnArrival(state: GameState): GameState {
   if (camaraderieTier(state.camaraderie) !== 'fractured' || !inSettlement(state)) return state
@@ -127,7 +139,6 @@ export function desertOnArrival(state: GameState): GameState {
   const [leaving, rng] = withRng(state.rng, (d) => hired.filter(() => d.float() < DESERT_CHANCE))
   if (leaving.length === 0) return { ...state, rng }
   const ids = new Set(leaving.map((c) => c.id))
-  const share = leaving.reduce((s, c) => s + c.wage, 0) / hired.reduce((s, c) => s + c.wage, 0)
   const names = leaving.map((c) => c.name)
   const who = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
   return appendLog(
@@ -136,7 +147,7 @@ export function desertOnArrival(state: GameState): GameState {
       rng,
       party: state.party.filter((c) => !ids.has(c.id)),
       gear: [...state.gear, ...leaving.flatMap((c) => (c.accessory ? [c.accessory] : []))],
-      wagesOwed: Math.round(state.wagesOwed * (1 - share) * 100) / 100,
+      wagesOwed: Math.round((state.wagesOwed - owedTo(state, leaving)) * 100) / 100,
     },
     `${who} ${names.length === 1 ? 'has' : 'have'} had enough and ` +
       `${names.length === 1 ? 'leaves' : 'leave'} the party. Their owed wages are written off.`,
@@ -165,8 +176,9 @@ export function camaraderieInfo(state: GameState): CamaraderieInfo {
   const hired = livingMembers(state).filter(isHired).length
   const desertRisk = tier === 'fractured' && hired > 0 ? DESERT_CHANCE : 0
   const causes: string[] = []
-  if (state.wagesOwed >= 1) causes.push(`${formatGp(state.wagesOwed)} gp of wages owed`)
-  else if (wages > 0 && state.gold < wages) causes.push("the purse won't cover a day's wages")
+  if (state.wagesOwed >= 1 && hired > 0) {
+    causes.push(`${formatGp(state.wagesOwed)} gp of wages owed`)
+  } else if (wages > 0 && state.gold < wages) causes.push("the purse won't cover a day's wages")
   const short =
     (state.goods.food ?? 0) < living || (!inSettlement(state) && (state.goods.water ?? 0) < living)
   if (living > 0 && short) causes.push("food or water won't last everyone a day")

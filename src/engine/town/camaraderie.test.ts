@@ -54,6 +54,20 @@ describe('wages', () => {
     expect(settled.gold).toBe(50 - 6)
   })
 
+  test("dismissal settles the member's share of owed wages, or writes it off when broke", () => {
+    const s = at({ party: [brom, lyra, hired('h1', 1), hired('h2', 3)], wagesOwed: 8 })
+    const paid = act(s, { type: 'dismissMember', characterId: 'h1' })
+    expect([paid.gold, paid.wagesOwed]).toEqual([s.gold - 2, 6])
+    const broke = act({ ...s, gold: 0 }, { type: 'dismissMember', characterId: 'h2' })
+    expect([broke.gold, broke.wagesOwed]).toEqual([0, 2])
+    expect(broke.log.some((l) => /written off/.test(l.text))).toBe(true)
+  })
+
+  test('owed wages cost camaraderie only while a living hired member is owed', () => {
+    const s = at({ party: [brom, lyra, { ...hired('h1'), exhaustion: 6 }], gold: 0, wagesOwed: 4 })
+    expect(aDay(s).camaraderie).toBe(s.camaraderie)
+  })
+
   test('founders and the dead draw no wages', () => {
     const s = at({ party: [brom, lyra, { ...hired('h1', 2), exhaustion: 6 }] })
     expect(aDay(s).gold).toBe(s.gold)
