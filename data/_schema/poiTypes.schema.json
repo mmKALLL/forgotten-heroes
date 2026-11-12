@@ -135,7 +135,7 @@
     },
     "__schema7": {
       "default": [],
-      "description": "Favoured threats: drawn more often (POI_FAVOURED×) where they hold the land",
+      "description": "Favoured threats: drawn more often (POI_FAVOURED×) where they hold the land. A lair keyed to threats is only drawn there.",
       "$ref": "#/$defs/__schema8"
     },
     "__schema8": {

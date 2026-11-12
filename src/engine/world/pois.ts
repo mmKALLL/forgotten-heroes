@@ -59,6 +59,16 @@ function poiName(d: Draw, content: Content, type: PoiType, values: Record<string
   return fillText(row.text, filled)
 }
 
+/**
+ * A lair keyed to threats is the land's threat made concrete: it is only drawn where one of its
+ * threats holds the land. Other types (and lairs without threats) may stand anywhere; for them the
+ * threats are only a favour (POI_FAVOURED).
+ */
+export function lairFits(type: PoiType, land: LandState | undefined): boolean {
+  if (type.category !== 'lair' || type.threats.length === 0) return true
+  return land !== undefined && type.threats.includes(land.threat)
+}
+
 export type PoiOptions = {
   /** Overrides POI_SPOTS_EACH (for tests). */
   spotsEach?: number
@@ -74,7 +84,7 @@ export type PoiOptions = {
  * draws its count (poisPerDomain), then for each POI a free spot of its territory at least
  * POI_MIN_KM from its settlement and every POI so far (fewer when none is left), and a type by
  * weight, POI_FAVOURED× when the type's biomes match the spot's terrain (or the land's biome) or
- * its threats name the land's threat. Hostile types roll their threat. Names avoid repeats while
+ * its threats name the land's threat. A lair keyed to other threats is not drawn (lairFits). Hostile types roll their threat. Names avoid repeats while
  * the type's table allows (see PoiOptions.usedNames).
  */
 export function generatePois(
@@ -91,10 +101,11 @@ export function generatePois(
   const used = options.usedNames ?? new Set<string>()
   for (const site of sortedEntries(content.settlements)) {
     const spots = (territory.spots[site.id] ?? []).flatMap((id) => own(content.landSpots, id) ?? [])
-    if (spots.length === 0) continue
+    const land = own(lands, site.region)
+    const fitting = types.filter((t) => lairFits(t, land))
+    if (spots.length === 0 || fitting.length === 0) continue
     const count = poisPerDomain(d, spots.length, options.spotsEach)
     const region = own(content.regions, site.region)
-    const land = own(lands, site.region)
     const threat = own(content.threats, land?.threat)
     for (let i = 0; i < count; i++) {
       const free = spots.filter(
@@ -106,7 +117,7 @@ export function generatePois(
       const spot = d.pick(free)
       placed.push(spot)
       const terrain = spot.terrain ?? region?.biome
-      const type = d.weighted(types, (t) => {
+      const type = d.weighted(fitting, (t) => {
         const favoured =
           (terrain !== undefined && t.biomes.includes(terrain)) ||
           (land !== undefined && t.threats.includes(land.threat))

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { FixedOption } from '../schema/encounter'
+import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
@@ -207,6 +207,12 @@ test('every situation and twist kind says how it treats the party', () => {
   expect(hostile.length).toBeGreaterThanOrEqual(3)
 })
 
+/** Every outcome branch of an option, twist branches included. */
+const outcomesOf = (option: Option): OutcomeBranch[] =>
+  (option.kind === 'fixed' ? [option.outcome] : Object.values(option.outcomes)).flatMap((o) =>
+    o ? [o, ...(o.twist ? [o.twist] : [])] : []
+  )
+
 describe('points of interest', () => {
   const types = Object.values(content.poiTypes)
   const ofCategory = (category: string) => types.filter((t) => t.category === category)
@@ -246,6 +252,45 @@ describe('points of interest', () => {
       .filter((s) => s.site && !played.has(s.id))
       .map((s) => s.id)
     expect(unused).toEqual([])
+  })
+
+  test('every threat has a hostile lair keyed to it', () => {
+    for (const threat of Object.keys(content.threats)) {
+      const lairs = ofCategory('lair').filter((t) => t.threats.includes(threat))
+      expect(lairs.length, threat).toBeGreaterThanOrEqual(1)
+      for (const t of lairs) expect(t.hostile && t.threat).toBeTruthy()
+    }
+  })
+
+  test('lairs are hostile tugs of war that can be cleared, and can drive the party off', () => {
+    for (const t of ofCategory('lair')) {
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition, id).toBe('hostile')
+        const stages = Object.values(s.stages)
+        expect(stages.length, id).toBeGreaterThanOrEqual(2)
+        const branches = stages.flatMap((stage) => stage.options.flatMap(outcomesOf))
+        // escalation: some outcome moves on to a later stage
+        expect(
+          branches.some((b) => b.goto && b.goto !== s.start),
+          id
+        ).toBe(true)
+        // success clears it; a failure costs HP and days and leaves it standing
+        expect(
+          branches.some((b) => b.effects.some((e) => e.effect === 'clearPoi')),
+          id
+        ).toBe(true)
+        const drivenOff = branches.filter(
+          (b) =>
+            !b.goto &&
+            !b.stay &&
+            b.effects.some((e) => e.effect === 'days') &&
+            b.effects.some((e) => e.effect === 'hp' && e.amount < 0) &&
+            !b.effects.some((e) => e.effect === 'clearPoi')
+        )
+        expect(drivenOff.length, id).toBeGreaterThan(0)
+      }
+    }
   })
 
   test.each(types.map((t) => [t.id, t.names] as const))(

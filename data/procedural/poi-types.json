@@ -97,6 +97,176 @@
       "names": "poi-name-bones",
       "situations": ["bone-arch-sight"],
       "icon": "ribcage"
+    },
+    {
+      "id": "orc-war-camp",
+      "category": "lair",
+      "name": "Orc war camp",
+      "weight": 1.0,
+      "biomes": ["hills", "mountains"],
+      "threats": ["orc-warband"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
+      "pathDanger": 2,
+      "names": "poi-name-camp",
+      "situations": ["orc-war-camp-raid"],
+      "icon": "orc-head"
+    },
+    {
+      "id": "goblin-warren",
+      "category": "lair",
+      "name": "Goblin warren",
+      "weight": 1.0,
+      "biomes": ["forest", "hills"],
+      "threats": ["goblin-raiders"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 1
+      },
+      "pathDanger": 2,
+      "names": "poi-name-warren",
+      "situations": ["goblin-warren-raid"],
+      "icon": "goblin-head"
+    },
+    {
+      "id": "bandit-hideout",
+      "category": "lair",
+      "name": "Bandit hideout",
+      "weight": 1.0,
+      "biomes": ["plains", "forest"],
+      "threats": ["bandit-lord"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
+      "pathDanger": 2,
+      "names": "poi-name-outlaw",
+      "situations": ["bandit-hideout-raid"],
+      "icon": "hood"
+    },
+    {
+      "id": "rebel-muster",
+      "category": "lair",
+      "name": "Rebel muster",
+      "weight": 1.0,
+      "biomes": [],
+      "threats": ["pretender"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
+      "pathDanger": 1,
+      "names": "poi-name-muster",
+      "situations": ["rebel-muster-raid"],
+      "icon": "tower-flag"
+    },
+    {
+      "id": "restless-graveyard",
+      "category": "lair",
+      "name": "Restless graveyard",
+      "weight": 1.0,
+      "biomes": ["marsh", "desert"],
+      "threats": ["restless-dead"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
+      "pathDanger": 2,
+      "names": "poi-name-graves",
+      "situations": ["restless-graveyard-raid"],
+      "icon": "graveyard"
+    },
+    {
+      "id": "cult-hideaway",
+      "category": "lair",
+      "name": "Cult hideaway",
+      "weight": 1.0,
+      "biomes": [],
+      "threats": ["dark-cult"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
+      "pathDanger": 1,
+      "names": "poi-name-cult",
+      "situations": ["cult-manor-raid"],
+      "icon": "cultist"
+    },
+    {
+      "id": "serpent-temple",
+      "category": "lair",
+      "name": "Serpent temple",
+      "weight": 1.0,
+      "biomes": ["jungle", "marsh"],
+      "threats": ["serpent-cult"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
+      "pathDanger": 2,
+      "names": "poi-name-serpent",
+      "situations": ["serpent-temple-raid"],
+      "icon": "snake"
+    },
+    {
+      "id": "hag-hollow",
+      "category": "lair",
+      "name": "Hag's hollow",
+      "weight": 1.0,
+      "biomes": ["marsh", "forest"],
+      "threats": ["hag-coven"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
+      "pathDanger": 2,
+      "names": "poi-name-coven",
+      "situations": ["hag-hollow-raid"],
+      "icon": "cauldron"
+    },
+    {
+      "id": "drake-roost",
+      "category": "lair",
+      "name": "Drake roost",
+      "weight": 0.8,
+      "biomes": ["mountains", "desert"],
+      "threats": ["drake-brood"],
+      "hostile": true,
+      "threat": {
+        "min": 2,
+        "max": 2
+      },
+      "pathDanger": 3,
+      "names": "poi-name-roost",
+      "situations": ["drake-roost-raid"],
+      "icon": "wyvern"
+    },
+    {
+      "id": "giant-steading",
+      "category": "lair",
+      "name": "Giant's steading",
+      "weight": 0.8,
+      "biomes": ["mountains", "hills"],
+      "threats": ["giant-clan"],
+      "hostile": true,
+      "threat": {
+        "min": 2,
+        "max": 2
+      },
+      "pathDanger": 2,
+      "names": "poi-name-steading",
+      "situations": ["giant-steading-raid"],
+      "icon": "giant"
     }
   ]
 }

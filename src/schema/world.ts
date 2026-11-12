@@ -132,7 +132,10 @@ export const PoiTypeSchema = z
     threats: z
       .array(IdSchema)
       .default([])
-      .describe('Favoured threats: drawn more often (POI_FAVOURED×) where they hold the land'),
+      .describe(
+        'Favoured threats: drawn more often (POI_FAVOURED×) where they hold the land. A lair ' +
+          'keyed to threats is only drawn there.'
+      ),
     hostile: z
       .boolean()
       .default(false)
