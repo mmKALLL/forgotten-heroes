@@ -287,9 +287,16 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
       !Object.hasOwn(content.animals, effect.animal)
     )
       issues.push(`${where}: unknown animal "${effect.animal}"`)
-    if (effect.effect === 'clearPoi' && !compiled.site)
-      issues.push(`${where}: clearPoi only works in a site situation`)
+    if (
+      (effect.effect === 'clearPoi' ||
+        effect.effect === 'learnPlan' ||
+        effect.effect === 'thwartAct') &&
+      !compiled.site
+    )
+      issues.push(`${where}: ${effect.effect} only works in a site situation`)
   }
+  for (const villain of compiled.villains)
+    if (!Object.hasOwn(content.villains, villain)) issues.push(`unknown villain "${villain}"`)
   // A consumable that unlocks an option is used up by it, whatever the roll.
   for (const [stageId, stage] of Object.entries(compiled.stages))
     for (const option of stage.options)
@@ -354,6 +361,7 @@ const twistKindAsSituation = (kind: TwistKind): Situation => ({
   wonder: false,
   followUpOnly: true,
   site: false,
+  villains: [],
   start: kind.start,
   stages: kind.stages,
 })

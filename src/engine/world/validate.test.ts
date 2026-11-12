@@ -3,7 +3,7 @@ import type { Content } from '../../content/build'
 import { fixtureContent } from '../test-fixtures'
 import { components, otherEnd, routesFrom, straightKm } from './geo'
 import { PX_PER_KM } from '../../schema/world'
-import { poiTypeIssues, worldIssues } from './validate'
+import { poiTypeIssues, villainIssues, worldIssues } from './validate'
 import { SPOT_LINK_KM, SPOT_SPACING_PX } from '../constants'
 
 const content = fixtureContent()
@@ -231,5 +231,36 @@ describe('poiTypeIssues', () => {
       c.poiTypes['orc-war-camp'].category = 'dungeon'
     })
     expect(poiTypeIssues(dungeon)).toEqual([])
+  })
+})
+
+describe('villainIssues', () => {
+  test('the test villain is valid', () => {
+    expect(villainIssues(content)).toEqual([])
+  })
+
+  test('threats, names and site types must exist', () => {
+    const broken = edit((c) => {
+      const v = c.villains['test-villain']
+      v.threats = ['kraken']
+      v.names = 'no-names'
+      v.reveal = 'no-site'
+    })
+    expect(villainIssues(broken)).toEqual([
+      'villain test-villain: unknown threat "kraken"',
+      'villain test-villain: unknown parts table "no-names"',
+      'villain test-villain: unknown poi type "no-site"',
+    ])
+  })
+
+  test('crisis site types are weight-0 quests, so they are never drawn as ordinary sites', () => {
+    const broken = edit((c) => {
+      c.poiTypes['test-act-2-site'].weight = 1
+      c.poiTypes['test-act-3-site'].category = 'lair'
+    })
+    expect(villainIssues(broken)).toEqual([
+      'villain test-villain: poi type "test-act-2-site" needs weight 0',
+      'villain test-villain: poi type "test-act-3-site" needs category quest',
+    ])
   })
 })

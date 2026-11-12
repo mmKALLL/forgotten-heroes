@@ -270,3 +270,14 @@ export const CAMARADERIE_TIERS = [
   { id: 'sworn', min: 8 },
 ] as const
 export type CamaraderieTier = (typeof CAMARADERIE_TIERS)[number]['id']
+
+// ---------------------------------------------------------------------------------------------
+// The Crisis and run end (Plan 5b)
+// ---------------------------------------------------------------------------------------------
+
+/** A villain's plot has exactly this many acts, each at its own site (design §10b). */
+export const CRISIS_ACTS = 3
+
+/** How a run ended: the Crisis won or lost, or the whole party fallen (a wipe). */
+export const RUN_ENDINGS = ['won', 'lost', 'fallen'] as const
+export type RunEnding = (typeof RUN_ENDINGS)[number]

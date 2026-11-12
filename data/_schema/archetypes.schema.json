@@ -469,14 +469,14 @@
           "$ref": "#/$defs/__schema28"
         },
         "goto": {
-          "$ref": "#/$defs/__schema81"
+          "$ref": "#/$defs/__schema85"
         },
         "stay": {
-          "$ref": "#/$defs/__schema83"
+          "$ref": "#/$defs/__schema87"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema85"
+          "$ref": "#/$defs/__schema89"
         }
       },
       "required": [
@@ -924,6 +924,54 @@
               "tier"
             ],
             "description": "Loot: roll one accessory of this tier into the party's gear"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema81"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema31"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "The party learns the villain's plan. Only works in the Crisis's reveal situation"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema82"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema83"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema31"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "A clue to the current stage of the Crisis: before the plan is known it reveals the reveal site; during an act it adds to that act's clues"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema84"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema31"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "Thwarts the act whose site is being visited. Only works at that site"
           }
         ]
       }
@@ -1190,10 +1238,28 @@
       ]
     },
     "__schema81": {
-      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema82"
+      "type": "string",
+      "const": "learnPlan"
     },
     "__schema82": {
+      "type": "string",
+      "const": "crisisClue"
+    },
+    "__schema83": {
+      "default": 1,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2
+    },
+    "__schema84": {
+      "type": "string",
+      "const": "thwartAct"
+    },
+    "__schema85": {
+      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
+      "$ref": "#/$defs/__schema86"
+    },
+    "__schema86": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -1204,14 +1270,14 @@
         }
       ]
     },
-    "__schema83": {
+    "__schema87": {
       "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema84"
+      "$ref": "#/$defs/__schema88"
     },
-    "__schema84": {
+    "__schema88": {
       "type": "boolean"
     },
-    "__schema85": {
+    "__schema89": {
       "type": "object",
       "properties": {
         "text": {
@@ -1221,10 +1287,10 @@
           "$ref": "#/$defs/__schema28"
         },
         "goto": {
-          "$ref": "#/$defs/__schema81"
+          "$ref": "#/$defs/__schema85"
         },
         "stay": {
-          "$ref": "#/$defs/__schema83"
+          "$ref": "#/$defs/__schema87"
         }
       },
       "required": [

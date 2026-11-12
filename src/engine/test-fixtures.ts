@@ -1079,6 +1079,191 @@ export const testProgression: Record<string, unknown> = {
   },
 }
 
+const leave = { id: 'leave', kind: 'fixed', label: 'Leave', outcome: { text: 'You withdraw.' } }
+
+/** An act situation: an approach, then a finale whose success (or partial, at a cost) thwarts the act. */
+const testActSituation = (n: number) => ({
+  id: `test-act-${n}`,
+  title: `Act ${n}`,
+  disposition: 'hostile',
+  site: true,
+  stages: {
+    start: {
+      text: 'Guards watch the way in.',
+      options: [
+        {
+          id: 'sneak',
+          kind: 'check',
+          label: 'Slip past',
+          check: { skill: 'stealth', dc: 12 },
+          outcomes: {
+            fail: {
+              text: 'Spotted, you fall back.',
+              effects: [{ effect: 'hp', amount: -2, target: 'all' }],
+            },
+            partial: {
+              text: 'In, but noticed.',
+              goto: 'finale',
+              effects: [{ effect: 'position', position: 'exposed' }],
+            },
+            success: { text: 'In unseen.', goto: 'finale' },
+          },
+        },
+        leave,
+      ],
+    },
+    finale: {
+      text: 'The rite is under way.',
+      options: [
+        {
+          id: 'stop',
+          kind: 'check',
+          label: 'Break the rite',
+          check: { skill: 'athletics', dc: 13 },
+          outcomes: {
+            fail: {
+              text: 'Thrown out, hurt.',
+              effects: [{ effect: 'hp', amount: -4, target: 'all' }],
+            },
+            partial: {
+              text: 'Broken, at a cost.',
+              effects: [{ effect: 'thwartAct' }, { effect: 'hp', amount: -3, target: 'all' }],
+            },
+            success: { text: 'Broken.', effects: [{ effect: 'thwartAct' }] },
+          },
+        },
+        leave,
+      ],
+    },
+  },
+})
+
+/**
+ * The Crisis (Plan 5b): one villain, favoured by the bog cult, with a reveal site and three act
+ * sites (weight-0 quest types, never drawn as ordinary POIs). Act II favours marsh, and act III
+ * lies in a kingdom seat's domain. One road omen names the villain and gives a clue.
+ */
+export const testCrisis: Record<string, unknown> = {
+  'data/claude/villains.json': {
+    kind: 'villains',
+    source: 'claude',
+    entries: [
+      {
+        id: 'test-villain',
+        name: 'the Test Prophet',
+        names: 'test-villain-name',
+        threats: ['bog-cult'],
+        summary: '{villain} would wake the drowned.',
+        omen: 'Folk say the dead walk in {land}.',
+        plan: '{villain} means to raise the drowned dead of the marsh.',
+        reveal: 'test-reveal-site',
+        acts: [1, 2, 3].map((n) => ({
+          id: `test-act-${n}`,
+          name: `The Test Act ${n}`,
+          goal: `finish step ${n}`,
+          site: `test-act-${n}-site`,
+          ...(n === 2 ? { biomes: ['marsh'] } : {}),
+          ...(n === 3 ? { seat: true } : {}),
+          clue: "{villain}'s servants have been seen in {land}.",
+          thwarted: `Act ${n} is broken.`,
+          failed: `Act ${n} is done, and {villain} is stronger for it.`,
+        })),
+        victory: '{villain} is no more.',
+      },
+    ],
+  },
+  'data/claude/crisis-sites.json': {
+    kind: 'poiTypes',
+    source: 'claude',
+    entries: [
+      {
+        id: 'test-reveal-site',
+        category: 'quest',
+        name: 'Burned chapel',
+        weight: 0,
+        names: 'test-crisis-site-name',
+        situations: ['test-reveal'],
+      },
+      ...[1, 2, 3].map((n) => ({
+        id: `test-act-${n}-site`,
+        category: 'quest',
+        name: `Act ${n} site`,
+        weight: 0,
+        pathDanger: 2,
+        names: 'test-crisis-site-name',
+        situations: [`test-act-${n}`],
+      })),
+    ],
+  },
+  'data/claude/crisis-names.json': {
+    kind: 'partsTables',
+    source: 'claude',
+    entries: [
+      { id: 'test-villain-name', description: 'Villain names', rows: [{ text: 'Morvaine' }] },
+      {
+        id: 'test-crisis-site-name',
+        description: 'Crisis sites',
+        rows: [{ text: 'The Hollow of {land}' }],
+      },
+    ],
+  },
+  'data/claude/crisis-situations.json': {
+    kind: 'situations',
+    source: 'claude',
+    entries: [
+      {
+        id: 'test-reveal',
+        title: 'The burned chapel',
+        disposition: 'neutral',
+        site: true,
+        stages: {
+          start: {
+            text: 'A ledger lies in the ashes.',
+            options: [
+              {
+                id: 'read',
+                kind: 'fixed',
+                label: 'Read the ledger',
+                outcome: { text: 'You learn the plan.', effects: [{ effect: 'learnPlan' }] },
+              },
+              leave,
+            ],
+          },
+        },
+      },
+      ...[1, 2, 3].map(testActSituation),
+      {
+        id: 'test-omen',
+        title: 'A cart of bones',
+        disposition: 'neutral',
+        // Only in Ashmoor's marsh, so the road draws of other engine tests stay as they were.
+        biomes: ['marsh'],
+        regions: ['ashmoor'],
+        villains: ['test-villain'],
+        stages: {
+          start: {
+            text: 'Grave-robbers push a cart of bones.',
+            options: [
+              {
+                id: 'question',
+                kind: 'check',
+                label: 'Question them',
+                check: { skill: 'intimidation', dc: 12 },
+                outcomes: {
+                  fail: { text: 'They curse you and go.' },
+                  partial: { text: 'They mutter of a buyer.' },
+                  success: { text: 'They name their buyer.', effects: [{ effect: 'crisisClue' }] },
+                },
+              },
+              { id: 'pass', kind: 'fixed', label: 'Let them pass', outcome: { text: 'They go.' } },
+            ],
+          },
+        },
+      },
+    ],
+  },
+}
+
 export function fixtureContent(): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
@@ -1187,6 +1372,7 @@ export function fixtureContent(): Content {
     ...testWorld,
     ...testEconomy,
     ...testProgression,
+    ...testCrisis,
   })
   if (errors.length > 0) throw new Error(JSON.stringify(errors, null, 2))
   return content

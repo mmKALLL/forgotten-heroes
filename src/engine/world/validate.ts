@@ -93,7 +93,33 @@ export function worldIssues(content: Content): string[] {
       pins.set(town.site, town.id)
     }
   }
-  issues.push(...landSpotIssues(content), ...poiTypeIssues(content))
+  issues.push(...landSpotIssues(content), ...poiTypeIssues(content), ...villainIssues(content))
+  return issues
+}
+
+/**
+ * Problems with the villains (Plan 5b): unknown threats, name tables and site types, and crisis
+ * site types that could be drawn as ordinary sites (they must be weight-0 quests).
+ */
+export function villainIssues(content: Content): string[] {
+  const issues: string[] = []
+  const { threats, partsTables, poiTypes } = content
+  for (const villain of sortedEntries(content.villains)) {
+    const at = `villain ${villain.id}`
+    for (const id of villain.threats)
+      if (!Object.hasOwn(threats, id)) issues.push(`${at}: unknown threat "${id}"`)
+    if (villain.names !== undefined && !Object.hasOwn(partsTables, villain.names))
+      issues.push(`${at}: unknown parts table "${villain.names}"`)
+    for (const id of [villain.reveal, ...villain.acts.map((a) => a.site)]) {
+      if (!Object.hasOwn(poiTypes, id)) {
+        issues.push(`${at}: unknown poi type "${id}"`)
+        continue
+      }
+      if (poiTypes[id].weight !== 0) issues.push(`${at}: poi type "${id}" needs weight 0`)
+      if (poiTypes[id].category !== 'quest')
+        issues.push(`${at}: poi type "${id}" needs category quest`)
+    }
+  }
   return issues
 }
 

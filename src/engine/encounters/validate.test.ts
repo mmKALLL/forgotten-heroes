@@ -205,6 +205,26 @@ describe('validateSituation', () => {
     expect(issues(stages, { site: true })).toEqual([])
   })
 
+  test('effects: learnPlan and thwartAct only in a site situation; omens name real villains', () => {
+    const stages = {
+      start: {
+        text: '',
+        options: [
+          fixed('a', { text: '', effects: [{ effect: 'learnPlan' }, { effect: 'thwartAct' }] }),
+          fixed('b'),
+        ],
+      },
+    }
+    expect(issues(stages)).toEqual([
+      'start/a outcome: learnPlan only works in a site situation',
+      'start/a outcome: thwartAct only works in a site situation',
+    ])
+    expect(issues(stages, { site: true })).toEqual([])
+    const omen = { start: { text: '', options: [fixed('a'), fixed('b')] } }
+    expect(issues(omen, { villains: ['test-villain'] })).toEqual([])
+    expect(issues(omen, { villains: ['nobody'] })).toEqual(['unknown villain "nobody"'])
+  })
+
   test('requirements: siteReady only in a site situation', () => {
     const stages = {
       start: {

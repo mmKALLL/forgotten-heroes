@@ -140,6 +140,11 @@ describe('templates', () => {
       'singing-stones',
       'starfall',
       'stranger',
+      'test-act-1',
+      'test-act-2',
+      'test-act-3',
+      'test-omen',
+      'test-reveal',
     ])
     expect(all.find((s) => s.id === 'plea')?.source).toBe('procedural')
   })

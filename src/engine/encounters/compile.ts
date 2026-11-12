@@ -157,6 +157,7 @@ export function templateToSituation(template: SituationTemplate): Situation {
     wonder: false,
     followUpOnly: false,
     site: false,
+    villains: [],
     start: 'start',
     stages: { start: { text, archetype, options: [] } },
   }

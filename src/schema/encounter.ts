@@ -200,6 +200,22 @@ export const EffectSchema = z.discriminatedUnion('effect', [
   z
     .object({ effect: z.literal('accessory'), tier: AccessoryTierSchema, ...when })
     .describe("Loot: roll one accessory of this tier into the party's gear"),
+  z
+    .object({ effect: z.literal('learnPlan'), ...when })
+    .describe("The party learns the villain's plan. Only works in the Crisis's reveal situation"),
+  z
+    .object({
+      effect: z.literal('crisisClue'),
+      amount: z.number().int().min(1).max(2).default(1),
+      ...when,
+    })
+    .describe(
+      'A clue to the current stage of the Crisis: before the plan is known it reveals the ' +
+        "reveal site; during an act it adds to that act's clues"
+    ),
+  z
+    .object({ effect: z.literal('thwartAct'), ...when })
+    .describe('Thwarts the act whose site is being visited. Only works at that site'),
 ])
 export type Effect = z.infer<typeof EffectSchema>
 
@@ -459,6 +475,12 @@ export const SituationSchema = z.object({
     .describe(
       'A follow-up that hunts the party down. When it comes due, the pace since it was queued ' +
         'decides: covered tracks lose it, a brisk or faster march outruns it, slower lets it catch up.'
+    ),
+  villains: z
+    .array(IdSchema)
+    .default([])
+    .describe(
+      "Villain ids: an omen, drawn on the road only while one of these villains' Crisis is undecided"
     ),
   start: IdSchema.default('start'),
   stages: z.record(IdSchema, StageSchema),

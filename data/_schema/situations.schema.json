@@ -103,21 +103,26 @@
           "wonder": {
             "default": false,
             "description": "One click, flavour only, never a cost",
-            "$ref": "#/$defs/__schema67"
+            "$ref": "#/$defs/__schema71"
           },
           "followUpOnly": {
             "default": false,
             "description": "Never drawn at random; only queued by followUp",
-            "$ref": "#/$defs/__schema68"
+            "$ref": "#/$defs/__schema72"
           },
           "site": {
             "default": false,
             "description": "Only played at a point of interest; never drawn on the road",
-            "$ref": "#/$defs/__schema69"
+            "$ref": "#/$defs/__schema73"
           },
           "pursuit": {
             "description": "A follow-up that hunts the party down. When it comes due, the pace since it was queued decides: covered tracks lose it, a brisk or faster march outruns it, slower lets it catch up.",
-            "$ref": "#/$defs/__schema70"
+            "$ref": "#/$defs/__schema74"
+          },
+          "villains": {
+            "default": [],
+            "description": "Villain ids: an omen, drawn on the road only while one of these villains' Crisis is undecided",
+            "$ref": "#/$defs/__schema75"
           },
           "start": {
             "default": "start",
@@ -136,7 +141,7 @@
                 },
                 "archetype": {
                   "description": "Its options come first, then this stage's own",
-                  "$ref": "#/$defs/__schema71"
+                  "$ref": "#/$defs/__schema76"
                 },
                 "options": {
                   "default": [],
@@ -147,19 +152,19 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema74"
+                            "$ref": "#/$defs/__schema79"
                           },
                           "label": {
-                            "$ref": "#/$defs/__schema75"
+                            "$ref": "#/$defs/__schema80"
                           },
                           "description": {
-                            "$ref": "#/$defs/__schema76"
+                            "$ref": "#/$defs/__schema81"
                           },
                           "requires": {
-                            "$ref": "#/$defs/__schema77"
+                            "$ref": "#/$defs/__schema82"
                           },
                           "once": {
-                            "$ref": "#/$defs/__schema88"
+                            "$ref": "#/$defs/__schema93"
                           },
                           "kind": {
                             "type": "string",
@@ -173,22 +178,22 @@
                               },
                               "ability": {
                                 "description": "Overrides the skill's default ability, e.g. \"cha\" for Intimidation (CHA)",
-                                "$ref": "#/$defs/__schema90"
+                                "$ref": "#/$defs/__schema95"
                               },
                               "dc": {
                                 "anyOf": [
                                   {
-                                    "$ref": "#/$defs/__schema91"
+                                    "$ref": "#/$defs/__schema96"
                                   },
                                   {
-                                    "$ref": "#/$defs/__schema92"
+                                    "$ref": "#/$defs/__schema97"
                                   }
                                 ],
                                 "description": "A DC from 1 to 40, or inside an archetype \"dc\", \"dc+2\" or \"dc-1\""
                               },
                               "combat": {
                                 "description": "Combat checks never grant Inspiration on a natural 20",
-                                "$ref": "#/$defs/__schema93"
+                                "$ref": "#/$defs/__schema98"
                               }
                             },
                             "required": [
@@ -198,27 +203,27 @@
                           },
                           "highStakes": {
                             "description": "Force the slow, glowing dice roll",
-                            "$ref": "#/$defs/__schema94"
+                            "$ref": "#/$defs/__schema99"
                           },
                           "outcomes": {
                             "type": "object",
                             "properties": {
                               "critFail": {
                                 "description": "Defaults to the fail outcome",
-                                "$ref": "#/$defs/__schema95"
+                                "$ref": "#/$defs/__schema100"
                               },
                               "fail": {
-                                "$ref": "#/$defs/__schema95"
+                                "$ref": "#/$defs/__schema100"
                               },
                               "partial": {
-                                "$ref": "#/$defs/__schema95"
+                                "$ref": "#/$defs/__schema100"
                               },
                               "success": {
-                                "$ref": "#/$defs/__schema95"
+                                "$ref": "#/$defs/__schema100"
                               },
                               "critSuccess": {
                                 "description": "Defaults to the success outcome",
-                                "$ref": "#/$defs/__schema95"
+                                "$ref": "#/$defs/__schema100"
                               }
                             },
                             "required": [
@@ -240,26 +245,26 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema74"
+                            "$ref": "#/$defs/__schema79"
                           },
                           "label": {
-                            "$ref": "#/$defs/__schema75"
+                            "$ref": "#/$defs/__schema80"
                           },
                           "description": {
-                            "$ref": "#/$defs/__schema76"
+                            "$ref": "#/$defs/__schema81"
                           },
                           "requires": {
-                            "$ref": "#/$defs/__schema77"
+                            "$ref": "#/$defs/__schema82"
                           },
                           "once": {
-                            "$ref": "#/$defs/__schema88"
+                            "$ref": "#/$defs/__schema93"
                           },
                           "kind": {
                             "type": "string",
                             "const": "fixed"
                           },
                           "outcome": {
-                            "$ref": "#/$defs/__schema95"
+                            "$ref": "#/$defs/__schema100"
                           }
                         },
                         "required": [
@@ -865,6 +870,54 @@
             "tier"
           ],
           "description": "Loot: roll one accessory of this tier into the party's gear"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema67"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema14"
+            }
+          },
+          "required": [
+            "effect"
+          ],
+          "description": "The party learns the villain's plan. Only works in the Crisis's reveal situation"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema68"
+            },
+            "amount": {
+              "$ref": "#/$defs/__schema69"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema14"
+            }
+          },
+          "required": [
+            "effect"
+          ],
+          "description": "A clue to the current stage of the Crisis: before the plan is known it reveals the reveal site; during an act it adds to that act's clues"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema70"
+            },
+            "if": {
+              "$ref": "#/$defs/__schema14"
+            }
+          },
+          "required": [
+            "effect"
+          ],
+          "description": "Thwarts the act whose site is being visited. Only works at that site"
         }
       ]
     },
@@ -1185,18 +1238,42 @@
       ]
     },
     "__schema67": {
-      "type": "boolean"
+      "type": "string",
+      "const": "learnPlan"
     },
     "__schema68": {
-      "type": "boolean"
+      "type": "string",
+      "const": "crisisClue"
     },
     "__schema69": {
-      "type": "boolean"
+      "default": 1,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2
     },
     "__schema70": {
-      "type": "boolean"
+      "type": "string",
+      "const": "thwartAct"
     },
     "__schema71": {
+      "type": "boolean"
+    },
+    "__schema72": {
+      "type": "boolean"
+    },
+    "__schema73": {
+      "type": "boolean"
+    },
+    "__schema74": {
+      "type": "boolean"
+    },
+    "__schema75": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
+      }
+    },
+    "__schema76": {
       "type": "object",
       "properties": {
         "id": {
@@ -1205,39 +1282,39 @@
         "dc": {
           "default": 13,
           "description": "What \"dc\" means in the archetype",
-          "$ref": "#/$defs/__schema72"
+          "$ref": "#/$defs/__schema77"
         },
         "reward": {
           "default": 1,
           "description": "Multiplies every gold amount in the archetype",
-          "$ref": "#/$defs/__schema73"
+          "$ref": "#/$defs/__schema78"
         }
       },
       "required": [
         "id"
       ]
     },
-    "__schema72": {
+    "__schema77": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema73": {
+    "__schema78": {
       "type": "number",
       "minimum": 0,
       "maximum": 10
     },
-    "__schema74": {
+    "__schema79": {
       "description": "Unique within its stage",
       "$ref": "#/$defs/__schema0"
     },
-    "__schema75": {
+    "__schema80": {
       "type": "string"
     },
-    "__schema76": {
+    "__schema81": {
       "type": "string"
     },
-    "__schema77": {
+    "__schema82": {
       "default": [],
       "type": "array",
       "items": {
@@ -1264,7 +1341,7 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema78"
+                "$ref": "#/$defs/__schema83"
               },
               "skill": {
                 "$ref": "#/$defs/__schema49"
@@ -1280,13 +1357,13 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema79"
+                "$ref": "#/$defs/__schema84"
               },
               "scope": {
-                "$ref": "#/$defs/__schema80"
+                "$ref": "#/$defs/__schema85"
               },
               "category": {
-                "$ref": "#/$defs/__schema82"
+                "$ref": "#/$defs/__schema87"
               }
             },
             "required": [
@@ -1298,7 +1375,7 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema83"
+                "$ref": "#/$defs/__schema88"
               }
             },
             "required": [
@@ -1310,13 +1387,13 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema84"
+                "$ref": "#/$defs/__schema89"
               },
               "good": {
                 "$ref": "#/$defs/__schema52"
               },
               "min": {
-                "$ref": "#/$defs/__schema85"
+                "$ref": "#/$defs/__schema90"
               }
             },
             "required": [
@@ -1330,10 +1407,10 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema86"
+                "$ref": "#/$defs/__schema91"
               },
               "min": {
-                "$ref": "#/$defs/__schema87"
+                "$ref": "#/$defs/__schema92"
               }
             },
             "required": [
@@ -1345,48 +1422,48 @@
         ]
       }
     },
-    "__schema78": {
+    "__schema83": {
       "type": "string",
       "const": "untrained"
     },
-    "__schema79": {
+    "__schema84": {
       "type": "string",
       "const": "undiscovered"
     },
-    "__schema80": {
+    "__schema85": {
       "default": "domain",
       "description": "Where to look: the encounter's domain, or every domain of its land",
-      "$ref": "#/$defs/__schema81"
+      "$ref": "#/$defs/__schema86"
     },
-    "__schema81": {
+    "__schema86": {
       "type": "string",
       "enum": [
         "domain",
         "land"
       ]
     },
-    "__schema82": {
+    "__schema87": {
       "description": "Only sites of this category",
       "$ref": "#/$defs/__schema46"
     },
-    "__schema83": {
+    "__schema88": {
       "type": "string",
       "const": "siteReady"
     },
-    "__schema84": {
+    "__schema89": {
       "type": "string",
       "const": "goods"
     },
-    "__schema85": {
+    "__schema90": {
       "type": "integer",
       "minimum": 1,
       "maximum": 9007199254740991
     },
-    "__schema86": {
+    "__schema91": {
       "type": "string",
       "const": "standing"
     },
-    "__schema87": {
+    "__schema92": {
       "type": "string",
       "enum": [
         "hated",
@@ -1398,11 +1475,11 @@
         "honoured"
       ]
     },
-    "__schema88": {
+    "__schema93": {
       "description": "Can only be chosen once per encounter. A name instead of true makes a group: choosing any option of the group on a stage uses up all of them (a failed parley also ends slipping past)",
-      "$ref": "#/$defs/__schema89"
+      "$ref": "#/$defs/__schema94"
     },
-    "__schema89": {
+    "__schema94": {
       "anyOf": [
         {
           "type": "boolean"
@@ -1412,7 +1489,7 @@
         }
       ]
     },
-    "__schema90": {
+    "__schema95": {
       "type": "string",
       "enum": [
         "str",
@@ -1423,60 +1500,60 @@
         "cha"
       ]
     },
-    "__schema91": {
+    "__schema96": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema92": {
+    "__schema97": {
       "type": "string",
       "pattern": "^dc([+-][0-9]+)?$"
     },
-    "__schema93": {
+    "__schema98": {
       "type": "boolean"
     },
-    "__schema94": {
+    "__schema99": {
       "type": "boolean"
     },
-    "__schema95": {
+    "__schema100": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema96"
+          "$ref": "#/$defs/__schema101"
         },
         "effects": {
-          "$ref": "#/$defs/__schema97"
+          "$ref": "#/$defs/__schema102"
         },
         "goto": {
-          "$ref": "#/$defs/__schema98"
+          "$ref": "#/$defs/__schema103"
         },
         "stay": {
-          "$ref": "#/$defs/__schema100"
+          "$ref": "#/$defs/__schema105"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema102"
+          "$ref": "#/$defs/__schema107"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema96": {
+    "__schema101": {
       "type": "string"
     },
-    "__schema97": {
+    "__schema102": {
       "default": [],
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema11"
       }
     },
-    "__schema98": {
+    "__schema103": {
       "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema99"
+      "$ref": "#/$defs/__schema104"
     },
-    "__schema99": {
+    "__schema104": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -1487,27 +1564,27 @@
         }
       ]
     },
-    "__schema100": {
+    "__schema105": {
       "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema101"
+      "$ref": "#/$defs/__schema106"
     },
-    "__schema101": {
+    "__schema106": {
       "type": "boolean"
     },
-    "__schema102": {
+    "__schema107": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema96"
+          "$ref": "#/$defs/__schema101"
         },
         "effects": {
-          "$ref": "#/$defs/__schema97"
+          "$ref": "#/$defs/__schema102"
         },
         "goto": {
-          "$ref": "#/$defs/__schema98"
+          "$ref": "#/$defs/__schema103"
         },
         "stay": {
-          "$ref": "#/$defs/__schema100"
+          "$ref": "#/$defs/__schema105"
         }
       },
       "required": [

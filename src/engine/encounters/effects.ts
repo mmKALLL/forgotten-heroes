@@ -251,6 +251,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       if (!looted) return state
       return note(looted.state, `Found: ${describeAccessory(looted.accessory)}.`, 'good')
     }
+    case 'learnPlan':
+    case 'crisisClue':
+    case 'thwartAct':
+      // The Crisis (Plan 5b): wired in crisis/progress.ts (E3). Until then they do nothing.
+      return state
   }
 }
 
@@ -352,5 +357,11 @@ export function describeEffect(
       return `${formatModifier(effect.amount)} camaraderie`
     case 'accessory':
       return effect.tier === 1 ? 'an accessory' : 'a fine accessory'
+    case 'learnPlan':
+      return 'Learn the plan'
+    case 'crisisClue':
+      return `+${effect.amount} clue`
+    case 'thwartAct':
+      return 'Thwart the act'
   }
 }

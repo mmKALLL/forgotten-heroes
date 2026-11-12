@@ -112,12 +112,12 @@
               "dc": {
                 "default": 13,
                 "description": "What \"dc\" means in the archetype",
-                "$ref": "#/$defs/__schema66"
+                "$ref": "#/$defs/__schema70"
               },
               "reward": {
                 "default": 1,
                 "description": "Multiplies every gold amount in the archetype",
-                "$ref": "#/$defs/__schema67"
+                "$ref": "#/$defs/__schema71"
               }
             },
             "required": [
@@ -708,6 +708,54 @@
               "tier"
             ],
             "description": "Loot: roll one accessory of this tier into the party's gear"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema66"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "The party learns the villain's plan. Only works in the Crisis's reveal situation"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema67"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema68"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "A clue to the current stage of the Crisis: before the plan is known it reveals the reveal site; during an act it adds to that act's clues"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema69"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "Thwarts the act whose site is being visited. Only works at that site"
           }
         ]
       }
@@ -1029,11 +1077,29 @@
       ]
     },
     "__schema66": {
+      "type": "string",
+      "const": "learnPlan"
+    },
+    "__schema67": {
+      "type": "string",
+      "const": "crisisClue"
+    },
+    "__schema68": {
+      "default": 1,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2
+    },
+    "__schema69": {
+      "type": "string",
+      "const": "thwartAct"
+    },
+    "__schema70": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema67": {
+    "__schema71": {
       "type": "number",
       "minimum": 0,
       "maximum": 10
