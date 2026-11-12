@@ -13,6 +13,7 @@ import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
 import { changeGoods } from '../economy/goods'
 import { changeAnimals } from '../town/animals'
+import { siteContractsMet } from '../town/contract-hooks'
 
 export { MAX_EXHAUSTION }
 
@@ -187,7 +188,8 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       const poi = state.world.pois[id]
       const pois = { ...state.world.pois, [id]: { ...poi, clearedDay: state.day } }
       const cleared = { ...state, world: { ...state.world, pois } }
-      return note(cleared, `${poi.name} is cleared. It will lie empty for a while.`, 'good')
+      const told = note(cleared, `${poi.name} is cleared. It will lie empty for a while.`, 'good')
+      return siteContractsMet(told, 'bounty', id)
     }
     case 'trainSkill': {
       const untrained = state.party

@@ -215,6 +215,11 @@ export const ContractStateSchema = z.object({
   pay: z.number().int().min(0).describe('gp on completion'),
   urgent: z.boolean(),
   reputation: z.object({ patron: z.number().int(), settlement: z.number().int() }),
+  /**
+   * Its condition was met in time (arrived, cleared, visited): it no longer expires, and is
+   * completed at `to` for the reward.
+   */
+  met: z.boolean().default(false),
 })
 export type ContractState = z.infer<typeof ContractStateSchema>
 

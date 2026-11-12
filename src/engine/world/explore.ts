@@ -20,6 +20,7 @@ import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
 import { siteStatus } from './sites'
 import { rumourOption, type RumourOption } from '../town/rumours'
+import { siteContractsMet } from '../town/contract-hooks'
 import {
   DEFAULT_PACE,
   EXPLORE_DAYS,
@@ -232,7 +233,9 @@ export function visitPoi(state: GameState, content: Content): GameState {
   const place = placeHere(state, content) ?? undefined
   const started = startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
   const power = siteStatus(state.world.seed, id, poi, state.day)?.power ?? 0
-  return power > 0 && started.encounter ? strengthen(started, power * POWER_DC) : started
+  // An errand to this site is done by going there (town/contracts.ts).
+  const done = siteContractsMet(started, 'errand', id)
+  return power > 0 && done.encounter ? strengthen(done, power * POWER_DC) : done
 }
 
 /** Raises every check of the open encounter by `dc`, with a line saying so. */

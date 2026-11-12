@@ -14,6 +14,7 @@ import {
   COVER_TRACKS_EXTRA_DAYS,
   DEFAULT_PACE,
   ENCOUNTER_SLOT_CHANCE,
+  ESCORT_HOSTILE,
   FORAGE_HOSTILE_BONUS,
   HOSTILE_BASE,
   HOSTILE_PER_DANGER,
@@ -92,6 +93,8 @@ export type HostileShare = {
   pace: number
   /** Visible wealth (economy/wealth.ts): WEALTH_HOSTILE_PER_STEP per step. */
   wealth: number
+  /** Escorting passengers (town/contracts.ts): ESCORT_HOSTILE. */
+  escort: number
 }
 
 export function hostileShare(
@@ -99,7 +102,8 @@ export function hostileShare(
   threatLevel: number,
   pace: Pace = DEFAULT_PACE,
   forage = false,
-  wealthSteps = 0
+  wealthSteps = 0,
+  escort = false
 ): HostileShare {
   const parts = {
     base: HOSTILE_BASE,
@@ -108,9 +112,17 @@ export function hostileShare(
     forage: forage ? FORAGE_HOSTILE_BONUS : 0,
     pace: PACE_HOSTILE_BONUS[pace],
     wealth: WEALTH_HOSTILE_PER_STEP * wealthSteps,
+    escort: escort ? ESCORT_HOSTILE : 0,
   }
   const [lo, hi] = HOSTILE_SHARE_RANGE
-  const sum = parts.base + parts.danger + parts.threat + parts.forage + parts.pace + parts.wealth
+  const sum =
+    parts.base +
+    parts.danger +
+    parts.threat +
+    parts.forage +
+    parts.pace +
+    parts.wealth +
+    parts.escort
   return { share: Math.min(hi, Math.max(lo, sum)), ...parts }
 }
 

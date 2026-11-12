@@ -40,6 +40,7 @@ import { load, overloadExcess, type Hired } from '../economy/capacity'
 import { visibleWealth } from '../economy/wealth'
 import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/animals'
 import type { Room } from '../town/services'
+import { contractsOnArrival, isEscorting } from '../town/contracts'
 import { DEFAULT_PACE } from '../constants'
 
 /**
@@ -251,7 +252,8 @@ function setOut(
  * effects and standing requirements go there; see town/reputation.ts encounterSettlement).
  */
 export function placeOnRoute(
-  state: Pick<GameState, 'world' | 'day'> & Partial<Pick<GameState, 'goods' | 'gold' | 'party'>>,
+  state: Pick<GameState, 'world' | 'day'> &
+    Partial<Pick<GameState, 'goods' | 'gold' | 'party' | 'contracts'>>,
   content: Content,
   travel: TravelState
 ): Place | null {
@@ -279,7 +281,8 @@ export function placeOnRoute(
       routeThreat(state, content, route),
       travel.pace,
       travel.forage,
-      steps
+      steps,
+      isEscorting(state)
     ).share,
     wealthSteps: steps,
   }
@@ -311,8 +314,9 @@ function arrive(state: GameState, content: Content): GameState {
     goods: water ? refillWater(state.goods, partyWaterCapacity(state)) : state.goods,
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }
-  // The party sees the market of the settlement it arrives in (economy/trade.ts).
-  return observe(
+  // The party sees the market of the settlement it arrives in (economy/trade.ts), and its contracts
+  // bound here are met (town/contracts.ts).
+  const seen = observe(
     appendLog(
       arrived,
       `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road.` +
@@ -323,6 +327,7 @@ function arrive(state: GameState, content: Content): GameState {
     content,
     travel.to
   )
+  return contractsOnArrival(seen, content)
 }
 
 /**

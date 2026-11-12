@@ -16,6 +16,7 @@ import { observe, stepTrade, type TradeAction } from './economy/trade'
 import { useService, type ServiceUse } from './town/services'
 import { buyAnimal, sellAnimal } from './town/animals'
 import { listenRumours } from './town/rumours'
+import { expireContracts, stepContract, type ContractAction } from './town/contracts'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
@@ -43,6 +44,8 @@ export type Action =
   | { type: 'explore' }
   /** Buy a round at the tavern and listen for rumours, once per arrival (town/rumours.ts). */
   | { type: 'listenRumours' }
+  /** Take, give up or complete a contract from a notice board (town/contracts.ts). */
+  | ContractAction
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
@@ -95,10 +98,11 @@ export function newGame(
 
 /**
  * Applies one action. When days pass, the news of the sites the party knows follows: a dungeon or
- * lair cleared by the realm, or one that something has moved into again (world/sites.ts).
+ * lair cleared by the realm, or one that something has moved into again (world/sites.ts). Then
+ * contracts whose deadline has passed fail (town/contracts.ts).
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
-  return siteNews(state.day, act(state, action, content))
+  return expireContracts(siteNews(state.day, act(state, action, content)), content)
 }
 
 /** Rumour lines for the known sites whose cycle turned after day `from`. */
@@ -166,6 +170,10 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return explore(state, content)
     case 'listenRumours':
       return listenRumours(state, content)
+    case 'acceptContract':
+    case 'abandonContract':
+    case 'completeContract':
+      return stepContract(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

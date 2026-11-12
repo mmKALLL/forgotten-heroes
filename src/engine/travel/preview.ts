@@ -33,6 +33,12 @@ import {
   type TravelWarning,
   type WaterForecast,
 } from './warnings'
+import {
+  contractDeadlines,
+  escortPassengers,
+  isEscorting,
+  type ContractDeadline,
+} from '../town/contracts'
 import { POWER_DC } from '../constants'
 
 export const DANGER_LABELS = ['Safe', 'Watchful', 'Dangerous', 'Deadly'] as const
@@ -213,6 +219,11 @@ export type PaceOption = {
     foraging: { hostile: number; ambush: Position }
     notForaging: { hostile: number; ambush: Position }
   } | null
+  /**
+   * For each active contract bound for this road's end (its destination or site): the day the
+   * party would arrive at this pace, the deadline, and whether that is in time.
+   */
+  deadlines: ContractDeadline[]
 }
 
 /** The paces a land road offers, in order; a sea crossing has only steady. */
@@ -242,6 +253,8 @@ function paceOptions(
   const speed = landSpeed(state, content, route.terrain, hired)
   const drink = animalWater(state, content, hired)
   const wealth = visibleWealth(state, content).steps
+  const escort = isEscorting(state)
+  const to = otherEnd(route, state.location ?? route.from)
   const heavy: TravelWarning[] =
     !sea && laden.level !== 'light'
       ? [
@@ -256,12 +269,13 @@ function paceOptions(
       speed,
       content,
       animalWater: drink,
+      escorts: escortPassengers(state),
     })
     const { days, water, food } = forecast
     const warnings = [...heavy, ...forecast.warnings]
     // As the journey would record it (depart): no foraging at sea.
     const exposure = (foraging: boolean) => ({
-      hostile: hostileShare(route.danger, threatLevel, pace, foraging, wealth),
+      hostile: hostileShare(route.danger, threatLevel, pace, foraging, wealth, escort),
       ambush: ambushPositionForPace(pace, coverTracks, 'normal', foraging),
     })
     const chosen = exposure(forage && !sea)
@@ -285,6 +299,7 @@ function paceOptions(
             foraging: { hostile: on.hostile.share, ambush: on.ambush },
             notForaging: { hostile: off.hostile.share, ambush: off.ambush },
           },
+      deadlines: contractDeadlines(state, to, days),
     }
   })
 }

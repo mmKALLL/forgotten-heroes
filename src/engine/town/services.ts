@@ -10,6 +10,7 @@ import { settlementName, straightKm } from '../world/geo'
 import { inSettlement, notHere } from '../travel/where'
 import { serviceWith } from './animals'
 import { rumourOption, rumourRefusal } from './rumours'
+import { noticeBoard } from './contracts'
 import {
   BLESSING_PRICE,
   COURIER_KM_PER_DAY,
@@ -103,9 +104,6 @@ export type ServiceRow = {
   later: boolean
 }
 
-/** Actions other plans implement; listed, but not available yet. */
-const NOT_YET: readonly ServiceAction[] = ['board']
-
 function actionView(
   state: GameState,
   content: Content,
@@ -140,10 +138,20 @@ function actionView(
         rumourRefusal(state, content) ?? (option ? null : 'no one is able to act')
       )
     }
+    case 'board': {
+      // Offers are taken one by one (acceptContract), listed by noticeBoard.
+      const offers = noticeBoard(state, content, state.location!)
+      return view(
+        null,
+        offers.length === 0
+          ? 'no work posted this week'
+          : offers.some((o) => o.available)
+            ? null
+            : (offers[0].reason ?? 'nothing you can take')
+      )
+    }
     default:
-      return NOT_YET.includes(action)
-        ? { action, cost: null, available: false, reason: 'coming later' }
-        : view(null)
+      return view(null)
   }
 }
 
