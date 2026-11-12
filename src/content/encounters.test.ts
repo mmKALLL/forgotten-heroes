@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
-import { POI_CATEGORIES } from '../schema/types'
+import { GOOD_CATEGORY, GOODS, POI_CATEGORIES, WEALTH_TAGS } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
@@ -133,13 +133,16 @@ const idsFrom = (source: string) =>
     .map((s) => s.id)
     .sort()
 
-test('Claude wrote eight situations, two of them wonders, four at sea, plus follow-ups for the lizardfolk port and the twist table', () => {
+test('Claude wrote road and sea situations, two of them wonders, plus follow-ups for the lizardfolk port and the twist table', () => {
   expect(idsFrom('claude')).toEqual([
     'ambush-at-the-narrows',
+    'barn-on-fire',
     'creeping-fever',
+    'cutpurse-at-the-fair',
     'flooded-ferry',
     'grudge-on-the-road',
     'hedge-witch',
+    'horse-thieves',
     'lantern-moths',
     'lizardfolk-herb',
     'mapmakers-apprentice',
@@ -150,6 +153,8 @@ test('Claude wrote eight situations, two of them wonders, four at sea, plus foll
     'sold-out-ambush',
     'something-under-the-hull',
     'squall-off-the-bow',
+    'toll-bridge',
+    'tribute-at-the-pass',
     'wardens-on-your-trail',
   ])
   const wonders = Object.values(content.situations).filter(
@@ -541,4 +546,73 @@ test('the follow-ups that hunt the party down are pursuits', () => {
     expect.arrayContaining(['grudge-on-the-road', 'sold-out-ambush', 'wardens-on-your-trail'])
   )
   expect(pursuits.every((s) => s.followUpOnly && s.disposition === 'hostile')).toBe(true)
+})
+
+describe('goods in encounters (Plan 4)', () => {
+  const all = allSituations(content)
+  const options = all.flatMap((s) =>
+    Object.values(s.stages).flatMap((stage) => stage.options.map((o) => ({ s, o })))
+  )
+  const branchesOf = (o: Option): OutcomeBranch[] =>
+    (o.kind === 'fixed' ? [o.outcome] : Object.values(o.outcomes)).flatMap((b) =>
+      b ? [b, ...(b.twist ? [b.twist] : [])] : []
+    )
+  const isPrecious = (good: string | undefined) =>
+    GOODS.some((g) => g === good && GOOD_CATEGORY[g] === 'precious')
+
+  test('each consumable is spent by at least 3 options, and an option that needs one spends it', () => {
+    const spenders = new Map<string, number>()
+    for (const { s, o } of options) {
+      for (const req of o.requires) {
+        if (req.req !== 'goods') continue
+        spenders.set(req.good, (spenders.get(req.good) ?? 0) + 1)
+        for (const branch of branchesOf(o)) {
+          const spent = branch.effects.some(
+            (e) => e.effect === 'goods' && e.good === req.good && (e.amount ?? 0) < 0
+          )
+          expect(spent, `${s.id}/${o.id} spends ${req.good}`).toBe(true)
+        }
+      }
+    }
+    for (const good of GOODS.filter((g) => GOOD_CATEGORY[g] === 'consumables')) {
+      expect(spenders.get(good) ?? 0, good).toBeGreaterThanOrEqual(3)
+    }
+  })
+
+  test('thieves and tolls are on the road, and some thieves take animals and precious goods', () => {
+    const tags: readonly string[] = WEALTH_TAGS
+    const wealthy = all.filter((s) => s.tags.some((t) => tags.includes(t)))
+    expect(wealthy.length).toBeGreaterThanOrEqual(5)
+    expect(wealthy.every((s) => !s.site && s.disposition !== 'pleasant')).toBe(true)
+    const effects = options.flatMap(({ o }) => branchesOf(o).flatMap((b) => b.effects))
+    expect(effects.some((e) => e.effect === 'animals' && e.animal === undefined)).toBe(true)
+    expect(
+      effects.some((e) => e.effect === 'goods' && e.category === 'precious' && e.fraction)
+    ).toBe(true)
+  })
+
+  test('every dungeon vault and lair chief can pay out precious goods', () => {
+    const hoards = all.filter(
+      (s) => s.site && (s.tags.includes('dungeon') || s.tags.includes('lair'))
+    )
+    expect(hoards.length).toBeGreaterThan(0)
+    for (const s of hoards) {
+      const last = s.stages.vault ?? s.stages.chief
+      const pays = last.options.some((o) =>
+        branchesOf(o).some((b) =>
+          b.effects.some((e) => e.effect === 'goods' && isPrecious(e.good) && (e.amount ?? 0) > 0)
+        )
+      )
+      expect(pays, s.id).toBe(true)
+    }
+  })
+
+  test('some road outcomes change standing with the locals, both ways', () => {
+    const amounts = options
+      .filter(({ s }) => !s.site)
+      .flatMap(({ o }) => branchesOf(o).flatMap((b) => b.effects))
+      .flatMap((e) => (e.effect === 'reputation' ? [e.amount] : []))
+    expect(amounts.some((n) => n > 0)).toBe(true)
+    expect(amounts.some((n) => n < 0)).toBe(true)
+  })
 })
