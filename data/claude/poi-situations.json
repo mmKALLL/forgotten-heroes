@@ -6378,6 +6378,194 @@
           ]
         }
       }
+    },
+    {
+      "id": "abandoned-waystation-visit",
+      "title": "Abandoned waystation",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["quest"],
+      "stages": {
+        "start": {
+          "text": "A coaching inn by the old road, its doors hanging open. The tables are still laid and the plates furred with dust, as if everyone stood up in the middle of supper and walked out together.",
+          "options": [
+            {
+              "id": "search",
+              "kind": "check",
+              "label": "Search the rooms",
+              "description": "Someone left in a hurry. They may have left clues.",
+              "check": {
+                "skill": "investigation",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} finds nothing but dust, and a feeling of being watched from the stairs."
+                },
+                "partial": {
+                  "text": "In the strongbox under the bar {actor} finds a few coins, and the guest ledger.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 4
+                    },
+                    {
+                      "effect": "log",
+                      "text": "The waystation's guest ledger ends mid-entry on the night of a red moon. Someone, somewhere, is still waiting for the people who signed it. (A quest hook: quests arrive in a later plan.)",
+                      "tone": "crit"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} finds the strongbox, the ledger, and a coachman's route-map with one stop circled in red ink.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 8
+                    },
+                    {
+                      "effect": "log",
+                      "text": "The waystation's guest ledger ends mid-entry on the night of a red moon. Someone, somewhere, is still waiting for the people who signed it. (A quest hook: quests arrive in a later plan.)",
+                      "tone": "crit"
+                    },
+                    {
+                      "effect": "discoverPoi",
+                      "count": 1,
+                      "scope": "land"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "sleep",
+              "kind": "fixed",
+              "label": "Sleep in the old beds",
+              "description": "A day, for a roof and a proper bed.",
+              "outcome": {
+                "text": "The beds are dusty but dry. Nobody comes in the night, though the doors bang until dawn.",
+                "effects": [
+                  {
+                    "effect": "days",
+                    "amount": 1
+                  },
+                  {
+                    "effect": "hp",
+                    "amount": 4,
+                    "target": "all"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave it be",
+              "outcome": {
+                "text": "You close the door behind you, for whatever good it does."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sealed-door-visit",
+      "title": "Sealed door",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["quest"],
+      "stages": {
+        "start": {
+          "text": "A door of green bronze is set into the hillside, taller than three men, without handle or keyhole. Words run around its frame in a script you half know, and the turf over it has never been cut.",
+          "options": [
+            {
+              "id": "read",
+              "kind": "check",
+              "label": "Read the words around the frame",
+              "description": "The door says what it is waiting for, to those who can read it.",
+              "check": {
+                "skill": "history",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The script slides away from {actor}'s eyes. It means nothing, today."
+                },
+                "partial": {
+                  "text": "{actor} makes out enough to know what the door is waiting for.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "The bronze door asks for a key: three things that belonged to three dead kings. (A quest hook: quests arrive in a later plan.)",
+                      "tone": "crit"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} reads it all: what the door wants, and where the first of the three kings lies buried.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "The bronze door asks for a key: three things that belonged to three dead kings. (A quest hook: quests arrive in a later plan.)",
+                      "tone": "crit"
+                    },
+                    {
+                      "effect": "discoverPoi",
+                      "count": 1,
+                      "scope": "land",
+                      "category": "dungeon"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "sense",
+              "kind": "check",
+              "label": "Lay a hand on the bronze and listen",
+              "description": "Magic holds it shut. It may not like being touched.",
+              "once": true,
+              "check": {
+                "skill": "arcana",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The bronze bites {actor} with cold, and the hand stays numb for an hour.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} feels something vast and patient on the other side, and takes the hand away quickly."
+                },
+                "success": {
+                  "text": "{actor} feels the ward's shape, and something behind it that is glad of company. You leave strangely heartened.",
+                  "effects": [
+                    {
+                      "effect": "inspiration",
+                      "amount": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the door to its waiting",
+              "outcome": {
+                "text": "You leave the door as it has always been. It doesn't seem to mind."
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }

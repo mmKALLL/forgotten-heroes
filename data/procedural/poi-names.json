@@ -1447,6 +1447,123 @@
           "text": "Hide"
         }
       ]
+    },
+    {
+      "id": "poi-name-waystation",
+      "description": "Abandoned waystations",
+      "rows": [
+        {
+          "text": "{poi-waystation-first} {poi-waystation-second}"
+        }
+      ]
+    },
+    {
+      "id": "poi-waystation-first",
+      "description": "What it was called",
+      "rows": [
+        {
+          "text": "the Last"
+        },
+        {
+          "text": "Old Post"
+        },
+        {
+          "text": "the Burnt"
+        },
+        {
+          "text": "Crossroads"
+        },
+        {
+          "text": "the Empty"
+        },
+        {
+          "text": "the King's"
+        },
+        {
+          "text": "Milestone"
+        },
+        {
+          "text": "the Red Moon"
+        }
+      ]
+    },
+    {
+      "id": "poi-waystation-second",
+      "description": "What kind of waystation",
+      "rows": [
+        {
+          "text": "Waystation"
+        },
+        {
+          "text": "Post House"
+        },
+        {
+          "text": "Coaching Inn"
+        },
+        {
+          "text": "Relay"
+        },
+        {
+          "text": "Toll House"
+        }
+      ]
+    },
+    {
+      "id": "poi-name-sealed",
+      "description": "Sealed doors",
+      "rows": [
+        {
+          "text": "{poi-sealed-first} {poi-sealed-second}"
+        }
+      ]
+    },
+    {
+      "id": "poi-sealed-first",
+      "description": "What the door is like",
+      "rows": [
+        {
+          "text": "the Sealed"
+        },
+        {
+          "text": "the Silent"
+        },
+        {
+          "text": "the Graven"
+        },
+        {
+          "text": "the Bronze"
+        },
+        {
+          "text": "the Hidden"
+        },
+        {
+          "text": "the Nameless"
+        },
+        {
+          "text": "the Kings'"
+        },
+        {
+          "text": "the Green"
+        }
+      ]
+    },
+    {
+      "id": "poi-sealed-second",
+      "description": "What kind of door",
+      "rows": [
+        {
+          "text": "Door"
+        },
+        {
+          "text": "Gate"
+        },
+        {
+          "text": "Portal"
+        },
+        {
+          "text": "Doors"
+        }
+      ]
     }
   ]
 }

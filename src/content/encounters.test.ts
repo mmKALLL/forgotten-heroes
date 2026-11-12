@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
+import { POI_CATEGORIES } from '../schema/constants'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
@@ -373,6 +374,41 @@ describe('points of interest', () => {
       )
     )
     expect(taught.size).toBeGreaterThanOrEqual(4)
+  })
+
+  test('every POI category has a type with a playable situation', () => {
+    for (const category of POI_CATEGORIES) {
+      const playable = ofCategory(category).filter((t) =>
+        t.situations.some(
+          (id) =>
+            validateSituation(content.situations[id], content).length === 0 &&
+            lintSituation(content.situations[id], content).length === 0
+        )
+      )
+      expect(playable.length, category).toBeGreaterThanOrEqual(1)
+    }
+  })
+
+  test('quest sites are neutral placeholders with a clue and a hook for later quests', () => {
+    expect(ofCategory('quest').length).toBeGreaterThanOrEqual(2)
+    for (const t of ofCategory('quest')) {
+      expect(t.hostile).toBe(false)
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition).toBe('neutral')
+        const effects = Object.values(s.stages)
+          .flatMap((st) => st.options.flatMap(outcomesOf))
+          .flatMap((b) => b.effects)
+        expect(
+          effects.some((e) => e.effect === 'discoverPoi'),
+          id
+        ).toBe(true)
+        expect(
+          effects.some((e) => e.effect === 'log' && /quest/i.test(e.text)),
+          id
+        ).toBe(true)
+      }
+    }
   })
 
   test.each(types.map((t) => [t.id, t.names] as const))(

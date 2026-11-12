@@ -367,6 +367,28 @@
       "names": "poi-name-lodge",
       "situations": ["old-huntress-visit"],
       "icon": "bow-arrow"
+    },
+    {
+      "id": "abandoned-waystation",
+      "category": "quest",
+      "name": "Abandoned waystation",
+      "weight": 0.4,
+      "biomes": ["plains", "hills", "desert"],
+      "pathDanger": 1,
+      "names": "poi-name-waystation",
+      "situations": ["abandoned-waystation-visit"],
+      "icon": "hanging-sign"
+    },
+    {
+      "id": "sealed-door",
+      "category": "quest",
+      "name": "Sealed door",
+      "weight": 0.4,
+      "biomes": ["hills", "mountains", "forest"],
+      "pathDanger": 1,
+      "names": "poi-name-sealed",
+      "situations": ["sealed-door-visit"],
+      "icon": "locked-door"
     }
   ]
 }
