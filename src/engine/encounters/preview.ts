@@ -3,6 +3,7 @@ import type { EncounterState, GameState } from '../../schema/state'
 import { previewCheck, type CheckPreview } from '../preview'
 import { checkLabel } from '../rules/abilities'
 import { canAct, rankActors } from '../rules/character'
+import { strainOf } from '../rules/strain'
 import {
   TIERS,
   successChance,
@@ -55,8 +56,8 @@ export type OptionCheckPreview = CheckPreview & {
   highStakes: boolean
   /** The d20 faces for each tier, with the effective modifier (actor's plus situational). */
   faces: Record<Tier, FaceRange | null>
-  /** Everyone able to act, best first, for the actor picker. */
-  actors: { id: string; name: string; modifier: number }[]
+  /** Everyone able to act, best first, for the actor picker. `strain` is their stacks for this skill. */
+  actors: { id: string; name: string; modifier: number; strain: number }[]
   /** Party members who can't act (downed or too exhausted), in party order, shown disabled. */
   unableActors: { id: string; name: string }[]
   /** Who acts when the player doesn't pick: the best of `actors`. */
@@ -177,6 +178,10 @@ export function encounterOptions(
       id: r.characterId,
       name: nameOf(r.characterId),
       modifier: r.modifier,
+      strain: strainOf(
+        state.party.find((c) => c.id === r.characterId)!,
+        skill
+      ),
     }))
     const check: OptionCheckPreview = {
       ...preview,

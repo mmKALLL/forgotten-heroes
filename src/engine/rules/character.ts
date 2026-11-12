@@ -7,13 +7,14 @@ import {
   type Ability,
   type CheckStat,
 } from './abilities'
+import { strainOf } from './strain'
 
 /** 2024 rules: each exhaustion level is −2 to d20 tests. Level 6 is death. */
 export const EXHAUSTION_PENALTY = 2
 
 /**
  * `ability` overrides the skill's default ability, e.g. Intimidation (CHA) for a veiled threat.
- * Proficiency still comes from the skill.
+ * Proficiency still comes from the skill. Exhaustion lowers every check; Strain lowers its skill.
  */
 export function statModifier(
   character: Character,
@@ -23,7 +24,8 @@ export function statModifier(
   const score = abilityModifier(character.abilities[ability])
   const proficient = isSkill(stat) && character.skillProficiencies.includes(stat)
   const proficiency = proficient ? proficiencyBonus(character.level) : 0
-  return score + proficiency - EXHAUSTION_PENALTY * character.exhaustion
+  const strain = isSkill(stat) ? strainOf(character, stat) : 0
+  return score + proficiency - EXHAUSTION_PENALTY * character.exhaustion - strain
 }
 
 export const canAct = (character: Character): boolean =>

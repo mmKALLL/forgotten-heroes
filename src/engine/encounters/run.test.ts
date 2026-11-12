@@ -412,3 +412,20 @@ describe('drawing encounters and follow-ups', () => {
     expect(step(start('cliff'), { type: 'closeEncounter' }, content).encounter).toBeNull()
   })
 })
+
+describe('strain', () => {
+  test('the third check with a skill in a day strains whoever rolled it', () => {
+    const uses = [
+      { day: 1, characterId: 'brom', skill: 'athletics' as const },
+      { day: 1, characterId: 'brom', skill: 'athletics' as const },
+    ]
+    const after = choose(start('cliff', makeState({ skillUses: uses })), 'climb', 'brom')
+    expect(after.party.find((c) => c.id === 'brom')!.strain).toEqual({ athletics: 1 })
+    expect(after.log.map((e) => e.text)).toContain('Brom is strained: Athletics −1 until it fades.')
+  })
+
+  test('the first two checks of the day do not', () => {
+    const after = choose(start('cliff'), 'climb', 'brom')
+    expect(after.party.find((c) => c.id === 'brom')!.strain).toEqual({})
+  })
+})

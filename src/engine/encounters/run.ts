@@ -13,9 +13,10 @@ import type { EncounterLogEntry, EncounterState, GameState, RollRecord } from '.
 import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
-import { checkLabel } from '../rules/abilities'
+import { checkLabel, statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
+import { addStrain, strainFrom, strainOf } from '../rules/strain'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
@@ -241,10 +242,16 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
     ...state.skillUses.filter((u) => u.day > state.day - SKILL_USE_DAYS),
     { day: state.day, characterId: actor.characterId, skill },
   ]
-  const rolled = appendLog(
+  // The new stack applies from the next check on; this roll used the old modifier.
+  const strained = strainFrom(skillUses, actor.characterId, skill, state.day)
+  const party = strained
+    ? state.party.map((c) => (c.id === actor.characterId ? addStrain(c, skill) : c))
+    : state.party
+  let rolled = appendLog(
     {
       ...state,
       rng,
+      party,
       lastRoll: record,
       skillUses,
       inspiration: state.inspiration + (inspired ? 1 : 0),
@@ -260,6 +267,17 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
     rollText,
     TIER_TONE[roll.tier]
   )
+  if (strained) {
+    const stacks = strainOf(
+      party.find((c) => c.id === actor.characterId)!,
+      skill
+    )
+    rolled = appendLog(
+      rolled,
+      `${name} is strained: ${statLabel(skill)} −${stacks} until it fades.`,
+      'bad'
+    )
+  }
   const branch = branchFor(tierOutcome(option, roll.tier), encounter.twist)
   return resolve(rolled, branch, actor.characterId, {
     tone: TIER_TONE[roll.tier],

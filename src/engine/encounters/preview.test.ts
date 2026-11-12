@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import type { GameState } from '../../schema/state'
 import { TIERS, tierFaces, tierOdds } from '../rules/checks'
 import { step } from '../state'
-import { fixtureContent, makeState } from '../test-fixtures'
+import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { applyEffects } from './effects'
 import { encounterOptions, twistInfo } from './preview'
 
@@ -198,4 +198,14 @@ describe('twistInfo', () => {
     const revealed = applyEffects(roadside, [{ effect: 'revealTwist' }])
     expect(twistInfo(revealed)).toEqual({ what: 'it is a trap', chance: 0.5 })
   })
+})
+
+test('the actor list shows each member’s strain for the skill', () => {
+  const party = [{ ...brom, strain: { athletics: 2 } }, lyra]
+  const state = start('cliff', makeState({ party }))
+  const climb = encounterOptions(state).find((o) => o.id === 'climb')!
+  expect(climb.check!.actors).toEqual([
+    { id: 'brom', name: 'Brom', modifier: 3, strain: 2 },
+    { id: 'lyra', name: 'Lyra', modifier: -1, strain: 0 },
+  ])
 })
