@@ -34,6 +34,8 @@ describe('placeInfo', () => {
       landName: 'Ashmoor',
       biome: 'marsh',
       domainId: 'ashmoor-1',
+      domainName: s.name,
+      lairThreat: 0,
       kingdomName: kingdom.name,
       seat: kingdom.seat === 'ashmoor-1',
       threatName: content.threats[state.world.lands.ashmoor.threat].name,
@@ -42,6 +44,31 @@ describe('placeInfo', () => {
     })
     expect(info.services.map((x) => x.id)).toEqual(s.services)
     expect(placeInfo(state, content, 'atlantis')).toBeNull()
+  })
+
+  test('notes the threat of the lairs the party has found in the domain', () => {
+    const base = makeState()
+    const pois = {
+      ...base.world.pois,
+      'poi-9': {
+        type: 'orc-war-camp',
+        spot: 'spot-0009',
+        domain: 'ashmoor-1',
+        name: 'Bonepile camp',
+        threat: 2,
+        discovered: false,
+        cleared: false,
+      },
+    }
+    const hidden = { ...base, world: { ...base.world, pois } }
+    expect(placeInfo(hidden, content, 'ashmoor-1')!.lairThreat).toBe(0)
+    const found = structuredClone(hidden)
+    found.world.pois['poi-9'].discovered = true
+    expect(placeInfo(found, content, 'ashmoor-1')!.lairThreat).toBe(2)
+    // Hidden or not, the lair is in the level.
+    expect(placeInfo(hidden, content, 'ashmoor-1')!.threatLevel).toBe(
+      placeInfo(found, content, 'ashmoor-1')!.threatLevel
+    )
   })
 
   test('a settlement named after a town map has its banner', () => {

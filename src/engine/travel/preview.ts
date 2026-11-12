@@ -6,7 +6,7 @@ import { inProgress } from '../encounters/run'
 import { canAct } from '../rules/character'
 import { otherEnd, settlementName } from '../world/geo'
 import { edgeById, edgesFrom } from '../world/graph'
-import { domainThreatLevel } from '../world/pois'
+import { domainThreatLevel, knownLairThreat } from '../world/pois'
 import { ambushPositionForPace, paceHostileAvoidance } from './pace'
 import {
   canMeetEncounters,
@@ -48,6 +48,8 @@ export type PlaceInfo = {
   biome: Biome | null
   /** Its domain: the settlement itself (design §6). */
   domainId: string
+  /** The domain's name: its settlement's. */
+  domainName: string
   /** The kingdom holding the domain. */
   kingdomName: string
   /** The ruling ancestry's name. */
@@ -60,6 +62,8 @@ export type PlaceInfo = {
   threatName: string
   /** The domain's threat level (domainThreatLevel): the land's threat and its lairs, against its garrison. */
   threatLevel: number
+  /** What the lairs the party has found add to the domain's threat (knownLairThreat). */
+  lairThreat: number
   services: { id: string; name: string }[]
   /** The town map, as a path under assets/, or null. */
   banner: string | null
@@ -85,12 +89,14 @@ export function placeInfo(state: GameState, content: Content, id: string): Place
     landName: land?.name ?? site.region,
     biome: land?.biome ?? null,
     domainId: id,
+    domainName: info.name,
     kingdomName: kingdom?.name ?? 'No kingdom',
     rulerAncestry: ancestry(kingdom?.ancestry),
     ancestryName: ancestry(info.ancestry),
     seat: kingdom?.seat === id,
     threatName: own(content.threats, landState?.threat)?.name ?? 'None',
     threatLevel: domainThreatLevel(state.world, id),
+    lairThreat: knownLairThreat(state.world, id),
     services: info.services.map((s) => ({ id: s, name: own(content.services, s)?.name ?? s })),
     banner: own(content.towns, info.town)?.banner ?? null,
     coastal: site.coastal,

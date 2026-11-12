@@ -143,6 +143,16 @@ export function domainThreatStrength(world: PoiWorld, domainId: string): number 
   return land + lairs
 }
 
+/**
+ * What the party knows lairs add to a domain's threat: the threat of its discovered, uncleared
+ * POIs. Undiscovered ones still count in the level (domainThreatLevel), silently.
+ */
+export function knownLairThreat(world: Pick<PoiWorld, 'pois'>, domainId: string): number {
+  return Object.values(world.pois)
+    .filter((p) => p.domain === domainId && p.discovered && !p.cleared)
+    .reduce((sum, p) => sum + p.threat, 0)
+}
+
 /** How far the threat outweighs the domain's garrison, 0 (held) to 3 (rampant); derived, never stored. */
 export function domainThreatLevel(world: PoiWorld, domainId: string): number {
   const domain = own(world.domains, domainId)

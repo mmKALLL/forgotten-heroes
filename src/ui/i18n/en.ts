@@ -167,8 +167,10 @@ export const en = {
   'place.summary': '{type}, about {population} people',
   'place.size': 'Size: {size}',
   'place.seat': 'seat of the realm',
-  'place.realm': '{region} · {kingdom} ({ancestry} rule)',
-  'place.threat': 'Threat: {threat} ({level})',
+  'place.realm': '{land} · domain of {domain} · {kingdom} ({ancestry} rule)',
+  'place.domainThreat': 'Threat: {threat} ({level})',
+  /** Appended to the threat line: what the lairs the party has found add. */
+  'place.lairThreat': '+{n} from lairs',
   'place.services': 'Services',
   'place.noServices': 'No services to speak of.',
   'place.supplies': 'Supplies',
@@ -182,7 +184,7 @@ export const en = {
   'place.sellFood': 'Sell {n} rations (+{gp} gp)',
   'place.sellWaterskin': 'Sell a waterskin (+{gp} gp)',
   'place.roads': 'Roads from here',
-  'place.elsewhere': '{name}: {type} · {region} · {kingdom}',
+  'place.elsewhere': '{name}: {type}',
 
   'route.heading': 'To {name}',
   'route.summary': '{km} km · {days} d · {terrain} · {danger}',

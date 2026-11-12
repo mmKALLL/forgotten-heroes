@@ -23,10 +23,11 @@ import {
   findsText,
   paceChoiceOf,
   paceFields,
+  realmText,
   roadReasonMessage,
   sizeText,
   stowawayText,
-  threatText,
+  threatLine,
   warningMessage,
   type PaceChoice,
 } from './travelText'
@@ -88,18 +89,9 @@ export function PlacePanel({
       <h2>{here.name}</h2>
       <p className="small" title={t('place.size', { size: sizeText(t, here.sizeTier) })}>
         {t('place.summary', { type: here.typeName, population: here.population })}
-        {here.seat && ` · ${t('place.seat')}`}
       </p>
-      <p className="muted small">
-        {t('place.realm', {
-          region: here.landName,
-          kingdom: here.kingdomName,
-          ancestry: here.rulerAncestry,
-        })}
-      </p>
-      <p className="small">
-        {t('place.threat', { threat: here.threatName, level: threatText(t, here.threatLevel) })}
-      </p>
+      <p className="muted small">{realmText(t, here)}</p>
+      <p className="small">{threatLine(t, here)}</p>
       <h3>{t('place.services')}</h3>
       {here.services.length > 0 ? (
         <ul className="services">
@@ -202,18 +194,10 @@ export function PlacePanel({
       {elsewhere && (
         <div className="route-info">
           <p className="small">
-            {t('place.elsewhere', {
-              name: elsewhere.name,
-              type: elsewhere.typeName,
-              region: elsewhere.landName,
-              kingdom: elsewhere.kingdomName,
-            })}{' '}
-            ·{' '}
-            {t('place.threat', {
-              threat: elsewhere.threatName,
-              level: threatText(t, elsewhere.threatLevel),
-            })}
+            {t('place.elsewhere', { name: elsewhere.name, type: elsewhere.typeName })}
           </p>
+          <p className="muted small">{realmText(t, elsewhere)}</p>
+          <p className="small">{threatLine(t, elsewhere)}</p>
           <p className="muted small">{t('route.unreachable', { name: elsewhere.name })}</p>
         </div>
       )}
@@ -255,10 +239,12 @@ function RouteInfo({
     <div className="route-info" role="group" aria-label={t('route.heading', { name: road.toName })}>
       <h3>{t('route.heading', { name: road.toName })}</h3>
       {there && (
-        <p className="small">
-          {there.typeName} · {there.landName} · {there.kingdomName} ·{' '}
-          {t('place.threat', { threat: there.threatName, level: threatText(t, there.threatLevel) })}
-        </p>
+        <>
+          <p className="muted small">{realmText(t, there)}</p>
+          <p className="small">
+            {there.typeName} · {threatLine(t, there)}
+          </p>
+        </>
       )}
       <div className="seg-toggle pace-choice" role="group" aria-label={t('route.pace')}>
         {road.paces.map((p) => {
