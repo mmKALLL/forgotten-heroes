@@ -3,7 +3,7 @@ import type { Content } from '../../content/build'
 import { fixtureContent } from '../test-fixtures'
 import { components, otherEnd, routesFrom, straightKm } from './geo'
 import { PX_PER_KM } from '../../schema/world'
-import { SPOT_LINK_KM, SPOT_SPACING_PX, worldIssues } from './validate'
+import { poiTypeIssues, SPOT_LINK_KM, SPOT_SPACING_PX, worldIssues } from './validate'
 
 const content = fixtureContent()
 const edit = (change: (c: Content) => void): Content => {
@@ -168,5 +168,67 @@ describe('worldIssues: land spots', () => {
     expect(worldIssues(crowded)).toContain(
       'spots spot-0001 and spot-0002 are 28 px apart (under 50)'
     )
+  })
+})
+
+describe('poiTypeIssues', () => {
+  test('the test POI types are valid, and worldIssues includes their issues', () => {
+    expect(poiTypeIssues(content)).toEqual([])
+    const broken = edit((c) => {
+      c.poiTypes['herbalist-hut'].names = 'nowhere'
+    })
+    expect(worldIssues(broken)).toContain('poi type herbalist-hut: unknown parts table "nowhere"')
+  })
+
+  test('situations exist and are site situations', () => {
+    const broken = edit((c) => {
+      c.poiTypes['herbalist-hut'].situations = ['herbalist-visit', 'atlantis', 'road-only']
+      c.situations['road-only'] = {
+        ...c.situations['herbalist-visit'],
+        id: 'road-only',
+        site: false,
+      }
+    })
+    expect(poiTypeIssues(broken)).toEqual([
+      'poi type herbalist-hut: unknown situation "atlantis"',
+      'poi type herbalist-hut: "road-only" is not a site situation',
+    ])
+  })
+
+  test('a wonder plays only wonder situations', () => {
+    const broken = edit((c) => {
+      c.poiTypes['singing-stones'].situations = ['singing-stones', 'herbalist-visit']
+    })
+    expect(poiTypeIssues(broken)).toEqual([
+      'poi type singing-stones: a wonder plays only wonders, and "herbalist-visit" is not one',
+    ])
+  })
+
+  test('names and threats must exist', () => {
+    const broken = edit((c) => {
+      c.poiTypes['orc-war-camp'].names = 'poi-name-nowhere'
+      c.poiTypes['orc-war-camp'].threats = ['orc-warband', 'kraken']
+    })
+    expect(poiTypeIssues(broken)).toEqual([
+      'poi type orc-war-camp: unknown parts table "poi-name-nowhere"',
+      'poi type orc-war-camp: unknown threat "kraken"',
+    ])
+  })
+
+  test('only a lair or a dungeon can be hostile', () => {
+    const broken = edit((c) => {
+      c.poiTypes['herbalist-hut'] = {
+        ...c.poiTypes['herbalist-hut'],
+        hostile: true,
+        threat: { min: 1, max: 1 },
+      }
+    })
+    expect(poiTypeIssues(broken)).toEqual([
+      'poi type herbalist-hut: only a lair or a dungeon can be hostile (it is an expert)',
+    ])
+    const dungeon = edit((c) => {
+      c.poiTypes['orc-war-camp'].category = 'dungeon'
+    })
+    expect(poiTypeIssues(dungeon)).toEqual([])
   })
 })

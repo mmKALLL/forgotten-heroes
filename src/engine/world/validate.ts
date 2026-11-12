@@ -98,7 +98,36 @@ export function worldIssues(content: Content): string[] {
       pins.set(town.site, town.id)
     }
   }
-  issues.push(...landSpotIssues(content))
+  issues.push(...landSpotIssues(content), ...poiTypeIssues(content))
+  return issues
+}
+
+/** Problems with the POI type table: unknown references, and types that can't be what they say. */
+export function poiTypeIssues(content: Content): string[] {
+  const issues: string[] = []
+  const { situations, partsTables, threats } = content
+  for (const type of sortedEntries(content.poiTypes)) {
+    const at = `poi type ${type.id}`
+    for (const id of type.situations) {
+      if (!Object.hasOwn(situations, id)) issues.push(`${at}: unknown situation "${id}"`)
+      else if (!situations[id].site) issues.push(`${at}: "${id}" is not a site situation`)
+      else if (type.category === 'wonder' && !situations[id].wonder) {
+        issues.push(`${at}: a wonder plays only wonders, and "${id}" is not one`)
+      }
+    }
+    if (!Object.hasOwn(partsTables, type.names)) {
+      issues.push(`${at}: unknown parts table "${type.names}"`)
+    }
+    for (const id of type.threats) {
+      if (!Object.hasOwn(threats, id)) issues.push(`${at}: unknown threat "${id}"`)
+    }
+    if (type.hostile && type.category !== 'lair' && type.category !== 'dungeon') {
+      const article = /^[aeiou]/.test(type.category) ? 'an' : 'a'
+      issues.push(
+        `${at}: only a lair or a dungeon can be hostile (it is ${article} ${type.category})`
+      )
+    }
+  }
   return issues
 }
 

@@ -4,6 +4,9 @@ import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
 import { encounterOver, fitsPlace } from '../engine/encounters/run'
+import { rollTable } from '../engine/encounters/slots'
+import { createRng, withRng } from '../engine/rng'
+import { poiTypeIssues } from '../engine/world/validate'
 import { lintSituation, validateSituation, validateTwistKind } from '../engine/encounters/validate'
 import { newGame, step } from '../engine/state'
 import { brawlCandidates } from '../engine/travel/stowaway'
@@ -122,9 +125,10 @@ test('SRD creatures are imported, and parts tables feed three templates', () => 
   ])
 })
 
+/** Road situations from one source (site situations are played at points of interest). */
 const idsFrom = (source: string) =>
   Object.values(content.situations)
-    .filter((s) => s.source === source)
+    .filter((s) => s.source === source && !s.site)
     .map((s) => s.id)
     .sort()
 
@@ -147,7 +151,9 @@ test('Claude wrote eight situations, two of them wonders, four at sea, plus foll
     'squall-off-the-bow',
     'wardens-on-your-trail',
   ])
-  const wonders = Object.values(content.situations).filter((s) => s.source === 'claude' && s.wonder)
+  const wonders = Object.values(content.situations).filter(
+    (s) => s.source === 'claude' && s.wonder && !s.site
+  )
   expect(wonders.map((s) => s.id).sort()).toEqual(['lantern-moths', 'singing-stones'])
 })
 
@@ -197,6 +203,59 @@ test('every situation and twist kind says how it treats the party', () => {
   expect(untagged).toEqual([])
   const hostile = allSituations(content).filter((s) => s.disposition === 'hostile')
   expect(hostile.length).toBeGreaterThanOrEqual(3)
+})
+
+describe('points of interest', () => {
+  const types = Object.values(content.poiTypes)
+  const ofCategory = (category: string) => types.filter((t) => t.category === category)
+
+  test('the POI type table passes the validator', () => {
+    expect(types.length).toBeGreaterThan(0)
+    expect(poiTypeIssues(content)).toEqual([])
+  })
+
+  test('two or three shrines, landmarks and wonders, never hostile', () => {
+    for (const category of ['shrine', 'landmark', 'wonder']) {
+      expect(ofCategory(category).length).toBeGreaterThanOrEqual(2)
+      expect(ofCategory(category).length).toBeLessThanOrEqual(3)
+      for (const t of ofCategory(category)) expect(t.hostile).toBe(false)
+    }
+  })
+
+  test('shrines and landmarks are pleasant or neutral; wonders play wonders', () => {
+    for (const t of [...ofCategory('shrine'), ...ofCategory('landmark')]) {
+      for (const id of t.situations) {
+        expect(['pleasant', 'neutral']).toContain(content.situations[id].disposition)
+      }
+    }
+    for (const t of ofCategory('wonder')) {
+      for (const id of t.situations) expect(content.situations[id].wonder).toBe(true)
+    }
+  })
+
+  test('only a spring or a well refills the waterskins', () => {
+    for (const t of types.filter((t) => t.water))
+      expect(`${t.id} ${t.name}`).toMatch(/spring|well/i)
+  })
+
+  test('every site situation is played by some POI type', () => {
+    const played = new Set(types.flatMap((t) => t.situations))
+    const unused = Object.values(content.situations)
+      .filter((s) => s.site && !played.has(s.id))
+      .map((s) => s.id)
+    expect(unused).toEqual([])
+  })
+
+  test.each(types.map((t) => [t.id, t.names] as const))(
+    '%s names come out whole from %s',
+    (_, table) => {
+      const [names] = withRng(createRng(7), (d) =>
+        Array.from({ length: 30 }, () => rollTable(d, content, table))
+      )
+      for (const name of names) expect(name).not.toMatch(UNFILLED)
+      expect(new Set(names).size).toBeGreaterThan(3)
+    }
+  )
 })
 
 test('the follow-ups that hunt the party down are pursuits', () => {
