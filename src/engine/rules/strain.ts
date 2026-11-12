@@ -48,11 +48,17 @@ export function strainedOn(uses: readonly SkillUse[], characterId: string, day: 
  * Day `day` ends: one stack of each strained skill fades, except in skills that gained a stack
  * that day, so a new stack always lasts until the next day's fade.
  */
-export const fadeStrainAfter = (
+export function fadeStrainAfter(
   character: Character,
   uses: readonly SkillUse[],
-  day: number
-): Character => fadeStrain(character, strainedOn(uses, character.id, day))
+  day: number,
+  times = 1
+): Character {
+  let faded = character
+  const keep = strainedOn(uses, character.id, day)
+  for (let i = 0; i < times; i++) faded = fadeStrain(faded, keep)
+  return faded
+}
 
 /**
  * Records one check by one character (encounter rolls, foraging, stowing away), dropping uses

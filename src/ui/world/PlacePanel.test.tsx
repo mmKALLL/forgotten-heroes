@@ -167,7 +167,7 @@ test('a crossing the party can’t afford says why, and offers to stow away with
 test('rest shows the inn’s price or carried food; buying and selling dispatch', async () => {
   const state = makeState({ location: 'ashmoor-1', gold: 20, waterskins: 1 })
   const { onAction, unmount } = panel(state, null)
-  const cost = restOption(state).lodgingCost
+  const cost = restOption(state, content).lodgingCost
   await userEvent.click(
     screen.getByRole('button', { name: `Rest a day at the inn (${cost} gp, meals included)` })
   )

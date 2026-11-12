@@ -4,6 +4,7 @@ import type { Character, GameState, Goods } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { spoilDay } from '../economy/goods'
+import { animalWater, payUpkeep } from '../town/animals'
 import type { Rng } from '../rng'
 import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
@@ -89,6 +90,8 @@ export function consumeDay(
   const extra = dailyNeed(state.party.length, terrain, pace)
   food = Math.max(0, food - (extra.food - state.party.length))
   water = Math.max(0, water - (extra.water - need * state.party.length))
+  // Animals drink from the carried water too (in town the water is free).
+  if (content && terrain !== null) water = Math.max(0, water - animalWater(state, content) * need)
   const marched =
     pace === 'forced'
       ? party.map((c) => {
@@ -106,8 +109,12 @@ export function consumeDay(
     goods: { ...state.goods, food, water },
   }
   for (const line of lines) next = appendLog(next, line.text, line.tone)
-  return { state: content ? spoilDay(next, content) : next, unfed }
+  return { state: content ? endOfDay(next, content) : next, unfed }
 }
+
+/** A day ends: goods spoil (spoilDay) and the owned animals' upkeep is paid (payUpkeep). */
+export const endOfDay = (state: GameState, content: Content): GameState =>
+  payUpkeep(spoilDay(state, content), content)
 
 /** A day on the road at this pace (goods spoil when `content` is given). */
 export const passDay = (

@@ -148,5 +148,9 @@ export function roadReasonMessage(t: T, r: RoadReason): string {
       return t('roadReason.fare', { gp: r.params.gold })
     case 'overloaded':
       return t('roadReason.overloaded', { kg: r.params.kg })
+    case 'animals':
+      return t(r.params.roadsOnly ? 'roadReason.cart' : 'roadReason.roughPath', {
+        name: r.params.name.toLowerCase(),
+      })
   }
 }

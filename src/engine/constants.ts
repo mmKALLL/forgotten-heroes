@@ -118,7 +118,7 @@ export const WATER_DAYS = 4
 export const WATERSKIN_WATER = 2
 /** A stop-gap price per waterskin until the Plan 4 market. */
 export const WATERSKIN_PRICE = 2
-/** Lodging per member per night (meals included). Plan 4 sets it by inn quality. */
+/** A common room per member per night (meals included), at any inn. */
 export const LODGING_PRICE = 1
 /** What an extra waterskin sells back for. */
 export const WATERSKIN_SELL_PRICE = 1
@@ -172,6 +172,29 @@ export const STALL_QUALITY = 1
 
 /** Prices in the price book older than this many days are shown as stale. */
 export const STALE_DAYS = 14
+
+// Services and animals (town/services.ts, town/animals.ts)
+
+/** A private room per member per night (meals included), at an inn of PRIVATE_ROOM_MIN_QUALITY+. */
+export const PRIVATE_ROOM_PRICE = 3
+/** Only inns of at least this quality have private rooms. */
+export const PRIVATE_ROOM_MIN_QUALITY = 3
+/** Strain stacks a night in a private room fades (a common room or camp fades 1). */
+export const PRIVATE_ROOM_FADE = 2
+/** A healer's fee per member treated: all HP back and one level of exhaustion off, no day spent. */
+export const HEALER_PRICE = 10
+/** A temple's blessing (1 Inspiration), once per arrival at each temple. */
+export const BLESSING_PRICE = 10
+/** A courier's news of one market on the same island. */
+export const NEWS_PRICE = 5
+/** How far news travels in a day: a heard price is a day older per this many km between towns. */
+export const COURIER_KM_PER_DAY = 40
+/** Animals sell back for this share of their price. */
+export const ANIMAL_RESALE = 0.5
+/** Ridden in rough terrain, mounts are only this much faster than walking. */
+export const MOUNT_ROUGH_SPEED = 1.25
+/** The terrain where mounts manage only MOUNT_ROUGH_SPEED. */
+export const ROUGH_TERRAIN: readonly Biome[] = ['mountains', 'marsh', 'jungle']
 
 // Stowing away (stowaway.ts)
 

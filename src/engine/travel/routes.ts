@@ -7,7 +7,8 @@ import { fitsPlace } from '../encounters/run'
 import { edgeById } from '../world/graph'
 import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
-import { load, loadSpeed } from '../economy/capacity'
+import { load, loadSpeed, type Hired } from '../economy/capacity'
+import { mountSpeed } from '../town/animals'
 import { coversTracks } from './pace'
 import {
   COVER_TRACKS_EXTRA_DAYS,
@@ -43,16 +44,19 @@ export function kmPerDay(
 }
 
 /**
- * The share of its land speed the party keeps on this terrain: slowed by its load (loadSpeed).
- * Always 1 at sea, where the ship carries everything.
+ * The party's land speed multiplier on this terrain: slowed by its load (loadSpeed), and sped up
+ * by mounts when everyone rides (mountSpeed; `hired` previews hiring). Always 1 at sea, where the
+ * ship carries everything at its own speed.
  */
 export function landSpeed(
   state: Pick<GameState, 'party' | 'animals' | 'travel' | 'goods'>,
   content: Content,
-  terrain: Biome
+  terrain: Biome,
+  hired: Hired | null = state.travel?.hired ?? null
 ): number {
   if (terrain === 'sea') return 1
-  return loadSpeed(load(state, content).level)
+  const laden = load(state, content, { hired })
+  return loadSpeed(laden.level) * mountSpeed(state, content, terrain, hired)
 }
 
 export const journeyDays = (
@@ -183,6 +187,11 @@ export function routeThreat(
 /** Sea passage; the ship's speed doesn't depend on pace, so neither does the fare. */
 export const fareFor = (route: Pick<Route, 'km' | 'terrain'>, members: number): number =>
   route.terrain === 'sea' ? SEA_FARE * members * journeyDays(route) : 0
+
+/** Who pays a ship's fare: every member, and every owned animal (and cart). */
+export const passengers = (
+  state: Pick<GameState, 'party'> & Partial<Pick<GameState, 'animals'>>
+): number => state.party.length + Object.values(state.animals ?? {}).reduce((sum, n) => sum + n, 0)
 
 /** The terrain underfoot on a journey; null if its route or path has gone. */
 export const routeTerrain = (

@@ -13,6 +13,8 @@ import { chooseActor } from './rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, type RollMode } from './rules/checks'
 import { stepTravel, type TravelAction } from './travel/journey'
 import { observe, stepTrade, type TradeAction } from './economy/trade'
+import { useService, type ServiceUse } from './town/services'
+import { buyAnimal, sellAnimal } from './town/animals'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
@@ -29,6 +31,11 @@ export type Action =
   | EncounterAction
   | TravelAction
   | TradeAction
+  /** Use a service here: a healer, a temple's blessing, a courier's news (town/services.ts). */
+  | ServiceUse
+  /** Buy or sell one pack animal, riding animal or cart at an animals service. */
+  | { type: 'buyAnimal'; animal: string }
+  | { type: 'sellAnimal'; animal: string }
   /** Play one of the situations of the discovered, uncleared POI the party is at. */
   | { type: 'visitPoi' }
   /** Search the domain the party is in for undiscovered POIs (world/explore.ts). */
@@ -144,6 +151,12 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'buyGoods':
     case 'sellGoods':
       return stepTrade(state, action, content)
+    case 'useService':
+      return useService(state, content, action)
+    case 'buyAnimal':
+      return buyAnimal(state, content, action.animal)
+    case 'sellAnimal':
+      return sellAnimal(state, content, action.animal)
     case 'visitPoi':
       return visitPoi(state, content)
     case 'explore':

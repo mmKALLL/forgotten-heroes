@@ -11,6 +11,7 @@ import { passDay } from '../travel/days'
 import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
 import { changeGoods } from '../economy/goods'
+import { changeAnimals } from '../town/animals'
 
 export { MAX_EXHAUSTION }
 
@@ -208,10 +209,10 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     case 'goods':
       // Without content every good is worth the same, so a category is taken in design order.
       return { ...state, goods: changeGoods(state.goods, ctx.content ?? emptyContent(), effect) }
-    // Plan 4: reputation lands with B2 and animals with A4. Until then they change nothing, and
-    // no content uses them.
-    case 'reputation':
     case 'animals':
+      return changeAnimals(state, ctx.content ?? emptyContent(), effect)
+    // Plan 4: reputation lands with B2. Until then it changes nothing, and no content uses it.
+    case 'reputation':
       return state
   }
 }

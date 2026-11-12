@@ -19,6 +19,7 @@ import {
   journeyDays,
   kmPerDay,
   landSpeed,
+  passengers,
   rollEncounterDays,
   routeEncounters,
   routeTerrain,
@@ -35,7 +36,9 @@ import {
 } from './supplies'
 import { observe } from '../economy/trade'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
-import { load, overloadExcess } from '../economy/capacity'
+import { load, overloadExcess, type Hired } from '../economy/capacity'
+import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/animals'
+import type { Room } from '../town/services'
 import { DEFAULT_PACE } from '../constants'
 
 /**
@@ -52,9 +55,12 @@ export type TravelAction =
       forage?: boolean
       /** Sneak aboard a ship the party can't pay for (stowaway.ts). */
       stowaway?: boolean
+      /** Hire riding animals for this journey (town/animals.ts hireOffer). */
+      hire?: boolean
     }
   | { type: 'continueJourney' }
-  | { type: 'rest'; lodging?: boolean }
+  /** A day of rest: true or "common" for a common room, "private", or false for own food. */
+  | { type: 'rest'; lodging?: boolean | Room }
   | { type: 'buyWaterskin'; count?: number }
   | { type: 'sellWaterskin'; count?: number }
 
@@ -63,6 +69,7 @@ export type DepartOptions = {
   coverTracks?: boolean
   forage?: boolean
   stowaway?: boolean
+  hire?: boolean
 }
 
 const BUSY = 'Finish the current encounter first.'
@@ -115,8 +122,14 @@ export function depart(
     )
   }
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
-  // On land the party carries everything itself; a ship carries it at sea.
-  const laden = load(state, content)
+  const blocked = animalBlock(state, content, route)
+  if (blocked) return appendLog(state, animalBlockText(blocked), 'bad')
+  const offer = options.hire ? hireOffer(state, content, route) : null
+  if (options.hire && !offer)
+    return appendLog(state, 'There are no mounts for hire for that road.', 'bad')
+  const hired: Hired | null = offer && { animal: offer.animal, count: offer.count }
+  // On land the party carries everything itself (and its mounts); a ship carries it at sea.
+  const laden = load(state, content, { hired })
   if (route.terrain !== 'sea' && laden.level === 'overloaded') {
     return appendLog(
       state,
@@ -140,9 +153,32 @@ export function depart(
     const at = placeOnRoute(out, content, out.travel!) ?? place ?? undefined
     return startEncounter(out, content, brawl, at)
   }
-  const fare = fareFor(route, state.party.length)
+  const fare = fareFor(route, passengers(state))
   if (state.gold < fare) return appendLog(state, `Passage costs ${fare} gp.`, 'bad')
   const passage = fare > 0 ? `, ${fare} gp passage` : ''
+  if (offer && hired) {
+    const { pace, coverTracks } = paceFor(route, options.pace, options.coverTracks)
+    const length = journeyDays(
+      route,
+      pace,
+      coverTracks,
+      landSpeed(state, content, route.terrain, hired)
+    )
+    const cost = hireCost(offer, length)
+    if (state.gold < cost) {
+      return appendLog(state, `Hiring ${offer.name.toLowerCase()}s costs ${cost} gp.`, 'bad')
+    }
+    const riding = `, riding hired ${offer.name.toLowerCase()}s (${cost} gp)`
+    return setOut(
+      { ...state, gold: state.gold - cost },
+      content,
+      route,
+      here,
+      options,
+      riding,
+      hired
+    )
+  }
   return setOut({ ...state, gold: state.gold - fare }, content, route, here, options, passage)
 }
 
@@ -161,13 +197,15 @@ function setOut(
   route: Route,
   here: string,
   options: DepartOptions,
-  passage: string
+  passage: string,
+  hired: Hired | null = null
 ): GameState {
   const requestedPace = options.pace ?? DEFAULT_PACE
   const requestedCover = options.coverTracks ?? false
   const { pace, coverTracks } = paceFor(route, requestedPace, requestedCover)
   const to = otherEnd(route, here)
-  const speed = landSpeed(state, content, route.terrain)
+  const speed = landSpeed(state, content, route.terrain, hired)
+  const heavy = route.terrain !== 'sea' && load(state, content, { hired }).level !== 'light'
   const length = journeyDays(route, pace, coverTracks, speed)
   const { encounters, chance } = routeEncounters(canMeetEncounters(content, route, state), length)
   const [encounterDays, rng] = withRng(state.rng, (d) =>
@@ -187,7 +225,7 @@ function setOut(
     coverTracks,
     paceLog: [],
     forage: (options.forage ?? true) && route.terrain !== 'sea',
-    hired: null,
+    hired,
   }
   const how = PACE_PHRASE[pace] + (coverTracks ? ', covering its tracks' : '')
   const ship =
@@ -195,7 +233,7 @@ function setOut(
       ? ' The ship sets the pace.'
       : ''
   const noForage = route.terrain !== 'sea' && options.forage === false ? ' No foraging.' : ''
-  const laden = speed < 1 ? ' Heavily laden, it walks slowly.' : ''
+  const laden = heavy ? ' Heavily laden, it goes slowly.' : ''
   return appendLog(
     { ...state, rng, location: null, travel },
     `The party sets out for ${settlementName(state, to)}${how}: ${route.km} km, ` +
@@ -248,6 +286,8 @@ function watered(state: GameState, content: Content, id: string): boolean {
 function arrive(state: GameState, content: Content): GameState {
   const travel = state.travel!
   const water = watered(state, content, travel.to)
+  // Hired mounts are returned on arrival.
+  const returned = travel.hired ? ' The hired mounts are returned.' : ''
   const arrived: GameState = {
     ...state,
     travel: null,
@@ -263,7 +303,8 @@ function arrive(state: GameState, content: Content): GameState {
     appendLog(
       arrived,
       `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road.` +
-        (water ? ' The waterskins are refilled.' : ''),
+        (water ? ' The waterskins are refilled.' : '') +
+        returned,
       'good'
     ),
     content,

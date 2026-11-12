@@ -47,7 +47,7 @@ export function wander(
   for (let leg = 0; leg < legs; leg++) {
     if (!state.travel) {
       for (let day = 0; day < MAX_REST_DAYS && state.party.some(needsRest); day++) {
-        const lodging = state.gold - restOption(state).lodgingCost >= LODGING_RESERVE
+        const lodging = state.gold - restOption(state, content).lodgingCost >= LODGING_RESERVE
         const short = state.party.length - goodsOf(state.goods, 'food')
         if (short > 0 && !lodging) {
           state = step(state, { type: 'buyGoods', good: 'food', amount: short }, content)

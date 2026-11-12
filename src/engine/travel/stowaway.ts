@@ -11,7 +11,7 @@ import { withRng } from '../rng'
 import { chooseActor } from '../rules/character'
 import { TIER_LABELS, rollCheck, tierOdds } from '../rules/checks'
 import { fadeStrainAfter, useSkill } from '../rules/strain'
-import { fareFor } from './routes'
+import { fareFor, passengers } from './routes'
 import {
   STOWAWAY_BRAWL_DAMAGE,
   STOWAWAY_DC,
@@ -69,11 +69,11 @@ export function stowawayOutcomes(gold: number): Record<Tier, StowawayTierOutcome
 
 /** Why the party can't stow away on this route, or null if it can. */
 export function stowawayRefusal(
-  state: Pick<GameState, 'gold' | 'party'>,
+  state: Pick<GameState, 'gold' | 'party'> & Partial<Pick<GameState, 'animals'>>,
   route: Pick<Route, 'km' | 'terrain'>
 ): string | null {
   if (route.terrain !== 'sea') return 'Only a ship can be stowed away on.'
-  if (state.gold >= fareFor(route, state.party.length)) return 'The party can pay its passage.'
+  if (state.gold >= fareFor(route, passengers(state))) return 'The party can pay its passage.'
   if (!chooseActor(state.party, STOWAWAY_SKILL)) return 'No one is fit to sneak aboard.'
   return null
 }

@@ -197,7 +197,9 @@ describe('pace and supplies', () => {
 
 describe('rest', () => {
   test('a day at an inn heals fully, eases exhaustion, refills the water and feeds the party', () => {
+    // ashmoor-1 has an inn (greenvale-2 has none).
     const tired = base({
+      location: 'ashmoor-1',
       gold: 5,
       goods: { food: 10, water: 2 },
       party: [{ ...brom, hp: 3, exhaustion: 2, strain: { survival: 1 } }, lyra],
@@ -208,21 +210,32 @@ describe('rest', () => {
     expect(after.party[0]).toMatchObject({ hp: 20, exhaustion: 1, strain: {} })
     expect(after.goods).toEqual({ food: 10, water: 8 })
     expect(after.log.at(-1)!.text).toBe(
-      `The party rests a day at an inn in ${settlementName(after, 'greenvale-2')}: 2 gp, meals included.`
+      `The party rests a day at an inn in ${settlementName(after, 'ashmoor-1')}: 2 gp, meals included.`
     )
-    expect(restOption(tired)).toEqual({ inTown: true, lodgingCost: 2, lodging: true })
+    expect(restOption(tired, content)).toMatchObject({
+      inTown: true,
+      lodgingCost: 2,
+      lodging: true,
+      room: 'common',
+    })
   })
 
   test('a party that can’t pay for lodging, or won’t, rests in town on its own food', () => {
-    const broke = base({ gold: 1, party: [{ ...brom, hp: 3 }, lyra] })
-    expect(restOption(broke)).toEqual({ inTown: true, lodgingCost: 2, lodging: false })
+    const broke = base({ location: 'ashmoor-1', gold: 1, party: [{ ...brom, hp: 3 }, lyra] })
+    expect(restOption(broke, content)).toMatchObject({
+      inTown: true,
+      lodgingCost: 2,
+      lodging: false,
+    })
     const after = rest(broke, content)
     expect(after.gold).toBe(1)
     expect(after.party[0].hp).toBe(20)
     expect(after.goods).toEqual({ food: 8, water: 8 })
     expect(after.log.at(-1)!.text).toBe(
-      `The party rests a day in ${settlementName(after, 'greenvale-2')}, eating its own food.`
+      `The party rests a day in ${settlementName(after, 'ashmoor-1')}, eating its own food.`
     )
+    // Without an inn the party always eats its own food.
+    expect(rest(base({ gold: 20 }), content)).toMatchObject({ gold: 20, goods: { food: 8 } })
     expect(rest(base({ gold: 20 }), content, false)).toMatchObject({
       gold: 20,
       goods: { food: 8 },
@@ -231,7 +244,11 @@ describe('rest', () => {
 
   test('a day in camp heals a quarter of max HP and stays on the road', () => {
     const camp = base({ location: null, travel: onTheRoad, party: [{ ...brom, hp: 0 }, lyra] })
-    expect(restOption(camp)).toEqual({ inTown: false, lodgingCost: 0, lodging: false })
+    expect(restOption(camp, content)).toMatchObject({
+      inTown: false,
+      lodgingCost: 0,
+      lodging: false,
+    })
     const after = rest(camp, content)
     expect(after.gold).toBe(camp.gold)
     expect(after.party[0].hp).toBe(5)

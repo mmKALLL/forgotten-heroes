@@ -153,12 +153,18 @@ export function forecastJourney(
   pace: Pace,
   coverTracks = false,
   forage = true,
-  { speed = 1, content }: { speed?: number; content?: Content } = {}
+  {
+    speed = 1,
+    content,
+    animalWater = 0,
+  }: { speed?: number; content?: Content; animalWater?: number } = {}
 ): RouteForecast {
   const members = state.party.length
   const terrain: Biome = route.terrain
   const days = journeyDays(route, pace, coverTracks, speed)
-  const need = dailyNeed(members, terrain, pace)
+  const party = dailyNeed(members, terrain, pace)
+  // Animals drink from the carried water too; going short hurts no member, so only the total grows.
+  const need = { ...party, water: party.water + animalWater * waterNeed(terrain) }
   const base = { food: members, water: waterNeed(terrain) * members }
   const found = forage ? expectedForage(state, terrain, pace) : { food: 0, water: 0 }
   const capacity = partyWaterCapacity(state)

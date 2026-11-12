@@ -4,17 +4,20 @@ import type { GameState, Goods } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
-import { spoilDay } from '../economy/goods'
 import { MAX_EXHAUSTION } from '../rules/character'
 import { fadeStrainAfter } from '../rules/strain'
 import { settlementName } from '../world/geo'
 import { springAt, terrainHere } from '../world/graph'
-import { consumeDay, dailyNeed, goodsOf, waterNeed } from './days'
+import { consumeDay, dailyNeed, endOfDay, goodsOf, waterNeed } from './days'
+import { inSettlement, notHere } from './where'
+import { lodgingOptions, type Room } from '../town/services'
+import { animalUpkeep } from '../town/animals'
 import { journeyDays } from './routes'
 import {
   CAMP_HEAL,
   DEFAULT_PACE,
   LODGING_PRICE,
+  PRIVATE_ROOM_FADE,
   STARTING_FOOD_DAYS,
   WATERSKIN_PRICE,
   WATERSKIN_SELL_PRICE,
@@ -23,6 +26,7 @@ import {
 } from '../constants'
 
 export { dailyNeed, goodsOf, passDay, waterNeed } from './days'
+export { inSettlement, notHere } from './where'
 
 /** Each member's own waterskin holds WATER_DAYS of water; each extra one adds WATERSKIN_WATER. */
 export const waterCapacity = (members: number, waterskins = 0): number =>
@@ -58,47 +62,76 @@ export const runsShort = (state: GameState, terrain: Biome | null): boolean =>
   goodsOf(state.goods, 'food') < state.party.length ||
   goodsOf(state.goods, 'water') < waterNeed(terrain) * state.party.length
 
-/** Lodging for the whole party for one night. */
+/** A common room for the whole party for one night. */
 export const lodgingCost = (members: number): number => LODGING_PRICE * members
 
 /** What a day of rest here would be: in town at an inn (if wanted and affordable), or not. */
 export type RestOption = {
   inTown: boolean
-  /** Lodging for the party tonight (0 outside a settlement). */
+  /** The room for the party tonight (0 outside a settlement or without an inn). */
   lodgingCost: number
   /** True when the party would stay at an inn: meals included, carried supplies untouched. */
   lodging: boolean
-}
-
-export function restOption(state: GameState, lodging = true): RestOption {
-  const inTown = inSettlement(state)
-  const cost = inTown ? lodgingCost(state.party.length) : 0
-  return { inTown, lodgingCost: cost, lodging: inTown && lodging && state.gold >= cost }
+  /** The room it would take, or null. */
+  room: Room | null
+  /** The owned animals' fodder and stabling for the day (paid wherever the party is). */
+  stabling: number
 }
 
 /**
- * A day of rest. In a settlement: all HP back and the waterskins refilled. The party takes
- * lodging (LODGING_PRICE per member, meals included, carried food untouched) when it wants to and
- * can pay; otherwise it eats its own food. In camp (on the road or at a point of interest) it eats
- * carried food, drinking as the terrain there needs, and heals a quarter of max HP; at a site with
- * a spring or well (`water`) the waterskins are refilled after the day's drinking. Either way,
- * everyone who ate and drank loses a level of exhaustion. Resting is never a forced march. (Plan 4
- * sets lodging by inn quality.)
+ * How the party would rest: `lodging` true (or "common") takes a common room, "private" a private
+ * room where the inn has them (else a common room), false its own food. It stays at an inn only
+ * when there is one and it can pay.
  */
-export function rest(state: GameState, content: Content, lodging = true): GameState {
+export function restOption(
+  state: GameState,
+  content: Content,
+  lodging: boolean | Room = true
+): RestOption {
+  const inTown = inSettlement(state)
+  const rooms = inTown ? lodgingOptions(state, content) : []
+  const common = rooms.find((r) => r.room === 'common')
+  const wanted = lodging === false ? null : lodging === 'private' ? 'private' : 'common'
+  const room = rooms.find((r) => r.room === wanted) ?? common
+  const stays = wanted !== null && room !== undefined && state.gold >= room.cost
+  return {
+    inTown,
+    lodgingCost: (wanted !== null ? room?.cost : common?.cost) ?? 0,
+    lodging: stays,
+    room: stays ? room!.room : null,
+    stabling: animalUpkeep(state, content),
+  }
+}
+
+/**
+ * A day of rest. In a settlement: all HP back and the waterskins refilled. With an inn, the party
+ * takes a room when it wants to and can pay (meals included, carried food untouched): a common
+ * room fades one Strain stack, a private room PRIVATE_ROOM_FADE. Otherwise it eats its own food.
+ * In camp (on the road or at a point of interest) it eats carried food, drinking as the terrain
+ * there needs, and heals a quarter of max HP; at a site with a spring or well (`water`) the
+ * waterskins are refilled after the day's drinking. Either way, everyone who ate and drank loses
+ * a level of exhaustion, and the day ends as any day does (endOfDay: spoilage and the animals'
+ * keep). Resting is never a forced march.
+ */
+export function rest(
+  state: GameState,
+  content: Content,
+  lodging: boolean | Room = true
+): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
-  const option = restOption(state, lodging)
+  const option = restOption(state, content, lodging)
   // Water is free in town; in camp the party drinks what the terrain there asks.
   const terrain = option.inTown ? null : terrainHere(state, content)
   const spring = !state.travel && springAt(state, content, state.location)
+  const fades = option.room === 'private' ? PRIVATE_ROOM_FADE : 1
   const { state: after, unfed } = option.lodging
     ? {
-        state: spoilDay(
+        state: endOfDay(
           {
             ...state,
             day: state.day + 1,
             gold: state.gold - option.lodgingCost,
-            party: state.party.map((c) => fadeStrainAfter(c, state.skillUses, state.day)),
+            party: state.party.map((c) => fadeStrainAfter(c, state.skillUses, state.day, fades)),
           },
           content
         ),
@@ -114,25 +147,18 @@ export function rest(state: GameState, content: Content, lodging = true): GameSt
   const refill = option.inTown || spring
   const goods = refill ? refillWater(after.goods, partyWaterCapacity(state)) : after.goods
   const place = option.inTown ? settlementName(state, state.location!) : ''
+  const keep = option.stabling > 0 ? ` The animals’ keep: ${option.stabling} gp.` : ''
   const text = !option.inTown
     ? spring
       ? 'The party makes camp by the water and rests a day. The waterskins are refilled.'
       : 'The party makes camp and rests a day.'
     : option.lodging
-      ? `The party rests a day at an inn in ${place}: ${option.lodgingCost} gp, meals included.`
-      : `The party rests a day in ${place}, eating its own food.`
+      ? `The party rests a day at an inn in ${place}` +
+        `${option.room === 'private' ? ', in a private room' : ''}: ` +
+        `${option.lodgingCost} gp, meals included.${keep}`
+      : `The party rests a day in ${place}, eating its own food.${keep}`
   return appendLog({ ...after, party, goods }, text, 'good')
 }
-
-/** In a settlement (not on the road, and not at a point of interest). */
-export const inSettlement = (state: Pick<GameState, 'travel' | 'location' | 'world'>): boolean =>
-  !state.travel && state.location !== null && Object.hasOwn(state.world.settlements, state.location)
-
-/** Refusals start "Not here" at a point of interest, where there is nothing to buy or sell. */
-export const notHere = (state: GameState, text: string): string =>
-  !state.travel && state.location !== null
-    ? `Not here: ${text[0].toLowerCase()}${text.slice(1)}`
-    : text
 
 /**
  * Buys up to `count` extra waterskins at WATERSKIN_PRICE (as many as the gold allows). Each holds

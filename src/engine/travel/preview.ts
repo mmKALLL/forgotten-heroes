@@ -9,13 +9,15 @@ import { edgeById, edgesFrom } from '../world/graph'
 import { domainThreatLevel, knownLairThreat } from '../world/pois'
 import { siteStatus, siteThreat, type SiteStatus } from '../world/sites'
 import { ambushPositionForPace, paceHostileAvoidance } from './pace'
-import { load, overloadExcess, type Load } from '../economy/capacity'
+import { load, overloadExcess, type Hired } from '../economy/capacity'
+import { animalBlock, animalBlockText, animalWater, hireCost, hireOffer } from '../town/animals'
 import {
   canMeetEncounters,
   fareFor,
   hostileShare,
   journeyDays,
   landSpeed,
+  passengers,
   routeEncounters,
   type HostileShare,
   routeTerrain,
@@ -228,14 +230,16 @@ function paceOptions(
   threatLevel: number,
   forage: boolean,
   meets: boolean,
-  laden: Load
+  hired: Hired | null = null
 ): PaceOption[] {
+  const laden = load(state, content, { hired })
   const sea = route.terrain === 'sea'
   // An encumbered party can't force a march (and an overloaded one can't set out at all).
   const paces = sea
     ? LAND_PACES.filter(([p]) => p === 'steady')
     : LAND_PACES.filter(([p]) => p !== 'forced' || laden.level === 'light')
-  const speed = landSpeed(state, content, route.terrain)
+  const speed = landSpeed(state, content, route.terrain, hired)
+  const drink = animalWater(state, content, hired)
   const heavy: TravelWarning[] =
     !sea && laden.level !== 'light'
       ? [
@@ -246,7 +250,11 @@ function paceOptions(
         ]
       : []
   return paces.map(([pace, coverTracks]) => {
-    const forecast = forecastJourney(state, route, pace, coverTracks, forage, { speed, content })
+    const forecast = forecastJourney(state, route, pace, coverTracks, forage, {
+      speed,
+      content,
+      animalWater: drink,
+    })
     const { days, water, food } = forecast
     const warnings = [...heavy, ...forecast.warnings]
     // As the journey would record it (depart): no foraging at sea.
@@ -286,6 +294,8 @@ export type RoadReason =
   | { code: 'fare'; params: { gold: number } }
   /** Too heavy to set out on land: drop or sell `kg`. */
   | { code: 'overloaded'; params: { kg: number } }
+  /** An owned animal can't take this path to a site: a cart keeps to roads, horses to easy paths. */
+  | { code: 'animals'; params: { name: string; roadsOnly: boolean } }
 
 /** The English text of a road reason, until every caller localises the codes. */
 export function roadReasonText(r: RoadReason): string {
@@ -298,6 +308,8 @@ export function roadReasonText(r: RoadReason): string {
       return `Passage costs ${r.params.gold} gp.`
     case 'overloaded':
       return `Too heavy to set out: drop or sell ${r.params.kg} kg.`
+    case 'animals':
+      return animalBlockText(r.params)
   }
 }
 
@@ -328,6 +340,21 @@ export type RouteOption = {
   available: boolean
   /** Why it can't be taken now, or null. */
   reason: RoadReason | null
+  /**
+   * Riding hired mounts instead (town/animals.ts hireOffer): one per member, paid at departure
+   * by the day. Each pace has its own days, cost and encounter budget. Null where none are for
+   * hire (no animals service, a path to a site, or at sea).
+   */
+  mounted: MountedOption | null
+}
+
+/** A road ridden on hired mounts. */
+export type MountedOption = {
+  animal: string
+  name: string
+  count: number
+  perDay: number
+  paces: (PaceOption & { cost: number })[]
 }
 
 /**
@@ -345,17 +372,21 @@ export function routeOptions(state: GameState, content: Content, forage = true):
     const to = otherEnd(route, here)
     const days = journeyDays(route, 'steady', false, landSpeed(state, content, route.terrain))
     const threatLevel = routeThreat(state, content, route)
-    const fare = fareFor(route, state.party.length)
+    const fare = fareFor(route, passengers(state))
+    const blocked = animalBlock(state, content, route)
+    const offer = hireOffer(state, content, route)
     const meets = canMeetEncounters(content, route, state)
     const reason: RoadReason | null = busy
       ? { code: 'busy' }
       : !fit
         ? { code: 'unfit' }
-        : route.terrain !== 'sea' && laden.level === 'overloaded'
-          ? { code: 'overloaded', params: { kg: overloadExcess(laden) } }
-          : state.gold < fare
-            ? { code: 'fare', params: { gold: fare } }
-            : null
+        : blocked
+          ? { code: 'animals', params: blocked }
+          : route.terrain !== 'sea' && laden.level === 'overloaded'
+            ? { code: 'overloaded', params: { kg: overloadExcess(laden) } }
+            : state.gold < fare
+              ? { code: 'fare', params: { gold: fare } }
+              : null
     return {
       routeId: route.id,
       to,
@@ -368,10 +399,17 @@ export function routeOptions(state: GameState, content: Content, forage = true):
       ...routeEncounters(meets, days),
       fare,
       stowaway: busy ? null : stowawayCheck(state, route),
-      paces: paceOptions(state, content, route, threatLevel, forage, meets, laden),
+      paces: paceOptions(state, content, route, threatLevel, forage, meets),
       paceNote: route.terrain === 'sea' ? SEA_PACE_NOTE : null,
       available: reason === null,
       reason,
+      mounted: offer && {
+        ...offer,
+        paces: paceOptions(state, content, route, threatLevel, forage, meets, {
+          animal: offer.animal,
+          count: offer.count,
+        }).map((p) => ({ ...p, cost: hireCost(offer, p.days) })),
+      },
     }
   })
 }

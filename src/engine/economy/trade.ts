@@ -3,7 +3,7 @@ import { GOODS, GOOD_CATEGORY, type Good, type GoodCategory } from '../../schema
 import type { GameState, KnownPrice, PriceBookEntry } from '../../schema/state'
 import { formatGp } from '../format'
 import { appendLog } from '../log'
-import { inSettlement, notHere } from '../travel/supplies'
+import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
 import { load } from './capacity'
 import { goodDef, goodName, goodWeight } from './goods'
@@ -154,16 +154,29 @@ function knownPrice(state: GameState, content: Content, id: string, good: Good):
 }
 
 /**
- * Writes a whole market into the price book as seen today (heard: false). Called on arrival at a
- * settlement, at the start and after every trade. A market that trades nothing is not recorded.
+ * A whole market's prices on `state.day` (to see an earlier day, pass a state with that day):
+ * every good some shop there trades. Rumours and couriers record these as heard.
  */
-export function observe(state: GameState, content: Content, settlementId: string): GameState {
-  if (!Object.hasOwn(state.world.settlements, settlementId)) return state
+export function marketPrices(
+  state: GameState,
+  content: Content,
+  settlementId: string
+): PriceBookEntry['prices'] {
   const prices: PriceBookEntry['prices'] = {}
   for (const good of GOODS) {
     const known = knownPrice(state, content, settlementId, good)
     if (known.buy !== null || known.sell !== null) prices[good] = known
   }
+  return prices
+}
+
+/**
+ * Writes a whole market into the price book as seen today (heard: false). Called on arrival at a
+ * settlement, at the start and after every trade. A market that trades nothing is not recorded.
+ */
+export function observe(state: GameState, content: Content, settlementId: string): GameState {
+  if (!Object.hasOwn(state.world.settlements, settlementId)) return state
+  const prices = marketPrices(state, content, settlementId)
   if (Object.keys(prices).length === 0) return state
   return {
     ...state,

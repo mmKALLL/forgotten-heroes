@@ -225,6 +225,8 @@ export const en = {
   'roadReason.unfit': 'No one is fit to travel.',
   'roadReason.fare': 'Passage costs {gp} gp.',
   'roadReason.overloaded': 'Too heavy to set out: drop or sell {kg} kg.',
+  'roadReason.cart': 'No road for the {name}.',
+  'roadReason.roughPath': 'The path is too rough for the {name}.',
   'route.warnings': 'Warnings',
   'route.travel': 'Travel',
   'route.unreachable': '{name} is more than one road away.',

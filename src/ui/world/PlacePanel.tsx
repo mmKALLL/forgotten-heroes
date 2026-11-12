@@ -51,7 +51,7 @@ export function PlacePanel({
   }
   const banner = here.banner ? assetUrl(here.banner) : null
   const supplies = suppliesInfo(state)
-  const rest = restOption(state)
+  const rest = restOption(state, content)
   const food = goodsOf(state.goods, 'food')
   const sellFood = Math.min(RATION_BUNDLE, food)
   // Food at the local market (until the C2 market panel): a bundle's price, and what selling fetches.
