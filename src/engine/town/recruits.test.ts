@@ -39,7 +39,7 @@ describe('recruit offers', () => {
     expect(later.some((n) => JSON.stringify(n) !== JSON.stringify(names(week0)))).toBe(true)
   })
 
-  test("are never above the party's highest level + 1, and their XP matches their level", () => {
+  test("are never above the founders' highest level + 1, and their XP matches their level", () => {
     const novices = overWeeks(at())
     expect(Math.max(...novices.map((o) => o.level))).toBe(2)
     const veterans = overWeeks(at({ party: [brom, { ...lyra, level: 5, xp: XP_BY_LEVEL[4] }] }))
