@@ -92,6 +92,7 @@ export function buyGoods(
   amount: number,
   shop?: string
 ): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const here = state.location
   if (!inSettlement(state) || here === null) {
     return appendLog(state, notHere(state, 'Goods can only be bought in a settlement.'), 'bad')
@@ -141,6 +142,7 @@ export function sellGoods(
   amount: number,
   shop?: string
 ): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const here = state.location
   if (!inSettlement(state) || here === null) {
     return appendLog(state, notHere(state, 'Goods can only be sold in a settlement.'), 'bad')

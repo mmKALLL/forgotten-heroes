@@ -184,6 +184,7 @@ export function rest(
  * WATERSKIN_WATER more water; all of them are filled.
  */
 export function buyWaterskin(state: GameState, count = 1): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   if (!inSettlement(state)) {
     return appendLog(state, notHere(state, 'Waterskins can only be bought in a settlement.'), 'bad')
   }
@@ -206,6 +207,7 @@ export function buyWaterskin(state: GameState, count = 1): GameState {
  * (economy/trade.ts).
  */
 export function sellWaterskin(state: GameState, count = 1): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   if (!inSettlement(state)) {
     return appendLog(state, notHere(state, 'Waterskins can only be sold in a settlement.'), 'bad')
   }

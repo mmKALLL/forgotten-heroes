@@ -1,7 +1,8 @@
 import { describe, expect, test } from 'vitest'
+import { SituationSchema } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
-import { newGame, step } from '../state'
-import { fixtureContent, makeState } from '../test-fixtures'
+import { newGame, step, type Action } from '../state'
+import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { load } from './capacity'
 import { createRng, withRng } from '../rng'
 import { marketLevels, midPrice, quote } from './market'
@@ -29,6 +30,28 @@ const buy = (s: GameState, good: 'gems' | 'food' | 'gear', amount: number) =>
   step(s, { type: 'buyGoods', good, amount }, content)
 const sell = (s: GameState, good: 'gems' | 'food', amount: number) =>
   step(s, { type: 'sellGoods', good, amount }, content)
+
+test('nothing is bought or sold mid-encounter', () => {
+  const busy = inTown({
+    encounter: makeEncounter({ situation: SituationSchema.parse(content.situations.cliff) }),
+    goods: { food: 4, water: 4, gems: 2 },
+    waterskins: 2,
+    animals: { mule: 1 },
+  })
+  const actions: Action[] = [
+    { type: 'buyGoods', good: 'gems', amount: 1 },
+    { type: 'sellGoods', good: 'gems', amount: 1 },
+    { type: 'buyAnimal', animal: 'mule' },
+    { type: 'sellAnimal', animal: 'mule' },
+    { type: 'buyWaterskin', count: 1 },
+    { type: 'sellWaterskin', count: 1 },
+  ]
+  for (const action of actions) {
+    const after = step(busy, action, content)
+    expect(after.log.at(-1)!.text, action.type).toBe('Finish the current encounter first.')
+    expect({ ...after, log: busy.log }, action.type).toEqual(busy)
+  }
+})
 
 describe('buying and selling', () => {
   test('costs and fetches exactly what the quote says', () => {
