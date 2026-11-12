@@ -2,9 +2,8 @@ import { useState } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { animalOffers } from '../../engine/town/animals'
-import { contractRows, noticeBoard } from '../../engine/town/contracts'
-import { rumourOption } from '../../engine/town/rumours'
-import { formatModifier, formatPercent } from '../../engine/format'
+import { noticeBoard } from '../../engine/town/contracts'
+import { peopleRows, shopKeeper } from '../../engine/town/reputation'
 import {
   lodgingOptions,
   needsHealer,
@@ -17,6 +16,7 @@ import { goodDef } from '../../engine/economy/goods'
 import { SERVICE_FUNCTIONS, type Good } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
+import { StandingBadge } from './PeoplePanel'
 import { daysText } from '../world/travelText'
 import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 
@@ -73,7 +73,17 @@ export function ServicesPanel({ content, state, onAction }: Props) {
 function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRow }) {
   const { t, name } = useI18n()
   const title = name('services', row.service, row.name)
-  const hint = [title, t(`services.function.${row.function}`), row.specialty]
+  // Who keeps it, and the party's standing with them.
+  const keeperId =
+    state.location === null ? null : shopKeeper(state, content, state.location, row.service)
+  const keeper = keeperId ? peopleRows(state, content).find((p) => p.id === keeperId) : undefined
+  const hint = [
+    title,
+    t(`services.function.${row.function}`),
+    row.specialty,
+    keeper &&
+      t('services.keeper', { name: keeper.name, standing: t(`standing.${keeper.standing}`) }),
+  ]
     .filter(Boolean)
     .join(' · ')
   const working = row.actions.filter((a) => a.action !== 'market' && a.action !== 'passage')
@@ -95,6 +105,11 @@ function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRo
           {pips(row.quality)}
         </span>
       </div>
+      {keeper && keeper.standing !== 'stranger' && (
+        <div className="small">
+          <StandingBadge standing={keeper.standing} points={keeper.points} />
+        </div>
+      )}
       <div className="service-actions">
         {working.map((a) => (
           <ServiceAction key={a.action} view={a} row={row} {...{ content, state, onAction }} />
@@ -128,10 +143,9 @@ function ServiceAction({
   state,
   onAction,
 }: Props & { view: ServiceActionView; row: ServiceRow }) {
-  const { t, name, stat } = useI18n()
+  const { t, name } = useI18n()
   const [target, setTarget] = useState<string | null>(null)
   const [animal, setAnimal] = useState<string | null>(null)
-  const [offerId, setOfferId] = useState<string | null>(null)
   switch (view.action) {
     case 'lodging':
       return (
@@ -252,78 +266,19 @@ function ServiceAction({
         </span>
       )
     }
-    case 'rumours': {
-      // Plain for now: the full preview (tiers and odds bar) comes with the People panel (C4).
-      const option = rumourOption(state, content)
-      const actor = option && state.party.find((c) => c.id === option.actorId)
-      const hint =
-        option && actor
-          ? t('services.rumoursHint', {
-              name: actor.name,
-              skill: stat(option.skill),
-              modifier: formatModifier(option.modifier),
-              dc: option.dc,
-              pct: formatPercent(1 - option.chances.fail - option.chances.critFail),
-            })
-          : (view.reason ?? '')
-      return (
-        <button
-          disabled={!view.available}
-          title={hint}
-          onClick={() => onAction({ type: 'listenRumours' })}
-        >
-          {option ? t('services.rumours', { gp: option.cost }) : t('services.rumoursOff')}
-        </button>
-      )
-    }
+    case 'rumours':
+      // Listening for rumours is a check: its line, with the odds, is in the talk zone.
+      return <span className="muted small">{t('services.rumoursThere')}</span>
     case 'board': {
-      // Plain for now: the full notice board and contracts panel come with C4.
+      // The notice board itself, and the contracts held, have their own panels (C4).
       const offers = state.location === null ? [] : noticeBoard(state, content, state.location)
-      const chosen =
-        offers.find((o) => o.id === offerId) ?? offers.find((o) => o.available) ?? offers[0]
-      const due = contractRows(state, content).filter((c) => c.canComplete)
+      const here = offers.filter((o) => o.service === null || o.service === row.service)
       return (
-        <>
-          {chosen ? (
-            <span className="inline-pick">
-              <select
-                aria-label={t('services.board')}
-                value={chosen.id}
-                onChange={(e) => setOfferId(e.target.value)}
-              >
-                {offers.map((o) => (
-                  <option key={o.id} value={o.id}>
-                    {t('services.offer', { title: o.title, gp: o.pay, day: state.day + o.days })}
-                  </option>
-                ))}
-              </select>
-              <button
-                disabled={!chosen.available}
-                title={chosen.reason ?? chosen.text}
-                onClick={() => onAction({ type: 'acceptContract', offerId: chosen.id })}
-              >
-                {t('services.take')}
-              </button>
-            </span>
-          ) : (
-            <span className="muted small">{view.reason}</span>
-          )}
-          {due.map((c) => (
-            <span key={c.id} className="inline-pick">
-              <button
-                title={c.text}
-                onClick={() => onAction({ type: 'completeContract', id: c.id, reward: 'gold' })}
-              >
-                {t('services.complete', { title: c.title, gp: c.rewards.gold.gold })}
-              </button>
-              <button
-                onClick={() => onAction({ type: 'completeContract', id: c.id, reward: 'goodWord' })}
-              >
-                {t('services.goodWord')}
-              </button>
-            </span>
-          ))}
-        </>
+        <span className="muted small">
+          {here.length === 1
+            ? t('services.boardThereOne')
+            : t('services.boardThere', { n: here.length })}
+        </span>
       )
     }
     default:

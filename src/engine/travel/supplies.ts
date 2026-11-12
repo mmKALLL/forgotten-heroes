@@ -46,10 +46,9 @@ export const refillWater = (goods: Goods, capacity: number): Goods => ({
 export function journeySupplies(
   route: Pick<Route, 'km' | 'terrain'>,
   members: number,
-  pace: Pace = DEFAULT_PACE,
-  coverTracks = false
+  pace: Pace = DEFAULT_PACE
 ): { days: number; food: number; water: number } {
-  const days = journeyDays(route, pace, coverTracks)
+  const days = journeyDays(route, pace)
   const need = dailyNeed(members, route.terrain, pace)
   return { days, food: days * need.food, water: days * need.water }
 }

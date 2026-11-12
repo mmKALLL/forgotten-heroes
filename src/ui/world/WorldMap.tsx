@@ -13,7 +13,7 @@ import { iconUrl } from '../assets'
 import { useI18n } from '../i18n/I18n'
 import { PoiGlyph, poiCategoryText } from './PoiGlyph'
 import { ridden, shownPace, travelAction } from './RoadsOut'
-import { dangerText, daysText, paceChoiceOf, roadReasonMessage } from './travelText'
+import { dangerText, daysText, roadReasonMessage } from './travelText'
 import type { TravelPrefs } from './travelPrefs'
 import { SPOT_SPACING_PX } from '../../engine/constants'
 
@@ -574,7 +574,7 @@ function TravelPopover({
         {sea
           ? t('route.seaPace')
           : t('mapTravel.pace', {
-              pace: t(`pace.${paceChoiceOf(option)}`),
+              pace: t(`pace.${option.pace}`),
               forage: prefs.forage ? t('mapTravel.forage') : '',
               mounted: riding ? t('mapTravel.mounted') : '',
             })}

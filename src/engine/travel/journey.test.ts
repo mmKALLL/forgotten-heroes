@@ -20,9 +20,8 @@ const travel = (
   routeId: string,
   c: Content = content,
   pace?: Pace,
-  coverTracks?: boolean,
   forage?: boolean
-) => act(state, { type: 'travel', routeId, pace, coverTracks, forage }, c)
+) => act(state, { type: 'travel', routeId, pace, forage }, c)
 const go = (state: GameState, c: Content = content) => act(state, { type: 'continueJourney' }, c)
 /** The same journey with its encounter days replaced. */
 const encountersOn = (state: GameState, encounterDays: number[]): GameState => ({
@@ -48,7 +47,6 @@ describe('travel', () => {
       daysDone: 0,
       days: 3,
       pace: 'steady',
-      coverTracks: false,
       paceLog: [],
     })
     expect(after.travel!.encounterDays.length).toBeGreaterThanOrEqual(1)
@@ -87,16 +85,16 @@ describe('travel', () => {
     )
   })
 
-  test('the pace sets the speed and the length; covering tracks only works when cautious', () => {
+  test('the pace sets the speed and the length; stealthy covers the tracks', () => {
     const brisk = travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'brisk')
     expect(brisk.travel).toMatchObject({ pace: 'brisk', kmPerDay: 37.5, days: 2 })
     expect(lastLine(brisk)).toMatch(/ at a brisk pace: 75 km, about 2 days\.$/)
-    const hidden = travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'cautious', true)
-    expect(hidden.travel).toMatchObject({ pace: 'cautious', coverTracks: true, kmPerDay: 16 })
-    expect(hidden.travel!.days).toBe(5)
-    expect(lastLine(hidden)).toMatch(/ at a cautious pace, covering its tracks: 75 km/)
-    const steady = travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'steady', true)
-    expect(steady.travel).toMatchObject({ pace: 'steady', coverTracks: false })
+    const hidden = travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'stealthy')
+    expect(hidden.travel).toMatchObject({ pace: 'stealthy', kmPerDay: 15, days: 5 })
+    expect(lastLine(hidden)).toMatch(/ at a stealthy pace, covering its tracks: 75 km/)
+    const cautious = travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'cautious')
+    expect(cautious.travel).toMatchObject({ pace: 'cautious', kmPerDay: 22.5, days: 4 })
+    expect(lastLine(cautious)).toMatch(/ at a cautious pace: 75 km/)
   })
 
   test('a crossing with nothing to meet at sea draws no encounter days', () => {
@@ -109,14 +107,8 @@ describe('travel', () => {
   })
 
   test('at sea the ship sets the pace', () => {
-    const at_sea = travel(
-      at('ashmoor-1', { gold: 20 }),
-      'ashmoor-1-farisle-1',
-      content,
-      'forced',
-      true
-    )
-    expect(at_sea.travel).toMatchObject({ pace: 'steady', coverTracks: false, kmPerDay: 75 })
+    const at_sea = travel(at('ashmoor-1', { gold: 20 }), 'ashmoor-1-farisle-1', content, 'forced')
+    expect(at_sea.travel).toMatchObject({ pace: 'steady', kmPerDay: 75 })
     expect(lastLine(at_sea)).toMatch(/The ship sets the pace\.$/)
   })
 })
@@ -184,12 +176,12 @@ describe('continueJourney', () => {
 
   test('each day walked is recorded with its pace', () => {
     const out = encountersOn(
-      travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'cautious', true),
+      travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'stealthy'),
       [2]
     )
     expect(go(out).travel!.paceLog).toEqual([
-      { day: out.day, pace: 'cautious', coverTracks: true },
-      { day: out.day + 1, pace: 'cautious', coverTracks: true },
+      { day: out.day, pace: 'stealthy' },
+      { day: out.day + 1, pace: 'stealthy' },
     ])
   })
 
@@ -269,7 +261,7 @@ describe('pace on the road', () => {
   hostile.situations.cliff.disposition = 'hostile'
   for (const id of ['roadside', 'starfall']) hostile.situations[id].weight = 0
   hostile.situationTemplates.plea.weight = 0
-  const meet = (pace: Pace, coverTracks = false, seed = 0, forage = false) =>
+  const meet = (pace: Pace, seed = 0, forage = false) =>
     go(
       encountersOn(
         travel(
@@ -277,7 +269,6 @@ describe('pace on the road', () => {
           'greenvale-1-greenvale-2',
           hostile,
           pace,
-          coverTracks,
           forage
         ),
         [1]
@@ -291,21 +282,19 @@ describe('pace on the road', () => {
     expect(meet('steady').encounter?.position).toBe('normal')
   })
 
-  test('a cautious party meets an ambush on normal footing, or with Edge if it covered its tracks', () => {
-    const met = (cover: boolean) =>
-      Array.from({ length: 20 }, (_, seed) => meet('cautious', cover, seed)).find(
-        (s) => s.encounter
-      )!
-    expect(met(false).encounter?.position).toBe('normal')
-    expect(met(true).encounter?.position).toBe('edge')
+  test('a cautious party meets an ambush on normal footing, a stealthy one with Edge', () => {
+    const met = (pace: Pace) =>
+      Array.from({ length: 20 }, (_, seed) => meet(pace, seed)).find((s) => s.encounter)!
+    expect(met('cautious').encounter?.position).toBe('normal')
+    expect(met('stealthy').encounter?.position).toBe('edge')
   })
 
-  test('foraging gives covered tracks away: the ambush meets the party on normal footing', () => {
-    const met = Array.from({ length: 20 }, (_, seed) => meet('cautious', true, seed, true)).find(
+  test('foraging gives a stealthy party away: the ambush meets it on normal footing', () => {
+    const met = Array.from({ length: 20 }, (_, seed) => meet('stealthy', seed, true)).find(
       (s) => s.encounter
     )!
     expect(met.encounter?.position).toBe('normal')
-    expect(meet('brisk', false, 0, true).encounter?.position).toBe('exposed')
+    expect(meet('brisk', 0, true).encounter?.position).toBe('exposed')
   })
 
   test('a neutral encounter is not an ambush, whatever the pace', () => {
@@ -316,7 +305,7 @@ describe('pace on the road', () => {
   })
 
   test('a cautious party gives some ambushes a wide berth and walks on', () => {
-    const runs = Array.from({ length: 30 }, (_, seed) => meet('cautious', false, seed))
+    const runs = Array.from({ length: 30 }, (_, seed) => meet('cautious', seed))
     const avoided = runs.filter((s) => !s.encounter)
     expect(avoided.length).toBeGreaterThan(3)
     expect(avoided.length).toBeLessThan(25)
@@ -331,13 +320,13 @@ describe('pursuit', () => {
   const hunted = structuredClone(content)
   hunted.situations.grudge.pursuit = true
   /** Grudge queued today in Greenvale 1, then a journey with an encounter on day `on`. */
-  const chased = (pace: Pace, coverTracks = false, on = 2) => {
+  const chased = (pace: Pace, on = 2) => {
     const base = at('greenvale-1')
     const queued = {
       ...base,
       followUps: [{ situationId: 'grudge', wait: 0, queuedDay: base.day }],
     }
-    const out = travel(queued, 'greenvale-1-greenvale-2', hunted, pace, coverTracks)
+    const out = travel(queued, 'greenvale-1-greenvale-2', hunted, pace)
     return go(encountersOn(out, [on]), hunted)
   }
 
@@ -345,8 +334,8 @@ describe('pursuit', () => {
     expect(chased('steady').encounter?.situation.id).toBe('grudge')
   })
 
-  test('covered tracks lose them, and the party walks on', () => {
-    const after = chased('cautious', true)
+  test('a stealthy pace covers the tracks and loses them, and the party walks on', () => {
+    const after = chased('stealthy')
     expect(after.encounter).toBeNull()
     expect(after.followUps).toEqual([])
     expect(texts(after)).toContain(PURSUIT_LOST)
@@ -355,7 +344,7 @@ describe('pursuit', () => {
   })
 
   test('a brisk march outruns them for now', () => {
-    const after = chased('brisk', false, 1)
+    const after = chased('brisk', 1)
     expect(after.encounter).toBeNull()
     expect(texts(after)).toContain(PURSUIT_ESCAPED)
     expect(after.followUps).toMatchObject([{ situationId: 'grudge', wait: 2, escapes: 1 }])
@@ -382,8 +371,8 @@ describe('pursuit', () => {
     const out = encountersOn(travel(queued, 'greenvale-1-greenvale-2', hunted, 'brisk'), [])
     const arrived = go(out, hunted)
     expect(arrived.followUps[0].trail).toEqual([
-      { day: base.day, pace: 'brisk', coverTracks: false },
-      { day: base.day + 1, pace: 'brisk', coverTracks: false },
+      { day: base.day, pace: 'brisk' },
+      { day: base.day + 1, pace: 'brisk' },
     ])
   })
 })
@@ -565,13 +554,12 @@ describe('stowing away', () => {
 })
 
 describe('pace is set at departure', () => {
-  test('nothing on the road changes the pace, covering tracks or foraging', () => {
+  test('nothing on the road changes the pace or foraging', () => {
     const out = encountersOn(
       act(at('greenvale-1'), {
         type: 'travel',
         routeId: 'greenvale-1-greenvale-2',
-        pace: 'cautious',
-        coverTracks: true,
+        pace: 'stealthy',
         forage: false,
       }),
       []
@@ -583,15 +571,12 @@ describe('pace is set at departure', () => {
       forage: true,
     })
     expect(lastLine(again)).toBe('The party is already on the road.')
-    const set = { pace: 'cautious', coverTracks: true, forage: false }
+    const set = { pace: 'stealthy', forage: false }
     expect(again.travel).toMatchObject(set)
     expect(act(out, { type: 'rest', lodging: true }).travel).toMatchObject(set)
     const met = go(encountersOn(act(out, { type: 'rest' }), [2]))
     expect(met.travel).toMatchObject(set)
-    expect(met.travel!.paceLog.map((d) => [d.pace, d.coverTracks])).toEqual([
-      ['cautious', true],
-      ['cautious', true],
-    ])
+    expect(met.travel!.paceLog.map((d) => d.pace)).toEqual(['stealthy', 'stealthy'])
     expect(texts(met).some((t) => t.includes('Foraging'))).toBe(false)
   })
 })

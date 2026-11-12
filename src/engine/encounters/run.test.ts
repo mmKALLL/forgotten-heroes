@@ -19,6 +19,9 @@ import {
   twistKindWeight,
 } from './run'
 import { TWIST_PLACE_WEIGHT } from '../constants'
+import { paceHostileAvoidance } from '../travel/pace'
+import { hostileShare } from '../travel/routes'
+import type { Pace } from '../../schema/types'
 
 const content = fixtureContent()
 const start = (situationId: string, state: GameState = makeState()) =>
@@ -544,18 +547,18 @@ describe('site situations', () => {
   })
 })
 
-describe('a cautious party on the road', () => {
+describe('a stealthy or cautious party on the road', () => {
   // A heavy, hostile cliff, so most draws are hostile.
   const hostile = structuredClone(content)
   hostile.situations.cliff.disposition = 'hostile'
   hostile.situations.cliff.weight = 10
   const hills = { biome: 'hills', land: 'greenvale', domain: 'greenvale-1' } as const
-  const draws = (pace: 'cautious' | 'steady') =>
+  const draws = (pace: Pace, hostileShare?: number) =>
     Array.from({ length: 400 }, (_, seed) =>
       drawEncounter(reseed(makeState(), seed), hostile, undefined, {
         ...hills,
         pace,
-        coverTracks: false,
+        hostileShare,
       })
     )
 
@@ -564,8 +567,7 @@ describe('a cautious party on the road', () => {
     const avoided = cautious.filter((s) => s.encounter === null)
     const cliffs = cautious.filter((s) => s.encounter?.situation.id === 'cliff')
     const share = avoided.length / (avoided.length + cliffs.length)
-    expect(share).toBeGreaterThan(0.3)
-    expect(share).toBeLessThan(0.5)
+    expect(Math.abs(share - paceHostileAvoidance('cautious'))).toBeLessThan(0.1)
     for (const state of avoided) {
       expect(state.log.at(-1)!.text).toBe(WIDE_BERTH)
       expect(state.followUps).toEqual([])
@@ -580,13 +582,23 @@ describe('a cautious party on the road', () => {
     expect(draws('steady').every((s) => s.encounter !== null)).toBe(true)
   })
 
+  test('the share of hostile encounters met is the preview’s, after avoidance', () => {
+    for (const pace of ['stealthy', 'cautious', 'steady'] as const) {
+      // As a journey draws them: hostile with the share before avoidance, then steered clear of.
+      const preview = hostileShare(2, 0, pace)
+      const met = draws(pace, preview.drawn).filter(
+        (s) => s.encounter?.situation.disposition === 'hostile'
+      ).length
+      expect(Math.abs(met / 400 - preview.share)).toBeLessThan(0.06)
+    }
+  })
+
   test('a due follow-up is never avoided this way', () => {
     const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] })
     for (let seed = 0; seed < 20; seed++) {
       const state = drawEncounter(reseed(due, seed), hostile, undefined, {
         ...hills,
         pace: 'cautious',
-        coverTracks: false,
       })
       expect(state.encounter?.situation.id).toBe('grudge')
     }

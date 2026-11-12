@@ -30,7 +30,6 @@ import { WATERSKIN_PRICE } from '../constants'
 export type ProvisionFor = {
   routeId: string
   pace?: Pace
-  coverTracks?: boolean
   /** Riding hired mounts (they drink, and change the days). */
   hire?: boolean
 }
@@ -72,10 +71,10 @@ export function provisionPlan(
   if (!route || (route.from !== here && route.to !== here)) return null
   const offer = plan.hire ? hireOffer(state, content, route) : null
   const hired = offer && { animal: offer.animal, count: offer.count }
-  const { pace, coverTracks } = paceFor(route, plan.pace, plan.coverTracks)
+  const pace = paceFor(route, plan.pace)
   const members = state.party.length
   const forecast = (s: GameState) =>
-    forecastJourney(s, route, pace, coverTracks, false, {
+    forecastJourney(s, route, pace, false, {
       speed: landSpeed(s, content, route.terrain, hired),
       content,
       animalWater: animalWater(s, content, hired),

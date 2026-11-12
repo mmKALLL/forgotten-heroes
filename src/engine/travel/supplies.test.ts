@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { SituationSchema } from '../../schema/encounter'
 import type { GameState, TravelState } from '../../schema/state'
+import type { Pace } from '../../schema/types'
 import { createRng } from '../rng'
 import {
   brom,
@@ -47,7 +48,6 @@ const onTheRoad: TravelState = {
   days: 3,
   encounterDays: [],
   pace: 'steady',
-  coverTracks: false,
   paceLog: [],
   forage: true,
   hired: null,
@@ -178,16 +178,15 @@ describe('pace and supplies', () => {
     expect(tough).toBeLessThan(15)
   })
 
-  test('supplies per km: cautious worst, then forced, steady, and brisk best', () => {
+  test('supplies per km: stealthy worst, then cautious, forced, steady, and brisk best', () => {
     const route = { km: 300, terrain: 'plains' as const }
-    const by = (pace: 'cautious' | 'steady' | 'brisk' | 'forced', cover = false) =>
-      journeySupplies(route, 2, pace, cover)
+    const by = (pace: Pace) => journeySupplies(route, 2, pace)
     expect(by('steady')).toEqual({ days: 10, food: 20, water: 20 })
-    expect(by('cautious')).toEqual({ days: 15, food: 30, water: 30 })
+    expect(by('cautious')).toEqual({ days: 14, food: 28, water: 28 })
     expect(by('brisk')).toEqual({ days: 8, food: 16, water: 16 })
     expect(by('forced')).toEqual({ days: 7, food: 21, water: 21 })
-    expect(by('cautious', true)).toEqual({ days: 19, food: 38, water: 38 })
-    expect(journeySupplies({ km: 100, terrain: 'desert' }, 1, 'steady', false)).toEqual({
+    expect(by('stealthy')).toEqual({ days: 20, food: 40, water: 40 })
+    expect(journeySupplies({ km: 100, terrain: 'desert' }, 1, 'steady')).toEqual({
       days: 5,
       food: 5,
       water: 10,

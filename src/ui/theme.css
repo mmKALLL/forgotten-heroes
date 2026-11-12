@@ -1695,3 +1695,125 @@ h2[tabindex='-1']:focus {
   padding: 0 0.4rem;
   font-size: 0.75rem;
 }
+/* Talk and work in the town ledger (C4): rumours, the notice board and the people. */
+.ledger .route-facts li.wide {
+  grid-column: 1 / -1;
+}
+.ledger .pace-choice button.late {
+  text-decoration: line-through;
+  text-decoration-color: var(--bad);
+}
+.zone-talk {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+.zone-talk .rumours-line {
+  margin-top: 0;
+}
+.standing {
+  display: inline-block;
+  font-size: 0.7rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  white-space: nowrap;
+}
+.standing-hated,
+.standing-disliked {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+.standing-known,
+.standing-liked {
+  color: var(--good);
+  border-color: color-mix(in srgb, var(--good) 60%, var(--line));
+}
+.standing-trusted,
+.standing-honoured {
+  color: var(--good);
+  border-color: var(--good);
+  font-weight: bold;
+}
+.people li {
+  break-inside: avoid;
+}
+.notice-board h3 {
+  margin-bottom: 0.15rem;
+}
+.offers,
+.contract-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.offers li {
+  padding: 0.1rem 0;
+  border-top: 1px solid var(--line);
+  line-height: 1.25;
+}
+.offers li:first-child {
+  border-top: 0;
+}
+.offer-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0 0.3rem;
+}
+.offer-head strong,
+.offer-route {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.offer-head strong {
+  flex: 1 1 auto;
+}
+.offer-pay {
+  white-space: nowrap;
+}
+.offer-head button {
+  padding: 0 0.35rem;
+}
+.offer-head .badge {
+  margin-left: 0;
+  font-size: 0.62rem;
+  padding: 0 0.3rem;
+}
+.offer.unavailable strong {
+  color: var(--muted);
+}
+.badge.urgent {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+.badge.contract-badge {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.contracts h2 {
+  margin-bottom: 0.3rem;
+}
+.contract-list li {
+  padding: 0.3rem 0;
+  border-top: 1px solid var(--line);
+}
+.contract-list li:first-child {
+  border-top: 0;
+}
+.contract-rewards {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.2rem 0.4rem;
+  margin-top: 0.2rem;
+}
+.contract-rewards button {
+  padding: 0.05rem 0.4rem;
+  font-size: 0.8rem;
+}
+.contract-abandon button {
+  padding: 0 0.35rem;
+  font-size: 0.75rem;
+}

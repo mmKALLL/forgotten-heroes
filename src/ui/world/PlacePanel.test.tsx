@@ -62,17 +62,18 @@ test('shows the settlement and its roads; picking a road shows its odds; Travel 
     .paces.find((p) => p.pace === 'steady')!
   expect(
     road(greenvale2).getByText(
-      `2–4 encounters · about ${Math.round(steady.hostile.share * 100)}% of them hostile`
+      new RegExp(
+        `^2–4 encounters · ${Math.round(steady.hostile.share * 100)}% hostile ` +
+          `\\(10% base, .*10% foraging\\)$`
+      )
     )
   ).toBeTruthy()
-  expect(road(greenvale2).getByText(/^Hostile share: 10% base, .*\+10% foraging$/)).toBeTruthy()
   expect(road(greenvale2).getByText(/forages each day: Survival/)).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenCalledWith({
     type: 'travel',
     routeId: 'ashmoor-1-greenvale-2',
     pace: 'steady',
-    coverTracks: false,
     forage: true,
   })
   expect(onSelect).toHaveBeenLastCalledWith(null)
@@ -82,13 +83,12 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   const state = makeState({ location: 'ashmoor-1', gold: 50 })
   const { onAction } = panel(state, 'greenvale-2')
   const paces = routeOptions(state, content).find((r) => r.to === 'greenvale-2')!.paces
-  const at = (pace: string, cover = false) =>
-    paces.find((p) => p.pace === pace && p.coverTracks === cover)!
+  const at = (pace: string) => paces.find((p) => p.pace === pace)!
   const group = road(settlementName(state, 'greenvale-2'))
   const pacePicker = within(group.getByRole('group', { name: 'Pace' }))
   expect(pacePicker.getAllByRole('button').map((b) => b.textContent)).toEqual([
+    'Stealthy',
     'Cautious',
-    'Cautious, covering tracks',
     'Steady',
     'Brisk',
     'Forced march',
@@ -102,36 +102,40 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   const forced = at('forced')
   expect(forced.days).toBeLessThan(at('steady').days)
   expect(group.getByText(`About ${forced.days} days on the road`)).toBeTruthy()
-  expect(group.getByText(new RegExp(`^Food: ${Math.ceil(forced.food.needed)} needed`))).toBeTruthy()
-  const warnings = within(group.getByRole('list', { name: 'Warnings' }))
-  expect(warnings.getByText(/A forced march of \d+ days \(CON DC \d+ each day\)/)).toBeTruthy()
-  expect(group.getByText('Ambushes meet the party Exposed')).toBeTruthy()
-
-  await userEvent.click(pacePicker.getByRole('button', { name: 'Cautious, covering tracks' }))
-  expect(group.getByText(`About ${at('cautious', true).days} days on the road`)).toBeTruthy()
-  // Foraging gives covered tracks away; the toggle says so.
-  expect(group.getByText('Ambushes meet the party on normal footing')).toBeTruthy()
-  const covered = at('cautious', true)
-  const forage = group.getByRole('checkbox', { name: 'Forage along the way' })
-  expect(forage.getAttribute('aria-describedby')).toBeTruthy()
   expect(
     group.getByText(
-      `Foraging draws attention: about ${Math.round(covered.forageTradeOff!.foraging.hostile * 100)}% ` +
-        `of encounters hostile instead of ` +
-        `${Math.round(covered.forageTradeOff!.notForaging.hostile * 100)}%; ` +
-        'covered tracks give ambushes no Edge'
+      new RegExp(
+        `^Food: ${forced.food.carried} / ${Math.ceil(forced.food.needed)}, \\+[\\d.]+ per day$`
+      )
     )
   ).toBeTruthy()
-  await userEvent.click(forage)
-  expect(group.getByText('Ambushes meet the party with Edge')).toBeTruthy()
-  expect(group.getByText(/^Steers clear of \d+% of hostile encounters$/)).toBeTruthy()
+  const warnings = within(group.getByRole('list', { name: 'Warnings' }))
+  expect(warnings.getByText(/A forced march of \d+ days \(CON DC \d+ each day\)/)).toBeTruthy()
+  expect(group.getByText('Ambushes: Exposed')).toBeTruthy()
+
+  await userEvent.click(pacePicker.getByRole('button', { name: 'Stealthy' }))
+  expect(group.getByText(`About ${at('stealthy').days} days on the road`)).toBeTruthy()
+  // Foraging gives a stealthy party away; the footing line says why.
+  expect(group.getByText('Ambushes: normal footing (foraging)')).toBeTruthy()
+  expect(group.queryByText(/Foraging draws attention/)).toBeNull()
+  await userEvent.click(group.getByRole('checkbox', { name: 'Forage along the way' }))
+  expect(group.getByText('Ambushes: Edge')).toBeTruthy()
+  // The hostile share shown is after the pace's avoidance, which is one of its parts.
+  const stealthy = routeOptions(state, content, false).find((r) => r.to === 'greenvale-2')!.paces[0]
+  expect(
+    group.getByText(
+      new RegExp(
+        `^\\d+–\\d+ encounters · ${Math.round(stealthy.hostile.share * 100)}% hostile ` +
+          `\\(10% base, .*−\\d+% stealthy\\)$`
+      )
+    )
+  ).toBeTruthy()
   expect(group.queryByText(/A forced march/)).toBeNull()
   await userEvent.click(screen.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'travel',
     routeId: 'ashmoor-1-greenvale-2',
-    pace: 'cautious',
-    coverTracks: true,
+    pace: 'stealthy',
     forage: false,
   })
 })
@@ -198,7 +202,6 @@ test('provision for this road shows its cost and dispatches for the shown pace',
     type: 'provision',
     routeId,
     pace: 'steady',
-    coverTracks: false,
   })
 })
 
@@ -358,4 +361,45 @@ test('in Japanese the realm line is translated, with every placeholder filled', 
   } finally {
     localStorage.clear()
   }
+})
+
+test('a contract bound for a road’s end shows its deadline, and marks the paces that arrive late', async () => {
+  const base = makeState({ location: 'ashmoor-1', gold: 50 })
+  const paces = routeOptions(base, content).find((r) => r.to === 'greenvale-2')!.paces
+  const steady = paces.find((p) => p.pace === 'steady')!
+  const stealthy = paces.find((p) => p.pace === 'stealthy')!
+  expect(stealthy.days).toBeGreaterThan(steady.days)
+  const deadline = base.day + steady.days
+  const contract = {
+    id: 'c-test',
+    template: 'see-pilgrim',
+    kind: 'escort' as const,
+    patron: 'someone',
+    from: 'ashmoor-1',
+    to: 'greenvale-2',
+    good: null,
+    amount: 0,
+    poi: null,
+    passengers: 1,
+    accepted: base.day,
+    deadline,
+    pay: 30,
+    urgent: false,
+    reputation: { patron: 5, settlement: 3 },
+    met: false,
+  }
+  panel({ ...base, contracts: [contract] }, 'greenvale-2')
+  const roads = within(screen.getByRole('list', { name: 'Roads from here' }))
+  expect(roads.getByText('contract')).toBeTruthy()
+  const group = road(settlementName(base, 'greenvale-2'))
+  expect(
+    group.getByText(`Arrives day ${base.day + steady.days} · deadline day ${deadline} ✓`)
+  ).toBeTruthy()
+  const picker = within(group.getByRole('group', { name: 'Pace' }))
+  expect(picker.getByRole('button', { name: 'Stealthy' }).className).toBe('late')
+  expect(picker.getByRole('button', { name: 'Steady' }).className).not.toBe('late')
+  await userEvent.click(picker.getByRole('button', { name: 'Stealthy' }))
+  expect(
+    group.getByText(`Arrives day ${base.day + stealthy.days} · deadline day ${deadline} ✗`)
+  ).toBeTruthy()
 })

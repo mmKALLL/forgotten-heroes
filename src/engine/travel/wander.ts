@@ -30,8 +30,7 @@ const dry = (option: PaceOption) => option.warnings.some((w) => w.code === 'wate
  * A fixed policy for tests and the simulation smoke test (design §10). In a settlement it rests
  * (at an inn while it keeps LODGING_RESERVE gold, otherwise buying each day's rations at the market) while anyone is exhausted or
  * badly hurt, up to MAX_REST_DAYS. Each leg then takes the available road at `pick(leg, count)`,
- * at the pace at `pickPace(leg, count)` among the road's pace options (covering tracks is one of
- * them). Before setting out it buys waterskins while the preview says the water runs out even with
+ * at the pace at `pickPace(leg, count)` among the road's pace options. Before setting out it buys waterskins while the preview says the water runs out even with
  * foraging (keeping enough gold for food), then the food that pace needs. With no road it can pay
  * for, it stows away on a ship if it can. It forages on the way, continues, chooses the first
  * available option in every encounter and makes camp when stuck, until it arrives.
@@ -88,8 +87,7 @@ export function wander(
         if (missing > 0) {
           state = step(state, { type: 'buyGoods', good: 'food', amount: missing }, content)
         }
-        const { pace, coverTracks } = option
-        state = step(state, { type: 'travel', routeId: road.routeId, pace, coverTracks }, content)
+        state = step(state, { type: 'travel', routeId: road.routeId, pace: option.pace }, content)
       }
     }
     for (let guard = 0; state.travel && guard < 100; guard++) {

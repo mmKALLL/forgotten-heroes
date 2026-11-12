@@ -39,15 +39,15 @@ export function paceSince(
 }
 
 /**
- * Covered tracks on any day lose them; a brisk or faster average outruns them; else they catch up.
- * With no days to judge (queued today, or an old save), covering tracks right now loses them and
- * anything else lets them catch up.
+ * A stealthy day (covering the party's tracks) loses them; a brisk or faster average outruns them;
+ * else they catch up. With no days to judge (queued today, or an old save), a stealthy pace right
+ * now loses them and anything else lets them catch up.
  */
 export function pursuitOutcome(
   days: readonly (PaceDay | null)[],
   coveringNow = false
 ): PursuitOutcome {
-  if (days.some((d) => d?.coverTracks)) return 'lost'
+  if (days.some((d) => d !== null && coversTracks(d.pace))) return 'lost'
   if (days.length === 0) return coveringNow ? 'lost' : 'caught'
   const speed = days.reduce((sum, d) => sum + (d ? PACE_SPEED[d.pace] : 0), 0) / days.length
   return speed >= PURSUIT_ESCAPE_SPEED ? 'escaped' : 'caught'
@@ -63,7 +63,7 @@ export function evadePursuit(
   followUp: FollowUp,
   rest: FollowUp[]
 ): GameState | null {
-  const covering = state.travel ? coversTracks(state.travel.pace, state.travel.coverTracks) : false
+  const covering = state.travel ? coversTracks(state.travel.pace) : false
   const outcome = pursuitOutcome(paceSince(state, followUp), covering)
   if (outcome === 'caught') return null
   if (outcome === 'lost') return appendLog({ ...state, followUps: rest }, PURSUIT_LOST, 'good')

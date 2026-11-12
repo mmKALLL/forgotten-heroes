@@ -442,7 +442,6 @@ test('a road’s end picked on the map opens a popover that travels at the last 
     type: 'travel',
     routeId: road.routeId,
     pace: 'brisk',
-    coverTracks: false,
     forage: false,
   })
   await userEvent.click(pop.getByRole('button', { name: 'Close' }))

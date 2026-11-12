@@ -3,7 +3,7 @@ import type { Action } from '../../engine/state'
 import { journeyInfo, suppliesInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
-import { biomeText, dangerText, paceChoiceOf } from './travelText'
+import { biomeText, dangerText } from './travelText'
 
 /**
  * The journey under way: where from and to, how far, the pace (fixed at departure), the
@@ -45,7 +45,7 @@ export function JourneyPanel({
       <p className="small">
         {sea
           ? t('route.seaPace')
-          : t('journey.pace', { pace: t(`pace.${paceChoiceOf(j)}`) }) +
+          : t('journey.pace', { pace: t(`pace.${j.pace}`) }) +
             (state.travel?.forage ? t('journey.foraging') : '')}
       </p>
       <p className="small">

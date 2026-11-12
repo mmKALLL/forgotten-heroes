@@ -55,7 +55,7 @@
             "$ref": "#/$defs/__schema4"
           },
           "disposition": {
-            "description": "How it treats the party. A cautious party avoids some hostile encounters and meets the rest on better footing. Required (by the lint) unless followUpOnly; wonders are never hostile.",
+            "description": "How it treats the party. A stealthy or cautious party avoids some hostile encounters, and a stealthy one meets the rest on better footing. Required (by the lint) unless followUpOnly; wonders are never hostile.",
             "$ref": "#/$defs/__schema5"
           },
           "slots": {

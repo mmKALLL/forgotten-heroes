@@ -1,4 +1,3 @@
-import { useId } from 'react'
 import type { Content } from '../../content/build'
 import { formatModifier, formatPercent } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
@@ -12,6 +11,7 @@ import {
   type RouteOption,
 } from '../../engine/travel/preview'
 import { isSevere } from '../../engine/travel/warnings'
+import { contractDeadlines } from '../../engine/town/contracts'
 import { provisionPlan } from '../../engine/town/provision'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
@@ -23,17 +23,15 @@ import {
   daysText,
   findsText,
   hostileParts,
-  paceChoiceOf,
-  paceFields,
   realmText,
   roadReasonMessage,
   stowawayText,
   threatLine,
   warningMessage,
-  type PaceChoice,
 } from './travelText'
+import type { Pace } from '../../schema/types'
 import { TierOutcomes } from './TierOutcomes'
-import type { TravelPrefs } from './travelPrefs'
+import { normalizePace, type TravelPrefs } from './travelPrefs'
 
 /**
  * The roads and paths out of where the party is (a settlement or a point of interest), paths to
@@ -75,6 +73,11 @@ export function RoadsOut({
               {r.toName}
             </button>{' '}
             {isPoi(r.to) && <span className="badge small">{t('place.siteBadge')}</span>}{' '}
+            {contractDeadlines(state, r.to, r.days).length > 0 && (
+              <span className="badge small contract-badge" title={t('route.contractHint')}>
+                {t('route.contractBadge')}
+              </span>
+            )}{' '}
             <span className="muted small">
               {t('route.summary', {
                 km: r.km,
@@ -131,11 +134,10 @@ export const ridden = (road: RouteOption, prefs: Pick<TravelPrefs, 'mounted'>): 
 
 /** The travel action for a road with the chosen pace, foraging and mounts. */
 export function travelAction(road: RouteOption, prefs: TravelPrefs, stowaway = false): Action {
-  const choice = road.terrain === 'sea' ? 'steady' : prefs.pace
   return {
     type: 'travel',
     routeId: road.routeId,
-    ...paceFields(choice),
+    pace: road.terrain === 'sea' ? 'steady' : normalizePace(prefs.pace),
     forage: prefs.forage,
     ...(stowaway ? { stowaway: true } : {}),
     ...(ridden(road, prefs) ? { hire: true } : {}),
@@ -144,11 +146,10 @@ export function travelAction(road: RouteOption, prefs: TravelPrefs, stowaway = f
 
 /** "Provision for this road": the food and waterskins the road needs with these choices. */
 export function provisionAction(road: RouteOption, prefs: TravelPrefs): Action {
-  const choice = road.terrain === 'sea' ? 'steady' : prefs.pace
   return {
     type: 'provision',
     routeId: road.routeId,
-    ...paceFields(choice),
+    pace: road.terrain === 'sea' ? 'steady' : normalizePace(prefs.pace),
     ...(ridden(road, prefs) ? { hire: true } : {}),
   }
 }
@@ -165,7 +166,7 @@ export function shownPace(
     ? road.mounted!.paces
     : road.paces
   return (
-    paces.find((p) => paceChoiceOf(p) === prefs.pace) ??
+    paces.find((p) => p.pace === normalizePace(prefs.pace)) ??
     paces.find((p) => p.pace === 'steady') ??
     paces[0]
   )
@@ -188,8 +189,8 @@ export function RouteInfo({
   road: RouteOption
   state: GameState
   content: Content
-  pace: PaceChoice
-  onPace: (p: PaceChoice) => void
+  pace: Pace
+  onPace: (p: Pace) => void
   forage: boolean
   onForage: (f: boolean) => void
   /** Hire riding animals where the road offers them (RouteOption.mounted). */
@@ -200,20 +201,19 @@ export function RouteInfo({
   onProvision?: () => void
 }) {
   const { t, stat, name } = useI18n()
-  const forageHintId = useId()
   const there = placeInfo(state, content, road.to)
   const site = poiInfo(state, content, road.to)
   const sea = road.terrain === 'sea'
   const riding = ridden(road, { mounted })
   const option = shownPace(road, { pace, mounted })
-  const shown = paceChoiceOf(option)
+  const shown = option.pace
   const onFoot = shownPace(road, { pace, mounted: false })
   const reason = riding ? (option.reason ?? null) : road.reason
   const offer = road.mounted
   const supplies = onProvision
     ? provisionPlan(state, content, {
         routeId: road.routeId,
-        ...paceFields(sea ? 'steady' : shown),
+        pace: sea ? 'steady' : shown,
         hire: riding,
       })
     : null
@@ -235,12 +235,19 @@ export function RouteInfo({
       {site && <PoiSummary info={site} />}
       <div className="seg-toggle pace-choice" role="group" aria-label={t('route.pace')}>
         {(riding ? road.mounted!.paces : road.paces).map((p) => {
-          const choice = paceChoiceOf(p)
+          const choice = p.pace
+          // A pace that arrives after a contract's deadline there is marked late.
+          const late = p.deadlines.some((d) => !d.inTime)
           return (
             <button
               key={choice}
               aria-pressed={choice === shown}
-              title={t(`paceHint.${choice}`)}
+              className={late ? 'late' : undefined}
+              title={
+                late
+                  ? `${t(`paceHint.${choice}`)} · ${t('route.paceLate')}`
+                  : t(`paceHint.${choice}`)
+              }
               onClick={() => onPace(choice)}
             >
               {t(`pace.${choice}`)}
@@ -254,12 +261,7 @@ export function RouteInfo({
         <>
           <p className="muted small">{t(`paceHint.${shown}`)}</p>
           <label className="inline small">
-            <input
-              type="checkbox"
-              checked={forage}
-              aria-describedby={option.forageTradeOff ? forageHintId : undefined}
-              onChange={(e) => onForage(e.target.checked)}
-            />{' '}
+            <input type="checkbox" checked={forage} onChange={(e) => onForage(e.target.checked)} />{' '}
             {t('route.forage')}
           </label>
           {offer && (
@@ -284,16 +286,6 @@ export function RouteInfo({
               </span>
             </label>
           )}
-          {option.forageTradeOff && (
-            <p id={forageHintId} className="muted small">
-              {t('route.forageHint', {
-                on: formatPercent(option.forageTradeOff.foraging.hostile),
-                off: formatPercent(option.forageTradeOff.notForaging.hostile),
-              })}
-              {option.forageTradeOff.foraging.ambush !== option.forageTradeOff.notForaging.ambush &&
-                t('route.forageHintEdge')}
-            </p>
-          )}
         </>
       )}
       {option.warnings.length > 0 && (
@@ -316,35 +308,46 @@ export function RouteInfo({
       <ul className="route-facts small">
         <li>{t('route.days', { days: daysText(t, option.days) })}</li>
         <li>
-          {t('route.food', { needed: round(option.food.needed), carried: option.food.carried })}
+          {t('route.food', { carried: option.food.carried, needed: round(option.food.needed) })}
           {option.food.expectedForage > 0 &&
-            t('route.foraging', { n: option.food.expectedForage.toFixed(1) })}
+            t('route.perDay', { n: option.food.expectedForage.toFixed(1) })}
         </li>
         <li>
           {t('route.water', {
-            needed: round(option.water.needed),
             carried: option.water.carried,
-            capacity: option.water.capacity,
+            needed: round(option.water.needed),
           })}
+          {/* The skins' capacity matters once the road needs as much as they hold. */}
+          {round(option.water.needed) >= option.water.capacity &&
+            t('route.waterMax', { capacity: option.water.capacity })}
           {option.water.expectedForage > 0 &&
-            t('route.foraging', { n: option.water.expectedForage.toFixed(1) })}
+            t('route.perDay', { n: option.water.expectedForage.toFixed(1) })}
         </li>
-        <li>
+        {option.deadlines.map((d) => (
+          <li key={d.contractId} className={d.inTime ? 'wide' : 'wide tone-bad'}>
+            {t(d.inTime ? 'route.deadlineOk' : 'route.deadlineLate', {
+              arrives: d.arrivesDay,
+              deadline: d.deadline,
+            })}
+          </li>
+        ))}
+        <li className="wide">
           {t('route.encounters', { min: option.encounters[0], max: option.encounters[1] })}
-          {option.encounters[1] > 0 && (
-            <>
-              {' · '}
-              {t('route.hostile', { pct: formatPercent(option.hostile.share) })}
-            </>
-          )}
+          {option.encounters[1] > 0 &&
+            ' · ' +
+              t('route.hostile', {
+                pct: formatPercent(option.hostile.share),
+                parts: hostileParts(t, option),
+              })}
         </li>
-        {option.encounters[1] > 0 && (
-          <li className="muted">{t('route.hostileWhy', { parts: hostileParts(t, option) })}</li>
-        )}
-        {option.hostileAvoided > 0 && (
-          <li>{t('route.avoids', { pct: formatPercent(option.hostileAvoided) })}</li>
-        )}
-        <li>{t('route.footing', { footing: t(`footing.${option.ambush}`) })}</li>
+        <li className="wide">
+          {t('route.footing', { footing: t(`footing.${option.ambush}`) })}
+          {/* Foraging costs a stealthy party its Edge: say so. */}
+          {forage &&
+            option.forageTradeOff &&
+            option.forageTradeOff.foraging.ambush !== option.forageTradeOff.notForaging.ambush &&
+            t('route.footingForaging')}
+        </li>
         {road.fare > 0 && <li>{t('route.fare', { gp: road.fare })}</li>}
         {riding && option.cost !== undefined && <li>{t('route.hireCost', { gp: option.cost })}</li>}
       </ul>

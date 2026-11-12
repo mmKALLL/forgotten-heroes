@@ -9,7 +9,7 @@ import { canAct } from '../rules/character'
 import { otherEnd, settlementName } from '../world/geo'
 import { edgeById, nodeOf } from '../world/graph'
 import { domainAt } from '../world/pois'
-import { coversTracks, logPaceDay } from './pace'
+import { logPaceDay } from './pace'
 import { forageDay, type ForageResult } from './forage'
 import { foldTrail } from './pursuit'
 import {
@@ -45,15 +45,15 @@ import { contractsOnArrival, isEscorting } from '../town/contracts'
 import { DEFAULT_PACE } from '../constants'
 
 /**
- * The pace, covering tracks and foraging are chosen at departure only (design §7): no action
+ * The pace and foraging are chosen at departure only (design §7): no action
  * changes them on the road.
  */
 export type TravelAction =
   | {
       type: 'travel'
       routeId: string
+      /** Stealthy covers the party's tracks (pursuit.ts). */
       pace?: Pace
-      coverTracks?: boolean
       /** Forage each day on land (default true). */
       forage?: boolean
       /** Sneak aboard a ship the party can't pay for (stowaway.ts). */
@@ -69,7 +69,6 @@ export type TravelAction =
 
 export type DepartOptions = {
   pace?: Pace
-  coverTracks?: boolean
   forage?: boolean
   stowaway?: boolean
   hire?: boolean
@@ -84,6 +83,7 @@ const days = (n: number) => (n === 1 ? '1 day' : `${n} days`)
 
 /** How the departure line names the pace (steady goes unsaid). */
 const PACE_PHRASE: Readonly<Record<Pace, string>> = {
+  stealthy: ' at a stealthy pace, covering its tracks',
   cautious: ' at a cautious pace',
   steady: '',
   brisk: ' at a brisk pace',
@@ -91,19 +91,12 @@ const PACE_PHRASE: Readonly<Record<Pace, string>> = {
 }
 
 /** The pace a route is really travelled at: a ship sails at its own speed, so always steady. */
-export function paceFor(
-  route: { terrain: string },
-  pace: Pace = DEFAULT_PACE,
-  coverTracks = false
-): { pace: Pace; coverTracks: boolean } {
-  if (route.terrain === 'sea') return { pace: DEFAULT_PACE, coverTracks: false }
-  return { pace, coverTracks: coversTracks(pace, coverTracks) }
-}
+export const paceFor = (route: { terrain: string }, pace: Pace = DEFAULT_PACE): Pace =>
+  route.terrain === 'sea' ? DEFAULT_PACE : pace
 
 /**
  * Sets out from the current settlement along one of its routes, at a pace (steady by default),
- * foraging each day on land unless told not to. Covering tracks only counts at a cautious pace;
- * at sea the ship sets the pace. A party that can't pay a ship's fare may stow away instead.
+ * foraging each day on land unless told not to. At sea the ship sets the pace. A party that can't pay a ship's fare may stow away instead.
  */
 export function depart(
   state: GameState,
@@ -160,13 +153,8 @@ export function depart(
   if (state.gold < fare) return appendLog(state, `Passage costs ${fare} gp.`, 'bad')
   const passage = fare > 0 ? `, ${fare} gp passage` : ''
   if (offer && hired) {
-    const { pace, coverTracks } = paceFor(route, options.pace, options.coverTracks)
-    const length = journeyDays(
-      route,
-      pace,
-      coverTracks,
-      landSpeed(state, content, route.terrain, hired)
-    )
+    const pace = paceFor(route, options.pace)
+    const length = journeyDays(route, pace, landSpeed(state, content, route.terrain, hired))
     const cost = hireCost(offer, length)
     if (state.gold < cost) {
       return appendLog(state, `Hiring ${offer.name.toLowerCase()}s costs ${cost} gp.`, 'bad')
@@ -204,12 +192,11 @@ function setOut(
   hired: Hired | null = null
 ): GameState {
   const requestedPace = options.pace ?? DEFAULT_PACE
-  const requestedCover = options.coverTracks ?? false
-  const { pace, coverTracks } = paceFor(route, requestedPace, requestedCover)
+  const pace = paceFor(route, requestedPace)
   const to = otherEnd(route, here)
   const speed = landSpeed(state, content, route.terrain, hired)
   const heavy = route.terrain !== 'sea' && load(state, content, { hired }).level !== 'light'
-  const length = journeyDays(route, pace, coverTracks, speed)
+  const length = journeyDays(route, pace, speed)
   const { encounters, chance } = routeEncounters(canMeetEncounters(content, route, state), length)
   const [encounterDays, rng] = withRng(state.rng, (d) =>
     rollEncounterDays(d, length, encounters, chance)
@@ -219,22 +206,19 @@ function setOut(
     from: here,
     to,
     km: route.km,
-    kmPerDay: kmPerDay(route.terrain, pace, coverTracks, speed),
+    kmPerDay: kmPerDay(route.terrain, pace, speed),
     kmDone: 0,
     daysDone: 0,
     days: length,
     encounterDays,
     pace,
-    coverTracks,
     paceLog: [],
     forage: (options.forage ?? true) && route.terrain !== 'sea',
     hired,
   }
-  const how = PACE_PHRASE[pace] + (coverTracks ? ', covering its tracks' : '')
+  const how = PACE_PHRASE[pace]
   const ship =
-    route.terrain === 'sea' && (requestedPace !== DEFAULT_PACE || requestedCover)
-      ? ' The ship sets the pace.'
-      : ''
+    route.terrain === 'sea' && requestedPace !== DEFAULT_PACE ? ' The ship sets the pace.' : ''
   const noForage = route.terrain !== 'sea' && options.forage === false ? ' No foraging.' : ''
   const laden = heavy ? ' Heavily laden, it goes slowly.' : ''
   return appendLog(
@@ -275,8 +259,8 @@ export function placeOnRoute(
         ? (nodeOf(state, content, travel.from)?.domain ?? node.domain)
         : node.domain,
     pace: travel.pace,
-    coverTracks: travel.coverTracks,
     forage: travel.forage,
+    // The share drawn hostile: drawEncounter then lets the pace steer clear of some.
     hostileShare: hostileShare(
       route.danger,
       routeThreat(state, content, route),
@@ -284,7 +268,7 @@ export function placeOnRoute(
       travel.forage,
       steps,
       isEscorting(state)
-    ).share,
+    ).drawn,
     wealthSteps: steps,
   }
 }

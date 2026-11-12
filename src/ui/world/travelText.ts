@@ -2,35 +2,39 @@ import { formatPercent } from '../../engine/format'
 import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/preview'
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
 import type { TravelWarning } from '../../engine/travel/warnings'
-import type { Biome, Pace } from '../../schema/types'
+import type { Biome } from '../../schema/types'
 import type { MessageKey } from '../i18n/en'
 import type { I18n } from '../i18n/I18n'
-
-/** The five ways to walk a land road, as the pace chooser lists them. */
-export const PACE_CHOICES = ['cautious', 'cover', 'steady', 'brisk', 'forced'] as const
-export type PaceChoice = (typeof PACE_CHOICES)[number]
-
-export const paceChoiceOf = (p: Pick<PaceOption, 'pace' | 'coverTracks'>): PaceChoice =>
-  p.pace === 'cautious' && p.coverTracks ? 'cover' : p.pace
-
-/** The travel action's pace fields for a choice. */
-export const paceFields = (choice: PaceChoice): { pace: Pace; coverTracks: boolean } =>
-  choice === 'cover'
-    ? { pace: 'cautious', coverTracks: true }
-    : { pace: choice, coverTracks: false }
 
 type T = I18n['t']
 
 /**
- * What makes up a road's hostile share, e.g. "25% base, +20% road danger, +10% foraging": the
- * base and every part that adds something (the share is clamped, so they may not sum to it).
+ * What makes up a road's hostile share, e.g. "10% base, 20% road danger, 10% foraging, −12%
+ * stealthy": the base, every part that adds something, and what the pace steers clear of (the
+ * share before avoidance is clamped, so they may not sum to it).
  */
-export function hostileParts(t: T, option: Pick<PaceOption, 'hostile'>): string {
+export function hostileParts(t: T, option: Pick<PaceOption, 'hostile' | 'pace'>): string {
   const h = option.hostile
-  const parts = (['danger', 'threat', 'forage', 'pace', 'wealth'] as const)
+  const parts = (['danger', 'threat', 'forage', 'pace', 'wealth', 'escort'] as const)
     .filter((part) => h[part] !== 0)
-    .map((part) => t(`route.hostilePart.${part}`, { pct: formatPercent(h[part]) }))
-  return [t('route.hostilePart.base', { pct: formatPercent(h.base) }), ...parts].join(', ')
+    .map((part) =>
+      t(`route.hostilePart.${part}`, {
+        pct: formatPercent(h[part]),
+        pace: t(`pace.${option.pace}`).toLowerCase(),
+      })
+    )
+  const avoided =
+    h.avoided < 0
+      ? [
+          t('route.hostilePart.avoided', {
+            pct: formatPercent(-h.avoided),
+            pace: t(`pace.${option.pace}`).toLowerCase(),
+          }),
+        ]
+      : []
+  return [t('route.hostilePart.base', { pct: formatPercent(h.base) }), ...parts, ...avoided].join(
+    ', '
+  )
 }
 
 export const daysText = (t: T, n: number): string =>

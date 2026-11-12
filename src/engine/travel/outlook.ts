@@ -21,7 +21,6 @@ export function supplyOutlook(state: GameState, content: Content): SupplyOutlook
     state,
     { km: travel.km - travel.kmDone, terrain },
     travel.pace,
-    travel.coverTracks,
     travel.forage,
     {
       speed: landSpeed(state, content, terrain),

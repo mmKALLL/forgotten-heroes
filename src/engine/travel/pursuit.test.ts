@@ -12,15 +12,12 @@ import {
 } from './pursuit'
 import { PURSUIT_ESCAPE_DELAY, PURSUIT_MAX_ESCAPES } from '../constants'
 
-const day = (d: number, pace: PaceDay['pace'], coverTracks = false): PaceDay => ({
-  day: d,
-  pace,
-  coverTracks,
-})
+const day = (d: number, pace: PaceDay['pace']): PaceDay => ({ day: d, pace })
 
 describe('pursuitOutcome', () => {
-  test('any day with covered tracks loses the pursuers', () => {
-    expect(pursuitOutcome([day(1, 'steady'), day(2, 'cautious', true), null])).toBe('lost')
+  test('any stealthy day (covering tracks) loses the pursuers', () => {
+    expect(pursuitOutcome([day(1, 'steady'), day(2, 'stealthy'), null])).toBe('lost')
+    expect(pursuitOutcome([day(1, 'steady'), day(2, 'cautious'), null])).toBe('caught')
   })
 
   test('a march averaging brisk or faster outruns them', () => {
@@ -50,7 +47,6 @@ describe('paceSince', () => {
     days: 3,
     encounterDays: [],
     pace: 'steady' as const,
-    coverTracks: false,
     paceLog,
     forage: true,
     hired: null,
@@ -80,7 +76,7 @@ describe('paceSince', () => {
   test('days before it was queued do not count; an old save’s follow-up has no history', () => {
     const state = {
       day: 5,
-      travel: travel([day(2, 'cautious', true), day(3, 'brisk'), day(4, 'brisk')]),
+      travel: travel([day(2, 'stealthy'), day(3, 'brisk'), day(4, 'brisk')]),
     }
     expect(paceSince(state, { situationId: 'grudge', wait: 0, queuedDay: 3 })).toEqual([
       day(3, 'brisk'),
@@ -109,7 +105,6 @@ describe('evadePursuit', () => {
         days: 3,
         encounterDays: [],
         pace: paceLog[0]?.pace ?? 'steady',
-        coverTracks: false,
         paceLog,
         forage: true,
         hired: null,
@@ -119,8 +114,8 @@ describe('evadePursuit', () => {
   }
   const other: FollowUp = { situationId: 'cliff', wait: 3 }
 
-  test('covered tracks drop it from the queue', () => {
-    const { state, due } = at([day(1, 'cautious', true)])
+  test('a stealthy day (covered tracks) drops it from the queue', () => {
+    const { state, due } = at([day(1, 'stealthy')])
     const after = evadePursuit(state, due, [other])!
     expect(after.followUps).toEqual([other])
     expect(after.log.at(-1)!.text).toBe(PURSUIT_LOST)
@@ -143,12 +138,12 @@ describe('evadePursuit', () => {
     expect(third.log.at(-1)!.text).toBe(PURSUIT_GAVE_UP)
   })
 
-  test('with no days to judge, covering tracks right now loses it; otherwise it catches up', () => {
+  test('with no days to judge, a stealthy pace right now loses it; otherwise it catches up', () => {
     const { state, due } = at([])
     expect(evadePursuit(state, due, [])).toBeNull()
     const covering = {
       ...state,
-      travel: { ...state.travel!, pace: 'cautious' as const, coverTracks: true },
+      travel: { ...state.travel!, pace: 'stealthy' as const },
     }
     const lost = evadePursuit(covering, due, [other])!
     expect(lost.followUps).toEqual([other])
@@ -156,12 +151,9 @@ describe('evadePursuit', () => {
     // An old save's follow-up has no queue day, so no history either.
     const { queuedDay: _day, ...old } = due
     expect(evadePursuit(covering, old, [])!.log.at(-1)!.text).toBe(PURSUIT_LOST)
-    // The flag only counts at a cautious pace.
-    const brisk = {
-      ...state,
-      travel: { ...state.travel!, pace: 'brisk' as const, coverTracks: true },
-    }
-    expect(evadePursuit(brisk, due, [])).toBeNull()
+    // Only a stealthy pace covers the tracks.
+    const cautious = { ...state, travel: { ...state.travel!, pace: 'cautious' as const } }
+    expect(evadePursuit(cautious, due, [])).toBeNull()
   })
 
   test('a slower march lets it catch up: the caller starts the encounter', () => {

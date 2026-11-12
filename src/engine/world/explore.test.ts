@@ -293,7 +293,6 @@ describe('visitPoi', () => {
           days: 1,
           encounterDays: [],
           pace: 'steady',
-          coverTracks: false,
           paceLog: [],
           forage: false,
           hired: null,

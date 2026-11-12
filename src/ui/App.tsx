@@ -5,6 +5,7 @@ import { suppliesInfo } from '../engine/travel/preview'
 import { nodeOf } from '../engine/world/graph'
 import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
+import { ContractsPanel } from './ContractsPanel'
 import { EncounterDeck } from './deck/EncounterDeck'
 import { DevArea } from './DevArea'
 import { prefersReducedMotion } from './dice/DiceRoll'
@@ -87,6 +88,7 @@ function Game() {
         {/* On narrow screens the columns stack: party, then the centre, then the map (theme.css). */}
         <div className="left">
           <PartyPanel party={shown.party} skillUses={shown.skillUses} day={shown.day} />
+          <ContractsPanel content={content} state={shown} onAction={dispatch} />
           <WorldMap
             content={content}
             state={shown}

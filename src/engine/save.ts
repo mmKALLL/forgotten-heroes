@@ -9,7 +9,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 6
+export const CURRENT_SAVE_VERSION = 7
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -126,6 +126,40 @@ export function v5ToV6(raw: Record<string, unknown>, content: Content): Record<s
   }
 }
 
+/** An old pace (and its covering-tracks flag) as a v7 pace: covering tracks is now Stealthy. */
+const v7Pace = (pace: unknown, coverTracks: unknown): unknown =>
+  coverTracks === true && pace === 'cautious' ? 'stealthy' : pace
+
+/** A v6 day on the road ({ day, pace, coverTracks }) as a v7 one ({ day, pace }). */
+const v7PaceDay = (d: unknown): unknown => {
+  if (typeof d !== 'object' || d === null) return d
+  const { coverTracks, ...rest } = d as Record<string, unknown>
+  return { ...rest, pace: v7Pace(rest.pace, coverTracks) }
+}
+
+/**
+ * v6 → v7 (Plan 4, paces): covering tracks is no longer a flag on the cautious pace but a pace of
+ * its own, Stealthy. A journey, and every day logged for pursuit (the journey's pace log and each
+ * follow-up's trail), that was cautious with covered tracks becomes stealthy; the flag goes. A
+ * journey under way keeps the speed it set out at.
+ */
+export function v6ToV7(raw: Record<string, unknown>): Record<string, unknown> {
+  const travel = raw.travel as Record<string, unknown> | null | undefined
+  const days = (log: unknown) => (Array.isArray(log) ? log.map(v7PaceDay) : log)
+  const nextTravel = travel
+    ? (() => {
+        const { coverTracks, ...rest } = travel
+        return { ...rest, pace: v7Pace(rest.pace, coverTracks), paceLog: days(rest.paceLog) }
+      })()
+    : travel
+  const followUps = Array.isArray(raw.followUps)
+    ? raw.followUps.map((f: Record<string, unknown>) =>
+        f && Array.isArray(f.trail) ? { ...f, trail: days(f.trail) } : f
+      )
+    : raw.followUps
+  return { ...raw, version: 7, travel: nextTravel, followUps }
+}
+
 /**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
@@ -147,6 +181,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v4ToV5(raw as Record<string, unknown>, content), content)
     case 5:
       return migrate(v5ToV6(raw as Record<string, unknown>, content), content)
+    case 6:
+      return migrate(v6ToV7(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:
