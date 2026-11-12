@@ -22,3 +22,5 @@ The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`]
 Encounter odds and rewards live in the situations themselves (`situations.json` files in every source).
 
 See also [threat-levels.md](threat-levels.md) for how threat and Rampant are worked out.
+
+The economy's numbers (spreads, market depth, contract pay and deadlines, goods prices) were tuned against a simulation: see [economy-report.md](economy-report.md) to rerun it before changing them.

@@ -29,12 +29,15 @@ import {
   BOARD_SIZE,
   CONTRACT_PAY_PER_DAY,
   CONTRACT_PAY_PER_THREAT,
+  DEADLINE_GRACE_DAYS,
   DEADLINE_SLACK,
   DEBT_REP_GP,
   FAIL_REP,
   GOOD_WORD_POINTS,
   MAX_CONTRACTS,
   OVERLOAD_RATIO,
+  SUPPLY_GOODS_PAY,
+  SUPPLY_SOURCING_DAYS,
   URGENT_PAY,
   URGENT_SLACK,
 } from '../constants'
@@ -166,7 +169,8 @@ const standingMet = (state: GameState, here: string, patron: string, min: Standi
   atLeast(settlementStanding(state, here), min) || atLeast(personStanding(state, patron), min)
 
 /**
- * Deadline days from acceptance: the steady days × DEADLINE_SLACK, or for an urgent offer × URGENT_SLACK,
+ * Deadline days from acceptance: the steady days × DEADLINE_SLACK plus DEADLINE_GRACE_DAYS (for
+ * the days encounters cost), or for an urgent offer × URGENT_SLACK,
  * kept at least the forced-march days and less than the steady days. An offer is only urgent
  * where a forced march is quicker than a steady pace.
  */
@@ -176,7 +180,7 @@ function deadlineDays(d: Draw, reach: Reach, urgentChance: number) {
   const slack = lo + d.float() * (hi - lo)
   const days = urgent
     ? Math.min(reach.days - 1, Math.max(reach.forcedDays, Math.round(reach.days * slack)))
-    : Math.max(1, Math.ceil(reach.days * slack))
+    : Math.max(1, Math.ceil(reach.days * slack)) + DEADLINE_GRACE_DAYS
   return { urgent, days }
 }
 
@@ -231,7 +235,10 @@ function makeOffer(
         ? d.int(template.passengers.min, template.passengers.max)
         : 1
       : 0
-  const { urgent, days } = deadlineDays(d, target.reach, template.urgentChance)
+  const deadline = deadlineDays(d, target.reach, template.urgentChance)
+  const { urgent } = deadline
+  // A supply run first has to find the goods: unless it is urgent, it gets days for that.
+  const days = deadline.days + (template.kind === 'supply' && !urgent ? SUPPLY_SOURCING_DAYS : 0)
   const weekStart = boardWeek(state.day) * 7 + 1
   const domain = site ? state.world.pois[site].domain : to
   const threat = domainThreatLevel(state.world, domain, weekStart)
@@ -242,7 +249,11 @@ function makeOffer(
         target.reach.days *
         template.pay *
         (urgent ? URGENT_PAY : 1) *
-        (1 + CONTRACT_PAY_PER_THREAT * threat)
+        (1 + CONTRACT_PAY_PER_THREAT * threat) +
+        // The patron of a supply run also pays for the goods, a little over their base price.
+        (template.kind === 'supply' && good
+          ? amount * goodPrice(content, good) * SUPPLY_GOODS_PAY
+          : 0)
     )
   )
   const patronName = personDisplayName(state.world, content, patron)

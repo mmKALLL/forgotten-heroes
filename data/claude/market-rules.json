@@ -7,7 +7,7 @@
     {
       "id": "plains-farmland",
       "when": { "biomes": ["plains"] },
-      "supply": { "food": 2 },
+      "supply": { "food": 1 },
       "demand": { "timber": 1, "stone": 1 },
       "notes": "Grain country: cheap bread, little wood or stone."
     },
@@ -38,7 +38,7 @@
     {
       "id": "hill-quarries",
       "when": { "biomes": ["hills"] },
-      "supply": { "stone": 1, "food": 1 }
+      "supply": { "stone": 1 }
     },
     {
       "id": "marsh-herbs",
@@ -108,9 +108,9 @@
     {
       "id": "village-fields",
       "when": { "types": ["village", "hamlet"] },
-      "supply": { "food": 1, "fuel": 1 },
+      "supply": { "fuel": 1 },
       "demand": { "gear": 1 },
-      "notes": "Farms and woodlots; tools wear out."
+      "notes": "Woodlots, and tools that wear out. (Their farms feed themselves: cheap bread comes from the plains and the coast, which keeps food's spread under 4.5×.)"
     },
     {
       "id": "remote-outposts",
@@ -128,7 +128,7 @@
     {
       "id": "wealthy",
       "when": { "minWealth": 2 },
-      "demand": { "luxuries": 2, "gems": 1, "arcana": 1 }
+      "demand": { "luxuries": 1, "gems": 1, "arcana": 1 }
     },
     {
       "id": "very-rich",
@@ -187,8 +187,8 @@
     {
       "id": "near-wonder",
       "when": { "nearPoi": ["wonder"] },
-      "demand": { "arcana": 1, "food": 1 },
-      "notes": "Scholars and sightseers come to stare."
+      "demand": { "food": 1 },
+      "notes": "Sightseers come to stare, and need feeding. (No arcana demand: stacked with wealth it made arcana the one outlier trade in the I1 report.)"
     }
   ]
 }
