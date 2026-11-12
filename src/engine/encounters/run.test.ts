@@ -615,10 +615,12 @@ describe('twist kinds that fit the place', () => {
     expect(twistKindWeight(both, { ...greenvale, biome: 'hills' }, null)).toBe(ambush.weight)
   })
 
+  // One world, reseeded per draw: startEncounter is pure, and building 1,800 worlds was slow.
+  const base = makeState()
   const thefts = (c: Content, land: string) => {
     let count = 0
     for (let seed = 0; seed < 300; seed++) {
-      const state = startEncounter(reseed(makeState(), seed), c, 'stranger', {
+      const state = startEncounter(reseed(base, seed), c, 'stranger', {
         biome: 'plains',
         land,
         domain: `${land}-1`,
@@ -633,8 +635,8 @@ describe('twist kinds that fit the place', () => {
     expect(thefts(byRegion, 'greenvale')).toBeGreaterThan(thefts(byRegion, 'ashmoor') + 30)
     // Where Ashmoor's threat holds the roads, ambush weighs 6, so theft is rarer.
     const elsewhere = Object.keys(lands).find((r) => lands[r].threat !== threat)
-    if (elsewhere)
-      expect(thefts(byThreat, 'ashmoor')).toBeLessThan(thefts(byThreat, elsewhere) - 15)
-    expect(thefts(byThreat, 'ashmoor')).toBeLessThan(thefts(content, 'ashmoor') - 15)
-  })
+    const ashmoor = thefts(byThreat, 'ashmoor')
+    if (elsewhere) expect(ashmoor).toBeLessThan(thefts(byThreat, elsewhere) - 15)
+    expect(ashmoor).toBeLessThan(thefts(content, 'ashmoor') - 15)
+  }, 15_000)
 })
