@@ -14,7 +14,15 @@ import {
   routeTerrain,
   routeThreat,
 } from './routes'
-import { goodsOf, journeySupplies, partyWaterCapacity, waterNeed } from './supplies'
+import { forageCheck, type ForageCheck } from './forage'
+import { stowawayCheck, type StowawayCheck } from './stowaway'
+import { goodsOf, partyWaterCapacity, waterNeed } from './supplies'
+import {
+  forecastJourney,
+  type SupplyForecast,
+  type TravelWarning,
+  type WaterForecast,
+} from './warnings'
 
 export const DANGER_LABELS = ['Safe', 'Watchful', 'Dangerous', 'Deadly'] as const
 export const THREAT_LABELS = ['Held', 'Stirring', 'Rising', 'Rampant'] as const
@@ -82,9 +90,13 @@ export type PaceOption = {
   /** Covering tracks (cautious only): slower, but pursuers lose the trail and ambushes give Edge. */
   coverTracks: boolean
   days: number
-  /** Food and water the whole party needs for the journey. */
-  food: number
-  water: number
+  /** Water and food over the journey: needed, carried, expected foraging, and shortfalls. */
+  water: WaterForecast
+  food: SupplyForecast
+  /** Who forages each day at this pace, the DC and the odds; null at sea or without foraging. */
+  forage: ForageCheck | null
+  /** Supply and exhaustion warnings, as codes with params (warningText for English). */
+  warnings: TravelWarning[]
   /** The encounter budget, fewest to most. */
   encounters: [number, number]
   /** The chance each slot above the fewest fills. */
@@ -104,16 +116,23 @@ const LAND_PACES: readonly [Pace, boolean][] = [
   ['forced', false],
 ]
 
-function paceOptions(route: Route, members: number, threatLevel: number): PaceOption[] {
+function paceOptions(
+  state: GameState,
+  route: Route,
+  threatLevel: number,
+  forage: boolean
+): PaceOption[] {
   const paces = route.terrain === 'sea' ? LAND_PACES.filter(([p]) => p === 'steady') : LAND_PACES
   return paces.map(([pace, coverTracks]) => {
-    const { days, food, water } = journeySupplies(route, members, pace, coverTracks)
+    const { days, water, food, warnings } = forecastJourney(state, route, pace, coverTracks, forage)
     return {
       pace,
       coverTracks,
       days,
-      food,
       water,
+      food,
+      forage: forage ? forageCheck(state, route.terrain, pace) : null,
+      warnings,
       encounters: encounterRange(days),
       chance: encounterChance(route.danger, threatLevel, pace),
       hostileAvoided: paceHostileAvoidance(pace),
@@ -137,6 +156,11 @@ export type RouteOption = {
   /** The chance each slot above the fewest fills. */
   chance: number
   fare: number
+  /**
+   * Stowing away on a ship the party can't pay for: who sneaks aboard, the DC and the odds; null
+   * on land, when the fare is affordable, or when no one is fit.
+   */
+  stowaway: StowawayCheck | null
   /** Every pace the road can be walked at, with its days, supplies and encounters. */
   paces: PaceOption[]
   /** Why there is no pace choice (SEA_PACE_NOTE at sea), or null. */
@@ -146,8 +170,11 @@ export type RouteOption = {
   reason: string | null
 }
 
-/** The roads out of the current settlement, by route id. None while on the road. */
-export function routeOptions(state: GameState, content: Content): RouteOption[] {
+/**
+ * The roads out of the current settlement, by route id. None while on the road. Supplies assume
+ * the party forages each day on land unless `forage` is false.
+ */
+export function routeOptions(state: GameState, content: Content, forage = true): RouteOption[] {
   const here = state.location
   if (here === null || state.travel) return []
   const busy = inProgress(state)
@@ -176,7 +203,8 @@ export function routeOptions(state: GameState, content: Content): RouteOption[] 
       encounters: encounterRange(days),
       chance: encounterChance(route.danger, threatLevel),
       fare,
-      paces: paceOptions(route, state.party.length, threatLevel),
+      stowaway: busy ? null : stowawayCheck(state, route),
+      paces: paceOptions(state, route, threatLevel, forage),
       paceNote: route.terrain === 'sea' ? SEA_PACE_NOTE : null,
       available: reason === null,
       reason,

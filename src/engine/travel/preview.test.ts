@@ -3,6 +3,11 @@ import { newGame, step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { CAUTIOUS_HOSTILE_AVOIDANCE } from './pace'
 import { SEA_PACE_NOTE, journeyInfo, placeInfo, routeOptions, suppliesInfo } from './preview'
+import { tierOdds } from '../rules/checks'
+import type { GameState } from '../../schema/state'
+import { FORAGE_DC, WATERSKIN_WATER } from './tuning'
+import { FORCED_MARCH_DC } from './pace'
+import { warningText } from './warnings'
 import { encounterChance } from './routes'
 
 const content = fixtureContent()
@@ -76,62 +81,34 @@ describe('routeOptions', () => {
     const chance = (pace: 'cautious' | 'steady' | 'brisk' | 'forced') =>
       encounterChance(0, road.threatLevel, pace)
     expect(road.paceNote).toBeNull()
-    expect(road.paces).toEqual([
-      {
-        pace: 'cautious',
-        coverTracks: false,
-        days: 4,
-        food: 8,
-        water: 8,
-        encounters: [1, 3],
-        chance: chance('cautious'),
-        hostileAvoided: CAUTIOUS_HOSTILE_AVOIDANCE,
-        ambush: 'normal',
-      },
-      {
-        pace: 'cautious',
-        coverTracks: true,
-        days: 5,
-        food: 10,
-        water: 10,
-        encounters: [2, 4],
-        chance: chance('cautious'),
-        hostileAvoided: CAUTIOUS_HOSTILE_AVOIDANCE,
-        ambush: 'edge',
-      },
-      {
-        pace: 'steady',
-        coverTracks: false,
-        days: 3,
-        food: 6,
-        water: 6,
-        encounters: [1, 3],
-        chance: chance('steady'),
-        hostileAvoided: 0,
-        ambush: 'normal',
-      },
-      {
-        pace: 'brisk',
-        coverTracks: false,
-        days: 2,
-        food: 4,
-        water: 4,
-        encounters: [0, 2],
-        chance: chance('brisk'),
-        hostileAvoided: 0,
-        ambush: 'exposed',
-      },
-      {
-        pace: 'forced',
-        coverTracks: false,
-        days: 2,
-        food: 6,
-        water: 6,
-        encounters: [0, 2],
-        chance: chance('forced'),
-        hostileAvoided: 0,
-        ambush: 'exposed',
-      },
+    expect(
+      road.paces.map((p) => [
+        p.pace,
+        p.coverTracks,
+        p.days,
+        p.food.needed,
+        p.water.needed,
+        p.encounters,
+        p.chance,
+        p.hostileAvoided,
+        p.ambush,
+      ])
+    ).toEqual([
+      [
+        'cautious',
+        false,
+        4,
+        8,
+        8,
+        [1, 3],
+        chance('cautious'),
+        CAUTIOUS_HOSTILE_AVOIDANCE,
+        'normal',
+      ],
+      ['cautious', true, 5, 10, 10, [2, 4], chance('cautious'), CAUTIOUS_HOSTILE_AVOIDANCE, 'edge'],
+      ['steady', false, 3, 6, 6, [1, 3], chance('steady'), 0, 'normal'],
+      ['brisk', false, 2, 4, 4, [0, 2], chance('brisk'), 0, 'exposed'],
+      ['forced', false, 2, 6, 6, [0, 2], chance('forced'), 0, 'exposed'],
     ])
   })
 
@@ -181,5 +158,102 @@ describe('journeyInfo and suppliesInfo', () => {
       waterDays: 4,
     })
     expect(suppliesInfo(state, 'desert').waterDays).toBe(2)
+  })
+})
+
+describe('supply forecasts and warnings', () => {
+  const road = (overrides: Partial<GameState> = {}, forage?: boolean) =>
+    routeOptions(makeState({ location: 'greenvale-1', ...overrides }), content, forage).find(
+      (o) => o.routeId === 'greenvale-1-greenvale-2'
+    )!
+  const at = (pace: string, overrides: Partial<GameState> = {}, forage?: boolean) =>
+    road(overrides, forage).paces.find((p) => p.pace === pace && !p.coverTracks)!
+
+  test('each pace shows water and food needed, carried and expected from foraging', () => {
+    const steady = at('steady')
+    // Brom (Survival +1) forages the plains at DC 10: 60% a day of water (5% with food), 15% half.
+    expect(steady.forage).toMatchObject({ actorId: 'brom', dc: FORAGE_DC.plains, modifier: 1 })
+    expect(steady.forage!.odds).toEqual(tierOdds(1, FORAGE_DC.plains))
+    expect(steady.water).toMatchObject({
+      needed: 6,
+      carried: 8,
+      capacity: 8,
+      shortfallDays: 0,
+      runsOutOnDay: null,
+    })
+    expect(steady.water.expectedForage).toBeCloseTo(0.6 * 2 + 0.15 * 1, 12)
+    expect(steady.food).toMatchObject({ needed: 6, carried: 10, shortfallDays: 0 })
+    expect(steady.food.expectedForage).toBeCloseTo(0.05 * 2, 12)
+    expect(steady.warnings).toEqual([])
+    // The forced march looks with less care.
+    expect(at('forced').water.expectedForage).toBeCloseTo(0.5 * 2 + 0.15 * 1, 12)
+  })
+
+  test('warns when the water lasts only with foraging, and when the food runs out', () => {
+    const lean = at('steady', { goods: { food: 2, water: 2 } })
+    expect(lean.water.shortfallDays).toBe(0)
+    expect(lean.warnings).toEqual([
+      { code: 'waterReliesOnForaging', params: { day: 2 } },
+      {
+        code: 'foodRunsOut',
+        params: { day: 2, shortfallDays: 2, missing: 4, withForaging: true },
+      },
+    ])
+    expect(lean.warnings.map(warningText)).toEqual([
+      'The water lasts only if foraging goes well: it runs out on day 2 without.',
+      'Not enough food for the journey: it runs out on day 2 (4 rations short).',
+    ])
+  })
+
+  test('without foraging the same journey runs dry', () => {
+    const dry = at('steady', { goods: { food: 10, water: 2 } }, false)
+    expect(dry.forage).toBeNull()
+    expect(dry.water.expectedForage).toBe(0)
+    expect(dry.warnings).toEqual([
+      { code: 'waterRunsOut', params: { day: 2, shortfallDays: 2, withForaging: false } },
+    ])
+    expect(warningText(dry.warnings[0])).toBe('Water runs out on day 2 (2 days without).')
+  })
+
+  test('water that runs out even with foraging, and a forced march’s toll', () => {
+    const forced = at('forced', { goods: { food: 10, water: 0 } })
+    expect(forced.warnings).toEqual([
+      { code: 'waterRunsOut', params: { day: 1, shortfallDays: 2, withForaging: true } },
+      {
+        code: 'forcedMarchExhaustion',
+        // Lyra (CON +1) fails DC 12 half the time; Brom (CON +2) 45%.
+        params: {
+          days: 2,
+          dc: FORCED_MARCH_DC,
+          characterId: 'lyra',
+          name: 'Lyra',
+          expectedLevels: 1,
+        },
+      },
+    ])
+    expect(forced.warnings.map(warningText)).toEqual([
+      'Water runs out on day 1 even with foraging (2 days without).',
+      'A forced march of 2 days (CON DC 12 each day) will likely exhaust Lyra: about 1.0 levels.',
+    ])
+  })
+
+  test('extra waterskins raise the capacity', () => {
+    expect(at('steady', { waterskins: 2 }).water.capacity).toBe(8 + 2 * WATERSKIN_WATER)
+  })
+
+  test('a ship the party can’t pay for offers stowing away, with the odds', () => {
+    const [sea, ...land] = routeOptions(makeState({ location: 'ashmoor-1', gold: 5 }), content)
+    // Lyra (DEX 14) is stealthier than Brom.
+    expect(sea.stowaway).toEqual({
+      actorId: 'lyra',
+      skill: 'stealth',
+      dc: 13,
+      modifier: 2,
+      odds: tierOdds(2, 13),
+    })
+    expect(sea.paces[0].forage).toBeNull()
+    for (const o of land) expect(o.stowaway).toBeNull()
+    const [paid] = routeOptions(makeState({ location: 'ashmoor-1', gold: 20 }), content)
+    expect(paid.stowaway).toBeNull()
   })
 })
