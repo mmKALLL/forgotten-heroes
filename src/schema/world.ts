@@ -168,11 +168,41 @@ export const KingdomSchema = z.object({
   id: IdSchema,
   name: z.string(),
   ancestry: IdSchema.describe('The ruling ancestry'),
+  seat: IdSchema.describe('The settlement that is its seat, a capital marker when it can be'),
+  domains: z.array(IdSchema).min(1).describe('The domains (settlement ids) it holds'),
+  defence: z
+    .number()
+    .int()
+    .min(0)
+    .describe('Split across its domains as garrisons, thinning with distance from the seat'),
+})
+export type Kingdom = z.infer<typeof KingdomSchema>
+
+/** A land (a map area): the threat roaming it. */
+export const LandStateSchema = z.object({
+  threat: IdSchema,
+  threatStrength: z.number().int().min(1).max(6),
+})
+export type LandState = z.infer<typeof LandStateSchema>
+
+/** A domain (one per settlement): who holds it and how strongly. */
+export const DomainStateSchema = z.object({
+  kingdom: IdSchema,
+  land: IdSchema.describe("The settlement's land (its region)"),
+  garrison: z.number().min(0).describe("This domain's share of its kingdom's defence"),
+})
+export type DomainState = z.infer<typeof DomainStateSchema>
+
+/** The v3 kingdom over regions. Replaced by KingdomSchema in GameState v4. */
+export const RegionKingdomSchema = z.object({
+  id: IdSchema,
+  name: z.string(),
+  ancestry: IdSchema.describe('The ruling ancestry'),
   capital: IdSchema.describe('The settlement that is its seat'),
   regions: z.array(IdSchema).min(1),
   defence: z.number().int().min(0).describe('Split evenly across its regions as garrisons'),
 })
-export type Kingdom = z.infer<typeof KingdomSchema>
+export type RegionKingdom = z.infer<typeof RegionKingdomSchema>
 
 export const RegionStateSchema = z.object({
   kingdom: IdSchema,
@@ -196,7 +226,7 @@ export type SettlementState = z.infer<typeof SettlementStateSchema>
 
 export const WorldStateSchema = z.object({
   seed: z.number().int().min(0).max(0xffffffff),
-  kingdoms: z.array(KingdomSchema),
+  kingdoms: z.array(RegionKingdomSchema),
   regions: z.record(IdSchema, RegionStateSchema),
   settlements: z.record(IdSchema, SettlementStateSchema),
 })

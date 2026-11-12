@@ -1,6 +1,12 @@
 import { sortedEntries, type Content } from '../../content/build'
 import { SIZE_TIERS } from '../../schema/constants'
-import type { Kingdom, RegionState, Settlement, SettlementState, Town } from '../../schema/world'
+import type {
+  RegionKingdom,
+  RegionState,
+  Settlement,
+  SettlementState,
+  Town,
+} from '../../schema/world'
 import type { Draw } from '../rng'
 import { generatePlaceName } from './names'
 
@@ -80,7 +86,7 @@ const own = <T>(table: Record<string, T>, id: string): T | undefined =>
 export function generateSettlements(
   d: Draw,
   content: Content,
-  kingdoms: readonly Kingdom[],
+  kingdoms: readonly RegionKingdom[],
   regionStates: Readonly<Record<string, RegionState>>,
   usedNames: Set<string>
 ): Record<string, SettlementState> {

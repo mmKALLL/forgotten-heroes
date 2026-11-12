@@ -1,7 +1,7 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
 import type { WorldState } from '../../schema/world'
 import { createRng, withRng } from '../rng'
-import { generatePolitics } from './politics'
+import { generateRegionPolitics } from './politics'
 import { generateSettlements } from './settlements'
 
 /** Mixed into the run seed, so the world and the run draw from separate streams. */
@@ -19,7 +19,7 @@ export const START_SALT = 0x57a27ed5
 export function generateWorld(seed: number, content: Content): WorldState {
   return withRng(createRng(seed), (d) => {
     const usedNames = new Set<string>()
-    const { kingdoms, regions } = generatePolitics(d, content, usedNames)
+    const { kingdoms, regions } = generateRegionPolitics(d, content, usedNames)
     const settlements = generateSettlements(d, content, kingdoms, regions, usedNames)
     return { seed, kingdoms, regions, settlements }
   })[0]
