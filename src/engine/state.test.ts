@@ -5,7 +5,7 @@ import { createRng } from './rng'
 import { tierOdds } from './rules/checks'
 import { newGame, previewCheck, step } from './state'
 import { fixtureContent, makeCharacter } from './test-fixtures'
-import { generateWorld, startingSettlement, worldSeed } from './world/generate'
+import { START_MODES, generateWorld, startingSettlement, worldSeed } from './world/generate'
 
 const content = fixtureContent()
 
@@ -26,6 +26,13 @@ describe('newGame', () => {
     expect(state.goods).toEqual({ food: 10, water: 8 })
     expect(state.party.map((c) => c.strain)).toEqual([{}, {}])
     expect(state.log[0].text).toMatch(/ set out together from \w+\.$/)
+  })
+
+  test('starts where the chosen start mode says', () => {
+    for (const mode of START_MODES) {
+      const state = newGame(99, content, 2, mode)
+      expect(state.location).toBe(startingSettlement(state.world, content, mode))
+    }
   })
 
   test('rolling the world leaves the run’s random stream alone', () => {

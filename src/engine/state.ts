@@ -13,7 +13,7 @@ import { chooseActor } from './rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, type RollMode } from './rules/checks'
 import { stepTravel, type TravelAction } from './travel/journey'
 import { startingGoods } from './travel/supplies'
-import { generateWorld, startingSettlement, worldSeed } from './world/generate'
+import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { settlementName } from './world/geo'
 
 export const STARTING_PARTY_SIZE = 2
@@ -27,15 +27,20 @@ export type Action =
   | EncounterAction
   | TravelAction
 
+/**
+ * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
+ * settlement in the calmest mainland region, or any mainland settlement.
+ */
 export function newGame(
   seed: number,
   content: Content,
-  partySize = STARTING_PARTY_SIZE
+  partySize = STARTING_PARTY_SIZE,
+  start: StartMode = 'calm'
 ): GameState {
   const [party, rng] = generateParty(createRng(seed), content, partySize)
   // The world draws from its own stream, so it doesn't change the party or later rolls.
   const world = generateWorld(worldSeed(seed), content)
-  const location = startingSettlement(world, content)
+  const location = startingSettlement(world, content, start)
   const names = party.map((c) => c.name).join(' and ')
   const from = location ? ` from ${settlementName({ world }, location)}` : ''
   return {
