@@ -185,11 +185,14 @@ export function forecastJourney(
       const expected = levels.reduce((sum, p, level) => sum + p * level, 0) - c.exhaustion
       return { c, expected, death: levels[MAX_EXHAUSTION] }
     })
-    const worst = [...risks].sort((a, b) => b.expected - a.expected)[0]
     const deadliest = [...risks].sort((a, b) => b.death - a.death)[0]
     const deadly = deadliest && deadliest.death >= DEADLY_MARCH_CHANCE ? deadliest : null
-    // The severe warning replaces the ordinary one for the same member.
-    if (worst && worst.c.id !== deadly?.c.id) {
+    // The severe warning replaces the ordinary one for the same member, so the ordinary one names
+    // the worst-off of the others.
+    const worst = risks
+      .filter((r) => r.c.id !== deadly?.c.id)
+      .sort((a, b) => b.expected - a.expected)[0]
+    if (worst) {
       warnings.push({
         code: 'forcedMarchExhaustion',
         params: {

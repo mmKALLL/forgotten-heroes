@@ -472,12 +472,11 @@ describe('supply forecasts and warnings', () => {
       },
     })
     expect(isSevere(deadly!)).toBe(true)
-    // The severe warning replaces the ordinary one for the same member.
+    // The severe warning replaces the ordinary one for the same member; the ordinary one then
+    // names the worst-off of the others.
     expect(
-      forced.warnings.filter(
-        (w) => w.code === 'forcedMarchExhaustion' && w.params.characterId === 'lyra'
-      )
-    ).toEqual([])
+      forced.warnings.filter((w) => w.code === 'forcedMarchExhaustion').map((w) => w.params)
+    ).toEqual([expect.objectContaining({ characterId: 'brom', name: 'Brom' })])
     expect(warningText(deadly!)).toBe(
       'A forced march of 4 days could kill Lyra (81% chance of reaching the sixth level of exhaustion).'
     )
