@@ -21,11 +21,21 @@ import { livingMembers, wagesPerDay } from '../town/camaraderie'
 import { accessorySales } from '../gear/accessories'
 import { statModifier } from '../rules/character'
 import { step, type Action } from '../state'
+import { crisisDecided, crisisStatus } from '../crisis/status'
+import { crisisSites } from '../crisis/sites'
+import { siteLand } from '../crisis/text'
 import { routeOptions, type RouteOption } from './preview'
 import { poiReach, settlementReach } from './reach'
-import { goodsOf, maxWaterskins, restOption } from './supplies'
+import { goodsOf, maxWaterskins, partyWaterCapacity, restOption, waterNeed } from './supplies'
 import type { Pick } from './wander'
-import { MAX_CONTRACTS, NEWS_PRICE, STALE_DAYS } from '../constants'
+import {
+  ENCUMBERED_SPEED,
+  MAX_CONTRACTS,
+  NEWS_PRICE,
+  STALE_DAYS,
+  WATERSKIN_PRICE,
+  WATERSKIN_WATER,
+} from '../constants'
 
 // The trader: a smoke policy for the economy report (design §10, Plan 4 I1). It plays like a
 // sensible, cautious merchant-adventurer, using only what the player could see: the price book,
@@ -51,6 +61,8 @@ export type TraderWhy =
   | 'hire'
   /** Putting on or selling an accessory. */
   | 'gear'
+  /** The crusader resting until fit for a Crisis site. */
+  | 'crusade'
 
 export type TraderOptions = {
   /** Buy cargo from the price book (default true). Off: a contracts-only adventurer. */
@@ -67,6 +79,8 @@ export type TraderOptions = {
   hireUpTo?: number
   /** Wear accessories found or bought, and sell the spares (default true). */
   gear?: boolean
+  /** Chase the Crisis (default false): the crusader policy (see `crusader`). */
+  crusade?: boolean
   /** Stops before the next leg once this holds (e.g. a day reached). */
   until?: (state: GameState) => boolean
   /** Picks among equal choices (a road to scout, a site to visit) for leg `leg`. */
@@ -122,12 +136,50 @@ const MAX_SITE_DAYS = 2
 const BOARD_WEEK = 7
 /** A visited site is left alone this many days. */
 const REVISIT_DAYS = 30
+/** The crusader rests at most this many days in a row to be fit for a Crisis site. */
+const MAX_FIT_REST_DAYS = 10
+/**
+ * The crusader goes after the Crisis only with this much gold per living member (wages and food
+ * for the chase) and no contract in hand; poorer, it works as the trader does (contracts, cargo,
+ * gathering) until it has it.
+ */
+const CRUSADE_GOLD_PER_MEMBER = 15
+/** Days the crusader expects to spend at a Crisis site: food (and water) carried for them. */
+const CRUSADE_SITE_FOOD_DAYS = 1
+/**
+ * After this many legs in a row with no day passing (stuck: too laden to set out, too poor to
+ * lighten), the crusader rests a day instead of spinning.
+ */
+const MAX_STALLED_LEGS = 3
 
 /** Exhausted or badly hurt, but alive (a member at MAX_EXHAUSTION is beyond resting). */
 const needsRest = (c: Character) =>
   c.exhaustion < MAX_EXHAUSTION && (c.exhaustion > 0 || c.hp < c.maxHp / 2)
 const healthy = (state: GameState) =>
   state.party.every((c) => c.exhaustion === 0 && c.hp >= c.maxHp * 0.75)
+
+/** What the crusader is after: a known Crisis site, or else the land of the current act. */
+export type CrusadeGoal = { poi: string; land: null } | { poi: null; land: string }
+
+/**
+ * The crusader's goal (Plan 5b I1), from what the player knows: the reveal site once it is known
+ * and the plan isn't; during an act, its site once found, else its land once a clue names it. Null
+ * with no Crisis, once it is decided, or with nothing known to go after.
+ */
+export function crusadeGoal(state: GameState, content: Content): CrusadeGoal | null {
+  const crisis = state.crisis
+  if (!crisis || crisisDecided(crisis, state.day)) return null
+  const found = (id: string) =>
+    Object.hasOwn(state.world.pois, id) && state.world.pois[id].discovered
+  const status = crisisStatus(crisis, state.day)
+  if (status.phase === 'unknown') {
+    return found(crisis.reveal) ? { poi: crisis.reveal, land: null } : null
+  }
+  const site = crisis.acts[status.act!].poi
+  if (found(site)) return { poi: site, land: null }
+  const land = status.clues >= 1 ? siteLand(state, content, site) : undefined
+  return land ? { poi: null, land } : null
+}
 
 /** Cargo is everything but food and water, which the road eats. */
 const isCargo = (good: Good) => good !== 'food' && good !== 'water'
@@ -328,6 +380,10 @@ export function trader(
   /** The day the trader last read each settlement's notice board. */
   const boardSeen: Record<string, number> = {}
   let plan: TradePlan | null = null
+  /** The crusader's searches for the current act: the settlements whose domain it explored. */
+  let searched = { act: -1, at: new Set<string>() }
+  /** Days rested in a row to be fit for a Crisis site. */
+  let fitRest = 0
 
   const act = (action: Action, why: TraderWhy) => {
     const before = state
@@ -344,9 +400,26 @@ export function trader(
     o.onStep?.(before, action, state, why)
   }
 
+  /**
+   * A fixed option that ends the encounter without doing anything for the Crisis: leaving. The
+   * crusader never takes one at a Crisis site while it has another choice.
+   */
+  const retreats = (option: { id: string; kind: string }): boolean => {
+    if (option.kind !== 'fixed' || !state.encounter) return false
+    const raw = currentOptions(state.encounter).find((x) => x.id === option.id)
+    if (raw?.kind !== 'fixed' || raw.outcome.goto) return false
+    return !raw.outcome.effects.some((e) =>
+      ['learnPlan', 'crisisClue', 'thwartAct'].includes(e.effect)
+    )
+  }
+
   const resolveEncounter = () => {
     for (let guard = 0; state.encounter && guard < 50; guard++) {
-      const options = encounterOptions(state).filter((x) => x.available)
+      const all = encounterOptions(state).filter((x) => x.available)
+      const poi = state.encounter.poi
+      const pressOn = o.crusade && poi != null && crisisSites(state.crisis).includes(poi)
+      const onward = pressOn ? all.filter((x) => !retreats(x)) : all
+      const options = onward.length > 0 ? onward : all
       const checks = options
         .filter((x) => x.check !== null)
         .sort((a, b) => b.check!.successChance - a.check!.successChance)
@@ -364,7 +437,8 @@ export function trader(
       const choice =
         best && best.check!.successChance >= 0.5
           ? best
-          : (free ?? (best && best.check!.successChance >= 0.25 ? best : (fixed[0] ?? best)))
+          : (free ??
+            (best && (pressOn || best.check!.successChance >= 0.25) ? best : (fixed[0] ?? best)))
       if (!choice) {
         act({ type: 'closeEncounter' }, 'encounter')
         break
@@ -412,6 +486,7 @@ export function trader(
   /** The contract worth the most a day that the trader can meet and carry; null for none. */
   const pickOffer = (here: string): Offer | null => {
     if (state.contracts.length >= MAX_CONTRACTS) return null
+    if (o.crusade && crusadeStep(here).target !== null) return null
     const going = state.contracts.find((c) => !c.met)
     let best: { offer: Offer; perDay: number } | null = null
     const roads = routeOptions(state, content).filter((r) => r.available)
@@ -619,10 +694,182 @@ export function trader(
     }
   }
 
+  /** The gold the crusader wants in hand to go after the Crisis. */
+  const crusadeGold = () => CRUSADE_GOLD_PER_MEMBER * livingMembers(state).length
+
+  /** The crusader's goal while it is free to pursue it: no contract in hand, and gold enough. */
+  const pursuing = (): CrusadeGoal | null =>
+    o.crusade && state.contracts.length === 0 && state.gold >= crusadeGold()
+      ? crusadeGoal(state, content)
+      : null
+
+  /**
+   * In town, the crusader first eats: with under two days of food, it pours out water (free here)
+   * to make room and buys two days' worth.
+   */
+  const eatFirst = () => {
+    const mouths = livingMembers(state).length
+    const short = 2 * mouths - goodsOf(state.goods, 'food')
+    if (short <= 0 || !quote(state, content, state.location!, 'food', 'buy', 1)) return
+    const kg = short * goodWeight(content, 'food') - room()
+    const water = goodsOf(state.goods, 'water')
+    if (kg > 0 && water > 0) {
+      const pour = Math.min(water, Math.ceil(kg / goodWeight(content, 'water')))
+      act({ type: 'dropGoods', good: 'water', amount: pour }, 'drop')
+    }
+    act({ type: 'buyGoods', good: 'food', amount: short }, 'provision')
+  }
+
+  /** The land a settlement lies in (a `regions` id). */
+  const landOf = (id: string) =>
+    Object.hasOwn(content.settlements, id) ? content.settlements[id].region : undefined
+
+  /**
+   * Where the crusader heads next for its goal, from settlement `here`: the site itself, or in the
+   * act's land the nearest settlement whose domain it hasn't searched yet for this act (all of
+   * them searched: start over). Null with no goal or when here is the place to search.
+   */
+  const crusadeTarget = (goal: CrusadeGoal, here: string): string | null => {
+    if (goal.poi !== null) return goal.poi
+    const act = crisisStatus(state.crisis!, state.day).act!
+    if (searched.act !== act) searched = { act, at: new Set() }
+    const near = [...settlementReach(content, here)]
+      .filter(([id]) => landOf(id) === goal.land && Object.hasOwn(state.world.settlements, id))
+      .sort((a, b) => a[1].days - b[1].days)
+      .map(([id]) => id)
+    const ours = landOf(here) === goal.land
+    if (ours && !searched.at.has(here)) return null
+    const next = near.find((id) => id !== here && !searched.at.has(id))
+    if (next) return next
+    // Every domain of the land searched: search them again, starting here.
+    searched = { act, at: new Set() }
+    return ours ? null : (near[0] ?? null)
+  }
+
+  /**
+   * The crusader's next road toward its goal from settlement `here`, when it can take it: one it
+   * can supply, and for the road to a Crisis site, with the water for the way back and the days
+   * there (CRUSADE_SITE_FOOD_DAYS). Null without a goal, when here is the place to search, or when
+   * the road can't be supplied ('gold' or 'weight' says why).
+   */
+  const crusadeStep = (
+    here: string
+  ): { target: string; road: RouteOption } | { target: null; short: 'gold' | 'weight' | null } => {
+    const goal = pursuing()
+    const target = goal ? crusadeTarget(goal, here) : null
+    if (!target) return { target: null, short: null }
+    const roads = routeOptions(state, content).filter((r) => r.available)
+    const road = roadToward(state, content, roads, target)
+    if (!road) return { target: null, short: null }
+    const p = provisionPlan(state, content, { routeId: road.routeId, pace: 'steady' })
+    const skins = maxWaterskins(state, content)
+    if (!p || p.limit !== null) return { target: null, short: p?.limit ?? null }
+    if (p.waterskinsShort > skins.units) return { target: null, short: skins.limit }
+    const trip = siteTrip(road)
+    if (trip) {
+      // All of it carried (if slowly); the skins and the food paid with coin to spare.
+      if (!trip.fits) return { target: null, short: 'weight' }
+      const ration = quote(state, content, here, 'food', 'buy', 1)?.unitFirst ?? 1
+      const food = Math.max(0, trip.food - goodsOf(state.goods, 'food')) * ration
+      if (trip.skins * WATERSKIN_PRICE + food > state.gold - BROKE_GOLD) {
+        return { target: null, short: 'gold' }
+      }
+    }
+    return { target, road }
+  }
+
+  /**
+   * For the crusader's road to a Crisis site: the water and food for the way there and back and
+   * CRUSADE_SITE_FOOD_DAYS there (the desert drinks twice), and the waterskins still to buy for it.
+   * Null for any other road.
+   */
+  const siteTrip = (
+    road: RouteOption
+  ): { water: number; food: number; skins: number; fits: boolean } | null => {
+    if (!o.crusade || !Object.hasOwn(state.world.pois, road.to)) return null
+    if (!crisisSites(state.crisis).includes(road.to)) return null
+    const mouths = state.party.length + escortPassengers(state)
+    const type = state.world.pois[road.to].type
+    const spring = Object.hasOwn(content.poiTypes, type) && content.poiTypes[type].water
+    const plan = (slow: boolean) => {
+      const way = slow ? Math.ceil(road.days / ENCUMBERED_SPEED) : road.days
+      const days = 2 * way + CRUSADE_SITE_FOOD_DAYS
+      // A site with a spring refills the skins on arrival: water for the way there only.
+      const wet = spring ? way : days
+      const water = mouths * wet * waterNeed(road.terrain)
+      const food = mouths * (days + 1)
+      const level = load({ ...state, goods: { ...state.goods, water, food } }, content).level
+      const skins = Math.ceil(Math.max(0, water - partyWaterCapacity(state)) / WATERSKIN_WATER)
+      return { water, food, skins, level }
+    }
+    // Light if it can be; else laden, which takes longer and needs more.
+    const light = plan(false)
+    const trip = light.level === 'light' ? light : plan(true)
+    return { ...trip, fits: trip.level !== 'overloaded' }
+  }
+
+  /**
+   * The crusader's business in a settlement before it sets out (Plan 5b I1): listen for talk of the
+   * Crisis, search this domain once per act when it lies in the act's land, and rest until fit
+   * before going to a Crisis site. True when that took the leg.
+   */
+  const crusadeInTown = (here: string): boolean => {
+    const goal = crusadeGoal(state, content)
+    const crisis = state.crisis
+    if (!crisis || crisisDecided(crisis, state.day)) return false
+    if (state.contracts.length > 0 || state.gold < crusadeGold()) return false
+    const phase = crisisStatus(crisis, state.day).phase
+    // Talk: before the plan (it may name the reveal site), and in the act's land (a clue).
+    const talk =
+      (phase === 'unknown' && goal === null) || (goal?.land != null && landOf(here) === goal.land)
+    const option = talk ? rumourOption(state, content) : null
+    if (option && state.gold >= option.cost + BROKE_GOLD) {
+      act({ type: 'listenRumours' }, 'rumours')
+      if (state.encounter) resolveEncounter()
+      return true
+    }
+    const now = pursuing()
+    if (now?.land != null && landOf(here) === now.land && crusadeTarget(now, here) === null) {
+      searched.at.add(here)
+      if (exploreOption(state, content)) {
+        act({ type: 'explore' }, 'explore')
+        resolveEncounter()
+        return true
+      }
+    }
+    // Too much to carry for the road to the Crisis: a mule, once it can spare the coin.
+    const mule = content.animals[PACK_ANIMAL]
+    const step = now ? crusadeStep(here) : null
+    if (
+      step &&
+      'short' in step &&
+      step.short === 'weight' &&
+      mule &&
+      (state.animals[PACK_ANIMAL] ?? 0) === 0 &&
+      state.gold >= mule.price + crusadeGold() &&
+      serviceWith(state, content, 'animals')
+    ) {
+      act({ type: 'buyAnimal', animal: PACK_ANIMAL }, 'animal')
+    }
+    if (now?.poi != null && !healthy(state) && fitRest < MAX_FIT_REST_DAYS) {
+      const inn = restOption(state, content)
+      const lodging = inn.lodging && state.gold - inn.lodgingCost >= RESERVE_PER_MEMBER
+      const short = livingMembers(state).length - goodsOf(state.goods, 'food')
+      if (!lodging && short > 0) act({ type: 'buyGoods', good: 'food', amount: short }, 'crusade')
+      if (lodging || goodsOf(state.goods, 'food') >= livingMembers(state).length) {
+        fitRest++
+        act({ type: 'rest', lodging }, 'crusade')
+        return true
+      }
+    }
+    return false
+  }
+
   /** One leg's business in a settlement, ending on the road (or resting when there is none). */
   const inTown = (leg: number) => {
     const here = state.location!
     boardSeen[here] = state.day
+    if (o.crusade) eatFirst()
     wearGear()
     for (const c of [...state.contracts]) {
       if (completeRefusal(state, content, c) === null) {
@@ -693,6 +940,7 @@ export function trader(
       }
       buySupplies()
     }
+    if (o.crusade && crusadeInTown(here)) return
     if (gatherWhenPoor()) return
     // A courier's news of a contract's destination, so cargo can ride along.
     const courier = o.trade ? serviceWith(state, content, 'news') : null
@@ -713,9 +961,13 @@ export function trader(
       else act({ type: 'rest', lodging: false }, 'rest')
       return
     }
-    // Where to: a contract, the cargo run, a site now and then, or a market not yet known.
+    // Where to: the Crisis (crusading), a contract, the cargo run, a site now and then, or a
+    // market not yet known.
     const contract = [...state.contracts].sort((a, b) => a.deadline - b.deadline)[0]
-    let target: string | null = contract ? contractTarget(state, content, contract) : null
+    const crusading = o.crusade ? crusadeStep(here).target : null
+    if (crusading) plan = null
+    let target: string | null =
+      crusading ?? (contract ? contractTarget(state, content, contract) : null)
     const spare = () =>
       Math.max(0, state.gold - RESERVE_PER_MEMBER * state.party.length - BROKE_GOLD)
     if (!target && o.trade) {
@@ -738,7 +990,7 @@ export function trader(
     if (!target && o.trade) target = scoutTarget(here)
     // Without a contract or a cargo run, passage money is better kept: walk where a road goes.
     const free = roads.filter((r) => r.fare === 0)
-    const errand = contract !== undefined || plan !== null
+    const errand = contract !== undefined || plan !== null || crusading !== null
     const toward = target ? roadToward(state, content, errand ? roads : free, target) : null
     let road =
       toward ??
@@ -751,21 +1003,25 @@ export function trader(
     const watered = (r: RouteOption) =>
       (planFor(r)?.waterskinsShort ?? 0) <= maxWaterskins(state, content).units
     const supplied = (r: RouteOption) => planFor(r)?.limit === null && watered(r)
-    if (!watered(road) && contract !== undefined && target) {
+    const insist = contract !== undefined || crusading !== null
+    if (!watered(road) && insist && target) {
       const other = roadToward(state, content, roads.filter(watered), target)
-      if (!other) {
+      if (!other && contract !== undefined) {
         act({ type: 'abandonContract', id: contract.id }, 'contract')
         return
       }
-      road = other
+      if (other) road = other
     }
     // A road the purse or the packs can't supply is no road for a poor party: take the
     // shortest one that can be supplied instead, unless a contract insists.
-    if (!watered(road) || (!supplied(road) && contract === undefined)) {
+    if (!watered(road) || (!supplied(road) && !insist)) {
       const shortest = [...(free.length > 0 ? free : roads)].sort((a, b) => a.days - b.days)
       road = shortest.find(supplied) ?? shortest.find(watered) ?? road
     }
     const pace = paceFor(state, content, road)
+    // The crusader's road to a Crisis site: the waterskins for the way back too.
+    const trip = siteTrip(road)
+    if (trip && trip.skins > 0) act({ type: 'buyWaterskin', count: trip.skins }, 'provision')
     // Buy the waterskins the road needs first.
     const skins =
       provisionPlan(state, content, { routeId: road.routeId, pace })?.waterskinsShort ?? 0
@@ -786,7 +1042,9 @@ export function trader(
     }
     // There is no market at a site: food for the way back too.
     if (Object.hasOwn(state.world.pois, road.to)) {
-      act({ type: 'buyGoods', good: 'food', amount: mouths * (road.days + 1) }, 'provision')
+      // The crusader stays for days: food for them too.
+      const extra = trip ? CRUSADE_SITE_FOOD_DAYS : 0
+      act({ type: 'buyGoods', good: 'food', amount: mouths * (road.days + 1 + extra) }, 'provision')
     }
     // Cargo for wherever the road leads: the plan, or what pays at the contract's destination.
     if (o.trade) {
@@ -809,6 +1067,7 @@ export function trader(
       go = 'brisk'
       act({ type: 'provision', routeId: road.routeId, pace: go }, 'provision')
     }
+    fitRest = 0
     act({ type: 'travel', routeId: road.routeId, pace: go }, 'travel')
   }
 
@@ -834,7 +1093,14 @@ export function trader(
     }
     const contract = state.contracts.find((c) => c.met || c.poi !== here)
     const target = contract ? contractTarget(state, content, contract) : (plan?.to ?? null)
+    // Crusading: back to the nearest settlement, to rest and come again.
+    const town = o.crusade
+      ? [...roads]
+          .filter((r) => Object.hasOwn(state.world.settlements, r.to))
+          .sort((a, b) => a.days - b.days)[0]
+      : undefined
     const road =
+      town ??
       (target ? roadToward(state, content, roads, target) : null) ??
       roads[o.pick(leg, roads.length)]
     // No market here to restock: never a pace whose food or water runs out when another lasts,
@@ -853,9 +1119,19 @@ export function trader(
     act({ type: 'travel', routeId: road.routeId, pace }, 'travel')
   }
 
+  /** Legs in a row in which no day passed (the crusader then rests a day rather than spin). */
+  let stalled = 0
+  let lastDay = state.day
   for (let leg = 0; leg < legs && !o.until?.(state); leg++) {
     if (!state.party.some((c) => c.exhaustion < MAX_EXHAUSTION)) break
     if (state.encounter) resolveEncounter()
+    stalled = state.day === lastDay ? stalled + 1 : 0
+    lastDay = state.day
+    if (o.crusade && stalled >= MAX_STALLED_LEGS && !state.travel && state.location !== null) {
+      const inn = restOption(state, content)
+      act({ type: 'rest', lodging: inn.lodging }, 'rest')
+      continue
+    }
     if (!state.travel && state.location !== null) {
       if (Object.hasOwn(state.world.pois, state.location)) atSite(leg)
       else inTown(leg)
@@ -875,4 +1151,24 @@ export function trader(
     if (state.encounter) resolveEncounter()
   }
   return state
+}
+
+/**
+ * The crusader (Plan 5b I1): a sim policy for the Crisis report, not a rule. It trades as the
+ * trader does, but goes to the reveal site once it is known; with an act's land known, travels
+ * there, listens at its taverns and searches each of its domains in turn; and with the act's site
+ * known, rests until fit (HP at 75%, no exhaustion), goes there and plays it on every arrival
+ * (never backing out) until the act is thwarted.
+ *
+ * It sets out only when it can: no contract in hand, CRUSADE_GOLD_PER_MEMBER gold, and a road it
+ * can supply (to a site, with the water and food there and back, buying a mule when the load is
+ * too much). Otherwise it works as the trader does until it can. In town it eats first.
+ */
+export function crusader(
+  start: GameState,
+  content: Content,
+  legs: number,
+  options: TraderOptions = {}
+): GameState {
+  return trader(start, content, legs, { ...options, crusade: true })
 }
