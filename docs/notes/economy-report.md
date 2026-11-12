@@ -80,6 +80,14 @@ The plan's order was followed: gathering, then wages and fees, then the XP table
 2. **`RECRUIT_WAGE` was halved** (Decided overnight #8 said 0.5 × (level + 1)). Revert it if wages should bite harder.
 3. **Timber and stone gathering** could be made worth more (a bigger unit, or a higher yield), or left as the poor choice they are. The preview shows their odds and units, so a player can see it.
 
+### After the Plan 5a review fixes
+
+Rerun on the committed data (no `data/imported-private/`) after the review fixes: recruit levels drawn within the service's range and capped by the founders' best + 1 (stable all week), a dismissed member's owed wages settled or written off, stowaway work days ending with wages and upkeep, and gathering depleting the land by the units carried. Nothing moves enough to change a conclusion above; the tables below are still the I1 run.
+
+- 50 gp trader: 2.4 / 1.3 gp a day by day 30 / 60 (was 2.6 / 1.3), broke 3% / 10% (7% / 10%), 1 death (0). With one recruit at most: 2.8 / 2.6 (2.7 / 2.6). Without recruits, contracts only and the 10 gp start: unchanged.
+- Recruiting: 1.8 hires and 47.8 gp of wages a run (1.7, 46.9); 6 desertions (7).
+- Levels and danger: day 120 best level 3 / 5 / 6 (4 / 5 / 6); deaths over 120 days 6 in 10 runs (5).
+
 ### The Plan 5a report (seeds 1–30, 60 days)
 
 #### Policies (seeds 1–30, 60 days, a 50 gp start)
