@@ -193,6 +193,23 @@ export const DomainStateSchema = z.object({
 })
 export type DomainState = z.infer<typeof DomainStateSchema>
 
+/** A point of interest placed in this world: hidden until discovered, hostile until cleared. */
+export const PoiStateSchema = z.object({
+  type: IdSchema.describe('A poiTypes id'),
+  spot: IdSchema.describe('The land spot it stands on'),
+  domain: IdSchema.describe('The domain (settlement id) that owns the spot'),
+  name: z.string(),
+  threat: z
+    .number()
+    .int()
+    .min(0)
+    .max(3)
+    .describe("What it adds to its domain's threat until cleared; 0 unless hostile"),
+  discovered: z.boolean(),
+  cleared: z.boolean(),
+})
+export type PoiState = z.infer<typeof PoiStateSchema>
+
 /** The v3 kingdom over regions. Replaced by KingdomSchema in GameState v4. */
 export const RegionKingdomSchema = z.object({
   id: IdSchema,

@@ -1,0 +1,137 @@
+import { sortedEntries, type Content } from '../../content/build'
+import type { DomainState, LandSpot, LandState, PoiState, PoiType } from '../../schema/world'
+import { fillText, rollTable, slotNames } from '../encounters/slots'
+import type { Draw } from '../rng'
+import { straightKm } from './geo'
+import { threatLevelFor } from './politics'
+import type { Territory } from './territory'
+
+// Points of interest (design §6): dungeons, experts, lairs, shrines, landmarks, wonders and quest
+// sites, placed on land spots per domain when the world is rolled. All start hidden.
+
+/** A domain's expected POIs are its spots / POI_SPOTS_EACH (about 40–60 per world). */
+export const POI_SPOTS_EACH = 15
+/** No domain gets more than this many POIs; most get 0 or 1. */
+export const POI_MAX_PER_DOMAIN = 2
+/** The closest a POI may stand to its settlement, and to another POI. */
+export const POI_MIN_KM = 8
+/** A type whose biome matches the spot, or whose threats name the land's threat, weighs this much more. */
+export const POI_FAVOURED = 3
+
+/** The parts of a world the threat of a domain depends on. */
+export type PoiWorld = {
+  lands: Record<string, LandState>
+  domains: Record<string, DomainState>
+  pois: Record<string, PoiState>
+}
+
+/**
+ * How many POIs a domain with this many spots draws: its expected share (spots / spotsEach),
+ * rounded up or down at random so the fraction is kept on average, at most POI_MAX_PER_DOMAIN.
+ */
+export function poisPerDomain(d: Draw, spots: number, spotsEach = POI_SPOTS_EACH): number {
+  const expected = spots / spotsEach
+  const whole = Math.floor(expected)
+  const extra = d.float() < expected - whole ? 1 : 0
+  return Math.max(0, Math.min(POI_MAX_PER_DOMAIN, whole + extra))
+}
+
+const own = <T>(table: Record<string, T>, id: string | undefined): T | undefined =>
+  id !== undefined && Object.hasOwn(table, id) ? table[id] : undefined
+
+/**
+ * A name from a POI type's parts table. `{threat}` and `{land}` are the land's threat and name;
+ * other slots expand as nested tables. Falls back to the type's own name without a table.
+ */
+function poiName(d: Draw, content: Content, type: PoiType, values: Record<string, string>): string {
+  const table = own(content.partsTables, type.names)
+  if (!table) return type.name
+  const row = d.weighted(table.rows, (r) => r.weight)
+  const filled = { ...values }
+  for (const name of slotNames(row.text)) {
+    if (!Object.hasOwn(filled, name)) filled[name] = rollTable(d, content, name)
+  }
+  return fillText(row.text, filled)
+}
+
+export type PoiOptions = {
+  /** Overrides POI_SPOTS_EACH (for tests). */
+  spotsEach?: number
+}
+
+/**
+ * The POIs of a world, ids `poi-<n>` in generation order. Domains are walked in id order; each
+ * draws its count (poisPerDomain), then for each POI a free spot of its territory at least
+ * POI_MIN_KM from its settlement and every POI so far (fewer when none is left), and a type by
+ * weight, POI_FAVOURED× when the type's biomes match the spot's terrain (or the land's biome) or
+ * its threats name the land's threat. Hostile types roll their threat.
+ */
+export function generatePois(
+  d: Draw,
+  content: Content,
+  territory: Pick<Territory, 'spots'>,
+  lands: Readonly<Record<string, LandState>>,
+  options: PoiOptions = {}
+): Record<string, PoiState> {
+  const types = sortedEntries(content.poiTypes).filter((t) => t.weight > 0)
+  const result: Record<string, PoiState> = {}
+  if (types.length === 0) return result
+  const placed: LandSpot[] = []
+  for (const site of sortedEntries(content.settlements)) {
+    const spots = (territory.spots[site.id] ?? []).flatMap((id) => own(content.landSpots, id) ?? [])
+    if (spots.length === 0) continue
+    const count = poisPerDomain(d, spots.length, options.spotsEach)
+    const region = own(content.regions, site.region)
+    const land = own(lands, site.region)
+    const threat = own(content.threats, land?.threat)
+    for (let i = 0; i < count; i++) {
+      const free = spots.filter(
+        (s) =>
+          straightKm(s.at, site.at) >= POI_MIN_KM &&
+          placed.every((p) => p !== s && straightKm(p.at, s.at) >= POI_MIN_KM)
+      )
+      if (free.length === 0) break
+      const spot = d.pick(free)
+      placed.push(spot)
+      const terrain = spot.terrain ?? region?.biome
+      const type = d.weighted(types, (t) => {
+        const favoured =
+          (terrain !== undefined && t.biomes.includes(terrain)) ||
+          (land !== undefined && t.threats.includes(land.threat))
+        return t.weight * (favoured ? POI_FAVOURED : 1)
+      })
+      const name = poiName(d, content, type, {
+        threat: threat?.name ?? '',
+        land: region?.name ?? site.region,
+      })
+      result[`poi-${Object.keys(result).length + 1}`] = {
+        type: type.id,
+        spot: spot.id,
+        domain: site.id,
+        name,
+        threat: type.threat ? d.int(type.threat.min, type.threat.max) : 0,
+        discovered: false,
+        cleared: false,
+      }
+    }
+  }
+  return result
+}
+
+/** The threat holding a domain: its land's strength plus every uncleared hostile POI in it. */
+export function domainThreatStrength(world: PoiWorld, domainId: string): number {
+  const domain = own(world.domains, domainId)
+  if (!domain) return 0
+  const land = own(world.lands, domain.land)?.threatStrength ?? 0
+  const lairs = Object.values(world.pois)
+    .filter((p) => p.domain === domainId && !p.cleared)
+    .reduce((sum, p) => sum + p.threat, 0)
+  return land + lairs
+}
+
+/** How far the threat outweighs the domain's garrison, 0 (held) to 3 (rampant); derived, never stored. */
+export function domainThreatLevel(world: PoiWorld, domainId: string): number {
+  const domain = own(world.domains, domainId)
+  if (!domain) return 0
+  return threatLevelFor(domainThreatStrength(world, domainId), domain.garrison)
+}
