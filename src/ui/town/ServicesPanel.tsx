@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
+import { accessoryOffers } from '../../engine/gear/accessories'
 import { animalOffers } from '../../engine/town/animals'
 import { recruitOffers } from '../../engine/town/recruits'
 import { peopleRows, shopKeeper } from '../../engine/town/reputation'
@@ -19,6 +20,7 @@ import { useI18n, type I18n } from '../i18n/I18n'
 import { Tip } from '../Tip'
 import type { QualityEffect } from '../../engine/economy/market'
 import { StandingBadge } from './PeoplePanel'
+import { AccessoryShop } from './AccessoryShop'
 import { RecruitsPanel } from './RecruitsPanel'
 import { daysText } from '../world/travelText'
 import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
@@ -26,13 +28,15 @@ import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
 /**
- * A service's list opened in place of the tiles (recruits now; the accessory shop later), at the
+ * A service's list opened in place of the tiles (the recruits, or an accessory shop), at the
  * settlement it was opened in, so it closes by itself when the party leaves.
  */
-export type ServiceList = { kind: 'recruits'; service: string; at: string | null }
+export type ServiceList = { kind: 'recruits' | 'accessories'; service: string; at: string | null }
 
-/** What a tile needs to open a list, and to take focus back when it closes. */
+/** What a tile needs to open a list, and which opener ("kind/service") takes focus back. */
 type Opener = { open: (list: ServiceList) => void; returnTo: string | null }
+
+const listKey = (kind: ServiceList['kind'], service: string) => `${kind}/${service}`
 
 const pips = (quality: number) => '●'.repeat(quality) + '○'.repeat(Math.max(0, 5 - quality))
 
@@ -86,22 +90,21 @@ function Why({ reason }: { reason: string | null | undefined }) {
 export function ServicesPanel({ content, state, onAction }: Props) {
   const { t } = useI18n()
   const [list, setList] = useState<ServiceList | null>(null)
-  // The service whose opener takes focus back after its list closes.
+  // The opener ("kind/service") that takes focus back after its list closes.
   const [returnTo, setReturnTo] = useState<string | null>(null)
   const rows = serviceRows(state, content)
   if (list && list.at === state.location) {
-    return (
-      <RecruitsPanel
-        content={content}
-        state={state}
-        service={list.service}
-        onAction={onAction}
-        onClose={() => {
-          setReturnTo(list.service)
-          setList(null)
-        }}
-      />
-    )
+    const props = {
+      content,
+      state,
+      service: list.service,
+      onAction,
+      onClose: () => {
+        setReturnTo(listKey(list.kind, list.service))
+        setList(null)
+      },
+    }
+    return list.kind === 'recruits' ? <RecruitsPanel {...props} /> : <AccessoryShop {...props} />
   }
   const opener: Opener = { open: setList, returnTo }
   return (
@@ -234,8 +237,36 @@ function ServiceAction({
   const [target, setTarget] = useState<string | null>(null)
   const [animal, setAnimal] = useState<string | null>(null)
   switch (view.action) {
-    case 'recruit':
-      return <RecruitOpener {...{ content, state, row, view, opener }} />
+    case 'recruit': {
+      const here = state.location
+      const n =
+        here === null
+          ? 0
+          : recruitOffers(state, content, here).filter((o) => o.service === row.service).length
+      return (
+        <ListOpener
+          kind="recruits"
+          label={t('recruits.open', { n })}
+          enabled={n > 0}
+          {...{ state, row, view, opener }}
+        />
+      )
+    }
+    case 'accessories': {
+      const here = state.location
+      const n =
+        here === null
+          ? 0
+          : accessoryOffers(state, content, here).filter((o) => o.service === row.service).length
+      return (
+        <ListOpener
+          kind="accessories"
+          label={t('shop.open', { n })}
+          enabled={n > 0 || state.gear.length > 0}
+          {...{ state, row, view, opener }}
+        />
+      )
+    }
     case 'lodging':
       return (
         <>
@@ -372,15 +403,23 @@ function ServiceAction({
   }
 }
 
-/** "Recruits (2)": opens the recruits list in place of the tiles; none this week says so. */
-function RecruitOpener({
-  content,
+/**
+ * "Recruits (2)", "Accessories (3)": opens the list in place of the tiles. With nothing in it, the
+ * button is disabled and the reason stays in its tooltip (the tiles stay short); with something
+ * to look at, a refusal (a full party, too little gold) shows in the list.
+ */
+function ListOpener({
+  kind,
+  label,
+  enabled,
   state,
   row,
   view,
   opener,
 }: {
-  content: Content
+  kind: ServiceList['kind']
+  label: string
+  enabled: boolean
   state: GameState
   row: ServiceRow
   view: ServiceActionView
@@ -388,25 +427,22 @@ function RecruitOpener({
 }) {
   const { t } = useI18n()
   const button = useRef<HTMLButtonElement>(null)
-  const back = opener.returnTo === row.service
+  const back = opener.returnTo === listKey(kind, row.service)
   useEffect(() => {
     if (back) button.current?.focus()
   }, [back])
-  const here = state.location
-  const n =
-    here === null
-      ? 0
-      : recruitOffers(state, content, here).filter((o) => o.service === row.service).length
-  // "Recruits (0)" says it already, so the reason stays in the tooltip (the tiles stay short); with
-  // offers to look at, a refusal (a full party, too little gold) shows in the list.
   return (
     <button
       ref={button}
-      disabled={n === 0}
-      title={n === 0 ? (view.reason ?? undefined) : t('recruits.openHint')}
-      onClick={() => opener.open({ kind: 'recruits', service: row.service, at: here })}
+      disabled={!enabled}
+      title={
+        enabled
+          ? t(kind === 'recruits' ? 'recruits.openHint' : 'shop.openHint')
+          : (view.reason ?? undefined)
+      }
+      onClick={() => opener.open({ kind, service: row.service, at: state.location })}
     >
-      {t('recruits.open', { n })}
+      {label}
     </button>
   )
 }

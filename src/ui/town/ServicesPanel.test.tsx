@@ -6,6 +6,8 @@ import type { Content } from '../../content/build'
 import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import type { GameState } from '../../schema/state'
 import { I18nProvider } from '../i18n/I18n'
+import { accessoryOffers } from '../../engine/gear/accessories'
+import { describeHook } from '../../engine/gear/hooks'
 import { recruitOffers } from '../../engine/town/recruits'
 import { ServicesPanel } from './ServicesPanel'
 import { HEALER_PRICE } from '../../engine/constants'
@@ -150,6 +152,23 @@ test('a recruit the party cannot afford is disabled with the reason inline', asy
   const hire = screen.getAllByRole('button', { name: /^Hire/ })[0] as HTMLButtonElement
   expect(hire.disabled).toBe(true)
   expect(hire.parentElement?.textContent).toMatch(/costs \d+ gp/)
+})
+
+test('the accessory shop lists offers with their hooks and the gear to sell', async () => {
+  const worn = { id: 'old-ring', name: 'Old Ring', tier: 1 as const, hooks: [], value: 9 }
+  const state = town({ gear: [worn] })
+  const offers = accessoryOffers(state, content, 'greenvale-1')
+  expect(offers.length).toBeGreaterThan(0)
+  const onAction = panel(state)
+  await userEvent.click(screen.getByRole('button', { name: `Accessories (${offers.length})` }))
+  const shop = within(screen.getByRole('region', { name: 'Accessories · Inn/Tavern' }))
+  const offer = within(shop.getAllByRole('listitem', { name: offers[0].accessory.name })[0])
+  expect(offer.getByText(describeHook(offers[0].accessory.hooks[0]))).toBeTruthy()
+  await userEvent.click(offer.getByRole('button', { name: `Buy · ${offers[0].price} gp` }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'buyAccessory', offerId: offers[0].id })
+  const mine = within(shop.getByRole('listitem', { name: 'Old Ring' }))
+  await userEvent.click(mine.getByRole('button', { name: /^Sell · \+\d+ gp$/ }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellAccessory', id: 'old-ring' })
 })
 
 test('quality pips explain what quality does there on hover or focus', async () => {

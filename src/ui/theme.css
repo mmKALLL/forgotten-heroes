@@ -1958,6 +1958,18 @@ h2[tabindex='-1']:focus {
   font-size: 0.85rem;
   min-width: 0;
 }
+.hook-lines {
+  list-style: none;
+  padding: 0;
+  margin: 0.1rem 0 0;
+}
+.shop-sell-head {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 .recruit-hire {
   display: flex;
   flex-wrap: wrap;
