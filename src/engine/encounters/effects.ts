@@ -1,7 +1,7 @@
 import type { Content } from '../../content/build'
 import type { LogTone } from '../../schema/constants'
 import type { Condition, Effect } from '../../schema/encounter'
-import type { EncounterState, GameState } from '../../schema/state'
+import type { Character, EncounterState, GameState } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { withRng, type Rng } from '../rng'
@@ -106,6 +106,13 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       const [ids, rng] = targetIds(state, effect.target, ctx)
       const party = state.party.map((c) =>
         ids.includes(c.id) ? { ...c, hp: clamp(c.hp + effect.amount, 0, c.maxHp) } : c
+      )
+      return { ...state, rng, party }
+    }
+    case 'healFraction': {
+      const [ids, rng] = targetIds(state, effect.target, ctx)
+      const party = state.party.map((c) =>
+        ids.includes(c.id) ? { ...c, hp: Math.min(c.maxHp, c.hp + healOf(c, effect.fraction)) } : c
       )
       return { ...state, rng, party }
     }
@@ -216,6 +223,10 @@ export function applyEffects(
 
 const WHO = { all: 'everyone', random: 'someone' } as const
 
+/** What a healFraction heals a character: the share of their max HP, rounded up. */
+export const healOf = (c: Pick<Character, 'maxHp'>, fraction: number): number =>
+  Math.ceil(c.maxHp * fraction)
+
 /** How a condition reads after an effect chip in a preview, e.g. "Edge (if you know the odds)". */
 export function describeCondition(condition: Condition): string {
   switch (condition.cond) {
@@ -234,6 +245,8 @@ export function describeEffect(effect: Effect, actorName: string): string | null
       return `${formatModifier(effect.amount)} gp`
     case 'hp':
       return `${effect.target === 'actor' ? actorName : WHO[effect.target]} ${formatModifier(effect.amount)} HP`
+    case 'healFraction':
+      return `${effect.target === 'actor' ? actorName : WHO[effect.target]} +${Math.round(effect.fraction * 100)}% max HP`
     case 'exhaustion':
       return `${effect.target === 'actor' ? actorName : WHO.all} ${formatModifier(effect.amount)} exhaustion`
     case 'inspiration':

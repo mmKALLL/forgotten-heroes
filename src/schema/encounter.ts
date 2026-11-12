@@ -51,6 +51,16 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     ),
   z
     .object({
+      effect: z.literal('healFraction'),
+      fraction: z.number().gt(0).max(1),
+      target: z.enum(['actor', 'all', 'random']),
+      ...when,
+    })
+    .describe(
+      "Heal a share of each target's max HP, rounded up (0.25 heals a quarter): the acting member, everyone, or one random member who can still act"
+    ),
+  z
+    .object({
       effect: z.literal('exhaustion'),
       amount,
       target: z.enum(['actor', 'all']),

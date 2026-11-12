@@ -105,7 +105,12 @@ function stageIssues(stages: Record<string, Stage>, content: Content, at = ''): 
 function openingIssues(opening: readonly Effect[], content: Content, where: string): string[] {
   const situationIds = new Set(allSituations(content).map((s) => s.id))
   return opening.flatMap((effect) => {
-    if ((effect.effect === 'hp' || effect.effect === 'exhaustion') && effect.target === 'actor')
+    if (
+      (effect.effect === 'hp' ||
+        effect.effect === 'healFraction' ||
+        effect.effect === 'exhaustion') &&
+      effect.target === 'actor'
+    )
       return [`${where}: an opening hit has no actor; use "all" or "random"`]
     if (effect.effect === 'openingHit') return [`${where}: an opening hit can't contain openingHit`]
     if (effect.effect === 'followUp' && !situationIds.has(effect.situation))
@@ -266,7 +271,9 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
       issues.push(`${where}: follow-up to unknown situation "${effect.situation}"`)
     }
     if (
-      (effect.effect === 'hp' || effect.effect === 'exhaustion') &&
+      (effect.effect === 'hp' ||
+        effect.effect === 'healFraction' ||
+        effect.effect === 'exhaustion') &&
       effect.target === 'actor' &&
       option.kind === 'fixed'
     ) {

@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Site situations, played on a visit to a point of interest and never drawn on the road (design §6). The POI types in data/procedural/poi-types.json name them. Shrines trade gold for Inspiration (a fixed offering) or a day for healing (a Religion check). Landmarks offer a risky vantage point (Perception for Edge) and then lore (History for a journal line and a little gold). Wonders are one click and flavour only (no rewards). A boon (an offering, a vigil, healing, lore with a find) has `siteReady`: a site gives one boon per BOON_COOLDOWN_DAYS (30) days. Lairs (Plan 3b B3) are hostile tugs of war: an approach that sets the footing, the assault, and the leader (high stakes); success clears the lair (clearPoi) for gold, a failure drives the party off with HP and days lost and the lair stays. Dungeons run entrance, hazard, a high-stakes guardian and the vault, which clears them. Lone experts offer paid training (gold, days and someone untrained), knowledge (only while something is left to learn: `undiscovered`) or care for gold, a check to earn it free, and a way to just talk. Quest sites give a clue and log a hook for Plan 4. Written by Claude.",
+  "notes": "Site situations, played on a visit to a point of interest and never drawn on the road (design §6). The POI types in data/procedural/poi-types.json name them. Shrines trade gold for Inspiration (a fixed offering) or a day for healing (a Religion check). Landmarks offer a risky vantage point (Perception for Edge) and then lore (History for a journal line and a little gold). Wonders are one click and flavour only (no rewards). A boon (an offering, a vigil, healing, lore with a find) has `siteReady`: a site gives one boon per BOON_COOLDOWN_DAYS (30) days. Lairs (Plan 3b B3) are hostile tugs of war: an approach that sets the footing, the assault, and the leader (high stakes); success clears the lair (clearPoi) for gold, a failure drives the party off with HP and days lost and the lair stays. Dungeons run entrance, hazard, a high-stakes guardian and the vault, which clears them. Lone experts are services the party can come back to: paid training (gold, days and someone untrained), paid knowledge (only while something is left to learn: `undiscovered`) and paid care are always on offer; a check to earn it free, a free rest (a quarter of everyone's HP and a level of exhaustion, with `siteReady`, so once per BOON_COOLDOWN_DAYS at that site), and a way to just talk. Quest sites give a clue and log a hook for Plan 4. Written by Claude.",
   "entries": [
     {
       "id": "wayside-shrine-visit",
@@ -3640,9 +3640,28 @@
               "id": "rest",
               "kind": "fixed",
               "label": "Drink from the spring and rest a while",
+              "description": "Free, but she only has the time once a month. Heals everyone a quarter of their HP and eases weariness.",
+              "requires": [{ "req": "siteReady" }],
               "outcome": {
-                "text": "The spring water is cold and sweet. You sit by the basin while she works, and leave a little rested.",
-                "effects": [{ "effect": "hp", "amount": 2, "target": "all" }]
+                "text": "The spring water is cold and sweet. You sit by the basin while she works, and leave rested.",
+                "effects": [
+                  { "effect": "healFraction", "fraction": 0.25, "target": "all" },
+                  { "effect": "exhaustion", "amount": -1, "target": "all" }
+                ]
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Thank her and go",
+              "outcome": {
+                "text": "She waves you off without looking up from her mortar.",
+                "effects": [
+                  {
+                    "effect": "log",
+                    "text": "The herbwife says the spring never freezes, not even in the winter the river did."
+                  }
+                ]
               }
             }
           ]
@@ -4042,9 +4061,28 @@
               "id": "fire",
               "kind": "fixed",
               "label": "Share her fire",
+              "description": "Free, but she only shares it once a month. Heals everyone a quarter of their HP and eases weariness.",
+              "requires": [{ "req": "siteReady" }],
               "outcome": {
                 "text": "She shares her fire and her stew, and says almost nothing. It is the best night's sleep you've had in weeks.",
-                "effects": [{ "effect": "hp", "amount": 2, "target": "all" }]
+                "effects": [
+                  { "effect": "healFraction", "fraction": 0.25, "target": "all" },
+                  { "effect": "exhaustion", "amount": -1, "target": "all" }
+                ]
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave her be",
+              "outcome": {
+                "text": "She nods once, and goes back to her snares.",
+                "effects": [
+                  {
+                    "effect": "log",
+                    "text": "The old huntress says the wolves have stopped howling this year, and that is worse."
+                  }
+                ]
               }
             }
           ]

@@ -422,6 +422,7 @@ describe('points of interest', () => {
         (e) =>
           (e.effect === 'inspiration' && e.amount > 0) ||
           (e.effect === 'hp' && e.amount > 0) ||
+          e.effect === 'healFraction' ||
           (e.effect === 'exhaustion' && e.amount < 0) ||
           (e.effect === 'gold' && e.amount > 0)
       )
@@ -438,6 +439,45 @@ describe('points of interest', () => {
         }
       }
     }
+  })
+
+  test('experts are services: paid ones always open, free rest on a cooldown (siteReady)', () => {
+    const pays = (o: Option) =>
+      outcomesOf(o).some((b) => b.effects.some((e) => e.effect === 'gold' && e.amount < 0))
+    const rests = (o: Option) =>
+      outcomesOf(o).some((b) =>
+        b.effects.some(
+          (e) =>
+            (e.effect === 'hp' && e.amount > 0) ||
+            e.effect === 'healFraction' ||
+            (e.effect === 'exhaustion' && e.amount < 0)
+        )
+      )
+    let freeRests = 0
+    for (const t of ofCategory('expert')) {
+      for (const id of t.situations) {
+        for (const [stageId, stage] of Object.entries(content.situations[id].stages)) {
+          for (const option of stage.options) {
+            const where = `${id} ${stageId}/${option.id}`
+            const cooldown = option.requires.some((r) => r.req === 'siteReady')
+            // Paid training, care and knowledge are never on a cooldown.
+            if (pays(option)) expect(cooldown, where).toBe(false)
+            else if (rests(option)) expect(cooldown, where).toBe(true)
+            // A free fixed rest is the big one: a quarter of everyone's HP and a level of exhaustion.
+            if (!pays(option) && option.kind === 'fixed' && rests(option)) {
+              freeRests++
+              expect(option.outcome.effects, where).toEqual(
+                expect.arrayContaining([
+                  { effect: 'healFraction', fraction: 0.25, target: 'all' },
+                  { effect: 'exhaustion', amount: -1, target: 'all' },
+                ])
+              )
+            }
+          }
+        }
+      }
+    }
+    expect(freeRests).toBeGreaterThanOrEqual(2)
   })
 
   test('no site sells a clue that might reveal nothing (undiscovered)', () => {

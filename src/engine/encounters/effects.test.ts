@@ -56,6 +56,18 @@ describe('applyEffects', () => {
     expect(hp(after).reduce((a, b) => a + b)).toBe(20 + 16 - 2)
   })
 
+  test('healFraction heals a share of each max HP, rounded up and clamped', () => {
+    // brom 20 max HP, lyra 16; a quarter is 5 and 4, a third 7 and 6 (rounded up).
+    const hurt = { ...state, party: state.party.map((c) => ({ ...c, hp: 1 })) }
+    const quarter = fx({ effect: 'healFraction', fraction: 0.25, target: 'all' })
+    expect(hp(applyEffects(hurt, quarter))).toEqual([6, 5])
+    const third = fx({ effect: 'healFraction', fraction: 1 / 3, target: 'actor' })
+    expect(hp(applyEffects(hurt, third, { actorId: 'lyra' }))).toEqual([1, 7])
+    expect(hp(applyEffects(state, quarter))).toEqual([20, 16])
+    expect(() => fx({ effect: 'healFraction', fraction: 0, target: 'all' })).toThrow()
+    expect(() => fx({ effect: 'healFraction', fraction: 1.5, target: 'all' })).toThrow()
+  })
+
   test('exhaustion is clamped to 0..6', () => {
     const after = applyEffects(state, fx({ effect: 'exhaustion', amount: 9, target: 'all' }))
     expect(after.party.map((c) => c.exhaustion)).toEqual([6, 6])
@@ -176,6 +188,8 @@ describe('describeEffect', () => {
     [{ effect: 'hp', amount: -3, target: 'actor' }, 'Lyra −3 HP'],
     [{ effect: 'hp', amount: 4, target: 'all' }, 'everyone +4 HP'],
     [{ effect: 'hp', amount: -2, target: 'random' }, 'someone −2 HP'],
+    [{ effect: 'healFraction', fraction: 0.25, target: 'all' }, 'everyone +25% max HP'],
+    [{ effect: 'healFraction', fraction: 0.5, target: 'actor' }, 'Lyra +50% max HP'],
     [{ effect: 'exhaustion', amount: 1, target: 'all' }, 'everyone +1 exhaustion'],
     [{ effect: 'inspiration', amount: 1 }, '+1 inspiration'],
     [{ effect: 'days', amount: 1 }, '1 day passes'],
