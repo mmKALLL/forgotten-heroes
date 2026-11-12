@@ -116,16 +116,17 @@ The town map image is a banner and backdrop.
   - **Kingdoms:** there are 8–12, each holding a handful of domains, with seats at the 14 capitals.
   - **Threat level is worked out per domain:** the land's threat strength minus that domain's garrison. A kingdom's defence is split across its domains, so growth thins its garrisons. Border domains of a sprawling kingdom become the weak spots where threats rise.
   - **Status:** decided after Plan 3. Plan 3 built kingdoms over the 16 lands, and the domain rework follows Plan 3's fixes.
-- **Points of interest:** procedurally generated places that belong to a domain.
-  - **Placement:** each one sits at a land spot near its settlement. The spots are sampled off the map image once and stored in `data/claude/`.
+- **Points of interest:** procedurally generated places. Each one belongs to exactly one domain, so whoever rules that domain owns it.
+  - **Placement:** anywhere within the domain's territory, which can be far from the settlement in travel terms. Territory is the land closest to each settlement, by route and travel distance. Candidate land spots are sampled off the map image once and stored in `data/claude/`.
+  - **Threat:** a hostile point of interest (a lair, a camp or an active dungeon) adds to its domain's threat strength, and clearing it lowers it. So a domain's threat level, and its owner's grip, depends on what lurks in its lands.
   - **Types** come from a weighted table in `data/procedural/`:
     - **Dungeons and ruins:** a multi-stage encounter chain until the real dungeon system exists.
     - **Lone experts:** they train skills, identify things or sell knowledge, sometimes for a price or a favour.
-    - **Lairs and camps:** the domain's threat made concrete. Clearing one lowers that domain's threat for a while.
+    - **Lairs and camps:** the domain's threat made concrete. Clearing one lowers that domain's threat; a new one can appear later.
     - **Shrines, landmarks and wonders.**
     - **Quest sites.**
   - **Discovery:** points of interest start hidden. They are found through rumours (Plan 4 taverns), encounter clues, or by spending days exploring a domain (Survival or Perception). Once discovered, they appear on the map.
-  - **Visiting:** a short side trip of 0.5–2 days from the domain's settlement, using the normal pace and supply rules.
+  - **Visiting:** a point of interest is a map node joined to its domain's settlement (and to nearby routes where sensible) by a path with real distance and terrain. Getting there can take anything from half a day to many days, with the normal pace, supply and encounter rules.
   - **Timing:** built with the domain rework as Plan 3b, before Plan 4.
 - **New world:** re-rolls the political layer on top of the fixed geography: borders, ruling ancestries, threats, and settlement names and types.
 - **Town names** come first from the town-map filenames in `~/dnd5e/town maps/` (including `__altaeus/`). Their `Name - description - alignment` pattern also hints at the settlement type, biome, wealth and alignment, and the map image becomes that town's banner. The generators from the prototype's `towns.ts` (English, French and Spanish style compounds) fill any remaining settlements.
