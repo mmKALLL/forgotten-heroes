@@ -4,7 +4,15 @@ import type { SkillUse } from '../../schema/state'
 import { SKILL_USE_DAYS } from '../encounters/run'
 import { brom, lyra } from '../test-fixtures'
 import { rankActors, statModifier } from './character'
-import { STRAIN_WEEK_DAYS, addStrain, fadeStrain, strainFrom, strainOf } from './strain'
+import {
+  STRAIN_WEEK_DAYS,
+  addStrain,
+  fadeStrain,
+  fadeStrainAfter,
+  strainFrom,
+  strainOf,
+  strainedOn,
+} from './strain'
 
 const use = (day: number, skill: Skill = 'athletics', characterId = 'brom'): SkillUse => ({
   day,
@@ -53,6 +61,15 @@ describe('strain stacks', () => {
     const tired = { ...brom, strain: { athletics: 2, stealth: 1 } }
     expect(fadeStrain(tired).strain).toEqual({ athletics: 1 })
     expect(fadeStrain(fadeStrain(tired)).strain).toEqual({})
+  })
+
+  test("a skill that gained a stack today keeps it through the day's fade", () => {
+    const uses = [use(4), use(4), use(4), use(4, 'stealth')]
+    expect(strainedOn(uses, 'brom', 4)).toEqual(['athletics'])
+    expect(strainedOn(uses, 'brom', 5)).toEqual([])
+    const tired = { ...brom, strain: { athletics: 2, stealth: 1 } }
+    expect(fadeStrainAfter(tired, uses, 4).strain).toEqual({ athletics: 2 })
+    expect(fadeStrainAfter(tired, uses, 5).strain).toEqual({ athletics: 1 })
   })
 
   test('enough strain hands the check to someone else', () => {

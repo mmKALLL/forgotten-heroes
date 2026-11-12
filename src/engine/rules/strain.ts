@@ -32,15 +32,36 @@ export const addStrain = (character: Character, skill: Skill): Character => ({
   strain: { ...character.strain, [skill]: strainOf(character, skill) + 1 },
 })
 
-/** A day passes: every strained skill loses one stack. */
-export function fadeStrain(character: Character): Character {
+/** A day passes: every strained skill loses one stack, except the skills in `keep`. */
+export function fadeStrain(character: Character, keep: readonly Skill[] = []): Character {
   const strain: Character['strain'] = {}
   for (const skill of SKILLS) {
-    const left = strainOf(character, skill) - 1
+    const left = strainOf(character, skill) - (keep.includes(skill) ? 0 : 1)
     if (left > 0) strain[skill] = left
   }
   return { ...character, strain }
 }
+
+/**
+ * The skills this character gained a Strain stack in on `day`: those whose last use that day
+ * crossed a threshold.
+ */
+export function strainedOn(uses: readonly SkillUse[], characterId: string, day: number): Skill[] {
+  const used = new Set(
+    uses.filter((u) => u.characterId === characterId && u.day === day).map((u) => u.skill)
+  )
+  return SKILLS.filter((skill) => used.has(skill) && strainFrom(uses, characterId, skill, day))
+}
+
+/**
+ * Day `day` ends: one stack of each strained skill fades, except in skills that gained a stack
+ * that day, so a new stack always lasts until the next day's fade.
+ */
+export const fadeStrainAfter = (
+  character: Character,
+  uses: readonly SkillUse[],
+  day: number
+): Character => fadeStrain(character, strainedOn(uses, character.id, day))
 
 /**
  * Records one check by one character (encounter rolls, foraging, stowing away), dropping uses

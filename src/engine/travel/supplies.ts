@@ -9,7 +9,7 @@ import { appendLog } from '../log'
 import type { Rng } from '../rng'
 import { statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
-import { fadeStrain } from '../rules/strain'
+import { fadeStrainAfter } from '../rules/strain'
 import { settlementName } from '../world/geo'
 import { DEFAULT_PACE, FORCED_MARCH_DC, rationMultiplier } from './pace'
 import { journeyDays, routeTerrain } from './routes'
@@ -101,7 +101,7 @@ function endure(
  * One day passes. Members eat and drink in party order. Whoever goes without makes a CON check
  * (DC 10 without food, 15 without water) or gains a level of exhaustion. On a forced march the
  * party then eats its extra rations (what is left of them), and every member makes a CON check
- * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades.
+ * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades, except stacks gained today.
  * Returns the ids of those who went without, for rest.
  */
 function consumeDay(
@@ -120,7 +120,7 @@ function consumeDay(
     if (fed) food -= 1
     const watered = water >= need
     if (watered) water -= need
-    let character = fadeStrain(c)
+    let character = fadeStrainAfter(c, state.skillUses, state.day)
     if (!fed || !watered) {
       unfed.push(c.id)
       const lack = !fed && !watered ? 'food and water' : fed ? 'water' : 'food'
@@ -197,7 +197,7 @@ export function rest(state: GameState, content: Content, lodging = true): GameSt
           ...state,
           day: state.day + 1,
           gold: state.gold - option.lodgingCost,
-          party: state.party.map(fadeStrain),
+          party: state.party.map((c) => fadeStrainAfter(c, state.skillUses, state.day)),
         },
         unfed: [] as string[],
       }

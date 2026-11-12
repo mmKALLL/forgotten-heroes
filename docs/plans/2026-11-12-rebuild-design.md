@@ -69,7 +69,7 @@ The old Svelte code is removed on this branch. The useful types and data are por
 - **Strain (working name):** this discourages leaning on one specialist and rewards spreading work across the party.
   - **What counts:** every roll of a skill in encounters counts, including each round of a multi-round skill challenge. Once a character reaches the threshold for a skill (inclusive: about 3 rolls a day or 10 a week, to tune), that roll and each later one add a Strain stack. Practice rolls don't count. The thresholds are 3 uses in a day or 10 within seven days. Daily foraging and stowing away count too.
   - **Effect:** each stack is −1 to that skill and lowers the character's mood.
-  - **Recovery:** each strained skill loses one stack per day (Plan 3), slower in poor lodging and faster in good lodging (Plan 4).
+  - **Recovery:** each strained skill loses one stack per day (Plan 3), slower in poor lodging and faster in good lodging (Plan 4). A stack gained during a day survives that day's fade, so it always lasts until the next day's (foraging, stowing away and encounters alike).
   - **Visibility:** Strain shows in the actor preview, so the automatic actor choice rotates on its own.
   - **Timing:** encounters record skill uses from Plan 2. Strain itself comes with daily travel (Plan 3), and the lodging effects with towns (Plan 4).
 - **Mood:** each character has their own mood on a 0–100 scale, with 50 as neutral.

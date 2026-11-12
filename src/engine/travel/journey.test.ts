@@ -364,6 +364,23 @@ describe('foraging', () => {
     ])
   })
 
+  test('a stack from a strained forage lasts the day and fades the following day', () => {
+    // Two Survival checks already today: the day's forage is the third, and strains Brom.
+    const today = at('greenvale-1').day
+    const busy = {
+      skillUses: [
+        { day: today, characterId: 'brom', skill: 'survival' as const },
+        { day: today, characterId: 'brom', skill: 'survival' as const },
+      ],
+    }
+    const firstDay = go(encountersOn(plains(busy), [1]))
+    expect(firstDay.day).toBe(today + 1)
+    expect(firstDay.party[0].strain).toEqual({ survival: 1 })
+    const arrived = go(act(firstDay, { type: 'closeEncounter' }))
+    expect(arrived.location).toBe('greenvale-2')
+    expect(arrived.party[0].strain).toEqual({})
+  })
+
   test('foraging keeps a party without water going', () => {
     let withForage = 0
     let without = 0
@@ -433,6 +450,23 @@ describe('stowing away', () => {
     expect(after.travel).toMatchObject({ to: 'farisle-1', pace: 'steady' })
     expect(texts(after)).toContain('The party slips aboard unseen.')
     expect(lastLine(after)).toMatch(/, hidden in the hold\.$/)
+  })
+
+  test('a stack from the stowaway check outlasts the first day at sea', () => {
+    const today = at('ashmoor-1').day
+    const uses = [0, 1].map(() => ({ day: today, characterId: 'lyra', skill: 'stealth' as const }))
+    for (let seed = 0; seed < 500; seed++) {
+      const after = stow(at('ashmoor-1', { gold: 5, rng: createRng(seed), skillUses: uses }))
+      if (after.lastRoll?.tier !== 'success') continue
+      expect(after.party[1].strain).toEqual({ stealth: 1 })
+      // A one-day crossing: the party lands the next day, the stack still on.
+      const day1 = go({ ...after, travel: { ...after.travel!, km: 75, encounterDays: [] } })
+      expect(day1.location).toBe('farisle-1')
+      expect(day1.day).toBe(today + 1)
+      expect(day1.party[1].strain).toEqual({ stealth: 1 })
+      return
+    }
+    throw new Error('no seed rolls success')
   })
 
   test('caught with coin, the party is fined all of it and sails', () => {

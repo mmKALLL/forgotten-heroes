@@ -67,6 +67,25 @@ describe('passDay', () => {
     expect(passDay(strained, 'plains').party[0].strain).toEqual({ athletics: 1 })
   })
 
+  test('a stack gained today survives the night and fades the next day', () => {
+    const today = base().day
+    const strained = base({
+      party: [{ ...brom, strain: { athletics: 1, stealth: 1 } }, lyra],
+      skillUses: [0, 1, 2].map(() => ({
+        day: today,
+        characterId: 'brom',
+        skill: 'athletics' as const,
+      })),
+    })
+    const night = passDay(strained, 'plains')
+    expect(night.party[0].strain).toEqual({ athletics: 1 })
+    expect(passDay(night, 'plains').party[0].strain).toEqual({})
+    // The same at an inn.
+    const inn = rest(strained, content, true)
+    expect(inn.party[0].strain).toEqual({ athletics: 1 })
+    expect(rest(inn, content, true).party[0].strain).toEqual({})
+  })
+
   test('the party eats in order; whoever goes without rolls CON', () => {
     const after = passDay(base({ goods: { food: 1, water: 8 } }), 'plains')
     expect(after.goods).toEqual({ food: 0, water: 6 })

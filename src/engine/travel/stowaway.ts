@@ -10,7 +10,7 @@ import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { chooseActor } from '../rules/character'
 import { TIER_LABELS, rollCheck, tierOdds } from '../rules/checks'
-import { fadeStrain, useSkill } from '../rules/strain'
+import { fadeStrainAfter, useSkill } from '../rules/strain'
 import { fareFor } from './routes'
 import {
   STOWAWAY_BRAWL_DAMAGE,
@@ -68,7 +68,8 @@ export type StowawayOutcome = 'unseen' | 'fined' | 'worked' | 'brawl'
 function putToWork(state: GameState, actorId: string): GameState {
   const party = state.party.map((c) => {
     let next = c
-    for (let d = 0; d < STOWAWAY_WORK_DAYS; d++) next = fadeStrain(next)
+    for (let d = 0; d < STOWAWAY_WORK_DAYS; d++)
+      next = fadeStrainAfter(next, state.skillUses, state.day + d)
     return c.id === actorId
       ? {
           ...next,
