@@ -19,8 +19,14 @@ import { territory, type Territory } from './territory'
 export const POI_SPOTS_EACH = 8
 /** No domain gets more than this many POIs; most get 0 or 1. */
 export const POI_MAX_PER_DOMAIN = 2
-/** The closest a POI may stand to its settlement, and to another POI. */
+/** The closest a POI may stand to its settlement. */
 export const POI_MIN_KM = 8
+/**
+ * The closest two POIs may stand: more than one grid step of land spots (SPOT_SPACING_KM, about
+ * 20.7 km), so sites never sit on neighbouring spots. (A plain number: territory.ts and this
+ * module import each other indirectly, so a constant from there may not be set yet.)
+ */
+export const POI_SPACING_KM = 25
 /** A type whose biome matches the spot, or whose threats name the land's threat, weighs this much more. */
 export const POI_FAVOURED = 3
 
@@ -84,10 +90,11 @@ export type PoiOptions = {
 /**
  * The POIs of a world, ids `poi-<n>` in generation order. Domains are walked in id order; each
  * draws its count (poisPerDomain), then for each POI a free spot of its territory at least
- * POI_MIN_KM from its settlement and every POI so far (fewer when none is left), and a type by
- * weight, POI_FAVOURED× when the type's biomes match the spot's terrain (or the land's biome) or
- * its threats name the land's threat. A lair keyed to other threats is not drawn (lairFits). Hostile types roll their threat. Names avoid repeats while
- * the type's table allows (see PoiOptions.usedNames).
+ * POI_MIN_KM from its settlement and POI_SPACING_KM from every POI so far (fewer when none is
+ * left), and a type by weight, POI_FAVOURED× when the type's biomes match the spot's terrain (or
+ * the land's biome) or its threats name the land's threat. A lair keyed to other threats is not
+ * drawn (lairFits). Hostile types roll their threat. Names avoid repeats while the type's table
+ * allows (see PoiOptions.usedNames).
  */
 export function generatePois(
   d: Draw,
@@ -113,7 +120,7 @@ export function generatePois(
       const free = spots.filter(
         (s) =>
           straightKm(s.at, site.at) >= POI_MIN_KM &&
-          placed.every((p) => p !== s && straightKm(p.at, s.at) >= POI_MIN_KM)
+          placed.every((p) => p !== s && straightKm(p.at, s.at) >= POI_SPACING_KM)
       )
       if (free.length === 0) break
       const spot = d.pick(free)

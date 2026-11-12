@@ -8,6 +8,7 @@ import { withRng } from '../rng'
 import { canAct } from '../rules/character'
 import { otherEnd, settlementName } from '../world/geo'
 import { edgeById, nodeOf } from '../world/graph'
+import { domainAt } from '../world/pois'
 import { DEFAULT_PACE, coversTracks, logPaceDay } from './pace'
 import { forageDay, type ForageResult } from './forage'
 import { foldTrail } from './pursuit'
@@ -244,6 +245,24 @@ function arrive(state: GameState, content: Content): GameState {
   )
 }
 
+/**
+ * A journey whose road is gone from the data: the party is put back where it set out from (or at
+ * the far end, or the nearest domain's settlement, if that is gone too), and the journal says so.
+ */
+function turnBack(state: GameState, content: Content): GameState {
+  const travel = state.travel!
+  const places = [travel.from, travel.to]
+  const candidates = [...places, ...places.map((id) => domainAt(state.world, id))]
+  const back = candidates.find((id) => id !== null && nodeOf(state, content, id) !== null)
+  if (!back) return appendLog(state, 'The way is lost, and there is no going back.', 'bad')
+  return appendLog(
+    { ...state, travel: null, location: back, visited: false },
+    `The way to ${settlementName(state, travel.to)} can no longer be found. ` +
+      `The party makes its way back to ${settlementName(state, back)}.`,
+    'bad'
+  )
+}
+
 /** The finds of the days foraged since the last summary line. */
 type ForageTally = {
   dc: number
@@ -277,8 +296,8 @@ function forageText(t: ForageTally): string {
 export function continueJourney(state: GameState, content: Content): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.travel) return appendLog(state, 'The party is not on the road.', 'bad')
-  // The route was removed from the data since this save: skip to the destination.
-  if (!edgeById(state, content, state.travel.route)) return arrive(state, content)
+  // The route was removed from the data since this save (e.g. a path after content edits).
+  if (!edgeById(state, content, state.travel.route)) return turnBack(state, content)
 
   let next = state
   let quiet = 0

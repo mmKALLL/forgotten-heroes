@@ -250,6 +250,7 @@ export const ja: Partial<Messages> = {
   'poi.kind': '{category} · {type}',
   'poi.owner': '{land} · {domain}の領地、{kingdom}',
   'poi.feeds': '{threat}の拠点：この地の脅威+{n}',
+  'poi.addsThreat': '独自の脅威：この地の脅威+{n}',
   'poi.clearedToday': '今日制圧した。今は空になっている。',
   'poi.clearedAgo': '{days}前に制圧された。今は空になっている。',
   'poi.reinhabited': '再び何者かが住み着いた。',

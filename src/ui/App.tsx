@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { loadBundledContent } from '../content/bundled'
 import { formatDate } from '../engine/calendar'
 import { suppliesInfo } from '../engine/travel/preview'
+import { nodeOf } from '../engine/world/graph'
 import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
 import { EncounterDeck } from './deck/EncounterDeck'
@@ -89,7 +90,7 @@ function Game() {
               />
               {shown.travel ? (
                 <JourneyPanel content={content} state={shown} onAction={dispatch} />
-              ) : shown.location && Object.hasOwn(shown.world.pois, shown.location) ? (
+              ) : shown.location && nodeOf(shown, content, shown.location)?.kind === 'poi' ? (
                 <PoiPanel
                   content={content}
                   state={shown}

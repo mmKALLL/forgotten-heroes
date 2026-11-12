@@ -91,6 +91,25 @@ test('a lair says what it feeds, is entered, and has no spring', () => {
   expect(screen.queryByText(/A spring here/)).toBeNull()
 })
 
+test('a hostile site that isn’t the land’s threat is a danger of its own', () => {
+  const state = world('poi-2', ['poi-2'])
+  state.world.pois['poi-2'].clearedDay = state.day - REINHABIT_DAYS
+  const apart = structuredClone(content)
+  apart.poiTypes['orc-war-camp'].threats = []
+  render(
+    <Holder
+      as={PoiPanel}
+      content={apart}
+      state={state}
+      selected={null}
+      onSelect={vi.fn()}
+      onAction={vi.fn()}
+    />
+  )
+  expect(screen.getByText('A danger of its own: +2 threat here')).toBeTruthy()
+  expect(screen.queryByText(/Feeds the/)).toBeNull()
+})
+
 test('a cleared site lies empty, can’t be visited, and says why', () => {
   show(world('poi-2', ['poi-2'], ['poi-2']))
   expect(screen.getByText('Cleared today: it lies empty for now.')).toBeTruthy()

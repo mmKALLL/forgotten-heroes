@@ -8,9 +8,6 @@ import { PoiSummary } from './PoiSummary'
 import { RoadsOut } from './RoadsOut'
 import type { TravelPrefs } from './travelPrefs'
 
-/** Categories whose sites are entered rather than visited. */
-const ENTERED = new Set(['dungeon', 'lair'])
-
 type Props = {
   content: Content
   state: GameState
@@ -51,7 +48,7 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
             disabled={!visit.available}
             onClick={() => onAction({ type: 'visitPoi' })}
           >
-            {t(info.category && ENTERED.has(info.category) ? 'poi.enter' : 'poi.visit')}
+            {t(info.entered ? 'poi.enter' : 'poi.visit')}
           </button>
         </div>
       )}

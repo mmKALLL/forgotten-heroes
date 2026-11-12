@@ -45,6 +45,8 @@ export type ExploreOption = {
   days: number
   /** The odds of each tier (tierOdds). */
   chances: Record<Tier, number>
+  /** The chance to find at least one site (the tiers that find something). */
+  findChance: number
   /** What each tier leads to, in TIERS order (English). */
   outcomes: string[]
   /** The sites each tier finds and the days it takes, for previews in any language. */
@@ -109,13 +111,15 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
   }).sort((a, b) => b.actor.modifier - a.actor.modifier)
   if (!best) return null
   const dc = FORAGE_DC[terrain] + EXPLORE_DC_BONUS
+  const chances = tierOdds(best.actor.modifier, dc)
   return {
     actorId: best.actor.characterId,
     skill: best.skill,
     modifier: best.actor.modifier,
     dc,
     days: EXPLORE_DAYS,
-    chances: tierOdds(best.actor.modifier, dc),
+    chances,
+    findChance: TIERS.filter((tier) => FINDS[tier].found > 0).reduce((p, t) => p + chances[t], 0),
     outcomes: TIERS.map((tier) => EXPLORE_OUTCOMES[tier]),
     finds: Object.fromEntries(
       TIERS.map((tier) => [

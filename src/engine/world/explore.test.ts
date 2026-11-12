@@ -433,6 +433,9 @@ describe('explore', () => {
     // Brom (WIS 12) beats Lyra; Survival comes first on a tie.
     expect(option).toMatchObject({ actorId: 'brom', skill: 'survival', dc, days: EXPLORE_DAYS })
     expect(option.chances).toEqual(previewCheck(state, 'survival', dc, 'normal')!.odds)
+    expect(option.findChance).toBeCloseTo(
+      option.chances.partial + option.chances.success + option.chances.critSuccess
+    )
     expect(option.outcomes).toHaveLength(TIERS.length)
     // What each tier finds and how long it takes, for previews in any language.
     expect(option.finds).toEqual({

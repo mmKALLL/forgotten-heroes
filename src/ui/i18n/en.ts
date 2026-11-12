@@ -262,6 +262,7 @@ export const en = {
   'poi.kind': '{category} · {type}',
   'poi.owner': '{land} · domain of {domain}, {kingdom}',
   'poi.feeds': 'Feeds the {threat}: +{n} threat here',
+  'poi.addsThreat': 'A danger of its own: +{n} threat here',
   'poi.clearedToday': 'Cleared today: it lies empty for now.',
   'poi.clearedAgo': 'Cleared {days} ago: it lies empty for now.',
   'poi.reinhabited': 'Re-inhabited: something has moved in again.',

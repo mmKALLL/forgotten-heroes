@@ -40,7 +40,9 @@ export function PoiSummary({ info }: { info: PoiInfo }) {
           )}
           {info.threat > 0 && (
             <p className="small tone-bad">
-              {t('poi.feeds', { threat: info.threatName, n: info.threat })}
+              {info.feedsLandThreat
+                ? t('poi.feeds', { threat: info.threatName, n: info.threat })
+                : t('poi.addsThreat', { n: info.threat })}
             </p>
           )}
         </>

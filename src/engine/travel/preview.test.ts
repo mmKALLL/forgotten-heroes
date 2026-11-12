@@ -121,6 +121,10 @@ describe('poiInfo', () => {
       hostile: true,
       threat: 2,
       threatName: content.threats[state.world.lands.ashmoor.threat].name,
+      feedsLandThreat: content.poiTypes['orc-war-camp'].threats.includes(
+        state.world.lands.ashmoor.threat
+      ),
+      entered: true,
       status: {
         phase: 'inhabited',
         since: 1,
@@ -138,6 +142,7 @@ describe('poiInfo', () => {
       category: 'expert',
       hostile: false,
       threat: 0,
+      entered: false,
       status: null,
       water: true,
     })
@@ -154,6 +159,16 @@ describe('poiInfo', () => {
       threat: 3,
       dcBonus: 2 * POWER_DC,
     })
+  })
+
+  test('a hostile site feeds the land’s threat only when its type names it', () => {
+    const state = withPoi({})
+    const feeding = structuredClone(content)
+    feeding.poiTypes['orc-war-camp'].threats = [state.world.lands.ashmoor.threat]
+    expect(poiInfo(state, feeding, 'poi-9')!.feedsLandThreat).toBe(true)
+    const apart = structuredClone(content)
+    apart.poiTypes['orc-war-camp'].threats = []
+    expect(poiInfo(state, apart, 'poi-9')).toMatchObject({ feedsLandThreat: false, threat: 2 })
   })
 
   test('an undiscovered or unknown site is not described', () => {

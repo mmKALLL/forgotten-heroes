@@ -122,8 +122,15 @@ export type PoiInfo = {
   hostile: boolean
   /** What it adds to its domain's threat now (siteThreat): 0 unless hostile and inhabited. */
   threat: number
-  /** The threat roaming the land, which a hostile site feeds. */
+  /** The threat roaming the land, which a hostile site may feed. */
   threatName: string
+  /**
+   * True when the site is that land threat made concrete (its type's `threats` name it); a
+   * hostile site that isn't (e.g. a kobold mine) adds to the domain's threat on its own.
+   */
+  feedsLandThreat: boolean
+  /** Dungeons and lairs are entered rather than visited. */
+  entered: boolean
   /**
    * Where a dungeon or lair is in its cycle (siteStatus), with the days since the phase began;
    * null for other sites.
@@ -146,10 +153,11 @@ export function poiInfo(state: GameState, content: Content, id: string): PoiInfo
   const land = domain?.land ?? home?.region
   const hostile = type?.hostile ?? poi.threat > 0
   const status = siteStatus(state.world.seed, id, poi, state.day)
+  const landThreat = own(state.world.lands, land)?.threat
   return {
     id,
     name: poi.name,
-    category: type?.category ?? null,
+    category: type?.category ?? poi.category,
     typeName: type?.name ?? poi.type,
     domainId: poi.domain,
     domainName: settlementName(state, poi.domain),
@@ -157,7 +165,9 @@ export function poiInfo(state: GameState, content: Content, id: string): PoiInfo
     landName: own(content.regions, land)?.name ?? land ?? '?',
     hostile,
     threat: siteThreat(state.world.seed, id, poi, state.day),
-    threatName: own(content.threats, own(state.world.lands, land)?.threat)?.name ?? 'None',
+    threatName: own(content.threats, landThreat)?.name ?? 'None',
+    feedsLandThreat: landThreat !== undefined && (type?.threats.includes(landThreat) ?? false),
+    entered: poi.category === 'dungeon' || poi.category === 'lair',
     status: status && { ...status, days: Math.max(0, state.day - status.since) },
     dcBonus: (status?.power ?? 0) * POWER_DC,
     water: type?.water ?? false,

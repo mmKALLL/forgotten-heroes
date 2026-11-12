@@ -31,9 +31,31 @@ export const KINGDOM_COLOURS = [
   '#4b4b4b',
 ] as const
 
-/** Each kingdom's colour by id, in kingdom order (wrapping past the twelfth). */
+/**
+ * A further colour for the n-th kingdom past the twelfth (a cut-off domain can found its own):
+ * hues a golden angle apart, at a depth that reads on the parchment.
+ */
+function extraColour(n: number): string {
+  const h = (n * 137.508 + 20) % 360
+  const [s, l] = [0.55, n % 2 === 0 ? 0.36 : 0.46]
+  const f = (k: number) => {
+    const a = (k + h / 30) % 12
+    const c = l - s * Math.min(l, 1 - l) * Math.max(-1, Math.min(a - 3, 9 - a, 1))
+    return Math.round(c * 255)
+      .toString(16)
+      .padStart(2, '0')
+  }
+  return `#${f(0)}${f(8)}${f(4)}`
+}
+
+/** Each kingdom's colour by id, in kingdom order; past the twelfth, generated distinct hues. */
 export const kingdomColours = (kingdoms: readonly Pick<Kingdom, 'id'>[]): Map<string, string> =>
-  new Map(kingdoms.map((k, i) => [k.id, KINGDOM_COLOURS[i % KINGDOM_COLOURS.length]]))
+  new Map(
+    kingdoms.map((k, i) => [
+      k.id,
+      i < KINGDOM_COLOURS.length ? KINGDOM_COLOURS[i] : extraColour(i - KINGDOM_COLOURS.length),
+    ])
+  )
 
 /** Whether this viewer last left the kingdom overlay on (off by default). */
 export const KINGDOM_OVERLAY_KEY = 'forgotten-heroes/ui/map-kingdoms'

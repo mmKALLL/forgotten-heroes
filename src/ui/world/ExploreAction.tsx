@@ -28,7 +28,6 @@ export function ExploreAction({
   const { option } = action
   const name = state.party.find((c) => c.id === option.actorId)?.name ?? '?'
   const faces = tierFaces(option.modifier, option.dc)
-  const chance = option.chances.partial + option.chances.success + option.chances.critSuccess
   const finds = (tier: Tier) => {
     const { found, days } = option.finds[tier]
     if (found === 0) return t('explore.nothing')
@@ -48,7 +47,7 @@ export function ExploreAction({
           days: daysText(t, option.days),
         })}
       </p>
-      <p className="small">{t('explore.chance', { pct: formatPercent(chance) })}</p>
+      <p className="small">{t('explore.chance', { pct: formatPercent(option.findChance) })}</p>
       <OddsBar odds={option.chances} faces={faces} labelMode="faces" />
       <TierOutcomes
         label={t('explore.outcomes')}

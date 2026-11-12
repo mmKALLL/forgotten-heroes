@@ -6,3 +6,4 @@ data/_schema
 assets
 data/imported-private
 docs
+.claude/worktrees/

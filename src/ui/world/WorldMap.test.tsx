@@ -301,6 +301,13 @@ test('twelve kingdoms get twelve distinct colours', () => {
   expect(new Set(KINGDOM_COLOURS).size).toBe(KINGDOM_COLOURS.length)
 })
 
+test('kingdoms past the twelfth still get distinct colours', () => {
+  const kingdoms = Array.from({ length: 20 }, (_, i) => ({ id: `kingdom-${i + 1}` }))
+  const colours = [...kingdomColours(kingdoms).values()]
+  expect(new Set(colours).size).toBe(20)
+  for (const c of colours) expect(c).toMatch(/^#[0-9a-f]{6}$/)
+})
+
 test('paths to discovered sites are drawn like roads, and highlighted when chosen', () => {
   const state = discover(makeState({ location: 'ashmoor-1' }), ['poi-1'])
   const paths = edgesFrom(state, content, 'poi-1')

@@ -7,6 +7,7 @@ import { straightKm } from './geo'
 import {
   POI_MAX_PER_DOMAIN,
   POI_MIN_KM,
+  POI_SPACING_KM,
   domainThreatLevel,
   domainThreatStrength,
   generatePois,
@@ -76,7 +77,7 @@ describe('generatePois', () => {
         for (const b of placed) {
           if (a === b) continue
           const km = straightKm(content.landSpots[a.spot].at, content.landSpots[b.spot].at)
-          expect(km).toBeGreaterThanOrEqual(POI_MIN_KM)
+          expect(km).toBeGreaterThanOrEqual(POI_SPACING_KM)
         }
       }
       const perDomain = new Map<string, number>()
