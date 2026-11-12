@@ -531,6 +531,32 @@ describe('supply forecasts and warnings', () => {
     ])
   })
 
+  test('setting out exhausted is warned of at every pace: slower, worse checks, severe at 5', () => {
+    const warned = (party: GameState['party']) =>
+      routeOptions(makeState({ location: 'greenvale-1', party }), content)
+        .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+        .paces.map((p) => p.warnings.find((w) => w.code === 'departingExhausted'))
+    expect(warned([brom, lyra]).every((w) => w === undefined)).toBe(true)
+    const tired = warned([brom, { ...lyra, exhaustion: 2 }])
+    expect(tired.every((w) => w !== undefined)).toBe(true)
+    const w = tired[0]!
+    expect(w).toEqual({
+      code: 'departingExhausted',
+      params: {
+        members: [{ characterId: 'lyra', name: 'Lyra', level: 2 }],
+        level: 2,
+        speedPenalty: expect.closeTo(0.2, 9),
+        checkPenalty: 4,
+        severe: false,
+      },
+    })
+    expect(warningText(w)).toBe(
+      'Lyra (level 2) is exhausted: the party travels 20% slower and every check is −4.'
+    )
+    expect(isSevere(w)).toBe(false)
+    expect(isSevere(warned([brom, { ...lyra, exhaustion: 5 }])[0]!)).toBe(true)
+  })
+
   test('a forced march that could kill someone gets a severe warning', () => {
     // 144 km of plains is 4 days of forced march (36 km a day: two levels of exhaustion slow the
     // party by 20%). At CON 1 and already two levels down, only a

@@ -3,10 +3,10 @@ import type { Biome, Pace } from '../../schema/types'
 import type { Character, GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { MAX_EXHAUSTION } from '../encounters/effects'
-import { canAct, statModifier } from '../rules/character'
+import { EXHAUSTION_PENALTY, canAct, statModifier } from '../rules/character'
 import { tierOdds } from '../rules/checks'
 import { expectedForage } from './forage'
-import { journeyDays } from './routes'
+import { exhaustionSpeed, journeyDays } from './routes'
 import { dailyNeed, goodsOf, partyWaterCapacity, waterNeed } from './supplies'
 import { goodDef } from '../economy/goods'
 import { DEADLY_MARCH_CHANCE, FORCED_MARCH_DC } from '../constants'
@@ -64,9 +64,30 @@ export type TravelWarning =
     }
   /** The party carries more than its capacity (kg): slower, and no forced march. */
   | { code: 'encumbered'; params: { weight: number; capacity: number } }
+  /**
+   * Someone sets out exhausted (designer decision): the party travels slower (exhaustionSpeed,
+   * fixed at departure; 0 at sea, where the ship sets the speed) and their checks are worse
+   * (EXHAUSTION_PENALTY per level). Severe when one more level (a failed hunger, thirst or
+   * forced-march check) would kill the worst of them.
+   */
+  | {
+      code: 'departingExhausted'
+      params: {
+        /** The exhausted members, most exhausted first. */
+        members: { characterId: string; name: string; level: number }[]
+        /** The worst level among them. */
+        level: number
+        /** The share of speed lost (0.2 is 20% slower). */
+        speedPenalty: number
+        /** The worst member's penalty to every check. */
+        checkPenalty: number
+        severe: boolean
+      }
+    }
 
 /** Warnings the UI should show as severe. */
-export const isSevere = (w: TravelWarning): boolean => w.code === 'forcedMarchDeadly'
+export const isSevere = (w: TravelWarning): boolean =>
+  w.code === 'forcedMarchDeadly' || (w.code === 'departingExhausted' && w.params.severe)
 
 /**
  * How a member's exhaustion may end up after `days` of forced-march CON checks: the chance of
@@ -205,6 +226,22 @@ export function forecastJourney(
       },
     })
   }
+  const tired = state.party
+    .filter((c) => c.exhaustion > 0 && c.exhaustion < MAX_EXHAUSTION)
+    .sort((a, b) => b.exhaustion - a.exhaustion)
+  if (tired.length > 0) {
+    const level = tired[0].exhaustion
+    warnings.push({
+      code: 'departingExhausted',
+      params: {
+        members: tired.map((c) => ({ characterId: c.id, name: c.name, level: c.exhaustion })),
+        level,
+        speedPenalty: terrain === 'sea' ? 0 : 1 - exhaustionSpeed(state.party),
+        checkPenalty: EXHAUSTION_PENALTY * level,
+        severe: level >= MAX_EXHAUSTION - 1,
+      },
+    })
+  }
   if (pace === 'forced' && terrain !== 'sea') {
     const risks = state.party.filter(canAct).map((c) => {
       const levels = marchExhaustion(c, days, FORCED_MARCH_DC)
@@ -294,5 +331,18 @@ export function warningText(w: TravelWarning): string {
         `Encumbered: ${w.params.weight} of ${w.params.capacity} kg. ` +
         'The party walks slower and can’t force a march.'
       )
+    case 'departingExhausted': {
+      const { members, speedPenalty, checkPenalty, severe } = w.params
+      const who = members.map((m) => `${m.name} (level ${m.level})`)
+      const names = who.length === 1 ? who[0] : `${who.slice(0, -1).join(', ')} and ${who.at(-1)}`
+      const slower =
+        speedPenalty > 0 ? `the party travels ${Math.round(speedPenalty * 100)}% slower and ` : ''
+      const checks =
+        members.length === 1
+          ? `every check is −${checkPenalty}`
+          : `checks are up to −${checkPenalty}`
+      const death = severe ? ` One more level of exhaustion would kill ${members[0].name}.` : ''
+      return `${names} ${members.length === 1 ? 'is' : 'are'} exhausted: ${slower}${checks}.${death}`
+    }
   }
 }
