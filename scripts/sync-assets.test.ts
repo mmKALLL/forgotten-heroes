@@ -10,7 +10,7 @@ import {
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, test } from 'vitest'
-import { parseManifest, syncAssets } from './sync-assets'
+import { MANIFEST, PRIVATE_MANIFEST, parseManifest, readManifests, syncAssets } from './sync-assets'
 
 describe('parseManifest', () => {
   test('skips comments and blanks; strips trailing slashes', () => {
@@ -74,5 +74,34 @@ describe('syncAssets', () => {
 
     rmSync(outside, { recursive: true, force: true })
     expect(readFileSync(join(to, 'link.jpg'), 'utf8')).toBe('R')
+  })
+})
+
+describe('readManifests', () => {
+  const temps: string[] = []
+  afterEach(() => {
+    for (const dir of temps.splice(0)) rmSync(dir, { recursive: true, force: true })
+  })
+  const root = (files: Record<string, string>) => {
+    const dir = mkdtempSync(join(tmpdir(), 'fh-root-'))
+    temps.push(dir)
+    for (const [name, text] of Object.entries(files)) writeFileSync(join(dir, name), text)
+    return dir
+  }
+
+  test('reads the committed manifest, then the gitignored private one when it is there', () => {
+    expect(MANIFEST).toBe('assets.manifest.txt')
+    expect(PRIVATE_MANIFEST).toBe('assets.manifest.private.txt')
+    const both = root({
+      [MANIFEST]: '# public\nworld maps/w.jpg\ntown maps/a.jpg\n',
+      [PRIVATE_MANIFEST]: '# private\ntown maps/p.jpg\ntown maps/a.jpg\n',
+    })
+    expect(readManifests(both)).toEqual(['world maps/w.jpg', 'town maps/a.jpg', 'town maps/p.jpg'])
+    expect(readManifests(root({ [MANIFEST]: 'world maps/w.jpg\n' }))).toEqual(['world maps/w.jpg'])
+  })
+
+  test('the private manifest is gitignored', () => {
+    const ignore = readFileSync(new URL('../.gitignore', import.meta.url), 'utf8').split('\n')
+    expect(ignore).toContain(`/${PRIVATE_MANIFEST}`)
   })
 })

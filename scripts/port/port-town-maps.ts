@@ -2,11 +2,14 @@
 // ~/dnd5e). Only filenames are read, never images. Run: pnpm tsx scripts/port/port-town-maps.ts
 // Original and generic names go in data/original/towns.json (committed); names from published
 // settings or the real world (PUBLISHED_TOWNS) go in data/imported-private/towns.json (gitignored).
-// It prints the banner paths missing from assets.manifest.txt; add them, then run pnpm sync-assets.
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+// It prints the banner paths missing from the asset manifests: add original ones to
+// assets.manifest.txt and private ones to the gitignored assets.manifest.private.txt, then run
+// pnpm sync-assets.
+import { mkdirSync, readdirSync, writeFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 import type { Town } from '../../src/schema/world'
+import { MANIFEST, PRIVATE_MANIFEST, readManifests } from '../sync-assets'
 import { collectTowns, splitTowns } from './town-maps'
 
 /** Towns the user has labelled on the Altaeus map keep their marker. */
@@ -51,14 +54,16 @@ write(
   imported
 )
 
-const manifest = new Set(
-  readFileSync('assets.manifest.txt', 'utf8')
-    .split('\n')
-    .map((l) => l.trim())
-)
-const missing = towns
-  .map((t) => t.banner)
-  .filter((b): b is string => !!b && !b.startsWith('town maps/__altaeus/') && !manifest.has(b))
+const manifest = new Set(readManifests('.'))
+const missing = (list: Town[]) =>
+  list
+    .map((t) => t.banner)
+    .filter((b): b is string => !!b && !b.startsWith('town maps/__altaeus/') && !manifest.has(b))
 console.log(`wrote ${original.length} original and ${imported.length} private towns`)
-if (missing.length > 0)
-  console.log(`banners missing from assets.manifest.txt:\n${missing.join('\n')}`)
+for (const [file, list] of [
+  [MANIFEST, original],
+  [PRIVATE_MANIFEST, imported],
+] as const) {
+  const absent = missing(list)
+  if (absent.length > 0) console.log(`banners missing from ${file}:\n${absent.join('\n')}`)
+}

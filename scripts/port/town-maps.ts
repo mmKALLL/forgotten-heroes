@@ -136,9 +136,12 @@ export const PUBLISHED_TOWNS: ReadonlySet<string> = new Set([
 ])
 
 /** Splits towns into the committed (original) and the private (imported) lists. */
-export function splitTowns(towns: Town[]): { original: Town[]; imported: Town[] } {
+export function splitTowns(
+  towns: Town[],
+  published: ReadonlySet<string> = PUBLISHED_TOWNS
+): { original: Town[]; imported: Town[] } {
   return {
-    original: towns.filter((t) => !PUBLISHED_TOWNS.has(t.id)),
-    imported: towns.filter((t) => PUBLISHED_TOWNS.has(t.id)),
+    original: towns.filter((t) => !published.has(t.id)),
+    imported: towns.filter((t) => published.has(t.id)),
   }
 }

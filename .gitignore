@@ -31,3 +31,6 @@ dist-ssr
 
 # Copyrighted imports for personal use only
 /data/imported-private/
+
+# Asset paths whose names are private (see assets.manifest.txt)
+/assets.manifest.private.txt

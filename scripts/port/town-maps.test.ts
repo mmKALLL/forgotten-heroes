@@ -22,7 +22,7 @@ describe('parseTownMapFilename', () => {
 
   test('ignores files that are not named in the pattern', () => {
     expect(parseTownMapFilename('Corso unlabeled.jpeg')).toBeNull()
-    expect(parseTownMapFilename('Phandalin player ver hires.jpeg')).toBeNull()
+    expect(parseTownMapFilename('Quillmere player ver hires.jpeg')).toBeNull()
     expect(parseTownMapFilename('_altaeus with town names.xcf')).toBeNull()
   })
 })
@@ -45,9 +45,9 @@ describe('townEntry', () => {
       altaeus: true,
     })
     expect(
-      townEntry(parse('Mos Onjar - rich desert town - LE.jpeg'), 'town maps', false)
+      townEntry(parse('Sarn Keddar - rich desert town - LE.jpeg'), 'town maps', false)
     ).toMatchObject({
-      id: 'mos-onjar',
+      id: 'sarn-keddar',
       size: 'town',
       biomes: ['desert'],
       wealth: 2,
@@ -68,12 +68,12 @@ describe('townEntry', () => {
   test('skips places that are not living settlements', () => {
     const skipped = [
       'City of Glass - underwater city - TN.jpeg',
-      'Menzoberranzan - underdark capital - NE.webp',
-      'Hazlan - desert wilderness - CE.webp',
-      'Vor Rukoth - abandoned desert hamlet - CE.jpg',
-      'Ruins of Gardmore Abbey - hillsy thorp - LE.webp',
+      'Ulvaroth - underdark capital - NE.webp',
+      'Ostrevin - desert wilderness - CE.webp',
+      'Tamsk Vey - abandoned desert hamlet - CE.jpg',
+      'Ruins of Vellan Abbey - hillsy thorp - LE.webp',
       'Magrael - natural forest sight.jpeg',
-      "Nystul's Infinite Dungeon - island - TN.jpeg",
+      "Orrin's Infinite Dungeon - island - TN.jpeg",
     ]
     for (const file of skipped) expect(townEntry(parse(file), 'town maps', false)).toBeNull()
   })
@@ -86,7 +86,7 @@ describe('collectTowns', () => {
         folder: 'town maps/__altaeus',
         altaeus: true,
         files: [
-          'Phandalin - hilly forest village - CN.jpg',
+          'Quillmere - hilly forest village - CN.jpg',
           'Corso - poor seaside capital - CN.jpg',
         ],
       },
@@ -94,7 +94,7 @@ describe('collectTowns', () => {
         folder: 'town maps',
         altaeus: false,
         files: [
-          'Phandalin - hilly forest village - CN.jpg',
+          'Quillmere - hilly forest village - CN.jpg',
           'Riverwatch - temperate river city - CN.jpg',
           'Riverwatch - temperate river city - LG.jpeg',
         ],
@@ -102,27 +102,30 @@ describe('collectTowns', () => {
     ])
     expect(towns.map((t) => [t.id, t.banner])).toEqual([
       ['corso', 'town maps/__altaeus/Corso - poor seaside capital - CN.jpg'],
-      ['phandalin', 'town maps/__altaeus/Phandalin - hilly forest village - CN.jpg'],
+      ['quillmere', 'town maps/__altaeus/Quillmere - hilly forest village - CN.jpg'],
       ['riverwatch', 'town maps/Riverwatch - temperate river city - CN.jpg'],
     ])
   })
 })
 
 describe('splitTowns', () => {
+  // Invented names stand in for published ones, so no private name is committed here.
   test('names from published settings or the real world go to the private file', () => {
     const towns = collectTowns([
       {
         folder: 'town maps',
         altaeus: false,
         files: [
-          'Waterdeep - temperate harbor capital - LN.jpeg',
+          'Harrowgate - temperate harbor capital - LN.jpeg',
           'Lowmarsh - poor marsh village - CN.jpeg',
-          'Athens - arid plains capital - LN.jpg',
+          'Duskhollow - arid plains capital - LN.jpg',
         ],
       },
     ])
-    const { original, imported } = splitTowns(towns)
+    const { original, imported } = splitTowns(towns, new Set(['harrowgate', 'duskhollow']))
     expect(original.map((t) => t.id)).toEqual(['lowmarsh'])
-    expect(imported.map((t) => t.id)).toEqual(['athens', 'waterdeep'])
+    expect(imported.map((t) => t.id)).toEqual(['duskhollow', 'harrowgate'])
+    // By default the published list decides; none of these invented names is on it.
+    expect(splitTowns(towns).imported).toEqual([])
   })
 })
