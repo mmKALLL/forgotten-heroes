@@ -299,10 +299,13 @@ export function shopsFor(
 
 export type TradeSide = 'buy' | 'sell'
 
+/** A price in whole gold: rounded up, and at least 1 gp (designer decision: no fractions). */
+export const wholeGp = (gp: number): number => Math.max(1, Math.ceil(gp - 1e-9))
+
 export type Quote = {
-  /** gp for the whole trade: rounded up when buying, down when selling. */
+  /** gp for the whole trade: the sum of the whole-gold unit prices. */
   total: number
-  /** The first and the last unit's price, as the trade moves the market. */
+  /** The first and the last unit's price (whole gold), as the trade moves the market. */
   unitFirst: number
   unitLast: number
   shop: Shop
@@ -311,8 +314,8 @@ export type Quote = {
 /**
  * What buying or selling `amount` units would cost or fetch at a shop (the best one by default),
  * unit by unit as the trade moves the price. Each unit is priced at the pressure halfway through
- * it, so buying and selling the same units back meet the same middle prices and the spread always
- * loses money. Null when no shop here trades the good that way, or the amount is below 1.
+ * it, so buying and selling the same units back meet the same middle prices and the spread never
+ * gains money. Every unit price is whole gold, rounded up (wholeGp). Null when no shop here trades the good that way, or the amount is below 1.
  */
 export function quote(
   state: Market,
@@ -334,13 +337,13 @@ export function quote(
   const depth = marketDepth(content, sizeOf(state, settlementId), good)
   const p0 = pressure(tradeOf(state, settlementId, good), state.day)
   const factor = side === 'buy' ? 1 + chosen.spread / 2 : 1 - chosen.spread / 2
+  // Prices are whole gold (designer decision): each unit's price is rounded up, at least 1 gp.
   const unit = (i: number) => {
     const p = side === 'sell' ? p0 + i + 0.5 : p0 - i - 0.5
-    return level * Math.exp(-p / depth) * factor
+    return wholeGp(level * Math.exp(-p / depth) * factor)
   }
-  let sum = 0
-  for (let i = 0; i < n; i++) sum += unit(i)
-  const total = side === 'buy' ? Math.ceil(sum - 1e-9) : Math.floor(sum + 1e-9)
+  let total = 0
+  for (let i = 0; i < n; i++) total += unit(i)
   return { total, unitFirst: unit(0), unitLast: unit(n - 1), shop: chosen }
 }
 

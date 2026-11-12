@@ -24,7 +24,6 @@ export type TradeAction =
 const MAX_UNITS = 9999
 
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
-const roundGp = (n: number) => Math.round(n * 100) / 100
 const lower = (content: Content, good: Good) => goodName(content, good).toLowerCase()
 
 /** What stops the party buying more of a good: gold, weight, or nothing (null). */
@@ -153,7 +152,7 @@ export function sellGoods(
 function knownPrice(state: GameState, content: Content, id: string, good: Good): KnownPrice {
   const buy = quote(state, content, id, good, 'buy', 1)
   const sell = quote(state, content, id, good, 'sell', 1)
-  return { buy: buy && roundGp(buy.unitFirst), sell: sell && roundGp(sell.unitFirst) }
+  return { buy: buy && buy.unitFirst, sell: sell && sell.unitFirst }
 }
 
 /**

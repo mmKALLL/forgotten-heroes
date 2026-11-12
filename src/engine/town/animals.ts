@@ -148,9 +148,9 @@ export function hireOffer(
 export const hireCost = (offer: Pick<HireOffer, 'count' | 'perDay'>, days: number): number =>
   Math.ceil(offer.perDay * offer.count * days)
 
-/** What an animal sells back for. */
+/** What an animal sells back for, in whole gold rounded up. */
 export const resaleValue = (def: Pick<AnimalDef, 'price'>): number =>
-  Math.floor(def.price * ANIMAL_RESALE)
+  Math.ceil(def.price * ANIMAL_RESALE - 1e-9)
 
 /** One animal at an animals service, as the services panel offers it. */
 export type AnimalOffer = {

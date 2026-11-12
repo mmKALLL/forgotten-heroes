@@ -3,6 +3,7 @@ import { GOODS } from '../../schema/types'
 import type { GameState, PriceBookEntry } from '../../schema/state'
 import { revealPois } from '../encounters/effects'
 import { inProgress } from '../encounters/run'
+import { wholeGp } from '../economy/market'
 import { marketPrices } from '../economy/trade'
 import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
@@ -107,11 +108,11 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
   }
 }
 
-/** A heard price, off by up to ±`skew` (seeded), rounded like the price book's. */
+/** A heard price, off by up to ±`skew` (seeded), in whole gold like the price book's. */
 const skewed = (d: Draw, price: number | null, skew: number, sign?: 1 | -1): number | null => {
   if (price === null) return null
   const factor = sign === undefined ? 1 + (d.float() * 2 - 1) * skew : 1 + sign * skew
-  return Math.max(0, Math.round(price * factor * 100) / 100)
+  return wholeGp(price * factor)
 }
 
 /**

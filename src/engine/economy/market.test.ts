@@ -161,7 +161,7 @@ describe('pressure and bulk trades', () => {
 })
 
 describe('shops', () => {
-  test('buying is dearer than selling for every good and shop, whatever the pressure', () => {
+  test('buying is never cheaper than selling, and dearer for goods worth 10 gp or more', () => {
     for (const markets of [{}, recordTrade({}, 'greenvale-1', 'food', 40, base.day)]) {
       for (const p of [-30, 0, 30]) {
         const s = {
@@ -173,7 +173,9 @@ describe('shops', () => {
             if (!shop.sells || !shop.buys) continue
             const buy = quote(s, content, 'greenvale-1', good, 'buy', 1, shop.service)!
             const sell = quote(s, content, 'greenvale-1', good, 'sell', 1, shop.service)!
-            expect(buy.unitFirst).toBeGreaterThan(sell.unitFirst)
+            // Whole gold rounded up: a 1 gp good may buy and sell at the same price.
+            if (buy.unitFirst >= 10) expect(buy.unitFirst).toBeGreaterThan(sell.unitFirst)
+            else expect(buy.unitFirst).toBeGreaterThanOrEqual(sell.unitFirst)
             expect(buy.total).toBeGreaterThanOrEqual(sell.total)
           }
         }
@@ -181,7 +183,7 @@ describe('shops', () => {
     }
   })
 
-  test('buying some and selling them straight back always loses money', () => {
+  test('buying some and selling them straight back never gains, and loses on dear goods', () => {
     for (const good of ['gems', 'food', 'luxuries'] as const) {
       for (const n of [1, 5, 20]) {
         const buy = quote(shopping, content, 'greenvale-1', good, 'buy', n)!
@@ -190,7 +192,8 @@ describe('shops', () => {
           markets: recordTrade({}, 'greenvale-1', good, -n, shopping.day),
         }
         const sell = quote(after, content, 'greenvale-1', good, 'sell', n, buy.shop.service)!
-        expect(sell.total).toBeLessThan(buy.total)
+        if (good === 'food') expect(sell.total).toBeLessThanOrEqual(buy.total)
+        else expect(sell.total).toBeLessThan(buy.total)
       }
     }
   })
@@ -228,8 +231,9 @@ describe('shops', () => {
       ...shopping,
       reputation: { settlements, people },
     })
+    // Whole-gold prices hide a 2-point spread on cheap goods: compare on gems.
     const unit = (s: GameState, side: 'buy' | 'sell', shop?: string) =>
-      quote(s, content, id, 'food', side, 1, shop)!.unitFirst
+      quote(s, content, id, 'gems', side, 1, shop)!.unitFirst
     const liked = withRep({ [id]: STANDING_POINTS.liked })
     const disliked = withRep({ [id]: STANDING_POINTS.disliked })
     expect(unit(liked, 'buy')).toBeLessThan(unit(shopping, 'buy'))
@@ -241,7 +245,12 @@ describe('shops', () => {
       id: 'outfitter',
       service: 'adventuring-supplies',
     }
-    const kept = { ...content, personRoles: { ...content.personRoles, outfitter } }
+    const gear = { ...content.goods.gear, price: 100 }
+    const kept = {
+      ...content,
+      personRoles: { ...content.personRoles, outfitter },
+      goods: { ...content.goods, gear },
+    }
     const world = {
       ...shopping.world,
       people: {
@@ -251,17 +260,24 @@ describe('shops', () => {
     }
     expect(shopKeeper({ world }, kept, id, 'adventuring-supplies')).toBe('p-ada')
     const friend = { ...withRep({}, { 'p-ada': STANDING_POINTS.liked }), world }
-    const at = (s: GameState, shop: string) => quote(s, kept, id, 'food', 'buy', 1, shop)!.unitFirst
+    const at = (s: GameState, shop: string) => quote(s, kept, id, 'gear', 'buy', 1, shop)!.unitFirst
     const stranger = { ...shopping, world }
     expect(at(friend, 'adventuring-supplies')).toBeLessThan(at(stranger, 'adventuring-supplies'))
-    expect(at(friend, MARKET_STALL)).toBe(at(stranger, MARKET_STALL))
+    // The stalls have no keeper, so the outfitter's liking doesn't reach them.
+    const stall = (s: GameState) =>
+      quote(s, kept, id, 'food', 'buy', 1, MARKET_STALL)!.unitFirst
+    expect(stall(friend)).toBe(stall(stranger))
   })
 
-  test('quotes round buys up and sales down to whole gold', () => {
+  test('quotes are whole gold: every unit rounded up, at least 1 gp', () => {
     const buy = quote(shopping, content, 'greenvale-1', 'food', 'buy', 3)!
     const sell = quote(shopping, content, 'greenvale-1', 'food', 'sell', 3)!
     expect(Number.isInteger(buy.total)).toBe(true)
     expect(Number.isInteger(sell.total)).toBe(true)
+    for (const q of [buy, sell]) {
+      expect(Number.isInteger(q.unitFirst) && q.unitFirst >= 1).toBe(true)
+      expect(Number.isInteger(q.unitLast) && q.unitLast >= 1).toBe(true)
+    }
     expect(quote(shopping, content, 'greenvale-1', 'food', 'buy', 0)).toBeNull()
   })
 })

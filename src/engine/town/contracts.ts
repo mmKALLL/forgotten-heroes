@@ -242,9 +242,10 @@ function makeOffer(
   const weekStart = boardWeek(state.day) * 7 + 1
   const domain = site ? state.world.pois[site].domain : to
   const threat = domainThreatLevel(state.world, domain, weekStart)
+  // Whole gold, rounded up (designer decision).
   const pay = Math.max(
     1,
-    Math.round(
+    Math.ceil(
       CONTRACT_PAY_PER_DAY *
         target.reach.days *
         template.pay *
