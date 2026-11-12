@@ -128,10 +128,13 @@ test('SRD creatures are imported, and parts tables feed three templates', () => 
   ])
 })
 
-/** Road situations from one source (site situations are played at points of interest). */
+/**
+ * Road situations from one source (site situations are played at points of interest). Crisis
+ * omens are checked in src/content/crisis.test.ts.
+ */
 const idsFrom = (source: string) =>
   Object.values(content.situations)
-    .filter((s) => s.source === source && !s.site)
+    .filter((s) => s.source === source && !s.site && s.villains.length === 0)
     .map((s) => s.id)
     .sort()
 

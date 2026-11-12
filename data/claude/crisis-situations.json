@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "The Crisis (Plan 5b): the situations of the crisis sites in crisis-sites.json. Reveal situations (one per villain, two stages): a check or a price decides what getting in costs (a trap, a survivor to tend, a guard to slip past), and every ending except 'leave' learns the plan (learnPlan); a slower or riskier reading can also give a clue to act I (crisisClue). Act situations (one per act, like the dungeon delves): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more: the villain grows desperate); and a high-stakes finale where a success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. Base DCs stay at 11–14: lateness and the danger ramp add the rest. Texts name the villain by title only (the Ashen Prophet), since situations have no {villain} slot. Written by Claude.",
+  "notes": "The Crisis (Plan 5b): the situations of the crisis sites in crisis-sites.json. Reveal situations (one per villain, two stages): a check or a price decides what getting in costs (a trap, a survivor to tend, a guard to slip past), and every ending except 'leave' learns the plan (learnPlan); a slower or riskier reading can also give a clue to act I (crisisClue). Act situations (one per act, like the dungeon delves): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more: the villain grows desperate); and a high-stakes finale where a success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. Base DCs stay at 11–14: lateness and the danger ramp add the rest. Road omens (two per villain, one hostile and one neutral) name their villain (`villains`): they are drawn on the road only while that villain's Crisis is undecided, and a success gives a clue (crisisClue). Texts name the villain by title only (the Ashen Prophet), since situations have no {villain} slot. Written by Claude.",
   "entries": [
     {
       "id": "burned-chapel-search",
@@ -4291,6 +4291,570 @@
                     "effect": "hp",
                     "amount": -3,
                     "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cart-of-bones",
+      "title": "A cart of bones",
+      "disposition": "neutral",
+      "tags": ["road", "omen", "restless-dead"],
+      "villains": ["ashen-prophet"],
+      "stages": {
+        "start": {
+          "text": "A covered cart creaks past with two men in grey smocks on the box. It rides low on its axles, and something under the tarp rattles at every rut. They keep their eyes on the road.",
+          "options": [
+            {
+              "id": "stop",
+              "kind": "check",
+              "label": "Stop them and look under the tarp",
+              "description": "They will not want to be stopped. They may tell you who they work for.",
+              "check": {
+                "skill": "intimidation",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The bigger one swings a spade at {actor}, and they whip the mule on and are gone in the dust.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "Bones under the tarp, old and brown, tagged with string. They will not say who buys them."
+                },
+                "success": {
+                  "text": "Bones under the tarp, tagged with the names of the dead, and a delivery note in a careful hand. With {actor}'s hand on his collar the driver tells you who pays.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "buy",
+              "kind": "fixed",
+              "label": "Buy a look at their delivery note (10 gp)",
+              "description": "No trouble, and no guessing.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 10
+                }
+              ],
+              "outcome": {
+                "text": "The driver takes the coin, looks round, and hands it over. You read it and give it back, and they drive on faster than before.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -10
+                  },
+                  {
+                    "effect": "crisisClue"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "pass",
+              "kind": "fixed",
+              "label": "Let them pass",
+              "outcome": {
+                "text": "You step aside. The cart creaks away, rattling, and the smell of old earth goes with it."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ash-faced-mourners",
+      "title": "Ash-faced mourners",
+      "disposition": "hostile",
+      "tags": ["road", "omen", "dark-cult"],
+      "villains": ["ashen-prophet"],
+      "stages": {
+        "start": {
+          "text": "A funeral party blocks the road: six mourners with ash smeared on their faces, carrying a bier with a body under a sheet. The body is sitting up. The mourners set the bier down and draw knives from their sleeves.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight them",
+              "description": "Six knives, and something on the bier. Win and someone may talk.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "They fight like people who are not afraid to die, and they get away with their dead.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You drive them off, and the thing on the bier falls still. {actor} takes a knife across the ribs doing it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "You cut them down. One of them, dying, laughs and names the one he serves, and where.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "turn",
+              "kind": "check",
+              "label": "Turn the thing on the bier against them",
+              "description": "Fail and it comes for you instead.",
+              "once": true,
+              "check": {
+                "skill": "religion",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The dead thing does not listen to {actor}. It gets off the bier.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "The body falls back under its sheet, and the mourners scatter into the fields."
+                },
+                "success": {
+                  "text": "The dead thing turns on its bearers. The one it doesn't catch begs you to take him to a priest, and talks all the way there.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "go-round",
+              "kind": "fixed",
+              "label": "Leave the road and go round",
+              "description": "No blood, but it costs a day.",
+              "outcome": {
+                "text": "You leave the road and go the long way round through the fields. It costs you the day, and the mourners do not follow.",
+                "effects": [
+                  {
+                    "effect": "days",
+                    "amount": 1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "forged-seal-courier",
+      "title": "A courier with a forged seal",
+      "disposition": "neutral",
+      "tags": ["road", "omen", "pretender"],
+      "villains": ["pretenders-hand"],
+      "stages": {
+        "start": {
+          "text": "A courier on a lathered horse pulls up to ask the way. His letter-case hangs from his saddle under a royal seal, and the seal is wrong: the crown on it has one point too many.",
+          "options": [
+            {
+              "id": "lift",
+              "kind": "check",
+              "label": "Lift a letter while he talks",
+              "description": "Quick, if your hands are quick.",
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He catches {actor}'s hand in his case, draws, and cuts before he spurs away.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} gets a letter, but it is in cipher, and the courier is gone before you can make anything of it."
+                },
+                "success": {
+                  "text": "{actor} lifts a letter and slips it back before he notices. The cipher is careless, and the name at the bottom isn't in cipher at all.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "ride-along",
+              "kind": "fixed",
+              "label": "Ride a day with him and win his trust",
+              "description": "No risk, but a day out of your way.",
+              "outcome": {
+                "text": "He is glad of the company. By evening he is telling you where his letters go, and who pays him to carry them.",
+                "effects": [
+                  {
+                    "effect": "days",
+                    "amount": 1
+                  },
+                  {
+                    "effect": "crisisClue"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "pass",
+              "kind": "fixed",
+              "label": "Give him the way and let him go",
+              "outcome": {
+                "text": "He thanks you and rides on. The seal glints as he goes."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "press-gang",
+      "title": "Recruiters with new silver",
+      "disposition": "hostile",
+      "tags": ["road", "omen", "bandit-lord"],
+      "villains": ["pretenders-hand"],
+      "stages": {
+        "start": {
+          "text": "A band of hired swords bars the road with a wagon. They are recruiting, they say: good pay in new silver for anyone who can hold a spear. Their sergeant looks at you, then at your packs, and makes it clear it isn't an offer you can refuse.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Refuse, with steel",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "There are more of them than you. They beat you bloody and leave you in the ditch.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You break their line and run, and {actor} takes a spear-butt to the head on the way.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "You put the sergeant on his back. His purse is full of new coins with a stranger's face on them, and his orders name his paymaster.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 6
+                    },
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "bluff",
+              "kind": "check",
+              "label": "Claim you are already in the Hand's pay",
+              "description": "If they believe you, they may tell you where to report.",
+              "once": true,
+              "check": {
+                "skill": "deception",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The sergeant asks for the password. You don't know it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They let you go, but they watch you all the way to the next bend."
+                },
+                "success": {
+                  "text": "The sergeant grins, slaps {actor} on the back and tells you where to report, and to whom.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Pay them to look elsewhere (10 gp)",
+              "description": "No blood and no questions.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 10
+                }
+              ],
+              "outcome": {
+                "text": "The sergeant pockets the silver and waves you through. You are not the first to pay him today.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -10
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "scorched-flock",
+      "title": "A scorched flock",
+      "disposition": "neutral",
+      "tags": ["road", "omen", "drake-brood"],
+      "villains": ["drake-speaker"],
+      "stages": {
+        "start": {
+          "text": "A boy is driving what is left of a flock down the road: a dozen sheep, singed black down one side. A drake came for them, he says, and a man came with it, and spoke to it, and it went where he pointed.",
+          "options": [
+            {
+              "id": "listen",
+              "kind": "check",
+              "label": "Sit him down and get the story straight",
+              "description": "Get past the fright to what he saw.",
+              "check": {
+                "skill": "insight",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He is too frightened to make sense, and in the end he runs off after his sheep."
+                },
+                "partial": {
+                  "text": "He saw the man's face and his scarred hands, and not much else."
+                },
+                "success": {
+                  "text": "Calmed down, he remembers everything: the man's scarred hands, the words he used, and which way the drake flew home.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "feed",
+              "kind": "fixed",
+              "label": "Feed the boy and his dog (2 food)",
+              "description": "A full belly loosens the tongue.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "food",
+                  "min": 2
+                }
+              ],
+              "outcome": {
+                "text": "Fed and warm by the roadside, he talks. He saw where the drake went, and where the man went after it.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "food",
+                    "amount": -2
+                  },
+                  {
+                    "effect": "crisisClue"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "move-on",
+              "kind": "fixed",
+              "label": "Wish him luck and go on",
+              "outcome": {
+                "text": "You wish him luck. He drives his sheep on towards a town that will not want them."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "harnessed-drake",
+      "title": "A drake in harness",
+      "disposition": "hostile",
+      "tags": ["road", "omen", "drake-brood"],
+      "villains": ["drake-speaker"],
+      "stages": {
+        "start": {
+          "text": "A young drake drops out of the sky onto the road ahead, all teeth and heat. It wears a harness of painted leather, and it comes straight at you.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Bring it down",
+              "description": "A young drake. Kill it and you can read its harness.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "It burns you and flies off, screaming, back the way it came.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} drives it off with a gash in its wing, and a burn to remember it by.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} brings it down. Its harness is painted with signs: a handler's marks, and the place it was raised.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "hide",
+              "kind": "check",
+              "label": "Hide in the rocks and watch where it goes",
+              "description": "Let it go, and follow it with your eyes.",
+              "check": {
+                "skill": "stealth",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "It finds {actor} in the rocks.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "It snaps at the rocks, loses interest and flies off. You lose it against the sun."
+                },
+                "success": {
+                  "text": "It loses you in the rocks and flies home, low and slow. You watch exactly where.",
+                  "effects": [
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "meat",
+              "kind": "fixed",
+              "label": "Throw it your meat (2 food)",
+              "description": "It will take the meat and leave you be.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "food",
+                  "min": 2
+                }
+              ],
+              "outcome": {
+                "text": "It snatches the meat out of the air and flies off with it, back the way it came.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "food",
+                    "amount": -2
                   }
                 ]
               }
