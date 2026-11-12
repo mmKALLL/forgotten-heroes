@@ -425,6 +425,93 @@ const service = (id: string, name: string, presenceThresholdBySize: number[]) =>
  * A tiny world: Greenvale (plains) and Ashmoor (marsh) on the mainland, and Far Isle across the
  * sea. Greenvale 1 and Far Isle 1 have capital markers. Distances fit the 4.84 px/km scale.
  */
+/** One site situation per fixture POI type: only played at a point of interest. */
+const testSites = [
+  {
+    id: 'orc-war-camp-raid',
+    title: 'War camp',
+    disposition: 'hostile',
+    site: true,
+    stages: {
+      start: {
+        text: 'Orc tents ring a smoking fire.',
+        options: [
+          {
+            id: 'sneak',
+            kind: 'check',
+            label: 'Slip in after dark',
+            check: { skill: 'stealth', dc: 14 },
+            outcomes: {
+              fail: { text: 'Spotted.', effects: [{ effect: 'hp', amount: -3, target: 'all' }] },
+              partial: {
+                text: 'You get out with a little.',
+                effects: [{ effect: 'gold', amount: 5 }],
+              },
+              success: {
+                text: 'You loot the chief’s tent.',
+                effects: [{ effect: 'gold', amount: 20 }],
+              },
+            },
+          },
+          { id: 'leave', kind: 'fixed', label: 'Leave it be', outcome: { text: 'You withdraw.' } },
+        ],
+      },
+    },
+  },
+  {
+    id: 'herbalist-visit',
+    title: 'The herbalist',
+    disposition: 'neutral',
+    site: true,
+    stages: {
+      start: {
+        text: 'An old woman sorts roots by her door.',
+        options: [
+          {
+            id: 'buy',
+            kind: 'fixed',
+            label: 'Buy a poultice',
+            requires: [{ req: 'gold', min: 5 }],
+            outcome: {
+              text: 'It stings, then soothes.',
+              effects: [
+                { effect: 'gold', amount: -5 },
+                { effect: 'hp', amount: 4, target: 'all' },
+              ],
+            },
+          },
+          {
+            id: 'talk',
+            kind: 'fixed',
+            label: 'Pass the time',
+            outcome: { text: 'She talks of rain.' },
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: 'singing-stones',
+    title: 'Singing stones',
+    disposition: 'pleasant',
+    wonder: true,
+    site: true,
+    stages: {
+      start: {
+        text: 'The wind hums through a ring of stones.',
+        options: [
+          {
+            id: 'listen',
+            kind: 'fixed',
+            label: 'Listen',
+            outcome: { text: 'You listen.', effects: [{ effect: 'inspiration', amount: 1 }] },
+          },
+        ],
+      },
+    },
+  },
+]
+
 export const testWorld: Record<string, unknown> = {
   'data/original/settlement-types.json': {
     kind: 'settlementTypes',
@@ -592,6 +679,82 @@ export const testWorld: Record<string, unknown> = {
         rows: [{ text: 'Kingdom of {place}' }, { text: '{Place} Marches' }],
       },
     ],
+  },
+  'data/claude/land-spots.json': {
+    kind: 'landSpots',
+    source: 'claude',
+    notes:
+      '12 spots on the mainland, around greenvale-1, greenvale-2 and ashmoor-1; 4 on Far Isle.',
+    entries: [
+      { id: 'spot-0001', at: { x: 950, y: 950 }, island: 'mainland' },
+      { id: 'spot-0002', at: { x: 1050, y: 1050 }, island: 'mainland', terrain: 'hills' },
+      { id: 'spot-0003', at: { x: 1100, y: 950 }, island: 'mainland' },
+      { id: 'spot-0004', at: { x: 1150, y: 1050 }, island: 'mainland', terrain: 'forest' },
+      { id: 'spot-0005', at: { x: 1250, y: 950 }, island: 'mainland', terrain: 'hills' },
+      { id: 'spot-0006', at: { x: 1350, y: 1050 }, island: 'mainland' },
+      { id: 'spot-0007', at: { x: 1200, y: 1150 }, island: 'mainland' },
+      { id: 'spot-0008', at: { x: 1250, y: 1250 }, island: 'mainland', terrain: 'marsh' },
+      { id: 'spot-0009', at: { x: 1350, y: 1250 }, island: 'mainland' },
+      { id: 'spot-0010', at: { x: 1350, y: 1350 }, island: 'mainland', terrain: 'forest' },
+      { id: 'spot-0011', at: { x: 1100, y: 1250 }, island: 'mainland', terrain: 'hills' },
+      { id: 'spot-0012', at: { x: 1000, y: 1150 }, island: 'mainland' },
+      { id: 'spot-0013', at: { x: 1950, y: 1250 }, island: 'farisle' },
+      { id: 'spot-0014', at: { x: 2050, y: 1250 }, island: 'farisle', terrain: 'hills' },
+      { id: 'spot-0015', at: { x: 2050, y: 1350 }, island: 'farisle' },
+      { id: 'spot-0016', at: { x: 1950, y: 1350 }, island: 'farisle', terrain: 'jungle' },
+    ],
+  },
+  'data/procedural/poi-types.json': {
+    kind: 'poiTypes',
+    source: 'procedural',
+    entries: [
+      {
+        id: 'orc-war-camp',
+        category: 'lair',
+        name: 'War camp',
+        weight: 2,
+        biomes: ['hills'],
+        threats: ['orc-warband'],
+        hostile: true,
+        threat: { min: 1, max: 2 },
+        pathDanger: 2,
+        names: 'poi-name-camp',
+        situations: ['orc-war-camp-raid'],
+        icon: 'campfire',
+      },
+      {
+        id: 'herbalist-hut',
+        category: 'expert',
+        name: 'Herbalist',
+        biomes: ['forest', 'marsh'],
+        water: true,
+        names: 'poi-name-hut',
+        situations: ['herbalist-visit'],
+      },
+      {
+        id: 'singing-stones',
+        category: 'wonder',
+        name: 'Singing stones',
+        weight: 0.5,
+        pathDanger: 0,
+        names: 'poi-name-stones',
+        situations: ['singing-stones'],
+      },
+    ],
+  },
+  'data/procedural/poi-names.json': {
+    kind: 'partsTables',
+    source: 'procedural',
+    entries: [
+      { id: 'poi-name-camp', description: 'War camps', rows: [{ text: 'Redtusk camp' }] },
+      { id: 'poi-name-hut', description: 'Hermit huts', rows: [{ text: 'Old Wen’s hut' }] },
+      { id: 'poi-name-stones', description: 'Stone circles', rows: [{ text: 'The Hum' }] },
+    ],
+  },
+  'data/claude/poi-situations.json': {
+    kind: 'situations',
+    source: 'claude',
+    entries: testSites,
   },
 }
 

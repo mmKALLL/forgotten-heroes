@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "landSpots"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "description": "\"spot-<n>\"",
+            "$ref": "#/$defs/__schema0"
+          },
+          "at": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "$ref": "#/$defs/__schema1"
+              },
+              "y": {
+                "$ref": "#/$defs/__schema2"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "description": "A point on land, in map pixels"
+          },
+          "island": {
+            "description": "The land mass it is on, as for settlements",
+            "$ref": "#/$defs/__schema0"
+          },
+          "terrain": {
+            "description": "The terrain here; omit to take the land's biome",
+            "$ref": "#/$defs/__schema3"
+          }
+        },
+        "required": [
+          "id",
+          "at",
+          "island"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 4096
+    },
+    "__schema2": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 3072
+    },
+    "__schema3": {
+      "type": "string",
+      "enum": [
+        "plains",
+        "forest",
+        "hills",
+        "mountains",
+        "marsh",
+        "desert",
+        "jungle"
+      ]
+    }
+  }
+}

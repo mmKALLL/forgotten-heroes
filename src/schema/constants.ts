@@ -106,3 +106,18 @@ export type Pace = (typeof PACES)[number]
  */
 export const DISPOSITIONS = ['hostile', 'neutral', 'pleasant'] as const
 export type Disposition = (typeof DISPOSITIONS)[number]
+
+/**
+ * Kinds of point of interest (design §6): places off the road, found through clues or
+ * exploration and visited along their own paths.
+ */
+export const POI_CATEGORIES = [
+  'dungeon',
+  'expert',
+  'lair',
+  'shrine',
+  'landmark',
+  'wonder',
+  'quest',
+] as const
+export type PoiCategory = (typeof POI_CATEGORIES)[number]

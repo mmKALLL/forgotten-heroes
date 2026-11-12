@@ -179,7 +179,7 @@ export function startEncounter(
 /**
  * A due follow-up (wait 0) comes first, whatever the source filter or place, except that at sea
  * it waits for land unless its situation fits the sea; one whose situation no longer exists is
- * dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly situation.
+ * dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly or site situation.
  * On the road, `place` limits the pick to situations that fit its terrain and region (fitsPlace);
  * when none fits, nothing happens. A cautious party then skips a hostile pick with chance
  * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
@@ -215,6 +215,7 @@ export function drawEncounter(
   const candidates = situations.filter(
     (s) =>
       !s.followUpOnly &&
+      !s.site &&
       s.weight > 0 &&
       (!sources || sources.includes(s.source)) &&
       (!place || fitsPlace(s, place))

@@ -133,8 +133,11 @@ describe('templates', () => {
     expect(all.map((s) => s.id)).toEqual([
       'cliff',
       'grudge',
+      'herbalist-visit',
+      'orc-war-camp-raid',
       'plea',
       'roadside',
+      'singing-stones',
       'starfall',
       'stranger',
     ])

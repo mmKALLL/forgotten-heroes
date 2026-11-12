@@ -80,7 +80,7 @@ describe('options', () => {
 })
 
 describe('situations', () => {
-  test('defaults: start stage, weight, slots, not a wonder', () => {
+  test('defaults: start stage, weight, slots, not a wonder, not a site', () => {
     const s = SituationSchema.parse({
       id: 'quiet-road',
       title: 'Quiet road',
@@ -91,6 +91,7 @@ describe('situations', () => {
       weight: 1,
       wonder: false,
       followUpOnly: false,
+      site: false,
       slots: {},
       tags: [],
     })

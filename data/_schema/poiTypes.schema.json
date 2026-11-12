@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "poiTypes"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "category": {
+            "$ref": "#/$defs/__schema1"
+          },
+          "name": {
+            "$ref": "#/$defs/__schema2"
+          },
+          "weight": {
+            "$ref": "#/$defs/__schema3"
+          },
+          "biomes": {
+            "$ref": "#/$defs/__schema5"
+          },
+          "threats": {
+            "$ref": "#/$defs/__schema7"
+          },
+          "hostile": {
+            "$ref": "#/$defs/__schema9"
+          },
+          "threat": {
+            "$ref": "#/$defs/__schema11"
+          },
+          "pathDanger": {
+            "$ref": "#/$defs/__schema14"
+          },
+          "water": {
+            "$ref": "#/$defs/__schema16"
+          },
+          "names": {
+            "$ref": "#/$defs/__schema18"
+          },
+          "situations": {
+            "$ref": "#/$defs/__schema19"
+          },
+          "icon": {
+            "$ref": "#/$defs/__schema20"
+          }
+        },
+        "required": [
+          "id",
+          "category",
+          "name",
+          "names",
+          "situations"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "dungeon",
+        "expert",
+        "lair",
+        "shrine",
+        "landmark",
+        "wonder",
+        "quest"
+      ]
+    },
+    "__schema2": {
+      "type": "string",
+      "description": "What the type is called, e.g. \"War camp\""
+    },
+    "__schema3": {
+      "default": 1,
+      "description": "Relative chance of being drawn",
+      "$ref": "#/$defs/__schema4"
+    },
+    "__schema4": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema5": {
+      "default": [],
+      "description": "Favoured terrain: drawn more often (POI_FAVOURED×) on matching land",
+      "$ref": "#/$defs/__schema6"
+    },
+    "__schema6": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plains",
+          "forest",
+          "hills",
+          "mountains",
+          "marsh",
+          "desert",
+          "jungle",
+          "sea"
+        ]
+      }
+    },
+    "__schema7": {
+      "default": [],
+      "description": "Favoured threats: drawn more often (POI_FAVOURED×) where they hold the land",
+      "$ref": "#/$defs/__schema8"
+    },
+    "__schema8": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
+      }
+    },
+    "__schema9": {
+      "default": false,
+      "description": "A lair or active dungeon: feeds its domain's threat until cleared",
+      "$ref": "#/$defs/__schema10"
+    },
+    "__schema10": {
+      "type": "boolean"
+    },
+    "__schema11": {
+      "description": "What a hostile site adds to its domain's threat; required when hostile",
+      "$ref": "#/$defs/__schema12"
+    },
+    "__schema12": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "$ref": "#/$defs/__schema13"
+        },
+        "max": {
+          "$ref": "#/$defs/__schema13"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ]
+    },
+    "__schema13": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "__schema14": {
+      "default": 1,
+      "description": "Danger of the path there, as for routes: 0 safe to 3 notorious",
+      "$ref": "#/$defs/__schema15"
+    },
+    "__schema15": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "__schema16": {
+      "default": false,
+      "description": "A spring or well: arriving refills the waterskins",
+      "$ref": "#/$defs/__schema17"
+    },
+    "__schema17": {
+      "type": "boolean"
+    },
+    "__schema18": {
+      "description": "The parts table its names are drawn from",
+      "$ref": "#/$defs/__schema0"
+    },
+    "__schema19": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
+      },
+      "description": "The site situations played on a visit"
+    },
+    "__schema20": {
+      "description": "A game-icons.net icon id for the map",
+      "$ref": "#/$defs/__schema21"
+    },
+    "__schema21": {
+      "type": "string"
+    }
+  }
+}

@@ -75,7 +75,8 @@
         "routes",
         "towns",
         "placeNames",
-        "threats"
+        "threats",
+        "poiTypes"
       ]
     }
   },

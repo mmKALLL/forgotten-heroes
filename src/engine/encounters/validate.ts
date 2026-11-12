@@ -316,6 +316,7 @@ const twistKindAsSituation = (kind: TwistKind): Situation => ({
   twist: { chance: 1, what: kind.what, table: false, stage: kind.start, opening: [] },
   wonder: false,
   followUpOnly: true,
+  site: false,
   start: kind.start,
   stages: kind.stages,
 })

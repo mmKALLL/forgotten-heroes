@@ -9,7 +9,9 @@ import {
   TwistKindSchema,
 } from './encounter'
 import {
+  LandSpotSchema,
   PlaceNameTableSchema,
+  PoiTypeSchema,
   RegionSchema,
   RouteSchema,
   SettlementSchema,
@@ -104,6 +106,7 @@ export const TRANSLATABLE_KINDS = [
   'towns',
   'placeNames',
   'threats',
+  'poiTypes',
 ] as const
 export type TranslatableKind = (typeof TRANSLATABLE_KINDS)[number]
 
@@ -140,6 +143,8 @@ export const CONTENT_KINDS = {
   towns: TownSchema,
   placeNames: PlaceNameTableSchema,
   threats: ThreatSchema,
+  landSpots: LandSpotSchema,
+  poiTypes: PoiTypeSchema,
   translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS

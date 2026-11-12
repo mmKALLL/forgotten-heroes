@@ -225,6 +225,7 @@ export function brawlCandidates(content: Content, place: Place | null) {
       s.disposition === 'hostile' &&
       s.tags.includes(STOWAWAY_BRAWL_TAG) &&
       !s.followUpOnly &&
+      !s.site &&
       s.weight > 0 &&
       place !== null &&
       fitsPlace(s, place)

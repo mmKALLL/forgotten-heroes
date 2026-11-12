@@ -66,7 +66,7 @@ export const encounterChance = (
 
 /**
  * True when some situation can be drawn on this route: one that fits its terrain and the region
- * at either end (fitsPlace). At sea only `sea` situations can.
+ * at either end (fitsPlace). At sea only `sea` situations can; site situations never count.
  */
 export function canMeetEncounters(
   content: Content,
@@ -78,6 +78,7 @@ export function canMeetEncounters(
   return allSituations(content).some(
     (s) =>
       !s.followUpOnly &&
+      !s.site &&
       s.weight > 0 &&
       regions.some((region) => fitsPlace(s, { biome: route.terrain, region }))
   )

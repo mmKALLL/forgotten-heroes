@@ -3,6 +3,7 @@ import type { TravelState } from '../../schema/state'
 import { createRng, withRng } from '../rng'
 import { fixtureContent, makeState } from '../test-fixtures'
 import {
+  canMeetEncounters,
   encounterChance,
   encounterRange,
   fareFor,
@@ -122,6 +123,17 @@ test('a route’s threat is the higher threat level of its two regions', () => {
   world.regions.ashmoor.threatLevel = 3
   const route = content.routes['ashmoor-1-greenvale-2']
   expect(routeThreat({ ...state, world }, content, route)).toBe(3)
+})
+
+test('site situations never make a route eventful', () => {
+  const sea = content.routes['ashmoor-1-farisle-1']
+  expect(canMeetEncounters(content, sea)).toBe(false)
+  const siteAtSea = structuredClone(content)
+  siteAtSea.situations['orc-war-camp-raid'].biomes = ['sea']
+  expect(canMeetEncounters(siteAtSea, sea)).toBe(false)
+  const roadAtSea = structuredClone(siteAtSea)
+  roadAtSea.situations['orc-war-camp-raid'].site = false
+  expect(canMeetEncounters(roadAtSea, sea)).toBe(true)
 })
 
 test('only sea crossings cost a fare: 2 gp per member per day', () => {

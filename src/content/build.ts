@@ -39,6 +39,8 @@ export const emptyContent = (): Content => ({
   towns: {},
   placeNames: {},
   threats: {},
+  landSpots: {},
+  poiTypes: {},
   translations: {},
 })
 

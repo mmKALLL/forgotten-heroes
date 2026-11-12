@@ -8,6 +8,7 @@ import {
   GOODS,
   LOG_TONES,
   PACES,
+  POI_CATEGORIES,
   POSITIONS,
   SIZE_TIERS,
   SKILLS,
@@ -30,6 +31,7 @@ export const AlignmentSchema = z.enum(ALIGNMENTS)
 export const GoodSchema = z.enum(GOODS)
 export const PaceSchema = z.enum(PACES)
 export const DispositionSchema = z.enum(DISPOSITIONS)
+export const PoiCategorySchema = z.enum(POI_CATEGORIES)
 
 const score = z.number().int().min(1).max(30)
 export const AbilityScoresSchema = z.object({

@@ -4,6 +4,7 @@ import {
   BiomeSchema,
   CreatureTypeSchema,
   IdSchema,
+  PoiCategorySchema,
   SizeTierSchema,
 } from './common'
 
@@ -63,6 +64,16 @@ export const RouteSchema = z.object({
 })
 export type Route = z.infer<typeof RouteSchema>
 
+export const LandSpotSchema = z.object({
+  id: IdSchema.describe('"spot-<n>"'),
+  at: MapPointSchema.describe('A point on land, in map pixels'),
+  island: IdSchema.describe('The land mass it is on, as for settlements'),
+  terrain: BiomeSchema.exclude(['sea'])
+    .optional()
+    .describe("The terrain here; omit to take the land's biome"),
+})
+export type LandSpot = z.infer<typeof LandSpotSchema>
+
 // ---------------------------------------------------------------------------------------------
 // Names and factions the political layer draws from.
 // ---------------------------------------------------------------------------------------------
@@ -104,6 +115,50 @@ export const ThreatSchema = z.object({
   strength: z.object({ min: strength, max: strength }),
 })
 export type Threat = z.infer<typeof ThreatSchema>
+
+const poiThreat = z.number().int().min(1).max(3)
+
+/** A kind of point of interest, in the weighted table the POIs of each world are drawn from. */
+export const PoiTypeSchema = z
+  .object({
+    id: IdSchema,
+    category: PoiCategorySchema,
+    name: z.string().describe('What the type is called, e.g. "War camp"'),
+    weight: z.number().min(0).default(1).describe('Relative chance of being drawn'),
+    biomes: z
+      .array(BiomeSchema)
+      .default([])
+      .describe('Favoured terrain: drawn more often (POI_FAVOURED×) on matching land'),
+    threats: z
+      .array(IdSchema)
+      .default([])
+      .describe('Favoured threats: drawn more often (POI_FAVOURED×) where they hold the land'),
+    hostile: z
+      .boolean()
+      .default(false)
+      .describe("A lair or active dungeon: feeds its domain's threat until cleared"),
+    threat: z
+      .object({ min: poiThreat, max: poiThreat })
+      .refine((t) => t.min <= t.max, 'min must not exceed max')
+      .optional()
+      .describe("What a hostile site adds to its domain's threat; required when hostile"),
+    pathDanger: z
+      .number()
+      .int()
+      .min(0)
+      .max(3)
+      .default(1)
+      .describe('Danger of the path there, as for routes: 0 safe to 3 notorious'),
+    water: z.boolean().default(false).describe('A spring or well: arriving refills the waterskins'),
+    names: IdSchema.describe('The parts table its names are drawn from'),
+    situations: z.array(IdSchema).min(1).describe('The site situations played on a visit'),
+    icon: z.string().optional().describe('A game-icons.net icon id for the map'),
+  })
+  .refine((t) => t.hostile === (t.threat !== undefined), {
+    message: 'a hostile type needs a threat, and only a hostile type may have one',
+    path: ['threat'],
+  })
+export type PoiType = z.infer<typeof PoiTypeSchema>
 
 // ---------------------------------------------------------------------------------------------
 // The political layer: rolled for each world and kept in GameState.world.

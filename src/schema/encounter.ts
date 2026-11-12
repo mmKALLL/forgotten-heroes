@@ -318,6 +318,10 @@ export const SituationSchema = z.object({
     .boolean()
     .default(false)
     .describe('Never drawn at random; only queued by followUp'),
+  site: z
+    .boolean()
+    .default(false)
+    .describe('Only played at a point of interest; never drawn on the road'),
   pursuit: z
     .boolean()
     .optional()

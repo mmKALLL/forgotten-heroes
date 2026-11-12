@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'vitest'
 import { contentFileSchema } from './content'
-import { RegionSchema, RouteSchema, SettlementSchema, ThreatSchema, TownSchema } from './world'
+import {
+  LandSpotSchema,
+  PoiTypeSchema,
+  RegionSchema,
+  RouteSchema,
+  SettlementSchema,
+  ThreatSchema,
+  TownSchema,
+} from './world'
 
 describe('world schemas', () => {
   test('a settlement is a marker inside the 4096×3072 map', () => {
@@ -58,8 +66,78 @@ describe('world schemas', () => {
     expect(ThreatSchema.safeParse({ ...threat, strength: { min: 0, max: 7 } }).success).toBe(false)
   })
 
+  test('a land spot is a map point on an island, with an optional terrain that is never sea', () => {
+    const spot = { id: 'spot-0412', at: { x: 1830, y: 905 }, island: 'mainland' }
+    expect(LandSpotSchema.parse(spot)).toEqual(spot)
+    expect(LandSpotSchema.parse({ ...spot, terrain: 'hills' })).toEqual({
+      ...spot,
+      terrain: 'hills',
+    })
+    expect(LandSpotSchema.safeParse({ ...spot, terrain: 'sea' }).success).toBe(false)
+    expect(LandSpotSchema.safeParse({ ...spot, at: { x: 5000, y: 10 } }).success).toBe(false)
+  })
+
+  describe('POI types', () => {
+    const lair = {
+      id: 'orc-war-camp',
+      category: 'lair',
+      name: 'War camp',
+      weight: 2,
+      biomes: ['hills'],
+      threats: ['orc-warband'],
+      hostile: true,
+      threat: { min: 1, max: 2 },
+      pathDanger: 2,
+      water: false,
+      names: 'poi-name-camp',
+      situations: ['orc-war-camp-raid'],
+      icon: 'campfire',
+    }
+    const shrine = {
+      id: 'spring-shrine',
+      category: 'shrine',
+      name: 'Spring shrine',
+      names: 'poi-name-shrine',
+      situations: ['spring-shrine-visit'],
+    }
+
+    test('parse as written, and fill in the defaults', () => {
+      expect(PoiTypeSchema.parse(lair)).toEqual(lair)
+      expect(PoiTypeSchema.parse(shrine)).toEqual({
+        ...shrine,
+        weight: 1,
+        biomes: [],
+        threats: [],
+        hostile: false,
+        pathDanger: 1,
+        water: false,
+      })
+    })
+
+    test('a hostile type needs a threat, and only a hostile type may have one', () => {
+      const { threat: _, ...noThreat } = lair
+      expect(PoiTypeSchema.safeParse(noThreat).success).toBe(false)
+      expect(PoiTypeSchema.safeParse({ ...shrine, threat: { min: 1, max: 1 } }).success).toBe(false)
+    })
+
+    test('categories, path danger and situations are checked', () => {
+      expect(PoiTypeSchema.safeParse({ ...shrine, category: 'castle' }).success).toBe(false)
+      expect(PoiTypeSchema.safeParse({ ...shrine, pathDanger: 4 }).success).toBe(false)
+      expect(PoiTypeSchema.safeParse({ ...shrine, situations: [] }).success).toBe(false)
+    })
+  })
+
   test('the new kinds have content file schemas', () => {
-    const kinds = ['regions', 'settlements', 'routes', 'towns', 'placeNames', 'threats'] as const
+    const kinds = [
+      'regions',
+      'settlements',
+      'routes',
+      'towns',
+      'placeNames',
+      'threats',
+      'landSpots',
+      'poiTypes',
+    ] as const
     for (const kind of kinds) {
       expect(
         contentFileSchema(kind).safeParse({ kind, source: 'claude', entries: [] }).success

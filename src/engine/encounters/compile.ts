@@ -155,6 +155,7 @@ export function templateToSituation(template: SituationTemplate): Situation {
     ...fields,
     wonder: false,
     followUpOnly: false,
+    site: false,
     start: 'start',
     stages: { start: { text, archetype, options: [] } },
   }

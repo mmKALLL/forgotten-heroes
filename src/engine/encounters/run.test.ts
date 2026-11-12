@@ -3,6 +3,8 @@ import { GameStateSchema, type GameState } from '../../schema/state'
 import { createRng } from '../rng'
 import { applyEffects } from './effects'
 import { step } from '../state'
+import { brawlCandidates } from '../travel/stowaway'
+import { STOWAWAY_BRAWL_TAG } from '../travel/tuning'
 import { fixtureContent, makeState } from '../test-fixtures'
 import type { Content } from '../../content/build'
 import { SituationSchema } from '../../schema/encounter'
@@ -484,6 +486,46 @@ describe('drawing for a place on the road', () => {
     // A follow-up that fits the sea happens there.
     salty.situations.grudge.biomes = ['sea']
     expect(drawEncounter(due, salty, undefined, sea).encounter?.situation.id).toBe('grudge')
+  })
+})
+
+describe('site situations', () => {
+  const SITES = ['orc-war-camp-raid', 'herbalist-visit', 'singing-stones']
+
+  test('the fixtures have one per POI type', () => {
+    for (const id of SITES) expect(content.situations[id].site).toBe(true)
+  })
+
+  test('drawEncounter never picks a site, even when it is the only one that fits', () => {
+    const atSea = structuredClone(content)
+    atSea.situations['orc-war-camp-raid'].biomes = ['sea']
+    const state = makeState()
+    expect(drawEncounter(state, atSea, undefined, { biome: 'sea', region: 'farisle' })).toBe(state)
+
+    // The deck's unplaced draw skips them too.
+    const onlySites = structuredClone(content)
+    for (const s of Object.values(onlySites.situations)) if (!s.site) s.weight = 0
+    for (const t of Object.values(onlySites.situationTemplates)) t.weight = 0
+    expect(drawEncounter(state, onlySites).encounter).toBeNull()
+
+    for (let seed = 0; seed < 200; seed++) {
+      const drawn = drawEncounter(reseed(makeState(), seed), content, undefined, {
+        biome: 'hills',
+        region: 'greenvale',
+      })
+      expect(SITES).not.toContain(drawn.encounter?.situation.id)
+    }
+  })
+
+  test('a stowaway brawl is never a site', () => {
+    const aboard = structuredClone(content)
+    aboard.situations['orc-war-camp-raid'].biomes = ['sea']
+    aboard.situations['orc-war-camp-raid'].tags = [STOWAWAY_BRAWL_TAG]
+    expect(brawlCandidates(aboard, { biome: 'sea', region: 'farisle' })).toEqual([])
+  })
+
+  test('a site can still be started directly', () => {
+    expect(start('herbalist-visit').encounter?.situation.id).toBe('herbalist-visit')
   })
 })
 
