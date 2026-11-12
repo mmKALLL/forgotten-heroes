@@ -31,6 +31,11 @@ export const en = {
   'wealth.hint': 'Precious goods worth {precious} gp: +{pct} hostile on the road',
   'wealth.hintPurse':
     'Precious goods worth {precious} gp and a heavy purse ({purse} gp showing): +{pct} hostile on the road',
+  'drop.heading': 'Drop goods',
+  'drop.weight': '{kg} kg',
+  'drop.one': 'Leave 1 {good} behind',
+  'drop.all': 'Leave all {n} {good} behind',
+  'drop.allShort': 'All',
   'start.heading': 'Where does the new party begin?',
   'start.calm': 'Small town, calm region',
   'start.random': 'Random settlement',

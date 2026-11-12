@@ -4,8 +4,9 @@ import { load, type Load } from '../engine/economy/capacity'
 import { goodDef, goodsInCategory } from '../engine/economy/goods'
 import { visibleWealth, type VisibleWealth } from '../engine/economy/wealth'
 import { formatPercent } from '../engine/format'
+import type { Action } from '../engine/state'
 import { partyWaterCapacity } from '../engine/travel/supplies'
-import { GOOD_CATEGORIES, type Good } from '../schema/types'
+import { GOODS, GOOD_CATEGORIES, type Good } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { useI18n } from './i18n/I18n'
 import { OVERLOAD_RATIO, WEALTH_HOSTILE_PER_STEP, WEALTH_MAX_STEPS } from '../engine/constants'
@@ -19,10 +20,13 @@ const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good]
 export function GoodsBar({
   content,
   state,
+  onAction,
   children,
 }: {
   content: Content
   state: GameState
+  /** With it, a "Drop goods" control leaves goods behind (so loot can't strand the party). */
+  onAction?: (a: Action) => void
   children?: ReactNode
 }) {
   const { t, name } = useI18n()
@@ -58,6 +62,7 @@ export function GoodsBar({
       <span className="spacer" />
       <CapacityMeter laden={load(state, content)} />
       <WealthPips wealth={visibleWealth(state, content)} />
+      {onAction && <DropGoods content={content} state={state} onAction={onAction} />}
       {children}
     </footer>
   )
@@ -116,5 +121,58 @@ export function WealthPips({ wealth }: { wealth: VisibleWealth }) {
     >
       {pips.join('')}
     </span>
+  )
+}
+
+/**
+ * Leaving goods behind: each good carried with "1" and "all" buttons, in a disclosure that opens
+ * upwards from the bar. It is marked when the party is too heavy to set out.
+ */
+export function DropGoods({
+  content,
+  state,
+  onAction,
+}: {
+  content: Content
+  state: GameState
+  onAction: (a: Action) => void
+}) {
+  const { t, name } = useI18n()
+  const held = GOODS.filter((g) => units(state, g) > 0)
+  if (held.length === 0) return null
+  const overloaded = load(state, content).level === 'overloaded'
+  return (
+    <details className={`drop-goods${overloaded ? ' urgent' : ''}`}>
+      <summary>{t('drop.heading')}</summary>
+      <ul className="drop-list" aria-label={t('drop.heading')}>
+        {held.map((g) => {
+          const goodName = name('goods', g, goodDef(content, g)?.name ?? g)
+          const n = units(state, g)
+          const kg = goodDef(content, g)?.weight ?? 0
+          return (
+            <li key={g}>
+              <span>
+                {goodName} <b>{n}</b>{' '}
+                <span className="muted">
+                  {t('drop.weight', { kg: Math.round(kg * n * 10) / 10 })}
+                </span>
+              </span>
+              <button
+                aria-label={t('drop.one', { good: goodName })}
+                onClick={() => onAction({ type: 'dropGoods', good: g, amount: 1 })}
+              >
+                −1
+              </button>
+              <button
+                aria-label={t('drop.all', { good: goodName, n })}
+                onClick={() => onAction({ type: 'dropGoods', good: g, amount: n })}
+              >
+                {t('drop.allShort')}
+              </button>
+            </li>
+          )
+        })}
+      </ul>
+    </details>
   )
 }

@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react'
-import { afterEach, expect, test } from 'vitest'
+import userEvent from '@testing-library/user-event'
+import { afterEach, expect, test, vi } from 'vitest'
 import { fixtureContent, makeState } from '../engine/test-fixtures'
 import { GoodsBar } from './GoodsBar'
 import { I18nProvider, LANGUAGE_KEY } from './i18n/I18n'
@@ -61,4 +62,18 @@ test('Japanese falls back to English for missing keys', () => {
   expect(screen.getByRole('list', { name: '所持品' }).textContent).toMatch(/^必需品/)
   // 'goods.none' has no Japanese entry: the English dash shows.
   expect(screen.getByText('消耗品').parentElement!.textContent).toBe('消耗品 —')
+})
+
+test('drop goods leaves one or all of a good behind', async () => {
+  const onAction = vi.fn()
+  render(
+    <I18nProvider content={content}>
+      <GoodsBar content={content} state={makeState({ goods: { stone: 3 } })} onAction={onAction} />
+    </I18nProvider>
+  )
+  await userEvent.click(screen.getByText('Drop goods'))
+  await userEvent.click(screen.getByRole('button', { name: 'Leave 1 Stone behind' }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'dropGoods', good: 'stone', amount: 1 })
+  await userEvent.click(screen.getByRole('button', { name: 'Leave all 3 Stone behind' }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'dropGoods', good: 'stone', amount: 3 })
 })

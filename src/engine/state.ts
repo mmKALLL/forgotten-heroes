@@ -156,6 +156,7 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return stepTravel(state, action, content)
     case 'buyGoods':
     case 'sellGoods':
+    case 'dropGoods':
       return stepTrade(state, action, content)
     case 'useService':
       return useService(state, content, action)

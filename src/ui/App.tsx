@@ -145,7 +145,7 @@ function Game() {
           </DevArea>
         </div>
       </main>
-      <GoodsBar content={content} state={shown} />
+      <GoodsBar content={content} state={shown} onAction={dispatch} />
     </div>
   )
 }

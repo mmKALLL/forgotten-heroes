@@ -1641,3 +1641,42 @@ h2[tabindex='-1']:focus {
   padding: 0.05rem 0.5rem;
   font-size: 0.8rem;
 }
+/* Drop goods: opens upwards from the goods bar. */
+.drop-goods {
+  position: relative;
+}
+.drop-goods summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.drop-goods.urgent summary {
+  color: var(--bad);
+  font-weight: bold;
+}
+.drop-list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.4rem);
+  z-index: 5;
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  min-width: 14rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  box-shadow: 0 -3px 10px rgb(0 0 0 / 20%);
+}
+.drop-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.drop-list li > span {
+  flex: 1;
+}
+.drop-list button {
+  padding: 0 0.4rem;
+  font-size: 0.75rem;
+}
