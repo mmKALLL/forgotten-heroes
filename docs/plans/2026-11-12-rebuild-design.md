@@ -151,6 +151,16 @@ The town map image is a banner and backdrop.
   - In numbers (tunable, `src/engine/travel/pursuit.ts`): any cautious day with covered tracks since it was queued loses it; otherwise the average speed (days resting in town or camp count as 0) of 1.2 or more outruns it, and it comes back after 2 more encounters, at most twice before it gives up.
   - At sea the ship sets the pace: always steady, no covered tracks.
 - **Timing:** Plan 3 builds Cautious, Steady, Brisk, Forced march and pursuit.
+- **Pace is a commitment:** it is chosen at departure only and cannot be changed mid-journey.
+- **Long journeys and water:**
+  - **Foraging:** each travel day the best-suited member may roll Survival to find water or food. The DC depends on terrain: easy by forests and rivers, hard in desert and mountains. Foraging rolls count toward Strain, so rotating foragers matters.
+  - **More capacity:** extra waterskins can be bought in town. Barrels and pack animals come with Plan 4's goods.
+  - **Warnings:** the road preview warns clearly when a route at the chosen pace exceeds the party's water or food.
+- **Resting in town** costs lodging gold and includes meals. Carried supplies are untouched. Camping eats carried food.
+- **Stranded without fare (desperate measures):**
+  - **Stowaway:** a Stealth check. If caught, the party is fined, put to work (days lost and exhaustion) or ends up in a brawl.
+  - **Sell supplies for coin.**
+  - Proper ways to earn money arrive with Plan 4.
 - **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4. The chance scales with route danger, regional threat and visible wealth.
 - **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.
 - **Wonders:** a separate kind of encounter. Rare, one click, flavour only, never a burden.
