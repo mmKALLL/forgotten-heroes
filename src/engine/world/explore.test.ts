@@ -105,6 +105,27 @@ describe('discoverPoi', () => {
     expect(after.log.at(-1)!.text).toBe(NOTHING_TO_LEARN)
   })
 
+  test('undiscovered: met while a search like it would still find something', () => {
+    const req = (r: object) => [RequirementSchema.parse({ req: 'undiscovered', ...r })]
+    // Only lairs here (the war camps), in Greenvale 1 and 2.
+    expect(unmetRequirements(at(), req({}))).toEqual([])
+    expect(unmetRequirements(at(), req({ category: 'expert' }))).toEqual([
+      'no expert left to learn of around here',
+    ])
+    const known = structuredClone(at())
+    for (const id of ['poi-1', 'poi-2']) known.world.pois[id].discovered = true
+    expect(unmetRequirements(known, req({}))).toEqual(['nothing left to learn of around here'])
+    // Greenvale 2 is in the same land.
+    expect(unmetRequirements(known, req({ scope: 'land', category: 'lair' }))).toEqual([])
+    known.world.pois['poi-3'].discovered = true
+    expect(unmetRequirements(known, req({ scope: 'land' }))).toEqual([
+      'nothing left to learn of in this land',
+    ])
+    // Outside an encounter it looks around the party's place.
+    const town = { ...known, encounter: null, location: 'ashmoor-1' }
+    expect(unmetRequirements(town, req({}))).toEqual([])
+  })
+
   test('reads as a clue in previews', () => {
     expect(describeEffect(fx({ effect: 'discoverPoi' })[0], 'Lyra')).toBe('reveals a site nearby')
     expect(describeEffect(fx({ effect: 'discoverPoi', count: 2, scope: 'land' })[0], 'Lyra')).toBe(

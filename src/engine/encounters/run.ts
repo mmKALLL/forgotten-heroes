@@ -20,7 +20,7 @@ import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '..
 import { SKILL_USE_DAYS, useSkill } from '../rules/strain'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
-import { domainAt } from '../world/pois'
+import { anyUndiscovered, domainAt } from '../world/pois'
 import { boonReadyIn } from '../world/sites'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
@@ -264,6 +264,12 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
         return state.party.some((c) => !c.skillProficiencies.includes(r.skill))
           ? []
           : [`everyone already knows ${statLabel(r.skill)}`]
+      case 'undiscovered': {
+        const domain = state.encounter?.domain ?? domainAt(state.world, state.location)
+        if (anyUndiscovered(state.world, domain, r)) return []
+        const what = r.category ? `no ${r.category}` : 'nothing'
+        return [`${what} left to learn of ${r.scope === 'land' ? 'in this land' : 'around here'}`]
+      }
       case 'siteReady': {
         // Away from a site (e.g. played from the deck) there is no boon to spend.
         const poi = siteOf(state)

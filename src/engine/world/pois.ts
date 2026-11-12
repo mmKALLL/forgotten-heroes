@@ -226,6 +226,26 @@ export function poisToDiscover(
     .map((p) => p.id)
 }
 
+/**
+ * True when a search like this (discoverPoi) would still find something: an undiscovered POI in
+ * the domain, or with scope "land" in any domain of its land, of the category if one is given.
+ */
+export function anyUndiscovered(
+  world: Pick<PoiWorld, 'domains' | 'pois'>,
+  domainId: string | null,
+  { scope, category }: Omit<PoiSearch, 'count'>
+): boolean {
+  const domain = domainId === null ? undefined : own(world.domains, domainId)
+  if (!domain) return false
+  return Object.values(world.pois).some(
+    (poi) =>
+      !poi.discovered &&
+      (!category || poi.category === category) &&
+      (poi.domain === domainId ||
+        (scope === 'land' && own(world.domains, poi.domain)?.land === domain.land))
+  )
+}
+
 /** The domain a place belongs to: a settlement is its own, a POI its owner's. Null otherwise. */
 export function domainAt(
   world: Pick<PoiWorld, 'domains' | 'pois'>,

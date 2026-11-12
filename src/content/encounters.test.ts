@@ -440,6 +440,27 @@ describe('points of interest', () => {
     }
   })
 
+  test('no site sells a clue that might reveal nothing (undiscovered)', () => {
+    for (const t of types) {
+      for (const id of t.situations) {
+        for (const [stageId, stage] of Object.entries(content.situations[id].stages)) {
+          for (const option of stage.options) {
+            const branches = outcomesOf(option)
+            const pays = branches.some((b) =>
+              b.effects.some((e) => e.effect === 'gold' && e.amount < 0)
+            )
+            const clue = branches.some((b) => b.effects.some((e) => e.effect === 'discoverPoi'))
+            if (!pays || !clue) continue
+            expect(
+              option.requires.some((r) => r.req === 'undiscovered'),
+              `${id} ${stageId}/${option.id}`
+            ).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
   test('quest sites are neutral placeholders with a clue and a hook for later quests', () => {
     expect(ofCategory('quest').length).toBeGreaterThanOrEqual(2)
     for (const t of ofCategory('quest')) {

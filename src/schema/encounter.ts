@@ -145,6 +145,19 @@ export const RequirementSchema = z.discriminatedUnion('req', [
     .object({ req: z.literal('untrained'), skill: SkillSchema })
     .describe('Some member is not yet proficient in the skill (e.g. paying to train)'),
   z
+    .object({
+      req: z.literal('undiscovered'),
+      scope: z
+        .enum(['domain', 'land'])
+        .default('domain')
+        .describe("Where to look: the encounter's domain, or every domain of its land"),
+      category: PoiCategorySchema.optional().describe('Only sites of this category'),
+    })
+    .describe(
+      'Some point of interest there is still undiscovered (e.g. before selling what one knows), ' +
+        'so no one pays for a clue that reveals nothing'
+    ),
+  z
     .object({ req: z.literal('siteReady') })
     .describe(
       "A site's boon (a blessing, healing, a find): only in site situations. Unavailable while " +
