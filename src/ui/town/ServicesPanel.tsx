@@ -2,6 +2,9 @@ import { useState } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { animalOffers } from '../../engine/town/animals'
+import { contractRows, noticeBoard } from '../../engine/town/contracts'
+import { rumourOption } from '../../engine/town/rumours'
+import { formatModifier, formatPercent } from '../../engine/format'
 import {
   lodgingOptions,
   needsHealer,
@@ -73,9 +76,7 @@ function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRo
   const hint = [title, t(`services.function.${row.function}`), row.specialty]
     .filter(Boolean)
     .join(' · ')
-  const shown = row.actions.filter((a) => a.action !== 'market' && a.action !== 'passage')
-  const working = shown.filter((a) => a.reason !== 'coming later')
-  const later = shown.filter((a) => a.reason === 'coming later')
+  const working = row.actions.filter((a) => a.action !== 'market' && a.action !== 'passage')
   const market = row.actions.some((a) => a.action === 'market')
   const passage = row.actions.some((a) => a.action === 'passage')
   return (
@@ -101,13 +102,6 @@ function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRo
         {working.length === 0 && market && <TradesLine content={content} service={row.service} />}
         {passage && <span className="muted small">{t('services.passage')}</span>}
         {row.later && <span className="muted small">{t('services.later')}</span>}
-        {later.length > 0 && (
-          <span className="muted small">
-            {t('services.laterActions', {
-              actions: later.map((a) => t(`services.action.${a.action as 'rumours'}`)).join(', '),
-            })}
-          </span>
-        )}
       </div>
     </section>
   )
@@ -134,9 +128,10 @@ function ServiceAction({
   state,
   onAction,
 }: Props & { view: ServiceActionView; row: ServiceRow }) {
-  const { t, name } = useI18n()
+  const { t, name, stat } = useI18n()
   const [target, setTarget] = useState<string | null>(null)
   const [animal, setAnimal] = useState<string | null>(null)
+  const [offerId, setOfferId] = useState<string | null>(null)
   switch (view.action) {
     case 'lodging':
       return (
@@ -255,6 +250,80 @@ function ServiceAction({
             </button>
           )}
         </span>
+      )
+    }
+    case 'rumours': {
+      // Plain for now: the full preview (tiers and odds bar) comes with the People panel (C4).
+      const option = rumourOption(state, content)
+      const actor = option && state.party.find((c) => c.id === option.actorId)
+      const hint =
+        option && actor
+          ? t('services.rumoursHint', {
+              name: actor.name,
+              skill: stat(option.skill),
+              modifier: formatModifier(option.modifier),
+              dc: option.dc,
+              pct: formatPercent(1 - option.chances.fail - option.chances.critFail),
+            })
+          : (view.reason ?? '')
+      return (
+        <button
+          disabled={!view.available}
+          title={hint}
+          onClick={() => onAction({ type: 'listenRumours' })}
+        >
+          {option ? t('services.rumours', { gp: option.cost }) : t('services.rumoursOff')}
+        </button>
+      )
+    }
+    case 'board': {
+      // Plain for now: the full notice board and contracts panel come with C4.
+      const offers = state.location === null ? [] : noticeBoard(state, content, state.location)
+      const chosen =
+        offers.find((o) => o.id === offerId) ?? offers.find((o) => o.available) ?? offers[0]
+      const due = contractRows(state, content).filter((c) => c.canComplete)
+      return (
+        <>
+          {chosen ? (
+            <span className="inline-pick">
+              <select
+                aria-label={t('services.board')}
+                value={chosen.id}
+                onChange={(e) => setOfferId(e.target.value)}
+              >
+                {offers.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {t('services.offer', { title: o.title, gp: o.pay, day: state.day + o.days })}
+                  </option>
+                ))}
+              </select>
+              <button
+                disabled={!chosen.available}
+                title={chosen.reason ?? chosen.text}
+                onClick={() => onAction({ type: 'acceptContract', offerId: chosen.id })}
+              >
+                {t('services.take')}
+              </button>
+            </span>
+          ) : (
+            <span className="muted small">{view.reason}</span>
+          )}
+          {due.map((c) => (
+            <span key={c.id} className="inline-pick">
+              <button
+                title={c.text}
+                onClick={() => onAction({ type: 'completeContract', id: c.id, reward: 'gold' })}
+              >
+                {t('services.complete', { title: c.title, gp: c.rewards.gold.gold })}
+              </button>
+              <button
+                onClick={() => onAction({ type: 'completeContract', id: c.id, reward: 'goodWord' })}
+              >
+                {t('services.goodWord')}
+              </button>
+            </span>
+          ))}
+        </>
       )
     }
     default:

@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest'
-import type { GameState } from '../../schema/state'
+import type { ContractState, GameState } from '../../schema/state'
 import { step, type Action } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { routeOptions } from '../travel/preview'
 import { partyWaterCapacity } from '../travel/supplies'
+import { supplyOutlook } from '../travel/outlook'
 import { arrivalRest } from './arrival'
 import { provisionPlan } from './provision'
 
@@ -58,6 +59,40 @@ describe('provision for this road', () => {
     const done = act(poor, { type: 'provision', ...road })
     expect(done.gold).toBeGreaterThanOrEqual(0)
     expect(done.log.at(-1)!.text).toMatch(/all the gold allows\.$/)
+  })
+
+  test('feeds escorted passengers too, and the supply outlook on the road counts them', () => {
+    const escort: ContractState = {
+      id: 'c-test',
+      template: 'see-pilgrim',
+      kind: 'escort',
+      patron: 'someone',
+      from: 'greenvale-1',
+      to: 'greenvale-2',
+      good: null,
+      amount: 0,
+      poi: null,
+      passengers: 2,
+      accepted: 1,
+      deadline: 9,
+      pay: 30,
+      urgent: false,
+      reputation: { patron: 5, settlement: 3 },
+      met: false,
+    }
+    const s = at('greenvale-1')
+    const guarded = at('greenvale-1', { contracts: [escort] })
+    expect(provisionPlan(guarded, content, road)!.food).toBeGreaterThan(
+      provisionPlan(s, content, road)!.food
+    )
+    const done = act(guarded, { type: 'provision', ...road })
+    expect(warns(done, 'greenvale-2')).toEqual([])
+    // Set out with exactly that: the outlook (the supply-warning stop) agrees it lasts, and it
+    // wouldn't for the party without the passengers' share bought.
+    const out = act(done, { type: 'travel', ...road, forage: false })
+    expect(supplyOutlook(out, content).food).toBe(true)
+    const short = { ...out, goods: { ...out.goods, food: provisionPlan(s, content, road)!.food } }
+    expect(supplyOutlook(short, content).food).toBe(false)
   })
 
   test('has nothing to plan outside a settlement or for a road from elsewhere', () => {

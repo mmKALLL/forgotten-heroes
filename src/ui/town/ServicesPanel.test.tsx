@@ -61,8 +61,6 @@ test('tiles are grouped by function; an unsupported service shows "coming later"
   expect(groups).toEqual(['Trade', 'Rest & Recovery', 'Hire & Contracts', 'Temple & Arcane'])
   const magic = screen.getByRole('region', { name: 'Magic items' })
   expect(within(magic).getByText('coming later')).toBeTruthy()
-  const inn = screen.getByRole('region', { name: 'Inn/Tavern' })
-  expect(within(inn).getByText('Rumours, board: later')).toBeTruthy()
   expect(within(screen.getByRole('region', { name: 'Jewelry trader' })).getByText(/^Trades gems/))
 })
 
@@ -114,4 +112,52 @@ test('the healer is disabled when no one needs healing, and resting on carried f
   ).toBe(true)
   await userEvent.click(screen.getByRole('button', { name: 'Rest a day, eating carried food' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: false })
+})
+
+test('the inn listens for rumours and takes work from its notice board', async () => {
+  const onAction = panel(town())
+  const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
+  const rumours = inn.getByRole('button', { name: /^Rumours · \d+ gp$/ })
+  expect(rumours.getAttribute('title')).toMatch(/ listens: .+ vs DC \d+, \d+% to hear something$/)
+  await userEvent.click(rumours)
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'listenRumours' })
+  const board = inn.getByRole('combobox', { name: 'Notice board' }) as HTMLSelectElement
+  expect(board.options.length).toBeGreaterThan(0)
+  await userEvent.click(inn.getByRole('button', { name: 'Take' }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'acceptContract', offerId: board.value })
+})
+
+test('a contract met here can be completed for its pay or a good word', async () => {
+  const kept = {
+    id: 'c-test',
+    template: 'see-pilgrim',
+    kind: 'escort' as const,
+    patron: 'someone',
+    from: 'greenvale-2',
+    to: 'greenvale-1',
+    good: null,
+    amount: 0,
+    poi: null,
+    passengers: 1,
+    accepted: 1,
+    deadline: 9,
+    pay: 30,
+    urgent: false,
+    reputation: { patron: 5, settlement: 3 },
+    met: true,
+  }
+  const onAction = panel(town({ contracts: [kept] }))
+  const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
+  await userEvent.click(inn.getByRole('button', { name: /^Done: .+ · 30 gp$/ }))
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'completeContract',
+    id: 'c-test',
+    reward: 'gold',
+  })
+  await userEvent.click(inn.getByRole('button', { name: 'or a good word' }))
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'completeContract',
+    id: 'c-test',
+    reward: 'goodWord',
+  })
 })
