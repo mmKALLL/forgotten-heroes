@@ -8,6 +8,7 @@ import { withRng, type Rng } from '../rng'
 import { statLabel } from '../rules/abilities'
 import { MAX_EXHAUSTION, canAct, statModifier } from '../rules/character'
 import { passDay } from '../travel/days'
+import { addReputation, encounterSettlement } from '../town/reputation'
 import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
 import { changeGoods } from '../economy/goods'
@@ -211,9 +212,12 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       return { ...state, goods: changeGoods(state.goods, ctx.content ?? emptyContent(), effect) }
     case 'animals':
       return changeAnimals(state, ctx.content ?? emptyContent(), effect)
-    // Plan 4: reputation lands with B2. Until then it changes nothing, and no content uses it.
     case 'reputation':
-      return state
+      return addReputation(
+        state,
+        { settlement: encounterSettlement(state), amount: effect.amount },
+        ctx.content
+      )
   }
 }
 
@@ -250,7 +254,12 @@ export function describeCondition(condition: Condition): string {
  * A short chip for previews and the journal, e.g. "Lyra −3 HP". Log effects return null. The
  * condition is not included (see describeCondition).
  */
-export function describeEffect(effect: Effect, actorName: string): string | null {
+export function describeEffect(
+  effect: Effect,
+  actorName: string,
+  /** The settlement a reputation effect changes, named in its chip. */
+  place?: string
+): string | null {
   switch (effect.effect) {
     case 'gold':
       return `${formatModifier(effect.amount)} gp`
@@ -301,7 +310,7 @@ export function describeEffect(effect: Effect, actorName: string): string | null
       return `lose ${share} your ${what}`
     }
     case 'reputation':
-      return `${formatModifier(effect.amount)} reputation`
+      return `${formatModifier(effect.amount)} reputation${place ? ` in ${place}` : ''}`
     case 'animals':
       return `${formatModifier(effect.amount)} ${effect.animal ?? 'animal'}`
   }

@@ -18,6 +18,7 @@ import { checkLabel, statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
 import { useSkill } from '../rules/strain'
+import { encounterSettlementName, unmetStanding } from '../town/reputation'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
 import { anyUndiscovered, domainAt } from '../world/pois'
@@ -305,8 +306,7 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
       case 'goods':
         return (state.goods[r.good] ?? 0) >= r.min ? [] : [`needs ${r.min} ${r.good}`]
       case 'standing':
-        // Plan 4 B2 works out standing from reputation; until then no content gates on it.
-        return []
+        return unmetStanding(state, r.min) ?? []
     }
   })
 }
@@ -354,7 +354,8 @@ function resolve(
   const effects: Effect[] = prepareEffects(branch.effects, encounter).map((e) =>
     e.effect === 'log' ? { ...e, text: fill(e.text) } : e
   )
-  const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone') ?? [])
+  const place = encounterSettlementName(state)
+  const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone', place) ?? [])
   const text = fill(branch.text) + (chips.length > 0 ? ` (${chips.join(', ')})` : '')
 
   // The outcome text comes before any log effects it triggers.

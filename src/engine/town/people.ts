@@ -50,3 +50,32 @@ export function generatePeople(
   })
   return people
 }
+
+/** FNV-1a of a string: a stable 32-bit hash, so a person's title needs no stored draw. */
+function hashString(text: string): number {
+  let h = 0x811c9dc5
+  for (let i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 0x01000193)
+  return h >>> 0
+}
+
+type PeopleWorld = Pick<WorldState, 'seed' | 'people'>
+
+/**
+ * A notable person's form of address from their role's titles, e.g. "Mother": derived from the
+ * world seed and their id, so it never changes and needs no state. Null when the role has none.
+ */
+export function personTitle(world: PeopleWorld, content: Content, id: string): string | null {
+  if (!Object.hasOwn(world.people, id)) return null
+  const role = world.people[id].role
+  const titles = Object.hasOwn(content.personRoles, role) ? content.personRoles[role].titles : []
+  if (titles.length === 0) return null
+  return titles[((hashString(id) ^ world.seed) >>> 0) % titles.length]
+}
+
+/** A notable person's name with their title, e.g. "Mother Ada Stone"; the bare id if unknown. */
+export function personDisplayName(world: PeopleWorld, content: Content, id: string): string {
+  if (!Object.hasOwn(world.people, id)) return id
+  const title = personTitle(world, content, id)
+  const name = world.people[id].name
+  return title ? `${title} ${name}` : name
+}

@@ -1,6 +1,6 @@
 # Balance constants
 
-The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`](../../src/engine/constants.ts)**, grouped by topic: starting party, travel and encounters, pace, pursuit, foraging, supplies and prices, stowing away, politics, settlements, notable people, points of interest, site cycles and boons, exploring, Strain, checks, and territory. Each has a one-line comment, and each section names the module that uses it. Edit a value there, then run `pnpm test`.
+The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`](../../src/engine/constants.ts)**, grouped by topic: starting party, travel and encounters, pace, pursuit, foraging, supplies and prices, stowing away, politics, settlements, notable people, reputation, points of interest, site cycles and boons, exploring, Strain, checks, and territory. Each has a one-line comment, and each section names the module that uses it. Edit a value there, then run `pnpm test`.
 
 **Watch out:** some tests pin exact values (for example `ENCOUNTER_SLOT_CHANCE`, `BOON_COOLDOWN_DAYS`) or measure statistics such as the Rampant share and POIs per world. When you deliberately change a number, update the matching test expectation.
 
