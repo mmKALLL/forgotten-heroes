@@ -52,8 +52,8 @@ export const exhaustionSpeed = (party: readonly Pick<Character, 'exhaustion'>[])
 
 /**
  * The party's land speed multiplier on this terrain: slowed by its load (loadSpeed) and by the
- * most exhausted member (exhaustionSpeed), and sped up by mounts when everyone rides (mountSpeed;
- * `hired` previews hiring). Always 1 at sea, where the ship carries everything at its own speed.
+ * most exhausted member (exhaustionSpeed), and sped up by mounts when everyone rides and no pack
+ * animal or cart sets a walking pace (mountSpeed, the slowest traveller; `hired` previews hiring). Always 1 at sea, where the ship carries everything at its own speed.
  * A journey keeps the speed it set out at (TravelState.kmPerDay).
  */
 export function landSpeed(

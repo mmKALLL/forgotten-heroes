@@ -205,6 +205,26 @@ describe('hired horses', () => {
     expect(out.travel!.days).toBe(mounted.days)
   })
 
+  test('the slowest traveller sets the pace: a mule or cart keeps riders to walking speed', () => {
+    for (const animals of [{ mule: 1 }, { mule: 1, cart: 1 }]) {
+      const s = at('greenvale-1', { animals })
+      const { steady, mounted, out } = ride(s, 'greenvale-1-greenvale-2')
+      expect(mounted.days).toBe(steady.days)
+      expect(out.travel).toMatchObject({ days: mounted.days, kmPerDay: KM_PER_DAY.plains })
+    }
+    // Owned horses for everyone ride at their speed; a spare one is led and slows no one.
+    const herd = at('greenvale-1', { animals: { 'riding-horse': 3 } })
+    const road = routeOptions(herd, content).find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+    const out = act(herd, { type: 'travel', routeId: road.routeId })
+    expect(out.travel!.kmPerDay).toBe(KM_PER_DAY.plains * 2)
+    expect(out.travel!.days).toBe(road.days)
+    // One horse short: whoever walks sets the pace.
+    const short = at('greenvale-1', { animals: { 'riding-horse': 1 } })
+    expect(act(short, { type: 'travel', routeId: road.routeId }).travel!.kmPerDay).toBe(
+      KM_PER_DAY.plains
+    )
+  })
+
   test('are returned on arrival', () => {
     let s = ride(at('greenvale-1'), 'greenvale-1-greenvale-2').out
     for (let i = 0; i < 20 && s.travel; i++) {

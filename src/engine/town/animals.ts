@@ -35,8 +35,11 @@ export const riderSpeed = (def: Pick<AnimalDef, 'speed'>, terrain: Biome): numbe
   ROUGH_TERRAIN.includes(terrain) ? Math.min(def.speed, MOUNT_ROUGH_SPEED) : def.speed
 
 /**
- * The land speed multiplier mounts give: when every member has a mount (hired or owned riding
- * animals), the slowest mount's speed on this terrain; otherwise 1 (the party walks).
+ * The land speed multiplier mounts give. The party travels at its slowest traveller (designer
+ * decision): mounts help only when every member rides (hired or owned riding animals), and then
+ * at the slowest mount's speed on this terrain; anyone on foot, or any working pack animal or
+ * vehicle (mule, donkey, cart, wagon), sets a walking pace (1). Spare riding animals are led at
+ * the riders' pace and slow no one.
  */
 export function mountSpeed(
   state: Pick<GameState, 'party' | 'animals' | 'travel'>,
@@ -46,13 +49,16 @@ export function mountSpeed(
 ): number {
   if (terrain === 'sea' || state.party.length === 0) return 1
   const mounts: AnimalDef[] = []
+  let walkers = false
   const add = (id: string, n: number) => {
     const def = animalDef(content, id)
-    if (def?.rider) for (let i = 0; i < n; i++) mounts.push(def)
+    if (!def) return
+    if (!def.rider) walkers = true
+    else for (let i = 0; i < n; i++) mounts.push(def)
   }
   if (hired) add(hired.animal, hired.count)
   for (const [id, n] of Object.entries(workingAnimals(state.animals, content))) add(id, n)
-  if (mounts.length < state.party.length) return 1
+  if (walkers || mounts.length < state.party.length) return 1
   const fastest = mounts.map((m) => riderSpeed(m, terrain)).sort((a, b) => b - a)
   return Math.max(1, fastest[state.party.length - 1])
 }
