@@ -1,6 +1,6 @@
 import type { Content } from '../../content/build'
 import type { Biome, Pace } from '../../schema/types'
-import type { GameState, TravelState } from '../../schema/state'
+import type { Character, GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { allSituations } from '../encounters/compile'
 import { fitsPlace } from '../encounters/run'
@@ -15,6 +15,8 @@ import {
   DEFAULT_PACE,
   ENCOUNTER_SLOT_CHANCE,
   ESCORT_HOSTILE,
+  EXHAUSTION_SPEED_MIN,
+  EXHAUSTION_SPEED_PENALTY,
   FORAGE_HOSTILE_BONUS,
   HOSTILE_BASE,
   HOSTILE_PER_DANGER,
@@ -39,9 +41,19 @@ export function kmPerDay(terrain: Biome, pace: Pace = DEFAULT_PACE, speed = 1): 
 }
 
 /**
- * The party's land speed multiplier on this terrain: slowed by its load (loadSpeed), and sped up
- * by mounts when everyone rides (mountSpeed; `hired` previews hiring). Always 1 at sea, where the
- * ship carries everything at its own speed.
+ * The share of its speed the party keeps for its most exhausted member: EXHAUSTION_SPEED_PENALTY
+ * less per level, at least EXHAUSTION_SPEED_MIN.
+ */
+export const exhaustionSpeed = (party: readonly Pick<Character, 'exhaustion'>[]): number => {
+  const worst = party.reduce((most, c) => Math.max(most, c.exhaustion), 0)
+  return Math.max(EXHAUSTION_SPEED_MIN, 1 - EXHAUSTION_SPEED_PENALTY * worst)
+}
+
+/**
+ * The party's land speed multiplier on this terrain: slowed by its load (loadSpeed) and by the
+ * most exhausted member (exhaustionSpeed), and sped up by mounts when everyone rides (mountSpeed;
+ * `hired` previews hiring). Always 1 at sea, where the ship carries everything at its own speed.
+ * A journey keeps the speed it set out at (TravelState.kmPerDay).
  */
 export function landSpeed(
   state: Pick<GameState, 'party' | 'animals' | 'travel' | 'goods'>,
@@ -51,7 +63,11 @@ export function landSpeed(
 ): number {
   if (terrain === 'sea') return 1
   const laden = load(state, content, { hired })
-  return loadSpeed(laden.level) * mountSpeed(state, content, terrain, hired)
+  return (
+    loadSpeed(laden.level) *
+    exhaustionSpeed(state.party) *
+    mountSpeed(state, content, terrain, hired)
+  )
 }
 
 export const journeyDays = (

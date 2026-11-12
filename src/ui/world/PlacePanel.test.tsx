@@ -263,7 +263,7 @@ test('stowing away lists what success, partial and failure lead to', () => {
 
 test('a forced march that could kill someone gets a severe warning, listed first', async () => {
   const long = structuredClone(content)
-  long.routes['greenvale-1-greenvale-2'].km = 180
+  long.routes['greenvale-1-greenvale-2'].km = 144
   const frail = { ...lyra, exhaustion: 2, abilities: { ...lyra.abilities, con: 1 } }
   const state = makeState({ location: 'greenvale-1', party: [brom, frail], gold: 50 })
   panel(state, 'greenvale-2', long)

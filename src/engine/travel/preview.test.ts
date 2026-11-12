@@ -22,6 +22,7 @@ import { domainThreatLevel } from '../world/pois'
 import {
   FORAGE_HOSTILE_BONUS,
   ENCOUNTER_SLOT_CHANCE,
+  EXHAUSTION_SPEED_PENALTY,
   FORAGE_DC,
   FORCED_MARCH_DC,
   POWER_DC,
@@ -348,6 +349,21 @@ describe('routeOptions', () => {
     expect(inhabited.share).toBeGreaterThan(empty.share)
   })
 
+  test('exhaustion slows the party: the preview’s days are the journey’s, fixed at departure', () => {
+    const tired = { ...lyra, exhaustion: 3 }
+    const fresh = makeState({ location: 'greenvale-1', goods: { food: 20, water: 8 } })
+    const worn = { ...fresh, party: [brom, tired] }
+    const days = (s: GameState) =>
+      routeOptions(s, content)
+        .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+        .paces.find((p) => p.pace === 'steady')!.days
+    expect(days(worn)).toBeGreaterThan(days(fresh))
+    const out = step(worn, { type: 'travel', routeId: 'greenvale-1-greenvale-2' }, content)
+    expect(out.travel!.days).toBe(days(worn))
+    // 30 km a day on the plains, 30% slower at three levels.
+    expect(out.travel!.kmPerDay).toBeCloseTo(30 * (1 - 3 * EXHAUSTION_SPEED_PENALTY))
+  })
+
   test('a road where nothing can be met promises no encounters', () => {
     const here = makeState({ location: 'ashmoor-1', gold: 20 })
     const [sea] = routeOptions(here, content)
@@ -517,10 +533,11 @@ describe('supply forecasts and warnings', () => {
   })
 
   test('a forced march that could kill someone gets a severe warning', () => {
-    // 180 km of plains is 4 days of forced march. At CON 1 and already two levels down, only a
+    // 144 km of plains is 4 days of forced march (36 km a day: two levels of exhaustion slow the
+    // party by 20%). At CON 1 and already two levels down, only a
     // natural 20 holds up: 95% a day, so 0.95⁴ to reach the sixth level.
     const long = structuredClone(content)
-    long.routes['greenvale-1-greenvale-2'].km = 180
+    long.routes['greenvale-1-greenvale-2'].km = 144
     const frail = { ...lyra, exhaustion: 2, abilities: { ...lyra.abilities, con: 1 } }
     const state = makeState({ location: 'greenvale-1', party: [brom, frail] })
     const forced = routeOptions(state, long)

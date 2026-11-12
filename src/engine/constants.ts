@@ -151,6 +151,13 @@ export const CARRY_EXHAUSTED_SHARE = 0.5
 export const OVERLOAD_RATIO = 1.5
 /** An encumbered party walks at this share of its speed (and can't force a march). */
 export const ENCUMBERED_SPEED = 2 / 3
+/**
+ * Exhaustion slows travel (designer decision): land speed loses this share per level of
+ * exhaustion of the most exhausted member, fixed at departure like the load...
+ */
+export const EXHAUSTION_SPEED_PENALTY = 0.1
+/** ...but never below this share. */
+export const EXHAUSTION_SPEED_MIN = 0.4
 
 // Markets (economy/market.ts)
 
