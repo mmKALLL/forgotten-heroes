@@ -10,12 +10,13 @@ Generated 2026-11-12. For each map in `~/dnd5e/_backups`, this report checks whe
 - **unsure**: distance 9–11. A spot check found mostly false matches, so treat these as having no copy until checked by eye.
 - **no copy**: distance ≥ 12.
 - Caveat: a curated copy that was cropped or heavily edited will not match, so a few maps marked "no copy" may actually exist.
+- **Rotation re-check (2026-11-12):** every map marked "no copy" or "unsure" was checked again against 90° and 270° rotations of the curated images. One real match was found: Thieves Guild Hideout (rotated 270°, an exact fingerprint match). The other rotated near-matches (distance 7–8) were false positives: three different Aztec sets all "matched" the same wizard-tower image, so those stay as they were.
 
 ## Summary
 
 | Collection | has copy | unsure | no copy | total |
 |---|---|---|---|---|
-| Czepeku | 107 | 4 | 9 | 120 |
+| Czepeku | 108 | 4 | 8 | 120 |
 | Party of Two / 2_Battlefields | 1 | 1 | 10 | 12 |
 | Party of Two / 2_City | 0 | 3 | 12 | 15 |
 | Party of Two / 2_CityofTowers | 0 | 9 | 3 | 12 |
@@ -33,7 +34,7 @@ Generated 2026-11-12. For each map in `~/dnd5e/_backups`, this report checks whe
 | Party of Two / 5_PortTown | 2 | 0 | 6 | 8 |
 | Party of Two / 5_Underdark | 1 | 1 | 4 | 6 |
 | Party of Two / 5_Woods | 0 | 0 | 6 | 6 |
-| **All** | **117** | **44** | **119** | **280** |
+| **All** | **118** | **44** | **118** | **280** |
 
 Sizes when checked: Czepeku backup about 13 GB; Party of Two about 141 GB. Most of the Party of Two size is print and hex-grid copies of each map.
 
@@ -44,7 +45,7 @@ Closest match is the most similar image in `tiles and battle maps`. For maps wit
 | Status | Map (under `_backups/`) | Distance | Closest match |
 |---|---|---|---|
 | no copy | czepeku maps backup/originals/Beached Kraken [78x23] - $5 Rewards | 18 | in-town : urban/_lightning train/G_LightningRail_PostalCar.png |
-| no copy | czepeku maps backup/originals/Thieves Guild Hideout [17x48] - $5 Rewards | 12 | dungeon maps/_epic/arcane clocktower/G_ArcaneClocktower_NonMagical_ClockRoom_Night.jpg |
+| has copy | czepeku maps backup/originals/Thieves Guild Hideout [17x48] - $5 Rewards | 0 (rotated 270°) | gate:guild:fort:siege/guild/desert thieves guild.jpeg |
 | no copy | czepeku maps backup/originals/Train Station Concourse [36x71] - $5 Rewards | 14 | in-town : urban/forest monster festival.jpeg |
 | no copy | czepeku maps backup/originals/Train Station Concourse [36x71] - $5 Rewards 2 | 14 | in-town : urban/forest monster festival.jpeg |
 | no copy | czepeku maps backup/originals/Train Station Concourse [36x71] - Transparent | 16 | dungeon maps/__dungeon entrances/forest dungeon entrance.jpg |
