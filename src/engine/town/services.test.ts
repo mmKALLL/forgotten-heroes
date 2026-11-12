@@ -206,7 +206,7 @@ describe('hired horses', () => {
   })
 
   test('the slowest traveller sets the pace: a mule or cart keeps riders to walking speed', () => {
-    for (const animals of [{ mule: 1 }, { mule: 1, cart: 1 }]) {
+    for (const animals of [{ mule: 1 }, { mule: 1, cart: 1 }] as Record<string, number>[]) {
       const s = at('greenvale-1', { animals })
       const { steady, mounted, out } = ride(s, 'greenvale-1-greenvale-2')
       expect(mounted.days).toBe(steady.days)
