@@ -309,6 +309,7 @@ The town map image is a banner and backdrop.
   - The good word raises the party's standing with the patron's people or faction, even far away. Example: a respected orc's word makes a hostile orc kingdom tolerate the party.
   - **The party's welcome is separate from how dangerous a faction is to everyone else.** Hostile encounters with that faction become rarer or turn into parley for the party, while the kingdom still threatens its neighbours. Threat levels, prices and wars are unaffected.
   - This makes reputation a currency the player can earn instead of gold.
+- **Where encounter reputation lands (Plan 4):** a `reputation` effect or `standing` requirement refers to the encounter's settlement: the domain of the site or settlement it happens in; on a land road, the domain of the nearer end of the road; at sea, the port the party sailed from.
 - **Rule hooks:** one declarative mechanism, such as `{ "on": "sellGoods", "category": "precious", "modify": {...} }`. It powers both accessory effects and per-party modifiers, which are composable, random, and allowed to bend the rules.
 
 ## 9. UI

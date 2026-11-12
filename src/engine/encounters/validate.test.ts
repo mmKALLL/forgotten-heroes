@@ -215,6 +215,31 @@ describe('validateSituation', () => {
     expect(issues(stages)).toEqual(['start/a: siteReady only works in a site situation'])
     expect(issues(stages, { site: true })).toEqual([])
   })
+
+  test('requirements: an option that needs a good spends it in every outcome', () => {
+    const spend = { effect: 'goods', good: 'healing', amount: -1 }
+    const needs = [{ req: 'goods', good: 'healing', min: 1 }]
+    const stages = (success: object) => ({
+      start: {
+        text: '',
+        options: [
+          {
+            ...check('salve', {
+              fail: { text: 'No.', effects: [spend] },
+              partial: { text: 'Meh.', effects: [spend] },
+              success,
+            }),
+            requires: needs,
+          },
+          fixed('b'),
+        ],
+      },
+    })
+    expect(issues(stages({ text: 'Yes.' }))).toEqual([
+      "start/salve success: needs healing but doesn't spend it",
+    ])
+    expect(issues(stages({ text: 'Yes.', effects: [spend] }))).toEqual([])
+  })
 })
 
 describe('contentIssues', () => {

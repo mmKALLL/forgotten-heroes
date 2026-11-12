@@ -92,6 +92,15 @@ describe('economyIssues', () => {
     expect(issues).toContain('contracts bring-timber: unknown service "lumberyard"')
   })
 
+  test("reports a contract placeholder its kind can't fill", () => {
+    const content = cleanContent()
+    const template = content.contracts['bring-timber']
+    content.contracts['bring-timber'] = { ...template, text: '{Patron} wants {good} at {site}.' }
+    expect(economyIssues(content)).toEqual([
+      `contracts bring-timber: {site} doesn't fit a ${template.kind} contract`,
+    ])
+  })
+
   test('reports a market action without goods, goods without one, and water in trade', () => {
     const content = cleanContent()
     content.serviceRoles.port = role('port', {

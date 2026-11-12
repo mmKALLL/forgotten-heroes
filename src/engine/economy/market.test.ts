@@ -18,7 +18,9 @@ import {
   PRICE_STEP,
   RECOVERY_HALF_LIFE_DAYS,
   SPREAD_MIN,
+  STANDING_POINTS,
 } from '../constants'
+import { shopKeeper } from '../town/reputation'
 
 const content = fixtureContent()
 const base = makeState()
@@ -218,6 +220,41 @@ describe('shops', () => {
       expect(s.spread).toBeGreaterThanOrEqual(SPREAD_MIN)
     }
     expect(shopsFor(shopping, content, 'greenvale-1', 'food')).toEqual(shops)
+  })
+
+  test('liked lowers the buy price and raises the sell price; a liking keeper counts', () => {
+    const id = 'greenvale-1'
+    const withRep = (settlements: Record<string, number>, people: Record<string, number> = {}) => ({
+      ...shopping,
+      reputation: { settlements, people },
+    })
+    const unit = (s: GameState, side: 'buy' | 'sell', shop?: string) =>
+      quote(s, content, id, 'food', side, 1, shop)!.unitFirst
+    const liked = withRep({ [id]: STANDING_POINTS.liked })
+    const disliked = withRep({ [id]: STANDING_POINTS.disliked })
+    expect(unit(liked, 'buy')).toBeLessThan(unit(shopping, 'buy'))
+    expect(unit(liked, 'sell')).toBeGreaterThan(unit(shopping, 'sell'))
+    expect(unit(disliked, 'buy')).toBeGreaterThan(unit(shopping, 'buy'))
+    // An outfitter keeping the supplies shop and liking the party narrows that shop's spread only.
+    const outfitter = {
+      ...content.personRoles.innkeeper,
+      id: 'outfitter',
+      service: 'adventuring-supplies',
+    }
+    const kept = { ...content, personRoles: { ...content.personRoles, outfitter } }
+    const world = {
+      ...shopping.world,
+      people: {
+        ...shopping.world.people,
+        'p-ada': { settlement: id, role: 'outfitter', name: 'Ada', ancestry: 'human' },
+      },
+    }
+    expect(shopKeeper({ world }, kept, id, 'adventuring-supplies')).toBe('p-ada')
+    const friend = { ...withRep({}, { 'p-ada': STANDING_POINTS.liked }), world }
+    const at = (s: GameState, shop: string) => quote(s, kept, id, 'food', 'buy', 1, shop)!.unitFirst
+    const stranger = { ...shopping, world }
+    expect(at(friend, 'adventuring-supplies')).toBeLessThan(at(stranger, 'adventuring-supplies'))
+    expect(at(friend, MARKET_STALL)).toBe(at(stranger, MARKET_STALL))
   })
 
   test('quotes round buys up and sales down to whole gold', () => {

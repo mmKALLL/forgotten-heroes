@@ -246,7 +246,9 @@ function setOut(
 /**
  * Where an encounter on this journey happens (the route's terrain, and the land and domain of the
  * nearer end), how the party is moving, and the share of encounters that are hostile now
- * (hostileShare: the route's danger, the higher threat of its two ends, foraging and pace).
+ * (hostileShare: the route's danger, the higher threat of its two ends, foraging and pace). At sea
+ * the domain is the port the party sailed from, whose people hear of what it did (reputation
+ * effects and standing requirements go there; see town/reputation.ts encounterSettlement).
  */
 export function placeOnRoute(
   state: Pick<GameState, 'world' | 'day'> & Partial<Pick<GameState, 'goods' | 'gold' | 'party'>>,
@@ -265,7 +267,10 @@ export function placeOnRoute(
   return {
     biome: route.terrain,
     land: node.land,
-    domain: node.domain,
+    domain:
+      route.terrain === 'sea'
+        ? (nodeOf(state, content, travel.from)?.domain ?? node.domain)
+        : node.domain,
     pace: travel.pace,
     coverTracks: travel.coverTracks,
     forage: travel.forage,

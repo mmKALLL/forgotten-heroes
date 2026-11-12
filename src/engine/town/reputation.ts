@@ -48,7 +48,11 @@ export const settlementStanding = (state: RepState, id: string | null): Standing
 export const personStanding = (state: RepState, id: string): Standing =>
   standingOf(personPoints(state, id))
 
-/** The settlement an encounter's reputation and standing refer to: its domain, else where the party is. */
+/**
+ * The settlement an encounter's reputation and standing refer to: its domain, else where the party
+ * is. On a land road that is the domain of the nearer end; at sea, the port the party sailed from
+ * (travel/journey.ts placeOnRoute).
+ */
 export const encounterSettlement = (state: Pick<GameState, 'encounter' | 'world' | 'location'>) =>
   state.encounter?.domain ?? domainAt(state.world, state.location)
 

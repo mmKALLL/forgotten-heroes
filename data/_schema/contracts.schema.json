@@ -113,7 +113,7 @@
     },
     "__schema3": {
       "type": "string",
-      "description": "May use {good} {amount} {dest} {patron} {site}"
+      "description": "May use {patron}; courier and supply add {dest} {good} {amount}, escort {dest}, bounty and errand {site}"
     },
     "__schema4": {
       "default": 1,

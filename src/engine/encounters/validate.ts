@@ -281,9 +281,31 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
     }
     if (effect.effect === 'revealTwist' && !compiled.twist)
       issues.push(`${where}: revealTwist but the situation has no twist`)
+    if (
+      effect.effect === 'animals' &&
+      effect.animal &&
+      !Object.hasOwn(content.animals, effect.animal)
+    )
+      issues.push(`${where}: unknown animal "${effect.animal}"`)
     if (effect.effect === 'clearPoi' && !compiled.site)
       issues.push(`${where}: clearPoi only works in a site situation`)
   }
+  // A consumable that unlocks an option is used up by it, whatever the roll.
+  for (const [stageId, stage] of Object.entries(compiled.stages))
+    for (const option of stage.options)
+      for (const r of option.requires) {
+        if (r.req !== 'goods') continue
+        for (const [name, outcome] of branches(option))
+          for (const [suffix, branch] of withTwist(outcome)) {
+            const spends = branch.effects.some(
+              (e) => e.effect === 'goods' && e.good === r.good && (e.amount ?? 0) < 0
+            )
+            if (!spends)
+              issues.push(
+                `${stageId}/${option.id} ${name}${suffix}: needs ${r.good} but doesn't spend it`
+              )
+          }
+      }
   if (!compiled.site) {
     for (const [stageId, stage] of Object.entries(compiled.stages))
       for (const option of stage.options)

@@ -1,8 +1,18 @@
 import { sortedEntries, type Content } from '../../content/build'
-import { GOOD_CATEGORY, GOODS, type Good } from '../../schema/types'
+import { GOOD_CATEGORY, GOODS, type ContractKind, type Good } from '../../schema/types'
+import { slotNames } from '../encounters/slots'
 
 /** Water is refilled free in every settlement, so no shop or market rule may deal in it. */
 const FREE: Good = 'water'
+
+/** The placeholders a contract's title and text may use, by kind ({Patron} capitalises). */
+export const CONTRACT_PLACEHOLDERS: Readonly<Record<ContractKind, readonly string[]>> = {
+  courier: ['patron', 'dest', 'good', 'amount'],
+  supply: ['patron', 'dest', 'good', 'amount'],
+  escort: ['patron', 'dest'],
+  bounty: ['patron', 'site'],
+  errand: ['patron', 'site'],
+}
 
 /**
  * Problems with the economy data (Plan 4) that the schemas can't see: missing goods, services
@@ -84,6 +94,12 @@ export function economyIssues(content: Content): string[] {
   for (const template of sortedEntries(contracts)) {
     if (template.service !== undefined && !Object.hasOwn(services, template.service)) {
       issues.push(`contracts ${template.id}: unknown service "${template.service}"`)
+    }
+    const allowed = CONTRACT_PLACEHOLDERS[template.kind]
+    for (const name of slotNames(`${template.title} ${template.text}`)) {
+      if (!allowed.includes(name)) {
+        issues.push(`contracts ${template.id}: {${name}} doesn't fit a ${template.kind} contract`)
+      }
     }
   }
   return issues

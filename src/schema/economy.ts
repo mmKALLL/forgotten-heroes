@@ -157,7 +157,11 @@ export const ContractTemplateSchema = z
     id: IdSchema,
     kind: ContractKindSchema,
     title: z.string(),
-    text: z.string().describe('May use {good} {amount} {dest} {patron} {site}'),
+    text: z
+      .string()
+      .describe(
+        'May use {patron}; courier and supply add {dest} {good} {amount}, escort {dest}, bounty and errand {site}'
+      ),
     weight: z.number().min(0).default(1).describe('Relative chance of being posted'),
     minSize: z.number().int().min(0).max(5).default(0).describe('Smallest size tier posting it'),
     service: IdSchema.optional().describe('Posted only at this service; otherwise on the board'),

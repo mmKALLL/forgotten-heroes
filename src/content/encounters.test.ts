@@ -3,6 +3,7 @@ import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
 import { GOOD_CATEGORY, GOODS, POI_CATEGORIES, WEALTH_TAGS } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
+import { applyEffects } from '../engine/encounters/effects'
 import { encounterOptions } from '../engine/encounters/preview'
 import { encounterOver, fitsPlace } from '../engine/encounters/run'
 import { rollTable } from '../engine/encounters/slots'
@@ -604,6 +605,25 @@ describe('goods in encounters (Plan 4)', () => {
         )
       )
       expect(pays, s.id).toBe(true)
+    }
+  })
+
+  test('goods and animals effects move a stocked party the way they say', () => {
+    const stocked: GameState = {
+      ...newGame(1, content),
+      goods: Object.fromEntries(GOODS.map((g) => [g, 8])),
+      animals: { 'riding-horse': 2, mule: 1 },
+    }
+    const total = (s: GameState) => Object.values(s.goods).reduce((a, n) => a + n, 0)
+    const herd = (s: GameState) => Object.values(s.animals).reduce((a, n) => a + n, 0)
+    const effects = options.flatMap(({ o }) => branchesOf(o).flatMap((b) => b.effects))
+    for (const e of effects) {
+      if (e.effect !== 'goods' && e.effect !== 'animals') continue
+      const after = applyEffects(stocked, [e], { content })
+      const [before, now] =
+        e.effect === 'goods' ? [total(stocked), total(after)] : [herd(stocked), herd(after)]
+      const gains = e.effect === 'goods' && e.fraction === undefined && (e.amount ?? 0) > 0
+      expect(Math.sign(now - before), JSON.stringify(e)).toBe(gains ? 1 : -1)
     }
   })
 

@@ -3,6 +3,7 @@ import { GOODS, GOOD_CATEGORY, type Good, type GoodCategory } from '../../schema
 import type { GameState, KnownPrice, PriceBookEntry } from '../../schema/state'
 import { formatGp } from '../format'
 import { appendLog } from '../log'
+import { tradeReputation } from '../town/reputation'
 import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
 import { load } from './capacity'
@@ -106,15 +107,13 @@ export function buyGoods(
       : limit === 'gold'
         ? ', all the gold allows'
         : ''
-  return observe(
-    appendLog(
-      bought,
-      `Bought ${n} ${lower(content, good)} for ${q.total} gp (${each(q)})${why}.`,
-      'info'
-    ),
-    content,
-    here
+  // Trading earns standing here; the price book is written after, at any new tier's spreads.
+  const logged = appendLog(
+    bought,
+    `Bought ${n} ${lower(content, good)} for ${q.total} gp (${each(q)})${why}.`,
+    'info'
   )
+  return observe(tradeReputation(logged, q.total), content, here)
 }
 
 /** Sells up to `amount` units (what is carried, at most) at the best shop buying it here. */
@@ -139,11 +138,12 @@ export function sellGoods(
     goods: { ...state.goods, [good]: units(state, good) - n },
     markets: recordTrade(state.markets, here, good, n, state.day),
   }
-  return observe(
-    appendLog(sold, `Sold ${n} ${lower(content, good)} for ${q.total} gp (${each(q)}).`, 'info'),
-    content,
-    here
+  const logged = appendLog(
+    sold,
+    `Sold ${n} ${lower(content, good)} for ${q.total} gp (${each(q)}).`,
+    'info'
   )
+  return observe(tradeReputation(logged, q.total), content, here)
 }
 
 /** One good's prices here today: what one unit costs and fetches at the best shops. */

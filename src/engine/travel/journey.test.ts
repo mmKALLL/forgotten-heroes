@@ -7,6 +7,7 @@ import { createRng } from '../rng'
 import { step, type Action } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
+import { placeOnRoute } from './journey'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
 import { WATERSKIN_SELL_PRICE } from '../constants'
 
@@ -648,5 +649,17 @@ describe('what is met on the road', () => {
     expect(met.encounter?.situation.id).toBe('grudge')
     expect(met.travel!.encounterDays).toEqual([])
     expect(met.travel!.daysDone).toBe(2)
+  })
+})
+
+describe('placeOnRoute', () => {
+  test("near the far end, a road encounter is in that end's domain; at sea, the port sailed from", () => {
+    const road = travel(at('greenvale-1'), 'greenvale-1-greenvale-2').travel!
+    const late = { ...road, kmDone: road.km - 1 }
+    expect(placeOnRoute(at('greenvale-1'), content, late)!.domain).toBe('greenvale-2')
+    const sea = { ...late, route: 'ashmoor-1-farisle-1', from: 'ashmoor-1', to: 'farisle-1' }
+    expect(placeOnRoute(at('ashmoor-1'), content, { ...sea, km: 160, kmDone: 150 })!.domain).toBe(
+      'ashmoor-1'
+    )
   })
 })

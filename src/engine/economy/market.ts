@@ -5,6 +5,7 @@ import type { GameState, MarketTrade } from '../../schema/state'
 import { createRng, nextFloat } from '../rng'
 import { domainThreatLevel } from '../world/pois'
 import { siteStatus } from '../world/sites'
+import { shopKeeper, standingSpreadModifier } from '../town/reputation'
 import { goodDef } from './goods'
 import {
   DRIFT,
@@ -26,7 +27,7 @@ import {
 /** The pseudo-shop every settlement has: market stalls selling and buying the essentials. */
 export const MARKET_STALL = 'market-stall'
 
-type Market = Pick<GameState, 'world' | 'day' | 'markets'>
+type Market = Pick<GameState, 'world' | 'day' | 'markets'> & Partial<Pick<GameState, 'reputation'>>
 
 const own = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
@@ -221,11 +222,24 @@ export const shopSpread = (sizeTier: number, quality: number, modifier = 0): num
       modifier
   )
 
+type ShopState = Pick<GameState, 'world'> & Partial<Pick<GameState, 'reputation'>>
+
 /**
- * How standing in a settlement moves its spreads. Reputation (Plan 4 B2) plugs in here; until
- * then it is 0.
+ * How standing moves a shop's spread (design §8, Plan 4 B2): the settlement's standing, or its
+ * keeper's (the notable person whose role keeps that service) when that is better. The market
+ * stalls have no keeper. 0 for a state without reputation.
  */
-export const spreadModifier = (_state: Pick<GameState, 'world'>, _settlementId: string): number => 0
+export function spreadModifier(
+  state: ShopState,
+  content: Content,
+  settlementId: string,
+  service: string
+): number {
+  if (!state.reputation) return 0
+  const rep = { reputation: state.reputation }
+  const keeper = service === MARKET_STALL ? null : shopKeeper(state, content, settlementId, service)
+  return standingSpreadModifier(rep, settlementId, keeper)
+}
 
 /** True for goods a market trades at all: defined, and worth something (water is free). */
 export const tradable = (content: Content, good: Good): boolean =>
@@ -237,11 +251,10 @@ export const tradable = (content: Content, good: Good): boolean =>
  * essentials. Empty for goods that aren't traded.
  */
 export function shopsFor(
-  state: Pick<GameState, 'world'>,
+  state: ShopState,
   content: Content,
   settlementId: string,
-  good: Good,
-  modifier = spreadModifier(state, settlementId)
+  good: Good
 ): Shop[] {
   const info = own(state.world.settlements, settlementId)
   if (!info || !tradable(content, good)) return []
@@ -257,7 +270,11 @@ export function shopsFor(
         service,
         name: own(content.services, service)?.name ?? service,
         quality,
-        spread: shopSpread(info.sizeTier, quality, modifier),
+        spread: shopSpread(
+          info.sizeTier,
+          quality,
+          spreadModifier(state, content, settlementId, service)
+        ),
         sells,
         buys,
       },
@@ -268,7 +285,11 @@ export function shopsFor(
       service: MARKET_STALL,
       name: 'Market stalls',
       quality: STALL_QUALITY,
-      spread: shopSpread(info.sizeTier, STALL_QUALITY, modifier),
+      spread: shopSpread(
+        info.sizeTier,
+        STALL_QUALITY,
+        spreadModifier(state, content, settlementId, MARKET_STALL)
+      ),
       sells: true,
       buys: true,
     })
