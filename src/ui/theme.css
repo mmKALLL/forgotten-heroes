@@ -742,3 +742,102 @@ label.inline {
 h2[tabindex='-1']:focus {
   outline: none;
 }
+.centre {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+.map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.map-head h2 {
+  margin: 0 0 0.5rem;
+}
+.world-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+  background: var(--bg);
+}
+.map-parchment {
+  fill: var(--panel);
+  stroke: var(--line);
+  stroke-width: 6;
+}
+.region-label {
+  font-size: 84px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  fill: var(--muted);
+  pointer-events: none;
+}
+.route {
+  stroke: var(--ink);
+  stroke-opacity: 0.55;
+  stroke-width: 8;
+}
+.route.sea {
+  stroke-dasharray: 26 18;
+}
+.route.danger-2 {
+  stroke: var(--crit);
+}
+.route.danger-3 {
+  stroke: var(--bad);
+}
+.route.active {
+  stroke: var(--accent);
+  stroke-opacity: 1;
+  stroke-width: 16;
+}
+.route.travelled {
+  stroke: var(--good);
+  stroke-opacity: 1;
+  stroke-width: 18;
+  stroke-dasharray: none;
+  pointer-events: none;
+}
+.site {
+  cursor: pointer;
+}
+.site:focus {
+  outline: none;
+}
+.site rect {
+  fill: var(--ink);
+  fill-opacity: 0.6;
+  stroke: var(--muted);
+  stroke-width: 10;
+}
+.site.reachable rect {
+  fill: var(--accent);
+  fill-opacity: 0.85;
+}
+.site.here rect {
+  fill: var(--good);
+  fill-opacity: 1;
+}
+.site.selected rect,
+.site:focus-visible rect {
+  stroke: var(--crit) !important;
+  stroke-width: 18;
+}
+.site-label {
+  font-size: 40px;
+  fill: var(--ink);
+  stroke: var(--panel);
+  stroke-width: 8px;
+  paint-order: stroke;
+  pointer-events: none;
+}
+.party-marker {
+  fill: none;
+  stroke: var(--good);
+  stroke-width: 10;
+  pointer-events: none;
+}

@@ -106,6 +106,13 @@ export const en = {
   'outcomes.someTwist': 'there is a twist',
   'outcomes.escalates': 'it escalates',
 
+  'map.heading': 'Altaeus',
+  'map.label': 'Map of Altaeus',
+  'map.zoomIn': 'Zoom to party',
+  'map.zoomOut': 'Whole map',
+  'map.here': '{name} (you are here)',
+  'map.noImage': 'The map image is not in assets/ (run pnpm sync-assets); showing the routes only.',
+
   'journal.heading': 'Journal',
   'journal.log': 'Log',
   'journal.day': 'Day {day}',

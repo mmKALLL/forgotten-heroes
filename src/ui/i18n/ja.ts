@@ -100,6 +100,13 @@ export const ja: Partial<Messages> = {
   'outcomes.someTwist': '裏がある',
   'outcomes.escalates': '事態が悪化する',
 
+  'map.heading': 'アルタエウス',
+  'map.label': 'アルタエウスの地図',
+  'map.zoomIn': 'パーティに寄る',
+  'map.zoomOut': '全体図',
+  'map.here': '{name}（現在地）',
+  'map.noImage': '地図画像が assets/ にない（pnpm sync-assets を実行）。道だけを表示している。',
+
   'journal.heading': '冒険日誌',
   'journal.log': '記録',
   'journal.day': '{day}日目',
