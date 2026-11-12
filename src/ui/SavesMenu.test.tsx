@@ -51,3 +51,27 @@ test('switching to slot 2 loads its save, and a new party there leaves slot 1 un
   render(<App />)
   expect(seedShown()).toBe(now)
 })
+
+test('a new party over a won run (which plays on) asks first', async () => {
+  const content = loadBundledContent()
+  const won = newGame(42, content)
+  const crisis = { ...won.crisis!, learned: 2, thwarted: [3, 4, 5], endSeen: true }
+  localStorage.setItem(slotKey(2), serialize({ ...won, day: 6, crisis }))
+  render(<App />)
+  await openSaves()
+  expect(slot(2).getByText(/Crisis won/)).toBeTruthy()
+  await userEvent.click(slot(2).getByRole('button', { name: 'New party here' }))
+  expect(screen.getByRole('group', { name: 'Start a new party in a new world?' })).toBeTruthy()
+  expect(deserialize(localStorage.getItem(slotKey(2))!, content)?.seed).toBe(42)
+})
+
+test('a slot shows the Crisis act under way once its plan is known', async () => {
+  const content = loadBundledContent()
+  const game = newGame(42, content)
+  const crisis = { ...game.crisis!, learned: 2 }
+  const day = crisis.acts[0].due - 34
+  localStorage.setItem(slotKey(2), serialize({ ...game, day, crisis }))
+  render(<App />)
+  await openSaves()
+  expect(slot(2).getByText(/Act I · 34d/)).toBeTruthy()
+})

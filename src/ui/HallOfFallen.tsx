@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { RunRecord } from '../schema/crisis'
+import { recordCrisis } from '../engine/crisis/ending'
 import { readHall } from './hall'
 import { useI18n } from './i18n/I18n'
 
@@ -42,8 +42,8 @@ export function HallOfFallen() {
                       ending: r.ending ? t(`saves.ending.${r.ending}`) : '',
                     }),
                     r.ending === 'fallen' &&
-                      crisisOutcome(r) &&
-                      t(`saves.ending.${crisisOutcome(r)!}`),
+                      recordCrisis(r) &&
+                      t(`saves.ending.${recordCrisis(r)!}`),
                     r.villain && t('hall.villain', { villain: r.villain }),
                   ]
                     .filter(Boolean)
@@ -55,10 +55,4 @@ export function HallOfFallen() {
         ))}
     </section>
   )
-}
-
-/** A fallen party may have decided the Crisis first: a failed act lost it, three thwarted won it. */
-function crisisOutcome(r: RunRecord): 'won' | 'lost' | null {
-  if (r.acts.includes('failed')) return 'lost'
-  return r.acts.length > 0 && r.acts.every((a) => a === 'thwarted') ? 'won' : null
 }

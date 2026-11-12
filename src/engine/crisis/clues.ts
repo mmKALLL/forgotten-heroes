@@ -9,7 +9,12 @@ import { compass } from '../world/geo'
 import { crisisClue } from './progress'
 import { crisisDecided, crisisStatus } from './status'
 import { crisisText, shortName, siteLand, villainOf } from './text'
-import { CRISIS_OMEN_FAVOUR, CRISIS_RUMOUR_CLUES, CRISIS_SUMMONS_DAY } from '../constants'
+import {
+  CRISIS_OMEN_FAVOUR,
+  CRISIS_RUMOUR_CLUES,
+  CRISIS_SUMMONS_DAY,
+  CRISIS_WEAKNESS_CLUES,
+} from '../constants'
 
 // How word of the Crisis reaches the party (Plan 5b E4, design §10b): tavern rumours, a summons on
 // arriving somewhere once the plan is overdue to be heard of, and omens met on the road.
@@ -21,7 +26,7 @@ const own = <T>(table: Record<string, T>, id: string | null | undefined): T | un
  * What a rumour success in `here` adds about the Crisis:
  * - reveal: the plan is unknown and the reveal site hidden, so the site heard of is the reveal site;
  * - clue: an act is under way and `here` is in its land: a clue (CRISIS_RUMOUR_CLUES, +1 on a
- *   critical success);
+ *   critical success), unless it already has CRISIS_WEAKNESS_CLUES (then null: nothing new);
  * - direction: an act is under way elsewhere: a line pointing the way, no clue.
  * Null with no Crisis or once it is decided.
  */
@@ -40,9 +45,8 @@ export function crisisRumour(
   }
   if (status.phase !== 'act') return null
   const land = siteLand(state, content, crisis.acts[status.act!].poi)
-  return land !== undefined && own(content.settlements, here)?.region === land
-    ? 'clue'
-    : 'direction'
+  if (land === undefined || own(content.settlements, here)?.region !== land) return 'direction'
+  return status.clues >= CRISIS_WEAKNESS_CLUES ? null : 'clue'
 }
 
 /** How a rumour success's preview says what it adds about the Crisis (English), or ''. */

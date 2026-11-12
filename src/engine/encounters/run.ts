@@ -25,6 +25,7 @@ import { evadePursuit } from '../travel/pursuit'
 import { anyUndiscovered, domainAt } from '../world/pois'
 import { crisisHidden } from '../crisis/sites'
 import { crisisActNumber } from '../crisis/status'
+import { crisisFailsDuring, tooLateChip, tooLateLine } from '../crisis/progress'
 import { omenFactor } from '../crisis/clues'
 import { boonReadyIn, siteStatus } from '../world/sites'
 import { dangerLevel, harden } from '../world/danger'
@@ -412,7 +413,12 @@ function resolve(
   ]
   const place = encounterSettlementName(state)
   const act = crisisActNumber(state)
-  const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone', place, act) ?? [])
+  // Days spent here may run past the Crisis act's last day: the visit then ends (crisis/progress).
+  const failed = crisisFailsDuring(state, effects)
+  const chips = [
+    ...effects.flatMap((e) => describeEffect(e, actorName ?? 'someone', place, act) ?? []),
+    ...(failed !== null ? [tooLateChip(failed)] : []),
+  ]
   const text = fill(branch.text) + (chips.length > 0 ? ` (${chips.join(', ')})` : '')
 
   // The outcome text comes before any log effects it triggers.
@@ -424,9 +430,17 @@ function resolve(
   const escalates = branch.goto === TWIST_STAGE
   const goto = escalates ? encounter.situation.twist?.stage : branch.goto
   const target = goto ?? (branch.stay ? fromStage : null)
-  const stage = target !== null && Object.hasOwn(encounter.situation.stages, target) ? target : null
+  const stage =
+    failed === null && target !== null && Object.hasOwn(encounter.situation.stages, target)
+      ? target
+      : null
   if (escalates) next = { ...next, encounter: { ...next.encounter!, twistKindRevealed: true } }
   let log = next.encounter!.log
+  if (failed !== null) {
+    const line = tooLateLine(state.crisis!, content, failed)
+    next = appendLog(next, line, 'bad')
+    log = [...log, { text: line, tone: 'bad' }]
+  }
   if (stage !== null && stage !== fromStage) {
     log = [...log, { text: fill(encounter.situation.stages[stage].text), tone: 'info' }]
   }

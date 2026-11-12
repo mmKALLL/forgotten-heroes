@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Content } from '../content/build'
 import { slotSummary, type SlotSummary } from '../engine/slots'
 import type { GameState } from '../schema/state'
@@ -36,18 +36,33 @@ export function SavesMenu({
   const [open, setOpen] = useState(false)
   const [confirm, setConfirm] = useState<Confirm>(null)
   // Bumped after a delete, so the slots are read again.
-  const [, setDeleted] = useState(0)
+  const [deleted, setDeleted] = useState(0)
   const close = () => {
     setOpen(false)
     setConfirm(null)
   }
-  const view = (n: number): SlotView => {
-    if (n === slot) return { kind: 'saved', summary: slotSummary(state, content) }
-    const held = readSlot(n, content)
-    return held.kind === 'saved'
-      ? { kind: 'saved', summary: slotSummary(held.state, content) }
-      : held
-  }
+  // The other slots are read (and migrated) once each time the menu opens, not on every render.
+  const others = useMemo(
+    () =>
+      new Map(
+        open
+          ? SLOTS.filter((n) => n !== slot).map((n): [number, SlotView] => {
+              const held = readSlot(n, content)
+              return [
+                n,
+                held.kind === 'saved'
+                  ? { kind: 'saved', summary: slotSummary(held.state, content) }
+                  : held,
+              ]
+            })
+          : []
+      ),
+    [open, slot, content, deleted]
+  )
+  const view = (n: number): SlotView =>
+    n === slot
+      ? { kind: 'saved', summary: slotSummary(state, content) }
+      : (others.get(n) ?? { kind: 'empty' })
   return (
     <div className="saves">
       <button aria-expanded={open} onClick={() => (open ? close() : setOpen(true))}>
@@ -67,8 +82,9 @@ export function SavesMenu({
             {SLOTS.map((n) => {
               const v = view(n)
               const active = n === slot
-              // A run that hasn't ended is lost when replaced: ask first.
-              const ongoing = v.kind === 'saved' && v.summary.ending === null
+              // A run whose party lives (a won or lost Crisis plays on) is lost when replaced: ask
+              // first. Only a fallen run has nothing left to lose.
+              const ongoing = v.kind === 'saved' && v.summary.ending !== 'fallen'
               const asking = confirm?.slot === n ? confirm.what : null
               return (
                 <li key={n}>
@@ -168,6 +184,10 @@ function SlotLines({ view }: { view: SlotView }) {
           t('top.day', { day: s.day }),
           t('top.gold', { gold: s.gold }),
           s.place && t(s.onRoad ? 'saves.onRoad' : 'saves.at', { place: s.place }),
+          s.crisis &&
+            (s.crisis.late > 0
+              ? t('crisis.markLate', { numeral: s.crisis.numeral, days: s.crisis.late })
+              : t('crisis.mark', { numeral: s.crisis.numeral, days: s.crisis.daysLeft })),
           s.ending && t(`saves.ending.${s.ending}`),
         ]
           .filter(Boolean)

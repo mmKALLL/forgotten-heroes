@@ -661,6 +661,19 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
     expect((rolled.crisis as GameState['crisis'])!.reveal).toBe(state.crisis!.reveal)
   })
 
+  test('a save on an island rolls its Crisis from the nearest mainland settlement', () => {
+    const state = makeState({ location: 'farisle-1', day: 40 })
+    const world = withoutCrisis(state)
+    expect(content.settlements['farisle-1'].island).not.toBe('mainland')
+    expect(generateCrisis(world, content, { startDay: 40, start: 'farisle-1' })).toBeNull()
+    const loaded = deserialize(JSON.stringify(asV10(state)), content)!
+    // Ashmoor-1 is the mainland settlement nearest to Far Isle.
+    const fromMainland = generateCrisis(world, content, { startDay: 40, start: 'ashmoor-1' })!
+    expect(loaded.crisis).toEqual(fromMainland.crisis)
+    expect(loaded.world).toEqual(fromMainland.world)
+    expect(loaded.location).toBe('farisle-1')
+  })
+
   test('migrating twice gives identical output, and the input is not mutated', () => {
     const v10 = asV10(makeState())
     const raw = structuredClone(v10)

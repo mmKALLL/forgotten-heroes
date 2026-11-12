@@ -36,3 +36,18 @@ test('a fallen party’s slot says so', () => {
   const party = [brom, lyra].map((c) => ({ ...c, exhaustion: 6 }))
   expect(slotSummary(makeState({ party }), content).ending).toBe('fallen')
 })
+
+test('once the plan is known, the summary gives the act under way and its days left', () => {
+  const state = newGame(5, content)
+  expect(slotSummary(state, content).crisis).toBeNull()
+  const due = state.crisis!.acts[1].due
+  const crisis = { ...state.crisis!, learned: 2, thwarted: [3, null, null] }
+  expect(slotSummary({ ...state, day: due - 34, crisis }, content).crisis).toEqual({
+    numeral: 'II',
+    daysLeft: 34,
+    late: 0,
+  })
+  expect(slotSummary({ ...state, day: due + 6, crisis }, content).crisis).toMatchObject({
+    late: 6,
+  })
+})

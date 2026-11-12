@@ -26,7 +26,8 @@ const FOCUSABLE = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"
  * story (the villain's defeat, the failed act, or the journal's last lines), then the run's
  * summary from the engine: the plot's acts, the party, and what the run did. Won or lost offer
  * Keep playing (Escape) and New party; fallen offers New party and Look back (Escape).
- * A modal: focus starts on the first button, stays inside, and returns where it was on close.
+ * A modal: focus starts on the first button, stays inside (the game behind is inert), and returns
+ * where it was on close.
  */
 export function EndDialog({
   content,
@@ -43,9 +44,18 @@ export function EndDialog({
   const fallen = ending === 'fallen'
   const dismiss = fallen ? onLookBack : onKeepPlaying
 
+  const backdrop = useRef<HTMLDivElement>(null)
+
+  // The game behind is inert while the dialog is open, so neither a click nor Tab reaches it.
   useEffect(() => {
     const before = document.activeElement as HTMLElement | null
+    const parent = backdrop.current?.parentElement
+    const behind = parent
+      ? [...parent.children].filter((el) => el !== backdrop.current && !el.hasAttribute('inert'))
+      : []
+    for (const el of behind) el.setAttribute('inert', '')
     return () => {
+      for (const el of behind) el.removeAttribute('inert')
       if (before?.isConnected) before.focus()
     }
   }, [])
@@ -87,13 +97,22 @@ export function EndDialog({
       : t(ending === 'won' ? 'end.wonTitle' : 'end.lostTitle', { name: shortName(villain) })
 
   return (
-    <div className="end-backdrop">
+    <div
+      ref={backdrop}
+      className="end-backdrop"
+      // A click on the backdrop leaves focus where it was, in the dialog.
+      onMouseDown={(e) => {
+        if (e.target === e.currentTarget) e.preventDefault()
+      }}
+    >
       <div
         ref={box}
         className={`end-dialog panel end-${ending}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="end-title"
+        // A click on its text focuses the dialog itself, so Tab and Escape still work.
+        tabIndex={-1}
         onKeyDown={onKeyDown}
       >
         {kicker && <p className="end-kicker">{kicker}</p>}

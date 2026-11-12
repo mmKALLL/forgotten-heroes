@@ -8,7 +8,7 @@ import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { rumourOption } from '../town/rumours'
 import { compass } from '../world/geo'
-import { CRISIS_SUMMONS_DAY } from '../constants'
+import { CRISIS_SUMMONS_DAY, CRISIS_WEAKNESS_CLUES } from '../constants'
 import { summonsOnArrival } from './clues'
 
 const content = fixtureContent()
@@ -60,6 +60,23 @@ describe('rumours', () => {
     const success = option.outcomes.find((o) => o.tier === 'success')!
     expect(success.text).toMatch(/and a clue to Morvaine's plot$/)
     expect(listen(state).crisis!.clues).toEqual([2, 0, 0])
+  })
+
+  test('in the act’s land with every clue already known, a success promises and adds nothing', () => {
+    const full = [CRISIS_WEAKNESS_CLUES, 0, 0]
+    const state = rolling('success', at(places().inLand, { learned: 10, clues: full }))
+    const option = rumourOption(state, content)!
+    expect(option.crisis).toBeNull()
+    const success = option.outcomes.find((o) => o.tier === 'success')!
+    expect(success.text).not.toMatch(/Morvaine/)
+    const heard = listen(state)
+    expect(heard.crisis!.clues).toEqual(full)
+    expect(
+      heard.log
+        .slice(state.log.length)
+        .map((l) => l.text)
+        .join('\n')
+    ).not.toMatch(/Act I|clue/)
   })
 
   test('a success elsewhere points the way and adds no clue', () => {

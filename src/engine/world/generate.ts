@@ -1,5 +1,5 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
-import type { WorldState } from '../../schema/world'
+import type { Settlement, WorldState } from '../../schema/world'
 import { createRng, withRng } from '../rng'
 import { generatePeople } from '../town/people'
 import { generatePolitics } from './politics'
@@ -52,6 +52,21 @@ export type StartMode = (typeof START_MODES)[number]
 const GRAND = ['capital', 'city']
 
 /**
+ * The mainland: the land mass with the most of this world's settlements (ties by name), and its
+ * settlements by id. Null for an empty world.
+ */
+export function mainlandSettlements(world: WorldState, content: Content): Settlement[] | null {
+  const sites = sortedEntries(content.settlements).filter((s) =>
+    Object.hasOwn(world.settlements, s.id)
+  )
+  if (sites.length === 0) return null
+  const sizes = new Map<string, number>()
+  for (const s of sites) sizes.set(s.island, (sizes.get(s.island) ?? 0) + 1)
+  const [mainland] = [...sizes].sort((a, b) => b[1] - a[1] || byCodeUnit(a[0], b[0]))[0]
+  return sites.filter((s) => s.island === mainland)
+}
+
+/**
  * Where a new party begins, on the largest land mass (the mainland). Picked with the world's
  * seed, so a world always starts in the same place for the same mode. Null for an empty world.
  */
@@ -60,15 +75,9 @@ export function startingSettlement(
   content: Content,
   mode: StartMode = 'random'
 ): string | null {
-  const sites = sortedEntries(content.settlements).filter((s) =>
-    Object.hasOwn(world.settlements, s.id)
-  )
-  if (sites.length === 0) return null
-  const sizes = new Map<string, number>()
-  for (const s of sites) sizes.set(s.island, (sizes.get(s.island) ?? 0) + 1)
-  const [mainland] = [...sizes].sort((a, b) => b[1] - a[1] || byCodeUnit(a[0], b[0]))[0]
-  const onMainland = sites.filter((s) => s.island === mainland)
-  const pick = (pool: typeof sites) =>
+  const onMainland = mainlandSettlements(world, content)
+  if (onMainland === null) return null
+  const pick = (pool: Settlement[]) =>
     withRng(createRng((world.seed ^ START_SALT) >>> 0), (d) => d.pick(pool).id)[0]
   if (mode === 'random') return pick(onMainland)
 

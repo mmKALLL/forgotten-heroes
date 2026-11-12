@@ -97,6 +97,24 @@ describe('XP from encounter checks', () => {
     throw new Error('no success in 60 seeds')
   })
 
+  test('an xp effect of 0 (no XP for this roll) shows no chip, in the preview or the journal', () => {
+    const none = structuredClone(withTaught.situations.taught)
+    const learn = none.stages.start.options[0]
+    if (learn.kind !== 'check') throw new Error('a check')
+    for (const tier of ['fail', 'partial', 'success'] as const) {
+      learn.outcomes[tier]!.effects = [{ effect: 'xp', amount: 0 }]
+    }
+    const using = { ...withTaught, situations: { ...withTaught.situations, taught: none } }
+    const state = start('taught', 1, using)
+    const option = encounterOptions(state).find((o) => o.id === 'learn')!
+    for (const outcome of option.outcomes) {
+      if (!outcome.hidden) expect(outcome.effects.join()).not.toMatch(/XP/)
+    }
+    const after = step(state, { type: 'chooseOption', optionId: 'learn' }, using)
+    expect(gained(state, after)).toEqual([0, 0])
+    expect(after.log.at(-1)!.text).not.toMatch(/XP/)
+  })
+
   test('fixed options and wonders give no XP; the dead gain none', () => {
     const state = start('cliff', 1)
     const around = step(state, { type: 'chooseOption', optionId: 'around' }, content)

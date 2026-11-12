@@ -62,6 +62,23 @@ test('victory: Keep playing dispatches acknowledgeEnd, and the Hall records the 
   expect(readHall()[0]).toMatchObject({ id: '7', ending: 'won' })
 })
 
+test('focus stays in the dialog: a backdrop click keeps it, and the game behind is inert', async () => {
+  localStorage.setItem(SAVE_KEY, serialize(won()))
+  render(<App />)
+  const keep = dialog().getByRole('button', { name: 'Keep playing' })
+  const backdrop = screen.getByRole('dialog').parentElement!
+  await userEvent.click(backdrop)
+  expect(document.activeElement).toBe(keep)
+  // Clicking the dialog's text keeps focus in the dialog, where Escape still works.
+  await userEvent.click(dialog().getByText('Victory'))
+  expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true)
+  const behind = document.querySelector('header.topbar')!
+  expect(behind.closest('[inert]')).not.toBeNull()
+  expect(backdrop.closest('[inert]')).toBeNull()
+  await userEvent.click(keep)
+  expect(document.querySelector('[inert]')).toBeNull()
+})
+
 test('game over shows the failed act, and Escape keeps playing', async () => {
   const onKeepPlaying = vi.fn()
   render(
@@ -81,6 +98,30 @@ test('game over shows the failed act, and Escape keeps playing', async () => {
   expect(dialog().getByRole('button', { name: 'Keep playing with this party' })).toBeTruthy()
   await userEvent.keyboard('{Escape}')
   expect(onKeepPlaying).toHaveBeenCalledOnce()
+})
+
+test('game over before the plan was learned names no villain and no site', () => {
+  const state = lost()
+  expect(state.crisis!.learned).toBeNull()
+  render(
+    <I18nProvider content={content}>
+      <EndDialog
+        content={content}
+        state={state}
+        ending="lost"
+        onKeepPlaying={() => {}}
+        onNewParty={() => {}}
+        onLookBack={() => {}}
+      />
+    </I18nProvider>
+  )
+  const short = state.crisis!.name.split(',')[0]
+  expect(
+    dialog().getByRole('heading', { name: 'A plot you never learned of is complete' })
+  ).toBeTruthy()
+  expect(dialog().getByText('Far away, something you never learned of is finished.')).toBeTruthy()
+  expect(dialog().queryByText(new RegExp(short))).toBeNull()
+  expect(runRecord(state, content, '2026-11-13').villain).toBeNull()
 })
 
 test('fallen: New party or Look back, never Keep playing; the banner stays', async () => {
@@ -109,7 +150,10 @@ test('the Hall holds one record per run, updated when the run ends again', () =>
   const hall = readHall()
   expect(hall).toHaveLength(1)
   expect(hall[0]).toMatchObject({ ending: 'fallen', acts: ['failed', null, null] })
-  // A record that no longer validates is dropped on load.
+  // A record that no longer validates is skipped on load, and kept when the Hall is written.
   localStorage.setItem(HALL_KEY, JSON.stringify([{ id: 'x' }, ...hall]))
   expect(readHall()).toHaveLength(1)
+  expect(recordRun({ ...runRecord(won(), content, at), id: 'another' })).toBe(true)
+  expect(readHall()).toHaveLength(2)
+  expect(JSON.parse(localStorage.getItem(HALL_KEY)!)).toContainEqual({ id: 'x' })
 })
