@@ -5,7 +5,15 @@ import { createRng, withRng } from '../rng'
 import { step } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { abilityModifier } from './abilities'
-import { applyLevelUps, grantXp, levelFor, levelTo, levelUp, xpToNext } from './progression'
+import {
+  applyLevelUps,
+  grantXp,
+  levelFor,
+  levelTo,
+  levelUp,
+  xpProgress,
+  xpToNext,
+} from './progression'
 
 const sum = (scores: Record<string, number>) => Object.values(scores).reduce((a, b) => a + b, 0)
 
@@ -25,6 +33,14 @@ describe('the XP table', () => {
     expect(levelFor(XP_BY_LEVEL[MAX_LEVEL - 1] * 10)).toBe(MAX_LEVEL)
     expect(xpToNext({ ...brom, xp: 10 })).toBe(XP_BY_LEVEL[1] - 10)
     expect(xpToNext({ ...brom, level: MAX_LEVEL, xp: XP_BY_LEVEL[MAX_LEVEL - 1] })).toBeNull()
+  })
+
+  test("xpProgress runs from the level's threshold to the next, full at the cap", () => {
+    expect(xpProgress({ ...brom, level: 2, xp: XP_BY_LEVEL[1] }).share).toBe(0)
+    const mid = (XP_BY_LEVEL[1] + XP_BY_LEVEL[2]) / 2
+    expect(xpProgress({ ...brom, level: 2, xp: mid }).share).toBeCloseTo(0.5)
+    const capped = xpProgress({ ...brom, level: MAX_LEVEL, xp: XP_BY_LEVEL[MAX_LEVEL - 1] })
+    expect(capped).toMatchObject({ toNext: null, share: 1 })
   })
 })
 

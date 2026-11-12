@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, expect, test, vi } from 'vitest'
+import { XP_BY_LEVEL } from '../engine/constants'
 import { SKILLS, statLabel } from '../engine/rules/abilities'
 import { brom, lyra } from '../engine/test-fixtures'
+import type { CamaraderieInfo } from '../engine/town/camaraderie'
 import type { SkillUse } from '../schema/state'
+import { MAX_LEVEL } from '../schema/types'
 import { PartyPanel } from './PartyPanel'
 
 afterEach(cleanup)
@@ -94,4 +97,56 @@ test('strain shows on the card, and per skill in the sheet', async () => {
 test('no strain, no strain badge', () => {
   render(<PartyPanel party={[brom]} />)
   expect(document.querySelector('.badge.strain')).toBeNull()
+})
+
+test('each card shows its level and a bar to the next; the sheet has XP, wage and accessory', async () => {
+  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], wage: 1.5 }
+  render(<PartyPanel party={[brom, hired]} />)
+  expect(toggle('Lyra').textContent).toMatch(/lv 2/)
+  const bar = card('Lyra').getByRole('meter', { name: 'Lyra XP' })
+  expect(bar.getAttribute('aria-valuetext')).toMatch(/to level 3$/)
+  await userEvent.click(toggle('Lyra'))
+  expect(card('Lyra').getByText('Hired · 1.5 gp a day')).toBeTruthy()
+  expect(card('Lyra').getByText(/^Accessory:/)).toBeTruthy()
+  // At the cap there is no bar.
+  cleanup()
+  render(<PartyPanel party={[{ ...brom, level: MAX_LEVEL, xp: XP_BY_LEVEL[MAX_LEVEL - 1] }]} />)
+  expect(screen.queryByRole('meter', { name: 'Brom XP' })).toBeNull()
+})
+
+test('dismissing a hired member asks first; founders have no Dismiss', async () => {
+  const onDismiss = vi.fn()
+  render(<PartyPanel party={[brom, { ...lyra, wage: 1 }]} onDismiss={onDismiss} />)
+  await userEvent.click(toggle('Brom'))
+  expect(card('Brom').queryByRole('button', { name: 'Dismiss' })).toBeNull()
+  await userEvent.click(toggle('Lyra'))
+  await userEvent.click(card('Lyra').getByRole('button', { name: 'Dismiss' }))
+  expect(onDismiss).not.toHaveBeenCalled()
+  expect(document.activeElement).toBe(card('Lyra').getByRole('button', { name: 'Keep' }))
+  await userEvent.click(card('Lyra').getByRole('button', { name: 'Keep' }))
+  expect(card('Lyra').queryByRole('button', { name: 'Keep' })).toBeNull()
+  await userEvent.click(card('Lyra').getByRole('button', { name: 'Dismiss' }))
+  await userEvent.click(card('Lyra').getByRole('button', { name: 'Dismiss' }))
+  expect(onDismiss).toHaveBeenCalledWith('lyra')
+})
+
+test('the camaraderie line: tier, value, wages and owed, explained on hover', () => {
+  const info: CamaraderieInfo = {
+    value: 1,
+    max: 8,
+    tier: 'fractured',
+    label: 'Fractured',
+    causes: ['3 gp of wages owed'],
+    wagesPerDay: 2,
+    wagesOwed: 3,
+    desertRisk: 0.25,
+  }
+  render(<PartyPanel party={[brom]} camaraderie={info} />)
+  const line = document.querySelector('.camaraderie')!
+  expect(line.textContent).toMatch(
+    /^Camaraderie: Fractured \(1\/8\) · desertion 25%.* · wages 2 gp a day · 3 gp owed$/s
+  )
+  expect(screen.getByRole('tooltip', { hidden: true }).textContent).toMatch(
+    /Now: 3 gp of wages owed\./
+  )
 })

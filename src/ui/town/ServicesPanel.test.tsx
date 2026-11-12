@@ -6,6 +6,7 @@ import type { Content } from '../../content/build'
 import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import type { GameState } from '../../schema/state'
 import { I18nProvider } from '../i18n/I18n'
+import { recruitOffers } from '../../engine/town/recruits'
 import { ServicesPanel } from './ServicesPanel'
 import { HEALER_PRICE } from '../../engine/constants'
 
@@ -120,6 +121,35 @@ test('the inn leaves its rumours and notice board to their own lines in the talk
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
   expect(inn.queryByText(/Rumours here|^Board: /)).toBeNull()
   expect(inn.queryByRole('button', { name: 'Take' })).toBeNull()
+})
+
+test('the inn opens its recruits in place of the tiles; Hire dispatches hireRecruit', async () => {
+  const state = town()
+  const offers = recruitOffers(state, content, 'greenvale-1')
+  expect(offers.length).toBeGreaterThan(0)
+  const onAction = panel(state)
+  const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
+  await userEvent.click(inn.getByRole('button', { name: `Recruits (${offers.length})` }))
+  const list = within(screen.getByRole('region', { name: 'Recruits · Inn/Tavern' }))
+  expect(screen.queryByRole('region', { name: 'Inn/Tavern' })).toBeNull()
+  const first = within(list.getByRole('listitem', { name: offers[0].character.name }))
+  expect(first.getByText(new RegExp(`^level ${offers[0].level} `))).toBeTruthy()
+  await userEvent.click(
+    first.getByRole('button', { name: /^Hire · \d+ gp, then [\d.]+ gp a day$/ })
+  )
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'hireRecruit', offerId: offers[0].id })
+  await userEvent.keyboard('{Escape}')
+  expect(document.activeElement).toBe(
+    screen.getByRole('button', { name: `Recruits (${offers.length})` })
+  )
+})
+
+test('a recruit the party cannot afford is disabled with the reason inline', async () => {
+  panel(town({ gold: 0 }))
+  await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))
+  const hire = screen.getAllByRole('button', { name: /^Hire/ })[0] as HTMLButtonElement
+  expect(hire.disabled).toBe(true)
+  expect(hire.parentElement?.textContent).toMatch(/costs \d+ gp/)
 })
 
 test('quality pips explain what quality does there on hover or focus', async () => {

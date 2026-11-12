@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadBundledContent } from '../content/bundled'
-import { formatDate } from '../engine/calendar'
+import { inProgress } from '../engine/encounters/run'
+import { camaraderieInfo } from '../engine/town/camaraderie'
 import { suppliesInfo } from '../engine/travel/preview'
 import { nodeOf } from '../engine/world/graph'
 import { WORLD_MAP_IMAGE, assetUrl } from './assets'
@@ -16,6 +17,7 @@ import { I18nProvider, LanguageToggle, useI18n } from './i18n/I18n'
 import { LogPanel } from './LogPanel'
 import { NewPartyButton } from './NewPartyButton'
 import { PartyPanel } from './PartyPanel'
+import { DayMark } from './DayMark'
 import { useAutoRest } from './settings'
 import { useGame } from './useGame'
 import { JourneyPanel } from './world/JourneyPanel'
@@ -65,7 +67,7 @@ function Game() {
     <div className="app">
       <header className="topbar">
         <h1>{t('app.title')}</h1>
-        <span title={formatDate(shown.day)}>{t('top.day', { day: shown.day })}</span>
+        <DayMark day={shown.day} />
         <span>{t('top.gold', { gold: shown.gold })}</span>
         <span title={t('top.suppliesHint')}>
           {t('top.food', { food: supplies.food, days: supplies.foodDays })} ·{' '}
@@ -91,7 +93,17 @@ function Game() {
       <main className={inTown ? 'layout town' : 'layout'}>
         {/* On narrow screens the columns stack: party, then the centre, then the map (theme.css). */}
         <div className="left">
-          <PartyPanel party={shown.party} skillUses={shown.skillUses} day={shown.day} />
+          <PartyPanel
+            party={shown.party}
+            skillUses={shown.skillUses}
+            day={shown.day}
+            camaraderie={camaraderieInfo(shown)}
+            onDismiss={
+              inProgress(state)
+                ? undefined
+                : (characterId) => dispatch({ type: 'dismissMember', characterId })
+            }
+          />
           <ContractsPanel content={content} state={shown} onAction={dispatch} />
           <WorldMap
             content={content}

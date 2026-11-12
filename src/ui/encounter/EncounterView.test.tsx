@@ -292,6 +292,14 @@ test('the outcome text starts below the dice and DC row, never beside it', async
   expect(row.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
+test('an encounter hardened by danger says so in its header', () => {
+  render(<Harness initial={makeState({ encounter: makeEncounter({ danger: 0.2 }) })} />)
+  expect(screen.getByText('Danger +20%: harder checks, worse wounds')).toBeTruthy()
+  cleanup()
+  render(<Harness initial={makeState({ encounter: makeEncounter() })} />)
+  expect(screen.queryByText(/^Danger/)).toBeNull()
+})
+
 test('an encounter with an empty log still renders', () => {
   render(<Harness initial={makeState({ encounter: makeEncounter({ log: [] }) })} />)
   expect(screen.getByRole('heading', { name: 'Test road' })).toBeTruthy()

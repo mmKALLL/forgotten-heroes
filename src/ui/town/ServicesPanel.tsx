@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { animalOffers } from '../../engine/town/animals'
+import { recruitOffers } from '../../engine/town/recruits'
 import { peopleRows, shopKeeper } from '../../engine/town/reputation'
 import {
   lodgingOptions,
@@ -18,10 +19,20 @@ import { useI18n, type I18n } from '../i18n/I18n'
 import { Tip } from '../Tip'
 import type { QualityEffect } from '../../engine/economy/market'
 import { StandingBadge } from './PeoplePanel'
+import { RecruitsPanel } from './RecruitsPanel'
 import { daysText } from '../world/travelText'
 import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
+
+/**
+ * A service's list opened in place of the tiles (recruits now; the accessory shop later), at the
+ * settlement it was opened in, so it closes by itself when the party leaves.
+ */
+export type ServiceList = { kind: 'recruits'; service: string; at: string | null }
+
+/** What a tile needs to open a list, and to take focus back when it closes. */
+type Opener = { open: (list: ServiceList) => void; returnTo: string | null }
 
 const pips = (quality: number) => '●'.repeat(quality) + '○'.repeat(Math.max(0, 5 - quality))
 
@@ -74,7 +85,25 @@ function Why({ reason }: { reason: string | null | undefined }) {
  */
 export function ServicesPanel({ content, state, onAction }: Props) {
   const { t } = useI18n()
+  const [list, setList] = useState<ServiceList | null>(null)
+  // The service whose opener takes focus back after its list closes.
+  const [returnTo, setReturnTo] = useState<string | null>(null)
   const rows = serviceRows(state, content)
+  if (list && list.at === state.location) {
+    return (
+      <RecruitsPanel
+        content={content}
+        state={state}
+        service={list.service}
+        onAction={onAction}
+        onClose={() => {
+          setReturnTo(list.service)
+          setList(null)
+        }}
+      />
+    )
+  }
+  const opener: Opener = { open: setList, returnTo }
   return (
     <>
       <div className="zone-head">
@@ -101,7 +130,11 @@ export function ServicesPanel({ content, state, onAction }: Props) {
                 aria-label={t(`services.function.${fn}`)}
               >
                 {group.map((row) => (
-                  <ServiceTile key={row.service} row={row} {...{ content, state, onAction }} />
+                  <ServiceTile
+                    key={row.service}
+                    row={row}
+                    {...{ content, state, onAction, opener }}
+                  />
                 ))}
               </div>
             )
@@ -112,7 +145,13 @@ export function ServicesPanel({ content, state, onAction }: Props) {
   )
 }
 
-function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRow }) {
+function ServiceTile({
+  row,
+  content,
+  state,
+  onAction,
+  opener,
+}: Props & { row: ServiceRow; opener: Opener }) {
   const { t, name, fields } = useI18n()
   const title = name('services', row.service, row.name)
   // Who keeps it, and the party's standing with them.
@@ -151,7 +190,12 @@ function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRo
       )}
       <div className="service-actions">
         {working.map((a) => (
-          <ServiceAction key={a.action} view={a} row={row} {...{ content, state, onAction }} />
+          <ServiceAction
+            key={a.action}
+            view={a}
+            row={row}
+            {...{ content, state, onAction, opener }}
+          />
         ))}
         {working.length === 0 && market && <TradesLine content={content} service={row.service} />}
         {working.length === 0 && !market && !passage && !row.later && specialty && (
@@ -184,11 +228,14 @@ function ServiceAction({
   content,
   state,
   onAction,
-}: Props & { view: ServiceActionView; row: ServiceRow }) {
+  opener,
+}: Props & { view: ServiceActionView; row: ServiceRow; opener: Opener }) {
   const { t, name } = useI18n()
   const [target, setTarget] = useState<string | null>(null)
   const [animal, setAnimal] = useState<string | null>(null)
   switch (view.action) {
+    case 'recruit':
+      return <RecruitOpener {...{ content, state, row, view, opener }} />
     case 'lodging':
       return (
         <>
@@ -323,4 +370,43 @@ function ServiceAction({
     default:
       return null
   }
+}
+
+/** "Recruits (2)": opens the recruits list in place of the tiles; none this week says so. */
+function RecruitOpener({
+  content,
+  state,
+  row,
+  view,
+  opener,
+}: {
+  content: Content
+  state: GameState
+  row: ServiceRow
+  view: ServiceActionView
+  opener: Opener
+}) {
+  const { t } = useI18n()
+  const button = useRef<HTMLButtonElement>(null)
+  const back = opener.returnTo === row.service
+  useEffect(() => {
+    if (back) button.current?.focus()
+  }, [back])
+  const here = state.location
+  const n =
+    here === null
+      ? 0
+      : recruitOffers(state, content, here).filter((o) => o.service === row.service).length
+  // "Recruits (0)" says it already, so the reason stays in the tooltip (the tiles stay short); with
+  // offers to look at, a refusal (a full party, too little gold) shows in the list.
+  return (
+    <button
+      ref={button}
+      disabled={n === 0}
+      title={n === 0 ? (view.reason ?? undefined) : t('recruits.openHint')}
+      onClick={() => opener.open({ kind: 'recruits', service: row.service, at: here })}
+    >
+      {t('recruits.open', { n })}
+    </button>
+  )
 }
