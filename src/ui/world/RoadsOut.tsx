@@ -8,9 +8,11 @@ import {
   poiInfo,
   routeOptions,
   type PaceOption,
+  type RoadReason,
   type RouteOption,
 } from '../../engine/travel/preview'
 import { isSevere } from '../../engine/travel/warnings'
+import { provisionPlan } from '../../engine/town/provision'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
 import { OddsBar } from '../OddsBar'
@@ -93,17 +95,13 @@ export function RoadsOut({
           onPace={(p) => onPrefs({ ...prefs, pace: p })}
           forage={forage}
           onForage={(f) => onPrefs({ ...prefs, forage: f })}
+          mounted={prefs.mounted}
+          onMounted={(m) => onPrefs({ ...prefs, mounted: m })}
           onTravel={(stowaway) => {
-            const choice = chosen.terrain === 'sea' ? 'steady' : pace
-            onAction({
-              type: 'travel',
-              routeId: chosen.routeId,
-              ...paceFields(choice),
-              forage,
-              ...(stowaway ? { stowaway: true } : {}),
-            })
+            onAction(travelAction(chosen, prefs, stowaway))
             onSelect(null)
           }}
+          onProvision={() => onAction(provisionAction(chosen, prefs))}
         />
       )}
       {elsewhere && (
@@ -127,6 +125,52 @@ export function RoadsOut({
   )
 }
 
+/** Whether a road is ridden on hired mounts with these choices: wanted, and offered there. */
+export const ridden = (road: RouteOption, prefs: Pick<TravelPrefs, 'mounted'>): boolean =>
+  prefs.mounted && road.mounted !== null
+
+/** The travel action for a road with the chosen pace, foraging and mounts. */
+export function travelAction(road: RouteOption, prefs: TravelPrefs, stowaway = false): Action {
+  const choice = road.terrain === 'sea' ? 'steady' : prefs.pace
+  return {
+    type: 'travel',
+    routeId: road.routeId,
+    ...paceFields(choice),
+    forage: prefs.forage,
+    ...(stowaway ? { stowaway: true } : {}),
+    ...(ridden(road, prefs) ? { hire: true } : {}),
+  }
+}
+
+/** "Provision for this road": the food and waterskins the road needs with these choices. */
+export function provisionAction(road: RouteOption, prefs: TravelPrefs): Action {
+  const choice = road.terrain === 'sea' ? 'steady' : prefs.pace
+  return {
+    type: 'provision',
+    routeId: road.routeId,
+    ...paceFields(choice),
+    ...(ridden(road, prefs) ? { hire: true } : {}),
+  }
+}
+
+/**
+ * The pace option shown for a road: the chosen pace (steady, or the first, when the road doesn't
+ * offer it), on foot or riding hired mounts.
+ */
+export function shownPace(
+  road: RouteOption,
+  prefs: Pick<TravelPrefs, 'pace' | 'mounted'>
+): PaceOption & { cost?: number; reason?: RoadReason | null } {
+  const paces: (PaceOption & { cost?: number; reason?: RoadReason | null })[] = ridden(road, prefs)
+    ? road.mounted!.paces
+    : road.paces
+  return (
+    paces.find((p) => paceChoiceOf(p) === prefs.pace) ??
+    paces.find((p) => p.pace === 'steady') ??
+    paces[0]
+  )
+}
+
 /** Everything about one road at the chosen pace before the party commits (input randomness). */
 export function RouteInfo({
   road,
@@ -136,7 +180,10 @@ export function RouteInfo({
   onPace,
   forage,
   onForage,
+  mounted,
+  onMounted,
   onTravel,
+  onProvision,
 }: {
   road: RouteOption
   state: GameState
@@ -145,18 +192,31 @@ export function RouteInfo({
   onPace: (p: PaceChoice) => void
   forage: boolean
   onForage: (f: boolean) => void
+  /** Hire riding animals where the road offers them (RouteOption.mounted). */
+  mounted: boolean
+  onMounted: (m: boolean) => void
   onTravel: (stowaway: boolean) => void
+  /** Buy what the road needs at the shown pace (absent where nothing can be bought). */
+  onProvision?: () => void
 }) {
-  const { t, stat } = useI18n()
+  const { t, stat, name } = useI18n()
   const forageHintId = useId()
   const there = placeInfo(state, content, road.to)
   const site = poiInfo(state, content, road.to)
   const sea = road.terrain === 'sea'
-  const option: PaceOption =
-    road.paces.find((p) => paceChoiceOf(p) === pace) ??
-    road.paces.find((p) => p.pace === 'steady') ??
-    road.paces[0]
+  const riding = ridden(road, { mounted })
+  const option = shownPace(road, { pace, mounted })
   const shown = paceChoiceOf(option)
+  const onFoot = shownPace(road, { pace, mounted: false })
+  const reason = riding ? (option.reason ?? null) : road.reason
+  const offer = road.mounted
+  const supplies = onProvision
+    ? provisionPlan(state, content, {
+        routeId: road.routeId,
+        ...paceFields(sea ? 'steady' : shown),
+        hire: riding,
+      })
+    : null
   const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
   const round = (n: number) => Math.ceil(n - 1e-9)
   return (
@@ -164,15 +224,17 @@ export function RouteInfo({
       <h3>{t('route.heading', { name: road.toName })}</h3>
       {there && (
         <>
-          <p className="muted small">{realmText(t, there)}</p>
-          <p className="small">
+          <p className="muted small dest" title={realmText(t, there)}>
+            {realmText(t, there)}
+          </p>
+          <p className="small dest" title={`${there.typeName} · ${threatLine(t, there)}`}>
             {there.typeName} · {threatLine(t, there)}
           </p>
         </>
       )}
       {site && <PoiSummary info={site} />}
       <div className="seg-toggle pace-choice" role="group" aria-label={t('route.pace')}>
-        {road.paces.map((p) => {
+        {(riding ? road.mounted!.paces : road.paces).map((p) => {
           const choice = paceChoiceOf(p)
           return (
             <button
@@ -200,6 +262,28 @@ export function RouteInfo({
             />{' '}
             {t('route.forage')}
           </label>
+          {offer && (
+            <label className="inline small hire-toggle">
+              <input
+                type="checkbox"
+                checked={riding}
+                onChange={(e) => onMounted(e.target.checked)}
+              />{' '}
+              {t('route.hire', {
+                count: offer.count,
+                name: name('animals', offer.animal, offer.name),
+                gp: offer.perDay,
+              })}
+              {' · '}
+              <span className="muted">
+                {t('route.hireCompare', {
+                  days: daysText(t, shownPace(road, { pace, mounted: true }).days),
+                  foot: daysText(t, onFoot.days),
+                  gp: shownPace(road, { pace, mounted: true }).cost ?? 0,
+                })}
+              </span>
+            </label>
+          )}
           {option.forageTradeOff && (
             <p id={forageHintId} className="muted small">
               {t('route.forageHint', {
@@ -262,6 +346,7 @@ export function RouteInfo({
         )}
         <li>{t('route.footing', { footing: t(`footing.${option.ambush}`) })}</li>
         {road.fare > 0 && <li>{t('route.fare', { gp: road.fare })}</li>}
+        {riding && option.cost !== undefined && <li>{t('route.hireCost', { gp: option.cost })}</li>}
       </ul>
       {option.forage && (
         <div className="check-preview">
@@ -286,11 +371,42 @@ export function RouteInfo({
           />
         </div>
       )}
-      {road.reason && <p className="tone-bad small">{roadReasonMessage(t, road.reason)}</p>}
+      {reason && <p className="tone-bad small">{roadReasonMessage(t, reason)}</p>}
       <div className="actions">
-        <button className="primary" disabled={!road.available} onClick={() => onTravel(false)}>
+        <button className="primary" disabled={reason !== null} onClick={() => onTravel(false)}>
           {t('route.travel')}
         </button>
+        {supplies && onProvision && (
+          <button
+            disabled={supplies.ready || supplies.total > state.gold}
+            title={[
+              t('route.provisionHint', { days: daysText(t, option.days) }),
+              supplies.limit && t(`route.provisionLimit.${supplies.limit}`),
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            onClick={onProvision}
+          >
+            {supplies.ready
+              ? t('route.provisionReady')
+              : t('route.provision', {
+                  what: [
+                    supplies.food > 0 && t('route.provisionFood', { n: supplies.food }),
+                    supplies.waterskins > 0 &&
+                      t(
+                        supplies.waterskins === 1 ? 'route.provisionSkin' : 'route.provisionSkins',
+                        {
+                          n: supplies.waterskins,
+                        }
+                      ),
+                    supplies.food === 0 && supplies.waterskins === 0 && t('route.provisionWater'),
+                  ]
+                    .filter(Boolean)
+                    .join(', '),
+                  gp: supplies.total,
+                })}
+          </button>
+        )}
       </div>
       {road.stowaway && (
         <div className="check-preview">

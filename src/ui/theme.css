@@ -1152,3 +1152,546 @@ h2[tabindex='-1']:focus {
 .new-party-menu p {
   margin: 0 0 0.2rem;
 }
+/* The goods bar (design §9): goods by category, the capacity meter and visible wealth. */
+.goods-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+  padding: 0.4rem 1rem;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 0.85rem;
+  z-index: 2;
+}
+.goods-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.goods-cat {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.goods-item b {
+  font-variant-numeric: tabular-nums;
+}
+.capacity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.capacity-bar {
+  position: relative;
+  display: inline-block;
+  width: 6rem;
+  height: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.capacity-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--good);
+}
+.load-encumbered .capacity-fill {
+  background: var(--tier-partial);
+}
+.load-overloaded .capacity-fill {
+  background: var(--bad);
+}
+.capacity-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--ink);
+  opacity: 0.6;
+}
+.load-badge {
+  margin-left: 0;
+}
+.load-encumbered .load-badge {
+  border-color: var(--tier-partial);
+}
+.load-overloaded .load-badge {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+.wealth {
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.wealth.shown {
+  color: var(--crit);
+  cursor: help;
+}
+@media (max-width: 900px) {
+  .goods-bar {
+    position: static;
+  }
+}
+/*
+ * The town ledger (design §5): one screen at desktop width. The centre column widens in town, and
+ * the ledger lays its zones out as header / market and roads / services / people.
+ */
+.layout.town {
+  grid-template-columns: minmax(230px, 0.8fr) minmax(0, 3fr) minmax(210px, 0.8fr);
+}
+@media (max-width: 900px) {
+  .layout.town {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ledger {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-areas:
+    'head head'
+    'main side';
+  align-items: start;
+  gap: 0.6rem 1rem;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}
+.ledger h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.ledger button {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.8rem;
+}
+.ledger-head {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+}
+.ledger-head h2 {
+  margin: 0;
+}
+.ledger-head > span + span::before {
+  content: '· ';
+  color: var(--muted);
+}
+.banner-thumb {
+  height: 2rem;
+  width: auto;
+  max-width: 6rem;
+  object-fit: cover;
+  border-radius: 3px;
+  align-self: center;
+}
+.ledger-main,
+.ledger-side {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  min-width: 0;
+}
+.ledger-main {
+  grid-area: main;
+}
+.ledger-side {
+  grid-area: side;
+}
+.zone-people summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.people {
+  list-style: none;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  columns: 2;
+}
+/* On narrow screens the market table scrolls sideways inside its zone, not the page. */
+.market-scroll {
+  overflow-x: auto;
+}
+@media (max-width: 900px) {
+  .ledger {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'main' 'side';
+  }
+  .ledger .ledger-head {
+    flex-wrap: wrap;
+    white-space: normal;
+  }
+}
+.zone-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.ledger .zone-head h3 {
+  margin: 0;
+}
+.ledger-head {
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+.ledger-head .realm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.market-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.market-table th,
+.market-table td {
+  padding: 0.05rem 0.3rem;
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.market-table thead th {
+  font-weight: normal;
+  font-size: 0.7rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.market-table tbody + tbody {
+  border-top: 1px solid var(--line);
+}
+.market-table .num {
+  text-align: right;
+}
+.market-table .market-good {
+  font-weight: normal;
+}
+.market-table tr.carried .market-good {
+  font-weight: bold;
+}
+.market-table .market-cat {
+  width: 1.1rem;
+  padding: 0;
+  font-size: 0.6rem;
+  font-weight: normal;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.market-cat span {
+  display: block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin: 0 auto;
+}
+.levels {
+  font-size: 0.6rem;
+  letter-spacing: -0.05em;
+}
+.levels .supply {
+  color: var(--good);
+}
+.levels .demand {
+  color: var(--bad);
+}
+.levels .sep {
+  color: var(--muted);
+  margin: 0 0.15rem;
+}
+.pips {
+  font-size: 0.55rem;
+  letter-spacing: -0.05em;
+  color: var(--accent);
+}
+.market-table .known {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.known.stale {
+  opacity: 0.55;
+}
+.known .mark {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--muted);
+}
+.market-table .trade {
+  text-align: right;
+}
+.market-table .trade button {
+  font-size: 0.72rem;
+  padding: 0 0.35rem;
+  margin-left: 0.2rem;
+}
+.explore-line {
+  position: relative;
+  margin-top: 0.5rem;
+}
+.hover-tip {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 100%;
+  min-width: 16rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+}
+.explore-line:hover .hover-tip,
+.explore-line:focus-within .hover-tip {
+  display: block;
+}
+.ledger .route-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.75rem;
+}
+.ledger .route-facts li.muted {
+  grid-column: 1 / -1;
+}
+.ledger p {
+  margin: 0.1rem 0;
+}
+.ledger .route-info {
+  padding-top: 0.3rem;
+}
+.ledger .route-info h3 {
+  margin: 0 0 0.15rem;
+}
+.ledger .road-list {
+  gap: 0.15rem;
+  margin: 0 0 0.4rem;
+}
+.ledger .road-list button {
+  padding: 0 0.4rem;
+}
+.ledger .pace-choice {
+  margin: 0.2rem 0;
+}
+.ledger .route-facts {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.25rem 0;
+  font-size: 0.8rem;
+}
+.ledger .route-facts li {
+  padding-left: 0.6rem;
+  text-indent: -0.6rem;
+}
+.ledger .warnings {
+  margin: 0.25rem 0;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+}
+.ledger .check-preview {
+  margin: 0.25rem 0;
+}
+.ledger .odds-bar {
+  height: 1.1rem;
+  margin: 0.2rem 0;
+  font-size: 0.7rem;
+}
+.ledger .check-outcomes {
+  margin: 0.15rem 0 0.3rem;
+  font-size: 0.78rem;
+}
+.ledger .actions {
+  margin: 0.3rem 0;
+  gap: 0.35rem;
+}
+.ledger .services {
+  margin: 0 0 0.3rem;
+}
+/* Services as compact tiles in four columns; a function's tiles share an edge colour. */
+.service-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.service-group {
+  display: contents;
+}
+.service-tile {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 4px;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.78rem;
+  min-width: 0;
+}
+.service-tile.fn-trade {
+  border-left-color: var(--good);
+}
+.service-tile.fn-rest {
+  border-left-color: var(--tier-partial);
+}
+.service-tile.fn-hire {
+  border-left-color: var(--accent);
+}
+.service-tile.fn-temple {
+  border-left-color: #6a3f8a;
+}
+.service-tile.fn-underworld {
+  border-left-color: var(--ink);
+}
+.service-tile.later {
+  opacity: 0.6;
+}
+.service-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.3rem;
+  font-weight: bold;
+  line-height: 1.15;
+}
+.service-name > span:last-child {
+  white-space: nowrap;
+}
+.service-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  margin-top: 0.1rem;
+  line-height: 1.2;
+}
+.ledger .service-actions button {
+  font-size: 0.72rem;
+  padding: 0 0.3rem;
+  white-space: nowrap;
+}
+.service-actions .small {
+  font-size: 0.72rem;
+}
+.service-actions .trades {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.inline-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+}
+.inline-pick select {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.72rem;
+  padding: 0 0.2rem;
+}
+.hire-toggle {
+  display: block;
+}
+@media (max-width: 900px) {
+  .service-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ledger .route-info > p.dest {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ledger .pace-choice button {
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
+}
+.ledger .check-outcomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.8rem;
+}
+.ledger .check-outcomes .faces {
+  min-width: 0;
+  margin-right: 0.25rem;
+}
+/* Travel from the map: a small popover by the picked marker. */
+.map-frame {
+  position: relative;
+}
+.map-pop {
+  position: absolute;
+  z-index: 4;
+  transform: translateY(calc(-100% - 14px));
+  width: min(15rem, 100%);
+  padding: 0.35rem 0.5rem;
+  background: var(--panel);
+  border: 1px solid var(--accent);
+  border-radius: 5px;
+  box-shadow: 0 3px 10px rgb(0 0 0 / 25%);
+  font-size: 0.8rem;
+}
+.map-pop.below {
+  transform: translateY(14px);
+}
+.map-pop p {
+  margin: 0.1rem 0;
+}
+.map-pop .actions {
+  margin: 0.25rem 0 0;
+  gap: 0.3rem;
+}
+.map-pop button {
+  padding: 0.05rem 0.5rem;
+  font-size: 0.8rem;
+}
+/* Drop goods: opens upwards from the goods bar. */
+.drop-goods {
+  position: relative;
+}
+.drop-goods summary {
+  cursor: pointer;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+.drop-goods.urgent summary {
+  color: var(--bad);
+  font-weight: bold;
+}
+.drop-list {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 0.4rem);
+  z-index: 5;
+  list-style: none;
+  margin: 0;
+  padding: 0.4rem 0.5rem;
+  min-width: 14rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  box-shadow: 0 -3px 10px rgb(0 0 0 / 20%);
+}
+.drop-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.drop-list li > span {
+  flex: 1;
+}
+.drop-list button {
+  padding: 0 0.4rem;
+  font-size: 0.75rem;
+}

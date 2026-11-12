@@ -36,6 +36,7 @@ import {
 } from './supplies'
 import { observe } from '../economy/trade'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
+import { suppliesLast, supplyOutlook } from './outlook'
 import { load, overloadExcess, type Hired } from '../economy/capacity'
 import { visibleWealth } from '../economy/wealth'
 import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/animals'
@@ -374,7 +375,9 @@ function forageText(t: ForageTally): string {
 
 /**
  * Walks on, day by day, until something happens: an encounter (on its drawn day), a day someone
- * went short of food or water, a party that can't go on, or arrival. Each day on land the
+ * went short of food or water, a supply warning (the day the food or water carried stops lasting
+ * to the end of the road, when it did as this Continue began), a party that can't go on, or
+ * arrival. Each day on land the
  * best-suited member forages first (unless the journey set out without foraging). Quiet days and
  * their foraging become one line. Each day walked is recorded with its pace, for pursuit.
  */
@@ -387,6 +390,8 @@ export function continueJourney(state: GameState, content: Content): GameState {
   let next = state
   let quiet = 0
   let tally: ForageTally | null = null
+  // A supply warning stops the walk once: only when the supplies lasted as it began.
+  const lasted = suppliesLast(supplyOutlook(state, content))
   const strainLines: string[] = []
   const flush = (s: GameState): GameState => {
     const t = s.travel!
@@ -473,8 +478,22 @@ export function continueJourney(state: GameState, content: Content): GameState {
     const eventful = travel.encounterDays[0] === day
     if (short && !eventful) return next
     if (!short && !eventful) quiet += 1
+    if (lasted && !short && !eventful && walked.kmDone < walked.km) {
+      const outlook = supplyOutlook(next, content)
+      if (!suppliesLast(outlook)) return supplyWarning(flush(next), outlook)
+    }
   }
   return flush(next)
+}
+
+/** The journal line a supply warning stops the walk with. */
+function supplyWarning(state: GameState, outlook: { food: boolean; water: boolean }): GameState {
+  const what = !outlook.food && !outlook.water ? 'food and water' : !outlook.food ? 'food' : 'water'
+  return appendLog(
+    state,
+    `At this rate the ${what} won’t last to ${settlementName(state, state.travel!.to)}.`,
+    'bad'
+  )
 }
 
 export function stepTravel(state: GameState, action: TravelAction, content: Content): GameState {

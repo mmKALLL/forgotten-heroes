@@ -112,3 +112,19 @@ describe('the price book', () => {
     expect(view.map((r) => r.category)).toContain('precious')
   })
 })
+
+describe('dropping goods', () => {
+  test('leaves goods behind anywhere, so an overloaded party can set out again', () => {
+    const empty = makeState({ location: 'greenvale-1', goods: {} })
+    const kg = Math.floor(load(empty, content).capacity * 1.5) + 5
+    const loaded = { ...empty, goods: { food: kg } }
+    expect(load(loaded, content).level).toBe('overloaded')
+    const dropped = step(loaded, { type: 'dropGoods', good: 'food', amount: 10 }, content)
+    expect(dropped.goods.food).toBe(kg - 10)
+    expect(load(dropped, content).level).not.toBe('overloaded')
+    expect(dropped.log.at(-1)!.text).toBe('Left behind 10 food (10 kg).')
+    const none = step(dropped, { type: 'dropGoods', good: 'gems', amount: 1 }, content)
+    expect(none.log.at(-1)!.text).toBe('There is no gems to leave.')
+    expect(none.goods).toEqual(dropped.goods)
+  })
+})

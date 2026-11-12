@@ -13,10 +13,13 @@ export function JourneyPanel({
   content,
   state,
   onAction,
+  autoRest,
 }: {
   content: Content
   state: GameState
   onAction: (a: Action) => void
+  /** The per-viewer auto-rest setting and its toggle (absent: not shown). */
+  autoRest?: { on: boolean; set: (on: boolean) => void }
 }) {
   const { t } = useI18n()
   const j = journeyInfo(state, content)
@@ -52,12 +55,23 @@ export function JourneyPanel({
         <button
           className="primary"
           disabled={!j.canMove}
+          title={t('journey.continueHint')}
           onClick={() => onAction({ type: 'continueJourney' })}
         >
           {t('journey.continue')}
         </button>
         <button onClick={() => onAction({ type: 'rest' })}>{t('journey.camp')}</button>
       </div>
+      {autoRest && (
+        <label className="inline small">
+          <input
+            type="checkbox"
+            checked={autoRest.on}
+            onChange={(e) => autoRest.set(e.target.checked)}
+          />{' '}
+          {t('journey.autoRest')}
+        </label>
+      )}
     </section>
   )
 }

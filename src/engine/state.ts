@@ -17,6 +17,8 @@ import { useService, type ServiceUse } from './town/services'
 import { buyAnimal, sellAnimal } from './town/animals'
 import { listenRumours } from './town/rumours'
 import { expireContracts, stepContract, type ContractAction } from './town/contracts'
+import { provision, type ProvisionFor } from './town/provision'
+import { autoRest } from './town/arrival'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
@@ -46,6 +48,10 @@ export type Action =
   | { type: 'listenRumours' }
   /** Take, give up or complete a contract from a notice board (town/contracts.ts). */
   | ContractAction
+  /** Buy the food and waterskins a road needs at a pace, and fill the water (town/provision.ts). */
+  | ({ type: 'provision' } & ProvisionFor)
+  /** Rest a day on arrival if hurt or strained: at an inn if affordable (town/arrival.ts). */
+  | { type: 'autoRest' }
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
@@ -157,6 +163,7 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return stepTravel(state, action, content)
     case 'buyGoods':
     case 'sellGoods':
+    case 'dropGoods':
       return stepTrade(state, action, content)
     case 'useService':
       return useService(state, content, action)
@@ -174,6 +181,10 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'abandonContract':
     case 'completeContract':
       return stepContract(state, action, content)
+    case 'provision':
+      return provision(state, content, action)
+    case 'autoRest':
+      return autoRest(state, content)
     default:
       return stepEncounter(state, action, content)
   }

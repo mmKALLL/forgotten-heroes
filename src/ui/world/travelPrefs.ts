@@ -1,10 +1,13 @@
 import { useState } from 'react'
 import type { PaceChoice } from './travelText'
 
-/** The pace and foraging chosen in the settlement panel (UI state only, not part of GameState). */
-export type TravelPrefs = { pace: PaceChoice; forage: boolean }
+/**
+ * The pace, foraging and hired mounts chosen in the settlement panel (UI state only, not part of
+ * GameState). `mounted` hires riding animals wherever a road offers them.
+ */
+export type TravelPrefs = { pace: PaceChoice; forage: boolean; mounted: boolean }
 
-export const DEFAULT_TRAVEL_PREFS: TravelPrefs = { pace: 'steady', forage: true }
+export const DEFAULT_TRAVEL_PREFS: TravelPrefs = { pace: 'steady', forage: true, mounted: false }
 
 /**
  * The travel choices for one game: they survive journeys and encounters (which unmount the

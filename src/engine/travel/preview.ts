@@ -313,6 +313,8 @@ export type RoadReason =
   | { code: 'overloaded'; params: { kg: number } }
   /** An owned animal can't take this path to a site: a cart keeps to roads, horses to easy paths. */
   | { code: 'animals'; params: { name: string; roadsOnly: boolean } }
+  /** Hiring the mounts for this pace costs more than the party has. */
+  | { code: 'hire'; params: { gold: number } }
 
 /** The English text of a road reason, until every caller localises the codes. */
 export function roadReasonText(r: RoadReason): string {
@@ -327,6 +329,8 @@ export function roadReasonText(r: RoadReason): string {
       return `Too heavy to set out: drop or sell ${r.params.kg} kg.`
     case 'animals':
       return animalBlockText(r.params)
+    case 'hire':
+      return `Hiring the mounts costs ${r.params.gold} gp.`
   }
 }
 
@@ -371,7 +375,11 @@ export type MountedOption = {
   name: string
   count: number
   perDay: number
-  paces: (PaceOption & { cost: number })[]
+  /**
+   * Each pace with the hire for its days, and why it can't be ridden now (or null): the road's
+   * own reasons, judged with the mounts' capacity, or a hire the party can't pay.
+   */
+  paces: (PaceOption & { cost: number; reason: RoadReason | null })[]
 }
 
 /**
@@ -420,15 +428,41 @@ export function routeOptions(state: GameState, content: Content, forage = true):
       paceNote: route.terrain === 'sea' ? SEA_PACE_NOTE : null,
       available: reason === null,
       reason,
-      mounted: offer && {
-        ...offer,
-        paces: paceOptions(state, content, route, threatLevel, forage, meets, {
-          animal: offer.animal,
-          count: offer.count,
-        }).map((p) => ({ ...p, cost: hireCost(offer, p.days) })),
-      },
+      mounted:
+        offer && mountedOption(state, content, route, offer, reason, threatLevel, forage, meets),
     }
   })
+}
+
+/** A road ridden on hired mounts: the road's reasons with the mounts' capacity, and the hire. */
+function mountedOption(
+  state: GameState,
+  content: Content,
+  route: Route,
+  offer: NonNullable<ReturnType<typeof hireOffer>>,
+  reason: RoadReason | null,
+  threatLevel: number,
+  forage: boolean,
+  meets: boolean
+): MountedOption {
+  const hired = { animal: offer.animal, count: offer.count }
+  const laden = load(state, content, { hired })
+  // The mounts carry too: only their load decides whether the party is too heavy to set out.
+  const road: RoadReason | null =
+    reason?.code === 'overloaded' || reason === null
+      ? laden.level === 'overloaded'
+        ? { code: 'overloaded', params: { kg: overloadExcess(laden) } }
+        : null
+      : reason
+  return {
+    ...offer,
+    paces: paceOptions(state, content, route, threatLevel, forage, meets, hired).map((p) => {
+      const cost = hireCost(offer, p.days)
+      const hire: RoadReason | null =
+        state.gold < cost ? { code: 'hire', params: { gold: cost } } : null
+      return { ...p, cost, reason: road ?? hire }
+    }),
+  }
 }
 
 export type JourneyInfo = {

@@ -2,6 +2,7 @@ import type { Content } from '../../content/build'
 import { GOODS, GOOD_CATEGORY, type Good, type GoodCategory } from '../../schema/types'
 import type { GameState, KnownPrice, PriceBookEntry } from '../../schema/state'
 import { formatGp } from '../format'
+import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
 import { tradeReputation } from '../town/reputation'
 import { inSettlement, notHere } from '../travel/where'
@@ -16,6 +17,8 @@ import { OVERLOAD_RATIO, STALE_DAYS } from '../constants'
 export type TradeAction =
   | { type: 'buyGoods'; good: Good; amount: number; shop?: string }
   | { type: 'sellGoods'; good: Good; amount: number; shop?: string }
+  /** Leave goods behind (anywhere, but not mid-encounter): loot can't strand the party. */
+  | { type: 'dropGoods'; good: Good; amount: number }
 
 /** A buy is never bigger than this, whatever is asked. */
 const MAX_UNITS = 9999
@@ -288,8 +291,34 @@ export function marketView(state: GameState, content: Content): MarketRow[] {
   })
 }
 
+/**
+ * Leaves up to `amount` units of a good behind, wherever the party is (not mid-encounter), so an
+ * overloaded party can always lighten itself enough to move on. Spilled water is just poured out.
+ */
+export function dropGoods(
+  state: GameState,
+  content: Content,
+  good: Good,
+  amount: number
+): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
+  const n = Math.min(Math.max(0, Math.floor(amount)), units(state, good))
+  if (n === 0) return appendLog(state, `There is no ${lower(content, good)} to leave.`, 'bad')
+  const goods = { ...state.goods, [good]: units(state, good) - n }
+  const kg = Math.round(n * goodWeight(content, good) * 10) / 10
+  return appendLog(
+    { ...state, goods },
+    good === 'water'
+      ? `Poured out ${n} water (${kg} kg).`
+      : `Left behind ${n} ${lower(content, good)} (${kg} kg).`,
+    'info'
+  )
+}
+
 export function stepTrade(state: GameState, action: TradeAction, content: Content): GameState {
   switch (action.type) {
+    case 'dropGoods':
+      return dropGoods(state, content, action.good, action.amount)
     case 'buyGoods':
       return buyGoods(state, content, action.good, action.amount, action.shop)
     case 'sellGoods':

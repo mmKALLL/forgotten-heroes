@@ -4,9 +4,9 @@ import userEvent from '@testing-library/user-event'
 import { useState, type ComponentProps } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { placeInfo, routeOptions } from '../../engine/travel/preview'
-import { restOption } from '../../engine/travel/supplies'
 import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
+import { provisionPlan } from '../../engine/town/provision'
 import { I18nProvider, LANGUAGE_KEY } from '../i18n/I18n'
 import { PlacePanel } from './PlacePanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
@@ -164,29 +164,42 @@ test('a crossing the party can’t afford says why, and offers to stow away with
   )
 })
 
-test('rest shows the inn’s price or carried food; buying and selling dispatch', async () => {
-  const state = makeState({ location: 'ashmoor-1', gold: 20, waterskins: 1 })
-  const { onAction, unmount } = panel(state, null)
-  const cost = restOption(state, content).lodgingCost
-  await userEvent.click(
-    screen.getByRole('button', { name: `Rest a day at the inn (${cost} gp, meals included)` })
+test('the hire toggle changes the days and cost shown, and travels mounted', async () => {
+  const state = makeState({ location: 'greenvale-1', gold: 100 })
+  const { onAction } = panel(state, 'greenvale-2')
+  const road = routeOptions(state, content).find((r) => r.to === 'greenvale-2')!
+  const foot = road.paces.find((p) => p.pace === 'steady')!
+  const ridden = road.mounted!.paces.find((p) => p.pace === 'steady')!
+  const group = within(screen.getByRole('group', { name: /^To / }))
+  expect(group.getByText(`About ${foot.days} days on the road`)).toBeTruthy()
+  const hire = group.getByRole('checkbox', { name: /^Hire 2 × Riding horse/ })
+  expect(hire.closest('label')!.textContent).toMatch(
+    `${ridden.days} days instead of ${foot.days} days, ${ridden.cost} gp`
   )
-  expect(onAction).toHaveBeenCalledWith({ type: 'rest' })
-  await userEvent.click(screen.getByRole('button', { name: 'Rest a day, eating carried food' }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: false })
-  await userEvent.click(screen.getByRole('button', { name: /^Buy 5 rations/ }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'buyGoods', good: 'food', amount: 5 })
-  await userEvent.click(screen.getByRole('button', { name: /^Buy a waterskin/ }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'buyWaterskin', count: 1 })
-  await userEvent.click(screen.getByRole('button', { name: /^Sell 5 rations/ }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'food', amount: 5 })
-  await userEvent.click(screen.getByRole('button', { name: /^Sell a waterskin/ }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellWaterskin', count: 1 })
-  unmount()
+  await userEvent.click(hire)
+  expect(group.getByText(`About ${ridden.days} days on the road`)).toBeTruthy()
+  expect(group.getByText(new RegExp(`^Hired mounts: ${ridden.cost} gp`))).toBeTruthy()
+  await userEvent.click(group.getByRole('button', { name: 'Travel' }))
+  expect(onAction).toHaveBeenLastCalledWith(
+    expect.objectContaining({ type: 'travel', routeId: road.routeId, hire: true })
+  )
+})
 
-  panel(makeState({ location: 'ashmoor-1', gold: 0 }), null)
-  expect(screen.queryByRole('button', { name: /at the inn/ })).toBeNull()
-  expect(screen.getByRole('button', { name: 'Rest a day, eating carried food' })).toBeTruthy()
+test('provision for this road shows its cost and dispatches for the shown pace', async () => {
+  const state = makeState({ location: 'greenvale-1', gold: 100, goods: { food: 0, water: 8 } })
+  const { onAction } = panel(state, 'greenvale-2')
+  const routeId = 'greenvale-1-greenvale-2'
+  const plan = provisionPlan(state, content, { routeId, pace: 'steady' })!
+  const group = within(screen.getByRole('group', { name: /^To / }))
+  await userEvent.click(
+    group.getByRole('button', { name: `Provision: ${plan.food} food · ${plan.total} gp` })
+  )
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'provision',
+    routeId,
+    pace: 'steady',
+    coverTracks: false,
+  })
 })
 
 test('a settlement further away is described, but has no road from here', () => {
