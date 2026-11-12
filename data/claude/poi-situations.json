@@ -4327,6 +4327,1109 @@
           ]
         }
       }
+    },
+    {
+      "id": "haunted-barrow-delve",
+      "title": "Haunted barrow",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["dungeon", "restless-dead"],
+      "stages": {
+        "start": {
+          "text": "A long grassy mound with a stone door in its end, pushed open from inside. Cold air breathes out of the dark, and the grass around the door is dead.",
+          "options": [
+            {
+              "id": "study",
+              "kind": "check",
+              "label": "Study the door-carvings first",
+              "description": "Knowing the barrow's plan gives you the Edge in its passages. Costs nothing but time.",
+              "check": {
+                "skill": "history",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The carvings mean nothing to {actor}. You go in blind.",
+                  "goto": "passage"
+                },
+                "partial": {
+                  "text": "{actor} makes out a name and a warning, and you go in wary.",
+                  "goto": "passage"
+                },
+                "success": {
+                  "text": "{actor} reads the carvings: the barrow's plan, and the words that kept its lord asleep. You go in knowing the way.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "passage"
+                }
+              }
+            },
+            {
+              "id": "enter",
+              "kind": "fixed",
+              "label": "Light torches and go in",
+              "outcome": {
+                "text": "You duck under the lintel, and the cold closes around you.",
+                "goto": "passage"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the barrow be",
+              "outcome": {
+                "text": "You leave the door as you found it, open, and walk away a little faster than you came."
+              }
+            }
+          ]
+        },
+        "passage": {
+          "text": "The passage slopes down between walls of dry stone, and the floor is a lattice of old bones. Some of the flagstones are not flagstones.",
+          "options": [
+            {
+              "id": "pick",
+              "kind": "check",
+              "label": "Pick a safe way through",
+              "description": "Slow and careful. A good path brings you to the chamber with the Edge.",
+              "check": {
+                "skill": "investigation",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A flag tips under {actor}, who drops into a pit of bones and climbs out torn.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "guardian"
+                },
+                "partial": {
+                  "text": "{actor} finds most of the false flags. Most.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "guardian"
+                },
+                "success": {
+                  "text": "{actor} finds every false flag, and you reach the burial chamber quiet and ready.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "guardian"
+                }
+              }
+            },
+            {
+              "id": "rush",
+              "kind": "check",
+              "label": "Rush through",
+              "description": "Quick, but anything that goes wrong is loud.",
+              "check": {
+                "skill": "acrobatics",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "Flags give way under {actor}, and the noise echoes ahead of you into the chamber.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "guardian"
+                },
+                "partial": {
+                  "text": "{actor} gets through with a turned ankle.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "guardian"
+                },
+                "success": {
+                  "text": "{actor} dances over the false flags and you follow in their steps.",
+                  "goto": "guardian"
+                }
+              }
+            },
+            {
+              "id": "back",
+              "kind": "fixed",
+              "label": "Turn back",
+              "outcome": {
+                "text": "You climb back to the daylight. The barrow keeps its secrets."
+              }
+            }
+          ]
+        },
+        "guardian": {
+          "text": "In the burial chamber a dead lord sits up on his bier. His eyes are cold lights, and the bones on the floor stir at his word.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight the barrow lord",
+              "description": "Win and the barrow's treasury is yours. Lose and you are driven out, and the barrow stays haunted.",
+              "check": {
+                "skill": "athletics",
+                "dc": 15,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "His cold blade and his rising dead drive you back up the passage and out into the light.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You hack him down, torn and frozen, and the bones fall still.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "{actor} strikes the lights from his eyes, and he falls back on his bier, only bones.",
+                  "goto": "vault"
+                }
+              }
+            },
+            {
+              "id": "rest",
+              "kind": "check",
+              "label": "Lay him to rest",
+              "description": "End it without a fight, and with a lighter heart. Failing angers him.",
+              "once": true,
+              "check": {
+                "skill": "religion",
+                "dc": 15
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "He does not want rest. His cold hand closes on {actor}'s throat.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "He lies back slowly, and his cold hand brushes {actor} as he goes.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "{actor} names him and speaks the rites over him. He lies back with a sigh, and the cold goes out of the barrow.",
+                  "effects": [
+                    {
+                      "effect": "inspiration",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "vault"
+                }
+              }
+            },
+            {
+              "id": "flee",
+              "kind": "fixed",
+              "label": "Flee",
+              "description": "Get out with a few cuts. The barrow stays haunted.",
+              "outcome": {
+                "text": "You run for the daylight with the dead at your heels.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "vault": {
+          "text": "Behind the bier lies the barrow's treasury: grave-goods heaped around a sealed coffer, with a curse cut into its lid.",
+          "options": [
+            {
+              "id": "take-all",
+              "kind": "fixed",
+              "label": "Take everything, coffer and all",
+              "description": "The most gold, and the curse's sting.",
+              "outcome": {
+                "text": "You take it all. The curse bites as you lift the coffer, a cold that goes to the bone, but the gold is real.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": 45
+                  },
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "all"
+                  },
+                  {
+                    "effect": "clearPoi"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "take-some",
+              "kind": "fixed",
+              "label": "Take the grave-goods and leave the coffer",
+              "outcome": {
+                "text": "You take what lies loose and leave the coffer to its curse. The barrow is quiet now, for good.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": 20
+                  },
+                  {
+                    "effect": "clearPoi"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "unbind",
+              "kind": "check",
+              "label": "Break the curse, then take everything",
+              "description": "All of it without the sting, if you can. A failure hurts.",
+              "check": {
+                "skill": "arcana",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The curse lashes out at {actor}. Nobody wants to touch the coffer now.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} blunts the curse enough to open the coffer, if not to empty it.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 30
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} unpicks the curse word by word, and the coffer opens on a lord's fortune.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 45
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "kobold-mine-delve",
+      "title": "Kobold-held mine",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["dungeon"],
+      "stages": {
+        "start": {
+          "text": "An old mine adit, timbered and dark, with fresh tracks of small clawed feet going in and out. Someone has strung bells on a wire across the entrance.",
+          "options": [
+            {
+              "id": "wire",
+              "kind": "check",
+              "label": "Step over the bell-wire",
+              "description": "Get in unheard, or ring their bells for them.",
+              "check": {
+                "skill": "perception",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} brushes the wire. Bells ring, and far below little voices start yapping.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "gallery"
+                },
+                "partial": {
+                  "text": "You get past the wire, and find another just beyond it. Probably nobody heard.",
+                  "goto": "gallery"
+                },
+                "success": {
+                  "text": "{actor} spots the wire, and the second one behind it. You slip in unannounced.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "gallery"
+                }
+              }
+            },
+            {
+              "id": "smoke",
+              "kind": "check",
+              "label": "Smoke them out through the airshafts",
+              "description": "Thin them out before you go in. A botch warns them.",
+              "once": true,
+              "check": {
+                "skill": "survival",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The smoke draws the wrong way, out at you. The kobolds know you are coming.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "gallery"
+                },
+                "partial": {
+                  "text": "Some smoke goes down. You go in after it.",
+                  "goto": "gallery"
+                },
+                "success": {
+                  "text": "{actor} fires the airshafts. Half the tribe flees out of the far side of the hill, and the rest are coughing.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "gallery"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the mine to them",
+              "outcome": {
+                "text": "You leave the mine to the kobolds. The bells tinkle behind you in the wind."
+              }
+            }
+          ]
+        },
+        "gallery": {
+          "text": "The tunnels branch and branch again. The kobolds have been busy: deadfalls, sharpened stakes in the dark, and a rope bridge over a flooded shaft.",
+          "options": [
+            {
+              "id": "traps",
+              "kind": "check",
+              "label": "Find and spring their traps",
+              "description": "Slow and careful. Done well, you arrive with the Edge.",
+              "check": {
+                "skill": "investigation",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A deadfall catches {actor} across the shoulders.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "warren"
+                },
+                "partial": {
+                  "text": "You spring most of them and walk around the rest.",
+                  "goto": "warren"
+                },
+                "success": {
+                  "text": "{actor} springs every trap from a safe distance, and you reach the great working ready for them.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "warren"
+                }
+              }
+            },
+            {
+              "id": "bridge",
+              "kind": "check",
+              "label": "Cross the shaft on the rope bridge",
+              "description": "The quick way. If it gives, you arrive wet, hurt and heard.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The bridge was cut half through. {actor} goes into the black water and comes up gasping, and the splash carries.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "warren"
+                },
+                "partial": {
+                  "text": "The bridge sways and holds. {actor} scrapes a shin on the far side.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "warren"
+                },
+                "success": {
+                  "text": "You cross the shaft hand over hand, and come out right behind their chief's hall.",
+                  "goto": "warren"
+                }
+              }
+            },
+            {
+              "id": "back",
+              "kind": "fixed",
+              "label": "Turn back",
+              "outcome": {
+                "text": "You feel your way back to the daylight. The yapping follows you."
+              }
+            }
+          ]
+        },
+        "warren": {
+          "text": "In the great working the kobolds have built a throne of ore-carts for their chief, who waves a lit oil lantern over his head. His whole tribe yaps around him, spears up.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight the chief and his tribe",
+              "description": "Win and the mine is yours. Lose and they drive you out, and the mine stays theirs.",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "Spears from every ledge, and then the lantern comes down in a sheet of fire. You flee back up the tunnels.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You break the tribe in a long, scrappy fight, and the chief's lantern singes everyone.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "{actor} knocks the lantern from the chief's claw, and the tribe breaks and scatters down the side shafts.",
+                  "goto": "vault"
+                }
+              }
+            },
+            {
+              "id": "talk",
+              "kind": "check",
+              "label": "Offer them a deeper mine elsewhere",
+              "description": "Kobolds want a safe hole. Talk them into another one.",
+              "once": true,
+              "check": {
+                "skill": "persuasion",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The chief is not interested in your stories, and the spears come up.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "The chief takes a purse to think about it, and goes off to think somewhere else.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": -5
+                    }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "{actor} describes a deep, dark, empty mine three valleys over. The chief yaps orders, and the tribe packs up and leaves.",
+                  "goto": "vault"
+                }
+              }
+            },
+            {
+              "id": "flee",
+              "kind": "fixed",
+              "label": "Flee",
+              "description": "Get out with a few cuts. The mine stays theirs.",
+              "outcome": {
+                "text": "You run for the daylight with spears whistling past.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "vault": {
+          "text": "Behind the throne lies the kobolds' hoard: ore, coin and the old miners' strongbox. A seam of silver glints in the wall above it.",
+          "options": [
+            {
+              "id": "take",
+              "kind": "fixed",
+              "label": "Take the hoard and go",
+              "outcome": {
+                "text": "You fill your packs from the hoard. With the tribe gone, the mine is just a mine again.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": 25
+                  },
+                  {
+                    "effect": "clearPoi"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "seam",
+              "kind": "check",
+              "label": "Work the silver seam as well",
+              "description": "A day's hard work for more silver. The old timbers creak.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The roof groans, and stones come down on {actor}. You take the hoard and get out.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "A day of hard work brings out a little silver.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 35
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} works the seam like an old miner. You leave with heavy packs.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 50
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ruined-keep-delve",
+      "title": "Old ruin",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["dungeon"],
+      "stages": {
+        "start": {
+          "text": "The shell of a keep stands on a mound, its towers fallen and its gatehouse choked with rubble. Below, the cellars are still roofed, and nobody has been down there for a long time.",
+          "options": [
+            {
+              "id": "dig",
+              "kind": "check",
+              "label": "Clear the rubble from the cellar stair",
+              "description": "Hard work. A bad heave hurts, a slow one costs a day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The rubble shifts and rolls onto {actor}'s foot. You get in anyway, limping.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "undercroft"
+                },
+                "partial": {
+                  "text": "It takes all day, but the stair is clear.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "undercroft"
+                },
+                "success": {
+                  "text": "{actor} heaves the stones aside, and you go down fresh.",
+                  "goto": "undercroft"
+                }
+              }
+            },
+            {
+              "id": "postern",
+              "kind": "check",
+              "label": "Look for another way in",
+              "description": "A clever way in gives you the Edge below. A wrong guess costs a day.",
+              "check": {
+                "skill": "investigation",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "You find nothing, and in the end you dig after all. A wasted day.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "undercroft"
+                },
+                "partial": {
+                  "text": "You find a postern, half blocked, and squeeze through.",
+                  "goto": "undercroft"
+                },
+                "success": {
+                  "text": "{actor} finds the old postern stair and a garrison map scratched beside it. You go down knowing the way.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "undercroft"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the ruin to the crows",
+              "outcome": {
+                "text": "You leave the keep to the crows. It has waited this long."
+              }
+            }
+          ]
+        },
+        "undercroft": {
+          "text": "The cellars are half flooded and the vaulting cracked. Every sound brings down a trickle of grit, and there are rats, big ones.",
+          "options": [
+            {
+              "id": "careful",
+              "kind": "check",
+              "label": "Go carefully, testing every arch",
+              "description": "Slow and safe, mostly. Done well, you reach the door with the Edge.",
+              "check": {
+                "skill": "perception",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "An arch comes down without warning.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "random"
+                    }
+                  ],
+                  "goto": "strongroom"
+                },
+                "partial": {
+                  "text": "You find a safe way, mostly, and reach the far end.",
+                  "goto": "strongroom"
+                },
+                "success": {
+                  "text": "{actor} spots every cracked keystone, and the iron door at the end of the cellars.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "strongroom"
+                }
+              }
+            },
+            {
+              "id": "wade",
+              "kind": "check",
+              "label": "Wade straight through",
+              "description": "Quick and wet. The rats get their chance.",
+              "check": {
+                "skill": "athletics",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} goes under in a sinkhole and comes up with a rat on their arm.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "strongroom"
+                },
+                "partial": {
+                  "text": "The rats take a bite or two out of {actor} on the way.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "strongroom"
+                },
+                "success": {
+                  "text": "You splash through before the rats know you're there.",
+                  "goto": "strongroom"
+                }
+              }
+            },
+            {
+              "id": "back",
+              "kind": "fixed",
+              "label": "Turn back",
+              "outcome": {
+                "text": "You climb back up into the light. The cellars can keep their secrets."
+              }
+            }
+          ]
+        },
+        "strongroom": {
+          "text": "At the end of the cellars is an iron door with a lock the size of a fist. Above it a carved face opens its stone eyes as you come near and asks, in a dry voice, for the word.",
+          "options": [
+            {
+              "id": "riddle",
+              "kind": "check",
+              "label": "Give the warden the word",
+              "description": "The house's old motto might do it. A wrong answer burns.",
+              "check": {
+                "skill": "history",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} guesses wrong. The face spits fire.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} gets it nearly right. The face scorches you all, then grudgingly lets you in.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "{actor} remembers the old house's motto. The face closes its eyes, and the door swings open.",
+                  "goto": "vault"
+                }
+              }
+            },
+            {
+              "id": "pick",
+              "kind": "check",
+              "label": "Pick the lock under its eyes",
+              "description": "Quick fingers against a watchful warden.",
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 15
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The face sees {actor}'s hands and spits fire on them.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "The lock gives, and so does the face's temper.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "{actor} has the lock open before the face finishes asking.",
+                  "goto": "vault"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave it shut",
+              "outcome": {
+                "text": "You leave the face to its door and climb back to the light."
+              }
+            }
+          ]
+        },
+        "vault": {
+          "text": "The strongroom holds what the keep's last lord could not carry away: chests of old coin, a rack of rusted arms, and a ledger of debts owed to a family long dead.",
+          "options": [
+            {
+              "id": "take",
+              "kind": "fixed",
+              "label": "Take the coin and go",
+              "outcome": {
+                "text": "You take the coin and leave the rest. The ruin has nothing more to give.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": 35
+                  },
+                  {
+                    "effect": "clearPoi"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "ledger",
+              "kind": "check",
+              "label": "Read the ledger before you go",
+              "description": "Old ledgers name old places. Mould wastes a day.",
+              "check": {
+                "skill": "history",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The ledger is mould and old names. A day lost over it.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 35
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} reads of the lord's last days, and why he left.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 35
+                    },
+                    {
+                      "effect": "log",
+                      "text": "The ruined keep's last lord fled his debts in a single night, leaving his gold behind for fear of being followed."
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} finds a page about the lord's other holdings, and one of them is near.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 35
+                    },
+                    {
+                      "effect": "log",
+                      "text": "The ruined keep's ledger names another of its lord's old holdings."
+                    },
+                    {
+                      "effect": "discoverPoi",
+                      "count": 1,
+                      "scope": "land"
+                    },
+                    {
+                      "effect": "clearPoi"
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }

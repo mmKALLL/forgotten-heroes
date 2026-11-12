@@ -293,6 +293,35 @@ describe('points of interest', () => {
     }
   })
 
+  test('dungeons are 3–5 stage chains to a vault: footing, a high-stakes boss, gold, cleared', () => {
+    const dungeons = ofCategory('dungeon')
+    expect(dungeons.length).toBeGreaterThanOrEqual(2)
+    expect(dungeons.some((t) => t.hostile)).toBe(true)
+    expect(dungeons.some((t) => !t.hostile)).toBe(true)
+    for (const t of dungeons) {
+      if (t.hostile) expect(t.threat).toEqual({ min: 1, max: 1 })
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition, id).toBe(t.hostile ? 'hostile' : 'neutral')
+        const stages = Object.values(s.stages)
+        expect(stages.length, id).toBeGreaterThanOrEqual(3)
+        expect(stages.length, id).toBeLessThanOrEqual(5)
+        const options = stages.flatMap((stage) => stage.options)
+        const branches = options.flatMap(outcomesOf)
+        const has = (effect: string) =>
+          branches.some((b) => b.effects.some((e) => e.effect === effect))
+        expect(has('position'), id).toBe(true)
+        expect(has('clearPoi'), id).toBe(true)
+        expect(options.some((o) => o.kind === 'check' && o.highStakes)).toBe(true)
+        for (const b of branches.filter((b) => b.effects.some((e) => e.effect === 'clearPoi')))
+          expect(
+            b.effects.some((e) => e.effect === 'gold' && e.amount > 0),
+            id
+          ).toBe(true)
+      }
+    }
+  })
+
   test.each(types.map((t) => [t.id, t.names] as const))(
     '%s names come out whole from %s',
     (_, table) => {

@@ -267,6 +267,50 @@
       "names": "poi-name-steading",
       "situations": ["giant-steading-raid"],
       "icon": "giant"
+    },
+    {
+      "id": "haunted-barrow",
+      "category": "dungeon",
+      "name": "Haunted barrow",
+      "weight": 0.6,
+      "biomes": ["hills", "plains", "marsh"],
+      "threats": ["restless-dead"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 1
+      },
+      "pathDanger": 2,
+      "names": "poi-name-ruin",
+      "situations": ["haunted-barrow-delve"],
+      "icon": "crypt-entrance"
+    },
+    {
+      "id": "kobold-mine",
+      "category": "dungeon",
+      "name": "Kobold-held mine",
+      "weight": 0.6,
+      "biomes": ["mountains", "hills"],
+      "hostile": true,
+      "threat": {
+        "min": 1,
+        "max": 1
+      },
+      "pathDanger": 2,
+      "names": "poi-name-mine",
+      "situations": ["kobold-mine-delve"],
+      "icon": "mine-wagon"
+    },
+    {
+      "id": "old-ruin",
+      "category": "dungeon",
+      "name": "Old ruin",
+      "weight": 0.8,
+      "biomes": ["plains", "forest", "hills", "desert"],
+      "pathDanger": 1,
+      "names": "poi-name-ruin",
+      "situations": ["ruined-keep-delve"],
+      "icon": "castle-ruins"
     }
   ]
 }

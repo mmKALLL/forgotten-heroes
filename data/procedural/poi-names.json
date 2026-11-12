@@ -427,6 +427,21 @@
         },
         {
           "text": "the Nameless"
+        },
+        {
+          "text": "the Broken"
+        },
+        {
+          "text": "the Forgotten"
+        },
+        {
+          "text": "the Thornwrapped"
+        },
+        {
+          "text": "Lord Harrow's"
+        },
+        {
+          "text": "the Crumbling"
         }
       ]
     },
@@ -1130,6 +1145,69 @@
         },
         {
           "text": "Longhouse"
+        }
+      ]
+    },
+    {
+      "id": "poi-name-mine",
+      "description": "Mines",
+      "rows": [
+        {
+          "text": "{poi-mine-first} {poi-mine-second}"
+        }
+      ]
+    },
+    {
+      "id": "poi-mine-first",
+      "description": "Whose mine",
+      "rows": [
+        {
+          "text": "Deepvein"
+        },
+        {
+          "text": "Old Copper"
+        },
+        {
+          "text": "the Silver"
+        },
+        {
+          "text": "Greyrock"
+        },
+        {
+          "text": "the Flooded"
+        },
+        {
+          "text": "Brannock's"
+        },
+        {
+          "text": "the Lost"
+        },
+        {
+          "text": "Tinner's"
+        },
+        {
+          "text": "the Iron"
+        }
+      ]
+    },
+    {
+      "id": "poi-mine-second",
+      "description": "What kind of mine",
+      "rows": [
+        {
+          "text": "Mine"
+        },
+        {
+          "text": "Diggings"
+        },
+        {
+          "text": "Delving"
+        },
+        {
+          "text": "Shaft"
+        },
+        {
+          "text": "Workings"
         }
       ]
     }
