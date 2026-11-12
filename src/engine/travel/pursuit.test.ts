@@ -17,7 +17,7 @@ const day = (d: number, pace: PaceDay['pace']): PaceDay => ({ day: d, pace })
 describe('pursuitOutcome', () => {
   test('any stealthy day (covering tracks) loses the pursuers', () => {
     expect(pursuitOutcome([day(1, 'steady'), day(2, 'stealthy'), null])).toBe('lost')
-    expect(pursuitOutcome([day(1, 'steady'), day(2, 'cautious'), null])).toBe('caught')
+    expect(pursuitOutcome([day(1, 'steady'), day(2, 'steady'), null])).toBe('caught')
   })
 
   test('a march averaging brisk or faster outruns them', () => {
@@ -27,7 +27,7 @@ describe('pursuitOutcome', () => {
 
   test('anything slower lets them catch up', () => {
     expect(pursuitOutcome([day(1, 'steady'), day(2, 'brisk')])).toBe('caught')
-    expect(pursuitOutcome([day(1, 'cautious'), day(2, 'cautious')])).toBe('caught')
+    expect(pursuitOutcome([day(1, 'steady'), day(2, 'steady')])).toBe('caught')
     // A day standing still (resting, or in town) counts as no distance at all.
     expect(pursuitOutcome([day(1, 'forced'), day(2, 'brisk'), null])).toBe('caught')
     expect(pursuitOutcome([])).toBe('caught')
@@ -61,14 +61,14 @@ describe('paceSince', () => {
     }
     const state = {
       day: 9,
-      travel: travel([day(6, 'forced'), day(7, 'cautious'), day(8, 'steady')]),
+      travel: travel([day(6, 'forced'), day(7, 'brisk'), day(8, 'steady')]),
     }
     expect(paceSince(state, followUp)).toEqual([
       day(3, 'brisk'),
       day(4, 'brisk'),
       null,
       day(6, 'forced'),
-      day(7, 'cautious'),
+      day(7, 'brisk'),
       day(8, 'steady'),
     ])
   })
@@ -152,8 +152,8 @@ describe('evadePursuit', () => {
     const { queuedDay: _day, ...old } = due
     expect(evadePursuit(covering, old, [])!.log.at(-1)!.text).toBe(PURSUIT_LOST)
     // Only a stealthy pace covers the tracks.
-    const cautious = { ...state, travel: { ...state.travel!, pace: 'cautious' as const } }
-    expect(evadePursuit(cautious, due, [])).toBeNull()
+    const steady = { ...state, travel: { ...state.travel!, pace: 'steady' as const } }
+    expect(evadePursuit(steady, due, [])).toBeNull()
   })
 
   test('a slower march lets it catch up: the caller starts the encounter', () => {

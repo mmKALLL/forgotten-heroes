@@ -40,7 +40,7 @@ export function wander(
   content: Content,
   legs: number,
   pick: Pick = (leg, count) => leg % count,
-  pickPace: Pick = (leg, count) => (leg + 2) % count
+  pickPace: Pick = (leg, count) => (leg + 1) % count
 ): GameState {
   let state = start
   for (let leg = 0; leg < legs; leg++) {

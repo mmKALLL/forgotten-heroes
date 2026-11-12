@@ -49,7 +49,6 @@ export const DEFAULT_PACE: Pace = 'steady'
 /** Speed multiplier on land. Ships sail at their own speed, whatever the pace. */
 export const PACE_SPEED: Readonly<Record<Pace, number>> = {
   stealthy: 1 / 2,
-  cautious: 3 / 4,
   steady: 1,
   brisk: 1.25,
   forced: 1.5,
@@ -57,7 +56,6 @@ export const PACE_SPEED: Readonly<Record<Pace, number>> = {
 /** Added to the hostile share at this pace: a hurried party is noticed (slow ones avoid instead). */
 export const PACE_HOSTILE_BONUS: Readonly<Record<Pace, number>> = {
   stealthy: 0,
-  cautious: 0,
   steady: 0,
   brisk: 0.1,
   forced: 0.1,
@@ -68,7 +66,6 @@ export const PACE_HOSTILE_BONUS: Readonly<Record<Pace, number>> = {
  */
 export const PACE_HOSTILE_AVOIDANCE: Readonly<Record<Pace, number>> = {
   stealthy: 0.5,
-  cautious: 0.3,
   steady: 0,
   brisk: 0,
   forced: 0,
@@ -104,7 +101,6 @@ export const FORAGE_DC: Readonly<Record<Exclude<Biome, 'sea'>, number>> = {
 /** Added to the forager's Survival at this pace: a forced march leaves no time to look. */
 export const FORAGE_PACE_MODIFIER: Readonly<Record<Pace, number>> = {
   stealthy: 0,
-  cautious: 0,
   steady: 0,
   brisk: 0,
   forced: -2,

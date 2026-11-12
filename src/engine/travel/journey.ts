@@ -76,7 +76,6 @@ const days = (n: number) => (n === 1 ? '1 day' : `${n} days`)
 /** How the departure line names the pace (steady goes unsaid). */
 const PACE_PHRASE: Readonly<Record<Pace, string>> = {
   stealthy: ' at a stealthy pace, covering its tracks',
-  cautious: ' at a cautious pace',
   steady: '',
   brisk: ' at a brisk pace',
   forced: ' on a forced march',

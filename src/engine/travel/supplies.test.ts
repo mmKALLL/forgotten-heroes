@@ -134,8 +134,8 @@ describe('passDay', () => {
 })
 
 describe('pace and supplies', () => {
-  test('cautious, steady and brisk days use the same daily ration, with no extra checks', () => {
-    for (const pace of ['cautious', 'steady', 'brisk'] as const) {
+  test('stealthy, steady and brisk days use the same daily ration, with no extra checks', () => {
+    for (const pace of ['stealthy', 'steady', 'brisk'] as const) {
       const before = base()
       const after = passDay(before, 'plains', pace)
       expect(after.goods).toEqual({ food: 8, water: 6 })
@@ -182,11 +182,10 @@ describe('pace and supplies', () => {
     expect(tough).toBeLessThan(15)
   })
 
-  test('supplies per km: stealthy worst, then cautious, forced, steady, and brisk best', () => {
+  test('supplies per km: stealthy worst, then forced, steady, and brisk best', () => {
     const route = { km: 300, terrain: 'plains' as const }
     const by = (pace: Pace) => journeySupplies(route, 2, pace)
     expect(by('steady')).toEqual({ days: 10, food: 20, water: 20 })
-    expect(by('cautious')).toEqual({ days: 14, food: 28, water: 28 })
     expect(by('brisk')).toEqual({ days: 8, food: 16, water: 16 })
     expect(by('forced')).toEqual({ days: 7, food: 21, water: 21 })
     expect(by('stealthy')).toEqual({ days: 20, food: 40, water: 40 })

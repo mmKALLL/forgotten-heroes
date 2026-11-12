@@ -62,13 +62,13 @@ export const inProgress = (state: GameState): boolean => !encounterOver(state)
 
 const BUSY = 'Finish the current encounter first.'
 const UNFIT = 'No one is fit to travel on.'
-/** Logged when a stealthy or cautious party steers clear of a hostile encounter. */
+/** Logged when a stealthy party steers clear of a hostile encounter. */
 export const WIDE_BERTH = 'You spot trouble ahead and give it a wide berth.'
 
 /**
  * Where the party is when an encounter is drawn on the road: the terrain, the land (a `regions`
  * id) and the domain (a settlement id), and, on a journey, how it is moving (a stealthy or
- * cautious party avoids some hostile encounters).
+ * stealthy party avoids some hostile encounters).
  */
 export type Place = {
   biome: Biome
@@ -207,7 +207,7 @@ export function startEncounter(
  * On the road, `place` limits the pick to situations that fit its terrain and land (fitsPlace);
  * when none fits, nothing happens. On a journey, `place.hostileShare` first decides whether the
  * encounter is hostile, then the pick is among fitting situations of that kind (any fitting one
- * if none of that kind fits). A stealthy or cautious party then skips a hostile pick with chance
+ * if none of that kind fits). A stealthy party then skips a hostile pick with chance
  * PACE_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
  * starts moves the other queued follow-ups one closer (see startEncounter).
  */

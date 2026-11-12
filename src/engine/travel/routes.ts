@@ -90,7 +90,7 @@ export function encounterRange(days: number): [number, number] {
  * How likely each encounter on a journey is to be hostile, and what makes it so: the base share,
  * then route danger, the domain's threat level, foraging (FORAGE_HOSTILE_BONUS) and a brisk or
  * forced pace (PACE_HOSTILE_BONUS), within HOSTILE_SHARE_RANGE. That is the share `drawn` hostile;
- * a stealthy or cautious party then steers clear of some of those (PACE_HOSTILE_AVOIDANCE: a quiet
+ * a stealthy party then steers clear of some of those (PACE_HOSTILE_AVOIDANCE: a quiet
  * day instead), so the share actually met is `share` = drawn × (1 − avoidance), and `avoided` is
  * the (negative) difference. The rest are neutral or pleasant, by their situations' weights.
  */

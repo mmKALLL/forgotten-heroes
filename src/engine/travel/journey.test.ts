@@ -116,9 +116,6 @@ describe('travel', () => {
     const hidden = travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'stealthy')
     expect(hidden.travel).toMatchObject({ pace: 'stealthy', kmPerDay: 15, days: 5 })
     expect(lastLine(hidden)).toMatch(/ at a stealthy pace, covering its tracks: 75 km/)
-    const cautious = travel(at('greenvale-1'), 'greenvale-1-greenvale-2', content, 'cautious')
-    expect(cautious.travel).toMatchObject({ pace: 'cautious', kmPerDay: 22.5, days: 4 })
-    expect(lastLine(cautious)).toMatch(/ at a cautious pace: 75 km/)
   })
 
   test('a crossing with nothing to meet at sea draws no encounter days', () => {
@@ -306,10 +303,9 @@ describe('pace on the road', () => {
     expect(meet('steady').encounter?.position).toBe('normal')
   })
 
-  test('a cautious party meets an ambush on normal footing, a stealthy one with Edge', () => {
+  test('a stealthy party meets an ambush with Edge', () => {
     const met = (pace: Pace) =>
       Array.from({ length: 20 }, (_, seed) => meet(pace, seed)).find((s) => s.encounter)!
-    expect(met('cautious').encounter?.position).toBe('normal')
     expect(met('stealthy').encounter?.position).toBe('edge')
   })
 
@@ -328,14 +324,15 @@ describe('pace on the road', () => {
     ).toBe('normal')
   })
 
-  test('a cautious party gives some ambushes a wide berth and walks on', () => {
-    const runs = Array.from({ length: 30 }, (_, seed) => meet('cautious', seed))
+  test('a stealthy party gives some ambushes a wide berth and walks on', () => {
+    const runs = Array.from({ length: 30 }, (_, seed) => meet('stealthy', seed))
     const avoided = runs.filter((s) => !s.encounter)
     expect(avoided.length).toBeGreaterThan(3)
     expect(avoided.length).toBeLessThan(25)
     for (const state of avoided) {
       expect(texts(state)).toContain(WIDE_BERTH)
-      expect(state.location).toBe('greenvale-2')
+      // The water runs short on the slow road: one more Continue walks on to the end.
+      expect((state.travel ? go(state, hostile) : state).location).toBe('greenvale-2')
     }
   })
 })

@@ -88,7 +88,6 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   const pacePicker = within(group.getByRole('group', { name: 'Pace' }))
   expect(pacePicker.getAllByRole('button').map((b) => b.textContent)).toEqual([
     'Stealthy',
-    'Cautious',
     'Steady',
     'Brisk',
     'Forced march',

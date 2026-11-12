@@ -34,9 +34,8 @@ test('journeys take whole days, at least one', () => {
 })
 
 describe('pace', () => {
-  test('stealthy is ½ speed, cautious ¾, brisk 1.25× and a forced march 1.5×', () => {
+  test('stealthy is ½ speed, brisk 1.25× and a forced march 1.5×', () => {
     expect(kmPerDay('plains', 'stealthy')).toBeCloseTo(15)
-    expect(kmPerDay('plains', 'cautious')).toBeCloseTo(22.5)
     expect(kmPerDay('plains', 'steady')).toBe(30)
     expect(kmPerDay('plains', 'brisk')).toBeCloseTo(37.5)
     expect(kmPerDay('plains', 'forced')).toBeCloseTo(45)
@@ -44,22 +43,22 @@ describe('pace', () => {
 
   test('the journey takes days by pace', () => {
     const plains = { km: 75, terrain: 'plains' as const }
-    expect(journeyDays(plains, 'cautious')).toBe(4)
+    expect(journeyDays(plains, 'stealthy')).toBe(5)
     expect(journeyDays(plains, 'steady')).toBe(3)
     expect(journeyDays(plains, 'brisk')).toBe(2)
     expect(journeyDays(plains, 'forced')).toBe(2)
   })
 
   test('a ship sails at its own speed, whatever the pace', () => {
-    for (const pace of ['stealthy', 'cautious', 'brisk', 'forced'] as const) {
+    for (const pace of ['stealthy', 'brisk', 'forced'] as const) {
       expect(kmPerDay('sea', pace)).toBe(40)
       expect(journeyDays({ km: 160, terrain: 'sea' }, pace)).toBe(4)
     }
   })
 
-  test('brisk and forced make encounters likelier to be hostile; stealthy and cautious avoid some', () => {
+  test('brisk and forced make encounters likelier to be hostile; stealthy avoids some', () => {
     expect(hostileShare(0, 0, 'steady')).toMatchObject({ drawn: 0.1, share: 0.1, avoided: 0 })
-    for (const pace of ['stealthy', 'cautious'] as const) {
+    for (const pace of ['stealthy'] as const) {
       const h = hostileShare(0, 0, pace)
       expect(h.drawn).toBeCloseTo(0.1)
       expect(h.share).toBeCloseTo(0.1 * (1 - paceHostileAvoidance(pace)))
@@ -72,7 +71,7 @@ describe('pace', () => {
 
   test('the encounter budget still follows the journey’s days', () => {
     const plains = { km: 75, terrain: 'plains' as const }
-    expect(encounterRange(journeyDays(plains, 'cautious'))).toEqual([1, 3])
+    expect(encounterRange(journeyDays(plains, 'stealthy'))).toEqual([2, 4])
     expect(encounterRange(journeyDays(plains, 'brisk'))).toEqual([0, 2])
   })
 })

@@ -236,7 +236,6 @@ describe('routeOptions', () => {
       ])
     ).toEqual([
       ['stealthy', 5, 10, 10, [2, 4], ENCOUNTER_SLOT_CHANCE, 'normal'],
-      ['cautious', 4, 8, 8, [1, 3], ENCOUNTER_SLOT_CHANCE, 'normal'],
       ['steady', 3, 6, 6, [1, 3], ENCOUNTER_SLOT_CHANCE, 'normal'],
       ['brisk', 2, 4, 4, [0, 2], ENCOUNTER_SLOT_CHANCE, 'exposed'],
       ['forced', 2, 6, 6, [0, 2], ENCOUNTER_SLOT_CHANCE, 'exposed'],

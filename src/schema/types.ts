@@ -194,11 +194,11 @@ export const WEALTH_TAGS = ['thieves', 'toll'] as const
  * (pursuers lose the trail). Its tuning (speed, supplies, encounters, ambush footing) lives in
  * src/engine/travel/pace.ts and the constants' Pace section.
  */
-export const PACES = ['stealthy', 'cautious', 'steady', 'brisk', 'forced'] as const
+export const PACES = ['stealthy', 'steady', 'brisk', 'forced'] as const
 export type Pace = (typeof PACES)[number]
 
 /**
- * How an encounter treats the party (design §7). A stealthy or cautious party avoids some hostile
+ * How an encounter treats the party (design §7). A stealthy party avoids some hostile
  * ones, and a stealthy one meets the rest on better footing; wonders are pleasant or neutral.
  */
 export const DISPOSITIONS = ['hostile', 'neutral', 'pleasant'] as const
