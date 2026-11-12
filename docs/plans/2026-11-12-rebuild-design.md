@@ -82,6 +82,14 @@ The old Svelte code is removed on this branch. The useful types and data are por
   - Morale affects travel speed, attack bonus and similar, roughly as in Battle Brothers but simplified.
 - **Camaraderie:** a single party-wide value on a short scale (fewer than 10 steps) with named tiers. Relationships between individual members may come later.
 
+### Recruiting, wages and camaraderie as built (Plan 5a)
+
+- **Recruits** (`town/recruits.ts`): the inn, the adventurers' guild and mercenaries hire out (`recruits` blocks in `data/claude/service-roles.json`). Nothing ticks: a service's offers are derived from (world seed, settlement, week, service), like a notice board, and refresh weekly. The inn has 0–1 level-1 recruits a week; the guild 1–3 of levels 1–3; mercenaries 1–2 fighters, rangers or paladins of levels 2–4, cheap to sign and dear to keep (fee ×0.5, wage ×1.5).
+  - A recruit is generated like a founder, then levelled up to a seeded level within the service's range, **never above the party's highest living level + 1** (wealth can buy a veteran, not skip the climb). Three in four share the settlement's ancestry (`RECRUIT_LOCAL_ANCESTRY`).
+  - **Fee** `ceil(10 × level × fee)` gp (`RECRUIT_FEE_PER_LEVEL`); **wage** `0.5 × (level + 1) × wage` gp a day (`RECRUIT_WAGE`), rounded to the nearest ½ gp so it always shows exactly (1 gp a day at level 1).
+  - **Hiring** pays the fee; the recruit joins with their wage and 5 days of their own food (`STARTING_FOOD_DAYS`, as a founder brings), and is never offered again. The party holds at most **6 living members** (`PARTY_CAP`; the dead stay listed but don't count). Refused mid-encounter, away from the settlement, when full, or when the fee is more than the purse.
+  - **Dismissing:** hired members only (alive or dead); founders never. Their accessory stays in the party's gear, and owed wages stay owed. A member is "hired" when they draw a wage; founders draw none.
+
 ## 4. Goods and economy
 
 There are 15 goods in 5 categories. They are tracked as quantities, never as individual items.

@@ -19,6 +19,7 @@ import { listenRumours } from './town/rumours'
 import { expireContracts, stepContract, voidBounties, type ContractAction } from './town/contracts'
 import { provision, type ProvisionFor } from './town/provision'
 import { autoRest } from './town/arrival'
+import { stepRecruit, type RecruitAction } from './town/recruits'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
@@ -53,6 +54,8 @@ export type Action =
   | ({ type: 'provision' } & ProvisionFor)
   /** Rest a day on arrival if hurt or strained: at an inn if affordable (town/arrival.ts). */
   | { type: 'autoRest' }
+  /** Hire a recruit offered here, or dismiss a hired member (town/recruits.ts). */
+  | RecruitAction
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -196,6 +199,12 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return provision(state, content, action)
     case 'autoRest':
       return autoRest(state, content)
+    case 'hireRecruit':
+    case 'dismissMember':
+      return stepRecruit(state, action, content)
+    case 'hireRecruit':
+    case 'dismissMember':
+      return stepRecruit(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

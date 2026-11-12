@@ -65,7 +65,7 @@ const HANDED_OVER: readonly ContractKind[] = ['courier', 'freight']
 export const boardWeek = (day: number): number => Math.floor((day - 1) / 7)
 
 /** A seeded RNG for a key: the same draws every time it is asked (FNV-1a of the key). */
-function keyedRng(seed: number, key: string) {
+export function keyedRng(seed: number, key: string) {
   let h = 0x811c9dc5 ^ seed
   for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 0x01000193)
   return createRng(h >>> 0)

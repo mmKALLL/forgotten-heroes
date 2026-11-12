@@ -12,6 +12,7 @@ import { inSettlement, notHere } from '../travel/where'
 import { serviceWith } from './animals'
 import { rumourOption, rumourRefusal } from './rumours'
 import { noticeBoard } from './contracts'
+import { recruitOffers } from './recruits'
 import {
   BLESSING_PRICE,
   COURIER_KM_PER_DAY,
@@ -175,6 +176,20 @@ function actionView(
           : offers.some((o) => o.available)
             ? null
             : (offers[0].reason ?? 'nothing you can take')
+      )
+    }
+    case 'recruit': {
+      // Recruits are hired one by one (hireRecruit), listed by recruitOffers.
+      const offers = recruitOffers(state, content, state.location!).filter(
+        (o) => o.service === service
+      )
+      return view(
+        null,
+        offers.length === 0
+          ? 'no one is looking for work this week'
+          : offers.some((o) => o.available)
+            ? null
+            : (offers[0].reason ?? 'no one you can hire')
       )
     }
     default:

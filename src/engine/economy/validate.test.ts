@@ -36,6 +36,16 @@ describe('economyIssues', () => {
     expect(economyIssues(cleanContent())).toEqual([])
   })
 
+  test('reports a recruit class that does not exist', () => {
+    const content = cleanContent()
+    content.serviceRoles.port = {
+      ...content.serviceRoles.port,
+      actions: ['passage', 'market', 'recruit'],
+      recruits: { offers: [1, 1], levels: [1, 1], classes: ['wizard'], fee: 1, wage: 1 },
+    }
+    expect(economyIssues(content)).toEqual(['serviceRoles port: recruits unknown class "wizard"'])
+  })
+
   test('reports a missing good', () => {
     const content = cleanContent()
     delete content.goods.metal

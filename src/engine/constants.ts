@@ -363,6 +363,17 @@ export const SOLD_CARGO_REP = 15
 /** Escorted passengers draw attention: added to the hostile share on the road. */
 export const ESCORT_HOSTILE = 0.1
 
+// Recruits (town/recruits.ts)
+
+/** Living members a party can have: hiring stops here (the dead don't count). */
+export const PARTY_CAP = 6
+/** A recruit's hiring fee per level (gp), before the service's `fee` multiplier; rounded up. */
+export const RECRUIT_FEE_PER_LEVEL = 10
+/** A recruit's daily wage per (level + 1) (gp), before the service's `wage`; to the nearest ½ gp. */
+export const RECRUIT_WAGE = 0.5
+/** The share of recruits of the settlement's own ancestry; the rest are any playable one. */
+export const RECRUIT_LOCAL_ANCESTRY = 0.75
+
 // Points of interest (pois.ts)
 
 /** A domain expects spots / this many POIs: about 40–60 per world on Altaeus (mean ≈ 49). */
