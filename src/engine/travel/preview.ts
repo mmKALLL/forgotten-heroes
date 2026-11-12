@@ -10,6 +10,7 @@ import { domainThreatLevel, knownLairThreat } from '../world/pois'
 import { siteStatus, siteThreat, type SiteStatus } from '../world/sites'
 import { ambushPositionForPace, paceHostileAvoidance } from './pace'
 import { load, overloadExcess, type Hired } from '../economy/capacity'
+import { visibleWealth } from '../economy/wealth'
 import { animalBlock, animalBlockText, animalWater, hireCost, hireOffer } from '../town/animals'
 import {
   canMeetEncounters,
@@ -240,6 +241,7 @@ function paceOptions(
     : LAND_PACES.filter(([p]) => p !== 'forced' || laden.level === 'light')
   const speed = landSpeed(state, content, route.terrain, hired)
   const drink = animalWater(state, content, hired)
+  const wealth = visibleWealth(state, content).steps
   const heavy: TravelWarning[] =
     !sea && laden.level !== 'light'
       ? [
@@ -259,7 +261,7 @@ function paceOptions(
     const warnings = [...heavy, ...forecast.warnings]
     // As the journey would record it (depart): no foraging at sea.
     const exposure = (foraging: boolean) => ({
-      hostile: hostileShare(route.danger, threatLevel, pace, foraging),
+      hostile: hostileShare(route.danger, threatLevel, pace, foraging, wealth),
       ambush: ambushPositionForPace(pace, coverTracks, 'normal', foraging),
     })
     const chosen = exposure(forage && !sea)

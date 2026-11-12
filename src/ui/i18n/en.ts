@@ -218,6 +218,7 @@ export const en = {
   'route.hostilePart.threat': '+{pct} threat',
   'route.hostilePart.forage': '+{pct} foraging',
   'route.hostilePart.pace': '+{pct} pace',
+  'route.hostilePart.wealth': '+{pct} visible wealth',
   'route.avoids': 'Steers clear of {pct} of hostile encounters',
   'route.footing': 'Ambushes meet the party {footing}',
   'route.fare': 'Passage: {gp} gp',

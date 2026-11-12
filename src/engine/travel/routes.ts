@@ -25,6 +25,7 @@ import {
   PACE_SPEED,
   SEA_FARE,
   SHORT_HOP_DAYS,
+  WEALTH_HOSTILE_PER_STEP,
 } from '../constants'
 
 /**
@@ -89,13 +90,16 @@ export type HostileShare = {
   threat: number
   forage: number
   pace: number
+  /** Visible wealth (economy/wealth.ts): WEALTH_HOSTILE_PER_STEP per step. */
+  wealth: number
 }
 
 export function hostileShare(
   danger: number,
   threatLevel: number,
   pace: Pace = DEFAULT_PACE,
-  forage = false
+  forage = false,
+  wealthSteps = 0
 ): HostileShare {
   const parts = {
     base: HOSTILE_BASE,
@@ -103,9 +107,10 @@ export function hostileShare(
     threat: HOSTILE_PER_THREAT * threatLevel,
     forage: forage ? FORAGE_HOSTILE_BONUS : 0,
     pace: PACE_HOSTILE_BONUS[pace],
+    wealth: WEALTH_HOSTILE_PER_STEP * wealthSteps,
   }
   const [lo, hi] = HOSTILE_SHARE_RANGE
-  const sum = parts.base + parts.danger + parts.threat + parts.forage + parts.pace
+  const sum = parts.base + parts.danger + parts.threat + parts.forage + parts.pace + parts.wealth
   return { share: Math.min(hi, Math.max(lo, sum)), ...parts }
 }
 

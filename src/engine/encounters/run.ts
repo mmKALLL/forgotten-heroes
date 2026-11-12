@@ -26,6 +26,7 @@ import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from 
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
 import { fillText, rollSlots } from './slots'
+import { wealthWeight } from '../economy/wealth'
 import { TWIST_PLACE_WEIGHT } from '../constants'
 
 export type EncounterAction =
@@ -81,6 +82,8 @@ export type Place = {
    * fitting situation is drawn by weight alone.
    */
   hostileShare?: number
+  /** Visible wealth steps (economy/wealth.ts): thieves and tolls weigh more when drawn. */
+  wealthSteps?: number
 }
 
 /**
@@ -261,7 +264,8 @@ export function drawEncounter(
       const kind = candidates.filter((s) => (s.disposition === 'hostile') === hostile)
       if (kind.length > 0) pool = kind
     }
-    const picked = d.weighted(pool, (s) => s.weight)
+    const steps = place?.wealthSteps ?? 0
+    const picked = d.weighted(pool, (s) => wealthWeight(s.weight, s.tags, steps))
     const avoided = picked.disposition === 'hostile' && avoidance > 0 && d.float() < avoidance
     return { picked, avoided }
   })

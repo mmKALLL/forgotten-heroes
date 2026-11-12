@@ -37,6 +37,7 @@ import {
 import { observe } from '../economy/trade'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
 import { load, overloadExcess, type Hired } from '../economy/capacity'
+import { visibleWealth } from '../economy/wealth'
 import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/animals'
 import type { Room } from '../town/services'
 import { DEFAULT_PACE } from '../constants'
@@ -248,7 +249,7 @@ function setOut(
  * (hostileShare: the route's danger, the higher threat of its two ends, foraging and pace).
  */
 export function placeOnRoute(
-  state: Pick<GameState, 'world' | 'day'>,
+  state: Pick<GameState, 'world' | 'day'> & Partial<Pick<GameState, 'goods' | 'gold' | 'party'>>,
   content: Content,
   travel: TravelState
 ): Place | null {
@@ -256,6 +257,11 @@ export function placeOnRoute(
   const end = travel.kmDone < travel.km / 2 ? travel.from : travel.to
   const node = nodeOf(state, content, end)
   if (!route || !node) return null
+  // Visible wealth draws thieves (economy/wealth.ts); without the party's goods there is none.
+  const steps =
+    state.goods && state.party && state.gold !== undefined
+      ? visibleWealth({ goods: state.goods, gold: state.gold, party: state.party }, content).steps
+      : 0
   return {
     biome: route.terrain,
     land: node.land,
@@ -267,8 +273,10 @@ export function placeOnRoute(
       route.danger,
       routeThreat(state, content, route),
       travel.pace,
-      travel.forage
+      travel.forage,
+      steps
     ).share,
+    wealthSteps: steps,
   }
 }
 

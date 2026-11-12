@@ -27,7 +27,7 @@ type T = I18n['t']
  */
 export function hostileParts(t: T, option: Pick<PaceOption, 'hostile'>): string {
   const h = option.hostile
-  const parts = (['danger', 'threat', 'forage', 'pace'] as const)
+  const parts = (['danger', 'threat', 'forage', 'pace', 'wealth'] as const)
     .filter((part) => h[part] !== 0)
     .map((part) => t(`route.hostilePart.${part}`, { pct: formatPercent(h[part]) }))
   return [t('route.hostilePart.base', { pct: formatPercent(h.base) }), ...parts].join(', ')

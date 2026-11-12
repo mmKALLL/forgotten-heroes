@@ -196,6 +196,21 @@ export const MOUNT_ROUGH_SPEED = 1.25
 /** The terrain where mounts manage only MOUNT_ROUGH_SPEED. */
 export const ROUGH_TERRAIN: readonly Biome[] = ['mountains', 'marsh', 'jungle']
 
+// Visible wealth (economy/wealth.ts, routes.ts, run.ts)
+
+/** Each this many gp of visible wealth per member is one step. */
+export const WEALTH_STEP_GP = 100
+/** Visible wealth counts at most this many steps. */
+export const WEALTH_MAX_STEPS = 4
+/** Each step adds this to the hostile share on the road. */
+export const WEALTH_HOSTILE_PER_STEP = 0.05
+/** Each step makes thieves and tolls (WEALTH_TAGS) this much likelier when drawn: × (1 + this × steps). */
+export const WEALTH_TAG_WEIGHT = 0.5
+/** Coin up to this much per member doesn't show… */
+export const PURSE_FREE_PER_MEMBER = 50
+/** …and this share of the coin above it counts as visible wealth. */
+export const PURSE_SHARE = 0.5
+
 // Stowing away (stowaway.ts)
 
 /** The Stealth DC to stow away on a ship. */
