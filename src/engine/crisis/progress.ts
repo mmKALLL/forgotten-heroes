@@ -1,5 +1,6 @@
 import type { Content } from '../../content/build'
 import type { CrisisState } from '../../schema/crisis'
+import type { Effect } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { note, revealPois, xpNote } from '../encounters/effects'
 import type { StartOptions } from '../encounters/run'
@@ -120,6 +121,41 @@ export function thwartAct(state: GameState, content: Content): GameState {
   next = xpNote(next, XP_THWART * (i + 1), `Act ${actNumeral(i)} thwarted`)
   if (i + 1 < crisis.acts.length) return firstClue(next, content, i + 1)
   return note(next, crisisText(next, content, crisis, villain.victory, site), 'crit')
+}
+
+/**
+ * The act (0–2) whose site the party is visiting, when these effects (prepared: conditions
+ * settled) pass days up to the act's failsOn before any thwartAct among them: the act fails
+ * during the visit. Null otherwise (never on a road, or at any other site). The preview and the
+ * outcome both ask this, so a choice that comes too late says so before it is made.
+ */
+export function crisisFailsDuring(
+  state: Pick<GameState, 'crisis' | 'day' | 'encounter'>,
+  effects: readonly Effect[]
+): number | null {
+  const crisis = state.crisis
+  const poi = state.encounter?.poi
+  if (!crisis || !poi) return null
+  const status = crisisStatus(crisis, state.day)
+  const i = status.act
+  if (status.phase !== 'act' || i === null || crisis.acts[i].poi !== poi) return null
+  let day = state.day
+  for (const effect of effects) {
+    if (effect.effect === 'thwartAct') return null
+    if (effect.effect === 'days') day += effect.amount
+    if (day >= status.failsOn!) return i
+  }
+  return null
+}
+
+/** The chip on an outcome that runs past the act's last day (crisisFailsDuring). */
+export const tooLateChip = (i: number): string => `too late: Act ${actNumeral(i)} fails`
+
+/** The journal line when act `i` fails during a visit to its site, which then ends. */
+export function tooLateLine(crisis: CrisisState, content: Content | undefined, i: number): string {
+  const name = content && villainOf(content, crisis)?.acts[i]?.name
+  const title = name ? `Act ${actNumeral(i)}, ${name}` : `Act ${actNumeral(i)}`
+  return `Too late: ${title}, has failed. There is nothing left to stop here.`
 }
 
 /**

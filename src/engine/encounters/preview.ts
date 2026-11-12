@@ -15,14 +15,28 @@ import {
   type Tier,
 } from '../rules/checks'
 import { encounterSettlementName } from '../town/reputation'
-import { conditionHolds, describeCondition, describeEffect, openingEffects } from './effects'
+import {
+  conditionHolds,
+  describeCondition,
+  describeEffect,
+  openingEffects,
+  prepareEffects,
+} from './effects'
 import { defaultXp, isHighStakes, tierOutcome } from './outcomes'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
 import { crisisActNumber } from '../crisis/status'
+import { crisisFailsDuring, tooLateChip } from '../crisis/progress'
 
-/** What effect chips name: the settlement a reputation effect changes, and the Crisis's current act. */
-type ChipContext = { place?: string; act: number | null }
+/**
+ * What effect chips name: the settlement a reputation effect changes, and the Crisis's current act.
+ * `failsAct` tells which Crisis act a branch's effects run out the time of (crisisFailsDuring).
+ */
+type ChipContext = {
+  place?: string
+  act: number | null
+  failsAct: (effects: readonly Effect[]) => number | null
+}
 
 /** `next` is "escalates" for a twist branch that goes on to the twist's escalation stage. */
 export type BranchPreview = {
@@ -138,22 +152,26 @@ function branchPreview(
   const own = branch.effects
     .filter((e) => e.effect === 'xp' && (!e.if || conditionHolds(e.if, encounter)))
     .reduce((sum, e) => sum + (e.effect === 'xp' ? e.amount : 0), 0)
-  const chips = effectChips(branch.effects, encounter, actorName, ctx)
+  const failed = ctx.failsAct(prepareEffects(branch.effects, encounter))
+  const chips = [
+    ...effectChips(branch.effects, encounter, actorName, ctx),
+    ...(fallback > 0 ? [describeEffect({ effect: 'xp', amount: fallback }, actorName)!] : []),
+    ...(failed !== null ? [tooLateChip(failed)] : []),
+  ]
   return {
     text: fillText(branch.text, values),
-    effects:
-      fallback > 0
-        ? [...chips, describeEffect({ effect: 'xp', amount: fallback }, actorName)!]
-        : chips,
+    effects: chips,
     xp: fallback + own,
     next:
-      branch.goto === TWIST_STAGE
-        ? 'escalates'
-        : branch.goto
-          ? 'stage'
-          : branch.stay
-            ? 'stay'
-            : 'end',
+      failed !== null
+        ? 'end'
+        : branch.goto === TWIST_STAGE
+          ? 'escalates'
+          : branch.goto
+            ? 'stage'
+            : branch.stay
+              ? 'stay'
+              : 'end',
   }
 }
 
@@ -188,7 +206,11 @@ export function encounterOptions(
   if (!encounter) return []
   const mode = POSITION_MODE[encounter.position]
   const situationalModifier = encounter.nextCheckModifier
-  const ctx: ChipContext = { place: encounterSettlementName(state), act: crisisActNumber(state) }
+  const ctx: ChipContext = {
+    place: encounterSettlementName(state),
+    act: crisisActNumber(state),
+    failsAct: (effects) => crisisFailsDuring(state, effects),
+  }
   return currentOptions(encounter).map((option) => {
     const unmet = unmetRequirements(state, option.requires)
     const base = {

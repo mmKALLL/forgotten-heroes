@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { EffectSchema } from '../../schema/encounter'
+import { EffectSchema, OptionSchema } from '../../schema/encounter'
 import type { CrisisState } from '../../schema/crisis'
 import type { GameState } from '../../schema/state'
 import { applyEffects, describeEffect } from '../encounters/effects'
@@ -11,7 +11,7 @@ import { poisToDiscover } from '../world/pois'
 import { dangerLevel } from '../world/danger'
 import { CRISIS_SITE_CLUES, XP_DISCOVER, XP_THWART } from '../constants'
 import { crisisHidden } from './sites'
-import { crisisInfo } from './status'
+import { actFailsOn, crisisInfo } from './status'
 
 const content = fixtureContent()
 
@@ -173,6 +173,58 @@ describe('the act sites', () => {
     const visit = siteActions(back, content).find((a) => a.type === 'visitPoi')
     expect(visit).toMatchObject({ available: false, code: 'quiet' })
     expect(step(back, { type: 'visitPoi' }, content).encounter).toBeNull()
+  })
+
+  test('a choice whose days run past the act’s last day ends the visit, and its preview says so', () => {
+    /** Act I's site, opened on `day`, with an approach that waits a day and goes to the finale. */
+    const openOn = (day: number): GameState => {
+      const state = withCrisis({ learned: 10, clues: [2, 0, 0] }, { day, gold: 10 })
+      const open = step(standingAt(state, state.crisis!.acts[0].poi), { type: 'visitPoi' }, content)
+      const situation = structuredClone(open.encounter!.situation)
+      situation.stages.start.options.push(
+        OptionSchema.parse({
+          id: 'wait',
+          kind: 'fixed',
+          label: 'Wait for dark',
+          outcome: {
+            text: 'You wait.',
+            effects: [{ effect: 'days', amount: 1 }],
+            goto: 'finale',
+          },
+        })
+      )
+      return { ...open, encounter: { ...open.encounter!, situation } }
+    }
+    const failsOn = actFailsOn(100)
+    const shown = (state: GameState) => {
+      const outcome = encounterOptions(state).find((o) => o.id === 'wait')!.outcomes[0]
+      if (outcome.hidden) throw new Error('a fixed outcome is never hidden')
+      return outcome
+    }
+    const wait = (state: GameState) =>
+      step(state, { type: 'chooseOption', optionId: 'wait' }, content)
+
+    // In time: the visit goes on to the finale.
+    const inTime = openOn(failsOn - 2)
+    expect(shown(inTime)).toMatchObject({ next: 'stage' })
+    expect(shown(inTime).effects.join()).not.toMatch(/too late/)
+    expect(wait(inTime).encounter!.stage).toBe('finale')
+
+    // A day too many: the act fails on the way in, and the visit ends there.
+    const last = openOn(failsOn - 1)
+    const preview = shown(last)
+    expect(preview).toMatchObject({ next: 'end' })
+    expect(preview.effects).toEqual(['1 day passes', 'too late: Act I fails'])
+    const after = wait(last)
+    expect(after.encounter!.stage).toBeNull()
+    expect(after.gold).toBe(last.gold)
+    expect(after.log.map((l) => l.text)).toEqual(
+      expect.arrayContaining([
+        'You wait. (1 day passes, too late: Act I fails)',
+        'Too late: Act I, The Test Act 1, has failed. There is nothing left to stop here.',
+      ])
+    )
+    expect(crisisInfo(after, content)!.phase).toBe('lost')
   })
 
   test('thwarting act III wins', () => {
