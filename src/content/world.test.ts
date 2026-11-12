@@ -4,18 +4,26 @@ import { slotNames } from '../engine/encounters/slots'
 import { newGame } from '../engine/state'
 import { wander } from '../engine/travel/wander'
 import { generateWorld, startingSettlement, worldSeed } from '../engine/world/generate'
-import { routesFrom } from '../engine/world/geo'
+import { routesFrom, straightKm } from '../engine/world/geo'
 import { worldIssues } from '../engine/world/validate'
 import { BIOMES } from '../schema/constants'
 import { GameStateSchema } from '../schema/state'
-import { WorldStateSchema } from '../schema/world'
+import { WorldStateSchema, type LandSpot } from '../schema/world'
+import { sortedEntries } from './build'
 import { loadBundledContent } from './bundled'
 
 const content = loadBundledContent()
 
+/** Islands with a single marker, which may be too small for a land spot (a warning only). */
+const ONE_MARKER_ISLANDS = new Set(['caerdydd', 'providence-islet'])
+
 describe('the Altaeus geography', () => {
   test('is a valid, connected route graph', () => {
-    expect(worldIssues(content)).toEqual([])
+    const allowed = (issue: string) => {
+      const id = /^warning: settlement (\S+) has no land spot/.exec(issue)?.[1]
+      return id !== undefined && ONE_MARKER_ISLANDS.has(content.settlements[id].island)
+    }
+    expect(worldIssues(content).filter((issue) => !allowed(issue))).toEqual([])
   })
 
   test('has the map’s regions and markers', () => {
@@ -31,6 +39,32 @@ describe('the Altaeus geography', () => {
       (id) => routesFrom(content, id).length === 0
     )
     expect(stranded).toEqual([])
+  })
+})
+
+describe('land spots', () => {
+  // Until the territory model lands, a spot counts towards the nearest settlement on its island
+  // in a straight line (lower id on a tie), the way the map script fills in spots.
+  const nearest = (spot: LandSpot): string =>
+    sortedEntries(content.settlements)
+      .filter((s) => s.island === spot.island)
+      .reduce((best, s) => (straightKm(s.at, spot.at) < straightKm(best.at, spot.at) ? s : best)).id
+
+  test('cover every island with settlements but the one-marker islets', () => {
+    const islands = new Set(Object.values(content.landSpots).map((s) => s.island))
+    for (const s of Object.values(content.settlements)) {
+      if (!ONE_MARKER_ISLANDS.has(s.island)) expect(islands).toContain(s.island)
+    }
+  })
+
+  test('every mainland domain has at least 3 spots, and none more than 15% of them', () => {
+    const owned = new Map<string, number>()
+    const spots = Object.values(content.landSpots)
+    for (const spot of spots) owned.set(nearest(spot), (owned.get(nearest(spot)) ?? 0) + 1)
+    const mainland = Object.values(content.settlements).filter((s) => s.island === 'mainland')
+    const small = mainland.filter((s) => (owned.get(s.id) ?? 0) < 3).map((s) => s.id)
+    expect(small).toEqual([])
+    expect(Math.max(...owned.values())).toBeLessThanOrEqual(0.15 * spots.length)
   })
 })
 

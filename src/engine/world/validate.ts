@@ -1,8 +1,15 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
+import { IdSchema } from '../../schema/common'
+import { PX_PER_KM } from '../../schema/world'
 import { components, straightKm } from './geo'
 
 /** A route may wind, but not to more than twice the straight line. */
 export const MAX_WINDING = 2
+
+/** The land-spot grid read off the map (scripts/map/sample_land_spots.py): 100 px, about 21 km. */
+export const SPOT_SPACING_PX = 100
+/** A settlement links to the spots within this many km (1.6 grid steps), as does a spot. */
+export const SPOT_LINK_KM = (1.6 * SPOT_SPACING_PX) / PX_PER_KM
 
 const groupsText = (groups: string[][]): string => groups.map((g) => g.join(', ')).join(' | ')
 
@@ -89,6 +96,48 @@ export function worldIssues(content: Content): string[] {
       issues.push(`town ${town.id}: ${town.site} is already pinned to ${pins.get(town.site)}`)
     } else {
       pins.set(town.site, town.id)
+    }
+  }
+  issues.push(...landSpotIssues(content))
+  return issues
+}
+
+/**
+ * Problems with the land spots. A settlement without a spot nearby is only a warning ("warning:
+ * ..."): a one-marker islet may be too small for one, and then its domain has no land.
+ */
+function landSpotIssues(content: Content): string[] {
+  const issues: string[] = []
+  const { landSpots, settlements } = content
+  const spots = sortedEntries(landSpots)
+  for (const [key, spot] of Object.entries(landSpots).sort(([a], [b]) => byCodeUnit(a, b))) {
+    if (!IdSchema.safeParse(spot.id).success) issues.push(`spot ${spot.id}: ids must be kebab-case`)
+    else if (key !== spot.id) issues.push(`spot ${spot.id}: listed as ${key}`)
+  }
+  const islands = new Set(Object.values(settlements).map((s) => s.island))
+  for (const spot of spots) {
+    if (!islands.has(spot.island)) {
+      issues.push(`spot ${spot.id}: no settlement on its island "${spot.island}"`)
+    }
+  }
+  for (const s of sortedEntries(settlements)) {
+    const near = spots.some(
+      (spot) => spot.island === s.island && straightKm(spot.at, s.at) <= SPOT_LINK_KM
+    )
+    if (!near) {
+      issues.push(
+        `warning: settlement ${s.id} has no land spot within ${Math.round(SPOT_LINK_KM)} km`
+      )
+    }
+  }
+  const min = SPOT_SPACING_PX / 2
+  for (let i = 0; i < spots.length; i++) {
+    for (let j = i + 1; j < spots.length; j++) {
+      const [a, b] = [spots[i], spots[j]]
+      const px = Math.hypot(a.at.x - b.at.x, a.at.y - b.at.y)
+      if (px < min) {
+        issues.push(`spots ${a.id} and ${b.id} are ${Math.round(px)} px apart (under ${min})`)
+      }
     }
   }
   return issues

@@ -2,7 +2,8 @@ import { describe, expect, test } from 'vitest'
 import type { Content } from '../../content/build'
 import { fixtureContent } from '../test-fixtures'
 import { components, otherEnd, routesFrom, straightKm } from './geo'
-import { worldIssues } from './validate'
+import { PX_PER_KM } from '../../schema/world'
+import { SPOT_LINK_KM, SPOT_SPACING_PX, worldIssues } from './validate'
 
 const content = fixtureContent()
 const edit = (change: (c: Content) => void): Content => {
@@ -116,5 +117,56 @@ describe('worldIssues', () => {
       c.towns.harbourne.site = 'atlantis'
     })
     expect(worldIssues(pinned)).toContain('town harbourne: unknown site "atlantis"')
+  })
+})
+
+describe('worldIssues: land spots', () => {
+  test('spot ids are kebab-case and match their key', () => {
+    const broken = edit((c) => {
+      c.landSpots['spot-0002'].id = 'spot-0001'
+      c.landSpots.Spot_X = { ...c.landSpots['spot-0003'], id: 'Spot_X' }
+      delete c.landSpots['spot-0003']
+    })
+    expect(worldIssues(broken)).toEqual(
+      expect.arrayContaining([
+        'spot spot-0001: listed as spot-0002',
+        'spot Spot_X: ids must be kebab-case',
+      ])
+    )
+  })
+
+  test("a spot's island needs a settlement", () => {
+    const broken = edit((c) => {
+      c.landSpots['spot-0013'].island = 'atlantis'
+    })
+    expect(worldIssues(broken)).toContain('spot spot-0013: no settlement on its island "atlantis"')
+  })
+
+  test('every settlement needs a spot within SPOT_LINK_KM on its own island (a warning)', () => {
+    expect(SPOT_LINK_KM).toBeCloseTo((1.6 * SPOT_SPACING_PX) / PX_PER_KM)
+    const bare = edit((c) => {
+      for (const id of ['spot-0013', 'spot-0014', 'spot-0015', 'spot-0016']) delete c.landSpots[id]
+    })
+    expect(worldIssues(bare)).toEqual([
+      `warning: settlement farisle-1 has no land spot within ${Math.round(SPOT_LINK_KM)} km`,
+    ])
+    // A spot across the sea doesn't count.
+    const moved = edit((c) => {
+      for (const id of ['spot-0013', 'spot-0014', 'spot-0015', 'spot-0016']) {
+        c.landSpots[id].island = 'mainland'
+      }
+    })
+    expect(worldIssues(moved)).toContain(
+      `warning: settlement farisle-1 has no land spot within ${Math.round(SPOT_LINK_KM)} km`
+    )
+  })
+
+  test('no two spots are closer than half the grid spacing', () => {
+    const crowded = edit((c) => {
+      c.landSpots['spot-0002'].at = { x: 970, y: 970 }
+    })
+    expect(worldIssues(crowded)).toContain(
+      'spots spot-0001 and spot-0002 are 28 px apart (under 50)'
+    )
   })
 })
