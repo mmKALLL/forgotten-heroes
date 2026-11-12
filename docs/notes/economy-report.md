@@ -10,6 +10,8 @@ ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts
 
 Without `ECONOMY_REPORT`, the same file only runs the guard tests (seeds 1–8, 30 days). Their bounds are deliberately generous and pin no tuning value: the trader's median gp/day is above 0, fewer than 25% go broke by day 30, seeds 1–3 have no deaths, and food's dearest price is at most 4.5× its cheapest.
 
+The latest numbers are in "Geographic supply, whole gold and the supply split" at the end; the sections before it record the I1 tuning.
+
 ## Targets
 
 From Plan 4 I1, plus the designer's notes:
@@ -18,7 +20,7 @@ From Plan 4 I1, plus the designer's notes:
 - Fewer than 10% of traders go broke by day 60.
 - `wander` no longer goes broke in most seeds when contracts are taken. The "contracts only" policy below stands for that.
 - No good or route earns more than 3× the median margin.
-- Each good's dearest-to-cheapest price is 1.5–4×. Food was often above 4×.
+- Each good's dearest-to-cheapest price is 1.5–4×. Food was often above 4×. (Superseded by the designer's geographic-supply decision: about ½× to 2× the base price between the extremes; see the last section.)
 - Trade is a real income but not the main one. Contracts and loot carry more.
 - A starting party doesn't go broke in its first ~30 days with sensible play.
 - Encounter rates stay as they are.
@@ -142,8 +144,8 @@ These traps would catch a player too, so they are worth knowing:
    - Hamlets often have no board.
    - The 10 gp reference below goes broke in 10% of runs.
    - A gather activity would also make trade-only play possible. If it is added, its local supply should saturate quickly, so it stays a stopgap.
-3. **Provisioning order** (above): food first, or a warning when waterskins make the party encumbered?
-4. **Should supply patrons advance part of the goods' cost?** That would make supply runs possible for a poor party.
+3. **Provisioning order** (above): food first, or a warning when waterskins make the party encumbered? *Answered: water stays first; provisioning fills only the water the road needs and warns when that encumbers the party (last section).*
+4. **Should supply patrons advance part of the goods' cost?** That would make supply runs possible for a poor party. *Answered: no advance. Supply runs are split into freight and procurement (last section).*
 
 ## Reference: a 10 gp start
 
@@ -180,4 +182,64 @@ Rerun once on `rebuild` after merging Plan 4 C4 (the Stealthy ½ and Cautious ¾
 | **10 gp start:** deaths (of 60 members) | 10 | 12 |
 
 The 50 gp trader stays inside the targets. **The game's 10 gp start is now tighter:** about a quarter of runs go broke within the first month (gold in hand on day 5, P10 / median / P90: 2 / 10 / 33; day 30: 0 / 96 / 227). The safety net and "gather materials" questions above matter more with this start; Plan 5a's gathering is meant to answer them.
+
+## Geographic supply, whole gold and the supply split (designer decisions)
+
+Rerun after four designer decisions (design §4, §5):
+
+- **Whole-gold prices:** every unit price is rounded up to a whole gp, at least 1 gp. Food (0.5 gp base) and fuel (0.3) cost 1 gp almost everywhere (food 2 gp at the dearest markets).
+- **Geographic supply:** goods have producers (`data/claude/producers.json`); a market's supply is the best producer within reach, a level less per 3 steady days, down to −2 when none is near. Market rules only add demand. Demand − supply is kept within ±3, so prices run from about ½× to 2× the base price. Drift is ±10% (was ±15%). Shortages (demand 3+ over supply) are marked and named by rumours and couriers.
+- **Supply contracts split** into freight (heavy goods handed over, carried as cargo) and procurement (posted for a shortage; bring the goods in from elsewhere; base value plus the round trip to the nearest producer; no advance). The 1.2× goods payment and the 2 sourcing days are gone.
+- **Provisioning** fills only the water the road needs and warns when it encumbers; refilling by itself fills spare skins only while the party stays light.
+
+**Before** is commit `be60a05` (the trader on the old market rules, fractional prices and supply runs). **After** is this branch. No guard failed, so nothing was re-tuned beyond the new data: the producer rules were set so that luxuries come from 3–5 places a world and relics from 2–4 (seeds 1–5), and the shortage gap (3) so that about 9% of goods-in-markets are short (under 1% for food and fuel, 13–25% for stone, metal, gems, relics and luxuries).
+
+| | Before (`be60a05`) | After |
+|---|---|---|
+| Trader gp/day by day 30 (P10 / median / P90) | 0.1 / 4.1 / 8.8 | 0.2 / 3.8 / 7.2 |
+| Trader gp/day by day 60 (P10 / median / P90) | 2.0 / 4.1 / 7.2 | 0.8 / 4.0 / 6.8 |
+| Trader broke by day 30 / 60 | 3% / 3% | 3% / 3% |
+| Trader deaths (of 60 members) | 6 | 6 |
+| Contracts-only gp/day by 30 (median); broke by 60 | 5.5; 0% | 5.6; 3% |
+| Trade-only broke by 60 | 67% | 87% |
+| Wander broke by 60 | 27% | 30% |
+| Trader income per run: contracts / trade profit / loot gold | 341 / 21 / 55 | 337 / 24 / 55 |
+| Trader food and waterskins per run | 97 gp | 125 gp |
+| Trade margin (median over all sales) | 30% (50 sales) | 21% (65 sales; 17 are fuel at 0%) |
+| Supply runs (trader: taken / done / failed) | 24 / 10 / 11 | – |
+| Freight (trader: taken / done / failed) | – | 16 / 12 / 4 |
+| Procurement (trader: taken / done / failed) | – | 1 / 1 / 0 |
+| **10 gp start:** gp/day by 30 (median); broke by 30 / 60; deaths | 4.4; 10% / 10%; 10 | 3.7; 20% / 20%; 10 |
+
+**How often each kind is posted** (seeds 1–30, every board, weeks 1–9; 11,376 boards with offers): courier 56%, escort 24%, freight 8%, errand 8%, procurement 2%, bounty 1%. **7% of boards post a procurement.** Its source is usually far: a shortage means nothing is made near, and the nearest producer is typically 7–20 steady days away (templates allow up to 300 km), so a procurement is a long, well-paid job. The trader skips anything over 8 steady days, so it took only one.
+
+**Prices against the base price** (seeds 1–30, days 1, 50 and 100, mid prices before the spread):
+
+| Good | Base gp | Cheapest | Median | Dearest | Producers a world (seeds 1–5) |
+|---|---|---|---|---|---|
+| food | 0.5 | 0.46× | 0.79× | 2.11× | 40–45 |
+| fuel | 0.3 | 0.46× | 0.79× | 2.14× | 30–39 |
+| healing | 8 | 0.46× | 1.05× | 2.15× | 15–24 |
+| alchemicals | 20 | 0.46× | 0.87× | 2.14× | 18–23 |
+| arcana | 25 | 0.46× | 1.00× | 2.14× | 8–14 |
+| arms | 15 | 0.58× | 0.97× | 2.15× | 16–22 |
+| armour | 30 | 0.58× | 0.83× | 2.15× | 14–20 |
+| gear | 5 | 0.58× | 0.98× | 2.15× | 20–29 |
+| timber | 2 | 0.46× | 0.91× | 2.15× | 18 |
+| stone | 2 | 0.46× | 1.14× | 2.15× | 12 |
+| metal | 8 | 0.46× | 1.08× | 2.15× | 7–10 |
+| gems | 50 | 0.58× | 1.43× | 2.15× | 7–10 |
+| relics | 60 | 0.73× | 1.59× | 2.15× | 2–4 |
+| luxuries | 20 | 0.46× | 1.14× | 2.15× | 3–5 |
+
+Every good reaches the ½×–2× band at its extremes; typical prices sit near the base. Common goods are cheaper than their base in most places (food and fuel at a median 0.79×); scarce goods are dearer (gems 1.43×, relics 1.59×, luxuries and stone 1.14×). Dearest ÷ cheapest within a world is now a median of 2.3× (relics) to 4.1× (healing), at most 4.6×; specialised goods (metal 4.0×, healing 4.1×, luxuries 3.6×) spread wider than food (3.2×). Relics spread least because they are scarce almost everywhere.
+
+**Findings:**
+
+- **The 50 gp trader stays inside the +3–10 gp/day target** (3.8 by day 30, 4.0 by day 60), with 3% broke.
+- **Food now costs about 1 gp a ration** (whole gold), 28% more food spending per run. The 10 gp start feels it: 20% of those runs are broke by day 30 (10% before). If that is too harsh, the lightest levers are `CONTRACT_PAY_PER_DAY` or a cheaper lodging that includes meals; the safety-net and "gather materials" questions above still apply.
+- **Cheap goods are flat under whole gold:** food and fuel trade at 1 gp nearly everywhere, so fuel cargo earns nothing (the trader's 17 fuel sales were all at 0%). Fuel needs a bigger unit (a cartload) or a use before it is worth trading.
+- **Trade-only is worse** (87% broke by 60): with whole gold, small bulk trades lose their fractional margins, and the trader carries more fuel and food at no profit. Trade still pays alongside contracts (24 gp a run, as before).
+- **Freight replaces most supply runs:** the trader takes about as many (16 against 24) and fails far fewer (4 against 11), since the goods are handed over and need no capital.
+- **Outliers:** gems had 2 sales at a 241% median margin (one of them 461%, Greenwall → Fort Thorn); alchemicals 1 sale at 74%. Too few sales to call a pattern; watch them.
 
