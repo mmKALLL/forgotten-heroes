@@ -442,3 +442,10 @@ export const SPOT_LINK_KM = 1.6 * SPOT_SPACING_KM
 export const OFF_ROAD_WINDING = 1.2
 /** A POI also gets a path to another settlement on its island this much farther than its own. */
 export const PATH_DETOUR = 1.25
+
+// Progression (rules/progression.ts)
+
+/** Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset). Placeholders until I1. */
+export const XP_BY_LEVEL: readonly number[] = [
+  0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500,
+]
