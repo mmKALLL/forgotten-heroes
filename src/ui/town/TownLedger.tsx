@@ -7,6 +7,7 @@ import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
 import { useI18n } from '../i18n/I18n'
 import { ExploreAction } from '../world/ExploreAction'
+import { GatherAction } from '../world/GatherAction'
 import { RoadsOut } from '../world/RoadsOut'
 import { realmText, sizeText, threatLine } from '../world/travelText'
 import type { TravelPrefs } from '../world/travelPrefs'
@@ -85,6 +86,7 @@ export function TownLedger({
         <section className="zone zone-roads" aria-label={t('ledger.roads')}>
           {/* Explore sits above the roads (designer decision). */}
           <ExploreAction content={content} state={state} onAction={onAction} compact />
+          <GatherAction content={content} state={state} onAction={onAction} />
           <RoadsOut
             content={content}
             state={state}

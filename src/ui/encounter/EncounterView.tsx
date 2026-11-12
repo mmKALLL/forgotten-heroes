@@ -138,6 +138,11 @@ export function EncounterView({
             </span>
           )}
         </span>
+        {encounter.danger > 0 && (
+          <span className="encounter-danger muted small">
+            {t('encounter.danger', { percent: Math.round(encounter.danger * 100) })}
+          </span>
+        )}
       </header>
       <ol className="encounter-log" aria-label={t('encounter.log')} aria-live="polite">
         {visible.map((entry, i) => (

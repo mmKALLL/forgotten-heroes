@@ -292,6 +292,14 @@ test('the outcome text starts below the dice and DC row, never beside it', async
   expect(row.compareDocumentPosition(text) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
 
+test('an encounter hardened by danger says so in its header', () => {
+  render(<Harness initial={makeState({ encounter: makeEncounter({ danger: 0.2 }) })} />)
+  expect(screen.getByText('Danger +20%: harder checks, worse wounds')).toBeTruthy()
+  cleanup()
+  render(<Harness initial={makeState({ encounter: makeEncounter() })} />)
+  expect(screen.queryByText(/^Danger/)).toBeNull()
+})
+
 test('an encounter with an empty log still renders', () => {
   render(<Harness initial={makeState({ encounter: makeEncounter({ log: [] }) })} />)
   expect(screen.getByRole('heading', { name: 'Test road' })).toBeTruthy()
@@ -356,6 +364,19 @@ test('a situational modifier and Edge show beside the skill and DC', () => {
   expect(checkLine('Read them')).toBe('Insight vs DC 12 · −2 situational · Edge')
   expect(read.getByRole('option', { name: 'Lyra +2', selected: true })).toBeTruthy()
   expect(screen.getByText('Edge', { selector: '.badge' })).toBeTruthy()
+})
+
+test("a lucky actor's check says so (the odds already include the reroll)", () => {
+  const charm = {
+    id: 'charm',
+    name: 'Charm',
+    tier: 1 as const,
+    hooks: [{ hook: 'lucky' as const }],
+    value: 5,
+  }
+  const state = started('roadside', makeState({ party: [brom, { ...lyra, accessory: charm }] }))
+  render(<Harness initial={state} />)
+  expect(checkLine('Read them')).toBe('Insight vs DC 12 · lucky')
 })
 
 test('a situational modifier with a reason shows the reason', () => {

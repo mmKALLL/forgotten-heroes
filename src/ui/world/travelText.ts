@@ -32,9 +32,14 @@ export function hostileParts(t: T, option: Pick<PaceOption, 'hostile' | 'pace'>)
           }),
         ]
       : []
-  return [t('route.hostilePart.base', { pct: formatPercent(h.base) }), ...parts, ...avoided].join(
-    ', '
-  )
+  // A worn ward lowers the share (a negative part).
+  const ward = h.ward < 0 ? [t('route.hostilePart.ward', { pct: formatPercent(-h.ward) })] : []
+  return [
+    t('route.hostilePart.base', { pct: formatPercent(h.base) }),
+    ...parts,
+    ...ward,
+    ...avoided,
+  ].join(', ')
 }
 
 /** A pace's name; a pace without a string (one the engine has since retired) by its id. */

@@ -182,7 +182,7 @@ test('the roll announcer exists before the first roll, and HP bars are meters', 
   await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
   expect(document.querySelector('[aria-live="polite"]')).toBe(live)
   expect(live?.querySelector('.die.kept')).toBeTruthy()
-  const meters = screen.getAllByRole('meter')
+  const meters = screen.getAllByRole('meter', { name: / HP$/ })
   expect(meters).toHaveLength(2)
   for (const m of meters) {
     expect(Number(m.getAttribute('aria-valuenow'))).toBeGreaterThan(0)
@@ -274,7 +274,8 @@ test('the Deck waits while an encounter is in progress, and says why', async () 
 })
 
 describe('a new roll keeps its result hidden until the dice settle', () => {
-  const hp = () => screen.getAllByRole('meter').map((m) => m.getAttribute('aria-valuenow'))
+  const hp = () =>
+    screen.getAllByRole('meter', { name: / HP$/ }).map((m) => m.getAttribute('aria-valuenow'))
   /** Plays a check whose failure costs HP; returns the party's HP before the roll. */
   const sneak = async () => {
     render(<App />)

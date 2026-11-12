@@ -158,6 +158,44 @@ input {
   line-height: 1;
   padding-left: 0.4rem;
 }
+/* The thin bar to the next level, under the HP bar (Plan 5a U1). */
+.xp-bar {
+  position: relative;
+  height: 3px;
+  margin: -0.25rem 0 0.4rem;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  overflow: hidden;
+}
+.xp-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--accent) 70%, transparent);
+}
+.member-details {
+  margin-top: 0.4rem;
+  border-top: 1px solid var(--line);
+  padding-top: 0.3rem;
+}
+.member-details p {
+  margin: 0.15rem 0;
+}
+.member-hire {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.3rem 0.6rem;
+}
+.camaraderie {
+  margin: 0;
+}
+/* The world's danger (Plan 5a U3): quiet, after the day and under an encounter's title. */
+.danger-mark {
+  color: var(--bad);
+}
+.encounter-danger {
+  flex-basis: 100%;
+}
 .abilities {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
@@ -1530,7 +1568,8 @@ h2[tabindex='-1']:focus {
   padding: 0 0.35rem;
   margin-left: 0.2rem;
 }
-.explore-line {
+.explore-line,
+.gather-line {
   margin: 0.25rem 0 0.5rem;
 }
 .ledger p {
@@ -1902,6 +1941,56 @@ h2[tabindex='-1']:focus {
 }
 .service-why {
   flex-basis: 100%;
+}
+/* The recruits list, in place of the service tiles (Plan 5a U2). */
+.recruit-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 15rem), 1fr));
+  gap: 0.35rem;
+}
+.recruit {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 4px;
+  padding: 0.25rem 0.4rem;
+  font-size: 0.85rem;
+  min-width: 0;
+}
+/* The accessory shop (Plan 5a U2): one line per accessory, the button at the end. */
+.shop-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.85rem;
+}
+.shop-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.shop-text {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+.shop-sell-head {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.75rem;
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.recruit-hire {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.5rem;
+  margin-top: 0.2rem;
 }
 /* A contract's or an offer's text: two lines until opened. */
 .contract-text {

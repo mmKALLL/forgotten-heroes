@@ -3,17 +3,34 @@ import { formatModifier } from '../engine/format'
 import { ABILITIES, SKILLS, SKILL_ABILITY, abilityModifier } from '../engine/rules/abilities'
 import { statModifier } from '../engine/rules/character'
 import { strainOf } from '../engine/rules/strain'
+import type { Action } from '../engine/state'
+import type { Accessory } from '../schema/gear'
 import type { Character, SkillUse } from '../schema/state'
+import type { CamaraderieInfo } from '../engine/town/camaraderie'
 import { useI18n } from './i18n/I18n'
+import { CamaraderieLine, MemberDetails, XpBar } from './MemberDetails'
 
 type Props = {
   party: Character[]
   /** Recent encounter checks (groundwork for Strain); the sheet counts today's. */
   skillUses?: SkillUse[]
   day?: number
+  /** The party's camaraderie line under the cards (camaraderieInfo); none when absent. */
+  camaraderie?: CamaraderieInfo
+  /** The party's unworn accessories, for each sheet's picker. */
+  gear?: readonly Accessory[]
+  /** Dismiss, wear and take off; absent while that isn't possible (an encounter is open). */
+  onAction?: (a: Action) => void
 }
 
-export function PartyPanel({ party, skillUses = [], day }: Props) {
+export function PartyPanel({
+  party,
+  skillUses = [],
+  day,
+  camaraderie,
+  gear = [],
+  onAction,
+}: Props) {
   const { t } = useI18n()
   return (
     <section className="panel" aria-label={t('party.heading')}>
@@ -22,6 +39,8 @@ export function PartyPanel({ party, skillUses = [], day }: Props) {
         <CharacterCard
           key={c.id}
           character={c}
+          gear={gear}
+          onAction={onAction}
           usesToday={
             day === undefined
               ? []
@@ -29,6 +48,7 @@ export function PartyPanel({ party, skillUses = [], day }: Props) {
           }
         />
       ))}
+      {camaraderie && <CamaraderieLine info={camaraderie} />}
     </section>
   )
 }
@@ -43,9 +63,13 @@ const SKILL_GROUPS = ABILITIES.map((ability) => ({
 function CharacterCard({
   character: c,
   usesToday,
+  gear,
+  onAction,
 }: {
   character: Character
   usesToday: SkillUse[]
+  gear: readonly Accessory[]
+  onAction?: (a: Action) => void
 }) {
   const { t, stat, name } = useI18n()
   const [expanded, setExpanded] = useState(false)
@@ -91,6 +115,7 @@ function CharacterCard({
           {c.hp}/{c.maxHp} HP
         </span>
       </div>
+      <XpBar character={c} />
       {(c.exhaustion > 0 || strained.length > 0) && (
         <p className="conditions small">
           {c.exhaustion > 0 && (
@@ -158,6 +183,7 @@ function CharacterCard({
           ))}
         </div>
         <p className="muted small">{t('party.legend')}</p>
+        <MemberDetails character={c} gear={gear} onAction={onAction} />
       </div>
       {!expanded && (
         <p className="muted small">

@@ -24,6 +24,24 @@ export function xpToNext(character: Character): number | null {
   return Math.max(0, XP_BY_LEVEL[character.level] - character.xp)
 }
 
+/** Where a member stands between their level's threshold and the next, for the XP bar. */
+export type XpProgress = {
+  xp: number
+  /** XP still needed for the next level, or null at the cap. */
+  toNext: number | null
+  /** 0–1 of the way from this level's threshold to the next (1 at the cap). */
+  share: number
+}
+
+export function xpProgress(character: Character): XpProgress {
+  const toNext = xpToNext(character)
+  if (toNext === null) return { xp: character.xp, toNext, share: 1 }
+  const from = XP_BY_LEVEL[character.level - 1] ?? 0
+  const span = XP_BY_LEVEL[character.level] - from
+  const share = span > 0 ? Math.min(1, Math.max(0, (character.xp - from) / span)) : 0
+  return { xp: character.xp, toNext, share }
+}
+
 /**
  * One level: HP + hit die + CON modifier (at least 1), and on odd levels from 3rd +1 to a random
  * ability below 20 (the prototype's rules). Nothing happens at the cap.
