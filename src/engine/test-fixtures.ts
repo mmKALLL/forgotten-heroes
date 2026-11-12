@@ -1206,6 +1206,9 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     maxHp: 10,
     exhaustion: 0,
     strain: {},
+    xp: 0,
+    wage: 0,
+    accessory: null,
     ...overrides,
   }
 }
@@ -1252,6 +1255,7 @@ export function makeEncounter(overrides: Partial<EncounterState> = {}): Encounte
     nextCheckReason: null,
     poi: null,
     domain: null,
+    danger: 0,
     used: [],
     log: [],
     ...overrides,

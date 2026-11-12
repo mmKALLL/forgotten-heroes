@@ -190,6 +190,8 @@ export function startEncounter(
     nextCheckReason: null,
     poi: poi ?? null,
     domain: place?.domain ?? domainAt(state.world, state.location),
+    // A3 hardens the snapshot with the day's danger and records it here.
+    danger: 0,
     used: [],
     log: [{ text, tone: 'info' }],
   }

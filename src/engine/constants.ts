@@ -11,6 +11,8 @@ import { PX_PER_KM } from '../schema/world'
 export const STARTING_PARTY_SIZE = 2
 /** Gold a new party starts with. */
 export const STARTING_GOLD = 10
+/** Camaraderie a new party starts at (0–8): Steady. The state schema's default repeats it. */
+export const CAMARADERIE_START = 5
 
 // Travel: speed, fares and encounters (routes.ts)
 

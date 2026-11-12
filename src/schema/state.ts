@@ -11,8 +11,9 @@ import {
   SkillSchema,
   SourceSchema,
 } from './common'
-import { ABILITIES, SKILLS, TIERS } from './types'
+import { ABILITIES, CAMARADERIE_MAX, SKILLS, TIERS } from './types'
 import { SituationSchema } from './encounter'
+import { AccessorySchema } from './gear'
 import { WorldStateSchema } from './world'
 
 export const CharacterSchema = z.object({
@@ -29,6 +30,12 @@ export const CharacterSchema = z.object({
   exhaustion: z.number().int().min(0).max(6),
   /** Strain stacks by skill (design §3): each is −1 to that skill. One stack per skill fades each day. */
   strain: z.partialRecord(SkillSchema, z.number().int().min(1)).default({}),
+  /** Total XP earned, never reset; the level follows from the XP table (Plan 5a). */
+  xp: z.number().int().min(0).default(0),
+  /** gp a day: 0 for the founders, the agreed wage for hired members (Plan 5a). */
+  wage: z.number().min(0).default(0),
+  /** The accessory worn (one slot), or null. */
+  accessory: AccessorySchema.nullable().default(null),
 })
 export type Character = z.infer<typeof CharacterSchema>
 
@@ -93,6 +100,8 @@ export const EncounterStateSchema = z.object({
   poi: IdSchema.nullable().default(null),
   /** The domain (settlement id) it happens in, for clues (discoverPoi); null when unknown. */
   domain: IdSchema.nullable().default(null),
+  /** The world danger share applied to this encounter's snapshot when it started, for display. */
+  danger: z.number().min(0).default(0),
   /** "stage/option" keys of `once` options already chosen. */
   used: z.array(z.string()),
   log: z.array(EncounterLogEntrySchema),
@@ -222,7 +231,7 @@ export const ContractStateSchema = z.object({
 export type ContractState = z.infer<typeof ContractStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(9),
+  version: z.literal(10),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -261,5 +270,19 @@ export const GameStateSchema = z.object({
   contractsTaken: z.array(z.string()).default([]),
   /** Once-per-arrival actions taken here, e.g. "rumours" or "bless:<service>". Cleared on arrival. */
   doneHere: z.array(z.string()).default([]),
+  /** Accessories carried but not worn (weightless). */
+  gear: z.array(AccessorySchema).default([]),
+  /** The party's camaraderie, 0–8 (tiers in CAMARADERIE_TIERS). 5 is CAMARADERIE_START. */
+  camaraderie: z.number().int().min(0).max(CAMARADERIE_MAX).default(5),
+  /** Wages (gp) that went unpaid for lack of coin, paid first the next day. */
+  wagesOwed: z.number().min(0).default(0),
+  /** Units gathered recently by domain (settlement id) and good; the land recovers like a market. */
+  gathered: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
+  /** Recruit offer ids hired, so they are never offered again. */
+  recruitsTaken: z.array(z.string()).default([]),
+  /** Accessory offer ids bought, so they are never offered again. */
+  gearTaken: z.array(z.string()).default([]),
+  /** The day each wearer's `lucky` hook was last spent, by character id. */
+  luckUsed: z.record(z.string(), z.number().int().min(1)).default({}),
 })
 export type GameState = z.infer<typeof GameStateSchema>

@@ -24,7 +24,7 @@ import { generateWorld, startingSettlement, worldSeed, type StartMode } from './
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
-import { STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
+import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
 // Re-exported so existing imports from './state' keep working.
@@ -97,6 +97,13 @@ export function newGame(
     contracts: [],
     contractsTaken: [],
     doneHere: [],
+    gear: [],
+    camaraderie: CAMARADERIE_START,
+    wagesOwed: 0,
+    gathered: {},
+    recruitsTaken: [],
+    gearTaken: [],
+    luckUsed: {},
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state

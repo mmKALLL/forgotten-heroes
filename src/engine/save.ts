@@ -1,5 +1,6 @@
 import type { Content } from '../content/build'
 import { GameStateSchema, type GameState } from '../schema/state'
+import { CAMARADERIE_START } from './constants'
 import { generatePeople } from './town/people'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed } from './world/generate'
@@ -9,7 +10,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 9
+export const CURRENT_SAVE_VERSION = 10
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -200,6 +201,31 @@ export function v8ToV9(raw: Record<string, unknown>): Record<string, unknown> {
 }
 
 /**
+ * v9 → v10 (Plan 5a): every character has no XP yet, no wage (they are all founders) and wears
+ * nothing; the party carries no gear, starts at CAMARADERIE_START and owes no wages, has gathered
+ * nothing, hired and bought nothing, and spent no luck. An open encounter had no danger applied.
+ */
+export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
+  const party = Array.isArray(raw.party)
+    ? raw.party.map((c: Record<string, unknown>) => ({ ...c, xp: 0, wage: 0, accessory: null }))
+    : raw.party
+  const encounter = raw.encounter as Record<string, unknown> | null | undefined
+  return {
+    ...raw,
+    version: 10,
+    party,
+    encounter: encounter ? { ...encounter, danger: 0 } : encounter,
+    gear: [],
+    camaraderie: CAMARADERIE_START,
+    wagesOwed: 0,
+    gathered: {},
+    recruitsTaken: [],
+    gearTaken: [],
+    luckUsed: {},
+  }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -226,6 +252,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v7ToV8(raw as Record<string, unknown>), content)
     case 8:
       return migrate(v8ToV9(raw as Record<string, unknown>), content)
+    case 9:
+      return migrate(v9ToV10(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:
