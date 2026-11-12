@@ -570,10 +570,16 @@
           "text": "One-Eye's"
         },
         {
-          "text": "the Herbwife's"
+          "text": "the Stargazer's"
         },
         {
           "text": "the Crooked"
+        },
+        {
+          "text": "Brother Aldo's"
+        },
+        {
+          "text": "the Old Sage's"
         }
       ]
     },
@@ -1208,6 +1214,237 @@
         },
         {
           "text": "Workings"
+        }
+      ]
+    },
+    {
+      "id": "poi-name-herbwife",
+      "description": "Herbwives' springs",
+      "rows": [
+        {
+          "text": "{poi-herbwife-first} {poi-herbwife-second}"
+        }
+      ]
+    },
+    {
+      "id": "poi-herbwife-first",
+      "description": "Whose spring",
+      "rows": [
+        {
+          "text": "the Herbwife's"
+        },
+        {
+          "text": "Mother Sorrel's"
+        },
+        {
+          "text": "Old Nettle's"
+        },
+        {
+          "text": "Granny Tansy's"
+        },
+        {
+          "text": "the Green Woman's"
+        },
+        {
+          "text": "Widow Yarrow's"
+        },
+        {
+          "text": "the Wisewoman's"
+        },
+        {
+          "text": "Mistress Rue's"
+        }
+      ]
+    },
+    {
+      "id": "poi-herbwife-second",
+      "description": "What kind of spring",
+      "rows": [
+        {
+          "text": "Spring"
+        },
+        {
+          "text": "Springhead"
+        },
+        {
+          "text": "Well"
+        },
+        {
+          "text": "Wellspring"
+        }
+      ]
+    },
+    {
+      "id": "poi-name-croft",
+      "description": "Old fighters' farms",
+      "rows": [
+        {
+          "text": "{poi-croft-first} {poi-croft-second}"
+        }
+      ]
+    },
+    {
+      "id": "poi-croft-first",
+      "description": "Whose farm",
+      "rows": [
+        {
+          "text": "the Old Captain's"
+        },
+        {
+          "text": "Greyhand's"
+        },
+        {
+          "text": "the Swordmaster's"
+        },
+        {
+          "text": "Haskel's"
+        },
+        {
+          "text": "the Duelist's"
+        },
+        {
+          "text": "Silver Tom's"
+        },
+        {
+          "text": "the Fencer's"
+        },
+        {
+          "text": "Old Steel's"
+        }
+      ]
+    },
+    {
+      "id": "poi-croft-second",
+      "description": "What kind of farm",
+      "rows": [
+        {
+          "text": "Farm"
+        },
+        {
+          "text": "Croft"
+        },
+        {
+          "text": "Homestead"
+        },
+        {
+          "text": "House"
+        },
+        {
+          "text": "Yard"
+        }
+      ]
+    },
+    {
+      "id": "poi-name-scholar",
+      "description": "Scholars' towers",
+      "rows": [
+        {
+          "text": "{poi-scholar-first} {poi-scholar-second}"
+        }
+      ]
+    },
+    {
+      "id": "poi-scholar-first",
+      "description": "Whose tower",
+      "rows": [
+        {
+          "text": "the Mapmaker's"
+        },
+        {
+          "text": "the Surveyor's"
+        },
+        {
+          "text": "the Star-Reader's"
+        },
+        {
+          "text": "Mistress Quill's"
+        },
+        {
+          "text": "Old Inkfinger's"
+        },
+        {
+          "text": "the Scholar's"
+        },
+        {
+          "text": "the Compass"
+        },
+        {
+          "text": "the Glass"
+        }
+      ]
+    },
+    {
+      "id": "poi-scholar-second",
+      "description": "What kind of house",
+      "rows": [
+        {
+          "text": "Tower"
+        },
+        {
+          "text": "House"
+        },
+        {
+          "text": "Study"
+        },
+        {
+          "text": "Retreat"
+        }
+      ]
+    },
+    {
+      "id": "poi-name-lodge",
+      "description": "Hunters' lodges",
+      "rows": [
+        {
+          "text": "{poi-lodge-first} {poi-lodge-second}"
+        }
+      ]
+    },
+    {
+      "id": "poi-lodge-first",
+      "description": "Whose lodge",
+      "rows": [
+        {
+          "text": "the Huntress's"
+        },
+        {
+          "text": "One-Eye's"
+        },
+        {
+          "text": "Old Greymantle's"
+        },
+        {
+          "text": "the Hound's"
+        },
+        {
+          "text": "Widow Ash's"
+        },
+        {
+          "text": "the Stag"
+        },
+        {
+          "text": "Long Tam's"
+        },
+        {
+          "text": "the Bowyer's"
+        }
+      ]
+    },
+    {
+      "id": "poi-lodge-second",
+      "description": "What kind of lodge",
+      "rows": [
+        {
+          "text": "Lodge"
+        },
+        {
+          "text": "Cabin"
+        },
+        {
+          "text": "Shieling"
+        },
+        {
+          "text": "Hide"
         }
       ]
     }

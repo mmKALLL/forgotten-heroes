@@ -311,6 +311,62 @@
       "names": "poi-name-ruin",
       "situations": ["ruined-keep-delve"],
       "icon": "castle-ruins"
+    },
+    {
+      "id": "hermit-sage",
+      "category": "expert",
+      "name": "Hermit sage",
+      "weight": 0.5,
+      "biomes": ["mountains", "hills", "forest"],
+      "pathDanger": 1,
+      "names": "poi-name-hermit",
+      "situations": ["hermit-sage-visit"],
+      "icon": "wizard-staff"
+    },
+    {
+      "id": "herbwife-spring",
+      "category": "expert",
+      "name": "Herbwife's spring",
+      "weight": 0.5,
+      "biomes": ["forest", "marsh", "plains"],
+      "pathDanger": 0,
+      "water": true,
+      "names": "poi-name-herbwife",
+      "situations": ["herbwife-spring-visit"],
+      "icon": "mortar"
+    },
+    {
+      "id": "retired-duelist",
+      "category": "expert",
+      "name": "Retired duelist",
+      "weight": 0.5,
+      "biomes": ["plains", "hills"],
+      "pathDanger": 1,
+      "names": "poi-name-croft",
+      "situations": ["retired-duelist-visit"],
+      "icon": "fencer"
+    },
+    {
+      "id": "cartographer",
+      "category": "expert",
+      "name": "Cartographer's tower",
+      "weight": 0.5,
+      "biomes": ["hills", "plains", "desert"],
+      "pathDanger": 1,
+      "names": "poi-name-scholar",
+      "situations": ["cartographer-visit"],
+      "icon": "compass"
+    },
+    {
+      "id": "old-huntress",
+      "category": "expert",
+      "name": "Old huntress",
+      "weight": 0.5,
+      "biomes": ["forest", "hills", "mountains", "jungle"],
+      "pathDanger": 1,
+      "names": "poi-name-lodge",
+      "situations": ["old-huntress-visit"],
+      "icon": "bow-arrow"
     }
   ]
 }

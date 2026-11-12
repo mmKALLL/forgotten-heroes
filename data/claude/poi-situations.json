@@ -5430,6 +5430,954 @@
           ]
         }
       }
+    },
+    {
+      "id": "hermit-sage-visit",
+      "title": "Hermit sage",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["expert"],
+      "stages": {
+        "start": {
+          "text": "A hut of stacked stone clings to the hillside, its roof heavy with turf and its door open. Inside, among bundles of scrolls and bottled oddities, an old man in a patched robe looks up from his reading, unsurprised. 'Visitors. Sit down, and mind the jars.'",
+          "options": [
+            {
+              "id": "train",
+              "kind": "fixed",
+              "label": "Pay him to teach the old lore",
+              "description": "40 gold and 3 days. The best-suited of you without the skill learns it.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 40
+                },
+                {
+                  "req": "untrained",
+                  "skill": "arcana"
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "Three days of sigils, star-charts and his terrible tea. At the end of it, the patterns start to make sense.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -40
+                  },
+                  {
+                    "effect": "days",
+                    "amount": 3
+                  },
+                  {
+                    "effect": "trainSkill",
+                    "skill": "arcana"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "knowledge",
+              "kind": "fixed",
+              "label": "Buy what he knows of the land",
+              "description": "10 gold. Marks 2 sites in this land on your map.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 10
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "He takes your coin, unrolls a map that is mostly crossings-out, and marks two places with a burnt stick. 'Mind the second one.'",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -10
+                  },
+                  {
+                    "effect": "discoverPoi",
+                    "count": 2,
+                    "scope": "land"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "debate",
+              "kind": "check",
+              "label": "Trade tales of the old kingdoms for a lesson",
+              "description": "Impress him and he teaches for free. Bore him and he lectures all night.",
+              "requires": [
+                {
+                  "req": "untrained",
+                  "skill": "arcana"
+                }
+              ],
+              "once": true,
+              "check": {
+                "skill": "history",
+                "dc": 15
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor}'s stories are full of mistakes, and he corrects every one, until dawn.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "He won't teach, but he likes {actor}'s stories well enough to tell one back: of a ruin, and where it is.",
+                  "effects": [
+                    {
+                      "effect": "discoverPoi",
+                      "count": 1,
+                      "scope": "land",
+                      "category": "dungeon"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "He laughs until he coughs. 'You know more than you look. Very well, I'll teach one of you for nothing.'",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 3
+                    },
+                    {
+                      "effect": "trainSkill",
+                      "skill": "arcana"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "talk",
+              "kind": "fixed",
+              "label": "Share his supper and listen",
+              "outcome": {
+                "text": "He talks of the stars, the old kingdoms and the price of ink, and he gives you a bowl of something that was probably soup.",
+                "effects": [
+                  {
+                    "effect": "log",
+                    "text": "The hermit says the old kingdoms buried their dead with their maps, so the dead would not get lost."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "herbwife-spring-visit",
+      "title": "Herbwife's spring",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["expert"],
+      "stages": {
+        "start": {
+          "text": "A cottage stands over a spring that bubbles up into a stone basin. Herbs dry in bunches under the eaves, and a woman with green-stained hands is grinding something pungent in a mortar. She looks at your wounds before she looks at your faces.",
+          "options": [
+            {
+              "id": "heal",
+              "kind": "fixed",
+              "label": "Pay her to tend your hurts",
+              "description": "12 gold and a day. She mends everyone and eases weariness.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 12
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "Poultices, bitter tea and a night under her roof. You wake mended and clear-headed.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -12
+                  },
+                  {
+                    "effect": "days",
+                    "amount": 1
+                  },
+                  {
+                    "effect": "hp",
+                    "amount": 8,
+                    "target": "all"
+                  },
+                  {
+                    "effect": "exhaustion",
+                    "amount": -1,
+                    "target": "all"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "train",
+              "kind": "fixed",
+              "label": "Pay to learn her craft",
+              "description": "30 gold and 3 days. The best-suited of you without the skill learns it.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 30
+                },
+                {
+                  "req": "untrained",
+                  "skill": "medicine"
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "Three days of roots, leaves and what not to mix with what. Her pupil leaves with green hands and a good deal of sense.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -30
+                  },
+                  {
+                    "effect": "days",
+                    "amount": 3
+                  },
+                  {
+                    "effect": "trainSkill",
+                    "skill": "medicine"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "gather",
+              "kind": "check",
+              "label": "Gather herbs for her in the bog",
+              "description": "A day's work for her care instead of gold. The bog has leeches.",
+              "once": true,
+              "check": {
+                "skill": "nature",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} comes back with the wrong herbs and a leech on each leg. She tends you anyway, grudgingly.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} brings back enough. She pays in poultices.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": 4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} brings back exactly what she needed, and some she didn't know grew here. She tends you all and won't take a coin.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": 8,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "rest",
+              "kind": "fixed",
+              "label": "Drink from the spring and rest a while",
+              "outcome": {
+                "text": "The spring water is cold and sweet. You sit by the basin while she works, and leave a little rested.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": 2,
+                    "target": "all"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "retired-duelist-visit",
+      "title": "Retired duelist",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["expert"],
+      "twist": {
+        "chance": 0.25,
+        "what": "he isn't sparring: he wants one last real fight",
+        "stage": "duel"
+      },
+      "stages": {
+        "start": {
+          "text": "A neat farmhouse with a sword hung over the door. In the yard a grey-haired man is practising cuts against a post with a walking stick. He stops when he sees your weapons, and smiles thinly.",
+          "options": [
+            {
+              "id": "train",
+              "kind": "fixed",
+              "label": "Pay for lessons",
+              "description": "40 gold and 3 days. The best-suited of you without the skill learns it.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 40
+                },
+                {
+                  "req": "untrained",
+                  "skill": "acrobatics"
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "Three days of footwork in the yard until his pupil can do it in their sleep, and does, twitching.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -40
+                  },
+                  {
+                    "effect": "days",
+                    "amount": 3
+                  },
+                  {
+                    "effect": "trainSkill",
+                    "skill": "acrobatics"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "spar",
+              "kind": "check",
+              "label": "Spar with him for the privilege",
+              "description": "Impress him and he teaches for free. He doesn't pull his blows.",
+              "requires": [
+                {
+                  "req": "untrained",
+                  "skill": "acrobatics"
+                }
+              ],
+              "once": true,
+              "check": {
+                "skill": "athletics",
+                "dc": 15,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He puts {actor} on the ground three times without breaking a sweat. 'Come back when you're quicker.'",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
+                  "twist": {
+                    "text": "He puts {actor} on the ground, then keeps hitting, and he isn't smiling.",
+                    "effects": [
+                      {
+                        "effect": "hp",
+                        "amount": -6,
+                        "target": "actor"
+                      }
+                    ]
+                  }
+                },
+                "partial": {
+                  "text": "{actor} lasts long enough to earn a few bruises and his grudging respect. He teaches, between insults.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 3
+                    },
+                    {
+                      "effect": "trainSkill",
+                      "skill": "acrobatics"
+                    }
+                  ],
+                  "twist": {
+                    "text": "Halfway through, he swaps the stick for a blade, and his eyes go flat.",
+                    "effects": [
+                      {
+                        "effect": "hp",
+                        "amount": -2,
+                        "target": "actor"
+                      }
+                    ],
+                    "goto": "@twist"
+                  }
+                },
+                "success": {
+                  "text": "{actor} touches him twice. He laughs, bows, and teaches for nothing.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 3
+                    },
+                    {
+                      "effect": "trainSkill",
+                      "skill": "acrobatics"
+                    }
+                  ],
+                  "twist": {
+                    "text": "{actor} touches him twice. He stops laughing, and takes down the sword from over the door.",
+                    "goto": "@twist"
+                  }
+                }
+              }
+            },
+            {
+              "id": "read",
+              "kind": "check",
+              "label": "Read the old man",
+              "description": "Insight shows how likely he is to want more than a lesson. Misreading him puts you off.",
+              "once": true,
+              "check": {
+                "skill": "insight",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} can't make him out, and feels foolish for trying.",
+                  "effects": [
+                    {
+                      "effect": "nextCheckModifier",
+                      "amount": -2,
+                      "reason": "misread"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "There is something hungry behind his smile. {actor} can't say how hungry.",
+                  "effects": [
+                    {
+                      "effect": "revealTwist"
+                    }
+                  ],
+                  "stay": true
+                },
+                "success": {
+                  "text": "{actor} sees it clearly: he misses it, the real thing. How much is plain on his face.",
+                  "effects": [
+                    {
+                      "effect": "revealTwist"
+                    }
+                  ],
+                  "stay": true
+                }
+              }
+            },
+            {
+              "id": "knowledge",
+              "kind": "fixed",
+              "label": "Ask where the outlaws lie up",
+              "description": "10 gold. Marks 2 lairs in this land on your map.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 10
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "He was a road-warden once. He takes your coin and draws two camps in the dust with his stick.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -10
+                  },
+                  {
+                    "effect": "discoverPoi",
+                    "count": 2,
+                    "scope": "land",
+                    "category": "lair"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "talk",
+              "kind": "fixed",
+              "label": "Talk old fights over a cup",
+              "outcome": {
+                "text": "He pours something strong and tells you of duels in courts that no longer exist. He is lonely, you think.",
+                "effects": [
+                  {
+                    "effect": "log",
+                    "text": "The old duelist says every sword-school in the old capital taught the same trick, and none of them admitted it."
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "duel": {
+          "text": "The old duelist salutes with a real sword. 'One more, before I'm too old to hold it. To first blood, or further.'",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Cross swords with him",
+              "description": "Give him his fight. Win and he teaches for nothing.",
+              "check": {
+                "skill": "athletics",
+                "dc": 15,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "He is old, and he is still better. {actor} falls in the dust, and he walks away without looking back.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "Blood on both sides. He lowers the sword, satisfied, and teaches {actor} what he knows while they heal.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 3
+                    },
+                    {
+                      "effect": "trainSkill",
+                      "skill": "acrobatics"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} disarms him. He laughs until he weeps, and teaches you everything he knows.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 3
+                    },
+                    {
+                      "effect": "trainSkill",
+                      "skill": "acrobatics"
+                    },
+                    {
+                      "effect": "inspiration",
+                      "amount": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "talk-down",
+              "kind": "check",
+              "label": "Talk him down",
+              "description": "Remind him who he was. Fail and he comes on.",
+              "once": true,
+              "check": {
+                "skill": "persuasion",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He doesn't hear {actor}. He hears the sword.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "He lowers the blade, ashamed, and asks you to go."
+                },
+                "success": {
+                  "text": "{actor} talks of the duels he already won. He sits down hard, and in the end he teaches after all.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 3
+                    },
+                    {
+                      "effect": "trainSkill",
+                      "skill": "acrobatics"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "refuse",
+              "kind": "fixed",
+              "label": "Refuse and walk away",
+              "outcome": {
+                "text": "You turn your backs on him. He doesn't follow, and he doesn't watch you go."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cartographer-visit",
+      "title": "Cartographer's tower",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["expert"],
+      "stages": {
+        "start": {
+          "text": "A thin tower of grey stone with a glass room at its top. Maps cover every wall inside, pinned three deep, and a stooped woman with ink to the elbows peers at you over her spectacles. 'Travellers! Where have you been? Tell me everything.'",
+          "options": [
+            {
+              "id": "knowledge",
+              "kind": "fixed",
+              "label": "Buy a copy of her best map",
+              "description": "15 gold. Marks 3 sites in this land on your map.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 15
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "She sells you a copy, still wet, and taps three places on it. 'Those aren't on anyone else's.'",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -15
+                  },
+                  {
+                    "effect": "discoverPoi",
+                    "count": 3,
+                    "scope": "land"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "trade",
+              "kind": "check",
+              "label": "Trade what you've seen for what she knows",
+              "description": "Your road knowledge for hers. Nothing lost but breath.",
+              "once": true,
+              "check": {
+                "skill": "survival",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "She corrects {actor} on every road you name, and gives nothing back but a sniff."
+                },
+                "partial": {
+                  "text": "{actor}'s roads are worth something to her. She marks one place for you in return.",
+                  "effects": [
+                    {
+                      "effect": "discoverPoi",
+                      "count": 1,
+                      "scope": "domain"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} tells her of roads she has never mapped. She is delighted, and marks two places on your map.",
+                  "effects": [
+                    {
+                      "effect": "discoverPoi",
+                      "count": 2,
+                      "scope": "land"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "train",
+              "kind": "fixed",
+              "label": "Pay her to teach you the old borders",
+              "description": "30 gold and 2 days. The best-suited of you without the skill learns it.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 30
+                },
+                {
+                  "req": "untrained",
+                  "skill": "history"
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "Two days over old maps: borders, roads and kingdoms that are gone. Her pupil will never look at a ruin the same way.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -30
+                  },
+                  {
+                    "effect": "days",
+                    "amount": 2
+                  },
+                  {
+                    "effect": "trainSkill",
+                    "skill": "history"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "copy",
+              "kind": "check",
+              "label": "Copy her maps while she isn't looking",
+              "description": "Free, if she doesn't catch you. If she does, she charges.",
+              "once": true,
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "She catches {actor} at it, and charges for the ink before she throws you out.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": -5
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} gets a corner of one map before she turns round.",
+                  "effects": [
+                    {
+                      "effect": "discoverPoi",
+                      "count": 1,
+                      "scope": "domain"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} copies two sheets while she makes tea. She never knows.",
+                  "effects": [
+                    {
+                      "effect": "discoverPoi",
+                      "count": 2,
+                      "scope": "land"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "chat",
+              "kind": "fixed",
+              "label": "Chat a while and go",
+              "outcome": {
+                "text": "She shows you her latest map, and tells you everything wrong with everyone else's.",
+                "effects": [
+                  {
+                    "effect": "log",
+                    "text": "The cartographer says half the roads on the kingdom's maps were drawn by men who never left the capital."
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "old-huntress-visit",
+      "title": "Old huntress",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["expert"],
+      "stages": {
+        "start": {
+          "text": "A log lodge in the deep wood, antlers over the door and hides stretched to dry. The old woman on the step has one good eye and a bow across her knees, and a hound that hasn't decided about you yet.",
+          "options": [
+            {
+              "id": "train",
+              "kind": "fixed",
+              "label": "Pay her to teach you the woods",
+              "description": "35 gold and 3 days. The best-suited of you without the skill learns it.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 35
+                },
+                {
+                  "req": "untrained",
+                  "skill": "survival"
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "Three days in the woods with her, eating what she finds and sleeping where she says. Her pupil comes back knowing the land.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -35
+                  },
+                  {
+                    "effect": "days",
+                    "amount": 3
+                  },
+                  {
+                    "effect": "trainSkill",
+                    "skill": "survival"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "hunt",
+              "kind": "check",
+              "label": "Go hunting with her",
+              "description": "Keep up and she teaches for free. Two days either way.",
+              "requires": [
+                {
+                  "req": "untrained",
+                  "skill": "survival"
+                }
+              ],
+              "once": true,
+              "check": {
+                "skill": "perception",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} spots nothing she hasn't already seen. Two days of walking, and a long silence on the way back.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 2
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You don't impress her, but on the hunt she shows you the tracks of something much bigger than a deer.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 2
+                    },
+                    {
+                      "effect": "discoverPoi",
+                      "count": 1,
+                      "scope": "domain",
+                      "category": "lair"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} spots the stag before she does. She grunts, which is praise, and teaches the slowest of you what she knows.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 2
+                    },
+                    {
+                      "effect": "trainSkill",
+                      "skill": "survival"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "knowledge",
+              "kind": "fixed",
+              "label": "Ask what has been killing the herds",
+              "description": "8 gold. Marks 2 lairs in this land on your map.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 8
+                }
+              ],
+              "once": true,
+              "outcome": {
+                "text": "She takes the coin without thanks and tells you where the killers sleep. 'Go if you want. I'm too old.'",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -8
+                  },
+                  {
+                    "effect": "discoverPoi",
+                    "count": 2,
+                    "scope": "land",
+                    "category": "lair"
+                  }
+                ]
+              }
+            },
+            {
+              "id": "fire",
+              "kind": "fixed",
+              "label": "Share her fire",
+              "outcome": {
+                "text": "She shares her fire and her stew, and says almost nothing. It is the best night's sleep you've had in weeks.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": 2,
+                    "target": "all"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }

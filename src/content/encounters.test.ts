@@ -322,6 +322,59 @@ describe('points of interest', () => {
     }
   })
 
+  test('lone experts train a skill for a price, sell what they know, and always let you talk', () => {
+    const experts = ofCategory('expert')
+    expect(experts.length).toBeGreaterThanOrEqual(4)
+    expect(experts.length).toBeLessThanOrEqual(6)
+    for (const t of experts) {
+      expect(t.hostile).toBe(false)
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition, id).toBe('neutral')
+        const options = s.stages[s.start].options
+        const effects = (o: Option) => outcomesOf(o).flatMap((b) => b.effects)
+        // pay to train: fixed, once, gated by gold and by someone lacking the skill
+        const train = options.find(
+          (o) => o.kind === 'fixed' && effects(o).some((e) => e.effect === 'trainSkill') && o.once
+        )
+        expect(train, id).toBeDefined()
+        const skill = effects(train!).find((e) => e.effect === 'trainSkill')!
+        expect(train!.requires, id).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ req: 'gold' }),
+            { req: 'untrained', skill: skill.effect === 'trainSkill' && skill.skill },
+          ])
+        )
+        expect(effects(train!).some((e) => e.effect === 'gold' && e.amount < 0)).toBe(true)
+        // knowledge or healing, and a way that is neither gated nor once
+        const helps = options.some((o) =>
+          effects(o).some((e) => e.effect === 'discoverPoi' || (e.effect === 'hp' && e.amount > 0))
+        )
+        expect(helps, id).toBe(true)
+        expect(options.some((o) => !o.once && o.requires.length === 0)).toBe(true)
+        // a check that can earn it for free
+        expect(
+          options.some((o) => o.kind === 'check'),
+          id
+        ).toBe(true)
+      }
+    }
+    const taught = new Set(
+      experts.flatMap((t) =>
+        t.situations.flatMap((id) =>
+          Object.values(content.situations[id].stages).flatMap((st) =>
+            st.options
+              .flatMap(outcomesOf)
+              .flatMap((b) =>
+                b.effects.flatMap((e) => (e.effect === 'trainSkill' ? [e.skill] : []))
+              )
+          )
+        )
+      )
+    )
+    expect(taught.size).toBeGreaterThanOrEqual(4)
+  })
+
   test.each(types.map((t) => [t.id, t.names] as const))(
     '%s names come out whole from %s',
     (_, table) => {
