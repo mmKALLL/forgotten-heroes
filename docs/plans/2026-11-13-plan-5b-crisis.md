@@ -136,10 +136,10 @@ T1 → T2 (on `rebuild`) ──┬── Track E: E1 → E2 ═M1═ → E3 → 
 **Interfaces:**
 - `generateCrisis(world, content, { startDay, start }) → { world, crisis } | null`. It uses its own salted stream (`CRISIS_SALT`, from the world seed), so a world always rolls the same Crisis. It returns null without villains.
 - **Villain:** drawn by `weight × CRISIS_THREAT_FAVOUR` (3) when one of its threats holds a land in this world. Its name comes from its `names` table plus its title.
-- **Placement:** all four sites go on the start's island (the mainland), measured in hops over the domain adjacency (`territory(content).adjacent`):
-  - the reveal site: `CRISIS_REVEAL_HOPS` [1, 2] from the start (0 if nothing fits);
-  - act I: `CRISIS_ACT1_HOPS` [2, 5] from the start;
-  - acts II and III: at least `CRISIS_ACT_SPREAD` (3) hops from the previous act. An act with `seat: true` goes in a kingdom seat's domain (not the start's).
+- **Placement:** all four sites go on the start's island (the mainland). As built, the near sites are placed by steady days by road and path, not by hops as first planned (on Altaeus two domain hops are 7–19 steady days):
+  - the reveal site: `CRISIS_REVEAL_DAYS` [2, 8] steady days from the start;
+  - act I: `CRISIS_ACT1_DAYS` [4, 12] steady days from the start, outside the start's own domain;
+  - acts II and III, in hops over the domain adjacency (`territory(content).adjacent`): at least `CRISIS_ACT_SPREAD` (3) hops from the previous act. An act with `seat: true` goes in a kingdom seat's domain (not the start's).
   - Within those bounds a domain weighs ×`CRISIS_THREAT_FAVOUR` where the villain's threat holds its land or the act's `biomes` match its land.
   - Each site takes a free spot (`freeSpots`: at least `POI_MIN_KM` from the settlement and `POI_SPACING_KM` from every other POI). Without one, the next-best domain is used.
 - **The new POIs** get ids `poi-<n>` continuing the count. Each has its type and category (`quest`), threat 0, `discovered: false`, and a name from the type's names table with `{villain}` and `{land}` filled.
@@ -452,7 +452,7 @@ T1 → T2 (on `rebuild`) ──┬── Track E: E1 → E2 ═M1═ → E3 → 
 The designer asked us to keep going and make reasonable calls. Each of these is easy to change later; most are a constant or a data value.
 
 1. **One Crisis per world, chosen by the world seed:** a villain from `villains` by weight, ×3 where one of its threats holds a land, so it fits the world's troubles. The same world always rolls the same villain. This plan writes three villains.
-2. **Crisis sites are new POIs,** placed when the Crisis is rolled: a reveal site and three act sites. They are weight-0 `quest` types, all on the mainland. The reveal site is 1–2 domains from the start, act I is 2–5, and each later act is at least 3 domains from the one before. An act marked `seat` goes under a kingdom's seat. The rest of the world is unchanged. They don't cycle, feed threat or fill up again.
+2. **Crisis sites are new POIs,** placed when the Crisis is rolled: a reveal site and three act sites. They are weight-0 `quest` types, all on the mainland. The reveal site is 2–8 steady days from the start (`CRISIS_REVEAL_DAYS`), act I is 4–12 (`CRISIS_ACT1_DAYS`; both first planned as 1–2 and 2–5 domain hops, changed in E1 because hops vary too much in days), and each later act is at least 3 domains from the one before. An act marked `seat` goes under a kingdom's seat. The rest of the world is unchanged. They don't cycle, feed threat or fill up again. Every crisis site has water (an abandoned well, a spring or a cistern; decided in I2, see `docs/notes/crisis-report.md`).
 3. **Deadlines are fixed calendar days:** act n is due on day `start + 100n ± 10`. Thwarting an act early doesn't move the next one's due day, so dawdling on one act eats into the next. The clock runs from day 1, even before the plan is known.
 4. **How the party first hears:** a tavern rumour's site clue becomes the reveal site, a road omen can point there, and from day 15 a notable person takes the party aside on its next arrival anywhere (the guaranteed fallback). The plan itself is learned only by visiting the reveal site.
 5. **Clues follow the solo notes' clue points.** Each act starts with one clue, its land: from learning the plan for act I, and from thwarting the previous act for the others. A second clue reveals the site; it comes from a rumour in that land, a road omen, or exploring the right domain, which can find the site directly. A third reveals the villain's **weakness**: the party starts the site with the Edge (advantage earned, not given). Rumours elsewhere point the way by compass direction. Ordinary clues, paid knowledge and exploring never find a Crisis site before its act.

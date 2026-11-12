@@ -1,6 +1,6 @@
 # Balance constants
 
-The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`](../../src/engine/constants.ts)**, grouped by topic: starting party, travel and encounters, pace, pursuit, foraging, supplies and rest, carrying capacity, markets, geographic supply, the price book, services and animals, visible wealth, stowing away, politics, settlements, notable people, reputation, rumours, contracts, recruits (the party cap, fees and wages), wages, camaraderie and desertion, points of interest, site cycles and boons, exploring, gathering, rule hooks and accessories, Strain, checks, territory, progression (the XP table and what pays XP), and world danger (the ramp). Each has a one-line comment, and each section names the module that uses it. Edit a value there, then run `pnpm test`.
+The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`](../../src/engine/constants.ts)**, grouped by topic: starting party, travel and encounters, pace, pursuit, foraging, supplies and rest, carrying capacity, markets, geographic supply, the price book, services and animals, visible wealth, stowing away, politics, settlements, notable people, reputation, rumours, contracts, recruits (the party cap, fees and wages), wages, camaraderie and desertion, points of interest, site cycles and boons, exploring, gathering, rule hooks and accessories, Strain, checks, territory, progression (the XP table and what pays XP), world danger (the ramp), and the Crisis (rolling it, deadlines and news, clues and thwarting, and rumours, the summons and omens). Each has a one-line comment, and each section names the module that uses it. Edit a value there, then run `pnpm test`.
 
 **Watch out:** some tests pin exact values (for example `ENCOUNTER_SLOT_CHANCE`, `BOON_COOLDOWN_DAYS`) or measure statistics such as the Rampant share and POIs per world. When you deliberately change a number, update the matching test expectation.
 
@@ -25,6 +25,8 @@ The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`]
 | `data/claude/poi-situations.json` | `accessory` effects (and their `tier`) in lair and dungeon clearings | Where accessories drop as loot |
 | `data/claude/gathering.json` | `biomes`, `skill`, `dc` and `yield` per tier per rule | What a party can gather for a day in each land, how hard it is (before the domain's producers lower the DC) and how many units each tier brings home for two workers |
 | `data/claude/villains.json` | `weight` and `threats` per villain; `biomes` and `seat` per act | How often each villain is rolled for a world (favoured where its threats hold a land), and where each act site is placed |
+| `data/claude/crisis-sites.json` | `pathDanger` and `water` per type | How dangerous the path to each Crisis site is, and whether it refills the waterskins (every one does: some lie days off the road in the desert) |
+| `data/claude/crisis-situations.json` | the `dc` of each act situation's checks (12–14), and `xp` 0 on the approach checks | How hard each act is to thwart before lateness and the danger ramp, and that only the finale pays XP |
 Encounter odds and rewards live in the situations themselves (`situations.json` files in every source).
 
 See also [threat-levels.md](threat-levels.md) for how threat and Rampant are worked out.
@@ -36,3 +38,11 @@ ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts
 ```
 
 The simulation starts its parties with its own 50 gp (`SIM_GOLD` in the test), so its guards and tables don't move with `STARTING_GOLD`; the report ends with a reference section for the game's own `STARTING_GOLD` start.
+
+The Crisis numbers (the `CRISIS_*` constants, `XP_THWART`, and the act DCs) were checked against the Crisis simulation: see [crisis-report.md](crisis-report.md). Rerun it after changing them:
+
+```
+CRISIS_REPORT=/tmp/crisis.md pnpm vitest run src/content/crisis.sim.test.ts
+```
+
+`CRISIS_ACT_DAYS` (about 100 days an act) is the designer's number; the report says what changing it would do instead of tuning it.
