@@ -1,6 +1,8 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
-import { journeyProgress, routeOptions } from '../../engine/travel/preview'
+import { formatPercent } from '../../engine/format'
+import type { Action } from '../../engine/state'
+import { journeyProgress, routeOptions, type RouteOption } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom, nodeOf } from '../../engine/world/graph'
 import { siteEmpty } from '../../engine/world/sites'
@@ -10,7 +12,9 @@ import { MAP_HEIGHT, MAP_WIDTH, type Kingdom, type MapPoint } from '../../schema
 import { iconUrl } from '../assets'
 import { useI18n } from '../i18n/I18n'
 import { PoiGlyph, poiCategoryText } from './PoiGlyph'
-import { dangerText } from './travelText'
+import { ridden, shownPace, travelAction } from './RoadsOut'
+import { dangerText, daysText, paceChoiceOf, roadReasonMessage } from './travelText'
+import type { TravelPrefs } from './travelPrefs'
 import { SPOT_SPACING_PX } from '../../engine/constants'
 
 /**
@@ -108,6 +112,13 @@ type Props = {
   onSelect: (placeId: string) => void
   /** The Altaeus map image (a local asset), or null to draw on plain parchment. */
   imageUrl: string | null
+  /**
+   * Travel from the map: with these, a selected marker one road away opens a popover with the
+   * road's days, encounters and hostile share at the last pace and foraging chosen, and Travel.
+   */
+  prefs?: TravelPrefs
+  onTravel?: (a: Action) => void
+  onClose?: () => void
 }
 
 const lerp = (a: MapPoint, b: MapPoint, t: number): MapPoint => ({
@@ -167,7 +178,16 @@ export function nearestInDirection(
  * keys move between all of them. The kingdom overlay (remembered per viewer) tints every land
  * spot in its domain's kingdom colour and crowns the seats.
  */
-export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props) {
+export function WorldMap({
+  content,
+  state,
+  selected,
+  onSelect,
+  imageUrl,
+  prefs,
+  onTravel,
+  onClose,
+}: Props) {
   const { t } = useI18n()
   // Zoomed in on the party by default; the view follows it as it moves.
   const [zoomed, setZoomed] = useState(true)
@@ -186,8 +206,11 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
     : state.location
       ? at(state.location)
       : null
-  const roads = routeOptions(state, content)
+  const roads = routeOptions(state, content, prefs?.forage ?? true)
   const reachable = new Set(roads.map((r) => r.to))
+  const viewBox = viewBoxFor(party, zoomed)
+  const picked = !travel && prefs && onTravel ? roads.find((r) => r.to === selected) : undefined
+  const pickedAt = picked ? at(picked.to) : null
   const shownRoute = travel?.route ?? roads.find((r) => r.to === selected)?.routeId ?? null
   const colours = kingdomColours(state.world.kingdoms)
   const colourOf = (domain: string | undefined) =>
@@ -241,207 +264,219 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
           </button>
         </div>
       </div>
-      <svg
-        ref={svg}
-        className={`world-map ${zoomed ? 'zoomed' : 'full'}`}
-        viewBox={viewBoxFor(party, zoomed)}
-        role="group"
-        aria-label={t('map.label')}
-      >
-        {imageUrl ? (
-          <image href={imageUrl} x={0} y={0} width={MAP_WIDTH} height={MAP_HEIGHT} />
-        ) : (
-          <rect className="map-parchment" x={0} y={0} width={MAP_WIDTH} height={MAP_HEIGHT} />
-        )}
-        {overlay && (
-          <g className="kingdom-overlay" aria-hidden="true">
-            {sortedEntries(content.landSpots).map((spot) => {
-              const fill = colourOf(domainOf[spot.id])
-              if (!fill) return null
-              return (
-                <rect
-                  key={spot.id}
-                  className="kingdom-spot"
-                  data-spot={spot.id}
-                  x={spot.at.x - SPOT_SPACING_PX / 2}
-                  y={spot.at.y - SPOT_SPACING_PX / 2}
-                  width={SPOT_SPACING_PX}
-                  height={SPOT_SPACING_PX}
-                  style={{ fill }}
-                />
-              )
-            })}
-          </g>
-        )}
-        {/* The map image prints the region names itself. */}
-        {!imageUrl &&
-          sortedEntries(content.regions).map((r) => (
-            <text
-              key={r.id}
-              className="region-label"
-              x={r.label.x}
-              y={r.label.y}
-              textAnchor="middle"
-            >
-              {r.name}
-            </text>
-          ))}
-        {sortedEntries(content.routes).map((r) => {
-          const a = at(r.from)
-          const b = at(r.to)
-          if (!a || !b) return null
-          const danger = Math.max(0, Math.min(3, r.danger))
-          const extra = [r.terrain === 'sea' && 'sea', r.id === shownRoute && 'active']
-            .filter(Boolean)
-            .join(' ')
-          const ends = { x1: a.x, y1: a.y, x2: b.x, y2: b.y }
-          return (
-            <g key={r.id}>
-              <line className={`route-casing ${extra}`} {...ends} />
-              <line
-                className={`route danger-${danger} ${extra}`}
-                style={{ stroke: DANGER_COLOURS[danger] }}
-                {...ends}
-              />
+      <div className="map-frame">
+        <svg
+          ref={svg}
+          className={`world-map ${zoomed ? 'zoomed' : 'full'}`}
+          viewBox={viewBox}
+          role="group"
+          aria-label={t('map.label')}
+        >
+          {imageUrl ? (
+            <image href={imageUrl} x={0} y={0} width={MAP_WIDTH} height={MAP_HEIGHT} />
+          ) : (
+            <rect className="map-parchment" x={0} y={0} width={MAP_WIDTH} height={MAP_HEIGHT} />
+          )}
+          {overlay && (
+            <g className="kingdom-overlay" aria-hidden="true">
+              {sortedEntries(content.landSpots).map((spot) => {
+                const fill = colourOf(domainOf[spot.id])
+                if (!fill) return null
+                return (
+                  <rect
+                    key={spot.id}
+                    className="kingdom-spot"
+                    data-spot={spot.id}
+                    x={spot.at.x - SPOT_SPACING_PX / 2}
+                    y={spot.at.y - SPOT_SPACING_PX / 2}
+                    width={SPOT_SPACING_PX}
+                    height={SPOT_SPACING_PX}
+                    style={{ fill }}
+                  />
+                )
+              })}
             </g>
-          )
-        })}
-        {/* The paths to discovered sites, thinner than roads, coloured the same way. */}
-        {pois.flatMap(({ id }) =>
-          edgesFrom(state, content, id).map((r) => {
+          )}
+          {/* The map image prints the region names itself. */}
+          {!imageUrl &&
+            sortedEntries(content.regions).map((r) => (
+              <text
+                key={r.id}
+                className="region-label"
+                x={r.label.x}
+                y={r.label.y}
+                textAnchor="middle"
+              >
+                {r.name}
+              </text>
+            ))}
+          {sortedEntries(content.routes).map((r) => {
             const a = at(r.from)
             const b = at(r.to)
             if (!a || !b) return null
             const danger = Math.max(0, Math.min(3, r.danger))
-            const active = r.id === shownRoute ? 'active' : ''
+            const extra = [r.terrain === 'sea' && 'sea', r.id === shownRoute && 'active']
+              .filter(Boolean)
+              .join(' ')
             const ends = { x1: a.x, y1: a.y, x2: b.x, y2: b.y }
             return (
-              <g key={r.id} data-route={r.id}>
-                <line className={`route-casing path ${active}`} {...ends} />
+              <g key={r.id}>
+                <line className={`route-casing ${extra}`} {...ends} />
                 <line
-                  className={`route path danger-${danger} ${active}`}
+                  className={`route danger-${danger} ${extra}`}
                   style={{ stroke: DANGER_COLOURS[danger] }}
                   {...ends}
                 />
               </g>
             )
-          })
-        )}
-        {travel && from && party && (
-          <line
-            className="route travelled"
-            x1={from.x}
-            y1={from.y}
-            x2={party.x}
-            y2={party.y}
-            aria-hidden="true"
+          })}
+          {/* The paths to discovered sites, thinner than roads, coloured the same way. */}
+          {pois.flatMap(({ id }) =>
+            edgesFrom(state, content, id).map((r) => {
+              const a = at(r.from)
+              const b = at(r.to)
+              if (!a || !b) return null
+              const danger = Math.max(0, Math.min(3, r.danger))
+              const active = r.id === shownRoute ? 'active' : ''
+              const ends = { x1: a.x, y1: a.y, x2: b.x, y2: b.y }
+              return (
+                <g key={r.id} data-route={r.id}>
+                  <line className={`route-casing path ${active}`} {...ends} />
+                  <line
+                    className={`route path danger-${danger} ${active}`}
+                    style={{ stroke: DANGER_COLOURS[danger] }}
+                    {...ends}
+                  />
+                </g>
+              )
+            })
+          )}
+          {travel && from && party && (
+            <line
+              className="route travelled"
+              x1={from.x}
+              y1={from.y}
+              x2={party.x}
+              y2={party.y}
+              aria-hidden="true"
+            />
+          )}
+          {sites.map((s) => {
+            const here = s.id === state.location && !travel
+            const name = settlementName(state, s.id)
+            const classes = [
+              'site',
+              here && 'here',
+              s.id === selected && 'selected',
+              reachable.has(s.id) && 'reachable',
+            ]
+            return (
+              <g
+                key={s.id}
+                className={classes.filter(Boolean).join(' ')}
+                data-site={s.id}
+                role="button"
+                tabIndex={tabStops.has(s.id) ? 0 : -1}
+                aria-label={here ? t('map.here', { name }) : name}
+                aria-pressed={s.id === selected}
+                onClick={() => onSelect(s.id)}
+                onKeyDown={onKey(s.id, s.at)}
+              >
+                <title>{name}</title>
+                <rect
+                  x={s.at.x - marker}
+                  y={s.at.y - marker}
+                  width={marker * 2}
+                  height={marker * 2}
+                  rx={s.capital ? 4 : 10}
+                  style={{ stroke: colourOf(s.id) }}
+                />
+                {overlay && seats.has(s.id) && (
+                  <path
+                    className="crown"
+                    d={crownPath(s.at, marker)}
+                    style={{ fill: colourOf(s.id) }}
+                  />
+                )}
+                {(zoomed || !imageUrl) && (
+                  <text
+                    className="site-label"
+                    x={s.at.x}
+                    y={s.at.y - marker - 14}
+                    textAnchor="middle"
+                  >
+                    {name}
+                  </text>
+                )}
+              </g>
+            )
+          })}
+          {pois.map(({ id, at: p, poi, category, icon }) => {
+            const here = id === state.location && !travel
+            const label = `${poi.name} (${poiCategoryText(t, category)})`
+            const r = marker * 0.85
+            const classes = [
+              'site',
+              'poi',
+              siteEmpty(state.world.seed, id, poi, state.day) && 'cleared',
+              here && 'here',
+              id === selected && 'selected',
+              reachable.has(id) && 'reachable',
+            ]
+            return (
+              <g
+                key={id}
+                className={classes.filter(Boolean).join(' ')}
+                data-site={id}
+                role="button"
+                tabIndex={tabStops.has(id) ? 0 : -1}
+                aria-label={here ? t('map.here', { name: label }) : label}
+                aria-pressed={id === selected}
+                onClick={() => onSelect(id)}
+                onKeyDown={onKey(id, p)}
+              >
+                <title>{label}</title>
+                <circle cx={p.x} cy={p.y} r={r} style={{ stroke: colourOf(poi.domain) }} />
+                {icon ? (
+                  <image
+                    className="poi-icon"
+                    href={icon}
+                    x={p.x - r * 0.7}
+                    y={p.y - r * 0.7}
+                    width={r * 1.4}
+                    height={r * 1.4}
+                  />
+                ) : (
+                  <PoiGlyph category={category} at={p} size={r * 0.7} />
+                )}
+                {(zoomed || !imageUrl) && (
+                  <text className="site-label" x={p.x} y={p.y - r - 14} textAnchor="middle">
+                    {poi.name}
+                  </text>
+                )}
+              </g>
+            )
+          })}
+          {party && (
+            <g className="party-marker" data-x={party.x} data-y={party.y} aria-hidden="true">
+              <circle className="party-halo" cx={party.x} cy={party.y} r={marker * 3.4} />
+              <circle className="party-casing" cx={party.x} cy={party.y} r={marker * 1.9} />
+              <circle className="party-ring" cx={party.x} cy={party.y} r={marker * 1.9} />
+              <circle className="party-core" cx={party.x} cy={party.y} r={marker * 0.5} />
+            </g>
+          )}
+        </svg>
+        {picked && pickedAt && prefs && onTravel && (
+          <TravelPopover
+            road={picked}
+            prefs={prefs}
+            at={pickedAt}
+            viewBox={viewBox}
+            onTravel={onTravel}
+            onClose={onClose}
           />
         )}
-        {sites.map((s) => {
-          const here = s.id === state.location && !travel
-          const name = settlementName(state, s.id)
-          const classes = [
-            'site',
-            here && 'here',
-            s.id === selected && 'selected',
-            reachable.has(s.id) && 'reachable',
-          ]
-          return (
-            <g
-              key={s.id}
-              className={classes.filter(Boolean).join(' ')}
-              data-site={s.id}
-              role="button"
-              tabIndex={tabStops.has(s.id) ? 0 : -1}
-              aria-label={here ? t('map.here', { name }) : name}
-              aria-pressed={s.id === selected}
-              onClick={() => onSelect(s.id)}
-              onKeyDown={onKey(s.id, s.at)}
-            >
-              <title>{name}</title>
-              <rect
-                x={s.at.x - marker}
-                y={s.at.y - marker}
-                width={marker * 2}
-                height={marker * 2}
-                rx={s.capital ? 4 : 10}
-                style={{ stroke: colourOf(s.id) }}
-              />
-              {overlay && seats.has(s.id) && (
-                <path
-                  className="crown"
-                  d={crownPath(s.at, marker)}
-                  style={{ fill: colourOf(s.id) }}
-                />
-              )}
-              {(zoomed || !imageUrl) && (
-                <text
-                  className="site-label"
-                  x={s.at.x}
-                  y={s.at.y - marker - 14}
-                  textAnchor="middle"
-                >
-                  {name}
-                </text>
-              )}
-            </g>
-          )
-        })}
-        {pois.map(({ id, at: p, poi, category, icon }) => {
-          const here = id === state.location && !travel
-          const label = `${poi.name} (${poiCategoryText(t, category)})`
-          const r = marker * 0.85
-          const classes = [
-            'site',
-            'poi',
-            siteEmpty(state.world.seed, id, poi, state.day) && 'cleared',
-            here && 'here',
-            id === selected && 'selected',
-            reachable.has(id) && 'reachable',
-          ]
-          return (
-            <g
-              key={id}
-              className={classes.filter(Boolean).join(' ')}
-              data-site={id}
-              role="button"
-              tabIndex={tabStops.has(id) ? 0 : -1}
-              aria-label={here ? t('map.here', { name: label }) : label}
-              aria-pressed={id === selected}
-              onClick={() => onSelect(id)}
-              onKeyDown={onKey(id, p)}
-            >
-              <title>{label}</title>
-              <circle cx={p.x} cy={p.y} r={r} style={{ stroke: colourOf(poi.domain) }} />
-              {icon ? (
-                <image
-                  className="poi-icon"
-                  href={icon}
-                  x={p.x - r * 0.7}
-                  y={p.y - r * 0.7}
-                  width={r * 1.4}
-                  height={r * 1.4}
-                />
-              ) : (
-                <PoiGlyph category={category} at={p} size={r * 0.7} />
-              )}
-              {(zoomed || !imageUrl) && (
-                <text className="site-label" x={p.x} y={p.y - r - 14} textAnchor="middle">
-                  {poi.name}
-                </text>
-              )}
-            </g>
-          )
-        })}
-        {party && (
-          <g className="party-marker" data-x={party.x} data-y={party.y} aria-hidden="true">
-            <circle className="party-halo" cx={party.x} cy={party.y} r={marker * 3.4} />
-            <circle className="party-casing" cx={party.x} cy={party.y} r={marker * 1.9} />
-            <circle className="party-ring" cx={party.x} cy={party.y} r={marker * 1.9} />
-            <circle className="party-core" cx={party.x} cy={party.y} r={marker * 0.5} />
-          </g>
-        )}
-      </svg>
+      </div>
       <ul className="map-legend small" aria-label={t('map.legend')}>
         {DANGER_COLOURS.map((colour, danger) => (
           <li key={danger}>
@@ -481,5 +516,81 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
       )}
       {!imageUrl && <p className="muted small">{t('map.noImage')}</p>}
     </section>
+  )
+}
+
+/**
+ * A road picked on the map: its days, encounters and hostile share at the last pace and foraging
+ * chosen (and hired mounts, if chosen and offered), why it can't be taken, and Travel.
+ */
+function TravelPopover({
+  road,
+  prefs,
+  at,
+  viewBox,
+  onTravel,
+  onClose,
+}: {
+  road: RouteOption
+  prefs: TravelPrefs
+  at: MapPoint
+  viewBox: string
+  onTravel: (a: Action) => void
+  onClose?: () => void
+}) {
+  const { t } = useI18n()
+  const [x, y, w, h] = viewBox.split(' ').map(Number)
+  const left = Math.min(85, Math.max(15, ((at.x - x) / w) * 100))
+  const top = ((at.y - y) / h) * 100
+  const below = top < 40
+  const option = shownPace(road, prefs)
+  const riding = ridden(road, prefs)
+  const reason = riding ? (option.reason ?? null) : road.reason
+  const [min, max] = option.encounters
+  const sea = road.terrain === 'sea'
+  return (
+    <div
+      className={`map-pop${below ? ' below' : ''}`}
+      style={{ left: `${left}%`, top: `${top}%` }}
+      role="group"
+      aria-label={t('mapTravel.label', { name: road.toName })}
+    >
+      <strong>{road.toName}</strong>
+      <p className="small">
+        {max > 0
+          ? t('mapTravel.facts', {
+              days: daysText(t, option.days),
+              min,
+              max,
+              pct: formatPercent(option.hostile.share),
+            })
+          : t('mapTravel.factsQuiet', { days: daysText(t, option.days) })}
+      </p>
+      <p className="muted small">
+        {sea
+          ? t('route.seaPace')
+          : t('mapTravel.pace', {
+              pace: t(`pace.${paceChoiceOf(option)}`),
+              forage: prefs.forage ? t('mapTravel.forage') : '',
+              mounted: riding ? t('mapTravel.mounted') : '',
+            })}
+      </p>
+      {reason && <p className="tone-bad small">{roadReasonMessage(t, reason)}</p>}
+      <div className="actions">
+        <button
+          className="primary"
+          disabled={reason !== null}
+          aria-label={t('mapTravel.label', { name: road.toName })}
+          onClick={() => onTravel(travelAction(road, prefs))}
+        >
+          {t('route.travel')}
+        </button>
+        {onClose && (
+          <button aria-label={t('mapTravel.close')} onClick={onClose}>
+            ×
+          </button>
+        )}
+      </div>
+    </div>
   )
 }

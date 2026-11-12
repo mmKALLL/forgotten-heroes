@@ -15,6 +15,8 @@ import { stepTravel, type TravelAction } from './travel/journey'
 import { observe, stepTrade, type TradeAction } from './economy/trade'
 import { useService, type ServiceUse } from './town/services'
 import { buyAnimal, sellAnimal } from './town/animals'
+import { provision, type ProvisionFor } from './town/provision'
+import { autoRest } from './town/arrival'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
@@ -40,6 +42,10 @@ export type Action =
   | { type: 'visitPoi' }
   /** Search the domain the party is in for undiscovered POIs (world/explore.ts). */
   | { type: 'explore' }
+  /** Buy the food and waterskins a road needs at a pace, and fill the water (town/provision.ts). */
+  | ({ type: 'provision' } & ProvisionFor)
+  /** Rest a day on arrival if hurt or strained: at an inn if affordable (town/arrival.ts). */
+  | { type: 'autoRest' }
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
@@ -161,6 +167,10 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return visitPoi(state, content)
     case 'explore':
       return explore(state, content)
+    case 'provision':
+      return provision(state, content, action)
+    case 'autoRest':
+      return autoRest(state, content)
     default:
       return stepEncounter(state, action, content)
   }

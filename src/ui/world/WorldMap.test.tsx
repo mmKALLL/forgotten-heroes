@@ -8,6 +8,7 @@ import { step } from '../../engine/state'
 import { routeOptions } from '../../engine/travel/preview'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
+import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
 import {
   DANGER_COLOURS,
   KINGDOM_COLOURS,
@@ -406,4 +407,44 @@ test('the party on a path to a site is drawn along it', () => {
   )
   expect(container.querySelector('g.party-marker')).toBeTruthy()
   expect(container.querySelectorAll('line.route.path.active')).toHaveLength(1)
+})
+
+test('a road’s end picked on the map opens a popover that travels at the last pace', async () => {
+  const state = makeState({ location: 'greenvale-1', gold: 50 })
+  const onTravel = vi.fn()
+  const onClose = vi.fn()
+  const prefs = { ...DEFAULT_TRAVEL_PREFS, pace: 'brisk' as const, forage: false }
+  render(
+    <WorldMap
+      content={content}
+      state={state}
+      selected="greenvale-2"
+      onSelect={vi.fn()}
+      imageUrl={null}
+      prefs={prefs}
+      onTravel={onTravel}
+      onClose={onClose}
+    />
+  )
+  const name = settlementName(state, 'greenvale-2')
+  const pop = within(screen.getByRole('group', { name: `Travel to ${name}` }))
+  const road = routeOptions(state, content, false).find((r) => r.to === 'greenvale-2')!
+  const brisk = road.paces.find((p) => p.pace === 'brisk')!
+  expect(
+    pop.getByText(
+      `${brisk.days} days · ${brisk.encounters[0]}–${brisk.encounters[1]} encounters · ` +
+        `${Math.round(brisk.hostile.share * 100)}% hostile`
+    )
+  ).toBeTruthy()
+  expect(pop.getByText('Brisk')).toBeTruthy()
+  await userEvent.click(pop.getByRole('button', { name: `Travel to ${name}` }))
+  expect(onTravel).toHaveBeenCalledWith({
+    type: 'travel',
+    routeId: road.routeId,
+    pace: 'brisk',
+    coverTracks: false,
+    forage: false,
+  })
+  await userEvent.click(pop.getByRole('button', { name: 'Close' }))
+  expect(onClose).toHaveBeenCalled()
 })

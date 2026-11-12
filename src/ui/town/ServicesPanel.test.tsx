@@ -62,7 +62,7 @@ test('tiles are grouped by function; an unsupported service shows "coming later"
   const magic = screen.getByRole('region', { name: 'Magic items' })
   expect(within(magic).getByText('coming later')).toBeTruthy()
   const inn = screen.getByRole('region', { name: 'Inn/Tavern' })
-  expect(within(inn).getByText('Rumours, Notice board: coming later')).toBeTruthy()
+  expect(within(inn).getByText('Rumours, board: later')).toBeTruthy()
   expect(within(screen.getByRole('region', { name: 'Jewelry trader' })).getByText(/^Trades gems/))
 })
 
@@ -70,7 +70,7 @@ test('rooms, the healer, a blessing, news and animals dispatch their actions', a
   const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 } })
   const onAction = panel(hurt)
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
-  await userEvent.click(inn.getByRole('button', { name: /^Common room · \d+ gp$/ }))
+  await userEvent.click(inn.getByRole('button', { name: /^Common · \d+ gp$/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: 'common' })
 
   const heal = screen.getByRole('button', { name: `Heal 1 · ${HEALER_PRICE} gp` })

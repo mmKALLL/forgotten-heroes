@@ -33,6 +33,20 @@ test('shows the journey’s progress and pace, and dispatches Continue and Make 
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest' })
 })
 
+test('the auto-rest setting is a checkbox on the journey', async () => {
+  const out = step(
+    makeState({ location: 'greenvale-1' }),
+    { type: 'travel', routeId: 'greenvale-1-greenvale-2' },
+    content
+  )
+  const set = vi.fn()
+  render(
+    <JourneyPanel content={content} state={out} onAction={vi.fn()} autoRest={{ on: false, set }} />
+  )
+  await userEvent.click(screen.getByRole('checkbox', { name: /^On arrival, rest a day/ }))
+  expect(set).toHaveBeenCalledWith(true)
+})
+
 /**
  * The App's centre column on the real engine; this road is kept quiet (no encounters). "New
  * party" starts a game with another seed.

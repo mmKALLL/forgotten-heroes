@@ -12,6 +12,7 @@ import {
   type RouteOption,
 } from '../../engine/travel/preview'
 import { isSevere } from '../../engine/travel/warnings'
+import { provisionPlan } from '../../engine/town/provision'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
 import { OddsBar } from '../OddsBar'
@@ -100,6 +101,7 @@ export function RoadsOut({
             onAction(travelAction(chosen, prefs, stowaway))
             onSelect(null)
           }}
+          onProvision={() => onAction(provisionAction(chosen, prefs))}
         />
       )}
       {elsewhere && (
@@ -140,6 +142,17 @@ export function travelAction(road: RouteOption, prefs: TravelPrefs, stowaway = f
   }
 }
 
+/** "Provision for this road": the food and waterskins the road needs with these choices. */
+export function provisionAction(road: RouteOption, prefs: TravelPrefs): Action {
+  const choice = road.terrain === 'sea' ? 'steady' : prefs.pace
+  return {
+    type: 'provision',
+    routeId: road.routeId,
+    ...paceFields(choice),
+    ...(ridden(road, prefs) ? { hire: true } : {}),
+  }
+}
+
 /**
  * The pace option shown for a road: the chosen pace (steady, or the first, when the road doesn't
  * offer it), on foot or riding hired mounts.
@@ -170,6 +183,7 @@ export function RouteInfo({
   mounted,
   onMounted,
   onTravel,
+  onProvision,
 }: {
   road: RouteOption
   state: GameState
@@ -182,6 +196,8 @@ export function RouteInfo({
   mounted: boolean
   onMounted: (m: boolean) => void
   onTravel: (stowaway: boolean) => void
+  /** Buy what the road needs at the shown pace (absent where nothing can be bought). */
+  onProvision?: () => void
 }) {
   const { t, stat, name } = useI18n()
   const forageHintId = useId()
@@ -194,6 +210,13 @@ export function RouteInfo({
   const onFoot = shownPace(road, { pace, mounted: false })
   const reason = riding ? (option.reason ?? null) : road.reason
   const offer = road.mounted
+  const supplies = onProvision
+    ? provisionPlan(state, content, {
+        routeId: road.routeId,
+        ...paceFields(sea ? 'steady' : shown),
+        hire: riding,
+      })
+    : null
   const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
   const round = (n: number) => Math.ceil(n - 1e-9)
   return (
@@ -353,6 +376,32 @@ export function RouteInfo({
         <button className="primary" disabled={reason !== null} onClick={() => onTravel(false)}>
           {t('route.travel')}
         </button>
+        {supplies && onProvision && (
+          <button
+            disabled={supplies.ready || supplies.total > state.gold}
+            title={[
+              t('route.provisionHint', { days: daysText(t, option.days) }),
+              supplies.limit && t(`route.provisionLimit.${supplies.limit}`),
+            ]
+              .filter(Boolean)
+              .join(' ')}
+            onClick={onProvision}
+          >
+            {supplies.ready
+              ? t('route.provisionReady')
+              : t('route.provision', {
+                  what: [
+                    supplies.food > 0 && t('route.provisionFood', { n: supplies.food }),
+                    supplies.waterskins > 0 &&
+                      t('route.provisionSkins', { n: supplies.waterskins }),
+                    supplies.food === 0 && supplies.waterskins === 0 && t('route.provisionWater'),
+                  ]
+                    .filter(Boolean)
+                    .join(', '),
+                  gp: supplies.total,
+                })}
+          </button>
+        )}
       </div>
       {road.stowaway && (
         <div className="check-preview">

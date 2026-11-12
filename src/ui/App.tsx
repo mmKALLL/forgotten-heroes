@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { loadBundledContent } from '../content/bundled'
 import { formatDate } from '../engine/calendar'
 import { suppliesInfo } from '../engine/travel/preview'
@@ -15,6 +15,7 @@ import { I18nProvider, LanguageToggle, useI18n } from './i18n/I18n'
 import { LogPanel } from './LogPanel'
 import { NewPartyButton } from './NewPartyButton'
 import { PartyPanel } from './PartyPanel'
+import { useAutoRest } from './settings'
 import { useGame } from './useGame'
 import { JourneyPanel } from './world/JourneyPanel'
 import { PlacePanel } from './world/PlacePanel'
@@ -44,6 +45,14 @@ function Game() {
   const [selected, setSelected] = useState<string | null>(null)
   // The pace and foraging chosen for the roads out: kept across journeys, reset by a new party.
   const [travelPrefs, setTravelPrefs] = useTravelPrefs(state.seed)
+  // Auto-rest on arrival (per viewer): the engine rests only if someone is hurt or strained.
+  const [autoRest, setAutoRest] = useAutoRest()
+  const wasTravelling = useRef(state.travel !== null)
+  useEffect(() => {
+    const arrived = wasTravelling.current && state.travel === null && !state.encounter
+    wasTravelling.current = state.travel !== null
+    if (arrived && autoRest) dispatch({ type: 'autoRest' })
+  }, [state, autoRest, dispatch])
   const rolling = revealed !== state && !reducedMotion && addsRoll(revealed, state)
   if (!rolling && revealed !== state) setRevealed(state)
   const shown = rolling ? revealed : state
@@ -84,6 +93,12 @@ function Game() {
             selected={selected}
             onSelect={(id) => setSelected(id === selected ? null : id)}
             imageUrl={mapImage}
+            prefs={travelPrefs}
+            onTravel={(a) => {
+              dispatch(a)
+              setSelected(null)
+            }}
+            onClose={() => setSelected(null)}
           />
         </div>
         <div className="centre">
@@ -94,7 +109,12 @@ function Game() {
               onRevealed={() => setRevealed(state)}
             />
           ) : shown.travel ? (
-            <JourneyPanel content={content} state={shown} onAction={dispatch} />
+            <JourneyPanel
+              content={content}
+              state={shown}
+              onAction={dispatch}
+              autoRest={{ on: autoRest, set: setAutoRest }}
+            />
           ) : atSite ? (
             <PoiPanel
               content={content}

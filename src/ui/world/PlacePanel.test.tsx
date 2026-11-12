@@ -6,6 +6,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { placeInfo, routeOptions } from '../../engine/travel/preview'
 import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
+import { provisionPlan } from '../../engine/town/provision'
 import { I18nProvider, LANGUAGE_KEY } from '../i18n/I18n'
 import { PlacePanel } from './PlacePanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
@@ -182,6 +183,23 @@ test('the hire toggle changes the days and cost shown, and travels mounted', asy
   expect(onAction).toHaveBeenLastCalledWith(
     expect.objectContaining({ type: 'travel', routeId: road.routeId, hire: true })
   )
+})
+
+test('provision for this road shows its cost and dispatches for the shown pace', async () => {
+  const state = makeState({ location: 'greenvale-1', gold: 100, goods: { food: 0, water: 8 } })
+  const { onAction } = panel(state, 'greenvale-2')
+  const routeId = 'greenvale-1-greenvale-2'
+  const plan = provisionPlan(state, content, { routeId, pace: 'steady' })!
+  const group = within(screen.getByRole('group', { name: /^To / }))
+  await userEvent.click(
+    group.getByRole('button', { name: `Provision: ${plan.food} food · ${plan.total} gp` })
+  )
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'provision',
+    routeId,
+    pace: 'steady',
+    coverTracks: false,
+  })
 })
 
 test('a settlement further away is described, but has no road from here', () => {
