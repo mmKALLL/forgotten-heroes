@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "The Crisis (Plan 5b): the situations of the crisis sites in crisis-sites.json. Reveal situations (one per villain, two stages): a check or a price decides what getting in costs (a trap, a survivor to tend, a guard to slip past), and every ending except 'leave' learns the plan (learnPlan); a slower or riskier reading can also give a clue to act I (crisisClue). Act situations (one per act, like the dungeon delves): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more: the villain grows desperate); and a high-stakes finale where a success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. Base DCs stay at 11–14: lateness and the danger ramp add the rest. Road omens (two per villain, one hostile and one neutral) name their villain (`villains`): they are drawn on the road only while that villain's Crisis is undecided, and a success gives a clue (crisisClue). Texts name the villain by title only (the Ashen Prophet), since situations have no {villain} slot. Written by Claude.",
+  "notes": "The Crisis (Plan 5b): the situations of the crisis sites in crisis-sites.json. Reveal situations (one per villain, two stages): a check or a price decides what getting in costs (a trap, a survivor to tend, a guard to slip past), and every ending except 'leave' learns the plan (learnPlan); a slower or riskier reading can also give a clue to act I (crisisClue). Act situations (one per act, like the dungeon delves): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more: the villain grows desperate); and a high-stakes finale where a success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. Base DCs stay at 11–14: lateness and the danger ramp add the rest. Road omens (two per villain, one hostile and one neutral) name their villain (`villains`): they are drawn on the road only while that villain's Crisis is undecided, and a success gives a clue (crisisClue). Texts name the villain by title only (the Ashen Prophet), since situations have no {villain} slot. The approach checks at act sites pay no XP (an explicit `xp` of 0), since an act site stays open until thwarted and leaving and coming back would otherwise farm it; the finale pays its usual XP, plus XP_THWART. Written by Claude.",
   "entries": [
     {
       "id": "burned-chapel-search",
@@ -576,6 +576,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "mound"
@@ -586,6 +590,10 @@
                     {
                       "effect": "days",
                       "amount": 1
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "mound"
@@ -600,6 +608,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "mound"
@@ -684,6 +696,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "rite"
@@ -695,6 +711,10 @@
                       "effect": "hp",
                       "amount": -2,
                       "target": "actor"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "rite"
@@ -705,6 +725,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "rite"
@@ -732,13 +756,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "rite"
                 },
                 "partial": {
                   "text": "Some of the dead lie back down. Not all of them.",
-                  "goto": "rite"
+                  "goto": "rite",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "{actor}'s rites put the dead back in their niches one after another, while the reader screams at them to get up.",
@@ -746,6 +780,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "rite"
@@ -989,6 +1027,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nave"
@@ -1000,6 +1042,10 @@
                       "effect": "hp",
                       "amount": -1,
                       "target": "actor"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nave"
@@ -1010,6 +1056,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nave"
@@ -1094,13 +1144,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "choir"
                 },
                 "partial": {
                   "text": "You get past, but the ranks turn to watch you go.",
-                  "goto": "choir"
+                  "goto": "choir",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "You reach the chancel steps with the drill still going on behind you.",
@@ -1108,6 +1168,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "choir"
@@ -1136,6 +1200,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "choir"
@@ -1147,6 +1215,10 @@
                       "effect": "hp",
                       "amount": -2,
                       "target": "actor"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "choir"
@@ -1157,6 +1229,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "choir"
@@ -1360,13 +1436,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "stair"
                 },
                 "partial": {
                   "text": "He points the way with a shaking hand, and will not go a step further.",
-                  "goto": "stair"
+                  "goto": "stair",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "He takes you down the sexton's stair, a narrow way behind the ossuary wall that the cult doesn't know about.",
@@ -1374,6 +1460,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "stair"
@@ -1449,6 +1539,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "tombs"
@@ -1460,6 +1554,10 @@
                       "effect": "hp",
                       "amount": -2,
                       "target": "all"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "tombs"
@@ -1470,6 +1568,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "tombs"
@@ -1498,13 +1600,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "stay": true
                 },
                 "partial": {
                   "text": "You slip past, all but the last of you, and run the rest of the way down.",
-                  "goto": "tombs"
+                  "goto": "tombs",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "You pass close enough to smell the grave-dirt on them, and they never turn.",
@@ -1512,6 +1624,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "tombs"
@@ -1576,13 +1692,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "crowning"
                 },
                 "partial": {
                   "text": "Half of them run. The rest sing on.",
-                  "goto": "crowning"
+                  "goto": "crowning",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "{actor} roars them out of the tombs. The rite falters with half its voices gone.",
@@ -1590,6 +1716,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "crowning"
@@ -1829,13 +1959,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "workshop"
                 },
                 "partial": {
                   "text": "They let you down, then one of them follows.",
-                  "goto": "workshop"
+                  "goto": "workshop",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "They wave you down without looking up from their game.",
@@ -1843,6 +1983,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "workshop"
@@ -1925,13 +2069,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "steward"
                 },
                 "partial": {
                   "text": "{actor} gets the die, and the old man starts shouting.",
-                  "goto": "steward"
+                  "goto": "steward",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "{actor} has the die before the old man looks up. He sees it in {actor}'s hand and puts down his pen.",
@@ -1939,6 +2093,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "steward"
@@ -1961,13 +2119,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "steward"
                 },
                 "partial": {
                   "text": "He shrugs and keeps working. He has been threatened before.",
-                  "goto": "steward"
+                  "goto": "steward",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "He sets down his pen. 'They'll kill me either way.' He tells you who comes for the will, and when.",
@@ -1975,6 +2143,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "steward"
@@ -2183,13 +2355,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "strongroom"
                 },
                 "partial": {
                   "text": "The clerk signs you on. The sergeant keeps an eye on you.",
-                  "goto": "strongroom"
+                  "goto": "strongroom",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "You get a tent, a ration and the run of the camp, and nobody looks twice.",
@@ -2197,6 +2379,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "strongroom"
@@ -2228,6 +2414,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "strongroom"
@@ -2238,6 +2428,10 @@
                     {
                       "effect": "days",
                       "amount": 1
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "strongroom"
@@ -2252,6 +2446,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "strongroom"
@@ -2318,13 +2516,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "captains"
                 },
                 "partial": {
                   "text": "You get the wagon out of the lines, slowly, with the whole camp waking behind you.",
-                  "goto": "captains"
+                  "goto": "captains",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "{actor} talks the oxen into a walk and you are out past the pickets before anyone looks.",
@@ -2332,6 +2540,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "captains"
@@ -2359,13 +2571,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "captains"
                 },
                 "partial": {
                   "text": "The lid gives, and the silver goes everywhere, and so does the camp.",
-                  "goto": "captains"
+                  "goto": "captains",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "The lid gives, and two hundred sellswords riot over the silver. Nobody is guarding anything now.",
@@ -2373,6 +2595,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "captains"
@@ -2575,13 +2801,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "door"
                 },
                 "partial": {
                   "text": "A few follow you. Most keep their shutters closed.",
-                  "goto": "door"
+                  "goto": "door",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "The square fills up behind you, angry. The Hand's men at the chapel door look at the crowd, and at each other.",
@@ -2589,6 +2825,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "door"
@@ -2664,6 +2904,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nave"
@@ -2675,6 +2919,10 @@
                       "effect": "hp",
                       "amount": -2,
                       "target": "all"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nave"
@@ -2685,6 +2933,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nave"
@@ -2734,13 +2986,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "stay": true
                 },
                 "partial": {
                   "text": "You get in, and out into the nave, and somebody sees you.",
-                  "goto": "nave"
+                  "goto": "nave",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "You come out of the sacristy behind the choir, and nobody looks round.",
@@ -2748,6 +3010,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nave"
@@ -2780,13 +3046,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "altar"
                 },
                 "partial": {
                   "text": "Some of the lords murmur. The bishop reads faster.",
-                  "goto": "altar"
+                  "goto": "altar",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "Half the lords are on their feet, shouting. The Hand will have to finish this with steel, in front of everyone.",
@@ -2794,6 +3070,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "altar"
@@ -3026,6 +3306,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nest"
@@ -3036,6 +3320,10 @@
                     {
                       "effect": "days",
                       "amount": 1
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nest"
@@ -3050,6 +3338,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nest"
@@ -3077,6 +3369,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nest"
@@ -3088,6 +3384,10 @@
                       "effect": "hp",
                       "amount": -1,
                       "target": "actor"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nest"
@@ -3098,6 +3398,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "nest"
@@ -3154,13 +3458,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "clutch"
                 },
                 "partial": {
                   "text": "The song breaks and the mother stirs. Everyone runs.",
-                  "goto": "clutch"
+                  "goto": "clutch",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "The song breaks. The mother wakes and takes the egg-thieves first.",
@@ -3168,6 +3482,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "clutch"
@@ -3195,6 +3513,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "clutch"
@@ -3206,6 +3528,10 @@
                       "effect": "hp",
                       "amount": -2,
                       "target": "actor"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "clutch"
@@ -3216,6 +3542,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "clutch"
@@ -3426,13 +3756,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "ridge"
                 },
                 "partial": {
                   "text": "He listens, shrugs and goes on hauling. At least he doesn't raise a shout.",
-                  "goto": "ridge"
+                  "goto": "ridge",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "He was promised mutton and got a sledge. He leaves it at the bottom of the hill and goes home.",
@@ -3440,6 +3780,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "ridge"
@@ -3471,6 +3815,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "ridge"
@@ -3481,6 +3829,10 @@
                     {
                       "effect": "days",
                       "amount": 1
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "ridge"
@@ -3495,6 +3847,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "ridge"
@@ -3551,6 +3907,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "pyre"
@@ -3562,6 +3922,10 @@
                       "effect": "hp",
                       "amount": -2,
                       "target": "actor"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "pyre"
@@ -3572,6 +3936,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "pyre"
@@ -3599,13 +3967,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "pyre"
                 },
                 "partial": {
                   "text": "You drop one of them. The rest keep moving.",
-                  "goto": "pyre"
+                  "goto": "pyre",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "You take them one at a time between the towers, and no more beacons are lit.",
@@ -3613,6 +3991,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "pyre"
@@ -3836,6 +4218,10 @@
                     {
                       "effect": "days",
                       "amount": 1
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "gate"
@@ -3846,6 +4232,10 @@
                     {
                       "effect": "days",
                       "amount": 1
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "gate"
@@ -3860,6 +4250,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "gate"
@@ -3937,6 +4331,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "hall"
@@ -3948,6 +4346,10 @@
                       "effect": "hp",
                       "amount": -3,
                       "target": "all"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "hall"
@@ -3958,6 +4360,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "hall"
@@ -3986,13 +4392,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "stay": true
                 },
                 "partial": {
                   "text": "They grumble and let you through. They may tell the Speaker.",
-                  "goto": "hall"
+                  "goto": "hall",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "They look at each other, shrug and stamp off into the dark. They were never sure about the wyrm.",
@@ -4000,6 +4416,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "hall"
@@ -4056,13 +4476,23 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "wyrm"
                 },
                 "partial": {
                   "text": "You get past. One of the drakes follows you with its eyes.",
-                  "goto": "wyrm"
+                  "goto": "wyrm",
+                  "effects": [
+                    {
+                      "effect": "xp",
+                      "amount": 0
+                    }
+                  ]
                 },
                 "success": {
                   "text": "You cross the hall between the pillars, and not one drake stirs.",
@@ -4070,6 +4500,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "wyrm"
@@ -4097,6 +4531,10 @@
                     {
                       "effect": "position",
                       "position": "exposed"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "wyrm"
@@ -4108,6 +4546,10 @@
                       "effect": "hp",
                       "amount": -2,
                       "target": "all"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "wyrm"
@@ -4118,6 +4560,10 @@
                     {
                       "effect": "position",
                       "position": "edge"
+                    },
+                    {
+                      "effect": "xp",
+                      "amount": 0
                     }
                   ],
                   "goto": "wyrm"
