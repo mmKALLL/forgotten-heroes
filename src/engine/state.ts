@@ -31,6 +31,7 @@ import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { gather } from './world/gather'
 import { generateCrisis } from './crisis/generate'
 import { acknowledgeEnd, crisisNews } from './crisis/status'
+import { FALLEN_LINE, partyWiped } from './crisis/ending'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
@@ -134,12 +135,16 @@ export function newGame(
  * the Crisis's deadline lines (crisis/status.ts). Then bounties whose site the realm emptied are
  * void, and contracts whose deadline has passed fail
  * (town/contracts.ts). Each member who died in the step costs camaraderie (town/camaraderie.ts).
- * Last, members whose XP passed their level level up (rules/progression.ts).
+ * Then members whose XP passed their level level up (rules/progression.ts). A step that kills the
+ * last living member says so; after that, every action leaves the state as it is (crisis/ending.ts).
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
+  // A fallen party's run is over for good (crisis/ending.ts): nothing more happens.
+  if (partyWiped(state)) return state
   const acted = crisisNews(state, siteNews(state.day, act(state, action, content)), content)
   const settled = expireContracts(voidBounties(acted, content), content)
-  return applyLevelUps(mournTheDead(state, settled))
+  const done = applyLevelUps(mournTheDead(state, settled))
+  return partyWiped(done) ? appendLog(done, FALLEN_LINE, 'crit') : done
 }
 
 /** Rumour lines for the known sites whose cycle turned after day `from`. */

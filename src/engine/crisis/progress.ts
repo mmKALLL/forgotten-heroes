@@ -133,9 +133,11 @@ export function crisisRefusal(state: GameState, poiId: string): string | null {
   const index = [crisis.reveal, ...crisis.acts.map((a) => a.poi)].indexOf(poiId)
   if (index < 0 || crisisSiteActive(crisis, poiId, state.day)) return null
   const name = state.world.pois[poiId]?.name ?? poiId
+  // Site names often start with "the".
+  const Name = name.charAt(0).toUpperCase() + name.slice(1)
   const status = crisisStatus(crisis, state.day)
-  if (status.phase === 'won' || status.phase === 'lost') return `${name} lies quiet now.`
-  if (index === 0) return `${name} has told you all it can.`
+  if (status.phase === 'won' || status.phase === 'lost') return `${Name} lies quiet now.`
+  if (index === 0) return `${Name} has told you all it can.`
   if (crisis.thwarted[index - 1] !== null) return `The plot at ${name} is broken.`
   return `Nothing stirs at ${name} yet.`
 }
