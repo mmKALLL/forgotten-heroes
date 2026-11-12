@@ -168,19 +168,47 @@ export const KingdomSchema = z.object({
   id: IdSchema,
   name: z.string(),
   ancestry: IdSchema.describe('The ruling ancestry'),
-  capital: IdSchema.describe('The settlement that is its seat'),
-  regions: z.array(IdSchema).min(1),
-  defence: z.number().int().min(0).describe('Split evenly across its regions as garrisons'),
+  seat: IdSchema.describe('The settlement that is its seat, a capital marker when it can be'),
+  domains: z.array(IdSchema).min(1).describe('The domains (settlement ids) it holds'),
+  defence: z
+    .number()
+    .int()
+    .min(0)
+    .describe('Split across its domains as garrisons, thinning with distance from the seat'),
 })
 export type Kingdom = z.infer<typeof KingdomSchema>
 
-export const RegionStateSchema = z.object({
-  kingdom: IdSchema,
+/** A land (a map area): the threat roaming it. */
+export const LandStateSchema = z.object({
   threat: IdSchema,
   threatStrength: z.number().int().min(1).max(6),
-  threatLevel: z.number().int().min(0).max(3).describe('How far the threat outweighs the garrison'),
 })
-export type RegionState = z.infer<typeof RegionStateSchema>
+export type LandState = z.infer<typeof LandStateSchema>
+
+/** A domain (one per settlement): who holds it and how strongly. */
+export const DomainStateSchema = z.object({
+  kingdom: IdSchema,
+  land: IdSchema.describe("The settlement's land (its region)"),
+  garrison: z.number().min(0).describe("This domain's share of its kingdom's defence"),
+})
+export type DomainState = z.infer<typeof DomainStateSchema>
+
+/** A point of interest placed in this world: hidden until discovered, hostile until cleared. */
+export const PoiStateSchema = z.object({
+  type: IdSchema.describe('A poiTypes id'),
+  spot: IdSchema.describe('The land spot it stands on'),
+  domain: IdSchema.describe('The domain (settlement id) that owns the spot'),
+  name: z.string(),
+  threat: z
+    .number()
+    .int()
+    .min(0)
+    .max(3)
+    .describe("What it adds to its domain's threat until cleared; 0 unless hostile"),
+  discovered: z.boolean(),
+  cleared: z.boolean(),
+})
+export type PoiState = z.infer<typeof PoiStateSchema>
 
 export const SettlementStateSchema = z.object({
   name: z.string(),
@@ -197,7 +225,12 @@ export type SettlementState = z.infer<typeof SettlementStateSchema>
 export const WorldStateSchema = z.object({
   seed: z.number().int().min(0).max(0xffffffff),
   kingdoms: z.array(KingdomSchema),
-  regions: z.record(IdSchema, RegionStateSchema),
+  /** Each land (a map area, a `regions` entry) and the threat roaming it, by region id. */
+  lands: z.record(IdSchema, LandStateSchema),
+  /** Each domain (one per settlement), by settlement id. */
+  domains: z.record(IdSchema, DomainStateSchema),
+  /** Points of interest, by id ("poi-<n>"). */
+  pois: z.record(IdSchema, PoiStateSchema),
   settlements: z.record(IdSchema, SettlementStateSchema),
 })
 export type WorldState = z.infer<typeof WorldStateSchema>

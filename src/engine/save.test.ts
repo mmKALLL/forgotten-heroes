@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest'
-import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize } from './save'
+import { describe, expect, test } from 'vitest'
+import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize, v3ToV4 } from './save'
 import { newGame, step } from './state'
 import { fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
 import type { RollMode } from './rules/checks'
@@ -94,7 +94,7 @@ function migrated() {
   const world = generateWorld(worldSeed(5), content)
   return {
     ...V2_SAVE,
-    version: 3,
+    version: 4,
     party: [{ ...ada, strain: {} }],
     world,
     location: startingSettlement(world, content),
@@ -104,12 +104,12 @@ function migrated() {
   }
 }
 
-test('a version 2 save loads as version 3 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(3)
+test('a version 2 save loads as version 4 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(4)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save loads as version 3 too', () => {
+test('a version 1 save chains through to version 4 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -166,4 +166,85 @@ test('a journey saves its pace, covered tracks and the pace of each day on the r
   expect(
     deserialize(serialize({ ...state, travel: { ...travel, pace: 'sprint' } } as never), content)
   ).toBeNull()
+})
+
+/** A v3 save: the same game, with its world in the old region shape. */
+function v3Save(overrides: Record<string, unknown> = {}) {
+  const state = makeState({ location: 'greenvale-2', gold: 33 })
+  const world = {
+    seed: state.world.seed,
+    kingdoms: [
+      {
+        id: 'kingdom-1',
+        name: 'Kingdom of Old',
+        ancestry: 'human',
+        capital: 'greenvale-1',
+        regions: ['ashmoor', 'farisle', 'greenvale'],
+        defence: 6,
+      },
+    ],
+    regions: {
+      greenvale: { kingdom: 'kingdom-1', threat: 'bandits', threatStrength: 2, threatLevel: 0 },
+    },
+    settlements: state.world.settlements,
+  }
+  return { ...state, version: 3, world, ...overrides }
+}
+
+describe('v3 → v4', () => {
+  test('re-rolls the world from the seed and keeps the party where it is', () => {
+    const save = v3Save()
+    const loaded = deserialize(JSON.stringify(save), content)!
+    expect(loaded).not.toBeNull()
+    expect(loaded.version).toBe(4)
+    expect(loaded.world).toEqual(generateWorld(worldSeed(save.seed), content))
+    expect(loaded.location).toBe('greenvale-2')
+    expect(loaded.gold).toBe(33)
+    expect(loaded.party).toEqual(save.party)
+    expect(loaded.log).toEqual(save.log)
+    expect(loaded.goods).toEqual(save.goods)
+  })
+
+  test('a new game and a migrated save with the same seed share a world', () => {
+    const save = v3Save({ seed: 9 })
+    expect(deserialize(JSON.stringify(save), content)!.world).toEqual(newGame(9, content).world)
+  })
+
+  test('migrating twice gives identical output', () => {
+    const save = v3Save()
+    expect(v3ToV4(structuredClone(save), content)).toEqual(v3ToV4(structuredClone(save), content))
+    expect(serialize(deserialize(JSON.stringify(save), content)!)).toBe(
+      serialize(deserialize(JSON.stringify(save), content)!)
+    )
+  })
+
+  test('a vanished settlement puts the party at the starting place', () => {
+    const loaded = deserialize(JSON.stringify(v3Save({ location: 'atlantis-1' })), content)!
+    expect(loaded.location).toBe(startingSettlement(loaded.world, content))
+  })
+
+  test('a journey along a route that still exists goes on; one along a lost route is dropped', () => {
+    const travel = {
+      route: 'greenvale-1-greenvale-2',
+      from: 'greenvale-1',
+      to: 'greenvale-2',
+      km: 75,
+      kmPerDay: 30,
+      kmDone: 30,
+      daysDone: 1,
+      days: 3,
+      encounterDays: [2],
+      pace: 'steady',
+      coverTracks: false,
+      paceLog: [],
+      forage: true,
+    }
+    const onRoad = deserialize(JSON.stringify(v3Save({ location: null, travel })), content)!
+    expect(onRoad.travel).toEqual(travel)
+    expect(onRoad.location).toBeNull()
+    const lost = { ...travel, route: 'nowhere-road' }
+    const stranded = deserialize(JSON.stringify(v3Save({ location: null, travel: lost })), content)!
+    expect(stranded.travel).toBeNull()
+    expect(stranded.location).toBe(startingSettlement(stranded.world, content))
+  })
 })

@@ -6,6 +6,7 @@ import {
   DispositionSchema,
   IdSchema,
   LogToneSchema,
+  PoiCategorySchema,
   PositionSchema,
   SkillSchema,
 } from './common'
@@ -105,6 +106,30 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     tone: LogToneSchema.default('info'),
     ...when,
   }),
+  z
+    .object({
+      effect: z.literal('discoverPoi'),
+      count: z.number().int().min(1).max(3).default(1),
+      scope: z
+        .enum(['domain', 'land'])
+        .default('domain')
+        .describe("Where to look: the encounter's domain, or every domain of its land"),
+      category: PoiCategorySchema.optional().describe('Only sites of this category'),
+      ...when,
+    })
+    .describe(
+      "Reveal the nearest undiscovered points of interest to the encounter's domain (a clue)"
+    ),
+  z
+    .object({ effect: z.literal('clearPoi'), ...when })
+    .describe(
+      "Clear the point of interest being visited, so it no longer feeds its domain's threat"
+    ),
+  z
+    .object({ effect: z.literal('trainSkill'), skill: SkillSchema, ...when })
+    .describe(
+      'Make the best-suited member who lacks the skill proficient in it (ties: party order)'
+    ),
   // Extension point: Plan 4 adds { "effect": "goods", "good": "food", "amount": -2 } here.
 ])
 export type Effect = z.infer<typeof EffectSchema>
@@ -115,6 +140,9 @@ export type Effect = z.infer<typeof EffectSchema>
 
 export const RequirementSchema = z.discriminatedUnion('req', [
   z.object({ req: z.literal('gold'), min: z.number().int().min(1) }),
+  z
+    .object({ req: z.literal('untrained'), skill: SkillSchema })
+    .describe('Some member is not yet proficient in the skill (e.g. paying to train)'),
   // Extension point: Plan 4 adds { "req": "goods", "good": "healing", "min": 1 }.
 ])
 export type Requirement = z.infer<typeof RequirementSchema>

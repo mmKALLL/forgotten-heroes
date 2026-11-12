@@ -112,12 +112,12 @@
               "dc": {
                 "default": 13,
                 "description": "What \"dc\" means in the archetype",
-                "$ref": "#/$defs/__schema37"
+                "$ref": "#/$defs/__schema46"
               },
               "reward": {
                 "default": 1,
                 "description": "Multiplies every gold amount in the archetype",
-                "$ref": "#/$defs/__schema38"
+                "$ref": "#/$defs/__schema47"
               }
             },
             "required": [
@@ -502,6 +502,64 @@
               "effect",
               "text"
             ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema37"
+              },
+              "count": {
+                "$ref": "#/$defs/__schema38"
+              },
+              "scope": {
+                "$ref": "#/$defs/__schema39"
+              },
+              "category": {
+                "$ref": "#/$defs/__schema41"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "Reveal the nearest undiscovered points of interest to the encounter's domain (a clue)"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema43"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "Clear the point of interest being visited, so it no longer feeds its domain's threat"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema44"
+              },
+              "skill": {
+                "$ref": "#/$defs/__schema45"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect",
+              "skill"
+            ],
+            "description": "Make the best-suited member who lacks the skill proficient in it (ties: party order)"
           }
         ]
       }
@@ -638,11 +696,80 @@
       "const": "openingHit"
     },
     "__schema37": {
+      "type": "string",
+      "const": "discoverPoi"
+    },
+    "__schema38": {
+      "default": 1,
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    },
+    "__schema39": {
+      "default": "domain",
+      "description": "Where to look: the encounter's domain, or every domain of its land",
+      "$ref": "#/$defs/__schema40"
+    },
+    "__schema40": {
+      "type": "string",
+      "enum": [
+        "domain",
+        "land"
+      ]
+    },
+    "__schema41": {
+      "description": "Only sites of this category",
+      "$ref": "#/$defs/__schema42"
+    },
+    "__schema42": {
+      "type": "string",
+      "enum": [
+        "dungeon",
+        "expert",
+        "lair",
+        "shrine",
+        "landmark",
+        "wonder",
+        "quest"
+      ]
+    },
+    "__schema43": {
+      "type": "string",
+      "const": "clearPoi"
+    },
+    "__schema44": {
+      "type": "string",
+      "const": "trainSkill"
+    },
+    "__schema45": {
+      "type": "string",
+      "enum": [
+        "acrobatics",
+        "animalHandling",
+        "arcana",
+        "athletics",
+        "deception",
+        "history",
+        "insight",
+        "intimidation",
+        "investigation",
+        "medicine",
+        "nature",
+        "perception",
+        "performance",
+        "persuasion",
+        "religion",
+        "sleightOfHand",
+        "stealth",
+        "survival"
+      ]
+    },
+    "__schema46": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema38": {
+    "__schema47": {
       "type": "number",
       "minimum": 0,
       "maximum": 10

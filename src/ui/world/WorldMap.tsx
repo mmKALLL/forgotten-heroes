@@ -111,9 +111,9 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
   const colours = new Map(
     state.world.kingdoms.map((k, i) => [k.id, KINGDOM_COLOURS[i % KINGDOM_COLOURS.length]])
   )
-  const colourOf = (region: string) =>
-    Object.hasOwn(state.world.regions, region)
-      ? colours.get(state.world.regions[region].kingdom)
+  const colourOf = (domain: string) =>
+    Object.hasOwn(state.world.domains, domain)
+      ? colours.get(state.world.domains[domain].kingdom)
       : undefined
   const sites = sortedEntries(content.settlements)
   // Roving tab stops: where the party is (or is headed), where it can go, and the selection.
@@ -226,7 +226,7 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
                 width={marker * 2}
                 height={marker * 2}
                 rx={s.capital ? 4 : 10}
-                style={{ stroke: colourOf(s.region) }}
+                style={{ stroke: colourOf(s.id) }}
               />
               {(zoomed || !imageUrl) && (
                 <text

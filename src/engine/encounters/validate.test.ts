@@ -193,6 +193,17 @@ describe('validateSituation', () => {
       'start/b success: revealTwist but the situation has no twist',
     ])
   })
+
+  test('effects: clearPoi only in a site situation', () => {
+    const stages = {
+      start: {
+        text: '',
+        options: [fixed('a', { text: '', effects: [{ effect: 'clearPoi' }] }), fixed('b')],
+      },
+    }
+    expect(issues(stages)).toEqual(['start/a outcome: clearPoi only works in a site situation'])
+    expect(issues(stages, { site: true })).toEqual([])
+  })
 })
 
 describe('contentIssues', () => {

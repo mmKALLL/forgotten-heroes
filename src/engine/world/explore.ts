@@ -1,0 +1,240 @@
+import type { Content } from '../../content/build'
+import type { Biome } from '../../schema/constants'
+import type { GameState } from '../../schema/state'
+import { revealPois } from '../encounters/effects'
+
+export { NOTHING_TO_LEARN } from '../encounters/effects'
+import { allSituations } from '../encounters/compile'
+import { fitsPlace, inProgress, startEncounter, type Place } from '../encounters/run'
+import { formatModifier } from '../format'
+import { TIER_TONE, appendLog } from '../log'
+import { withRng } from '../rng'
+import { statLabel } from '../rules/abilities'
+import { canAct, chooseActor } from '../rules/character'
+import { TIERS, TIER_LABELS, rollCheck, tierOdds, type Tier } from '../rules/checks'
+import { useSkill } from '../rules/strain'
+import { DEFAULT_PACE } from '../travel/pace'
+import { forageDay } from '../travel/forage'
+import { passDay } from '../travel/supplies'
+import { FORAGE_DC } from '../travel/tuning'
+import { settlementName } from './geo'
+import { domainAt, poisToDiscover } from './pois'
+
+// Visiting and exploring points of interest (design §6). A visit plays one of the site's
+// situations; exploring spends days searching the domain for sites not yet found.
+
+/** Added to the domain terrain's forage DC to find a site by searching. */
+export const EXPLORE_DC_BONUS = 2
+/** Camp days a search takes; a partial success takes one more. */
+export const EXPLORE_DAYS = 2
+/** The skills a search can use; the better one rolls (Survival on a tie). */
+export const EXPLORE_SKILLS = ['survival', 'perception'] as const
+/** Logged when a successful search finds nothing: the domain has no sites left to find. */
+export const PICKED_CLEAN = 'This area seems picked clean.'
+
+const BUSY = 'Finish the current encounter first.'
+
+/** What exploring would be: who searches, with what, against what DC, and every tier's odds. */
+export type ExploreOption = {
+  actorId: string
+  skill: (typeof EXPLORE_SKILLS)[number]
+  modifier: number
+  dc: number
+  days: number
+  /** The odds of each tier (tierOdds). */
+  chances: Record<Tier, number>
+  /** What each tier leads to, in TIERS order. */
+  outcomes: string[]
+}
+
+/** What each tier of a search leads to (English; in TIERS order in exploreOption). */
+export const EXPLORE_OUTCOMES: Readonly<Record<Tier, string>> = {
+  critFail: 'Nothing found, and trouble finds you',
+  fail: 'Nothing found',
+  partial: `One site found, after ${EXPLORE_DAYS + 1} days`,
+  success: 'One site found',
+  critSuccess: 'Two sites found',
+}
+
+/** Sites a search finds at each tier, and the extra days it takes. */
+const FINDS: Readonly<Record<Tier, { found: number; extraDays: number }>> = {
+  critFail: { found: 0, extraDays: 0 },
+  fail: { found: 0, extraDays: 0 },
+  partial: { found: 1, extraDays: 1 },
+  success: { found: 1, extraDays: 0 },
+  critSuccess: { found: 2, extraDays: 0 },
+}
+
+const own = <T>(table: Record<string, T>, id: string | null | undefined): T | undefined =>
+  id != null && Object.hasOwn(table, id) ? table[id] : undefined
+
+/** The domain the party is in (a settlement's own, or a POI's owner), when not on the road. */
+const domainHere = (state: GameState): string | null =>
+  state.travel ? null : domainAt(state.world, state.location)
+
+/** A domain's terrain: its settlement's land biome. */
+function domainTerrain(content: Content, domainId: string): Biome | null {
+  const site = own(content.settlements, domainId)
+  return own(content.regions, site?.region)?.biome ?? null
+}
+
+/** Where the party is, as an encounter place: a POI's spot terrain, or the domain's. */
+function placeHere(state: GameState, content: Content): Place | null {
+  const domain = domainHere(state)
+  const site = own(content.settlements, domain)
+  if (!domain || !site) return null
+  const poi = own(state.world.pois, state.location)
+  const spot = own(content.landSpots, poi?.spot)
+  const biome = spot?.terrain ?? domainTerrain(content, domain)
+  return biome ? { biome, land: site.region, domain } : null
+}
+
+/**
+ * Exploring the domain the party is in (a settlement or a POI): null on the road, during an
+ * encounter, or when no one can act. It is offered even when nothing is left to find; only a
+ * successful search then says so (PICKED_CLEAN).
+ */
+export function exploreOption(state: GameState, content: Content): ExploreOption | null {
+  if (inProgress(state)) return null
+  const domain = domainHere(state)
+  const terrain = domain ? domainTerrain(content, domain) : null
+  if (!terrain || terrain === 'sea') return null
+  const [best] = EXPLORE_SKILLS.flatMap((skill) => {
+    const actor = chooseActor(state.party, skill)
+    return actor ? [{ skill, actor }] : []
+  }).sort((a, b) => b.actor.modifier - a.actor.modifier)
+  if (!best) return null
+  const dc = FORAGE_DC[terrain] + EXPLORE_DC_BONUS
+  return {
+    actorId: best.actor.characterId,
+    skill: best.skill,
+    modifier: best.actor.modifier,
+    dc,
+    days: EXPLORE_DAYS,
+    chances: tierOdds(best.actor.modifier, dc),
+    outcomes: TIERS.map((tier) => EXPLORE_OUTCOMES[tier]),
+  }
+}
+
+/**
+ * Searches the domain for undiscovered sites: the explorer rolls (it counts toward Strain; a
+ * natural 20 grants Inspiration), then the party camps EXPLORE_DAYS days (one more on a partial),
+ * foraging and eating its own food even in town. Then it finds the nearest undiscovered sites the
+ * tier allows (FINDS). A critical failure draws a hostile road encounter for the place instead.
+ */
+export function explore(state: GameState, content: Content): GameState {
+  if (inProgress(state)) return appendLog(state, BUSY, 'bad')
+  const option = exploreOption(state, content)
+  const domain = domainHere(state)
+  if (!option || !domain) {
+    return appendLog(
+      state,
+      state.party.some(canAct)
+        ? 'There is nowhere to explore from here.'
+        : 'No one is able to act.',
+      'bad'
+    )
+  }
+  const name = state.party.find((c) => c.id === option.actorId)?.name ?? '?'
+  const [roll, rng] = rollCheck(state.rng, option.modifier, option.dc)
+  const { party, skillUses, strained } = useSkill(state, option.actorId, option.skill)
+  const inspired = roll.tier === 'critSuccess'
+  const finds = FINDS[roll.tier]
+  const days = option.days + finds.extraDays
+  let next = appendLog(
+    {
+      ...state,
+      rng,
+      party,
+      skillUses,
+      inspiration: state.inspiration + (inspired ? 1 : 0),
+      lastRoll: { ...roll, stat: option.skill, actorId: option.actorId },
+    },
+    `${name} leads a search around ${settlementName(state, domain)} for ${days} days: ` +
+      `${statLabel(option.skill)} ${roll.kept} ${formatModifier(roll.modifier)} = ${roll.total} ` +
+      `vs DC ${option.dc}. ${TIER_LABELS[roll.tier]}.` +
+      (inspired ? ' Inspiration gained!' : ''),
+    TIER_TONE[roll.tier]
+  )
+  if (strained > 0) {
+    next = appendLog(
+      next,
+      `${name} is strained: ${statLabel(option.skill)} −${strained} until it fades.`,
+      'bad'
+    )
+  }
+  const terrain = domainTerrain(content, domain)
+  for (let day = 0; day < days; day++) {
+    next = forageDay(next, terrain, DEFAULT_PACE).state
+    next = passDay(next, terrain, DEFAULT_PACE)
+  }
+  if (finds.found > 0) {
+    const ids = poisToDiscover(next.world, content, domain, {
+      count: finds.found,
+      scope: 'domain',
+    })
+    return ids.length > 0 ? revealPois(next, content, ids) : appendLog(next, PICKED_CLEAN, 'info')
+  }
+  if (roll.tier !== 'critFail') return appendLog(next, 'The search turns up nothing.', 'info')
+  return ambush(next, content)
+}
+
+/** A critical failure: a hostile road situation that fits the place, if any, finds the party. */
+function ambush(state: GameState, content: Content): GameState {
+  const place = placeHere(state, content)
+  const hostile = place
+    ? allSituations(content).filter(
+        (s) =>
+          s.disposition === 'hostile' &&
+          !s.followUpOnly &&
+          !s.site &&
+          s.weight > 0 &&
+          fitsPlace(s, place)
+      )
+    : []
+  if (!place || hostile.length === 0 || !state.party.some(canAct)) {
+    return appendLog(state, 'The search turns up nothing but sore feet.', 'bad')
+  }
+  const [picked, rng] = withRng(state.rng, (d) => d.weighted(hostile, (s) => s.weight).id)
+  return startEncounter({ ...state, rng }, content, picked, place)
+}
+
+/**
+ * Plays one of the POI's situations, picked by the seeded RNG, when the party is at a
+ * discovered POI that isn't cleared.
+ */
+export function visitPoi(state: GameState, content: Content): GameState {
+  if (inProgress(state)) return appendLog(state, BUSY, 'bad')
+  const id = state.travel ? null : state.location
+  const poi = own(state.world.pois, id)
+  if (!id || !poi || !poi.discovered) {
+    return appendLog(state, 'There is no site to visit here.', 'bad')
+  }
+  if (poi.cleared) return appendLog(state, `${poi.name} has been cleared.`, 'bad')
+  const type = own(content.poiTypes, poi.type)
+  const known = new Set(allSituations(content).map((s) => s.id))
+  const situations = type?.situations.filter((s) => known.has(s)) ?? []
+  if (situations.length === 0) return appendLog(state, `Nothing happens at ${poi.name}.`, 'bad')
+  const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
+  const place = placeHere(state, content) ?? undefined
+  return startEncounter({ ...state, rng }, content, situation, place, id)
+}
+
+/** The site actions open where the party is, with their previews. */
+export type SiteAction =
+  | { type: 'explore'; option: ExploreOption }
+  | { type: 'visitPoi'; poiId: string; available: boolean; reason: string | null }
+
+/** Exploring (with its preview), and visiting when the party is at a discovered POI. */
+export function siteActions(state: GameState, content: Content): SiteAction[] {
+  const actions: SiteAction[] = []
+  const poi = state.travel ? undefined : own(state.world.pois, state.location)
+  if (poi?.discovered && state.location) {
+    const busy = inProgress(state)
+    const reason = busy ? BUSY : poi.cleared ? `${poi.name} has been cleared.` : null
+    actions.push({ type: 'visitPoi', poiId: state.location, available: !reason, reason })
+  }
+  const option = exploreOption(state, content)
+  if (option) actions.push({ type: 'explore', option })
+  return actions
+}

@@ -16,6 +16,7 @@ import { FORAGE_DC, WATERSKIN_WATER } from './tuning'
 import { FORCED_MARCH_DC } from './pace'
 import { isSevere, warningText } from './warnings'
 import { encounterChance } from './routes'
+import { domainThreatLevel } from '../world/pois'
 
 const content = fixtureContent()
 
@@ -23,17 +24,20 @@ describe('placeInfo', () => {
   test('describes a settlement in this world', () => {
     const state = makeState()
     const s = state.world.settlements['ashmoor-1']
-    const kingdom = state.world.kingdoms.find((k) => k.regions.includes('ashmoor'))!
+    const kingdom = state.world.kingdoms.find((k) => k.domains.includes('ashmoor-1'))!
     const info = placeInfo(state, content, 'ashmoor-1')!
     expect(info).toMatchObject({
       id: 'ashmoor-1',
       name: s.name,
       typeName: content.settlementTypes[s.type].name,
       population: s.population,
-      regionName: 'Ashmoor',
+      landName: 'Ashmoor',
       biome: 'marsh',
+      domainId: 'ashmoor-1',
       kingdomName: kingdom.name,
-      seat: kingdom.capital === 'ashmoor-1',
+      seat: kingdom.seat === 'ashmoor-1',
+      threatName: content.threats[state.world.lands.ashmoor.threat].name,
+      threatLevel: domainThreatLevel(state.world, 'ashmoor-1'),
       coastal: true,
     })
     expect(info.services.map((x) => x.id)).toEqual(s.services)
@@ -300,6 +304,12 @@ describe('supply forecasts and warnings', () => {
       },
     })
     expect(isSevere(deadly!)).toBe(true)
+    // The severe warning replaces the ordinary one for the same member.
+    expect(
+      forced.warnings.filter(
+        (w) => w.code === 'forcedMarchExhaustion' && w.params.characterId === 'lyra'
+      )
+    ).toEqual([])
     expect(warningText(deadly!)).toBe(
       'A forced march of 4 days could kill Lyra (81% chance of reaching the sixth level of exhaustion).'
     )

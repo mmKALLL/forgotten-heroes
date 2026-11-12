@@ -7,6 +7,7 @@ import { appendLog } from '../log'
 import { withRng } from '../rng'
 import { canAct } from '../rules/character'
 import { otherEnd, settlementName } from '../world/geo'
+import { edgeById, nodeOf } from '../world/graph'
 import { DEFAULT_PACE, coversTracks, logPaceDay } from './pace'
 import { forageDay, type ForageResult } from './forage'
 import { foldTrail } from './pursuit'
@@ -101,7 +102,7 @@ export function depart(
   if (state.travel || here === null) {
     return appendLog(state, 'The party is already on the road.', 'bad')
   }
-  const route = Object.hasOwn(content.routes, routeId) ? content.routes[routeId] : undefined
+  const route = edgeById(state, content, routeId)
   if (!route || (route.from !== here && route.to !== here)) {
     return appendLog(
       state,
@@ -113,12 +114,14 @@ export function depart(
   if (options.stowaway) {
     const refused = stowawayRefusal(state, route)
     if (refused) return appendLog(state, refused, 'bad')
-    const site = Object.hasOwn(content.settlements, here) ? content.settlements[here] : null
-    const place: Place | null = site ? { biome: route.terrain, region: site.region } : null
+    const node = nodeOf(state, content, here)
+    const place: Place | null = node
+      ? { biome: route.terrain, land: node.land, domain: node.domain }
+      : null
     const { state: aboard, outcome, brawl } = stowAway(state, content, place)
     const out = setOut(aboard, content, route, here, options, STOWAWAY_PHRASE[outcome])
     if (!brawl) return out
-    const at = placeOnRoute(content, out.travel!) ?? place ?? undefined
+    const at = placeOnRoute(out, content, out.travel!) ?? place ?? undefined
     return startEncounter(out, content, brawl, at)
   }
   const fare = fareFor(route, state.party.length)
@@ -150,7 +153,7 @@ function setOut(
   const to = otherEnd(route, here)
   const length = journeyDays(route, pace, coverTracks)
   const { encounters, chance } = routeEncounters(
-    canMeetEncounters(content, route),
+    canMeetEncounters(content, route, state),
     length,
     route.danger,
     routeThreat(state, content, route),
@@ -189,17 +192,22 @@ function setOut(
 }
 
 /**
- * Where an encounter on this journey happens (the route's terrain and the nearer end's region),
- * and how the party is moving.
+ * Where an encounter on this journey happens (the route's terrain, and the land and domain of the
+ * nearer end), and how the party is moving.
  */
-export function placeOnRoute(content: Content, travel: TravelState): Place | null {
-  const route = Object.hasOwn(content.routes, travel.route) ? content.routes[travel.route] : null
+export function placeOnRoute(
+  state: Pick<GameState, 'world'>,
+  content: Content,
+  travel: TravelState
+): Place | null {
+  const route = edgeById(state, content, travel.route)
   const end = travel.kmDone < travel.km / 2 ? travel.from : travel.to
-  const site = Object.hasOwn(content.settlements, end) ? content.settlements[end] : null
-  if (!route || !site) return null
+  const node = nodeOf(state, content, end)
+  if (!route || !node) return null
   return {
     biome: route.terrain,
-    region: site.region,
+    land: node.land,
+    domain: node.domain,
     pace: travel.pace,
     coverTracks: travel.coverTracks,
   }
@@ -209,19 +217,27 @@ export function placeOnRoute(content: Content, travel: TravelState): Place | nul
 const isPursuit = (content: Content) => (id: string) =>
   Object.hasOwn(content.situations, id) && content.situations[id].pursuit === true
 
+/** Arriving anywhere refills the waterskins, except at a POI without a spring or well. */
+function watered(state: GameState, content: Content, id: string): boolean {
+  if (!Object.hasOwn(state.world.pois, id)) return true
+  const type = state.world.pois[id].type
+  return Object.hasOwn(content.poiTypes, type) && content.poiTypes[type].water
+}
+
 function arrive(state: GameState, content: Content): GameState {
   const travel = state.travel!
+  const water = watered(state, content, travel.to)
   const arrived: GameState = {
     ...state,
     travel: null,
     location: travel.to,
-    goods: refillWater(state.goods, partyWaterCapacity(state)),
+    goods: water ? refillWater(state.goods, partyWaterCapacity(state)) : state.goods,
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }
   return appendLog(
     arrived,
-    `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road. ` +
-      'The waterskins are refilled.',
+    `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road.` +
+      (water ? ' The waterskins are refilled.' : ''),
     'good'
   )
 }
@@ -260,7 +276,7 @@ export function continueJourney(state: GameState, content: Content): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.travel) return appendLog(state, 'The party is not on the road.', 'bad')
   // The route was removed from the data since this save: skip to the destination.
-  if (!Object.hasOwn(content.routes, state.travel.route)) return arrive(state, content)
+  if (!edgeById(state, content, state.travel.route)) return arrive(state, content)
 
   let next = state
   let quiet = 0
@@ -315,7 +331,7 @@ export function continueJourney(state: GameState, content: Content): GameState {
         ...flush(next),
         travel: { ...travel, encounterDays: travel.encounterDays.slice(1) },
       }
-      const place = placeOnRoute(content, travel) ?? undefined
+      const place = placeOnRoute(next, content, travel) ?? undefined
       const drawn = drawEncounter(queued, content, undefined, place)
       if (drawn.encounter && drawn.encounter !== queued.encounter) return drawn
       // Nothing fits here, the party steered clear, or its pursuers lost it: the road goes on.
@@ -325,7 +341,7 @@ export function continueJourney(state: GameState, content: Content): GameState {
     if (travel.kmDone >= travel.km) return arrive(flush(next), content)
     if (!fit) return appendLog(flush(next), `${UNFIT} Make camp to recover.`, 'bad')
 
-    const terrain = routeTerrain(content, travel)
+    const terrain = routeTerrain(next, content, travel)
     if (travel.forage) {
       const foraged = forageDay(next, terrain, travel.pace)
       next = foraged.state

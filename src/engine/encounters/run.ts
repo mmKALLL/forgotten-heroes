@@ -20,6 +20,7 @@ import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '..
 import { SKILL_USE_DAYS, useSkill } from '../rules/strain'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
+import { domainAt } from '../world/pois'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
@@ -61,44 +62,54 @@ const BUSY = 'Finish the current encounter first.'
 const UNFIT = 'No one is fit to travel on.'
 /** Logged when a cautious party steers clear of a hostile encounter. */
 export const WIDE_BERTH = 'You spot trouble ahead and give it a wide berth.'
-/** A twist kind tagged with the region, or with the threat holding it, weighs this much more. */
+/** A twist kind tagged with the land, or with the threat holding it, weighs this much more. */
 export const TWIST_PLACE_WEIGHT = 2
 
 /**
- * Where the party is when an encounter is drawn on the road, and, on a journey, how it is moving
- * (a cautious party avoids some hostile encounters).
+ * Where the party is when an encounter is drawn on the road: the terrain, the land (a `regions`
+ * id) and the domain (a settlement id), and, on a journey, how it is moving (a cautious party
+ * avoids some hostile encounters).
  */
-export type Place = { biome: Biome; region: string; pace?: Pace; coverTracks?: boolean }
-
-/** Untagged situations happen anywhere on land; at sea only those tagged "sea" do. */
-export function fitsPlace(
-  situation: Pick<Situation, 'biomes' | 'regions'>,
-  place: Pick<Place, 'biome' | 'region'>
-): boolean {
-  const biomes = situation.biomes ?? []
-  const regions = situation.regions ?? []
-  const biomeFits = biomes.length === 0 ? place.biome !== 'sea' : biomes.includes(place.biome)
-  return biomeFits && (regions.length === 0 || regions.includes(place.region))
+export type Place = {
+  biome: Biome
+  land: string
+  domain: string
+  pace?: Pace
+  coverTracks?: boolean
 }
 
-/** The threat holding a region in this world, or null. */
-const threatIn = (state: GameState, region: string | undefined): string | null =>
-  region !== undefined && Object.hasOwn(state.world.regions, region)
-    ? state.world.regions[region].threat
+/**
+ * Untagged situations happen anywhere on land; at sea only those tagged "sea" do. A situation's
+ * `regions` tag names lands.
+ */
+export function fitsPlace(
+  situation: Pick<Situation, 'biomes' | 'regions'>,
+  place: Pick<Place, 'biome' | 'land'>
+): boolean {
+  const biomes = situation.biomes ?? []
+  const lands = situation.regions ?? []
+  const biomeFits = biomes.length === 0 ? place.biome !== 'sea' : biomes.includes(place.biome)
+  return biomeFits && (lands.length === 0 || lands.includes(place.land))
+}
+
+/** The threat roaming a land in this world, or null. */
+const threatIn = (state: GameState, land: string | undefined): string | null =>
+  land !== undefined && Object.hasOwn(state.world.lands, land)
+    ? state.world.lands[land].threat
     : null
 
 /**
  * A twist kind's draw weight here: TWIST_PLACE_WEIGHT× when it fits the place, i.e. its tags name
- * the terrain, the region, or the threat holding the region.
+ * the terrain, the land, or the threat roaming the land.
  */
 export function twistKindWeight(
   kind: Pick<TwistKind, 'weight' | 'biomes' | 'regions' | 'threats'>,
-  place: Pick<Place, 'biome' | 'region'> | undefined,
+  place: Pick<Place, 'biome' | 'land'> | undefined,
   threat: string | null
 ): number {
   const fits =
     (place !== undefined &&
-      (kind.biomes.includes(place.biome) || kind.regions.includes(place.region))) ||
+      (kind.biomes.includes(place.biome) || kind.regions.includes(place.land))) ||
     (threat !== null && kind.threats.includes(threat))
   return fits ? kind.weight * TWIST_PLACE_WEIGHT : kind.weight
 }
@@ -112,13 +123,15 @@ const advanceFollowUps = (state: GameState): GameState => ({
 /**
  * Starts a situation. On the road, `place` weights the twist table towards kinds that fit the
  * place, and on a journey a hostile encounter meets the party on the footing its pace gives
- * (ambushPositionForPace).
+ * (ambushPositionForPace). The encounter happens in the place's domain (or, without a place,
+ * where the party is), and at `poi` when visiting one.
  */
 export function startEncounter(
   state: GameState,
   content: Content,
   situationId: string,
-  place?: Place
+  place?: Place,
+  poi?: string
 ): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
@@ -134,7 +147,7 @@ export function startEncounter(
     const twist = compiled.twist ? d.float() < compiled.twist.chance : false
     const kinds = compiled.twist?.table ? twistKindsFor(content, compiled.twist) : []
     if (kinds.length === 0) return { slots, twist, kind: null as TwistKind | null }
-    const threat = threatIn(state, place?.region)
+    const threat = threatIn(state, place?.land)
     const kind = d.weighted(kinds, (k) => twistKindWeight(k, place, threat))
     const own = Object.fromEntries(
       Object.entries(kind.slots).filter(([name]) => !Object.hasOwn(compiled.slots, name))
@@ -166,6 +179,8 @@ export function startEncounter(
     twistKindRevealed: false,
     nextCheckModifier: 0,
     nextCheckReason: null,
+    poi: poi ?? null,
+    domain: place?.domain ?? domainAt(state.world, state.location),
     used: [],
     log: [{ text, tone: 'info' }],
   }
@@ -180,7 +195,7 @@ export function startEncounter(
  * A due follow-up (wait 0) comes first, whatever the source filter or place, except that at sea
  * it waits for land unless its situation fits the sea; one whose situation no longer exists is
  * dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly or site situation.
- * On the road, `place` limits the pick to situations that fit its terrain and region (fitsPlace);
+ * On the road, `place` limits the pick to situations that fit its terrain and land (fitsPlace);
  * when none fits, nothing happens. A cautious party then skips a hostile pick with chance
  * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
  * starts moves the other queued follow-ups one closer (see startEncounter).
@@ -235,9 +250,21 @@ export function drawEncounter(
 
 export const closeEncounter = (state: GameState): GameState => ({ ...state, encounter: null })
 
-/** Human-readable reasons an option can't be chosen, e.g. "needs 15 gp". Empty when available. */
+/**
+ * Human-readable reasons an option can't be chosen, e.g. "needs 15 gp" or "everyone already
+ * knows Insight". Empty when available.
+ */
 export function unmetRequirements(state: GameState, requires: readonly Requirement[]): string[] {
-  return requires.flatMap((r) => (state.gold >= r.min ? [] : [`needs ${r.min} gp`]))
+  return requires.flatMap((r) => {
+    switch (r.req) {
+      case 'gold':
+        return state.gold >= r.min ? [] : [`needs ${r.min} gp`]
+      case 'untrained':
+        return state.party.some((c) => !c.skillProficiencies.includes(r.skill))
+          ? []
+          : [`everyone already knows ${statLabel(r.skill)}`]
+    }
+  })
 }
 
 /** The current stage's options that can still be chosen (used `once` options are gone). */
@@ -256,7 +283,8 @@ function resolve(
   state: GameState,
   branch: OutcomeBranch,
   actorId: string | undefined,
-  entry: Pick<EncounterLogEntry, 'tone' | 'roll' | 'highStakes'>
+  entry: Pick<EncounterLogEntry, 'tone' | 'roll' | 'highStakes'>,
+  content?: Content
 ): GameState {
   const encounter = state.encounter!
   const fromStage = encounter.stage!
@@ -272,7 +300,7 @@ function resolve(
   // The outcome text comes before any log effects it triggers.
   let next = appendLog(state, text, entry.tone)
   next = { ...next, encounter: { ...encounter, log: [...encounter.log, { ...entry, text }] } }
-  next = applyEffects(next, effects, { actorId })
+  next = applyEffects(next, effects, { actorId, content })
 
   // "@twist" goes to the twist's escalation stage; once there, which twist it was is no secret.
   const escalates = branch.goto === TWIST_STAGE
@@ -291,7 +319,13 @@ function resolve(
   return { ...next, encounter: { ...next.encounter!, stage, log } }
 }
 
-export function chooseOption(state: GameState, optionId: string, actorId?: string): GameState {
+/** `content` lets clues (discoverPoi) find their sites; without it they find nothing. */
+export function chooseOption(
+  state: GameState,
+  optionId: string,
+  actorId?: string,
+  content?: Content
+): GameState {
   const encounter = state.encounter
   if (!encounter || encounter.stage === null) return state
   const option = currentOptions(encounter).find((o) => o.id === optionId)
@@ -308,7 +342,13 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
   const used = option.once ? [...encounter.used, `${encounter.stage}/${option.id}`] : encounter.used
   if (option.kind === 'fixed') {
     const marked = { ...state, encounter: { ...encounter, used } }
-    return resolve(marked, branchFor(option.outcome, encounter.twist), undefined, { tone: 'info' })
+    return resolve(
+      marked,
+      branchFor(option.outcome, encounter.twist),
+      undefined,
+      { tone: 'info' },
+      content
+    )
   }
 
   const { skill, ability, combat } = option.check
@@ -356,11 +396,13 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
     )
   }
   const branch = branchFor(tierOutcome(option, roll.tier), encounter.twist)
-  return resolve(rolled, branch, actor.characterId, {
-    tone: TIER_TONE[roll.tier],
-    roll: record,
-    highStakes,
-  })
+  return resolve(
+    rolled,
+    branch,
+    actor.characterId,
+    { tone: TIER_TONE[roll.tier], roll: record, highStakes },
+    content
+  )
 }
 
 export function stepEncounter(
@@ -374,7 +416,7 @@ export function stepEncounter(
     case 'drawEncounter':
       return drawEncounter(state, content, action.sources)
     case 'chooseOption':
-      return chooseOption(state, action.optionId, action.actorId)
+      return chooseOption(state, action.optionId, action.actorId, content)
     case 'closeEncounter':
       return closeEncounter(state)
   }

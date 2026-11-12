@@ -1,8 +1,10 @@
 import { sortedEntries, type Content } from '../../content/build'
 import { SIZE_TIERS } from '../../schema/constants'
-import type { Kingdom, RegionState, Settlement, SettlementState, Town } from '../../schema/world'
+import type { Settlement, SettlementState, Town } from '../../schema/world'
 import type { Draw } from '../rng'
 import { generatePlaceName } from './names'
+import { domainThreatLevel, type PoiWorld } from './pois'
+import type { Politics } from './politics'
 
 /** Settlement types a plain map marker can be; kingdom seats are "capital", other framed markers "city". */
 export const MARKER_TYPES = ['hamlet', 'village', 'town', 'city', 'fort'] as const
@@ -14,7 +16,7 @@ export const SERVICE_CHANCE = 0.9
 export const COASTAL_SERVICES: readonly string[] = ['port']
 /** A named town needs at least this score to be placed (see townScore). */
 export const MIN_TOWN_MATCH = 2
-/** Settlements are this much poorer where the threat is rampant (level 3). */
+/** Settlements are this much poorer where their domain's threat is rampant (level 3). */
 export const RAMPANT_WEALTH = -1
 /** How often a settlement's ancestry is the ruling one, when its town doesn't name one. */
 export const RULING_ANCESTRY_SHARE = 0.75
@@ -80,11 +82,11 @@ const own = <T>(table: Record<string, T>, id: string): T | undefined =>
 export function generateSettlements(
   d: Draw,
   content: Content,
-  kingdoms: readonly Kingdom[],
-  regionStates: Readonly<Record<string, RegionState>>,
+  world: Pick<Politics, 'kingdoms'> & PoiWorld,
   usedNames: Set<string>
 ): Record<string, SettlementState> {
-  const seats = new Set(kingdoms.map((k) => k.capital))
+  const { kingdoms } = world
+  const seats = new Set(kingdoms.map((k) => k.seat))
   const sites = sortedEntries(content.settlements)
   const ordered = [
     ...sites.filter((s) => seats.has(s.id)),
@@ -100,8 +102,8 @@ export function generateSettlements(
   const result: Record<string, SettlementState> = {}
 
   for (const site of ordered) {
-    const regionState = own(regionStates, site.region)
-    const kingdom = kingdoms.find((k) => k.id === regionState?.kingdom)
+    const domain = own(world.domains, site.id)
+    const kingdom = kingdoms.find((k) => k.id === domain?.kingdom)
     const typeId = seats.has(site.id)
       ? 'capital'
       : site.capital
@@ -126,7 +128,7 @@ export function generateSettlements(
     usedNames.add(name)
     named.add(name)
 
-    const rampant = (regionState?.threatLevel ?? 0) >= 3 ? RAMPANT_WEALTH : 0
+    const rampant = domainThreatLevel(world, site.id) >= 3 ? RAMPANT_WEALTH : 0
     const wealth = Math.max(-4, Math.min(6, d.int(-2, 2) + (town?.wealth ?? 0) + rampant))
     const ancestry =
       town?.ancestry ??

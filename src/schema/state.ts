@@ -88,6 +88,10 @@ export const EncounterStateSchema = z.object({
   nextCheckModifier: z.number().int().default(0),
   /** Why the next check is modified, e.g. "misread". The latest reason wins; cleared with the modifier. */
   nextCheckReason: z.string().nullable().default(null),
+  /** The point of interest being visited, or null on the road and elsewhere. */
+  poi: IdSchema.nullable().default(null),
+  /** The domain (settlement id) it happens in, for clues (discoverPoi); null when unknown. */
+  domain: IdSchema.nullable().default(null),
   /** "stage/option" keys of `once` options already chosen. */
   used: z.array(z.string()),
   log: z.array(EncounterLogEntrySchema),
@@ -131,7 +135,7 @@ export type SkillUse = z.infer<typeof SkillUseSchema>
 export const GoodsSchema = z.partialRecord(GoodSchema, z.number().int().min(0))
 export type Goods = z.infer<typeof GoodsSchema>
 
-/** A journey along one route, from settlement to settlement. */
+/** A journey along one route or path, between settlements and points of interest. */
 export const TravelStateSchema = z.object({
   route: IdSchema,
   from: IdSchema,
@@ -157,7 +161,7 @@ export const TravelStateSchema = z.object({
 export type TravelState = z.infer<typeof TravelStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(3),
+  version: z.literal(4),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -171,7 +175,7 @@ export const GameStateSchema = z.object({
   skillUses: z.array(SkillUseSchema),
   /** The political layer of this world, rolled from its seed (see generateWorld). */
   world: WorldStateSchema,
-  /** The settlement the party is in; null while on the road. */
+  /** The settlement or point of interest the party is at; null while on the road. */
   location: IdSchema.nullable(),
   travel: TravelStateSchema.nullable(),
   goods: GoodsSchema,

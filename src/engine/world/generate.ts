@@ -2,7 +2,9 @@ import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
 import type { WorldState } from '../../schema/world'
 import { createRng, withRng } from '../rng'
 import { generatePolitics } from './politics'
+import { domainThreatLevel, generatePois } from './pois'
 import { generateSettlements } from './settlements'
+import { territory } from './territory'
 
 /** Mixed into the run seed, so the world and the run draw from separate streams. */
 export const WORLD_SALT = 0x5eeda17a
@@ -15,19 +17,29 @@ export const worldSeed = (seed: number): number => (seed ^ WORLD_SALT) >>> 0
  */
 export const START_SALT = 0x57a27ed5
 
-/** The political layer for a world seed: kingdoms, regional threats and settlements. Pure. */
+/**
+ * The political layer for a world seed, in one RNG stream: domain territory (from content), then
+ * kingdoms, land threats and garrisons, then points of interest, then settlements. Pure.
+ */
 export function generateWorld(seed: number, content: Content): WorldState {
   return withRng(createRng(seed), (d) => {
     const usedNames = new Set<string>()
-    const { kingdoms, regions } = generatePolitics(d, content, usedNames)
-    const settlements = generateSettlements(d, content, kingdoms, regions, usedNames)
-    return { seed, kingdoms, regions, settlements }
+    const land = territory(content)
+    const { kingdoms, lands, domains } = generatePolitics(d, content, land, usedNames)
+    const pois = generatePois(d, content, land, lands)
+    const settlements = generateSettlements(
+      d,
+      content,
+      { kingdoms, lands, domains, pois },
+      usedNames
+    )
+    return { seed, kingdoms, lands, domains, pois, settlements }
   })[0]
 }
 
 /**
  * How a new party picks where it begins (design §6), chosen when creating the party:
- * - calm: a small settlement in the calmest mainland region;
+ * - calm: a small settlement in the calmest mainland domain;
  * - random: any mainland settlement, of any size or danger.
  */
 export const START_MODES = ['calm', 'random'] as const
@@ -59,8 +71,8 @@ export function startingSettlement(
 
   const small = onMainland.filter((s) => !GRAND.includes(world.settlements[s.id].type))
   const pool = small.length > 0 ? small : onMainland
-  const level = (region: string) =>
-    Object.hasOwn(world.regions, region) ? world.regions[region].threatLevel : 3
-  const calmest = Math.min(...pool.map((s) => level(s.region)))
-  return pick(pool.filter((s) => level(s.region) === calmest))
+  const level = (id: string) =>
+    Object.hasOwn(world.domains, id) ? domainThreatLevel(world, id) : 3
+  const calmest = Math.min(...pool.map((s) => level(s.id)))
+  return pick(pool.filter((s) => level(s.id) === calmest))
 }

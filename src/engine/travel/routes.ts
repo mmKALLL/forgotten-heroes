@@ -4,6 +4,8 @@ import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { allSituations } from '../encounters/compile'
 import { fitsPlace } from '../encounters/run'
+import { edgeById } from '../world/graph'
+import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
 import {
   COVER_TRACKS_EXTRA_DAYS,
@@ -65,22 +67,25 @@ export const encounterChance = (
   )
 
 /**
- * True when some situation can be drawn on this route: one that fits its terrain and the region
- * at either end (fitsPlace). At sea only `sea` situations can; site situations never count.
+ * True when some situation can be drawn on this route or path: one that fits its terrain and the
+ * land at either end (fitsPlace; a POI's land is its domain's, which needs `state`). At sea only
+ * `sea` situations can; site situations never count.
  */
 export function canMeetEncounters(
   content: Content,
-  route: Pick<Route, 'from' | 'to' | 'terrain'>
+  route: Pick<Route, 'from' | 'to' | 'terrain'>,
+  state?: Pick<GameState, 'world'>
 ): boolean {
-  const regions = [route.from, route.to]
-    .filter((id) => Object.hasOwn(content.settlements, id))
+  const lands = [route.from, route.to]
+    .map((id) => (state ? domainAt(state.world, id) : id))
+    .filter((id): id is string => id !== null && Object.hasOwn(content.settlements, id))
     .map((id) => content.settlements[id].region)
   return allSituations(content).some(
     (s) =>
       !s.followUpOnly &&
       !s.site &&
       s.weight > 0 &&
-      regions.some((region) => fitsPlace(s, { biome: route.terrain, region }))
+      lands.some((land) => fitsPlace(s, { biome: route.terrain, land }))
   )
 }
 
@@ -111,16 +116,18 @@ export function rollEncounterDays(
   return Array.from({ length: count }, () => d.int(1, days)).sort((a, b) => a - b)
 }
 
-/** The higher threat level of the regions at either end of a route. */
+/**
+ * The higher threat level of the domains at either end of a route or path (domainThreatLevel); a
+ * POI end counts as its domain.
+ */
 export function routeThreat(
   state: Pick<GameState, 'world'>,
-  content: Content,
+  _content: Content,
   route: Pick<Route, 'from' | 'to'>
 ): number {
   const level = (id: string) => {
-    if (!Object.hasOwn(content.settlements, id)) return 0
-    const region = content.settlements[id].region
-    return Object.hasOwn(state.world.regions, region) ? state.world.regions[region].threatLevel : 0
+    const domain = domainAt(state.world, id)
+    return domain === null ? 0 : domainThreatLevel(state.world, domain)
   }
   return Math.max(level(route.from), level(route.to))
 }
@@ -129,6 +136,9 @@ export function routeThreat(
 export const fareFor = (route: Pick<Route, 'km' | 'terrain'>, members: number): number =>
   route.terrain === 'sea' ? SEA_FARE * members * journeyDays(route) : 0
 
-/** The terrain underfoot on a journey; null if its route has gone from the data. */
-export const routeTerrain = (content: Content, travel: TravelState): Biome | null =>
-  Object.hasOwn(content.routes, travel.route) ? content.routes[travel.route].terrain : null
+/** The terrain underfoot on a journey; null if its route or path has gone. */
+export const routeTerrain = (
+  state: Pick<GameState, 'world'>,
+  content: Content,
+  travel: TravelState
+): Biome | null => edgeById(state, content, travel.route)?.terrain ?? null

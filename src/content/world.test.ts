@@ -5,6 +5,7 @@ import { newGame } from '../engine/state'
 import { wander } from '../engine/travel/wander'
 import { generateWorld, startingSettlement, worldSeed } from '../engine/world/generate'
 import { routesFrom } from '../engine/world/geo'
+import { domainThreatLevel } from '../engine/world/pois'
 import { worldIssues } from '../engine/world/validate'
 import { BIOMES } from '../schema/constants'
 import { GameStateSchema } from '../schema/state'
@@ -73,16 +74,17 @@ describe('threats and realm names', () => {
     for (const t of threats) expect(t.strength.min).toBeLessThanOrEqual(t.strength.max)
   })
 
-  test('about one region in eight is Rampant across generated worlds (design §6: 10–15%)', () => {
+  test('about one domain in eight is Rampant across generated worlds (design §6: 10–15%)', () => {
     let rampant = 0
-    let regions = 0
+    let domains = 0
     for (let seed = 0; seed < 200; seed++) {
-      for (const region of Object.values(generateWorld(worldSeed(seed), content).regions)) {
-        regions++
-        if (region.threatLevel === 3) rampant++
+      const world = generateWorld(worldSeed(seed), content)
+      for (const id of Object.keys(world.domains)) {
+        domains++
+        if (domainThreatLevel(world, id) === 3) rampant++
       }
     }
-    const share = rampant / regions
+    const share = rampant / domains
     expect(share).toBeGreaterThanOrEqual(0.08)
     expect(share).toBeLessThanOrEqual(0.18)
   })
@@ -98,8 +100,9 @@ describe('generated worlds on Altaeus', () => {
   test.each([1, 2, 3, 4, 5, 6, 7, 8])('seed %i is valid and fully named', (seed) => {
     const world = generateWorld(worldSeed(seed), content)
     expect(WorldStateSchema.parse(world)).toEqual(world)
-    expect(world.kingdoms.length).toBeGreaterThanOrEqual(4)
-    expect(Object.keys(world.regions).sort()).toEqual(Object.keys(content.regions).sort())
+    expect(world.kingdoms.length).toBeGreaterThanOrEqual(8)
+    expect(Object.keys(world.lands).sort()).toEqual(Object.keys(content.regions).sort())
+    expect(Object.keys(world.domains).sort()).toEqual(Object.keys(content.settlements).sort())
     const names = Object.values(world.settlements).map((s) => s.name)
     expect(new Set(names).size).toBe(names.length)
     expect(startingSettlement(world, content)).not.toBeNull()

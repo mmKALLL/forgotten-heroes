@@ -2,6 +2,7 @@ import { describe, expect, test } from 'vitest'
 import type { TravelState } from '../../schema/state'
 import { createRng, withRng } from '../rng'
 import { fixtureContent, makeState } from '../test-fixtures'
+import { domainThreatLevel } from '../world/pois'
 import {
   canMeetEncounters,
   encounterChance,
@@ -116,13 +117,31 @@ describe('rollEncounterDays', () => {
   })
 })
 
-test('a route’s threat is the higher threat level of its two regions', () => {
+test('a route’s threat is the higher threat level of the domains at its two ends', () => {
   const state = makeState()
   const world = structuredClone(state.world)
-  world.regions.greenvale.threatLevel = 1
-  world.regions.ashmoor.threatLevel = 3
+  world.lands.greenvale.threatStrength = 2
+  world.lands.ashmoor.threatStrength = 2
+  for (const d of Object.values(world.domains)) d.garrison = 1
+  const lair = {
+    type: 'orc-war-camp',
+    domain: 'ashmoor-1',
+    name: 'Redtusk camp',
+    threat: 2,
+    discovered: false,
+    cleared: false,
+  }
+  world.pois = {
+    'poi-1': { ...lair, spot: 'spot-0009' },
+    'poi-2': { ...lair, spot: 'spot-0005', domain: 'greenvale-2', cleared: true },
+  }
   const route = content.routes['ashmoor-1-greenvale-2']
+  // Ashmoor's lair raises it to 3; Greenvale 2's lair is cleared, so it stays at 1.
+  expect(domainThreatLevel(world, 'ashmoor-1')).toBe(3)
+  expect(domainThreatLevel(world, 'greenvale-2')).toBe(1)
   expect(routeThreat({ ...state, world }, content, route)).toBe(3)
+  world.pois['poi-1'].cleared = true
+  expect(routeThreat({ ...state, world }, content, route)).toBe(1)
 })
 
 test('site situations never make a route eventful', () => {
@@ -157,6 +176,6 @@ test('a journey’s terrain comes from its route', () => {
     paceLog: [],
     forage: true,
   }
-  expect(routeTerrain(content, travel)).toBe('marsh')
-  expect(routeTerrain(content, { ...travel, route: 'gone' })).toBeNull()
+  expect(routeTerrain(makeState(), content, travel)).toBe('marsh')
+  expect(routeTerrain(makeState(), content, { ...travel, route: 'gone' })).toBeNull()
 })

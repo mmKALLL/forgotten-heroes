@@ -1,14 +1,50 @@
+import type { Content } from '../../content/build'
+import type { LogTone } from '../../schema/constants'
 import type { Condition, Effect } from '../../schema/encounter'
 import type { EncounterState, GameState } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { withRng, type Rng } from '../rng'
-import { canAct } from '../rules/character'
+import { statLabel } from '../rules/abilities'
+import { canAct, statModifier } from '../rules/character'
+import { domainAt, poisToDiscover } from '../world/pois'
 
 export const MAX_EXHAUSTION = 6
 
-/** Who "actor" means for this batch of effects: the member who rolled. Fixed options have none. */
-export type EffectContext = { actorId?: string }
+/**
+ * Who "actor" means for this batch of effects: the member who rolled (fixed options have none),
+ * and the content, which clues (discoverPoi) need to find their sites.
+ */
+export type EffectContext = { actorId?: string; content?: Content }
+
+/** Logged when a clue (discoverPoi) has nothing left to reveal. */
+export const NOTHING_TO_LEARN = 'There is nothing new to learn about the land around here.'
+
+/** A line in the journal, and in the encounter's own log when one is open. */
+function note(state: GameState, text: string, tone: LogTone): GameState {
+  const next = appendLog(state, text, tone)
+  if (!next.encounter) return next
+  return { ...next, encounter: { ...next.encounter, log: [...next.encounter.log, { text, tone }] } }
+}
+
+/** Marks POIs discovered, with a journal line for each. */
+export function revealPois(state: GameState, content: Content, ids: readonly string[]): GameState {
+  let next = state
+  for (const id of ids) {
+    const poi = next.world.pois[id]
+    next = {
+      ...next,
+      world: { ...next.world, pois: { ...next.world.pois, [id]: { ...poi, discovered: true } } },
+    }
+    const type = Object.hasOwn(content.poiTypes, poi.type) ? content.poiTypes[poi.type] : null
+    next = note(
+      next,
+      `You learn of ${poi.name}${type ? ` (${type.name.toLowerCase()})` : ''}.`,
+      'good'
+    )
+  }
+  return next
+}
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
 
@@ -119,11 +155,41 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     case 'openingHit':
       // prepareEffects expands it; reaching here means there was nothing to expand.
       return state
-    case 'log': {
-      const next = appendLog(state, effect.text, effect.tone)
-      if (!next.encounter) return next
-      const log = [...next.encounter.log, { text: effect.text, tone: effect.tone }]
-      return { ...next, encounter: { ...next.encounter, log } }
+    case 'log':
+      return note(state, effect.text, effect.tone)
+    case 'discoverPoi': {
+      const domain = state.encounter?.domain ?? domainAt(state.world, state.location)
+      const ids = ctx.content ? poisToDiscover(state.world, ctx.content, domain, effect) : []
+      if (ids.length === 0) return note(state, NOTHING_TO_LEARN, 'info')
+      return revealPois(state, ctx.content!, ids)
+    }
+    case 'clearPoi': {
+      const id = state.encounter?.poi
+      if (!id || !Object.hasOwn(state.world.pois, id)) return state
+      const poi = state.world.pois[id]
+      const cleared = {
+        ...state,
+        world: { ...state.world, pois: { ...state.world.pois, [id]: { ...poi, cleared: true } } },
+      }
+      return note(cleared, `${poi.name} is cleared.`, 'good')
+    }
+    case 'trainSkill': {
+      const untrained = state.party
+        .map((c, order) => ({ c, order, modifier: statModifier(c, effect.skill) }))
+        .filter(({ c }) => !c.skillProficiencies.includes(effect.skill))
+        .sort((a, b) => b.modifier - a.modifier || a.order - b.order)
+      if (untrained.length === 0) return state
+      const pupil = untrained[0].c
+      const party = state.party.map((c) =>
+        c.id === pupil.id
+          ? { ...c, skillProficiencies: [...c.skillProficiencies, effect.skill] }
+          : c
+      )
+      return note(
+        { ...state, party },
+        `${pupil.name} is now trained in ${statLabel(effect.skill)}.`,
+        'good'
+      )
     }
   }
 }
@@ -183,5 +249,16 @@ export function describeEffect(effect: Effect, actorName: string): string | null
       return 'an opening hit'
     case 'log':
       return null
+    case 'discoverPoi': {
+      const what =
+        effect.count === 1
+          ? `a ${effect.category ?? 'site'}`
+          : `${effect.count} ${effect.category ?? 'site'}s`
+      return `reveals ${what} ${effect.scope === 'land' ? 'in the land' : 'nearby'}`
+    }
+    case 'clearPoi':
+      return 'clears the site'
+    case 'trainSkill':
+      return `someone learns ${statLabel(effect.skill)}`
   }
 }

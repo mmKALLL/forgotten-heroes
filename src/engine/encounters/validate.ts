@@ -274,6 +274,8 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
     }
     if (effect.effect === 'revealTwist' && !compiled.twist)
       issues.push(`${where}: revealTwist but the situation has no twist`)
+    if (effect.effect === 'clearPoi' && !compiled.site)
+      issues.push(`${where}: clearPoi only works in a site situation`)
   }
   return issues
 }
