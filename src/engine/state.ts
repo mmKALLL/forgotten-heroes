@@ -180,6 +180,7 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'acceptContract':
     case 'abandonContract':
     case 'completeContract':
+    case 'sellCargo':
       return stepContract(state, action, content)
     case 'provision':
       return provision(state, content, action)

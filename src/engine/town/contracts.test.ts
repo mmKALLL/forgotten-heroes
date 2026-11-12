@@ -7,11 +7,12 @@ import { step, type Action } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { passDay } from '../travel/days'
 import { routeOptions } from '../travel/preview'
-import { FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS } from '../constants'
+import { FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS, SOLD_CARGO_REP } from '../constants'
+import { maxSell } from '../economy/trade'
 import { kingdomOf } from './reputation'
 import { marketLevels } from '../economy/market'
 import { supplyOf } from '../economy/supply'
-import { contractRows, noticeBoard, type Offer } from './contracts'
+import { cargoInfo, contractRows, noticeBoard, sellCargoPreview, type Offer } from './contracts'
 
 const content = fixtureContent()
 const HERE = 'greenvale-1'
@@ -301,6 +302,34 @@ describe('completing each kind', () => {
     const quit = act(sold, { type: 'abandonContract', id: offer.id })
     expect(quit.goods.food).toBe(0)
     expect(quit.gold).toBe(sold.gold)
+  })
+
+  test('cargo is reserved; selling it on purpose breaks the contract, as the preview says', () => {
+    const { state, offer } = boardWith('freight')
+    const taken = act(state, { type: 'acceptContract', offerId: offer.id })
+    const own = state.goods.food ?? 0
+    expect(maxSell(taken, 'food')).toBe(own)
+    expect(cargoInfo(taken, content)).toMatchObject({
+      reserved: { food: offer.amount },
+      lots: [{ contractId: offer.id, good: 'food', amount: offer.amount, carried: offer.amount }],
+    })
+    const sale = sellCargoPreview(taken, content, offer.id)!
+    expect(sale.units).toBe(offer.amount)
+    expect(sale.text).toMatch(/breaks/)
+    const sold = act(taken, { type: 'sellCargo', contractId: offer.id })
+    expect(sold.contracts).toEqual([])
+    expect(sold.goods.food).toBe(own)
+    expect(sold.gold).toBe(taken.gold + sale.gold - sale.owed)
+    const lost = taken.reputation.people[offer.patron] ?? 0
+    expect(sold.reputation.people[offer.patron]).toBe(lost - sale.standing)
+    expect(sale.standing).toBe(SOLD_CARGO_REP)
+    expect(sold.reputation.settlements[HERE]).toBe(
+      (taken.reputation.settlements[HERE] ?? 0) - SOLD_CARGO_REP
+    )
+    // No other contract's cargo, and nothing on the road.
+    const away = { ...taken, location: null, travel: null }
+    expect(sellCargoPreview(away, content, offer.id)).toBeNull()
+    expect(act(taken, { type: 'sellCargo', contractId: 'nope' }).contracts).toEqual(taken.contracts)
   })
   test('a bounty is met by clearing its site, then claimed back home', () => {
     const base = at(HERE)

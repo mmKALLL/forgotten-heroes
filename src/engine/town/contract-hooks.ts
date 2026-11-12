@@ -5,8 +5,9 @@ import { appendLog } from '../log'
 // apart so those modules don't import the whole notice board.
 
 /**
- * Units of a good the party carries as cargo for courier and freight contracts: the patron's goods,
- * handed over on acceptance, which can't be sold (losing them costs their base value).
+ * Units of a good reserved as cargo for courier and freight contracts: the patron's goods, handed
+ * over on acceptance. Selling goods (sellGoods, maxSell) leaves them out; only sellCargo sells
+ * them, and that breaks the contract (losing them costs their base value).
  */
 export const contractCargo = (state: Pick<GameState, 'contracts'>, good: string): number =>
   state.contracts

@@ -38,6 +38,13 @@ const MAX_UNITS = 9999
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
 const lower = (content: Content, good: Good) => goodName(content, good).toLowerCase()
 
+/**
+ * The most units of a good the party may sell with sellGoods: what it carries, less the cargo
+ * reserved for courier and freight contracts (contractCargo; only sellCargo sells that).
+ */
+export const maxSell = (state: Pick<GameState, 'goods' | 'contracts'>, good: Good): number =>
+  Math.max(0, units(state, good) - contractCargo(state, good))
+
 /** What stops the party buying more of a good: gold, weight, or nothing (null). */
 export type BuyLimit = 'gold' | 'weight' | null
 
@@ -147,12 +154,14 @@ export function sellGoods(
   if (!inSettlement(state) || here === null) {
     return appendLog(state, notHere(state, 'Goods can only be sold in a settlement.'), 'bad')
   }
-  // A contract's cargo is the patron's, not the party's to sell.
-  const cargo = contractCargo(state, good)
-  const free = Math.max(0, units(state, good) - cargo)
-  const n = Math.min(Math.max(0, Math.floor(amount)), free)
-  if (n === 0 && cargo > 0 && units(state, good) > 0) {
-    return appendLog(state, `The ${lower(content, good)} you carry is a contract's cargo.`, 'bad')
+  // A contract's cargo is the patron's: only sellCargo (town/contracts.ts) sells it.
+  const n = Math.min(Math.max(0, Math.floor(amount)), maxSell(state, good))
+  if (n === 0 && contractCargo(state, good) > 0 && units(state, good) > 0) {
+    return appendLog(
+      state,
+      `The ${lower(content, good)} you carry is a contract's cargo: selling it breaks the contract.`,
+      'bad'
+    )
   }
   if (n === 0) return appendLog(state, `There is no ${lower(content, good)} to sell.`, 'bad')
   const q = quote(state, content, here, good, 'sell', n, shop)
