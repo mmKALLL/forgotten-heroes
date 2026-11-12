@@ -108,14 +108,14 @@ The town map image is a banner and backdrop.
 
 ## 6. World and campaign structure
 
-- **Altaeus** is the fixed geography, taken from the world map. About 14 named regions and about 45 settlement markers form a graph: nodes are settlements and points of interest at the marker coordinates, and edges are routes with a distance (km, from the 100 km scale bar), a terrain type, and a danger level.
+- **Altaeus** is the fixed geography, taken from the world map. 16 named lands and 53 settlement markers form a graph: nodes are settlements and points of interest at the marker coordinates, and edges are routes with a distance (km, from the 100 km scale bar), a terrain type, and a danger level.
 - **Political layer:** this is the randomised part.
   - **Two scales:**
     - **Lands:** the 16 named map areas. They carry geography, biome and the roaming local threat or usurper (orcs, undead, a cult...) with its own strength.
     - **Domains:** the political unit, one per settlement with its surroundings (about 53).
   - **Kingdoms:** there are 8–12, each holding a handful of domains, with seats at the 14 capitals.
   - **Threat level is worked out per domain:** the land's threat strength minus that domain's garrison. A kingdom's defence is split across its domains, so growth thins its garrisons. Border domains of a sprawling kingdom become the weak spots where threats rise.
-  - **Status:** decided after Plan 3. Plan 3 built kingdoms over the 16 lands, and the domain rework follows Plan 3's fixes.
+  - **Status:** built in Plan 3b (see "World data (Plan 3b)" below). Plan 3 had kingdoms over the 16 lands.
 - **Points of interest:** procedurally generated places. Each one belongs to exactly one domain, so whoever rules that domain owns it.
   - **Placement:** anywhere within the domain's territory, which can be far from the settlement in travel terms. Territory is the land closest to each settlement, by route and travel distance. Candidate land spots are sampled off the map image once and stored in `data/claude/`.
   - **Threat:** a hostile point of interest (a lair, a camp or an active dungeon) adds to its domain's threat strength, and clearing it lowers it. So a domain's threat level, and its owner's grip, depends on what lurks in its lands.
@@ -127,11 +127,11 @@ The town map image is a banner and backdrop.
     - **Quest sites.**
   - **Discovery:** points of interest start hidden. They are found through rumours (Plan 4 taverns), encounter clues, or by spending days exploring a domain (Survival or Perception). Once discovered, they appear on the map.
   - **Visiting:** a point of interest is a map node joined to its domain's settlement (and to nearby routes where sensible) by a path with real distance and terrain. Getting there can take anything from half a day to many days, with the normal pace, supply and encounter rules.
-  - **Timing:** built with the domain rework as Plan 3b, before Plan 4.
+  - **Status:** built in Plan 3b, before Plan 4. Rumours from taverns arrive with Plan 4.
 - **New world:** re-rolls the political layer on top of the fixed geography: borders, ruling ancestries, threats, and settlement names and types.
 - **Town names** come first from the town-map filenames in `~/dnd5e/town maps/` (including `__altaeus/`). Their `Name - description - alignment` pattern also hints at the settlement type, biome, wealth and alignment, and the map image becomes that town's banner. The generators from the prototype's `towns.ts` (English, French and Spanish style compounds) fill any remaining settlements.
   - **Which file a town goes in:** names that come from published settings or the real world (Waterdeep, Neverwinter, Phandalin, Barovia, Rivendell, Gondolin, Moria, Absalom, Emon, Athens and so on) go in `data/imported-private/towns.json`, which is gitignored. Original or generic names go in the committed `data/original/towns.json`. Without the private file, generated names take their place.
-- **Starting location:** when creating a party, the player chooses between a small town in the calmest mainland region and a random settlement.
+- **Starting location:** when creating a party, the player chooses between a small town in the calmest mainland domain and a random settlement.
 - **Layout:** the Altaeus map fills the centre column. Encounters replace it while active, the party is on the left and the journal on the right.
 - **Region names** are read from the map, e.g. Nörrikk, Kard Krait, Olsari, Deadcliff Mesa, Tradal, and Ard Jurgenvren for the southern island.
 
@@ -139,8 +139,46 @@ The town map image is a banner and backdrop.
 
 - **Geography** (`data/claude/`): 16 regions (name, biome, label position), 53 settlements (map-pixel position, region, island, capital marker, coastal) and 67 routes (km, terrain, danger 0–3). It was read off the map with `scripts/map/` (100 km = 484 px); land routes follow the dashed roads, and islands are reached by sea routes. The map image itself is never committed.
 - **Town names** (`data/original/towns.json`) are generated from the town-map filenames by `scripts/port/port-town-maps.ts`; towns labelled on the Altaeus map are pinned to their marker. Place names for the rest come from the prototype's generators (`data/original/place-names.json`).
-- **Political layer** (`state.world`), rolled per world seed: 4–6 kingdoms grow outward from seed regions (preferring capital markers) until every region is owned; each region rolls a threat (`data/claude/threats.json`, weighted towards its biome) whose strength is set against the kingdom's garrison (its defence split across its regions) to give a threat level of 0–3 (Held, Stirring, Rising, Rampant). Target: 10–15% of regions Rampant across generated worlds, so a world has 1–2 real hot-spots; it is about 12% (a content test keeps it within 8–18%; see `docs/notes/threat-levels.md`). Each marker gets a settlement type, population, size tier, wealth and services (the prototype's d20 + wealth thresholds); named towns go where their hints fit.
-- **Start:** "Small town, calm region" picks a settlement that is not a city or capital in the calmest mainland region; "Random settlement" picks any mainland settlement (`startingSettlement`, `START_MODES`). Both are seeded by the world (salted, so the pick doesn't follow from the draws that rolled the world), so a world always starts in the same place for the same choice.
+- **Political layer** (`state.world`; Plan 3, superseded by domains in Plan 3b below), rolled per world seed: 4–6 kingdoms grow outward from seed regions (preferring capital markers) until every region is owned; each region rolls a threat (`data/claude/threats.json`, weighted towards its biome) whose strength is set against the kingdom's garrison (its defence split across its regions) to give a threat level of 0–3 (Held, Stirring, Rising, Rampant). Target: 10–15% of regions Rampant across generated worlds, so a world has 1–2 real hot-spots; it is about 12% (a content test keeps it within 8–18%; see `docs/notes/threat-levels.md`). Each marker gets a settlement type, population, size tier, wealth and services (the prototype's d20 + wealth thresholds); named towns go where their hints fit.
+- **Start:** "Small town, calm region" picks a settlement that is not a city or capital in the calmest mainland domain (since Plan 3b); "Random settlement" picks any mainland settlement (`startingSettlement`, `START_MODES`). Both are seeded by the world (salted, so the pick doesn't follow from the draws that rolled the world), so a world always starts in the same place for the same choice.
+
+### World data (Plan 3b)
+
+- **Land spots** (`data/claude/land-spots.json`, kind `landSpots`): a grid of 404 land points about 21 km (100 px) apart. They are sampled off the map image by `scripts/map/sample_land_spots.py`, which needs anaconda Python with Pillow, numpy and scipy. Each spot has a position and an island, and some have their own terrain. Otherwise a spot takes its land's biome.
+- **Territory** (`src/engine/world/territory.ts`) is computed from content and memoised, never stored. Spots link within about 1.6 grid steps on the same island. Each spot belongs to the settlement nearest to it in off-road km (the straight line × 1.2). Two domains are adjacent when their spots touch or a route joins them.
+- **State v4:** `world` is `{ seed, kingdoms, lands, domains, pois, settlements }`. A v3 save is re-rolled from its seed, so names may change. The party, gold and position are kept.
+- **Kingdoms:** 8–12, seated at distinct capital markers. The smallest kingdom that can still grow claims a bordering domain, and a domain in a land it already holds is twice as likely. Each kingdom rolls a defence of 9–22 (`DEFENCE`). The defence is split over its domains with weight `1 / (1 + 0.5 × hops from the seat)` (`SEAT_FALLOFF`), so border domains are thin.
+- **Threat level per domain** is the land's threat strength, plus the threat of its uncleared hostile POIs (undiscovered ones count too), minus the domain's garrison, clamped to 0–3. It is derived, never stored, so clearing a lair takes effect at once.
+  - **Measured over 1,200 worlds:** Held 51%, Stirring 21%, Rising 15%, **Rampant 12.3%** (6–7 of 53 domains per world). It would be 7% without POIs.
+  - **Seats versus borders:** a seat's median level is 0 and a border domain's median is 1.
+  - `src/content/world.test.ts` holds the Rampant share to 10–15%. Details and knobs are in `docs/notes/threat-levels.md`.
+- **Points of interest** (`src/engine/world/pois.ts`): 46–55 per world on seeds 1–5, of which about a quarter are hostile (7–15).
+  - **Placement:** each domain draws `spots / 8` sites (`POI_SPOTS_EACH`), rounded at random, and at most 2. Each site goes on a free spot at least 8 km from its settlement and from other sites.
+  - **Type:** drawn by weight from the 29 types in `data/procedural/poi-types.json` (kind `poiTypes`). A type weighs ×3 where its biomes match the spot's terrain, or its threats name the land's threat. A lair keyed to threats is only drawn where one of those threats holds the land (`lairFits`).
+  - **Names** come from the parts tables in `data/procedural/poi-names.json`, with twelve or more names per type and no repeats while a table lasts.
+- **The 29 types:**
+
+  | Category | Count | What they are |
+  |---|---|---|
+  | Lairs | 10 | One or more for every threat. Each adds +1–2 threat, and a drake roost or giant steading +2. |
+  | Dungeons | 3 | A haunted barrow and a kobold mine (hostile, +1 each) and an old ruin. They play as 3–5 stage chains to a vault. |
+  | Lone experts | 5 | They train a skill for a price (`trainSkill`), sell what they know or heal. The herbwife's spring has water. |
+  | Shrines | 3 | The saint's well has water. |
+  | Landmarks | 3 | |
+  | Wonders | 3 | |
+  | Quest sites | 2 | Neutral placeholders with a clue and a hook for later quests. |
+
+  Each type plays its `site` situations (`data/claude/poi-situations.json`): `site: true` situations are never drawn on the road.
+- **Discovery:** POIs start hidden. There are two ways to find them:
+  - **Clues:** the `discoverPoi` effect reveals the nearest undiscovered sites to the encounter's domain, or across its land, optionally of one category. Seven of Claude's road situations, and several site situations, leave a clue.
+  - **Exploring a domain:** this takes 2 days (`EXPLORE_DAYS`). The better of Survival or Perception rolls against the domain terrain's forage DC + 2. A partial success finds one site after 3 days, a success finds one, and a critical success finds two. A failure finds nothing. A critical failure springs a hostile road situation that fits the place.
+  - **An exhausted domain:** a successful search that finds nothing says "This area seems picked clean". A failed search says nothing, so whether anything is left stays hidden.
+- **Visiting** (`src/engine/world/graph.ts`): a discovered POI is a map node.
+  - **Paths:** a POI has a path to its own settlement, plus one to every other settlement on its island whose off-road km is within 1.25× of the first (`PATH_DETOUR`), so a site can be a waypoint between towns. A path's terrain is the spot's, and its danger is the type's `pathDanger`.
+  - **Journeys:** travel, previews and the map read the graph, so paths use the normal pace, supply and encounter rules. A route's threat is the higher level of its two ends.
+  - **At the site:** Visit (Enter for dungeons and lairs) plays one of the type's site situations. `clearPoi` clears the site, which removes its threat and disables visiting.
+  - **Water and rest:** arriving refills the water only where the type has a spring or a well (`water: true`). Resting at a POI is camp-only, and there is nothing to buy or sell.
+- **Not built yet:** identifying items (it needs accessories), new lairs appearing over time, joining POIs to the middle of existing routes, rumours as a discovery source (Plan 4), and the `wander` smoke policy exploring or visiting sites. The POI icons (game-icons names in `poiTypes`) are not synced into `assets/` yet, so the map draws an inline glyph per category.
 
 ### Persistent world with successive parties
 
@@ -268,6 +306,15 @@ The town map image is a banner and backdrop.
   - Centre: the Altaeus map with its routes, and below it the settlement (services, rest and supplies, roads out with the pace chooser and forecasts) or the journey under way. While an encounter is open it takes the whole column: narrative, compact option cards with odds bars, and the shared Outcomes panel for the hovered or focused option. A backdrop image (a battle map by biome, or the town map) may come later; the town map shows as the settlement's banner.
   - Right: the journal, and below it the developer tools (practice check, Encounter Deck), collapsed by default and remembered per viewer.
   - Bottom: the goods bar by category, a capacity meter, and a visible-wealth indicator.
+  - **Narrow screens (≤ 900px):** the three columns stack into one, and the settlement or site panel moves above the map, so the actions come first.
+- **The map** (Plan 3b):
+  - **Roads** are coloured by danger (Safe, Watchful, Dangerous, Deadly) with a legend under the map. Sea crossings are dashed, and paths to discovered sites are drawn like roads.
+  - **Settlements** are outlined in their kingdom's colour. Discovered points of interest show as a glyph per category (an icon once the game-icons are synced), dimmed once cleared.
+  - **Kingdom overlay:** a "Kingdoms" toggle tints every land spot in its domain's kingdom colour and crowns the seats. The choice is remembered per viewer.
+  - Settlements and sites are buttons. The arrow keys move between them.
+- **The settlement panel** shows the land, domain and kingdom (with its ruling ancestry), and the domain's threat level, adding "+n from lairs" for the hostile sites the party has found. The roads out include paths to discovered sites, with a "site" badge, and a selected path describes the site at its end. **Explore the domain** previews the searcher, skill, DC, % chance, days and the non-critical tiers. The critical tiers, and whether anything is left to find, stay a surprise.
+- **The site panel** (at a point of interest) shows the category and type, the owning domain and kingdom, what the site feeds ("Feeds the orc warband: +2 threat here"), whether it is cleared, and a spring or well if it has one.
+  - **Actions:** Visit, or Enter for dungeons and lairs, which is disabled once the site is cleared. Make camp is the only rest, there is no trade, and the panel also offers Explore and the paths out with their previews.
 - **Style:** the prototype only had the Vite default stylesheet, so the visual style is a fresh pass. Parchment and ink tones suit the Altaeus map.
 - **Dice animation:** flat d20 outlines whose faces flicker, then settle in quick succession, in at most 1.5 s. Every roll draws the DC as a short line beside the dice, with the total marked once they settle. On high-stakes rolls the last die slows and glows while it rolls; once settled, only a natural 20 (gold) or natural 1 (red) stays highlighted. A click skips it, and reduced-motion is respected.
 - **Encounter Deck** (dev panel): every encounter, filterable by source and playable on demand, for comparing which provenance feels most exciting.
