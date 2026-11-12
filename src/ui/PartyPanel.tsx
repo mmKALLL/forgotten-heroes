@@ -3,6 +3,8 @@ import { formatModifier } from '../engine/format'
 import { ABILITIES, SKILLS, SKILL_ABILITY, abilityModifier } from '../engine/rules/abilities'
 import { statModifier } from '../engine/rules/character'
 import { strainOf } from '../engine/rules/strain'
+import type { Action } from '../engine/state'
+import type { Accessory } from '../schema/gear'
 import type { Character, SkillUse } from '../schema/state'
 import type { CamaraderieInfo } from '../engine/town/camaraderie'
 import { useI18n } from './i18n/I18n'
@@ -15,11 +17,20 @@ type Props = {
   day?: number
   /** The party's camaraderie line under the cards (camaraderieInfo); none when absent. */
   camaraderie?: CamaraderieInfo
-  /** Dismisses a hired member; absent while that isn't possible (an encounter is open). */
-  onDismiss?: (characterId: string) => void
+  /** The party's unworn accessories, for each sheet's picker. */
+  gear?: readonly Accessory[]
+  /** Dismiss, wear and take off; absent while that isn't possible (an encounter is open). */
+  onAction?: (a: Action) => void
 }
 
-export function PartyPanel({ party, skillUses = [], day, camaraderie, onDismiss }: Props) {
+export function PartyPanel({
+  party,
+  skillUses = [],
+  day,
+  camaraderie,
+  gear = [],
+  onAction,
+}: Props) {
   const { t } = useI18n()
   return (
     <section className="panel" aria-label={t('party.heading')}>
@@ -28,7 +39,8 @@ export function PartyPanel({ party, skillUses = [], day, camaraderie, onDismiss 
         <CharacterCard
           key={c.id}
           character={c}
-          onDismiss={onDismiss}
+          gear={gear}
+          onAction={onAction}
           usesToday={
             day === undefined
               ? []
@@ -51,11 +63,13 @@ const SKILL_GROUPS = ABILITIES.map((ability) => ({
 function CharacterCard({
   character: c,
   usesToday,
-  onDismiss,
+  gear,
+  onAction,
 }: {
   character: Character
   usesToday: SkillUse[]
-  onDismiss?: (characterId: string) => void
+  gear: readonly Accessory[]
+  onAction?: (a: Action) => void
 }) {
   const { t, stat, name } = useI18n()
   const [expanded, setExpanded] = useState(false)
@@ -169,7 +183,7 @@ function CharacterCard({
           ))}
         </div>
         <p className="muted small">{t('party.legend')}</p>
-        <MemberDetails character={c} onDismiss={onDismiss} />
+        <MemberDetails character={c} gear={gear} onAction={onAction} />
       </div>
       {!expanded && (
         <p className="muted small">

@@ -6,6 +6,7 @@ import { XP_BY_LEVEL } from '../engine/constants'
 import { SKILLS, statLabel } from '../engine/rules/abilities'
 import { brom, lyra } from '../engine/test-fixtures'
 import type { CamaraderieInfo } from '../engine/town/camaraderie'
+import type { Accessory } from '../schema/gear'
 import type { SkillUse } from '../schema/state'
 import { MAX_LEVEL } from '../schema/types'
 import { PartyPanel } from './PartyPanel'
@@ -115,19 +116,44 @@ test('each card shows its level and a bar to the next; the sheet has XP, wage an
 })
 
 test('dismissing a hired member asks first; founders have no Dismiss', async () => {
-  const onDismiss = vi.fn()
-  render(<PartyPanel party={[brom, { ...lyra, wage: 1 }]} onDismiss={onDismiss} />)
+  const onAction = vi.fn()
+  render(<PartyPanel party={[brom, { ...lyra, wage: 1 }]} onAction={onAction} />)
   await userEvent.click(toggle('Brom'))
   expect(card('Brom').queryByRole('button', { name: 'Dismiss' })).toBeNull()
   await userEvent.click(toggle('Lyra'))
   await userEvent.click(card('Lyra').getByRole('button', { name: 'Dismiss' }))
-  expect(onDismiss).not.toHaveBeenCalled()
+  expect(onAction).not.toHaveBeenCalled()
   expect(document.activeElement).toBe(card('Lyra').getByRole('button', { name: 'Keep' }))
   await userEvent.click(card('Lyra').getByRole('button', { name: 'Keep' }))
   expect(card('Lyra').queryByRole('button', { name: 'Keep' })).toBeNull()
   await userEvent.click(card('Lyra').getByRole('button', { name: 'Dismiss' }))
   await userEvent.click(card('Lyra').getByRole('button', { name: 'Dismiss' }))
-  expect(onDismiss).toHaveBeenCalledWith('lyra')
+  expect(onAction).toHaveBeenCalledWith({ type: 'dismissMember', characterId: 'lyra' })
+})
+
+test('the accessory slot: the worn one with its hooks, Take off, and wearing from the gear', async () => {
+  const ring: Accessory = {
+    id: 'ring',
+    name: 'Fox-eyed Ring',
+    tier: 1,
+    hooks: [{ hook: 'skill', skill: 'perception', amount: 1 }],
+    value: 20,
+  }
+  const charm: Accessory = { id: 'charm', name: 'Lucky Charm', tier: 1, hooks: [], value: 10 }
+  const onAction = vi.fn()
+  render(<PartyPanel party={[{ ...brom, accessory: ring }]} gear={[charm]} onAction={onAction} />)
+  await userEvent.click(toggle('Brom'))
+  const b = card('Brom')
+  expect(b.getByText('Fox-eyed Ring (+1 Perception)')).toBeTruthy()
+  await userEvent.click(b.getByRole('button', { name: 'Take off' }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'unequipAccessory', characterId: 'brom' })
+  expect(b.getByRole('combobox', { name: 'Accessory for Brom to wear' })).toBeTruthy()
+  await userEvent.click(b.getByRole('button', { name: 'Wear instead' }))
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'equipAccessory',
+    characterId: 'brom',
+    id: 'charm',
+  })
 })
 
 test('the camaraderie line: tier, value, wages and owed, explained on hover', () => {

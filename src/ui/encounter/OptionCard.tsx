@@ -135,6 +135,8 @@ export function OptionCard({
               {t('option.vsDc', { check: checkLabel ?? check.label, dc: check.dc })}
               {modifier}
               {position}
+              {/* The odds already include the reroll (Plan 5a, a `lucky` accessory). */}
+              {check.lucky && <span title={t('option.luckyHint')}> · {t('option.lucky')}</span>}
             </span>
             <select
               aria-label={t('option.actorFor', { label: option.label })}

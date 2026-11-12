@@ -98,11 +98,8 @@ function Game() {
             skillUses={shown.skillUses}
             day={shown.day}
             camaraderie={camaraderieInfo(shown)}
-            onDismiss={
-              inProgress(state)
-                ? undefined
-                : (characterId) => dispatch({ type: 'dismissMember', characterId })
-            }
+            gear={shown.gear}
+            onAction={inProgress(state) ? undefined : dispatch}
           />
           <ContractsPanel content={content} state={shown} onAction={dispatch} />
           <WorldMap

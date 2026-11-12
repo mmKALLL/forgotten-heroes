@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import { formatGp } from '../engine/format'
+import { describeAccessory } from '../engine/gear/accessories'
+import { describeHook } from '../engine/gear/hooks'
 import { xpProgress } from '../engine/rules/progression'
 import { isAlive, isHired, type CamaraderieInfo } from '../engine/town/camaraderie'
+import type { Action } from '../engine/state'
+import type { Accessory } from '../schema/gear'
 import type { Character } from '../schema/state'
 import { CAMARADERIE_TIERS } from '../schema/types'
 import { DESERT_CHANCE } from '../engine/constants'
@@ -34,16 +38,20 @@ export function XpBar({ character: c }: { character: Character }) {
 }
 
 /**
- * In the expanded sheet: XP, the accessory slot (equipping comes with the accessories, Plan 5a C2)
- * and, for a hired member, the wage and Dismiss with a confirm. Founders draw no wage and stay.
+ * In the expanded sheet: XP, the accessory slot (the worn one, Take off, and a picker of the
+ * party's unworn gear) and, for a hired member, the wage and Dismiss with a confirm. Founders
+ * draw no wage and stay.
  */
 export function MemberDetails({
   character: c,
-  onDismiss,
+  gear,
+  onAction,
 }: {
   character: Character
-  /** Absent while dismissing isn't possible (an encounter is open). */
-  onDismiss?: (characterId: string) => void
+  /** The party's unworn accessories. */
+  gear: readonly Accessory[]
+  /** Absent while nothing can be changed (an encounter is open). */
+  onAction?: (a: Action) => void
 }) {
   const { t } = useI18n()
   const [confirming, setConfirming] = useState(false)
@@ -66,20 +74,17 @@ export function MemberDetails({
           ? t('party.xpCap', { xp: p.xp })
           : t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })}
       </p>
-      <p className="accessory-slot">
-        <span className="muted">{t('party.accessory')}</span>{' '}
-        {c.accessory ? c.accessory.name : <span className="muted">{t('party.accessoryNone')}</span>}
-      </p>
+      <AccessorySlot character={c} gear={gear} onAction={onAction} />
       {hired ? (
         <div className="member-hire">
           <span>{t('party.wage', { gp: formatGp(c.wage) })}</span>
-          {onDismiss &&
+          {onAction &&
             (confirming ? (
               <span className="member-confirm">
                 <span className="tone-bad">
                   {t(alive ? 'party.dismissAsk' : 'party.layToRestAsk', { name: c.name })}
                 </span>{' '}
-                <button onClick={() => onDismiss(c.id)}>
+                <button onClick={() => onAction({ type: 'dismissMember', characterId: c.id })}>
                   {t(alive ? 'party.dismissYes' : 'party.layToRestYes')}
                 </button>{' '}
                 <button ref={keep} onClick={() => setConfirming(false)}>
@@ -94,6 +99,62 @@ export function MemberDetails({
         </div>
       ) : (
         <p className="muted">{t('party.founder')}</p>
+      )}
+    </div>
+  )
+}
+
+/**
+ * The one accessory slot: what is worn (its hooks on hover or tap) with Take off, and a picker of
+ * the party's unworn gear to put on (what was worn goes back to the gear).
+ */
+function AccessorySlot({
+  character: c,
+  gear,
+  onAction,
+}: {
+  character: Character
+  gear: readonly Accessory[]
+  onAction?: (a: Action) => void
+}) {
+  const { t } = useI18n()
+  const [pick, setPick] = useState<string | null>(null)
+  const chosen = gear.find((g) => g.id === pick) ?? gear[0]
+  const worn = c.accessory
+  return (
+    <div className="accessory-slot">
+      <span className="muted">{t('party.accessory')}</span>{' '}
+      {worn ? (
+        <Tip tip={[worn.name, ...worn.hooks.map(describeHook)].join('\n')}>
+          {describeAccessory(worn)}
+        </Tip>
+      ) : (
+        <span className="muted">{t('party.accessoryNone')}</span>
+      )}
+      {onAction && worn && (
+        <button onClick={() => onAction({ type: 'unequipAccessory', characterId: c.id })}>
+          {t('party.unequip')}
+        </button>
+      )}
+      {onAction && chosen && isAlive(c) && (
+        <span className="inline-pick">
+          <select
+            aria-label={t('party.wearPick', { name: c.name })}
+            value={chosen.id}
+            onChange={(e) => setPick(e.target.value)}
+          >
+            {gear.map((g) => (
+              <option key={g.id} value={g.id}>
+                {describeAccessory(g)}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={() => onAction({ type: 'equipAccessory', characterId: c.id, id: chosen.id })}
+          >
+            {t(worn ? 'party.swap' : 'party.wear')}
+          </button>
+        </span>
       )}
     </div>
   )

@@ -366,6 +366,19 @@ test('a situational modifier and Edge show beside the skill and DC', () => {
   expect(screen.getByText('Edge', { selector: '.badge' })).toBeTruthy()
 })
 
+test("a lucky actor's check says so (the odds already include the reroll)", () => {
+  const charm = {
+    id: 'charm',
+    name: 'Charm',
+    tier: 1 as const,
+    hooks: [{ hook: 'lucky' as const }],
+    value: 5,
+  }
+  const state = started('roadside', makeState({ party: [brom, { ...lyra, accessory: charm }] }))
+  render(<Harness initial={state} />)
+  expect(checkLine('Read them')).toBe('Insight vs DC 12 · lucky')
+})
+
 test('a situational modifier with a reason shows the reason', () => {
   const state = started('roadside')
   render(
