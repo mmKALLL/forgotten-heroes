@@ -128,6 +128,14 @@ describe('crisisInfo', () => {
     expect(info.acts[1].where).toBeNull()
   })
 
+  test('the current act is pressing from the journal’s warning on, and while late', () => {
+    const pressing = (day: number) =>
+      crisisInfo(withCrisis({ learned: 10 }, { day }), content)!.acts.map((a) => a.pressing)
+    expect(pressing(100 - CRISIS_WARN_DAYS - 1)).toEqual([false, false, false])
+    expect(pressing(100 - CRISIS_WARN_DAYS)).toEqual([true, false, false])
+    expect(pressing(105)).toEqual([true, false, false])
+  })
+
   test('a won Crisis shows its end once, until Keep playing', () => {
     const won = withCrisis({ learned: 10, thwarted: [50, 150, 250] }, { day: 260 })
     const info = crisisInfo(won, content)!

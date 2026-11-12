@@ -1,7 +1,7 @@
 import { formatDate } from '../engine/calendar'
 import type { CrisisInfo } from '../engine/crisis/status'
 import { dangerInfo } from '../engine/world/danger'
-import { actPressing, currentAct } from './CrisisPanel'
+import { currentAct } from './CrisisPanel'
 import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
 
@@ -30,7 +30,7 @@ export function DayMark({ day, crisis = null }: { day: number; crisis?: CrisisIn
       </Tip>
       {act && crisis && (
         <Tip
-          className={`crisis-mark small${actPressing(act) ? ' tone-bad' : ''}`}
+          className={`crisis-mark small${act.pressing ? ' tone-bad' : ''}`}
           tip={[
             t('crisis.markTip', { numeral: act.numeral, name: crisis.short ?? '', act: act.name }),
             act.poi ? act.where : act.where && t('crisis.somewhere', { land: act.where }),

@@ -182,6 +182,8 @@ export type CrisisActInfo = {
   weakness: boolean
   thwartedDay: number | null
   failed: boolean
+  /** The current act is due within CRISIS_WARN_DAYS (the journal's warning), or already late. */
+  pressing: boolean
 }
 
 /** A Crisis site the party has found, for the map and the site panel. */
@@ -275,6 +277,7 @@ export function crisisInfo(state: GameState, content: Content): CrisisInfo | nul
           weakness: clues >= CRISIS_WEAKNESS_CLUES,
           thwartedDay: crisis.thwarted[i] ?? null,
           failed: status.phase === 'lost' && status.act === i,
+          pressing: current && (late > 0 || due - state.day <= CRISIS_WARN_DAYS),
         }
       })
     : []

@@ -1,15 +1,11 @@
 import type { Content } from '../content/build'
-import { CRISIS_LATE_STEP_DAYS, CRISIS_LEEWAY_DAYS, CRISIS_WARN_DAYS } from '../engine/constants'
+import { CRISIS_LATE_STEP_DAYS, CRISIS_LEEWAY_DAYS } from '../engine/constants'
 import { crisisInfo, type CrisisActInfo, type CrisisInfo } from '../engine/crisis/status'
 import type { GameState } from '../schema/state'
 import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
 
 type T = ReturnType<typeof useI18n>['t']
-
-/** The current act is pressing: due within the journal's warning, or already late. */
-export const actPressing = (act: Pick<CrisisActInfo, 'daysLeft' | 'late'>): boolean =>
-  act.late > 0 || act.daysLeft <= CRISIS_WARN_DAYS
 
 /** The act under way, if any. */
 export const currentAct = (info: CrisisInfo | null): CrisisActInfo | null =>
@@ -111,7 +107,7 @@ function ActRow({ t, act }: { t: T; act: CrisisActInfo }) {
           {act.late > 0 ? (
             <LateLine t={t} act={act} />
           ) : (
-            <div className={actPressing(act) ? 'tone-bad' : undefined}>
+            <div className={act.pressing ? 'tone-bad' : undefined}>
               {act.daysLeft === 0
                 ? t('crisis.dueToday', { due: act.due })
                 : t('crisis.due', { due: act.due, days: act.daysLeft })}

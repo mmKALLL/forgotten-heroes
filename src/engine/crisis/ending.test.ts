@@ -4,7 +4,7 @@ import { SituationSchema } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { step } from '../state'
 import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../test-fixtures'
-import { FALLEN_LINE, partyWiped, runEnding, runRecord, runSummary } from './ending'
+import { FALLEN_LINE, partyWiped, recordCrisis, runEnding, runRecord, runSummary } from './ending'
 
 const content = fixtureContent()
 
@@ -88,6 +88,13 @@ describe('run summaries', () => {
     expect(lost.ending).toBe('lost')
     expect(lost.acts[0].failedDay).not.toBeNull()
     expect(lost.acts[1].failedDay).toBeNull()
+  })
+
+  test('a record tells how its Crisis was decided, even for a party that fell later', () => {
+    expect(recordCrisis({ acts: ['thwarted', 'thwarted', 'thwarted'] })).toBe('won')
+    expect(recordCrisis({ acts: ['thwarted', 'failed', null] })).toBe('lost')
+    expect(recordCrisis({ acts: ['thwarted', null, null] })).toBeNull()
+    expect(recordCrisis({ acts: [] })).toBeNull()
   })
 
   test('runRecord is the same for the same state, keyed by the seed, and valid', () => {

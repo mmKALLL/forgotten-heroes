@@ -98,6 +98,15 @@ export function runSummary(state: GameState, content: Content): RunSummary {
 }
 
 /**
+ * How a recorded run's Crisis was decided, from its acts: a failed act lost it, three thwarted won
+ * it; null while undecided. A party that fell may have decided it first.
+ */
+export function recordCrisis(record: Pick<RunRecord, 'acts'>): 'won' | 'lost' | null {
+  if (record.acts.includes('failed')) return 'lost'
+  return record.acts.length > 0 && record.acts.every((a) => a === 'thwarted') ? 'won' : null
+}
+
+/**
  * The Hall of the Fallen's record of this run (RunRecordSchema). Its id is the game seed, so a run
  * that ends again (lost, then fallen) updates its record instead of adding one. `recorded` is the
  * ISO date the UI stamps it with.
