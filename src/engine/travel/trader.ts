@@ -15,6 +15,11 @@ import { rumourOption } from '../town/rumours'
 import { newsTargets } from '../town/services'
 import { exploreOption } from '../world/explore'
 import { siteStatus } from '../world/sites'
+import { gatherOptions, type GatherOption } from '../world/gather'
+import { recruitOffers } from '../town/recruits'
+import { livingMembers, wagesPerDay } from '../town/camaraderie'
+import { accessorySales } from '../gear/accessories'
+import { statModifier } from '../rules/character'
 import { step, type Action } from '../state'
 import { routeOptions, type RouteOption } from './preview'
 import { poiReach, settlementReach } from './reach'
@@ -41,6 +46,11 @@ export type TraderWhy =
   | 'site'
   | 'explore'
   | 'drop'
+  /** A day's gathering, and selling what it brought home. */
+  | 'gather'
+  | 'hire'
+  /** Putting on or selling an accessory. */
+  | 'gear'
 
 export type TraderOptions = {
   /** Buy cargo from the price book (default true). Off: a contracts-only adventurer. */
@@ -49,6 +59,14 @@ export type TraderOptions = {
   contracts?: boolean
   /** Explore now and then, and visit known sites (default true). */
   explore?: boolean
+  /** Gather local goods when poor and without work (default true). */
+  gather?: boolean
+  /** Hire recruits when the purse can carry their wages (default true)... */
+  hire?: boolean
+  /** ...up to this many living members (default 4). */
+  hireUpTo?: number
+  /** Wear accessories found or bought, and sell the spares (default true). */
+  gear?: boolean
   /** Stops before the next leg once this holds (e.g. a day reached). */
   until?: (state: GameState) => boolean
   /** Picks among equal choices (a road to scout, a site to visit) for leg `leg`. */
@@ -57,6 +75,20 @@ export type TraderOptions = {
   onStep?: (before: GameState, action: Action, after: GameState, why: TraderWhy) => void
 }
 
+/**
+ * Without work, the trader gathers while it has less gold than this (or two days of food for the
+ * party): about what a first courier job's road food needs, so it doesn't set out broke.
+ */
+const GATHER_BELOW = 20
+/** ...and stops once the land has been picked over this much (its yield halved). */
+const GATHER_DEPLETED = 0.5
+/** Food kept from a gathering day for the road, in days for the party; the rest is sold. */
+const GATHER_FOOD_DAYS = 6
+/**
+ * A recruit is hired only with the fee plus this many days of the whole wage bill, and of the
+ * recruit's food, in hand.
+ */
+const HIRE_RESERVE_DAYS = 30
 /** Days the trader rests in a settlement, at most, while anyone needs it. */
 const MAX_REST_DAYS = 6
 /** Gold kept back from cargo for lodging and the next road's food, per member. */
@@ -282,6 +314,10 @@ export function trader(
     trade: true,
     contracts: true,
     explore: true,
+    gather: true,
+    hire: true,
+    hireUpTo: 4,
+    gear: true,
     pick: ((leg, count) => leg % count) as Pick,
     ...options,
   }
@@ -503,10 +539,91 @@ export function trader(
     }
   }
 
+  /** What a gathering day is expected to fetch here: each tier's units at the local sell price. */
+  const gatherValue = (option: GatherOption): number => {
+    const here = state.location!
+    return option.outcomes.reduce((sum, out) => {
+      if (out.units <= 0) return sum
+      const sold = quote(state, content, here, option.good, 'sell', out.units)?.total
+      return sum + out.chance * (sold ?? out.units * goodPrice(content, option.good) * 0.5)
+    }, 0)
+  }
+
+  /**
+   * Poor and without work: a day gathering the local good worth the most here, then selling it
+   * (food is kept for the road). Not once the land is picked over to half its yield. True when
+   * the day was spent.
+   */
+  const gatherWhenPoor = (): boolean => {
+    if (!o.gather || state.contracts.length > 0) return false
+    const ration = quote(state, content, state.location!, 'food', 'buy', 1)?.unitFirst ?? 1
+    const reserve = Math.max(GATHER_BELOW, 2 * livingMembers(state).length * ration)
+    if (state.gold >= reserve) return false
+    const best = gatherOptions(state, content)
+      .filter((x) => x.available && x.depleted < GATHER_DEPLETED)
+      .map((x) => ({ x, value: gatherValue(x) }))
+      .sort((a, b) => b.value - a.value)[0]
+    if (!best || best.value <= 0) return false
+    act({ type: 'gather', rule: best.x.rule }, 'gather')
+    if (state.encounter) {
+      resolveEncounter()
+      return true
+    }
+    const good = best.x.good
+    const keep =
+      good === 'food' ? GATHER_FOOD_DAYS * livingMembers(state).length : reserved(state, good)
+    const spare = (state.goods[good] ?? 0) - keep
+    if (spare > 0 && quote(state, content, state.location!, good, 'sell', spare)) {
+      act({ type: 'sellGoods', good, amount: spare }, 'gather')
+    }
+    return true
+  }
+
+  /**
+   * With the fee and HIRE_RESERVE_DAYS of the whole wage bill and the recruit's food in hand,
+   * hires the best recruit on offer (the highest level, then the lowest wage), up to `hireUpTo`
+   * living members.
+   */
+  const hire = () => {
+    if (!o.hire) return
+    const ration = quote(state, content, state.location!, 'food', 'buy', 1)?.unitFirst ?? 1
+    for (let n = livingMembers(state).length; n < o.hireUpTo; n++) {
+      const bill = wagesPerDay(state)
+      const keep = (wage: number) => HIRE_RESERVE_DAYS * (bill + wage + ration)
+      const offer = recruitOffers(state, content, state.location!)
+        .filter((x) => x.available && state.gold >= x.fee + keep(x.wage))
+        .sort((a, b) => b.level - a.level || a.wage - b.wage)[0]
+      if (!offer) return
+      act({ type: 'hireRecruit', offerId: offer.id }, 'hire')
+    }
+  }
+
+  /**
+   * Puts each carried accessory (the dearest first) on a member who wears none: a skill hook on
+   * the best user of that skill, anything else on the first free member. Spares are sold where a
+   * shop buys them.
+   */
+  const wearGear = () => {
+    if (!o.gear || state.encounter) return
+    for (const a of [...state.gear].sort((x, y) => y.value - x.value)) {
+      const free = livingMembers(state).filter((c) => c.accessory === null)
+      if (free.length === 0) break
+      const skill = a.hooks.flatMap((h) => (h.hook === 'skill' ? [h.skill] : []))[0]
+      const who = skill
+        ? [...free].sort((x, y) => statModifier(y, skill) - statModifier(x, skill))[0]
+        : free[0]
+      act({ type: 'equipAccessory', characterId: who.id, id: a.id }, 'gear')
+    }
+    for (const sale of accessorySales(state, content)) {
+      if (sale.available) act({ type: 'sellAccessory', id: sale.accessory.id }, 'gear')
+    }
+  }
+
   /** One leg's business in a settlement, ending on the road (or resting when there is none). */
   const inTown = (leg: number) => {
     const here = state.location!
     boardSeen[here] = state.day
+    wearGear()
     for (const c of [...state.contracts]) {
       if (completeRefusal(state, content, c) === null) {
         act({ type: 'completeContract', id: c.id, reward: 'gold' }, 'contract')
@@ -566,6 +683,7 @@ export function trader(
         }
       }
     }
+    hire()
     if (o.contracts) {
       for (let taken = 0; taken < MAX_CONTRACTS; taken++) {
         const offer = pickOffer(here)
@@ -575,6 +693,7 @@ export function trader(
       }
       buySupplies()
     }
+    if (gatherWhenPoor()) return
     // A courier's news of a contract's destination, so cargo can ride along.
     const courier = o.trade ? serviceWith(state, content, 'news') : null
     for (const c of state.contracts) {
@@ -706,6 +825,7 @@ export function trader(
       act({ type: 'visitPoi' }, 'site')
       resolveEncounter()
     }
+    wearGear()
     lighten()
     const roads = routeOptions(state, content).filter((r) => r.available)
     if (roads.length === 0) {

@@ -369,8 +369,11 @@ export const ESCORT_HOSTILE = 0.1
 export const PARTY_CAP = 6
 /** A recruit's hiring fee per level (gp), before the service's `fee` multiplier; rounded up. */
 export const RECRUIT_FEE_PER_LEVEL = 10
-/** A recruit's daily wage per (level + 1) (gp), before the service's `wage`; to the nearest ½ gp. */
-export const RECRUIT_WAGE = 0.5
+/**
+ * A recruit's daily wage per (level + 1) (gp), before the service's `wage`; to the nearest ½ gp
+ * (½ gp at level 1, 1 gp at level 3). Halved in I1: a recruit also eats about 1 gp a day.
+ */
+export const RECRUIT_WAGE = 0.25
 /** The share of recruits of the settlement's own ancestry; the rest are any playable one. */
 export const RECRUIT_LOCAL_ANCESTRY = 0.75
 
@@ -444,7 +447,7 @@ export const GATHER_DC_PER_OUTPUT = 1
  * How much the land around a settlement yields before it is picked over, in fresh days' work (a
  * rule's success yield): the gathered units deplete it like a market of this depth.
  */
-export const GATHER_DEPTH_DAYS = 4
+export const GATHER_DEPTH_DAYS = 2
 /** HP the lead loses on a critical failure when no hostile situation fits the place. */
 export const GATHER_INJURY = 3
 
@@ -492,7 +495,10 @@ export const PATH_DETOUR = 1.25
 
 // Progression and XP (rules/progression.ts; encounters/outcomes.ts, effects.ts; town/contracts.ts)
 
-/** Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset). Placeholders until I1. */
+/**
+ * Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset). Checked by the economy
+ * report (Plan 5a I1): about level 2 by day 15, 4 by day 60 and 5 by day 120.
+ */
 export const XP_BY_LEVEL: readonly number[] = [
   0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500,
 ]
