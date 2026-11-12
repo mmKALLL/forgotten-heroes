@@ -1,18 +1,23 @@
 import { SKILLS, type Skill } from '../../schema/types'
 import type { Character, GameState, SkillUse } from '../../schema/state'
+import { strainFadeOf, strainGraceOf } from '../gear/hooks'
 import { SKILL_USE_DAYS, STRAIN_PER_DAY, STRAIN_PER_WEEK, STRAIN_WEEK_DAYS } from '../constants'
 
-/** True when this character's latest use of `skill` (already in `uses`) adds a Strain stack. */
+/**
+ * True when this character's latest use of `skill` (already in `uses`) adds a Strain stack.
+ * `grace` raises the daily threshold (a `strainGrace` hook, gear/hooks.ts).
+ */
 export function strainFrom(
   uses: readonly SkillUse[],
   characterId: string,
   skill: Skill,
-  day: number
+  day: number,
+  grace = 0
 ): boolean {
   const mine = uses.filter((u) => u.characterId === characterId && u.skill === skill)
   const today = mine.filter((u) => u.day === day).length
   const week = mine.filter((u) => u.day > day - STRAIN_WEEK_DAYS && u.day <= day).length
-  return today >= STRAIN_PER_DAY || week >= STRAIN_PER_WEEK
+  return today >= STRAIN_PER_DAY + grace || week >= STRAIN_PER_WEEK
 }
 
 export const strainOf = (character: Pick<Character, 'strain'>, skill: Skill): number =>
@@ -37,16 +42,24 @@ export function fadeStrain(character: Character, keep: readonly Skill[] = []): C
  * The skills this character gained a Strain stack in on `day`: those whose last use that day
  * crossed a threshold.
  */
-export function strainedOn(uses: readonly SkillUse[], characterId: string, day: number): Skill[] {
+export function strainedOn(
+  uses: readonly SkillUse[],
+  characterId: string,
+  day: number,
+  grace = 0
+): Skill[] {
   const used = new Set(
     uses.filter((u) => u.characterId === characterId && u.day === day).map((u) => u.skill)
   )
-  return SKILLS.filter((skill) => used.has(skill) && strainFrom(uses, characterId, skill, day))
+  return SKILLS.filter(
+    (skill) => used.has(skill) && strainFrom(uses, characterId, skill, day, grace)
+  )
 }
 
 /**
- * Day `day` ends: one stack of each strained skill fades, except in skills that gained a stack
- * that day, so a new stack always lasts until the next day's fade.
+ * Day `day` ends: `times` stacks of each strained skill fade, plus the character's `strainFade`
+ * hooks (gear/hooks.ts), except in skills that gained a stack that day, so a new stack always
+ * lasts until the next day's fade.
  */
 export function fadeStrainAfter(
   character: Character,
@@ -55,8 +68,9 @@ export function fadeStrainAfter(
   times = 1
 ): Character {
   let faded = character
-  const keep = strainedOn(uses, character.id, day)
-  for (let i = 0; i < times; i++) faded = fadeStrain(faded, keep)
+  const keep = strainedOn(uses, character.id, day, strainGraceOf(character))
+  const fades = times + strainFadeOf(character)
+  for (let i = 0; i < fades; i++) faded = fadeStrain(faded, keep)
   return faded
 }
 
@@ -74,7 +88,8 @@ export function useSkill(
     ...state.skillUses.filter((u) => u.day > state.day - SKILL_USE_DAYS),
     { day: state.day, characterId, skill },
   ]
-  if (!strainFrom(skillUses, characterId, skill, state.day)) {
+  const grace = strainGraceOf(state.party.find((c) => c.id === characterId) ?? {})
+  if (!strainFrom(skillUses, characterId, skill, state.day, grace)) {
     return { party: state.party, skillUses, strained: 0 }
   }
   const party = state.party.map((c) => (c.id === characterId ? addStrain(c, skill) : c))

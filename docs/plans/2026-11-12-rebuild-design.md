@@ -117,6 +117,10 @@ There are 15 goods in 5 categories. They are tracked as quantities, never as ind
 - **Price book:** the player only knows prices they have observed or heard through rumours, and each entry shows its age. Trading on stale information is part of the game.
 - **Visible wealth:** precious goods and a heavy purse raise the odds of thieves and tolls. Party size deters them.
 - **Character gear:** one weapon, armour and accessory slot per character, each with quality tiers. Separate from trade goods.
+  - **Accessories as built (Plan 5a, `gear/accessories.ts`):** one accessory slot per character; weapons and armour come later. Accessories are weightless, carried unworn in the party's `gear`, and saved as self-contained snapshots (name, tier, hooks, value), so editing the tables never breaks a save.
+  - **Rolled from affix tables** (`data/procedural/accessories.json`, kind `accessoryParts`): a base by weight (ring, amulet, cloak, boots, charm, brooch, belt, gloves), then at tier 1 one affix (a prefix or a suffix: "Fox-eyed Ring", "Ring of the Long Road"), at tier 2 a tier-2 affix and an affix of the other part with another hook kind ("Tireless Ring of Warding"). An affix may be limited to some bases. Its value is the parts' sum: about 30–80 gp at tier 1, 120–250 gp at tier 2. Only tiers 1–2 ("low-end") exist; there is no identification step.
+  - **Found and bought:** the `accessory` effect loots one (six lair and dungeon clearings; the drake's hoard gives tier 2). Magic Items offers 2–4 a week up to tier 2 and the finesmith 1–2 of tier 1, derived from (world seed, settlement, week, service) like the notice board; both buy the party's back at half value (`ACCESSORY_RESALE`).
+  - **Wearing:** equipping swaps with what was worn; nothing changes mid-encounter. A `maxHp` hook raises max HP and HP on equip and takes them back on unequip, never dropping HP below 1 for it.
 
 ### Goods and markets as built (Plan 4)
 
@@ -414,6 +418,7 @@ The town map image is a banner and backdrop.
   - **A good word** is the alternative reward on any contract: instead of the gold, 3 points with every settlement of the patron's kingdom, plus the patron's own points.
 - **Where encounter reputation lands (Plan 4):** a `reputation` effect or `standing` requirement refers to the encounter's settlement: the domain of the site or settlement it happens in; on a land road, the domain of the nearer end of the road; at sea, the port the party sailed from.
 - **Rule hooks:** one declarative mechanism, such as `{ "on": "sellGoods", "category": "precious", "modify": {...} }`. It powers both accessory effects and per-party modifiers, which are composable, random, and allowed to bend the rules.
+- **Rule hooks as built (Plan 5a, `gear/hooks.ts`, `RuleHookSchema`):** ten kinds, each a small object the engine reads where the rule is applied (accessories carry them now; per-party modifiers will reuse them). For the wearer: `skill` (+1–2 to that skill's checks, so it shows in every preview), `activity` (+1–3 when leading foraging, gathering, exploring, rumours or stowing away; it also counts when choosing the lead), `endurance` (+ to CON checks against hunger, thirst and forced marches), `carry` (+kg), `maxHp`, `strainFade` (one more Strain stack fades each day), `strainGrace` (the daily Strain threshold is one use higher) and `lucky` (once a day a kept natural 1 on the wearer's encounter check is rerolled and stands; the option preview's odds include the reroll while it is unspent, enumerated exactly). For the party, worn by any living member: `sellBonus` (selling that category pays the share more before whole-gold rounding, stacking, but never above the middle price, so buying and selling back never gains) and `ward` (the road's hostile share is lowered by the best ward; wards don't stack; the road preview's breakdown carries it as the `ward` part).
 
 ## 9. UI
 
@@ -484,6 +489,11 @@ The town map image is a banner and backdrop.
 - **No XP** for foraging, gathering, rumours themselves, stowing away or Inspiration, so travel chores aren't grind.
 
 **Gathering materials (Plan 5a):** spend days in a domain gathering a local good (timber, stone, food, fuel, healing herbs) with a skill check. It is profitable at first, but selling it quickly raises local supply through the market's bulk pressure. It gives a broke party a fallback income.
+- **As built (`world/gather.ts`, `data/claude/gathering.json`):** in a settlement (not on the road, at a site or at sea), each gather rule whose lands include the domain's offers a one-day action: timber (forest, jungle; Athletics), stone (hills, mountains; Athletics), fuel (firewood in forest and plains, peat in marsh, scrub in desert), food (game on plains, forest and hills; fish and forage in marsh and jungle; Survival) and healing herbs (forest, marsh, jungle, hills, mountains; Medicine, the hardest and most valuable).
+  - The best-suited member leads (Strain and `gather` hooks count); the roll counts toward Strain and a natural 20 grants Inspiration. The DC drops by 1 per output level where the domain makes the good, so gathering is easiest where the good sells cheapest.
+  - The whole able party works: a tier's units are the rule's yield for two × workers ÷ 2, lowered by how picked over the land is, rounded, and capped at what the party can carry without being overloaded (the rest is left behind). The preview shows the lead, skill, DC, every tier's d20 faces, chance and units, and "picked over".
+  - **Depletion:** `gathered` records the units taken per domain and good, recovering like market pressure (half-life `RECOVERY_HALF_LIFE_DAYS`); the land is picked over as a market of `GATHER_DEPTH_DAYS` fresh days' work deep. Selling still faces the market's bulk pressure, and whole-gold prices floor at 1 gp, which is why depletion exists.
+  - The day passes as a day in town on the party's own food (water is free). A critical failure draws a hostile situation that fits the place, or else hurts the lead (`GATHER_INJURY`). Gathering gives no XP.
 
 **Plan order:**
 - **Plan 5a:** progression (XP and levels, recruiting, gear), gathering and the danger ramp.

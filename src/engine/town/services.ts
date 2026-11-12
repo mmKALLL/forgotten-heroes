@@ -13,6 +13,7 @@ import { serviceWith } from './animals'
 import { rumourOption, rumourRefusal } from './rumours'
 import { noticeBoard } from './contracts'
 import { recruitOffers } from './recruits'
+import { accessoryOffers } from '../gear/accessories'
 import {
   BLESSING_PRICE,
   COURIER_KM_PER_DAY,
@@ -190,6 +191,16 @@ function actionView(
           : offers.some((o) => o.available)
             ? null
             : (offers[0].reason ?? 'no one you can hire')
+      )
+    }
+    case 'accessories': {
+      // Bought one by one (buyAccessory), listed by accessoryOffers; sold back from the gear.
+      const offers = accessoryOffers(state, content, state.location!)
+      return view(
+        null,
+        offers.some((o) => o.service === service) || state.gear.length > 0
+          ? null
+          : 'nothing for sale this week'
       )
     }
     default:

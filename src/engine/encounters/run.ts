@@ -18,6 +18,7 @@ import { checkLabel, statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
 import { useSkill } from '../rules/strain'
+import { hasLuck, spendLuck } from '../gear/hooks'
 import { encounterSettlementName, unmetStanding } from '../town/reputation'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
@@ -451,12 +452,17 @@ export function chooseOption(
   const dc = normalizeDc(Number(option.check.dc))
   const mode = POSITION_MODE[encounter.position]
   const modifier = actor.modifier + encounter.nextCheckModifier
-  const [roll, rng] = rollCheck(state.rng, modifier, dc, mode)
+  // A `lucky` hook rerolls a natural 1 once a day (gear/hooks.ts); the preview's odds include it.
+  const lucky = hasLuck(state, actor.characterId)
+  const [roll, rng, rerolled] = rollCheck(state.rng, modifier, dc, mode, lucky)
   const record: RollRecord = { ...roll, stat: skill, ability, actorId: actor.characterId }
   const inspired = roll.tier === 'critSuccess' && !combat
-  const highStakes = isHighStakes(option, tierOdds(modifier, dc, mode))
+  const highStakes = isHighStakes(option, tierOdds(modifier, dc, mode, lucky))
   const name = nameOf(state, actor.characterId) ?? '?'
+  const charm = state.party.find((c) => c.id === actor.characterId)?.accessory?.name ?? 'charm'
+  const luckText = rerolled ? `A natural 1, but ${name}'s ${charm} turns the luck. ` : ''
   const rollText =
+    luckText +
     `${name} rolls ${checkLabel(skill, ability)}: ${roll.kept} ${formatModifier(roll.modifier)} = ` +
     `${roll.total} vs DC ${dc}. ${TIER_LABELS[roll.tier]}.` +
     (inspired ? ' Inspiration gained!' : '')
@@ -464,7 +470,7 @@ export function chooseOption(
   const { party, skillUses, strained } = useSkill(state, actor.characterId, skill)
   let rolled = appendLog(
     {
-      ...spendBoon(state, option),
+      ...spendBoon(rerolled ? spendLuck(state, actor.characterId) : state, option),
       rng,
       party,
       lastRoll: record,

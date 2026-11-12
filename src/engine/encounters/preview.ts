@@ -4,6 +4,7 @@ import { previewCheck, type CheckPreview } from '../preview'
 import { checkLabel } from '../rules/abilities'
 import { canAct, rankActors } from '../rules/character'
 import { strainOf } from '../rules/strain'
+import { hasLuck } from '../gear/hooks'
 import {
   TIERS,
   successChance,
@@ -60,6 +61,11 @@ export type OptionCheckPreview = CheckPreview & {
   highStakes: boolean
   /** The XP each living member gains on a success (the success outcome's `xp`). */
   xp: number
+  /**
+   * The actor's `lucky` hook is unspent today: a natural 1 will be rerolled once, and `odds`,
+   * `successChance` and `highStakes` include the reroll.
+   */
+  lucky: boolean
   /** The d20 faces for each tier, with the effective modifier (actor's plus situational). */
   faces: Record<Tier, FaceRange | null>
   /** Everyone able to act, best first, for the actor picker. `strain` is their stacks for this skill. */
@@ -206,7 +212,8 @@ export function encounterOptions(
     const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
     // The same effective modifier `chooseOption` rolls with.
     const effective = preview.modifier + situationalModifier
-    const odds = tierOdds(effective, preview.dc, mode)
+    const lucky = hasLuck(state, preview.actorId)
+    const odds = tierOdds(effective, preview.dc, mode, lucky)
     const actors = rankActors(state.party, skill, ability).map((r) => ({
       id: r.characterId,
       name: nameOf(r.characterId),
@@ -234,6 +241,7 @@ export function encounterOptions(
       mode,
       situationalModifier,
       situationalReason: encounter.nextCheckReason,
+      lucky,
       successChance: successChance(odds),
       highStakes: isHighStakes(option, odds),
       xp: success.xp,

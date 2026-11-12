@@ -18,6 +18,7 @@ import { siteStatus } from '../world/sites'
 import { gainXp, xpLine } from '../rules/progression'
 import { XP_CLEAR, XP_DISCOVER } from '../constants'
 import { shiftCamaraderie } from '../town/camaraderie'
+import { describeAccessory, lootAccessory } from '../gear/accessories'
 
 export { MAX_EXHAUSTION }
 
@@ -239,14 +240,17 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     case 'xp':
       // Silent: the outcome's chips already say "+N XP" (run.ts resolve).
       return gainXp(state, effect.amount)
-    // Plan 5a: the schema exists so content can use them; each track wires its own case.
     case 'camaraderie': {
       const { value, line } = shiftCamaraderie(state.camaraderie, effect.amount)
       const next = { ...state, camaraderie: value }
       return line ? note(next, line.text, line.tone) : next
     }
-    case 'accessory': // C2: rollAccessory into gear
-      return state
+    case 'accessory': {
+      // Loot: one rolled into the party's gear (gear/accessories.ts). Without content, nothing.
+      const looted = ctx.content ? lootAccessory(state, ctx.content, effect.tier) : null
+      if (!looted) return state
+      return note(looted.state, `Found: ${describeAccessory(looted.accessory)}.`, 'good')
+    }
   }
 }
 

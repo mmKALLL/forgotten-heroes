@@ -11,7 +11,7 @@ import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { statLabel } from '../rules/abilities'
-import { canAct, chooseActor } from '../rules/character'
+import { canAct, chooseLead } from '../rules/character'
 import { TIERS, TIER_LABELS, rollCheck, tierOdds, type Tier } from '../rules/checks'
 import { useSkill } from '../rules/strain'
 import { forageDay } from '../travel/forage'
@@ -100,7 +100,7 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
   const terrain = domain ? domainTerrain(content, domain) : null
   if (!terrain || terrain === 'sea') return null
   const [best] = EXPLORE_SKILLS.flatMap((skill) => {
-    const actor = chooseActor(state.party, skill)
+    const actor = chooseLead(state.party, skill, 'explore')
     return actor ? [{ skill, actor }] : []
   }).sort((a, b) => b.actor.modifier - a.actor.modifier)
   if (!best) return null
@@ -191,7 +191,16 @@ export function explore(state: GameState, content: Content): GameState {
 }
 
 /** A critical failure: a hostile road situation that fits the place, if any, finds the party. */
-function ambush(state: GameState, content: Content): GameState {
+const ambush = (state: GameState, content: Content): GameState =>
+  drawAmbush(state, content) ??
+  appendLog(state, 'The search turns up nothing but sore feet.', 'bad')
+
+/**
+ * Trouble finds a party working the land where it is (a search or a day's gathering gone badly):
+ * a hostile road situation that fits the place starts, picked by weight. Null when none fits or
+ * no one can act.
+ */
+export function drawAmbush(state: GameState, content: Content): GameState | null {
   const place = placeHere(state, content)
   const hostile = place
     ? allSituations(content).filter(
@@ -203,9 +212,7 @@ function ambush(state: GameState, content: Content): GameState {
           fitsPlace(s, place)
       )
     : []
-  if (!place || hostile.length === 0 || !state.party.some(canAct)) {
-    return appendLog(state, 'The search turns up nothing but sore feet.', 'bad')
-  }
+  if (!place || hostile.length === 0 || !state.party.some(canAct)) return null
   const [picked, rng] = withRng(state.rng, (d) => d.weighted(hostile, (s) => s.weight).id)
   return startEncounter({ ...state, rng }, content, picked, place)
 }

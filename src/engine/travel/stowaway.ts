@@ -8,7 +8,7 @@ import { fitsPlace, type Place } from '../encounters/run'
 import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
-import { chooseActor } from '../rules/character'
+import { chooseActor, chooseLead } from '../rules/character'
 import { TIER_LABELS, rollCheck, tierOdds } from '../rules/checks'
 import { fadeStrainAfter, useSkill } from '../rules/strain'
 import { fareFor, passengers } from './routes'
@@ -84,7 +84,7 @@ export function stowawayCheck(
   route: Pick<Route, 'km' | 'terrain'>
 ): StowawayCheck | null {
   if (stowawayRefusal(state, route) !== null) return null
-  const actor = chooseActor(state.party, STOWAWAY_SKILL)!
+  const actor = chooseLead(state.party, STOWAWAY_SKILL, 'stowaway')!
   return {
     actorId: actor.characterId,
     skill: STOWAWAY_SKILL,
@@ -129,7 +129,7 @@ export function stowAway(
   content: Content,
   place: Place | null
 ): { state: GameState; outcome: StowawayOutcome; brawl: string | null } {
-  const actor = chooseActor(state.party, STOWAWAY_SKILL)!
+  const actor = chooseLead(state.party, STOWAWAY_SKILL, 'stowaway')!
   const name = state.party.find((c) => c.id === actor.characterId)?.name ?? '?'
   const [roll, rng] = rollCheck(state.rng, actor.modifier, STOWAWAY_DC)
   const { party, skillUses, strained } = useSkill(state, actor.characterId, STOWAWAY_SKILL)

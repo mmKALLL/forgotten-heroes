@@ -3,6 +3,7 @@ import type { AnimalDef } from '../../schema/economy'
 import type { Character, GameState, Goods, TravelState } from '../../schema/state'
 import { canAct } from '../rules/character'
 import { goodsWeight } from './goods'
+import { carryBonus } from '../gear/hooks'
 import {
   CARRY_BASE_KG,
   CARRY_EXHAUSTED_AT,
@@ -23,12 +24,15 @@ const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(mi
 
 /**
  * What one member carries: CARRY_BASE_KG × (1 + CARRY_PER_STR × (STR − 10)), within CARRY_MIN
- * and CARRY_MAX; halved from CARRY_EXHAUSTED_AT levels of exhaustion.
+ * and CARRY_MAX; halved from CARRY_EXHAUSTED_AT levels of exhaustion. A worn `carry` hook adds
+ * its kg on top (gear/hooks.ts).
  */
-export function memberCapacity(c: Pick<Character, 'abilities' | 'exhaustion'>): number {
+export function memberCapacity(
+  c: Pick<Character, 'abilities' | 'exhaustion'> & Partial<Pick<Character, 'accessory'>>
+): number {
   const factor = clamp(1 + CARRY_PER_STR * (c.abilities.str - 10), CARRY_MIN, CARRY_MAX)
   const tired = c.exhaustion >= CARRY_EXHAUSTED_AT ? CARRY_EXHAUSTED_SHARE : 1
-  return CARRY_BASE_KG * factor * tired
+  return CARRY_BASE_KG * factor * tired + carryBonus(c)
 }
 
 export const animalDef = (content: Content, id: string): AnimalDef | null =>

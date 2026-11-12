@@ -2,7 +2,7 @@
   "$schema": "../_schema/serviceRoles.schema.json",
   "kind": "serviceRoles",
   "source": "claude",
-  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
+  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Plan 5a: Magic Items sells 2–4 accessories a week up to tier 2 and the finesmith 1–2 of tier 1 (`accessories`); both buy the party's back at half their value. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
   "entries": [
     {
       "id": "inn-tavern",
@@ -59,7 +59,8 @@
       "function": "trade",
       "trades": ["luxuries"],
       "buysOnly": ["gems", "metal"],
-      "actions": ["market"],
+      "actions": ["market", "accessories"],
+      "accessories": { "offers": [1, 2], "maxTier": 1 },
       "specialty": "Rings, brooches and fine work; buys stones and bright metal."
     },
     {
@@ -142,7 +143,8 @@
       "function": "temple",
       "trades": ["arcana", "relics"],
       "buysOnly": ["gems"],
-      "actions": ["market"],
+      "actions": ["market", "accessories"],
+      "accessories": { "offers": [2, 4], "maxTier": 2 },
       "specialty": "Curios, charms and old wonders, at a price."
     },
     {

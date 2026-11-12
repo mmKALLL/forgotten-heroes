@@ -27,6 +27,8 @@ import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
 import { applyLevelUps } from './rules/progression'
 import { mournTheDead } from './town/camaraderie'
+import { stepAccessory, type AccessoryAction } from './gear/accessories'
+import { gather } from './world/gather'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
@@ -57,6 +59,10 @@ export type Action =
   | { type: 'autoRest' }
   /** Hire a recruit offered here, or dismiss a hired member (town/recruits.ts). */
   | RecruitAction
+  /** Buy, sell, wear or take off an accessory (gear/accessories.ts). */
+  | AccessoryAction
+  /** Spend a day gathering a local good with this rule (world/gather.ts gatherOptions). */
+  | { type: 'gather'; rule: string }
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -205,9 +211,13 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'hireRecruit':
     case 'dismissMember':
       return stepRecruit(state, action, content)
-    case 'hireRecruit':
-    case 'dismissMember':
-      return stepRecruit(state, action, content)
+    case 'buyAccessory':
+    case 'sellAccessory':
+    case 'equipAccessory':
+    case 'unequipAccessory':
+      return stepAccessory(state, action, content)
+    case 'gather':
+      return gather(state, content, action.rule)
     default:
       return stepEncounter(state, action, content)
   }
