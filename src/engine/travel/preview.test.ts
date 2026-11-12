@@ -2,7 +2,14 @@ import { describe, expect, test } from 'vitest'
 import { newGame, step } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { CAUTIOUS_HOSTILE_AVOIDANCE } from './pace'
-import { SEA_PACE_NOTE, journeyInfo, placeInfo, routeOptions, suppliesInfo } from './preview'
+import {
+  SEA_PACE_NOTE,
+  journeyInfo,
+  placeInfo,
+  roadReasonText,
+  routeOptions,
+  suppliesInfo,
+} from './preview'
 import { tierOdds } from '../rules/checks'
 import type { GameState } from '../../schema/state'
 import { FORAGE_DC, WATERSKIN_WATER } from './tuning'
@@ -60,8 +67,9 @@ describe('routeOptions', () => {
       fare: 12,
       encounters: [0, 0],
       available: false,
-      reason: 'Passage costs 12 gp.',
+      reason: { code: 'fare', params: { gold: 12 } },
     })
+    expect(roadReasonText(options[0].reason!)).toBe('Passage costs 12 gp.')
     expect(options[2]).toMatchObject({
       to: 'greenvale-2',
       days: 5,
@@ -131,6 +139,20 @@ describe('routeOptions', () => {
     const [sea] = routeOptions(makeState({ location: 'ashmoor-1' }), content)
     expect(sea.paceNote).toBe(SEA_PACE_NOTE)
     expect(sea.paces).toMatchObject([{ pace: 'steady', coverTracks: false, days: 3 }])
+  })
+
+  test('says why a road can’t be taken: an open encounter, no one fit, or the fare', () => {
+    const busy = step(
+      makeState({ location: 'greenvale-1' }),
+      { type: 'startEncounter', situationId: 'cliff' },
+      content
+    )
+    const [first] = routeOptions(busy, content)
+    expect(first.reason).toEqual({ code: 'busy' })
+    expect(roadReasonText(first.reason!)).toBe('Finish the current encounter first.')
+    const down = makeState({ location: 'greenvale-1', party: [{ ...brom, hp: 0 }] })
+    expect(routeOptions(down, content)[0].reason).toEqual({ code: 'unfit' })
+    expect(roadReasonText({ code: 'unfit' })).toBe('No one is fit to travel.')
   })
 
   test('there are none while on the road', () => {

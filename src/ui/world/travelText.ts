@@ -1,4 +1,4 @@
-import type { PaceOption } from '../../engine/travel/preview'
+import type { PaceOption, RoadReason } from '../../engine/travel/preview'
 import type { TravelWarning } from '../../engine/travel/warnings'
 import type { Biome, Pace } from '../../schema/constants'
 import type { MessageKey } from '../i18n/en'
@@ -60,5 +60,17 @@ export function warningMessage(t: T, w: TravelWarning): string {
         name: w.params.name,
         pct: Math.round(w.params.chance * 100),
       })
+  }
+}
+
+/** Why a road can't be taken, in the UI language (the engine's roadReasonText is the English). */
+export function roadReasonMessage(t: T, r: RoadReason): string {
+  switch (r.code) {
+    case 'busy':
+      return t('roadReason.busy')
+    case 'unfit':
+      return t('roadReason.unfit')
+    case 'fare':
+      return t('roadReason.fare', { gp: r.params.gold })
   }
 }

@@ -141,6 +141,22 @@ function paceOptions(
   })
 }
 
+/** Why a road can't be taken now, as a code with params (roadReasonText for English). */
+export type RoadReason =
+  { code: 'busy' } | { code: 'unfit' } | { code: 'fare'; params: { gold: number } }
+
+/** The English text of a road reason, until every caller localises the codes. */
+export function roadReasonText(r: RoadReason): string {
+  switch (r.code) {
+    case 'busy':
+      return 'Finish the current encounter first.'
+    case 'unfit':
+      return 'No one is fit to travel.'
+    case 'fare':
+      return `Passage costs ${r.params.gold} gp.`
+  }
+}
+
 export type RouteOption = {
   routeId: string
   to: string
@@ -167,7 +183,7 @@ export type RouteOption = {
   paceNote: string | null
   available: boolean
   /** Why it can't be taken now, or null. */
-  reason: string | null
+  reason: RoadReason | null
 }
 
 /**
@@ -185,12 +201,12 @@ export function routeOptions(state: GameState, content: Content, forage = true):
     const threatLevel = routeThreat(state, content, route)
     const fare = fareFor(route, state.party.length)
     const meets = canMeetEncounters(content, route)
-    const reason = busy
-      ? 'Finish the current encounter first.'
+    const reason: RoadReason | null = busy
+      ? { code: 'busy' }
       : !fit
-        ? 'No one is fit to travel.'
+        ? { code: 'unfit' }
         : state.gold < fare
-          ? `Passage costs ${fare} gp.`
+          ? { code: 'fare', params: { gold: fare } }
           : null
     return {
       routeId: route.id,

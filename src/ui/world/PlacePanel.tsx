@@ -22,6 +22,7 @@ import {
   daysText,
   paceChoiceOf,
   paceFields,
+  roadReasonMessage,
   threatText,
   warningMessage,
   type PaceChoice,
@@ -327,7 +328,7 @@ function RouteInfo({
           />
         </div>
       )}
-      {road.reason && <p className="tone-bad small">{road.reason}</p>}
+      {road.reason && <p className="tone-bad small">{roadReasonMessage(t, road.reason)}</p>}
       <div className="actions">
         <button className="primary" disabled={!road.available} onClick={() => onTravel(false)}>
           {t('route.travel')}
