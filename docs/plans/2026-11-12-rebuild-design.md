@@ -345,6 +345,26 @@ The town map image is a banner and backdrop.
 - A seeded replay produces identical state.
 - Simulation smoke test: about 1,000 automated journeys with a random-choice policy. It must not crash, and it reports death rate, profit distribution, and options that are best almost universally. These reports guide balancing; they are not pass/fail gates.
 
+## 10b. Campaign arc, pressure and progression (Plans 5a and 5b)
+
+**Starting point:** the party starts poor (`STARTING_GOLD` 10): a pair of level-1 heroes who have just left their old lives.
+
+**Reasons to hurry:**
+- **Rising danger:** a world danger level rises about 10% every 50 days. It is independent of any scaling based on party level or wealth. Until combat exists it raises encounter DCs and damage; later it raises creature CR.
+- **The Crisis:** a villain's three-act plot, with roughly one act due every 100 days.
+  - Rumours and clues lead the party to a specific location where they learn the plan.
+  - Each act has a site or deed to thwart before its deadline. There is moderate leeway, with penalties for dawdling.
+  - Stopping all three acts is the campaign's win.
+  - Failing the Crisis shows a game-over screen, but the player may keep playing to enjoy the current party. No world consequences of the plot are needed for now.
+
+**Reasons to grow (Plan 5a):** XP and levels for stats; recruiting, with the party growing from 2 toward 6 and camaraderie getting harder past 7; and low-end magical gear (accessories with rule hooks). Wealth funds a bigger, better-equipped party.
+
+**Gathering materials (Plan 5a):** spend days in a domain gathering a local good (timber, stone, food, fuel, healing herbs) with a skill check. It is profitable at first, but selling it quickly raises local supply through the market's bulk pressure. It gives a broke party a fallback income.
+
+**Plan order:**
+- **Plan 5a:** progression (XP and levels, recruiting, gear), gathering and the danger ramp.
+- **Plan 5b:** the Crisis arc, run end and game over (with "keep playing"), and later the legacy for the next party.
+
 ## 11. Scope
 
 **Slice 1 (first playable):**
