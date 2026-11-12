@@ -19,6 +19,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - `pnpm format`: format the codebase with Prettier (`pnpm format:check` only checks). `docs/` and generated files are ignored (see `.prettierignore`)
 - `pnpm schemas`: regenerate `data/_schema/` after changing `src/schema/` (a test fails if stale)
 - `pnpm sync-assets`: copy the assets listed in `assets.manifest.txt` from `~/dnd5e`
+- `ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts`: the economy simulation report (seeds 1–30, 60 days, four policies); see `docs/notes/economy-report.md`. Without the variable only its guard tests run (they are part of `pnpm test`)
 
 ## Architecture rules
 
@@ -46,6 +47,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - **Skills** live in `data/original/skills.json` (default abilities are editable there; new skill ids must also be added to `src/schema/types.ts`).
 - **Encounters** live in `situations.json` files in any source, plus `archetypes`, `situationTemplates`, `partsTables` and `creatures`. Site situations (`site: true`, played only at a point of interest) live in `poi-situations.json`.
 - **World geography** is `regions`, `settlements` and `routes` (`data/claude/`), plus `landSpots` (`data/claude/land-spots.json`, the land points territory and POIs are placed on) and `poiTypes` (`data/procedural/poi-types.json`, the weighted table of points of interest). `pnpm test` checks every situation for playability and the quality rules. The Encounter Deck (developer tools, under the journal) plays any situation and shows a ⚠ count for broken ones.
+- **Economy** data lives in `data/claude/`: `goods` (`goods.json`: the 15 goods' weight in kg, base price, spoilage, market depth), `marketRules` (`market-rules.json`: supply and demand by settlement type, land, coast, size, wealth, threat and nearby sites), `serviceRoles` (`service-roles.json`: what each service of `data/original/services.json` trades and offers; one per service), `animals` (`animals.json`), `personRoles` (`person-roles.json`: notable people) and `contracts` (`contracts.json`: notice-board templates). `pnpm test` checks them (`economyIssues`). Balance numbers are in `src/engine/constants.ts`; rerun the economy report after changing either.
 - **World** data lives in `data/claude/` (`regions` (the lands), `settlements`, `routes`, `threats`, and `landSpots` in `land-spots.json`), `data/original/towns.json` (generated: run `pnpm tsx scripts/port/port-town-maps.ts`, don't hand-edit) and `data/original/place-names.json`. `pnpm test` checks the route graph, the land spots and the POI types (`worldIssues`).
   - `scripts/map/*.py` read the map image to propose markers and routes, and `scripts/map/sample_land_spots.py` samples the land-spot grid. Run them with `~/anaconda3/bin/python3` (Pillow, numpy, scipy). Their output is hand-checked.
   - Domain territory is computed from the land spots, never stored.

@@ -147,7 +147,7 @@ These traps would catch a player too, so they are worth knowing:
 
 ## Reference: a 10 gp start
 
-`STARTING_GOLD` stays 50. The designer will set it.
+`STARTING_GOLD` was 50 during this tuning; the designer has since set it to 10 (see "After merging C4" below).
 
 With the final numbers and a 10 gp start, the trader:
 - earns a median +4.4 gp/day by day 30 (much like a 50 gp start; only the cushion is smaller);
@@ -161,3 +161,23 @@ Gold in hand (P10 / median / P90):
 | Gold | 0 / 9 / 33 | 3 / 41 / 70 | 2 / 32 / 101 | 14 / 57 / 151 | 0 / 92 / 167 | 7 / 125 / 224 |
 
 The first job decides the run: parties that land a courier job in the first days are comfortable by day 10, and the P10 line stays near zero for the whole month. A 10 gp start is tight but survivable for about 9 parties in 10. Before this tuning, a 10 gp start went broke in 57% of runs by day 30.
+
+## After merging C4 and the designer's changes
+
+Rerun once on `rebuild` after merging Plan 4 C4 (the Stealthy ½ and Cautious ¾ paces) and the designer's `STARTING_GOLD` 10 and sea speed 40 km a day. The policy tables now start every party with the simulation's own 50 gp (`SIM_GOLD`), so they compare with the numbers above; the reference section uses the game's `STARTING_GOLD`.
+
+| | I1 (above) | After the merge |
+|---|---|---|
+| Trader gp/day by day 30 (P10 / median / P90) | 0.0 / 3.3 / 8.8 | 0.5 / 5.2 / 8.5 |
+| Trader gp/day by day 60 (P10 / median / P90) | 1.8 / 3.9 / 7.2 | 0.7 / 4.2 / 8.3 |
+| Trader broke by day 30 / 60 | 7% / 7% | 3% / 7% |
+| Trader deaths (of 60 members) | 8 | 4 |
+| Trade-only broke by 60 | 67% | 57% |
+| Wander broke by 60 | 27% | 17% |
+| Trader income per run: contracts / trade profit / loot gold | 332 / 24 / 59 | 357 / 23 / 55 |
+| **10 gp start:** gp/day by 30 (median) | 4.4 | 3.1 |
+| **10 gp start:** broke by day 30 / 60 | 10% / 10% | 23% / 27% |
+| **10 gp start:** deaths (of 60 members) | 10 | 12 |
+
+The 50 gp trader stays inside the targets. **The game's 10 gp start is now tighter:** about a quarter of runs go broke within the first month (gold in hand on day 5, P10 / median / P90: 2 / 10 / 33; day 30: 0 / 96 / 227). The safety net and "gather materials" questions above matter more with this start; Plan 5a's gathering is meant to answer them.
+

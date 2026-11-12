@@ -64,12 +64,15 @@ The old Svelte code is removed on this branch. The useful types and data are por
   - Advantage must be earned through earlier risk.
   - **Odds bounds:** a normal roll always stays within 5–95%, because a natural 1 is a critical failure and a natural 20 a critical success. Edge and Exposed use standard 2d20 keep-highest or keep-lowest. A critical failure with Edge therefore needs both dice to show 1 (0.25%), and odds can reach 0.25–99.75%. This is intentional: the extreme odds are the reward, or the penalty, for a position reached through earlier risk or cost.
 - **Inspiration:** a natural 20 on a non-combat check grants Inspiration, which can be spent for a reroll and similar uses.
-- **Carrying capacity:** each member's contribution scales with STR, from about 0.8× at STR 8 to about 1.8× at STR 18 (2.25× at most). Pack animals and carts add more. Magical alternatives (floating disk, unseen porters, teleport circles) come later.
+- **Carrying capacity** (Plan 4, in kilograms): a member carries 20 kg at STR 10, × (1 + 0.1 × (STR − 10)) within 0.5–2.25×, so 0.8× at STR 8 and 1.8× at STR 18. From exhaustion 3 a member carries half. Owned pack animals and carts, and hired mounts, add their own capacity (a cart only with the animal that pulls it). Food and water count: a day's food is 1 kg and a day's water 2 kg, so a member with the usual 5 days of food and 4 of water has about 7 kg left for cargo.
+  - **Encumbered** (above capacity, up to 1.5×): ⅔ land speed and no forced march.
+  - **Overloaded** (above 1.5×): the party can't set out ("drop or sell N kg"), and the market refuses a purchase that would put it there. A ship carries the load, so sea passage ignores weight. Goods can be left behind anywhere ("Drop goods" in the goods bar), so loot never strands the party.
+  - Magical alternatives (floating disk, unseen porters, teleport circles) come later.
 - **Endurance:** forced-march days before exhaustion scale with CON.
 - **Strain (working name):** this discourages leaning on one specialist and rewards spreading work across the party.
   - **What counts:** every roll of a skill in encounters counts, including each round of a multi-round skill challenge. Once a character reaches the threshold for a skill (inclusive: about 3 rolls a day or 10 a week, to tune), that roll and each later one add a Strain stack. Practice rolls don't count. The thresholds are 3 uses in a day or 10 within seven days. Daily foraging and stowing away count too.
   - **Effect:** each stack is −1 to that skill and lowers the character's mood.
-  - **Recovery:** each strained skill loses one stack per day (Plan 3), slower in poor lodging and faster in good lodging (Plan 4). A stack gained during a day survives that day's fade, so it always lasts until the next day's (foraging, stowing away and encounters alike).
+  - **Recovery:** each strained skill loses one stack per day (Plan 3), or two after a night in a private room at a good inn (Plan 4). A stack gained during a day survives that day's fade, so it always lasts until the next day's (foraging, stowing away and encounters alike).
   - **Visibility:** Strain shows in the actor preview, so the automatic actor choice rotates on its own.
   - **Timing:** encounters record skill uses from Plan 2. Strain itself comes with daily travel (Plan 3), and the lodging effects with towns (Plan 4).
 - **Mood:** each character has their own mood on a 0–100 scale, with 50 as neutral.
@@ -92,21 +95,75 @@ There are 15 goods in 5 categories. They are tracked as quantities, never as ind
 
 - **Local prices** come from supply and demand. Each settlement's supply and demand is driven by its type, its biome, its region's state, and recent events. Prices drift daily, and bulk selling depresses them.
 - **Price book:** the player only knows prices they have observed or heard through rumours, and each entry shows its age. Trading on stale information is part of the game.
-- **Visible wealth:** the value of precious goods carried raises the odds of thieves and tolls. Party size deters them.
+- **Visible wealth:** precious goods and a heavy purse raise the odds of thieves and tolls. Party size deters them.
 - **Character gear:** one weapon, armour and accessory slot per character, each with quality tiers. Separate from trade goods.
+
+### Goods and markets as built (Plan 4)
+
+All numbers below are in `src/engine/constants.ts` or the `data/claude/` files named (see `docs/notes/constants.md`). They were tuned against the economy simulation (`docs/notes/economy-report.md`).
+
+- **Goods** (`data/claude/goods.json`: weight in kg, base price in gp, spoilage, market depth, and what each is for):
+
+  | Good | kg | gp | | Good | kg | gp |
+  |---|---|---|---|---|---|---|
+  | Food (ration) | 1 | 0.5 | | Armour | 10 | 30 |
+  | Water (a day's) | 2 | 0 | | Gear | 3 | 5 |
+  | Fuel | 3 | 0.3 | | Timber | 20 | 2 |
+  | Healing | 0.5 | 8 | | Stone | 25 | 2 |
+  | Alchemicals | 0.5 | 20 | | Metal | 10 | 8 |
+  | Arcana | 0.25 | 25 | | Gems | 0.05 | 50 |
+  | Arms | 5 | 15 | | Relics | 1 | 60 |
+  | | | | | Luxuries | 2 | 20 |
+
+  - Food spoils 2% a day (deterministic: the fraction carries over, and losses are logged).
+  - Water costs only weight. It is never traded, and refilling is free in every settlement. Waterskins are containers (2 gp each, 2 days of water), not one of the goods.
+  - Consumables are spent by encounter options that need them (a gear line across the flooded ferry, healing kits, alchemist's fire, an arcana ward). Thieves and tolls take precious goods or gold, and dungeon vaults and lair clearings give relics and gems that must be carried home and sold where they are wanted.
+  - Fuel has no use yet beyond trade; cold country will need it later.
+- **Markets** (`economy/market.ts`). Nothing ticks: every price is derived from the world seed, the settlement, the good and the day, plus the party's own net trades there.
+  - **Supply and demand levels** come from `data/claude/market-rules.json` (30 rules on settlement type, land, coast, size, wealth, threat and nearby sites). Levels sum and clamp to −3..3, and each level of demand over supply is ×1.25 (`PRICE_STEP`).
+  - **Drift:** ±15% in slow waves, a new seeded value every 10 days, eased in between.
+  - **Bulk pressure:** trading moves the price by a factor of e per `MARKET_DEPTH` units (6 in an outpost to 60 in a metropolis, × the good's depth), and the market recovers half of it every 10 days.
+  - **Shops:** the services that trade a good (`data/claude/service-roles.json`; some only buy, e.g. relics), each with a derived quality of 1–5. Every settlement has market stalls for the essentials. The buy/sell spread is 24% in an outpost down to 10% in a metropolis, 3 points narrower per quality above 3, 2 points per standing tier above stranger, and never below 2%. Buying always costs more than selling at the same shop, so there is no arbitrage inside one town.
+  - Trading uses the best shop. A purchase buys as many as the gold and the weight allow, and a sale caps at what is carried. The journal reads "Sold 6 gems for 212 gp (35 → 31 gp each)".
+- **The price book** (`economy/trade.ts`): arriving in a settlement, starting a game, and every trade record its whole market as seen today. Rumours and couriers add "heard" entries, which are dated back by the distance and slightly off. Entries older than 14 days show as stale.
+- **Visible wealth** (`economy/wealth.ts`): precious goods at base price, plus half of any coin above 50 gp per member. Each 100 gp per member is a step (at most 4). Each step adds 5% to the hostile share on the road and makes situations tagged `thieves` or `toll` 50% likelier to be drawn. Thieves can also take an owned animal. Banks (later) will let a party avoid carrying coin.
+- **Starting purse:** 10 gp (the designer's `STARTING_GOLD`) and 5 days of food per member.
 - **Accessories:** mid- and high-tier accessories carry procedurally rolled **rule hooks** that change how the game plays (section 8).
 
 ## 5. Towns: the ledger screen
 
 There are many establishment types (ported from the prototype's services), so towns can specialise. Whether a service exists depends on the settlement's size tier, which sets the base threshold, plus a wealth bonus. A very prosperous hamlet, say one full of wizards, can therefore have a university, a necromancer or a magic-item shop. The thresholds and the size of the wealth bonus need tuning. Everything is on one screen with no modal open and close:
 
-1. **Market panel:** the 15 goods grouped by category, with columns for buy, sell, local supply and demand, the best shop, and the price-book comparison (*"31 gp in Avarus, 12 days ago"*).
-2. **Services panel:** one row per establishment, grouped by function (Trade, Rest & Recovery, Hire & Contracts, Temple & Arcane, Underworld). Each row shows quality, specialty, your reputation there, and inline action buttons.
+1. **Market panel:** a table of the goods grouped by category, with the amount carried, buy, sell, local supply and demand as arrows, the best shop with its quality, and the price-book comparison (*"sells 31 gp in Avarus · 12 days ago"*, dimmed when stale, marked when heard). Buying and selling take an amount (1, 5, max) with a live quote, and a purchase that would overload the party is disabled with the reason. Waterskins are a row under Essentials.
+2. **Services panel:** compact tiles in four columns, grouped by function (Trade, Rest & Recovery, Hire & Contracts, Temple & Arcane, Underworld): name, quality, specialty, and one or two inline actions. Services the engine doesn't support yet say "coming later".
 3. **People panel:** notable NPCs (title, name, role) and your reputation with each, collapsed under the services. The settlement's own standing is in the header line.
 4. **Talk and work** (after the roads out and Explore): listening for rumours as one Explore-style line (who listens, skill, DC, chance, the round's cost; the non-critical tiers on hover or focus), and the notice board, each offer on two lines (kind, title, urgent badge, pay, reputation, Take; destination, distance, deadline and the days at a steady pace). Offers locked by standing say what they need. The service tiles that host them only point to them.
 5. **Contracts** held are listed under the party, everywhere: days left, and at the destination the choice of the pay or a good word, each saying what it gives; abandoning takes a second click. The roads out badge a contract's destination and, for the chosen pace, show "Arrives day 18 · deadline day 17 ✗"; late paces are struck through.
 
 The town map image is a banner and backdrop.
+
+### The ledger as built (Plan 4)
+
+- **One screen, no scrolling at desktop width, no modals.** A one-line header (town · domain · kingdom · threat · the party's standing here), then two columns: the Market, the Services and the People (collapsed) on one side; the roads out with the pace chooser, Explore after them, and talk and work (rumours and the notice board) on the other. On narrow screens the zones stack in that order.
+- **Services** (`town/services.ts`, roles in `data/claude/service-roles.json`):
+  - **Lodging:** a common room at 1 gp per member a night (meals included; Strain fades a stack), or a private room at 3 gp at inns of quality 3 or better (Strain fades two). Without an inn, or without the coin, the party rests on its own food.
+  - **Healer:** all HP back and a level of exhaustion off for each member who needs it, at 10 gp each, without spending a day.
+  - **Temple:** a blessing (1 Inspiration) for 10 gp, once per arrival at each temple.
+  - **Courier:** 5 gp buys one settlement's prices on the same island, heard, and a day older per 40 km between the towns.
+  - **Animals** (`data/claude/animals.json`): donkey (5 gp, 45 kg), mule (8 gp, 90 kg), camel (50 gp, 150 kg, drinks little), draft horse (50 gp, 120 kg) and riding horse (75 gp), plus a cart (15 gp, 200 kg, needs a mule) and a wagon (35 gp, 400 kg, needs a draft horse). Owned animals cost a daily upkeep (0.1–0.5 gp, owed when the purse is empty), drink water on the road, pay their own sea fare, can be stolen, and sell back for half. Carts and wagons keep to roads, and horses and camels can't take the rougher paths to sites. Riding horses can also be **hired** (see §7).
+  - **Rumours** and the **notice board** live in the talk-and-work zone (below); the inn, church and adventurers' guild tiles point to them.
+- **Rumours at the tavern** (`town/rumours.ts`): buy a round (1 gp per member) and the better of Insight and Persuasion rolls against DC 12, 1 easier per standing tier above stranger (the settlement's or the tavern keeper's, whichever is better). No day passes, once per arrival, and it counts toward Strain. A partial brings one nearby town's prices, a success two and a clue to an undiscovered site in this land, a critical success three, the clue, and a lead (a bonus offer on the board). A critical failure plants one false rumour (prices 40% off, with no tell). Heard prices are off by up to 10% and dated by the days from there.
+- **Contracts** (`town/contracts.ts`, 24 templates in `data/claude/contracts.json`). Inns, churches and adventurers' guilds post a notice board, and some offers come only from a particular service (the guild, a temple, the university, a bookseller, a herbalist). Boards refresh weekly (1–4 offers by size). Nothing ticks: a board is derived from the world seed, the settlement and the week.
+  - **Kinds:** courier (carry goods, handed over on acceptance; lost goods must be paid for), supply (bring goods the patron wants; the patron also pays 1.2× their base price), escort (passengers eat and drink like members and add 10% to the hostile share), bounty (clear a lair, revealed on acceptance) and errand (visit a site). Three of the guild's offers need standing "known"; a locked offer says what it needs.
+  - **Pay:** 10 gp per steady day to the destination, × the template's pay, +10% per threat level there, ×1.5 when urgent.
+  - **Deadlines:** the steady days × 1.25–1.6 plus a day's grace (encounters cost days), and 2 more days for a supply run to find the goods. An urgent offer gets 0.75–0.9× the steady days, at least the forced-march days, so only a brisk pace or a forced march makes it.
+  - At most 3 held. On completion the party takes the pay, or asks for **a good word** instead (§8). Failing or abandoning one costs 5 standing with the patron and their settlement.
+  - The roads out badge a contract's destination and, for each pace, show "Arrives day 18 · deadline day 17 ✗".
+- **Click-savers** (designer decisions):
+  - **Provision for this road:** one button buys the waterskins and food the chosen road and pace need without foraging, and fills the water, within the gold and the weight, showing what it buys and the cost.
+  - **Continue** walks on until something happens: an encounter, a supply warning, someone going short, or arrival.
+  - **Travel from the map:** a reachable marker opens a popover with the days, encounters and hostile share, and a Travel button that uses the last pace, forage and hire choices.
+  - **Auto-rest on arrival** (a setting, remembered per viewer): arriving hurt, exhausted or strained, the party rests a day, at an inn if it can pay.
 
 ## 6. World and campaign structure
 
@@ -216,7 +273,7 @@ The town map image is a banner and backdrop.
   - **Steady:** normal speed.
   - **Brisk:** 1.25× speed and the fewest supplies per km. More of its encounters are hostile, ambushes meet the party Exposed, and it outruns slow pursuers.
   - **Forced march:** 1.5× speed, with a CON check each day against exhaustion. It also uses more supplies per km, so it's only worth it when saving time matters for another reason, such as a quest deadline, a pursuer or a market window. Quests and goals with time pressure should exist to make it meaningful.
-  - **Hired horses** (Plan 4, from Animals and Mounts): 2× speed for gold, and mounts change carrying capacity.
+  - **Horses** (Plan 4): when every member has a mount, land speed is ×2 (×1.25 in mountains, marsh and jungle), stacking with pace. Riding horses can be **hired** at an Animals service for a journey to a settlement: one per member at 1 gp a day each, paid at departure for the expected days and returned on arrival. They can also be **bought** (75 gp, with daily upkeep, and they can be stolen); owned horses work anywhere a horse can go, but not on the rougher paths to sites. Mounts add their capacity (20 kg each).
   - **Magical travel** (later): near-instant and very expensive.
 - **Pursuit:** follow-ups can be flagged as pursuit (thieves' friends, informant ambushes, wardens). When one comes due, the party's pace since it was queued decides whether it catches up:
   - Stealthy (covering tracks) loses it.
@@ -228,28 +285,29 @@ The town map image is a banner and backdrop.
 - **Pace is a commitment:** it is chosen at departure only and cannot be changed mid-journey.
 - **Long journeys and water:**
   - **Foraging:** each travel day the best-suited member may roll Survival to find water or food. The DC depends on terrain: easy by forests and rivers, hard in desert and mountains. Foraging rolls count toward Strain, so rotating foragers matters. Foraging draws attention: on a journey that forages, more encounters are hostile, and a stealthy party loses its Edge against ambushes.
-  - **More capacity:** extra waterskins can be bought in town. Barrels and pack animals come with Plan 4's goods.
+  - **More capacity:** extra waterskins can be bought in town, and pack animals and carts carry more (Plan 4, §5). Animals drink from the carried water too.
   - **Warnings:** the road preview warns clearly when a route at the chosen pace exceeds the party's water or food.
 - **Resting in town** costs lodging gold and includes meals. Carried supplies are untouched. Camping eats carried food.
 - **Stranded without fare (desperate measures):**
   - **Stowaway:** a Stealth check. If caught, the party is fined, put to work (days lost and exhaustion) or ends up in a brawl.
   - **Sell supplies for coin.**
-  - Proper ways to earn money arrive with Plan 4.
-- **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4, at most one a day. How many is the same on every road; route danger, regional threat, foraging, pace (and later visible wealth) change what kind: how many of them are hostile.
+  - Contracts from the notice boards (Plan 4, §5) are the proper way to earn money; trading pays once there is capital to trade with.
+- **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4, at most one a day. How many is the same on every road; route danger, regional threat, foraging, pace, visible wealth and escorted passengers change what kind: how many of them are hostile.
 - **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.
 - **Wonders:** a separate kind of encounter. Rare, one click, flavour only (no rewards either: the lint allows only log lines), never a burden.
 
 ### Travel (Plan 3)
 
 - The player picks a neighbouring settlement; journeys are one route long.
-- **Speed** in km per day: plains 30, forest and hills 24, desert 21, marsh and jungle 18, mountains 15, sea 75 (with a passage of 2 gp per member per day). Land speed scales with pace: stealthy ½, cautious ¾, brisk 1.25×, forced march 1.5× (`PACE_SPEED`). All these numbers live in `src/engine/constants.ts` (see `docs/notes/constants.md`).
+- **Speed** in km per day: plains 30, forest and hills 24, desert 21, marsh and jungle 18, mountains 15, sea 40 (the designer's choice; with a passage of 2 gp per member, and per animal, per day). Land speed scales with pace: stealthy ½, cautious ¾, brisk 1.25×, forced march 1.5× (`PACE_SPEED`), then with mounts (×2, or ×1.25 in rough terrain) and with the load (⅔ when encumbered). All these numbers live in `src/engine/constants.ts` (see `docs/notes/constants.md`).
 - **Each day** the best-suited member forages first (Survival; DC plains and forest 10, jungle 11, hills 12, marsh 13, mountains 15, desert 18; −2 on a forced march). Then every member eats 1 food and drinks 1 water (2 in the desert; half as much again on a forced march). Whoever goes without makes a CON check (DC 10 without food, 15 without water) or gains a level of exhaustion; the march stops after such a day.
-- **Water** capacity is 4 days per member, plus 2 per extra waterskin (2 gp each). Rations cost a flat 1 gp until the Plan 4 market. Supplies sell back at half price. Arriving anywhere refills the water.
+- **Water** capacity is 4 days per member, plus 2 per extra waterskin (2 gp each, selling back for 1). Rations cost what the local market asks (base 0.5 gp). Arriving anywhere refills the water.
 - **How many encounters** is rolled once at departure: up to 2 days 0–2, 3–4 days 1–3, 5 or more 2–4, each slot beyond the minimum filling with a fixed 30% (`ENCOUNTER_SLOT_CHANCE`), whatever the road or pace. They fall on distinct days (at most one a day, so never more than the journey's days), stored in the journey. A pursuit that comes due takes that day's encounter rather than adding one. On average: about 0.5 on a short hop, 1.5 on a middling journey, 2.6 on a long one (it was 0.8, 1.9 and 3.2 before the fixed rate).
-- **What kind** is decided on the day: each encounter is hostile with the hostile share, 10% + 10% per route danger + 10% per threat level of the domains at either end + 10% when foraging + 10% when brisk or forced, within 10–85% (`HOSTILE_*`, `PACE_HOSTILE_BONUS` and `FORAGE_HOSTILE_BONUS` in `src/engine/constants.ts`); otherwise it is neutral or pleasant by the situations' weights. If nothing of that kind fits the place, any fitting situation is met. Stealthy parties skip 50% of hostile encounters and cautious ones 30% (`PACE_HOSTILE_AVOIDANCE`; those days pass quietly). Stealthy gives ambushes Edge only on a journey that doesn't forage. Situations may name `biomes` and `regions`; untagged ones happen anywhere on land, and at sea only `sea` situations are drawn (`data/claude/` has four, one of them the stowaway brawl). A road where no situation can be drawn rolls, and previews, no encounters. At sea a due follow-up waits for land unless its situation fits the sea.
-- **Rest:** a day in a settlement restores all HP and the water, at an inn (1 gp per member, meals included, carried food untouched) or on carried food when the party can't or won't pay; a day in camp eats carried food and restores a quarter of max HP. Either removes a level of exhaustion from everyone who ate and drank.
+- **What kind** is decided on the day: each encounter is hostile with the hostile share, 10% + 10% per route danger + 10% per threat level of the domains at either end + 10% when foraging + 10% when brisk or forced + 5% per step of visible wealth + 10% when escorting passengers, within 10–85% (`HOSTILE_*`, `PACE_HOSTILE_BONUS` and `FORAGE_HOSTILE_BONUS` in `src/engine/constants.ts`); otherwise it is neutral or pleasant by the situations' weights. If nothing of that kind fits the place, any fitting situation is met. Stealthy parties skip 50% of hostile encounters and cautious ones 30% (`PACE_HOSTILE_AVOIDANCE`; those days pass quietly). Stealthy gives ambushes Edge only on a journey that doesn't forage. Situations may name `biomes` and `regions`; untagged ones happen anywhere on land, and at sea only `sea` situations are drawn (`data/claude/` has four, one of them the stowaway brawl). A road where no situation can be drawn rolls, and previews, no encounters. At sea a due follow-up waits for land unless its situation fits the sea.
+- **Rest:** a day in a settlement restores all HP and the water, at an inn (a common room at 1 gp per member or a private room at 3 gp, meals included, carried food untouched; §5) or on carried food when the party can't or won't pay; a day in camp eats carried food and restores a quarter of max HP. Either removes a level of exhaustion from everyone who ate and drank.
 - **Stowaway:** on a sea route the party can't pay for, the best sneak rolls Stealth DC 13. Success slips aboard; a partial gets the party put to work (2 days lost, and a level of exhaustion for the one caught); a failure costs all its coin (or work, if it has none); a critical failure starts a brawl.
 - **Road preview:** for every pace, the days, food and water needed against what is carried (with expected foraging), the forager, odds and what each tier finds, the encounter range ("2–4 encounters") and the hostile share actually met, after the pace's avoidance, on one line with its parts ("2–4 encounters · 30% hostile (10% base, 20% road danger, 10% foraging, −10% cautious)"), ambush footing (with "(foraging)" when foraging costs a stealthy party its Edge), and warnings (water or food running out, relying on foraging, forced-march exhaustion). Forced-march exhaustion compounds (each level is −2 to the next day's CON check), and a march with a 10% or greater chance of exhausting someone to death gets a severe warning. The stowaway preview shows what each tier leads to. Supplies read "Food: 10 / 11, +0.1 per day" (carried / needed, expected foraging per day) and "Water: 10 / 8 (max 8), +1.3 per day" (capacity shown when it matters).
+- **The road preview in Plan 4** adds: a "Hire horses" toggle where hiring is possible (the days and cost for each pace, mounted); the load ("Encumbered: 46 of 40 kg", or "Too heavy to set out"); a path that the owned animals can't take ("No road for the cart."); visible wealth and escorted passengers among the hostile share's parts; the arrival day against each held contract's deadline; and the "Provision" button for the chosen pace.
 - **Inspiration:** a natural 20 when foraging or stowing away grants Inspiration, as on any non-combat check.
 
 ### Encounter composition (all JSON)
@@ -312,22 +370,30 @@ The town map image is a banner and backdrop.
   - The good word raises the party's standing with the patron's people or faction, even far away. Example: a respected orc's word makes a hostile orc kingdom tolerate the party.
   - **The party's welcome is separate from how dangerous a faction is to everyone else.** Hostile encounters with that faction become rarer or turn into parley for the party, while the kingdom still threatens its neighbours. Threat levels, prices and wars are unaffected.
   - This makes reputation a currency the player can earn instead of gold.
+- **As built (Plan 4, `town/reputation.ts`):** reputation covers notable people and settlements. Kingdom and faction tiers, favours and parley come later.
+  - **Points and tiers:** whole points per settlement and per person, read as a standing: hated (−20 or less), disliked (−19 to −5), stranger (−4 to 4), known (5), liked (15), trusted (30) and honoured (50 or more). Nothing decays. The journal says when a tier changes ("Avarus knows your name now.").
+  - **Notable people** are rolled with the world (1–5 per settlement by size, from `data/claude/person-roles.json`, each tied to a service that is there), with names from their ancestry and a title ("Mother Ada Stone"). They are listed, with their standing, in the town's People panel.
+  - **Earned by:** trading (a point per 50 gp bought and sold in a settlement, at most 3 per arrival), contracts (the template's points with the patron and their settlement), encounter `reputation` effects (helping or wronging locals), and the good word.
+  - **Lost by:** failing or abandoning a contract (5 with the patron and their settlement, and a point more per 10 gp of a lost cargo the party can't pay), and encounters that wrong locals.
+  - **What standing does:** each tier above stranger narrows a market's spread by 2 points (below widens it), using the better of the settlement's and the shopkeeper's standing; it makes the rumour check 1 easier per tier; and some contracts need it (standing "known" for three of the guild's). Encounter options may require it (`standing`).
+  - **A good word** is the alternative reward on any contract: instead of the gold, 3 points with every settlement of the patron's kingdom, plus the patron's own points.
 - **Where encounter reputation lands (Plan 4):** a `reputation` effect or `standing` requirement refers to the encounter's settlement: the domain of the site or settlement it happens in; on a land road, the domain of the nearer end of the road; at sea, the port the party sailed from.
 - **Rule hooks:** one declarative mechanism, such as `{ "on": "sellGoods", "category": "precious", "modify": {...} }`. It powers both accessory effects and per-party modifiers, which are composable, random, and allowed to bend the rules.
 
 ## 9. UI
 
 - **Layout:**
-  - Left: party portraits with HP, conditions and key modifiers, and below them the Altaeus map with its routes, zoomed in and centred on the party and following it (a toggle shows the whole map).
-  - Centre: the settlement (services, rest and supplies, roads out with the pace chooser and forecasts), the site, or the journey under way. While an encounter is open it takes the whole column: narrative, compact option cards with odds bars, and the shared Outcomes panel for the hovered or focused option. Each stage focuses its first option; the arrow keys move between the cards and Space or Enter chooses. A backdrop image (a battle map by biome, or the town map) may come later; the town map shows as the settlement's banner.
+  - Left: party portraits with HP, conditions and key modifiers, the contracts held (Plan 4), and below them the Altaeus map with its routes, zoomed in and centred on the party and following it (a toggle shows the whole map).
+  - Centre: the settlement (the town ledger, §5: market, services, people, roads out with the pace chooser and forecasts, rumours and the notice board), the site, or the journey under way. While an encounter is open it takes the whole column: narrative, compact option cards with odds bars, and the shared Outcomes panel for the hovered or focused option. Each stage focuses its first option; the arrow keys move between the cards and Space or Enter chooses. A backdrop image (a battle map by biome, or the town map) may come later; the town map shows as the settlement's banner.
   - Right: the journal, and below it the developer tools (practice check, Encounter Deck), collapsed by default and remembered per viewer.
-  - Bottom: the goods bar by category, a capacity meter, and a visible-wealth indicator.
+  - Bottom: the goods bar by category (goods at 0 hidden, "—" for an empty category), a capacity meter ("34 / 40 kg", marked Encumbered or Overloaded), visible-wealth pips with what they add to the hostile share, and "Drop goods".
   - **Narrow screens (≤ 900px):** the three columns stack into one: party, then the centre (settlement, site, journey or encounter), then the map, then the journal, so the actions come early.
 - **The map** (Plan 3b):
   - **Roads** are coloured by danger (Safe, Watchful, Dangerous, Deadly) with a legend under the map. Sea crossings are dashed, and paths to discovered sites are drawn like roads.
   - **Settlements** are outlined in their kingdom's colour. Discovered points of interest show as a glyph per category (an icon once the game-icons are synced), dimmed once cleared.
   - **Kingdom overlay:** a "Kingdoms" toggle tints every land spot in its domain's kingdom colour and crowns the seats. The choice is remembered per viewer.
   - Settlements and sites are buttons. The arrow keys move between them.
+  - **Travel from the map** (Plan 4): selecting a marker one road away opens a small popover with the days, encounters and hostile share, and a Travel button that uses the last pace, forage and hire choices.
   - **The party** is a large ring with a slowly pulsing halo (still under reduced motion), in fixed colours no other marker uses. On a journey it moves along the road by the share of km travelled, and the view follows it; the journey panel keeps a line like "Day 3 of about 5 · 64 of 112 km" instead of a progress bar.
 - **The settlement panel** shows the land, domain and kingdom (with its ruling ancestry), and the domain's threat level, adding "+n from lairs" for the hostile sites the party has found. The roads out include paths to discovered sites, with a "site" badge, and a selected path describes the site at its end. **Explore the domain** previews the searcher, skill, DC, % chance, days and the non-critical tiers. The critical tiers, and whether anything is left to find, stay a surprise.
 - **The site panel** (at a point of interest) shows the category and type, the owning domain and kingdom, what the site feeds ("Feeds the orc warband: +2 threat here"), whether it is cleared, and a spring or well if it has one.
@@ -347,6 +413,7 @@ The town map image is a banner and backdrop.
 - Check odds match exact probabilities, including advantage and disadvantage.
 - A seeded replay produces identical state.
 - Simulation smoke test: about 1,000 automated journeys with a random-choice policy. It must not crash, and it reports death rate, profit distribution, and options that are best almost universally. These reports guide balancing; they are not pass/fail gates.
+- **Economy simulation** (Plan 4, `src/content/economy.sim.test.ts`): a scripted trader (`src/engine/travel/trader.ts`) plays seeds 1–30 for 60 days under four policies (trader, contracts only, trade only, wander) and reports gold per day, going broke, deaths, where the money comes from, trade margins and price spreads. The guard tests (seeds 1–8, 30 days) have generous bounds and pin no tuning value. Run the full report with `ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts`.
 
 ## 10b. Campaign arc, pressure and progression (Plans 5a and 5b)
 
@@ -390,6 +457,6 @@ The town map image is a banner and backdrop.
 
 ## 12. Open questions
 
-- Exact goods weights, prices and spoilage rates (to be tuned through the simulation test).
+- Goods weights, prices and contract pay were tuned in Plan 4 against the economy simulation (`docs/notes/economy-report.md`). Open there: a safety net for a broke party, provisioning order (food before water?), and supply patrons advancing part of the goods' cost.
 - What reputation affects beyond the initial set.
 - What triggers a world re-randomise (manual only, or offered after N parties).

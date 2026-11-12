@@ -1,6 +1,6 @@
 # Balance constants
 
-The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`](../../src/engine/constants.ts)**, grouped by topic: starting party, travel and encounters, pace, pursuit, foraging, supplies and prices, stowing away, politics, settlements, notable people, reputation, points of interest, site cycles and boons, exploring, Strain, checks, and territory. Each has a one-line comment, and each section names the module that uses it. Edit a value there, then run `pnpm test`.
+The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`](../../src/engine/constants.ts)**, grouped by topic: starting party, travel and encounters, pace, pursuit, foraging, supplies and rest, carrying capacity, markets, the price book, services and animals, visible wealth, stowing away, politics, settlements, notable people, reputation, rumours, contracts, points of interest, site cycles and boons, exploring, Strain, checks, and territory. Each has a one-line comment, and each section names the module that uses it. Edit a value there, then run `pnpm test`.
 
 **Watch out:** some tests pin exact values (for example `ENCOUNTER_SLOT_CHANCE`, `BOON_COOLDOWN_DAYS`) or measure statistics such as the Rampant share and POIs per world. When you deliberately change a number, update the matching test expectation.
 
@@ -23,4 +23,10 @@ Encounter odds and rewards live in the situations themselves (`situations.json` 
 
 See also [threat-levels.md](threat-levels.md) for how threat and Rampant are worked out.
 
-The economy's numbers (spreads, market depth, contract pay and deadlines, goods prices) were tuned against a simulation: see [economy-report.md](economy-report.md) to rerun it before changing them.
+The economy's numbers (spreads, market depth, contract pay and deadlines, goods prices) were tuned against a simulation: see [economy-report.md](economy-report.md). Rerun it after changing them:
+
+```
+ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts
+```
+
+The simulation starts its parties with its own 50 gp (`SIM_GOLD` in the test), so its guards and tables don't move with `STARTING_GOLD`; the report ends with a reference section for the game's own `STARTING_GOLD` start.
