@@ -79,5 +79,10 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 
 - **Tuning:** change balance numbers in `src/engine/constants.ts` (data-file knobs are listed in `docs/notes/constants.md`); some tests pin exact values.
 - **Testing:** test-driven with Vitest. Engine tests use `src/engine/test-fixtures.ts`, not the bundled data, so they don't break when the user hand-edits content. A separate test validates every data file.
+  - **Prototype-weight tests:** aim for roughly 0.4–0.6× test lines per line of code.
+  - **Always test:** rules where the preview must equal what actually happens, determinism and replay, save migrations, content validation, and a few world statistics.
+  - **UI:** one smoke test per panel, plus the critical interactions only.
+  - **Tuning values:** don't pin them (e.g. "the slot chance is 0.3"). Assert relationships instead, such as "brisk is more hostile than steady".
+  - Skip exhaustive edge cases. Existing tests stay; don't prune them.
 - **Style:** Prettier config in `.prettierrc.cjs` (no semicolons, single quotes, width 100).
 - **Git:** commit after each task. **Never push.** The user pushes branches and tags themselves.
