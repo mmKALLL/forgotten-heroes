@@ -4,7 +4,8 @@ import { newGame } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { quote } from '../economy/market'
 import { settlementReach } from './reach'
-import { bestTrade, trader, type TraderWhy } from './trader'
+import { siteLand } from '../crisis/text'
+import { bestTrade, crusadeGoal, crusader, trader, type TraderWhy } from './trader'
 
 const content = fixtureContent()
 const shops = ['inn-tavern', 'adventuring-supplies', 'jewelry-trader']
@@ -64,5 +65,34 @@ describe('the trader', () => {
     const run = trader(newGame(7, content), content, 50, { until: (s) => s.day >= 10 })
     expect(run.day).toBeGreaterThanOrEqual(10)
     expect(run.day).toBeLessThan(25)
+  })
+})
+
+describe('the crusader', () => {
+  const discover = (state: GameState, id: string): GameState => ({
+    ...state,
+    world: {
+      ...state.world,
+      pois: { ...state.world.pois, [id]: { ...state.world.pois[id], discovered: true } },
+    },
+  })
+
+  test('goes after what the party knows: the reveal site, then the act’s land, then its site', () => {
+    const s = makeState()
+    const crisis = s.crisis!
+    expect(crusadeGoal(s, content)).toBeNull()
+    const reveal = discover(s, crisis.reveal)
+    expect(crusadeGoal(reveal, content)).toEqual({ poi: crisis.reveal, land: null })
+    const learned = { ...reveal, crisis: { ...crisis, learned: 1, clues: [1, 0, 0] } }
+    const land = siteLand(learned, content, crisis.acts[0].poi)
+    expect(crusadeGoal(learned, content)).toEqual({ poi: null, land })
+    const site = crisis.acts[0].poi
+    expect(crusadeGoal(discover(learned, site), content)).toEqual({ poi: site, land: null })
+  })
+
+  test('replays identically and keeps a valid state', () => {
+    const run = crusader(newGame(2024, content), content, 12)
+    expect(GameStateSchema.parse(run)).toEqual(run)
+    expect(crusader(newGame(2024, content), content, 12)).toEqual(run)
   })
 })
