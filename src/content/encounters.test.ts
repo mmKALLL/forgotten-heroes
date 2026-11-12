@@ -392,6 +392,16 @@ describe('points of interest', () => {
     for (const s of clues) expect(s.biomes ?? []).not.toContain('sea')
   })
 
+  test.each(types.map((t) => [t.id, t.names] as const))(
+    '%s can be named at least 12 ways (%s), so a world rarely repeats one',
+    (_, table) => {
+      const [names] = withRng(createRng(11), (d) =>
+        Array.from({ length: 600 }, () => rollTable(d, content, table))
+      )
+      expect(new Set(names).size).toBeGreaterThanOrEqual(12)
+    }
+  )
+
   test('every POI category has a type with a playable situation', () => {
     for (const category of POI_CATEGORIES) {
       const playable = ofCategory(category).filter((t) =>
