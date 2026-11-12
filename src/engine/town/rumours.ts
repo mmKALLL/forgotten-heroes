@@ -1,14 +1,12 @@
 import type { Content } from '../../content/build'
-import { GOODS } from '../../schema/types'
-import type { GameState, PriceBookEntry } from '../../schema/state'
+import type { GameState } from '../../schema/state'
 import { revealPois } from '../encounters/effects'
 import { allSituations } from '../encounters/compile'
 import { inProgress, startEncounter } from '../encounters/run'
-import { wholeGp } from '../economy/market'
-import { marketPrices, marketTalk } from '../economy/trade'
+import { heardPrices, marketTalk, pricesOn } from '../economy/trade'
 import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
-import { withRng, type Draw } from '../rng'
+import { withRng } from '../rng'
 import { statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIERS, TIER_LABELS, normalizeDc, rollCheck, tierOdds, type Tier } from '../rules/checks'
@@ -24,7 +22,6 @@ import {
   RUMOUR_DC,
   RUMOUR_PRICE,
   RUMOUR_PRICES,
-  RUMOUR_SKEW,
   RUMOUR_TROUBLE_FIGHT,
 } from '../constants'
 
@@ -114,10 +111,6 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
   }
 }
 
-/** A heard price, off by up to ±`skew` (seeded), in whole gold like the price book's. */
-const skewed = (d: Draw, price: number | null, skew: number): number | null =>
-  price === null ? null : wholeGp(price * (1 + (d.float() * 2 - 1) * skew))
-
 /**
  * Heard prices from up to `count` of the nearest settlements (by road) whose prices the book
  * doesn't know fresher. Each is dated back by the steady days from there, and each price is off by
@@ -130,26 +123,19 @@ function hearPrices(
 ): { state: GameState; heard: string[] } {
   if (count <= 0) return { state, heard: [] }
   const here = state.location!
-  const picked: { id: string; day: number; prices: PriceBookEntry['prices'] }[] = []
+  const picked: { id: string; day: number }[] = []
   for (const n of nearestSettlements(content, here)) {
     if (picked.length >= count) break
     if (!Object.hasOwn(state.world.settlements, n.id)) continue
     const day = Math.max(1, state.day - n.days)
     const known = Object.hasOwn(state.priceBook, n.id) ? state.priceBook[n.id] : null
     if (known && known.day >= day) continue
-    const prices = marketPrices({ ...state, day }, content, n.id)
-    if (Object.keys(prices).length > 0) picked.push({ id: n.id, day, prices })
+    if (Object.keys(pricesOn(state, content, n.id, day)).length > 0) picked.push({ id: n.id, day })
   }
   const [priceBook, rng] = withRng(state.rng, (d) => {
     const book = { ...state.priceBook }
     for (const n of picked) {
-      const prices: PriceBookEntry['prices'] = {}
-      for (const good of GOODS) {
-        const p = n.prices[good]
-        if (!p) continue
-        prices[good] = { buy: skewed(d, p.buy, RUMOUR_SKEW), sell: skewed(d, p.sell, RUMOUR_SKEW) }
-      }
-      book[n.id] = { day: n.day, heard: true, prices }
+      book[n.id] = { day: n.day, heard: true, prices: heardPrices(d, state, content, n.id, n.day) }
     }
     return book
   })

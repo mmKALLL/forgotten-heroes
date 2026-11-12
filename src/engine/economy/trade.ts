@@ -16,11 +16,13 @@ import {
   priceFactors,
   quote,
   recordTrade,
+  wholeGp,
   type Quote,
   type Shop,
 } from './market'
 import { production } from './supply'
-import { OVERLOAD_RATIO, STALE_DAYS } from '../constants'
+import type { Draw } from '../rng'
+import { OVERLOAD_RATIO, RUMOUR_SKEW, STALE_DAYS } from '../constants'
 
 // Buying and selling the 15 goods, and the price book: what the party knows of other markets.
 
@@ -187,6 +189,50 @@ export function marketPrices(
   for (const good of GOODS) {
     const known = knownPrice(state, content, settlementId, good)
     if (known.buy !== null || known.sell !== null) prices[good] = known
+  }
+  return prices
+}
+
+/**
+ * A market's prices as they were on `day` (news from there): the party's own trades there after
+ * that day are left out, since the news left before them.
+ */
+export function pricesOn(
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  day: number
+): PriceBookEntry['prices'] {
+  const trades = Object.hasOwn(state.markets, settlementId) ? state.markets[settlementId] : null
+  const markets = trades
+    ? {
+        ...state.markets,
+        [settlementId]: Object.fromEntries(
+          Object.entries(trades).filter(([, t]) => t !== undefined && t.day <= day)
+        ),
+      }
+    : state.markets
+  return marketPrices({ ...state, day, markets }, content, settlementId)
+}
+
+/** A heard price: off by up to ±RUMOUR_SKEW (seeded), in whole gold like the price book's. */
+const skewed = (d: Draw, price: number | null): number | null =>
+  price === null ? null : wholeGp(price * (1 + (d.float() * 2 - 1) * RUMOUR_SKEW))
+
+/**
+ * Prices heard from a market (rumours and couriers): as they were on `day` (pricesOn), each a
+ * little off (±RUMOUR_SKEW, seeded). Never false.
+ */
+export function heardPrices(
+  d: Draw,
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  day: number
+): PriceBookEntry['prices'] {
+  const prices: PriceBookEntry['prices'] = {}
+  for (const [good, p] of Object.entries(pricesOn(state, content, settlementId, day))) {
+    prices[good as Good] = { buy: skewed(d, p.buy), sell: skewed(d, p.sell) }
   }
   return prices
 }

@@ -3,8 +3,17 @@ import type { GameState } from '../../schema/state'
 import { newGame, step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { load } from './capacity'
-import { marketLevels, quote } from './market'
-import { marketTalk, marketView, maxBuy, priceAge } from './trade'
+import { createRng, withRng } from '../rng'
+import { marketLevels, midPrice, quote } from './market'
+import {
+  heardPrices,
+  marketPrices,
+  marketTalk,
+  marketView,
+  maxBuy,
+  priceAge,
+  pricesOn,
+} from './trade'
 
 const content = fixtureContent()
 const shops = ['inn-tavern', 'adventuring-supplies', 'jewelry-trader']
@@ -126,6 +135,28 @@ describe('dropping goods', () => {
     const none = step(dropped, { type: 'dropGoods', good: 'gems', amount: 1 }, content)
     expect(none.log.at(-1)!.text).toBe('There is no gems to leave.')
     expect(none.goods).toEqual(dropped.goods)
+  })
+})
+
+describe('heard prices', () => {
+  test('news of a day leaves out the party’s later trades there, and is a little off', () => {
+    const s = inTown({ day: 20 })
+    const sold = buy(s, 'gems', 20)
+    expect(midPrice(sold, content, 'greenvale-1', 'gems')).not.toBe(
+      midPrice(s, content, 'greenvale-1', 'gems')
+    )
+    // Today's trades are after day 19's news: it is as if they never happened.
+    expect(pricesOn(sold, content, 'greenvale-1', 19)).toEqual(
+      marketPrices({ ...s, day: 19 }, content, 'greenvale-1')
+    )
+    const truth = pricesOn(sold, content, 'greenvale-1', 19)
+    const [heard] = withRng(createRng(3), (d) => heardPrices(d, sold, content, 'greenvale-1', 19))
+    expect(Object.keys(heard)).toEqual(Object.keys(truth))
+    for (const [good, p] of Object.entries(truth)) {
+      const told = heard[good as keyof typeof heard]!
+      if (p.buy !== null) expect(told.buy! / p.buy, good).toBeLessThanOrEqual(1.1 + 1 / p.buy)
+      if (p.buy !== null) expect(told.buy! / p.buy, good).toBeGreaterThanOrEqual(0.9)
+    }
   })
 })
 
