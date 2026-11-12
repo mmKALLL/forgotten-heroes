@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { Content } from '../../content/build'
 import { formatModifier, formatPercent } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
@@ -19,6 +20,7 @@ import {
   dangerText,
   daysText,
   findsText,
+  hostileParts,
   paceChoiceOf,
   paceFields,
   realmText,
@@ -146,6 +148,7 @@ export function RouteInfo({
   onTravel: (stowaway: boolean) => void
 }) {
   const { t, stat } = useI18n()
+  const forageHintId = useId()
   const there = placeInfo(state, content, road.to)
   const site = poiInfo(state, content, road.to)
   const sea = road.terrain === 'sea'
@@ -189,9 +192,24 @@ export function RouteInfo({
         <>
           <p className="muted small">{t(`paceHint.${shown}`)}</p>
           <label className="inline small">
-            <input type="checkbox" checked={forage} onChange={(e) => onForage(e.target.checked)} />{' '}
+            <input
+              type="checkbox"
+              checked={forage}
+              aria-describedby={option.forageTradeOff ? forageHintId : undefined}
+              onChange={(e) => onForage(e.target.checked)}
+            />{' '}
             {t('route.forage')}
           </label>
+          {option.forageTradeOff && (
+            <p id={forageHintId} className="muted small">
+              {t('route.forageHint', {
+                on: formatPercent(option.forageTradeOff.foraging.hostile),
+                off: formatPercent(option.forageTradeOff.notForaging.hostile),
+              })}
+              {option.forageTradeOff.foraging.ambush !== option.forageTradeOff.notForaging.ambush &&
+                t('route.forageHintEdge')}
+            </p>
+          )}
         </>
       )}
       {option.warnings.length > 0 && (
@@ -228,12 +246,17 @@ export function RouteInfo({
             t('route.foraging', { n: option.water.expectedForage.toFixed(1) })}
         </li>
         <li>
-          {t('route.encounters', {
-            min: option.encounters[0],
-            max: option.encounters[1],
-            chance: formatPercent(option.chance),
-          })}
+          {t('route.encounters', { min: option.encounters[0], max: option.encounters[1] })}
+          {option.encounters[1] > 0 && (
+            <>
+              {' · '}
+              {t('route.hostile', { pct: formatPercent(option.hostile.share) })}
+            </>
+          )}
         </li>
+        {option.encounters[1] > 0 && (
+          <li className="muted">{t('route.hostileWhy', { parts: hostileParts(t, option) })}</li>
+        )}
         {option.hostileAvoided > 0 && (
           <li>{t('route.avoids', { pct: formatPercent(option.hostileAvoided) })}</li>
         )}

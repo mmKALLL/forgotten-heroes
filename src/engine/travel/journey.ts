@@ -14,6 +14,7 @@ import { foldTrail } from './pursuit'
 import {
   canMeetEncounters,
   fareFor,
+  hostileShare,
   journeyDays,
   kmPerDay,
   rollEncounterDays,
@@ -152,13 +153,7 @@ function setOut(
   const { pace, coverTracks } = paceFor(route, requestedPace, requestedCover)
   const to = otherEnd(route, here)
   const length = journeyDays(route, pace, coverTracks)
-  const { encounters, chance } = routeEncounters(
-    canMeetEncounters(content, route, state),
-    length,
-    route.danger,
-    routeThreat(state, content, route),
-    pace
-  )
+  const { encounters, chance } = routeEncounters(canMeetEncounters(content, route, state), length)
   const [encounterDays, rng] = withRng(state.rng, (d) =>
     rollEncounterDays(d, length, encounters, chance)
   )
@@ -193,7 +188,8 @@ function setOut(
 
 /**
  * Where an encounter on this journey happens (the route's terrain, and the land and domain of the
- * nearer end), and how the party is moving.
+ * nearer end), how the party is moving, and the share of encounters that are hostile now
+ * (hostileShare: the route's danger, the higher threat of its two ends, foraging and pace).
  */
 export function placeOnRoute(
   state: Pick<GameState, 'world'>,
@@ -210,6 +206,13 @@ export function placeOnRoute(
     domain: node.domain,
     pace: travel.pace,
     coverTracks: travel.coverTracks,
+    forage: travel.forage,
+    hostileShare: hostileShare(
+      route.danger,
+      routeThreat(state, content, route),
+      travel.pace,
+      travel.forage
+    ).share,
   }
 }
 
@@ -325,11 +328,16 @@ export function continueJourney(state: GameState, content: Content): GameState {
   for (let guard = 0; guard <= MAX_DAYS_PER_CONTINUE; guard++) {
     const travel = next.travel!
     const fit = next.party.some(canAct)
-    // A party that can't go on keeps its encounter days until it has made camp.
+    // A party that can't go on keeps its encounter days until it has made camp. One encounter a
+    // day at most: a due day is spent whole (older saves may list a day twice). A pursuit that
+    // has come due takes that day's encounter (drawEncounter); it never adds a second.
     if (fit && travel.encounterDays.length > 0 && travel.encounterDays[0] <= travel.daysDone) {
       const queued = {
         ...flush(next),
-        travel: { ...travel, encounterDays: travel.encounterDays.slice(1) },
+        travel: {
+          ...travel,
+          encounterDays: travel.encounterDays.filter((d) => d > travel.daysDone),
+        },
       }
       const place = placeOnRoute(next, content, travel) ?? undefined
       const drawn = drawEncounter(queued, content, undefined, place)

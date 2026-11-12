@@ -2,7 +2,7 @@ import { describe, expect, test } from 'vitest'
 import type { Content } from '../../content/build'
 import type { Pace } from '../../schema/constants'
 import type { GameState } from '../../schema/state'
-import { WIDE_BERTH, inProgress } from '../encounters/run'
+import { WIDE_BERTH, drawEncounter, inProgress } from '../encounters/run'
 import { createRng } from '../rng'
 import { step, type Action } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
@@ -18,8 +18,9 @@ const travel = (
   routeId: string,
   c: Content = content,
   pace?: Pace,
-  coverTracks?: boolean
-) => act(state, { type: 'travel', routeId, pace, coverTracks }, c)
+  coverTracks?: boolean,
+  forage?: boolean
+) => act(state, { type: 'travel', routeId, pace, coverTracks, forage }, c)
 const go = (state: GameState, c: Content = content) => act(state, { type: 'continueJourney' }, c)
 /** The same journey with its encounter days replaced. */
 const encountersOn = (state: GameState, encounterDays: number[]): GameState => ({
@@ -233,7 +234,7 @@ describe('pace on the road', () => {
   hostile.situations.cliff.disposition = 'hostile'
   for (const id of ['roadside', 'starfall']) hostile.situations[id].weight = 0
   hostile.situationTemplates.plea.weight = 0
-  const meet = (pace: Pace, coverTracks = false, seed = 0) =>
+  const meet = (pace: Pace, coverTracks = false, seed = 0, forage = false) =>
     go(
       encountersOn(
         travel(
@@ -241,7 +242,8 @@ describe('pace on the road', () => {
           'greenvale-1-greenvale-2',
           hostile,
           pace,
-          coverTracks
+          coverTracks,
+          forage
         ),
         [1]
       ),
@@ -261,6 +263,14 @@ describe('pace on the road', () => {
       )!
     expect(met(false).encounter?.position).toBe('normal')
     expect(met(true).encounter?.position).toBe('edge')
+  })
+
+  test('foraging gives covered tracks away: the ambush meets the party on normal footing', () => {
+    const met = Array.from({ length: 20 }, (_, seed) => meet('cautious', true, seed, true)).find(
+      (s) => s.encounter
+    )!
+    expect(met.encounter?.position).toBe('normal')
+    expect(meet('brisk', false, 0, true).encounter?.position).toBe('exposed')
   })
 
   test('a neutral encounter is not an ambush, whatever the pace', () => {
@@ -548,5 +558,61 @@ describe('pace is set at departure', () => {
       ['cautious', true],
     ])
     expect(texts(met).some((t) => t.includes('Foraging'))).toBe(false)
+  })
+})
+
+describe('what is met on the road', () => {
+  const place = (hostileShare: number) => ({
+    biome: 'plains' as const,
+    land: 'greenvale',
+    domain: 'greenvale-1',
+    hostileShare,
+  })
+  const draws = (c: Content, hostileShare: number) =>
+    Array.from({ length: 40 }, (_, seed) =>
+      drawEncounter(at('greenvale-1', { rng: createRng(seed) }), c, undefined, place(hostileShare))
+    )
+  const hostileCount = (states: GameState[]) =>
+    states.filter((s) => s.encounter?.situation.disposition === 'hostile').length
+
+  // The cliff turns hostile; the rest of the road stays neutral or pleasant.
+  const mixed = structuredClone(content)
+  mixed.situations.cliff.disposition = 'hostile'
+
+  test('the hostile share decides whether each encounter is hostile', () => {
+    expect(hostileCount(draws(mixed, 1))).toBe(40)
+    expect(hostileCount(draws(mixed, 0))).toBe(0)
+    const some = hostileCount(draws(mixed, 0.5))
+    expect(some).toBeGreaterThan(5)
+    expect(some).toBeLessThan(35)
+  })
+
+  test('with nothing of the drawn kind to meet, any fitting encounter is met', () => {
+    // No regular situation in the fixtures is hostile.
+    const met = draws(content, 1)
+    expect(met.every((s) => s.encounter !== null)).toBe(true)
+    expect(hostileCount(met)).toBe(0)
+  })
+
+  test('at most one encounter a day, even from an older save that lists a day twice', () => {
+    const out = encountersOn(travel(at('greenvale-1'), 'greenvale-1-greenvale-2'), [1, 1])
+    const met = go(out)
+    expect(met.encounter).not.toBeNull()
+    expect(met.travel!.encounterDays).toEqual([])
+    const next = go({ ...met, encounter: null })
+    expect(next.encounter).toBeNull()
+    expect(next.travel).toBeNull()
+  })
+
+  test('a pursuit that comes due takes the day’s encounter rather than adding one', () => {
+    const hunted = structuredClone(content)
+    hunted.situations.grudge.pursuit = true
+    const base = at('greenvale-1')
+    const queued = { ...base, followUps: [{ situationId: 'grudge', wait: 0, queuedDay: base.day }] }
+    const out = encountersOn(travel(queued, 'greenvale-1-greenvale-2', hunted), [2])
+    const met = go(out, hunted)
+    expect(met.encounter?.situation.id).toBe('grudge')
+    expect(met.travel!.encounterDays).toEqual([])
+    expect(met.travel!.daysDone).toBe(2)
   })
 })

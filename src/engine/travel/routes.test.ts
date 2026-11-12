@@ -5,9 +5,10 @@ import { fixtureContent, makeState } from '../test-fixtures'
 import { domainThreatLevel } from '../world/pois'
 import {
   canMeetEncounters,
-  encounterChance,
+  ENCOUNTER_SLOT_CHANCE,
   encounterRange,
   fareFor,
+  hostileShare,
   journeyDays,
   kmPerDay,
   rollEncounterDays,
@@ -61,12 +62,11 @@ describe('pace', () => {
     }
   })
 
-  test('brisk and forced add 10% to each encounter slot; cautious keeps the usual rate', () => {
-    expect(encounterChance(0, 0, 'cautious')).toBeCloseTo(0.2)
-    expect(encounterChance(0, 0, 'steady')).toBeCloseTo(0.2)
-    expect(encounterChance(0, 0, 'brisk')).toBeCloseTo(0.3)
-    expect(encounterChance(2, 1, 'forced')).toBeCloseTo(0.7)
-    expect(encounterChance(3, 3, 'forced')).toBeCloseTo(0.9)
+  test('brisk and forced make encounters likelier to be hostile; cautious keeps the usual mix', () => {
+    expect(hostileShare(0, 0, 'cautious').share).toBeCloseTo(0.25)
+    expect(hostileShare(0, 0, 'steady').share).toBeCloseTo(0.25)
+    expect(hostileShare(0, 0, 'brisk').share).toBeCloseTo(0.35)
+    expect(hostileShare(0, 0, 'forced')).toMatchObject({ pace: 0.1 })
   })
 
   test('the encounter budget still follows the journey’s days', () => {
@@ -76,9 +76,9 @@ describe('pace', () => {
   })
 })
 
-test('short hops get 0–2 encounters, middling journeys 1–3, long ones 2–4', () => {
+test('short hops get 0–2 encounters, middling journeys 1–3, long ones 2–4, at most one a day', () => {
   expect([1, 2, 3, 4, 5, 9].map(encounterRange)).toEqual([
-    [0, 2],
+    [0, 1],
     [0, 2],
     [1, 3],
     [1, 3],
@@ -87,10 +87,29 @@ test('short hops get 0–2 encounters, middling journeys 1–3, long ones 2–4'
   ])
 })
 
-test('the encounter chance grows with danger and threat, within 5–90%', () => {
-  expect(encounterChance(0, 0)).toBeCloseTo(0.2)
-  expect(encounterChance(2, 1)).toBeCloseTo(0.6)
-  expect(encounterChance(3, 3)).toBeCloseTo(0.9)
+test('every slot fills with the same chance, whatever the road', () => {
+  expect(ENCOUNTER_SLOT_CHANCE).toBe(0.4)
+})
+
+describe('hostileShare', () => {
+  test('danger, threat, foraging and a hurried pace each make encounters likelier hostile', () => {
+    expect(hostileShare(0, 0)).toEqual({
+      share: 0.25,
+      base: 0.25,
+      danger: 0,
+      threat: 0,
+      forage: 0,
+      pace: 0,
+    })
+    const share = hostileShare(2, 1, 'brisk', true)
+    expect(share).toMatchObject({ danger: 0.2, threat: 0.1, forage: 0.1, pace: 0.1 })
+    expect(share.share).toBeCloseTo(0.75)
+  })
+
+  test('stays within 10–85%', () => {
+    expect(hostileShare(3, 3, 'forced', true).share).toBe(0.85)
+    expect(hostileShare(-3, 0).share).toBe(0.1)
+  })
 })
 
 describe('rollEncounterDays', () => {
@@ -114,6 +133,15 @@ describe('rollEncounterDays', () => {
   test('chance 0 gives the minimum, chance 1 the maximum', () => {
     expect(roll(1, 6, [2, 4], 0)).toHaveLength(2)
     expect(roll(1, 6, [2, 4], 1)).toHaveLength(4)
+  })
+
+  test('at most one encounter a day, so never more than the journey’s days', () => {
+    for (let seed = 0; seed < 300; seed++) {
+      const days = roll(seed, 5, [2, 4], 0.5)
+      expect(new Set(days).size).toBe(days.length)
+      expect(roll(seed, 2, [2, 4], 1)).toEqual([1, 2])
+      expect(roll(seed, 1, [0, 2], 1)).toEqual([1])
+    }
   })
 })
 

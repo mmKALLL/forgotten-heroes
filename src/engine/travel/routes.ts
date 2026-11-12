@@ -10,10 +10,11 @@ import type { Draw } from '../rng'
 import {
   COVER_TRACKS_EXTRA_DAYS,
   DEFAULT_PACE,
-  PACE_ENCOUNTER_BONUS,
+  PACE_HOSTILE_BONUS,
   PACE_SPEED,
   coversTracks,
 } from './pace'
+import { FORAGE_HOSTILE_BONUS } from './tuning'
 
 /** km per day on foot (or under sail) by terrain, at a steady pace. Morale will modify these later. */
 export const KM_PER_DAY: Readonly<Record<Biome, number>> = {
@@ -48,23 +49,62 @@ export const journeyDays = (
   coverTracks = false
 ): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, coverTracks)))
 
-/** The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4. */
+/**
+ * The chance that each encounter slot above the minimum fills: the same on every road and at
+ * every pace. Danger, threat, pace and foraging change what is met, not how often (hostileShare).
+ */
+export const ENCOUNTER_SLOT_CHANCE = 0.4
+
+/**
+ * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one
+ * a day, so never more than the journey's days.
+ */
 export function encounterRange(days: number): [number, number] {
-  if (days <= SHORT_HOP_DAYS) return [0, 2]
-  if (days >= LONG_JOURNEY_DAYS) return [2, 4]
-  return [1, 3]
+  const [min, max]: [number, number] =
+    days <= SHORT_HOP_DAYS ? [0, 2] : days >= LONG_JOURNEY_DAYS ? [2, 4] : [1, 3]
+  return [Math.min(min, days), Math.min(max, days)]
 }
 
-/** The chance that each encounter slot above the minimum fills; brisk and forced add to it. */
-export const encounterChance = (
+/** The share of encounters that are hostile before danger, threat, foraging and pace. */
+export const HOSTILE_BASE = 0.25
+/** Added to the hostile share per level of route danger, and per level of the domain's threat. */
+export const HOSTILE_PER_DANGER = 0.1
+export const HOSTILE_PER_THREAT = 0.1
+/** The hostile share stays within these bounds. */
+export const HOSTILE_SHARE_RANGE: readonly [number, number] = [0.1, 0.85]
+
+/**
+ * How likely each encounter on a journey is to be hostile, and what makes it so: the base share,
+ * then route danger, the domain's threat level, foraging (FORAGE_HOSTILE_BONUS) and a brisk or
+ * forced pace (PACE_HOSTILE_BONUS), within HOSTILE_SHARE_RANGE. The rest are neutral or pleasant,
+ * by their situations' weights.
+ */
+export type HostileShare = {
+  share: number
+  base: number
+  danger: number
+  threat: number
+  forage: number
+  pace: number
+}
+
+export function hostileShare(
   danger: number,
   threatLevel: number,
-  pace: Pace = DEFAULT_PACE
-): number =>
-  Math.min(
-    0.9,
-    Math.max(0.05, 0.2 + 0.15 * danger + 0.1 * threatLevel + PACE_ENCOUNTER_BONUS[pace])
-  )
+  pace: Pace = DEFAULT_PACE,
+  forage = false
+): HostileShare {
+  const parts = {
+    base: HOSTILE_BASE,
+    danger: HOSTILE_PER_DANGER * danger,
+    threat: HOSTILE_PER_THREAT * threatLevel,
+    forage: forage ? FORAGE_HOSTILE_BONUS : 0,
+    pace: PACE_HOSTILE_BONUS[pace],
+  }
+  const [lo, hi] = HOSTILE_SHARE_RANGE
+  const sum = parts.base + parts.danger + parts.threat + parts.forage + parts.pace
+  return { share: Math.min(hi, Math.max(lo, sum)), ...parts }
+}
 
 /**
  * True when some situation can be drawn on this route or path: one that fits its terrain and the
@@ -90,21 +130,22 @@ export function canMeetEncounters(
 }
 
 /**
- * The encounter budget and the chance each slot above the fewest fills, for a journey of `days`
- * at this pace; none at all on a route where nothing can be met (canMeetEncounters).
+ * The encounter budget and the chance each slot above the fewest fills, for a journey of `days`;
+ * none at all on a route where nothing can be met (canMeetEncounters).
  */
 export function routeEncounters(
   meets: boolean,
-  days: number,
-  danger: number,
-  threatLevel: number,
-  pace: Pace = DEFAULT_PACE
+  days: number
 ): { encounters: [number, number]; chance: number } {
   if (!meets) return { encounters: [0, 0], chance: 0 }
-  return { encounters: encounterRange(days), chance: encounterChance(danger, threatLevel, pace) }
+  return { encounters: encounterRange(days), chance: ENCOUNTER_SLOT_CHANCE }
 }
 
-/** The journey days with an encounter, ascending; a day may hold more than one. */
+/**
+ * The journey days with an encounter, rolled once at departure: the count within the budget
+ * (each slot above the fewest fills with `chance`), capped at the journey's days, then spread over
+ * distinct days, ascending (at most one a day).
+ */
 export function rollEncounterDays(
   d: Draw,
   days: number,
@@ -113,7 +154,15 @@ export function rollEncounterDays(
 ): number[] {
   let count = min
   for (let slot = min; slot < max; slot++) if (d.float() < chance) count++
-  return Array.from({ length: count }, () => d.int(1, days)).sort((a, b) => a - b)
+  // A partial Fisher–Yates shuffle of the days picks `count` distinct ones.
+  const pool = Array.from({ length: days }, (_, i) => i + 1)
+  const picked: number[] = []
+  for (let i = 0; i < Math.min(count, days); i++) {
+    const j = d.int(i, days - 1)
+    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+    picked.push(pool[i])
+  }
+  return picked.sort((a, b) => a - b)
 }
 
 /**

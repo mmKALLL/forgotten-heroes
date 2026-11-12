@@ -38,6 +38,13 @@ test('ambush footing by pace', () => {
   expect(ambushPositionForPace('forced', false)).toBe('exposed')
 })
 
+test('foraging gives the party away: covered tracks win no Edge on a journey that forages', () => {
+  expect(ambushPositionForPace('cautious', true, 'normal', true)).toBe('normal')
+  expect(ambushPositionForPace('cautious', true, 'normal', false)).toBe('edge')
+  expect(ambushPositionForPace('cautious', false, 'normal', true)).toBe('normal')
+  expect(ambushPositionForPace('brisk', false, 'normal', true)).toBe('exposed')
+})
+
 test('each day on the road records its pace, for pursuit', () => {
   const travel: TravelState = {
     route: 'greenvale-1-greenvale-2',

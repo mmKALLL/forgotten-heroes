@@ -56,7 +56,15 @@ test('shows the settlement and its roads; picking a road shows its odds; Travel 
       onAction={onAction}
     />
   )
-  expect(road(greenvale2).getByText(/2–4 encounters likely/)).toBeTruthy()
+  const steady = routeOptions(state, content)
+    .find((r) => r.to === 'greenvale-2')!
+    .paces.find((p) => p.pace === 'steady')!
+  expect(
+    road(greenvale2).getByText(
+      `2–4 encounters · about ${Math.round(steady.hostile.share * 100)}% of them hostile`
+    )
+  ).toBeTruthy()
+  expect(road(greenvale2).getByText(/^Hostile share: 25% base, .*\+10% foraging$/)).toBeTruthy()
   expect(road(greenvale2).getByText(/forages each day: Survival/)).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenCalledWith({
@@ -100,6 +108,20 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
 
   await userEvent.click(pacePicker.getByRole('button', { name: 'Cautious, covering tracks' }))
   expect(group.getByText(`About ${at('cautious', true).days} days on the road`)).toBeTruthy()
+  // Foraging gives covered tracks away; the toggle says so.
+  expect(group.getByText('Ambushes meet the party on normal footing')).toBeTruthy()
+  const covered = at('cautious', true)
+  const forage = group.getByRole('checkbox', { name: 'Forage along the way' })
+  expect(forage.getAttribute('aria-describedby')).toBeTruthy()
+  expect(
+    group.getByText(
+      `Foraging draws attention: about ${Math.round(covered.forageTradeOff!.foraging.hostile * 100)}% ` +
+        `of encounters hostile instead of ` +
+        `${Math.round(covered.forageTradeOff!.notForaging.hostile * 100)}%; ` +
+        'covered tracks give ambushes no Edge'
+    )
+  ).toBeTruthy()
+  await userEvent.click(forage)
   expect(group.getByText('Ambushes meet the party with Edge')).toBeTruthy()
   expect(group.getByText(/^Steers clear of \d+% of hostile encounters$/)).toBeTruthy()
   expect(group.queryByText(/A forced march/)).toBeNull()
@@ -109,7 +131,7 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
     routeId: 'ashmoor-1-greenvale-2',
     pace: 'cautious',
     coverTracks: true,
-    forage: true,
+    forage: false,
   })
 })
 
