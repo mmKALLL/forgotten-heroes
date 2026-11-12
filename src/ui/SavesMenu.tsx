@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Content } from '../content/build'
 import { slotSummary, type SlotSummary } from '../engine/slots'
 import type { GameState } from '../schema/state'
+import { HallOfFallen } from './HallOfFallen'
 import { useI18n } from './i18n/I18n'
 import { SLOTS, deleteSlot, readSlot } from './saves'
 
@@ -15,6 +16,7 @@ type Confirm = { slot: number; what: 'newParty' | 'delete' } | null
  * The Saves menu in the top bar (Plan 5b, U1): three slots, each with its run's summary. Ironman
  * (design §6): the game auto-saves to the slot being played, so there is no save or copy button.
  * A new party begins in a random mainland settlement (designer decision: no choice of start).
+ * Under the slots, the Hall of the Fallen lists every run that ended (U3).
  */
 export function SavesMenu({
   content,
@@ -144,6 +146,7 @@ export function SavesMenu({
               )
             })}
           </ol>
+          <HallOfFallen />
         </div>
       )}
     </div>

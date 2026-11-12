@@ -1260,6 +1260,126 @@ h2[tabindex='-1']:focus {
 .saves-confirm p {
   flex-basis: 100%;
 }
+/* The Hall of the Fallen (Plan 5b U3), under the save slots. */
+.saves-menu .hall {
+  margin-top: 0.5rem;
+}
+.saves-menu .hall-list {
+  margin-top: 0.4rem;
+  gap: 0.4rem;
+}
+.hall-list li {
+  padding-bottom: 0.4rem;
+  border-bottom: 1px dotted var(--line);
+}
+.hall-list li:last-child {
+  border-bottom: none;
+}
+.hall-list p {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+/* The end screens (Plan 5b U3): a modal over the game, scrolling inside on a small screen. */
+.end-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgb(0 0 0 / 0.55);
+}
+.end-dialog {
+  width: min(36rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.35);
+  border-top: 4px solid var(--accent);
+}
+.end-dialog.end-won {
+  border-top-color: var(--good);
+}
+.end-dialog.end-lost,
+.end-dialog.end-fallen {
+  border-top-color: var(--bad);
+}
+.end-kicker {
+  margin: 0 0 0.2rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+}
+.end-dialog h2 {
+  font-size: 1.25rem;
+  text-transform: none;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  margin-bottom: 0.6rem;
+}
+.end-dialog h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent);
+  margin: 0.9rem 0 0.3rem;
+}
+.end-dialog h3 .end-villain {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-weight: normal;
+}
+.end-story {
+  margin: 0;
+  font-style: italic;
+  line-height: 1.45;
+}
+.end-lines,
+.end-acts,
+.end-party {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+.end-acts li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 0.8rem;
+}
+.end-party li.fell {
+  color: var(--muted);
+}
+.end-dialog section p {
+  margin: 0;
+}
+.end-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.1rem;
+}
+.end-actions p {
+  flex-basis: 100%;
+  margin: 0;
+}
+/* After "Look back", a fallen run keeps this under the top bar. */
+.fallen-banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1rem;
+  padding: 0.4rem 1rem;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bad) 14%, var(--panel));
+  color: var(--bad);
+  font-weight: 600;
+}
 /* The goods bar (design §9): goods by category, the capacity meter and visible wealth. */
 .goods-bar {
   position: sticky;

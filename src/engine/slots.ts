@@ -1,10 +1,9 @@
 import type { Content } from '../content/build'
 import type { GameState } from '../schema/state'
+import type { RunEnding } from '../schema/types'
+import { runEnding } from './crisis/ending'
 
 // What a save slot shows in the Saves menu (Plan 5b, U1). Plain data: the UI words it.
-
-/** How a run ended: the Crisis won or lost, or the party fallen. */
-export type RunEnding = 'won' | 'lost' | 'fallen'
 
 export type SlotSummary = {
   day: number
@@ -13,7 +12,7 @@ export type SlotSummary = {
   /** Where the party is, or where it is headed when on the road. */
   place: string
   onRoad: boolean
-  /** Null while the run goes on. Filled from the run's ending once the engine has one (Plan 5b, E5). */
+  /** How the run ended (the Crisis won or lost, or the party fallen); null while it goes on. */
   ending: RunEnding | null
 }
 
@@ -32,6 +31,6 @@ export function slotSummary(state: GameState, _content: Content): SlotSummary {
     party: state.party.map((c) => ({ name: c.name, level: c.level })),
     place: at === null ? '' : placeName(state, at),
     onRoad,
-    ending: null,
+    ending: runEnding(state),
   }
 }
