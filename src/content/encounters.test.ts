@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
-import { GOOD_CATEGORY, GOODS, POI_CATEGORIES, WEALTH_TAGS } from '../schema/types'
+import { GOOD_CATEGORY, GOODS, POI_CATEGORIES, WEALTH_TAGS, type Biome } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { applyEffects } from '../engine/encounters/effects'
@@ -138,31 +138,57 @@ const idsFrom = (source: string) =>
     .map((s) => s.id)
     .sort()
 
+/** The second batch of road situations (road-situations-2.json), aimed at the thinnest terrains. */
+const ROAD_BATCH_2 = [
+  'becalmed',
+  'buried-column',
+  'couriers-purse',
+  'darts-from-the-green',
+  'dry-cistern',
+  'false-lights',
+  'fire-in-the-grass',
+  'logging-camp',
+  'nets-in-the-reeds',
+  'peat-cutters-find',
+  'pool-under-the-falls',
+  'riders-in-the-grass',
+  'rope-bridge',
+  'salt-caravan',
+  'sandstorm',
+  'short-of-hands',
+  'snare-line',
+  'sunstruck-prospector',
+  'widowmaker',
+]
+
 test('Claude wrote road and sea situations, two of them wonders, plus follow-ups for the lizardfolk port and the twist table', () => {
-  expect(idsFrom('claude')).toEqual([
-    'ambush-at-the-narrows',
-    'barn-on-fire',
-    'creeping-fever',
-    'cutpurse-at-the-fair',
-    'flooded-ferry',
-    'grudge-on-the-road',
-    'hedge-witch',
-    'horse-thieves',
-    'lantern-moths',
-    'lizardfolk-herb',
-    'mapmakers-apprentice',
-    'passenger-overboard',
-    'pilgrims-at-dusk',
-    'singing-stones',
-    'smugglers-below-decks',
-    'sold-out-ambush',
-    'something-under-the-hull',
-    'squall-off-the-bow',
-    'tavern-brawl',
-    'toll-bridge',
-    'tribute-at-the-pass',
-    'wardens-on-your-trail',
-  ])
+  expect(idsFrom('claude')).toEqual(
+    [
+      'ambush-at-the-narrows',
+      'barn-on-fire',
+      'creeping-fever',
+      'cutpurse-at-the-fair',
+      'flooded-ferry',
+      'grudge-on-the-road',
+      'hedge-witch',
+      'horse-thieves',
+      'lantern-moths',
+      'lizardfolk-herb',
+      'mapmakers-apprentice',
+      'passenger-overboard',
+      'pilgrims-at-dusk',
+      'singing-stones',
+      'smugglers-below-decks',
+      'sold-out-ambush',
+      'something-under-the-hull',
+      'squall-off-the-bow',
+      'tavern-brawl',
+      'toll-bridge',
+      'tribute-at-the-pass',
+      'wardens-on-your-trail',
+      ...ROAD_BATCH_2,
+    ].sort()
+  )
   const wonders = Object.values(content.situations).filter(
     (s) => s.source === 'claude' && s.wonder && !s.site
   )
@@ -214,6 +240,20 @@ test('some situations are tied to terrain, and the rest happen anywhere on land'
   expect(content.situations['lantern-moths'].biomes).toEqual(['marsh'])
   const anywhere = allSituations(content).filter((s) => !s.biomes && !s.regions && !s.followUpOnly)
   expect(anywhere.length).toBeGreaterThan(5)
+})
+
+test('every land terrain a road crosses has at least three road situations of its own', () => {
+  const terrains = new Set(
+    Object.values(content.routes)
+      .map((r) => r.terrain)
+      .filter((t) => t !== 'sea')
+  )
+  const own = (terrain: Biome) =>
+    allSituations(content).filter(
+      (s) => !s.followUpOnly && !s.site && s.weight > 0 && (s.biomes ?? []).includes(terrain)
+    )
+  for (const terrain of terrains)
+    expect([terrain, own(terrain).length >= 3]).toEqual([terrain, true])
 })
 
 test('every situation and twist kind says how it treats the party', () => {
@@ -637,7 +677,7 @@ describe('goods in encounters (Plan 4)', () => {
       const after = applyEffects(stocked, [e], { content })
       const [before, now] =
         e.effect === 'goods' ? [total(stocked), total(after)] : [herd(stocked), herd(after)]
-      const gains = e.effect === 'goods' && e.fraction === undefined && (e.amount ?? 0) > 0
+      const gains = (e.effect === 'animals' || e.fraction === undefined) && (e.amount ?? 0) > 0
       expect(Math.sign(now - before), JSON.stringify(e)).toBe(gains ? 1 : -1)
     }
   })

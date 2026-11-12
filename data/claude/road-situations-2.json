@@ -1,0 +1,1650 @@
+{
+  "$schema": "../_schema/situations.schema.json",
+  "kind": "situations",
+  "source": "claude",
+  "notes": "A second batch of road situations, aimed at the terrains that had nothing of their own (counted per land and terrain over the committed content): desert (dry-cistern, salt-caravan, sandstorm, buried-column, sunstruck-prospector), jungle (rope-bridge, darts-from-the-green, logging-camp, pool-under-the-falls, nets-in-the-reeds), plains (short-of-hands, fire-in-the-grass, riders-in-the-grass, couriers-purse), marsh (peat-cutters-find, logging-camp, nets-in-the-reeds), forest (widowmaker, snare-line) and the sea (becalmed, false-lights). Every one names its biomes, none its regions, so each land of that terrain gains it. Dispositions: 6 hostile, 10 neutral, 3 pleasant. Plan 5a hooks: a tier-1 accessory on a few critical successes (the sandstorm's ruin, the buried column's officer, the pool under the falls) and for coin or theft at the peat-cutters' find; camaraderie for a shared hardship (sitting out the sandstorm, a day at the pool, rowing the becalmed ship) and a quarrel (keeping the courier's purse, robbing the bog body); people met on the road who mean to look for work at an inn (the caravan's outrider, a logger at the camp, the farmer's son), flavour only since recruiting happens in town; and an xp of 0 on a dice game and a day's reaping, which are a gamble and a chore, not adventuring. In the desert a day lost (a `days` effect) also drinks two water a member, which the shelter options weigh. The peat-cutters' rites leave a clue (discoverPoi). Written by Claude.",
+  "entries": [
+    {
+      "id": "dry-cistern",
+      "title": "The fouled cistern",
+      "disposition": "neutral",
+      "biomes": ["desert"],
+      "tags": ["road", "water"],
+      "notes": "Water in the desert. A strong back risks HP, a digger risks a level of exhaustion, a flask of alchemicals makes it certain, and walking on costs only the water you didn't get.",
+      "stages": {
+        "start": {
+          "text": "The waystation is four walls and a roofed cistern, marked on every caravan map. Someone got here first: a dead camel lies head-down in the cistern, and the water under it has gone green and sour.",
+          "options": [
+            {
+              "id": "haul",
+              "kind": "check",
+              "label": "Haul the carcass out and bail",
+              "description": "Heavy, filthy work. There is clean water under the bad, if you bail enough of it.",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "The rope parts and {actor} goes into the cistern with the camel. They come out retching, and nobody fills a skin from it after that.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "fail": {
+                  "text": "You get the camel out, but the water stays foul. {actor} has torn both palms on the rope.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "An afternoon of bailing leaves a few skins' worth clear enough to drink.",
+                  "effects": [{ "effect": "goods", "good": "water", "amount": 2 }]
+                },
+                "success": {
+                  "text": "{actor} drags the carcass clear and you bail until the water runs sweet. You drink your fill and top up every skin.",
+                  "effects": [{ "effect": "goods", "good": "water", "amount": 4 }]
+                }
+              }
+            },
+            {
+              "id": "dig",
+              "kind": "check",
+              "label": "Dig for the spring under the floor",
+              "description": "Cisterns are built over seeps. Digging in this heat is how people drop.",
+              "check": { "skill": "survival", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "Damp sand, then dry sand. {actor} keeps digging long after they should have stopped, and pays for it.",
+                  "effects": [{ "effect": "exhaustion", "amount": 1, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "A slow seep fills the pit by evening. It gives a couple of skins before it runs muddy.",
+                  "effects": [{ "effect": "goods", "good": "water", "amount": 2 }]
+                },
+                "success": {
+                  "text": "{actor} digs where the old builders' channel runs in. Clean water wells up in the pit, and you fill every skin.",
+                  "effects": [{ "effect": "goods", "good": "water", "amount": 4 }]
+                }
+              }
+            },
+            {
+              "id": "purify",
+              "kind": "fixed",
+              "label": "Purify it (1 alchemicals)",
+              "description": "A flask of purifying salts makes the worst of it drinkable. The salts are spent.",
+              "requires": [{ "req": "goods", "good": "alchemicals", "min": 1 }],
+              "outcome": {
+                "text": "The salts hiss and settle. An hour later the water is grey but sweet, and you fill every skin.",
+                "effects": [
+                  { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                  { "effect": "goods", "good": "water", "amount": 4 }
+                ]
+              }
+            },
+            {
+              "id": "walk-on",
+              "kind": "fixed",
+              "label": "Go on with what you carry",
+              "outcome": {
+                "text": "You leave the camel to the flies. The next well is somebody else's problem until you reach it."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "salt-caravan",
+      "title": "The salt caravan",
+      "disposition": "pleasant",
+      "biomes": ["desert"],
+      "tags": ["road", "traders"],
+      "notes": "A caravan sitting out the noon heat. The dice are a game, not a lesson: no XP (xp 0). A day at their camp teaches someone Survival and rests everyone, at the cost of the day (and its water). Their outrider wants a different life: flavour for recruiting in town. The camel is sold under its usual price.",
+      "stages": {
+        "start": {
+          "text": "Thirty camels kneel in the shade of a rock outcrop, loaded with grey slabs of salt. The drivers have strung awnings between the packs and are waiting out the noon heat with tea and dice. Their master, a broad woman with a scarred chin, waves you in.",
+          "options": [
+            {
+              "id": "dice",
+              "kind": "check",
+              "label": "Sit in on the dice (5 gp stake)",
+              "description": "Knucklebones, played fast. Watching the players matters more than the bones. A game teaches nothing: no XP.",
+              "requires": [{ "req": "gold", "min": 5 }],
+              "once": true,
+              "check": { "skill": "insight", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "{actor} loses the stake, then more trying to win it back. The drivers are sorry about it, and keep the money.",
+                  "effects": [
+                    { "effect": "gold", "amount": -8 },
+                    { "effect": "xp", "amount": 0 }
+                  ],
+                  "stay": true
+                },
+                "fail": {
+                  "text": "{actor} reads the table wrong all afternoon. The stake stays on the blanket.",
+                  "effects": [
+                    { "effect": "gold", "amount": -5 },
+                    { "effect": "xp", "amount": 0 }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "Up a little, down a little. {actor} gets up from the blanket with the stake and nothing more.",
+                  "effects": [{ "effect": "xp", "amount": 0 }],
+                  "stay": true
+                },
+                "success": {
+                  "text": "{actor} notices who drinks before a big throw, and bets against him. The drivers laugh and pay up.",
+                  "effects": [
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "xp", "amount": 0 }
+                  ],
+                  "stay": true
+                },
+                "critSuccess": {
+                  "text": "{actor} cleans out the blanket. The caravan master buys the bones off them for luck.",
+                  "effects": [
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "xp", "amount": 0 }
+                  ],
+                  "stay": true
+                }
+              }
+            },
+            {
+              "id": "stay-a-day",
+              "kind": "fixed",
+              "label": "Rest a day at their camp",
+              "description": "A day lost, and its water drunk. You eat at their fire, and the drivers teach whoever doesn't know the desert how it's done.",
+              "requires": [{ "req": "untrained", "skill": "survival" }],
+              "outcome": {
+                "text": "You lose a day and gain a lot. The drivers show the greenest of you how to read the dunes, where a seep hides, and when to stop walking. At parting their outrider Sadiq, a quiet lad who has never seen the sea, asks whether adventurers ever take on hands. He means to try the inn at the next town.",
+                "effects": [
+                  { "effect": "days", "amount": 1 },
+                  { "effect": "goods", "good": "food", "amount": 2 },
+                  { "effect": "healFraction", "fraction": 0.25, "target": "all" },
+                  { "effect": "trainSkill", "skill": "survival" }
+                ]
+              }
+            },
+            {
+              "id": "camel",
+              "kind": "fixed",
+              "label": "Buy a spare camel (40 gp)",
+              "description": "Under the market price, and it carries 150 kg. It eats every day all the same.",
+              "requires": [{ "req": "gold", "min": 40 }],
+              "outcome": {
+                "text": "The master picks you a grumbling cow-camel with good feet and takes your coin. 'She bites,' she says. 'Only people.'",
+                "effects": [
+                  { "effect": "gold", "amount": -40 },
+                  { "effect": "animals", "animal": "camel", "amount": 1 }
+                ]
+              }
+            },
+            {
+              "id": "tea",
+              "kind": "fixed",
+              "label": "Drink their tea and go on",
+              "outcome": {
+                "text": "You drink the three glasses of sweet tea that custom asks for. The master tells you the wells ahead are low, and you thank her and go."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sandstorm",
+      "title": "The sandstorm",
+      "disposition": "neutral",
+      "biomes": ["desert"],
+      "tags": ["road", "storm"],
+      "notes": "Sitting it out costs a day (and its water) and brings the party closer (camaraderie +1, a shared hardship). Pushing on keeps the day at the risk of HP. The ruin also costs the day, risks a falling roof, and may hold old coin (a tier-1 accessory on a critical success).",
+      "stages": {
+        "start": {
+          "text": "The southern horizon has turned brown, and it is getting taller. The wind is already throwing grit hard enough to sting. You have an hour, maybe less.",
+          "options": [
+            {
+              "id": "hunker",
+              "kind": "fixed",
+              "label": "Dig in behind the packs and wait it out",
+              "description": "A day and a night under your cloaks, sharing water and air. Nobody gets hurt.",
+              "outcome": {
+                "text": "You hunker down in a ring behind the packs, cloaks over your heads. It blows for a day and a night. You share the water, then the stories, then the silences. When it drops you dig each other out, laughing at nothing.",
+                "effects": [
+                  { "effect": "days", "amount": 1 },
+                  { "effect": "camaraderie", "amount": 1 }
+                ]
+              }
+            },
+            {
+              "id": "push-on",
+              "kind": "check",
+              "label": "Push on through it",
+              "description": "Keep the wind on one cheek and keep walking. Lose the line and you lose the road.",
+              "check": { "skill": "survival", "dc": 14 },
+              "outcomes": {
+                "critFail": {
+                  "text": "{actor} leads you in a long circle. When the storm drops you are back where you started, flayed raw and spent.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "exhaustion", "amount": 1, "target": "actor" },
+                    { "effect": "days", "amount": 1 }
+                  ]
+                },
+                "fail": {
+                  "text": "You lose the road within the hour. It takes until the next evening to find it again, and the grit has taken the skin off every face.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "days", "amount": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "You keep to the road, more or less, with sand in your teeth and your eyes swollen half shut.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} keeps the line by the feel of the wind, and you walk out of the far side of the storm by dusk."
+                }
+              }
+            },
+            {
+              "id": "ruin",
+              "kind": "check",
+              "label": "Make for the ruin on the ridge",
+              "description": "Old walls stick out of a dune a mile off. Shelter for the day, if the roof holds, and the sand sometimes gives things back.",
+              "check": { "skill": "perception", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "You reach the ruin as the storm does, and a beam comes down on {actor} in the dark. The walls hold, at least.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "days", "amount": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "The walls hold. You sit out the storm in a dead family's kitchen and leave at dawn with sand in everything.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "{actor} spots a doorway before the storm hits. In the back room the floor has caved, and in the hole is a cracked jar of coins gone green.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 10 }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} spots a doorway before the storm hits. Under the caved floor is a cracked jar of green coins, and, wrapped in rotten cloth, a piece of jewellery with a little magic still in it.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 10 },
+                    { "effect": "accessory", "tier": 1 }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "buried-column",
+      "title": "The buried column",
+      "disposition": "hostile",
+      "biomes": ["desert"],
+      "tags": ["road", "night", "restless-dead"],
+      "notes": "The dead of an old battle march on the camp. Fight for the officer's purse (his ring, a tier-1 accessory, on a critical success), keep them off with fire (2 fuel, no roll), turn them with the old words (a success gives the Edge for a fight; a failure leaves you Exposed), or walk away and lose half the food.",
+      "stages": {
+        "start": {
+          "text": "Past midnight the sand around the camp starts to shift. Helmets come up first, then the rest: a file of soldiers in rotted leather, marching in step towards your fire with their spears still on their shoulders.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight them at the fire",
+              "check": { "skill": "athletics", "dc": 13, "combat": true },
+              "outcomes": {
+                "critFail": {
+                  "text": "There are more of them than you counted. You break the file at last, but not before every one of you has been cut.",
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
+                },
+                "fail": {
+                  "text": "You put them down one at a time, and each takes a piece of someone first.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You break the file and the rest sink back into the sand. {actor} has a spearhead to pull out of a thigh.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} cuts down their officer, and the rest fall apart into heaps of bone. The officer's purse still holds his last pay.",
+                  "effects": [{ "effect": "gold", "amount": 12 }]
+                },
+                "critSuccess": {
+                  "text": "{actor} cuts down their officer, and the rest fall apart into heaps of bone. His purse holds his last pay, and his finger a ring that is warm to the touch.",
+                  "effects": [
+                    { "effect": "gold", "amount": 12 },
+                    { "effect": "accessory", "tier": 1 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "turn",
+              "kind": "check",
+              "label": "Order them back to their graves",
+              "description": "Religion: the old words for the dead. Half-heard, they slow the column; ignored, the spears are in the camp before you finish.",
+              "once": true,
+              "check": { "skill": "religion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "They don't listen. By the time {actor} stops reciting, the spears are among the bedrolls.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "Half of them stop and kneel in the sand. The rest keep coming, fewer and slower.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "stay": true
+                },
+                "success": {
+                  "text": "{actor} speaks the words and the column halts. One by one they kneel, lie down, and the sand closes over them."
+                }
+              }
+            },
+            {
+              "id": "fire",
+              "kind": "fixed",
+              "label": "Ring the camp with fire (2 fuel)",
+              "description": "They stop at the light. It burns all the fuel you can spare.",
+              "requires": [{ "req": "goods", "good": "fuel", "min": 2 }],
+              "outcome": {
+                "text": "You pile the fuel round the camp and light it. They stop at the edge of the light and stand there until dawn, and when the sun comes up there is nothing but footprints.",
+                "effects": [{ "effect": "goods", "good": "fuel", "amount": -2 }]
+              }
+            },
+            {
+              "id": "abandon",
+              "kind": "fixed",
+              "label": "Leave the camp and walk into the dark",
+              "description": "They want the fire, not you. Probably. Your food is still by it.",
+              "outcome": {
+                "text": "You grab what you can carry and walk fast into the dark. At dawn you come back to trampled ashes and split sacks.",
+                "effects": [{ "effect": "goods", "good": "food", "fraction": 0.5 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "sunstruck-prospector",
+      "title": "The sunstruck prospector",
+      "disposition": "neutral",
+      "biomes": ["desert"],
+      "tags": ["road"],
+      "notes": "Someone in need, in the desert, with the twist table limited to the kinds that fit a lone man in open country. Trading him water is the quick deal: two water for a little silver.",
+      "twist": {
+        "chance": 0.3,
+        "what": "he is not as lost as he looks",
+        "table": true,
+        "kinds": ["ambush", "theft", "lure", "informant", "predator-bait"]
+      },
+      "stages": {
+        "start": {
+          "text": "A dwarf sits under a scrap of canvas propped on his pick, lips cracked white. He has a sack of rough stones and no water at all. 'Got turned round,' he croaks. 'Two days. See me back to the road and I'll pay you.'",
+          "archetype": { "id": "someone-in-need", "dc": 13, "reward": 1 },
+          "options": [
+            {
+              "id": "water",
+              "kind": "fixed",
+              "label": "Trade him water for silver (2 water)",
+              "description": "No walking with him: a swap on the spot, and two days of water gone.",
+              "requires": [{ "req": "goods", "good": "water", "min": 2 }],
+              "outcome": {
+                "text": "He drinks one skin straight off and hugs the other. He pays in silver from his boot, counting it twice.",
+                "effects": [
+                  { "effect": "goods", "good": "water", "amount": -2 },
+                  { "effect": "gold", "amount": 8 }
+                ],
+                "twist": {
+                  "text": "He drinks, then puts two fingers in his mouth and whistles. Someone has been waiting for that.",
+                  "effects": [{ "effect": "goods", "good": "water", "amount": -2 }],
+                  "goto": "@twist"
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "rope-bridge",
+      "title": "The rope bridge",
+      "disposition": "neutral",
+      "biomes": ["jungle", "mountains"],
+      "tags": ["road", "river"],
+      "notes": "Agility risks HP and a pack, a coil of gear makes it safe (and earns a little standing), and the gorge floor costs a day and some skin.",
+      "stages": {
+        "start": {
+          "text": "The path ends at a gorge with fast brown water far below. A rope bridge spans it, sagging in the middle. A third of the slats are gone, and moss has got into the ropes.",
+          "options": [
+            {
+              "id": "cross",
+              "kind": "check",
+              "label": "Cross one at a time",
+              "description": "Light feet and a hand on the rope. A heavy pack is the danger.",
+              "check": { "skill": "acrobatics", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "A slat gives under {actor}. You haul them up by the wrist, but their pack, and the purse in it, goes into the gorge.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "gold", "amount": -8 }
+                  ]
+                },
+                "fail": {
+                  "text": "{actor} drops through a gap to the armpit and wrenches a shoulder getting out.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "Everyone gets over, but {actor} lets a food sack go to keep their grip.",
+                  "effects": [{ "effect": "goods", "good": "food", "amount": -2 }]
+                },
+                "success": {
+                  "text": "{actor} goes first and calls out every rotten slat. Everyone crosses whole."
+                }
+              }
+            },
+            {
+              "id": "mend",
+              "kind": "check",
+              "label": "Mend it first (1 gear)",
+              "description": "New rope and a few lashed branches. Safe for you, and for whoever comes next. The rope stays with the bridge.",
+              "requires": [{ "req": "goods", "good": "gear", "min": 1 }],
+              "check": { "skill": "athletics", "dc": 10 },
+              "outcomes": {
+                "fail": {
+                  "text": "The new lashings hold, mostly. You cross with your hearts in your mouths, and {actor} opens a palm on the old rope.",
+                  "effects": [
+                    { "effect": "goods", "good": "gear", "amount": -1 },
+                    { "effect": "hp", "amount": -1, "target": "actor" }
+                  ]
+                },
+                "partial": {
+                  "text": "It takes most of the afternoon, but the bridge holds.",
+                  "effects": [{ "effect": "goods", "good": "gear", "amount": -1 }]
+                },
+                "success": {
+                  "text": "{actor} rigs a new handline and lashes the worst gaps. The next village hears who mended it.",
+                  "effects": [
+                    { "effect": "goods", "good": "gear", "amount": -1 },
+                    { "effect": "reputation", "amount": 1 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "climb-down",
+              "kind": "fixed",
+              "label": "Climb down and ford the river",
+              "description": "A day down one wall and up the other. Slow, and hard on the shins.",
+              "outcome": {
+                "text": "A day of scrambling down, wading the cold current, and scrambling up again. Everyone comes out scraped and bruised.",
+                "effects": [
+                  { "effect": "days", "amount": 1 },
+                  { "effect": "hp", "amount": -1, "target": "all" }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "darts-from-the-green",
+      "title": "Darts from the green",
+      "disposition": "hostile",
+      "biomes": ["jungle"],
+      "tags": ["road", "toll", "serpent-cult"],
+      "notes": "The serpent cult's toll-takers. A failed charge or a failed slip leaves a dart's poison working: a second stage that a Medicine check, a healing kit or a hard day's march (a level of exhaustion for everyone) gets you through. Paying hands over half the precious goods and half the medicine.",
+      "stages": {
+        "start": {
+          "text": "A dart with green fletching thuds into a pack strap a finger's width from a neck. Masked figures stand among the trunks ahead with blowpipes raised. One of them points at your packs, then at the ground.",
+          "options": [
+            {
+              "id": "charge",
+              "kind": "check",
+              "label": "Charge the blowpipes",
+              "description": "They're fast and the undergrowth is thick. Anyone hit is poisoned.",
+              "check": { "skill": "athletics", "dc": 14, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "You reach them through a hail of darts, and they scatter into the green. Everyone has been nicked somewhere, and {actor}'s arm has gone numb.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "goto": "venom"
+                },
+                "partial": {
+                  "text": "They break and run before you reach them, but a dart has found {actor}'s shoulder.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "goto": "venom"
+                },
+                "success": {
+                  "text": "{actor} is among them before they can reload. They flee, and leave behind a clay pot of their venom that an alchemist will pay for.",
+                  "effects": [{ "effect": "goods", "good": "alchemicals", "amount": 1 }]
+                }
+              }
+            },
+            {
+              "id": "slip",
+              "kind": "check",
+              "label": "Back off and go round through the undergrowth",
+              "description": "Stealth. If they follow, they'll be shooting at your backs.",
+              "once": true,
+              "check": { "skill": "stealth", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "A dart takes {actor} in the calf as you go. The masks follow for a while, laughing.",
+                  "effects": [
+                    { "effect": "hp", "amount": -1, "target": "actor" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
+                  "goto": "venom"
+                },
+                "partial": {
+                  "text": "You lose them in the green, and the path with them. It is most of a day before you find it again.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "{actor} takes you through the undergrowth in a wide loop and back to the path beyond them. Nobody fires a dart."
+                }
+              }
+            },
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Put down what they want",
+              "description": "Valuables and medicine. Half of each, and they let you go.",
+              "outcome": {
+                "text": "Two of them go through the packs while the blowpipes watch. They take the valuables and the medicine, half of each, and melt back into the trees.",
+                "effects": [
+                  { "effect": "goods", "category": "precious", "fraction": 0.5 },
+                  { "effect": "goods", "good": "healing", "fraction": 0.5 }
+                ]
+              }
+            }
+          ]
+        },
+        "venom": {
+          "text": "The poison is working. The skin round the wound has gone tight and grey, and a fever is coming on fast.",
+          "options": [
+            {
+              "id": "treat",
+              "kind": "check",
+              "label": "Cut and draw the poison",
+              "check": { "skill": "medicine", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} gets at it too late. The fever burns for a day before it breaks, and you go nowhere.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "hp", "amount": -2, "target": "all" }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} gets most of it out. A bad night of sweats, and no worse.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} knows this venom. A poultice of chewed leaves draws it out within the hour."
+                }
+              }
+            },
+            {
+              "id": "kit",
+              "kind": "fixed",
+              "label": "Use a healing kit (1 healing)",
+              "description": "The antivenom in a good kit is meant for exactly this.",
+              "requires": [{ "req": "goods", "good": "healing", "min": 1 }],
+              "outcome": {
+                "text": "The draught is bitter and works fast. By evening the grey has gone out of the wound.",
+                "effects": [{ "effect": "goods", "good": "healing", "amount": -1 }]
+              }
+            },
+            {
+              "id": "march",
+              "kind": "fixed",
+              "label": "Sweat it out on the march",
+              "description": "Keep walking and carry whoever can't. It costs everyone.",
+              "outcome": {
+                "text": "You march on with the fevered one propped between you, trading turns under the arm. By nightfall nobody has anything left.",
+                "effects": [{ "effect": "exhaustion", "amount": 1, "target": "all" }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "logging-camp",
+      "title": "The logging camp",
+      "disposition": "neutral",
+      "biomes": ["jungle", "marsh"],
+      "tags": ["road", "sickness", "village"],
+      "notes": "A day nursing the sick earns coin and standing and risks the creeping fever (a follow-up). Selling them medicine pays over the odds at no risk. A logger who pulls through means to look for work at an inn: flavour for recruiting in town.",
+      "stages": {
+        "start": {
+          "text": "A clearing of stumps and a dozen huts. Half the loggers are down with fever, lying in hammocks under a long roof. Their foreman, yellow-eyed himself, asks if any of you knows physic. He can pay from the camp's wages, which nobody has been well enough to spend.",
+          "options": [
+            {
+              "id": "nurse",
+              "kind": "check",
+              "label": "Nurse them through the worst of it",
+              "description": "A day among the sick. Some of the fever may come with you.",
+              "check": { "skill": "medicine", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "You do what you can for a day, and two of them die anyway. The foreman thanks you. A few days later, one of you starts to shiver.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "reputation", "amount": 1 },
+                    { "effect": "followUp", "situation": "creeping-fever", "after": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "A day of boiling water and bark tea. Most of them will live. The foreman pays what he promised.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "reputation", "amount": 1 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} knows this fever and the bark that breaks it. By evening the worst of them is sitting up. The foreman pays double, and a young logger called Tamsin asks whether adventurers take on hands. She means to try the inn at the next town once she can stand.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "reputation", "amount": 2 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "sell",
+              "kind": "fixed",
+              "label": "Sell them your medicine (2 healing)",
+              "description": "No time lost and no risk. They pay over the odds, and they know it.",
+              "requires": [{ "req": "goods", "good": "healing", "min": 2 }],
+              "outcome": {
+                "text": "The foreman counts out the wages without arguing and doesn't meet your eye.",
+                "effects": [
+                  { "effect": "goods", "good": "healing", "amount": -2 },
+                  { "effect": "gold", "amount": 24 }
+                ]
+              }
+            },
+            {
+              "id": "keep-away",
+              "kind": "fixed",
+              "label": "Wish them luck and keep your distance",
+              "outcome": {
+                "text": "You fill your skins upstream of the camp and go on. Nobody blames you out loud."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "pool-under-the-falls",
+      "title": "The pool under the falls",
+      "disposition": "pleasant",
+      "biomes": ["jungle"],
+      "tags": ["road", "river"],
+      "notes": "A day's rest (half of everyone's HP, a level of exhaustion, and camaraderie +1) against the time and food it costs; a cold dive for what glints (old coin, or a tier-1 accessory on a critical success); or a quick drink and on.",
+      "stages": {
+        "start": {
+          "text": "A waterfall drops into a round pool so clear you can count the pebbles on the bottom. It is cool under the spray and the insects keep away. Something down there catches the light.",
+          "options": [
+            {
+              "id": "rest",
+              "kind": "fixed",
+              "label": "Stop here for the day",
+              "description": "Wash, sleep, mend kit, and talk about something other than the road.",
+              "outcome": {
+                "text": "You spend the day in and out of the water. Shirts are washed, boots dried, and an argument from three towns back is finally laughed off.",
+                "effects": [
+                  { "effect": "days", "amount": 1 },
+                  { "effect": "healFraction", "fraction": 0.5, "target": "all" },
+                  { "effect": "exhaustion", "amount": -1, "target": "all" },
+                  { "effect": "camaraderie", "amount": 1 }
+                ]
+              }
+            },
+            {
+              "id": "dive",
+              "kind": "check",
+              "label": "Dive for what glints",
+              "description": "It is deeper and colder than it looks.",
+              "check": { "skill": "athletics", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "The cold takes {actor}'s breath at the bottom. You haul them out blue and coughing.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "{actor} comes up with a rusted buckle and chattering teeth."
+                },
+                "success": {
+                  "text": "{actor} comes up with a fistful of coins, thrown in for luck by people who had more of it than you.",
+                  "effects": [{ "effect": "gold", "amount": 10 }]
+                },
+                "critSuccess": {
+                  "text": "{actor} comes up with a fistful of coins and a ring that someone threw in for luck. It seems to have worked: it hums faintly in the hand.",
+                  "effects": [
+                    { "effect": "gold", "amount": 10 },
+                    { "effect": "accessory", "tier": 1 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "drink",
+              "kind": "fixed",
+              "label": "Drink, fill the skins and go on",
+              "outcome": {
+                "text": "You drink, fill every skin and go on, cool for almost an hour.",
+                "effects": [{ "effect": "goods", "good": "water", "amount": 2 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "nets-in-the-reeds",
+      "title": "Nets in the reeds",
+      "disposition": "hostile",
+      "biomes": ["marsh", "jungle"],
+      "tags": ["road", "lizardfolk"],
+      "notes": "Lizardfolk hunters who netted the wrong game. They want meat or good steel more than a fight: 4 food, or a blade (1 arms, and they share their catch), or make yourselves look like poor eating; fighting knee-deep is the hard way.",
+      "stages": {
+        "start": {
+          "text": "A weighted net drops over the last of you in line. Five lizardfolk rise out of the reeds with spears, hissing to each other. One prods the net, sniffs, and looks puzzled. They were hunting, and you are not what they were hunting for. They seem willing to make do.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Cut free and fight",
+              "description": "Knee-deep water, and they are at home in it.",
+              "check": { "skill": "athletics", "dc": 14, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "The spears come from every side of the reeds. You drive them off at last, cut and soaked.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "They drag their wounded off into the water. {actor} has a spear-gash along the ribs.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} cuts through the net and drops the first spear-carrier. The rest vanish, leaving a brace of marsh birds on a pole.",
+                  "effects": [{ "effect": "goods", "good": "food", "amount": 3 }]
+                }
+              }
+            },
+            {
+              "id": "bad-eating",
+              "kind": "check",
+              "label": "Make yourselves look like poor eating",
+              "description": "Intimidation: bared steel, a lot of noise, and a good show of being more trouble than meat.",
+              "once": "get-past",
+              "check": { "skill": "intimidation", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "They watch {actor}'s display with interest, as if it were a bird's. The spears come closer.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They decide you're not worth the bother, but they keep the net and the food sack caught in it.",
+                  "effects": [{ "effect": "goods", "good": "food", "amount": -2 }]
+                },
+                "success": {
+                  "text": "{actor} roars, and the leader flinches. They hiss among themselves and slide back into the reeds."
+                }
+              }
+            },
+            {
+              "id": "meat",
+              "kind": "fixed",
+              "label": "Throw them meat (4 food)",
+              "requires": [{ "req": "goods", "good": "food", "min": 4 }],
+              "outcome": {
+                "text": "They sniff the food, argue, and decide it'll do. The net comes off and they go back to their hunting.",
+                "effects": [{ "effect": "goods", "good": "food", "amount": -4 }]
+              }
+            },
+            {
+              "id": "steel",
+              "kind": "fixed",
+              "label": "Offer them a good blade (1 arms)",
+              "description": "Worth more than meat to them. They may be generous back.",
+              "requires": [{ "req": "goods", "good": "arms", "min": 1 }],
+              "outcome": {
+                "text": "Their leader turns the blade in the light for a long time, then lifts the net off you herself and gives you a share of their catch.",
+                "effects": [
+                  { "effect": "goods", "good": "arms", "amount": -1 },
+                  { "effect": "goods", "good": "food", "amount": 3 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "short-of-hands",
+      "title": "Short of hands at harvest",
+      "disposition": "pleasant",
+      "biomes": ["plains"],
+      "tags": ["road", "farmland", "village"],
+      "notes": "A day's reaping for food, coin and standing. It is a chore, so the check pays no XP (xp 0), as gathering pays none. Buying their old grain is cheap food without the day. The farmer's son wants to see the road: flavour for recruiting in town.",
+      "stages": {
+        "start": {
+          "text": "Rain is piling up in the west, and a farm family is racing it: a barley field half cut, two scythes, and not enough arms. The farmer leans on his scythe as you come by. 'Day's work, if you want it. Bread, beer, and a share of the coin.'",
+          "options": [
+            {
+              "id": "reap",
+              "kind": "check",
+              "label": "Work the field until dark",
+              "description": "A day, and hard on the back. Reaping is a chore: no XP.",
+              "check": { "skill": "athletics", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "You're slow and the rain comes early. Half the field is flattened, and {actor} has blistered hands to show for it. They feed you anyway.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "goods", "good": "food", "amount": 2 },
+                    { "effect": "xp", "amount": 0 }
+                  ]
+                },
+                "partial": {
+                  "text": "The last sheaf is in as the first drops fall. The farmer pays in bread and coppers.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "goods", "good": "food", "amount": 3 },
+                    { "effect": "gold", "amount": 2 },
+                    { "effect": "xp", "amount": 0 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} sets a pace the farmer's boys can't match, and the field is stooked before the rain. He pays in coin and loaves. His eldest, Bram, walks you to the gate asking about the road. If you're ever hiring, he says, he'll be at the inn in town by the first frost.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "goods", "good": "food", "amount": 4 },
+                    { "effect": "gold", "amount": 5 },
+                    { "effect": "reputation", "amount": 2 },
+                    { "effect": "xp", "amount": 0 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "buy-grain",
+              "kind": "fixed",
+              "label": "Buy a sack of last year's grain (3 gp)",
+              "description": "Half what the market asks. They need the coin more than the space.",
+              "requires": [{ "req": "gold", "min": 3 }],
+              "outcome": {
+                "text": "The farmer's wife drags out a sack from the back of the barn. It's dusty, but it's food.",
+                "effects": [
+                  { "effect": "gold", "amount": -3 },
+                  { "effect": "goods", "good": "food", "amount": 6 }
+                ]
+              }
+            },
+            {
+              "id": "pass",
+              "kind": "fixed",
+              "label": "Wish them luck with the rain",
+              "outcome": {
+                "text": "You walk on. Behind you the scythes keep going, a little slower than before."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "fire-in-the-grass",
+      "title": "Fire in the grass",
+      "disposition": "neutral",
+      "biomes": ["plains"],
+      "tags": ["road", "fire"],
+      "notes": "Run for the river (HP from everyone on a bad roll), burn a break (a riskier Survival gamble), or drop the packs and run light (half the food and half the heavy goods: materials and equipment).",
+      "stages": {
+        "start": {
+          "text": "A line of smoke on the horizon becomes a wall within the hour. The wind is behind it and the grass is dry as paper. The fire is coming down the road faster than you can walk.",
+          "options": [
+            {
+              "id": "run",
+              "kind": "check",
+              "label": "Run for the river",
+              "description": "Two miles, with everything you carry.",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The fire catches you at the reeds. You wade out singed and choking.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You reach the water with the heat on your backs and the hair singed off your arms.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} sets the pace and takes the slowest one's pack. You stand waist-deep in the river and watch it burn past."
+                }
+              }
+            },
+            {
+              "id": "backfire",
+              "kind": "check",
+              "label": "Burn a break and shelter in the ash",
+              "description": "Set your own fire downwind, then step into the burnt ground behind it. Get it wrong and there are two fires.",
+              "check": { "skill": "survival", "dc": 14 },
+              "outcomes": {
+                "critFail": {
+                  "text": "Your fire turns on the wind, and you are caught between two. Everyone is burned before {actor} finds a gap.",
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
+                },
+                "fail": {
+                  "text": "The break is too narrow. The fire jumps it and you run after all, too late.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "partial": {
+                  "text": "The break holds, just. You crouch in hot ash while the fire roars past a few yards off.",
+                  "effects": [{ "effect": "hp", "amount": -1, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} lights the break in the right place. The fire splits round your patch of black earth and goes on without you."
+                }
+              }
+            },
+            {
+              "id": "drop-packs",
+              "kind": "fixed",
+              "label": "Drop the packs and run light",
+              "description": "You'll outrun it without the weight. Half the food and half of anything heavy stays behind.",
+              "outcome": {
+                "text": "You cut the heaviest bundles loose and run. When you come back for them the next morning, the iron is black and the rest is ash.",
+                "effects": [
+                  { "effect": "goods", "good": "food", "fraction": 0.5 },
+                  { "effect": "goods", "category": "materials", "fraction": 0.5 },
+                  { "effect": "goods", "category": "equipment", "fraction": 0.5 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "riders-in-the-grass",
+      "title": "Riders in the grass",
+      "disposition": "hostile",
+      "biomes": ["plains"],
+      "tags": ["road", "toll", "bandit-lord"],
+      "notes": "A bandit lord's protection money. Pay; or stare them down or hide in the grass (a shared get-past group); or fight horsemen on open ground, where a critical success leaves a riderless horse behind.",
+      "stages": {
+        "start": {
+          "text": "Six riders come out of the tall grass and circle you at a canter, close enough to smell the horses. Their leader wears a red rag tied round his arm. 'The Lord of the Grass keeps this road safe,' he says. 'Safety costs.'",
+          "options": [
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Pay for your safety (15 gp)",
+              "requires": [{ "req": "gold", "min": 15 }],
+              "outcome": {
+                "text": "He bites one coin and pockets the rest, then ties a strip of red rag to your pack. 'Show that, and nobody else will trouble you.' You doubt it.",
+                "effects": [{ "effect": "gold", "amount": -15 }]
+              }
+            },
+            {
+              "id": "stare",
+              "kind": "check",
+              "label": "Draw steel and let him count the cost",
+              "description": "He wants easy money, not a fight. Show him it won't be easy.",
+              "once": "get-past",
+              "check": { "skill": "intimidation", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "He laughs, and the circle tightens. Now it will cost more than coin.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "He settles for half, and makes a show of being generous about it.",
+                  "effects": [{ "effect": "gold", "amount": -8 }]
+                },
+                "success": {
+                  "text": "He looks at {actor}'s face for a long moment, then whistles, and the riders peel off into the grass."
+                }
+              }
+            },
+            {
+              "id": "hide",
+              "kind": "check",
+              "label": "Scatter into the tall grass",
+              "description": "Horses can't follow you into grass taller than a man. If they find you one at a time, it's worse.",
+              "once": "get-past",
+              "check": { "skill": "stealth", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "They ride {actor} down in the grass and drag them back to the road by the collar.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They beat about, curse and ride off. It takes you the rest of the day to find each other.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "{actor} has everyone flat in the grass before the riders can turn. They search for an hour, swear, and go."
+                }
+              }
+            },
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Stand back to back and fight",
+              "description": "Horsemen on open ground. Unhorse one and the rest may think again.",
+              "check": { "skill": "athletics", "dc": 15, "combat": true },
+              "outcomes": {
+                "critFail": {
+                  "text": "They ride through you twice. You are left bleeding in the road while they help themselves to your packs.",
+                  "effects": [
+                    { "effect": "hp", "amount": -5, "target": "all" },
+                    { "effect": "gold", "amount": -10 },
+                    { "effect": "goods", "category": "precious", "fraction": 0.5 }
+                  ]
+                },
+                "fail": {
+                  "text": "You drive them off in the end, but every one of you has felt a spear-butt or a hoof.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "{actor} drags one from the saddle, and the rest pull back to think about it. You don't wait for them to finish.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} unhorses the leader. His men take him up and gallop off, and leave his saddlebags in the road.",
+                  "effects": [{ "effect": "gold", "amount": 12 }]
+                },
+                "critSuccess": {
+                  "text": "{actor} unhorses the leader. His men gallop off without him, and his horse stands in the road with its reins trailing.",
+                  "effects": [
+                    { "effect": "gold", "amount": 12 },
+                    { "effect": "animals", "animal": "riding-horse", "amount": 1 }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "couriers-purse",
+      "title": "The courier's purse",
+      "disposition": "neutral",
+      "biomes": ["plains"],
+      "tags": ["road"],
+      "notes": "Found money divides a party. Keeping it starts a quarrel (camaraderie −1); running the courier down earns a small fee, standing and camaraderie +1; handing it in earns standing and nothing else.",
+      "stages": {
+        "start": {
+          "text": "A leather purse lies in a wheel rut, its drawstring cut through on a stone. It is heavy. A courier's badge is stitched to the flap, and the hoofprints heading on down the road are still sharp.",
+          "options": [
+            {
+              "id": "keep",
+              "kind": "fixed",
+              "label": "Keep it",
+              "description": "Fifteen gold is fifteen gold. Not everyone in the party will see it that way.",
+              "outcome": {
+                "text": "You split it. The talk round the fire that night is short, and one of you doesn't join in.",
+                "effects": [
+                  { "effect": "gold", "amount": 15 },
+                  { "effect": "camaraderie", "amount": -1 }
+                ]
+              }
+            },
+            {
+              "id": "chase",
+              "kind": "check",
+              "label": "Go after the courier",
+              "description": "The prints are fresh. Catch him and he'll be grateful; lose him and you've lost the day.",
+              "once": true,
+              "check": { "skill": "survival", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "The prints vanish where the grass is grazed short. Most of the day is gone, and the purse is still in your hands.",
+                  "effects": [{ "effect": "days", "amount": 1 }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "You find the courier at a well, frantic. He takes the purse with both hands and has nothing to give you but thanks.",
+                  "effects": [
+                    { "effect": "reputation", "amount": 1 },
+                    { "effect": "camaraderie", "amount": 1 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} runs him down by noon. He nearly weeps, pays you a finder's share out of the purse, and promises to tell his masters who brought it back.",
+                  "effects": [
+                    { "effect": "gold", "amount": 5 },
+                    { "effect": "reputation", "amount": 2 },
+                    { "effect": "camaraderie", "amount": 1 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "hand-in",
+              "kind": "fixed",
+              "label": "Hand it in at the next town",
+              "description": "Honest, and slow to be thanked.",
+              "outcome": {
+                "text": "You carry it to the reeve at the next town. He counts it twice and writes your names in his book.",
+                "effects": [{ "effect": "reputation", "amount": 2 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "peat-cutters-find",
+      "title": "The peat-cutters' find",
+      "disposition": "neutral",
+      "biomes": ["marsh"],
+      "tags": ["road", "village", "restless-dead"],
+      "notes": "A body in the bog with a bronze torc (a tier-1 accessory). The rites earn standing and a clue, and show how restless he is (they reveal the twist's odds). The torc can be bought (20 gp) or lifted while the cutters pray (a quarrel in the party, camaraderie −1, and standing if seen). A bespoke twist: the dead man may rise for it, and the torc is only kept if he is put down.",
+      "twist": {
+        "chance": 0.3,
+        "what": "the dead man is not finished with his torc",
+        "stage": "risen",
+        "opening": [{ "effect": "hp", "amount": -3, "target": "random" }]
+      },
+      "stages": {
+        "start": {
+          "text": "Peat-cutters have stopped work round a trench. In its black wall lies a man, brown as old leather, curled on his side as if asleep. A bronze torc round his neck is still bright. The cutters won't touch him, and won't go back to work until someone says the words.",
+          "options": [
+            {
+              "id": "rites",
+              "kind": "check",
+              "label": "Say the words over him",
+              "description": "Religion: send him off properly, and feel how restless he is while you do.",
+              "once": true,
+              "check": { "skill": "religion", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} loses the old words halfway through. The cutters look at each other and say nothing.",
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} gets through the words. It's enough for the cutters, and close enough to feel how restless he is.",
+                  "effects": [{ "effect": "revealTwist" }, { "effect": "reputation", "amount": 1 }],
+                  "stay": true
+                },
+                "success": {
+                  "text": "{actor} says the old words and the cutters say them back. Afterwards their eldest tells you of a mound in the fen where her grandfather dug up more like him.",
+                  "effects": [
+                    { "effect": "revealTwist" },
+                    { "effect": "reputation", "amount": 2 },
+                    { "effect": "discoverPoi", "count": 1, "scope": "domain" }
+                  ],
+                  "stay": true
+                }
+              }
+            },
+            {
+              "id": "buy",
+              "kind": "fixed",
+              "label": "Buy the torc from them (20 gp)",
+              "description": "They'd rather it was gone. If he wants it back, he'll come for whoever has it.",
+              "requires": [{ "req": "gold", "min": 20 }],
+              "outcome": {
+                "text": "The eldest takes your coin and lifts the torc off him with a spade, not her hands.",
+                "effects": [
+                  { "effect": "gold", "amount": -20 },
+                  { "effect": "accessory", "tier": 1 }
+                ],
+                "twist": {
+                  "text": "The eldest takes your coin and lifts the torc with a spade. As it comes free, the dead man's hand closes on the blade.",
+                  "effects": [{ "effect": "gold", "amount": -20 }],
+                  "goto": "risen"
+                }
+              }
+            },
+            {
+              "id": "lift",
+              "kind": "check",
+              "label": "Lift the torc while they pray",
+              "description": "Free, if nobody sees. Robbing the dead in front of the living: not everyone in the party will like it.",
+              "check": { "skill": "sleightOfHand", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "A cutter opens her eyes mid-prayer and sees {actor}'s hand at the dead man's throat. You leave without the torc, and the story goes ahead of you.",
+                  "effects": [
+                    { "effect": "reputation", "amount": -3 },
+                    { "effect": "camaraderie", "amount": -1 }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} gets the torc, and a boy at the back of the crowd gets a good look at who took it.",
+                  "effects": [
+                    { "effect": "accessory", "tier": 1 },
+                    { "effect": "reputation", "amount": -2 },
+                    { "effect": "camaraderie", "amount": -1 }
+                  ],
+                  "twist": {
+                    "text": "{actor} twists the torc free, and the dead man's eyes open. The boy at the back of the crowd screams.",
+                    "effects": [
+                      { "effect": "openingHit" },
+                      { "effect": "reputation", "amount": -2 },
+                      { "effect": "camaraderie", "amount": -1 }
+                    ],
+                    "goto": "risen"
+                  }
+                },
+                "success": {
+                  "text": "Heads are bowed. {actor}'s hand goes in and comes out with the torc, and nobody sees but you.",
+                  "effects": [
+                    { "effect": "accessory", "tier": 1 },
+                    { "effect": "camaraderie", "amount": -1 }
+                  ],
+                  "twist": {
+                    "text": "{actor} twists the torc free while heads are bowed, and the dead man's hand comes up after it.",
+                    "effects": [
+                      { "effect": "openingHit" },
+                      { "effect": "camaraderie", "amount": -1 }
+                    ],
+                    "goto": "risen"
+                  }
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave him to the cutters",
+              "outcome": {
+                "text": "You walk on. Behind you someone starts on the words, badly."
+              }
+            }
+          ]
+        },
+        "risen": {
+          "text": "The dead man unfolds out of the peat, slow and creaking, and reaches for the torc. His grip is like a root, and the cutters have run.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Put him back down",
+              "check": { "skill": "athletics", "dc": 13, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "He is stronger than anything that thin should be. You break him apart in the end, and the torc is yours, but nobody walks away unbruised.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "accessory", "tier": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} wrestles him back into the trench and holds him there until the peat closes over. {actor} keeps the torc, and the marks of his fingers.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "accessory", "tier": 1 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} drives him back into the trench, and the peat closes over him. The torc stays with you.",
+                  "effects": [{ "effect": "accessory", "tier": 1 }]
+                }
+              }
+            },
+            {
+              "id": "give-back",
+              "kind": "fixed",
+              "label": "Throw the torc back to him",
+              "description": "Whatever you paid for it, it stays here.",
+              "outcome": {
+                "text": "The torc lands in the trench. He gathers it to his chest, curls up again, and the peat slides down over him."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "widowmaker",
+      "title": "The widowmaker",
+      "disposition": "neutral",
+      "biomes": ["forest"],
+      "tags": ["road", "village"],
+      "notes": "A woodcutter pinned under a felled oak. A strong lift risks HP, a rope tackle costs a gear, and fetching help from the village costs a day; every way earns standing.",
+      "stages": {
+        "start": {
+          "text": "A crash in the woods, then shouting. A felled oak has kicked back off its stump and come down across a woodcutter's legs. His partner is heaving at it alone and getting nowhere.",
+          "options": [
+            {
+              "id": "lift",
+              "kind": "check",
+              "label": "Heave the trunk off him",
+              "description": "Everyone at once. It might roll the wrong way.",
+              "check": { "skill": "athletics", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "The trunk rolls back as you lift and catches {actor}'s foot. You get them both out in the end.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "reputation", "amount": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "It comes up an inch at a time, enough to drag him clear. His leg is broken, but he'll keep it.",
+                  "effects": [{ "effect": "reputation", "amount": 2 }]
+                },
+                "success": {
+                  "text": "{actor} gets a shoulder under it and the rest of you heave. He slides out bruised, not broken, and his partner presses the week's timber money on you.",
+                  "effects": [
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "reputation", "amount": 2 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "tackle",
+              "kind": "fixed",
+              "label": "Rig a lever and tackle (1 gear)",
+              "description": "Rope, a pulley and a long pole. It lifts for certain. The rope won't be good for much after.",
+              "requires": [{ "req": "goods", "good": "gear", "min": 1 }],
+              "outcome": {
+                "text": "The tackle groans, the trunk lifts, and the partner drags him out. The rope is frayed through in two places.",
+                "effects": [
+                  { "effect": "goods", "good": "gear", "amount": -1 },
+                  { "effect": "reputation", "amount": 2 }
+                ]
+              }
+            },
+            {
+              "id": "fetch-help",
+              "kind": "fixed",
+              "label": "Run for help from the village",
+              "description": "A sure thing, and it takes the rest of the day.",
+              "outcome": {
+                "text": "You bring back six men and an ox. By the time he is out it is dark, and the village puts you up in a hayloft.",
+                "effects": [
+                  { "effect": "days", "amount": 1 },
+                  { "effect": "reputation", "amount": 1 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "snare-line",
+      "title": "The snare line",
+      "disposition": "hostile",
+      "biomes": ["forest", "hills"],
+      "tags": ["road", "goblin-raiders"],
+      "notes": "A goblin snare catches one of the party. Cut them down and run (Acrobatics), or leave them hanging as bait and ambush the goblins (Stealth: a success gives the Edge in the fight), or leave coin under the snare. A failure brings the goblins down on you.",
+      "stages": {
+        "start": {
+          "text": "A snare whips tight, and one of you is yanked off the path to hang upside down from an ash bough. Bells tied in the branches are jangling. Somewhere uphill, goblins start to whoop.",
+          "options": [
+            {
+              "id": "cut",
+              "kind": "check",
+              "label": "Cut them down and run",
+              "description": "Quick hands and a quick exit, before the bells bring company.",
+              "check": { "skill": "acrobatics", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} saws at the rope too long. You hear them on the slope before the snare parts.",
+                  "goto": "raid"
+                },
+                "partial": {
+                  "text": "{actor} gets them down, and you run, leaving a pack hanging in the snare.",
+                  "effects": [{ "effect": "goods", "good": "food", "amount": -2 }]
+                },
+                "success": {
+                  "text": "{actor} cuts the rope with one stroke and catches them on the way down. You are gone before the goblins reach the bells."
+                }
+              }
+            },
+            {
+              "id": "bait",
+              "kind": "check",
+              "label": "Leave them hanging, and wait in the bracken",
+              "description": "Stealth. Goblins come to check a snare in a hurry. If they see you first, it's their ambush.",
+              "once": true,
+              "check": { "skill": "stealth", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "A goblin spots {actor} in the bracken and shrieks. The rest come down the slope throwing stones.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "goto": "raid"
+                },
+                "partial": {
+                  "text": "They come down the path in a gaggle, and you are up and among them before they know it.",
+                  "goto": "raid"
+                },
+                "success": {
+                  "text": "They come down the path squabbling over who gets the boots. {actor} waits until they're under the snare.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "goto": "raid"
+                }
+              }
+            },
+            {
+              "id": "toll",
+              "kind": "fixed",
+              "label": "Leave coin under the snare and go",
+              "description": "Goblins set snares for loot as much as meat. A little coin buys you a head start.",
+              "requires": [{ "req": "gold", "min": 6 }],
+              "outcome": {
+                "text": "You cut your friend down and leave a little pile of silver where the rope was. Behind you, the whooping turns to squabbling.",
+                "effects": [{ "effect": "gold", "amount": -6 }]
+              }
+            }
+          ]
+        },
+        "raid": {
+          "text": "Eight goblins come down through the trees with clubs and slings and a great deal of noise.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight",
+              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "You scatter them, but the sling-stones have found everyone at least once.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "partial": {
+                  "text": "They break and run. {actor} has a split lip and a club-shaped bruise.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} knocks their leader flat, and the rest flee up the slope. Their snare-wire and rope are good kit, stolen from someone better off.",
+                  "effects": [
+                    { "effect": "goods", "good": "gear", "amount": 1 },
+                    { "effect": "gold", "amount": 4 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "run",
+              "kind": "check",
+              "label": "Run for it",
+              "check": { "skill": "athletics", "dc": 11 },
+              "outcomes": {
+                "fail": {
+                  "text": "They chase you for a mile, and their slings are better than their legs.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You outrun them, minus a pack they stop to fight over.",
+                  "effects": [{ "effect": "goods", "good": "food", "amount": -3 }]
+                },
+                "success": {
+                  "text": "{actor} leads you downhill at a pace no goblin wants to match."
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "becalmed",
+      "title": "Becalmed",
+      "disposition": "neutral",
+      "biomes": ["sea"],
+      "tags": ["sea"],
+      "notes": "No wind. Row with the crew (a level of exhaustion each, no time lost, and camaraderie +1 for the shared work), wait it out (two days of supplies), or whistle up a wind (a sailors' superstition; failing it costs a fine for the crew's peace of mind).",
+      "stages": {
+        "start": {
+          "text": "The wind dies at dawn and doesn't come back. By noon the sails hang like washing, the pitch is soft in the deck seams, and the captain is rationing water. The crew have started looking at the passengers.",
+          "options": [
+            {
+              "id": "row",
+              "kind": "fixed",
+              "label": "Take your turn at the sweeps",
+              "description": "Long oars, hot sun, blistered hands. It costs everyone, and no time is lost.",
+              "outcome": {
+                "text": "You row with the crew in shifts through two days of heat. It's brutal, and by the end you are singing their filthy songs with them.",
+                "effects": [
+                  { "effect": "exhaustion", "amount": 1, "target": "all" },
+                  { "effect": "camaraderie", "amount": 1 }
+                ]
+              }
+            },
+            {
+              "id": "wait",
+              "kind": "fixed",
+              "label": "Wait for the wind",
+              "outcome": {
+                "text": "Two days of flat, glassy sea and short tempers. The wind comes back on the third morning.",
+                "effects": [{ "effect": "days", "amount": 2 }]
+              }
+            },
+            {
+              "id": "whistle",
+              "kind": "check",
+              "label": "Whistle up a wind",
+              "description": "Sailors swear by it, and blame whoever tried when it fails.",
+              "once": true,
+              "check": { "skill": "performance", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} whistles until their lips crack. No wind, and the crew mutter about bad luck. The captain charges you for the trouble.",
+                  "effects": [{ "effect": "gold", "amount": -4 }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "A breath of air comes at dusk, enough to steer by. You lose a day, not two.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "{actor} whistles a long falling note, and within the hour the sails fill. The crew are sure it was the whistling and won't let you pay for a drink for the rest of the voyage.",
+                  "effects": [{ "effect": "gold", "amount": 3 }]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "false-lights",
+      "title": "False lights",
+      "disposition": "hostile",
+      "biomes": ["sea"],
+      "tags": ["sea", "thieves"],
+      "notes": "Wreckers lure the ship onto rocks. Hold the rail (HP), work her off the rocks before the boats arrive (Nature; a failure leaves you Exposed), or hide your best and let them strip the hold (a quarter of the precious goods and some coin).",
+      "stages": {
+        "start": {
+          "text": "In the dark, a lantern swings on a shore where the chart shows no harbour. The helmsman turns towards it before anyone can stop him. Rocks grind under the keel, the ship heels and stops, and boats are already putting out from the beach.",
+          "options": [
+            {
+              "id": "hold",
+              "kind": "check",
+              "label": "Hold the rail with the crew",
+              "check": { "skill": "athletics", "dc": 14, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "They come over the side in numbers. You beat them back at last, bloodied, and they take what they had already grabbed.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "goods", "category": "precious", "fraction": 0.25 }
+                  ]
+                },
+                "partial": {
+                  "text": "You hold the rail, though {actor} takes a boathook across the head doing it.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} throws the first man back into his boat, and the rest lose heart. The captain shares out what they dropped on deck.",
+                  "effects": [{ "effect": "gold", "amount": 10 }]
+                }
+              }
+            },
+            {
+              "id": "refloat",
+              "kind": "check",
+              "label": "Work her off the rocks before they arrive",
+              "description": "Nature: read the swell, shift the weight, and push off at the right moment. Get it wrong and they catch you off balance.",
+              "once": true,
+              "check": { "skill": "nature", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "She grinds and won't move, and the first boat bumps against the hull while you're all at the wrong end of the ship.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "She slides free as the first boat comes alongside, and two of them come with her. You throw them over, and get a knock or two doing it.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} calls the swell, the crew shift the cargo, and she lifts off the rocks on the next wave. The boats fall behind, oars flailing."
+                }
+              }
+            },
+            {
+              "id": "hide",
+              "kind": "fixed",
+              "label": "Hide your best and let them strip the hold",
+              "description": "They want the cargo, not a fight. Your packs might pass, mostly.",
+              "outcome": {
+                "text": "You stuff what you can into the bilges and stand aside. They strip the hold, and your packs with it, though not as well as they think.",
+                "effects": [
+                  { "effect": "goods", "category": "precious", "fraction": 0.25 },
+                  { "effect": "gold", "amount": -5 }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
