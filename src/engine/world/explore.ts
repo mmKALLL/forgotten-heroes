@@ -12,7 +12,7 @@ import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
-import { TIERS, TIER_LABELS, normalizeDc, rollCheck, tierOdds, type Tier } from '../rules/checks'
+import { TIERS, TIER_LABELS, rollCheck, tierOdds, type Tier } from '../rules/checks'
 import { useSkill } from '../rules/strain'
 import { forageDay } from '../travel/forage'
 import { passDay } from '../travel/supplies'
@@ -27,7 +27,6 @@ import {
   EXPLORE_DC_BONUS,
   EXPLORE_FINDS,
   FORAGE_DC,
-  POWER_DC,
 } from '../constants'
 
 // Visiting and exploring points of interest (design §6). A visit plays one of the site's
@@ -214,7 +213,8 @@ function ambush(state: GameState, content: Content): GameState {
 /**
  * Plays one of the POI's situations, picked by the seeded RNG, when the party is at a discovered
  * POI it hasn't visited since arriving, and that isn't a dungeon or lair lying empty. A site that
- * has grown stronger (siteStatus power) raises every check's DC by POWER_DC per level.
+ * has grown stronger (siteStatus power) raises every check's DC by POWER_DC per level: startEncounter
+ * hardens the snapshot with it, along with the day's danger (world/danger.ts).
  */
 export function visitPoi(state: GameState, content: Content): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
@@ -232,37 +232,8 @@ export function visitPoi(state: GameState, content: Content): GameState {
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const place = placeHere(state, content) ?? undefined
   const started = startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
-  const power = siteStatus(state.world.seed, id, poi, state.day)?.power ?? 0
   // An errand to this site is done by going there (town/contracts.ts).
-  const done = siteContractsMet(started, 'errand', id)
-  return power > 0 && done.encounter ? strengthen(done, power * POWER_DC) : done
-}
-
-/** Raises every check of the open encounter by `dc`, with a line saying so. */
-function strengthen(state: GameState, dc: number): GameState {
-  const encounter = state.encounter!
-  const stages = Object.fromEntries(
-    Object.entries(encounter.situation.stages).map(([id, stage]) => [
-      id,
-      {
-        ...stage,
-        options: stage.options.map((o) =>
-          o.kind === 'check'
-            ? { ...o, check: { ...o.check, dc: normalizeDc(Number(o.check.dc) + dc) } }
-            : o
-        ),
-      },
-    ])
-  )
-  const text = `It has grown stronger since it was taken: every check here is DC +${dc}.`
-  return {
-    ...state,
-    encounter: {
-      ...encounter,
-      situation: { ...encounter.situation, stages },
-      log: [...encounter.log, { text, tone: 'bad' }],
-    },
-  }
+  return siteContractsMet(started, 'errand', id)
 }
 
 /** Why a site can't be visited now: busy, lying empty (cleared), or visited since the party arrived. */

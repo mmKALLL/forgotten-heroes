@@ -444,6 +444,10 @@ The town map image is a banner and backdrop.
 
 **Reasons to hurry:**
 - **Rising danger:** a world danger level rises about 10% every 50 days. It is independent of any scaling based on party level or wealth. Until combat exists it raises encounter DCs and damage; later it raises creature CR.
+  - **As built (Plan 5a, `world/danger.ts`):** the danger share is `floor((day − 1) / 50) × 10%` (`DANGER_RAMP_DAYS`, `DANGER_RAMP_STEP`), capped at +100% (`DANGER_RAMP_MAX`, day 501): +10% from day 51, +20% from day 101. Nothing ticks; it follows from the day.
+  - **What it does:** when an encounter starts, its snapshot (every stage, the twist table's joined stages and the twist's opening hit included) is hardened once (`harden`): each check's DC becomes `dc + round(dc × danger)` (DC 13 → 14 at +10%, 16 at +20%), and each wound (a negative `hp` effect) `−ceil(|amount| × (1 + danger))` (−4 → −5 at +20%). Healing, gold and goods are unchanged. A site's power (`POWER_DC` a level) goes through the same transform as a flat DC bonus, so the two stack (DC 13 at power 2 on day 101 → 18). Because the snapshot is hardened at the start, the DCs shown are the DCs rolled, and a save loaded on a later day doesn't change an open encounter. The encounter records its `danger` for display.
+  - **Only encounters** (road, site, an exploring ambush, a rumour brawl, a follow-up): not foraging, exploring, gathering, rumours, the hostile share or gold losses.
+  - **Shown quietly** (Track U): `dangerInfo(day)` gives the share, the percent, the day of the next rise (null at the cap) and a line for the day's tooltip ("The roads grow more dangerous: +20%", or "The roads are as they have always been").
 - **The Crisis:** a villain's three-act plot, with roughly one act due every 100 days.
   - Rumours and clues lead the party to a specific location where they learn the plan.
   - Each act has a site or deed to thwart before its deadline. There is moderate leeway, with penalties for dawdling.
@@ -451,6 +455,14 @@ The town map image is a banner and backdrop.
   - Failing the Crisis shows a game-over screen, but the player may keep playing to enjoy the current party. No world consequences of the plot are needed for now.
 
 **Reasons to grow (Plan 5a):** XP and levels for stats; recruiting, with the party growing from 2 toward 6 and camaraderie getting harder past 7; and low-end magical gear (accessories with rule hooks). Wealth funds a bigger, better-equipped party.
+
+**XP and levels as built (Plan 5a, Track A):**
+- **Levels 1–10** follow total XP (`XP_BY_LEVEL`, cumulative, never reset; placeholders until the sim tunes them). A level-up adds the hit die + CON modifier to max HP (at least 1), proficiency follows the level, and on odd levels from 3rd a random ability below 20 rises by 1 (the prototype's rules). Level-ups are applied after every `step`, so XP can come from anywhere; each is a journal line.
+- **XP is shared, not split:** every living member (exhaustion below 6) gains the full amount.
+- **Encounter checks** pay by the final DC (site power and danger included) and the tier: 5 XP per DC point on a success (`XP_PER_DC`; DC 13 → 65), ×1.5 on a critical success, ½ on a partial, ¼ on a failure or critical failure (something is learned). Fixed options, wonders and practice rolls pay nothing. An outcome with its own `xp` effect replaces the default for that roll (even a conditional one). The XP shows as a chip ("+65 XP") on each outcome before the roll and in the outcome line after it, and the preview carries it as data (`OptionCheckPreview.xp`, `BranchPreview.xp`).
+- **Contracts** pay 2 XP per gp of their pay (`CONTRACT_XP_PER_GP`), whether the reward is gold or a good word.
+- **Sites:** clearing a dungeon or lair pays `XP_CLEAR` (150) × (1 + its power); each site discovered pays `XP_DISCOVER` (25), however it was found (exploring, rumours, clues, or a contract naming it).
+- **No XP** for foraging, gathering, rumours themselves, stowing away or Inspiration, so travel chores aren't grind.
 
 **Gathering materials (Plan 5a):** spend days in a domain gathering a local good (timber, stone, food, fuel, healing herbs) with a skill check. It is profitable at first, but selling it quickly raises local supply through the market's bulk pressure. It gives a broke party a fallback income.
 

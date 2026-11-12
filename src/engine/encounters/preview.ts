@@ -15,15 +15,18 @@ import {
 } from '../rules/checks'
 import { encounterSettlementName } from '../town/reputation'
 import { conditionHolds, describeCondition, describeEffect, openingEffects } from './effects'
-import { isHighStakes, tierOutcome } from './outcomes'
+import { defaultXp, isHighStakes, tierOutcome } from './outcomes'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
 
 /** `next` is "escalates" for a twist branch that goes on to the twist's escalation stage. */
 export type BranchPreview = {
   text: string
+  /** Effect chips, including the roll's default XP ("+65 XP") when it has one. */
   effects: string[]
   next: 'end' | 'stay' | 'stage' | 'escalates'
+  /** The XP each living member gains: the default for the roll, or the branch's own `xp` effects. */
+  xp: number
 }
 /** An outcome row the player may read. `tier` is null for fixed options. `twist` shows as "if …". */
 export type ShownOutcome = BranchPreview & {
@@ -55,6 +58,8 @@ export type OptionCheckPreview = CheckPreview & {
   situationalReason: string | null
   successChance: number
   highStakes: boolean
+  /** The XP each living member gains on a success (the success outcome's `xp`). */
+  xp: number
   /** The d20 faces for each tier, with the effective modifier (actor's plus situational). */
   faces: Record<Tier, FaceRange | null>
   /** Everyone able to act, best first, for the actor picker. `strain` is their stacks for this skill. */
@@ -105,16 +110,30 @@ function effectChips(
   })
 }
 
+/**
+ * `xpFor` gives a check branch's default XP (defaultXp: none when the branch has its own `xp`
+ * effect); fixed options have none.
+ */
 function branchPreview(
   branch: OutcomeBranch,
   encounter: EncounterState,
   values: Record<string, string>,
   actorName: string,
-  place?: string
+  place: string | undefined,
+  xpFor: (branch: OutcomeBranch) => number
 ): BranchPreview {
+  const fallback = xpFor(branch)
+  const own = branch.effects
+    .filter((e) => e.effect === 'xp' && (!e.if || conditionHolds(e.if, encounter)))
+    .reduce((sum, e) => sum + (e.effect === 'xp' ? e.amount : 0), 0)
+  const chips = effectChips(branch.effects, encounter, actorName, place)
   return {
     text: fillText(branch.text, values),
-    effects: effectChips(branch.effects, encounter, actorName, place),
+    effects:
+      fallback > 0
+        ? [...chips, describeEffect({ effect: 'xp', amount: fallback }, actorName)!]
+        : chips,
+    xp: fallback + own,
     next:
       branch.goto === TWIST_STAGE
         ? 'escalates'
@@ -132,13 +151,16 @@ function outcomePreview(
   encounter: EncounterState,
   values: Record<string, string>,
   actorName: string,
-  place?: string
+  place: string | undefined,
+  xpFor: (branch: OutcomeBranch) => number = () => 0
 ): ShownOutcome {
   return {
-    ...branchPreview(outcome, encounter, values, actorName, place),
+    ...branchPreview(outcome, encounter, values, actorName, place, xpFor),
     tier,
     hidden: false,
-    twist: outcome.twist ? branchPreview(outcome.twist, encounter, values, actorName, place) : null,
+    twist: outcome.twist
+      ? branchPreview(outcome.twist, encounter, values, actorName, place, xpFor)
+      : null,
   }
 }
 
@@ -194,6 +216,17 @@ export function encounterOptions(
         skill
       ),
     }))
+    const xpFor = (tier: Tier) => (branch: OutcomeBranch) =>
+      defaultXp(encounter.situation, branch, preview.dc, tier)
+    const success = outcomePreview(
+      tierOutcome(option, 'success'),
+      'success',
+      encounter,
+      values,
+      preview.actorName,
+      place,
+      xpFor('success')
+    )
     const check: OptionCheckPreview = {
       ...preview,
       odds,
@@ -203,6 +236,7 @@ export function encounterOptions(
       situationalReason: encounter.nextCheckReason,
       successChance: successChance(odds),
       highStakes: isHighStakes(option, odds),
+      xp: success.xp,
       faces: tierFaces(effective, preview.dc),
       actors,
       unableActors: state.party.filter((c) => !canAct(c)).map((c) => ({ id: c.id, name: c.name })),
@@ -219,7 +253,8 @@ export function encounterOptions(
             encounter,
             values,
             preview.actorName,
-            place
+            place,
+            xpFor(tier)
           )
     )
     return { ...base, available: optionAvailable(state, option), unmet, check, outcomes }

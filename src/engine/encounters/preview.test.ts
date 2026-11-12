@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { GameState } from '../../schema/state'
 import { TIERS, tierFaces, tierOdds } from '../rules/checks'
+import { checkXp } from '../rules/progression'
 import { step } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { applyEffects } from './effects'
@@ -34,8 +35,9 @@ describe('encounterOptions', () => {
       tier: 'success',
       hidden: false,
       text: 'Lyra reads them.',
-      effects: ['reveals how likely the twist is', 'Edge'],
+      effects: ['reveals how likely the twist is', 'Edge', `+${checkXp(12, 'success')} XP`],
       next: 'stay',
+      xp: checkXp(12, 'success'),
       twist: null,
     })
     expect(read.check?.actors.map((a) => a.id)).toEqual(['lyra', 'brom'])
@@ -124,7 +126,8 @@ describe('encounterOptions', () => {
         text: `${roadside.encounter!.slots.who.replace('a', 'A')} thanks you.`,
         effects: ['+20 gp'],
         next: 'end',
-        twist: { text: 'A trap!', effects: ['−20 gp', 'someone −3 HP'], next: 'end' },
+        xp: 0,
+        twist: { text: 'A trap!', effects: ['−20 gp', 'someone −3 HP'], next: 'end', xp: 0 },
       },
     ])
   })
