@@ -83,6 +83,30 @@ test('game over shows the failed act, and Escape keeps playing', async () => {
   expect(onKeepPlaying).toHaveBeenCalledOnce()
 })
 
+test('game over before the plan was learned names no villain and no site', () => {
+  const state = lost()
+  expect(state.crisis!.learned).toBeNull()
+  render(
+    <I18nProvider content={content}>
+      <EndDialog
+        content={content}
+        state={state}
+        ending="lost"
+        onKeepPlaying={() => {}}
+        onNewParty={() => {}}
+        onLookBack={() => {}}
+      />
+    </I18nProvider>
+  )
+  const short = state.crisis!.name.split(',')[0]
+  expect(
+    dialog().getByRole('heading', { name: 'A plot you never learned of is complete' })
+  ).toBeTruthy()
+  expect(dialog().getByText('Far away, something you never learned of is finished.')).toBeTruthy()
+  expect(dialog().queryByText(new RegExp(short))).toBeNull()
+  expect(runRecord(state, content, '2026-11-13').villain).toBeNull()
+})
+
 test('fallen: New party or Look back, never Keep playing; the banner stays', async () => {
   localStorage.setItem(SAVE_KEY, serialize(fallen(newGame(9, content))))
   render(<App />)

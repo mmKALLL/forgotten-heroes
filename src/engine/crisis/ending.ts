@@ -41,7 +41,7 @@ export type RunMember = {
 export type RunSummary = {
   ending: RunEnding | null
   day: number
-  /** The villain's rolled name; null without a Crisis. */
+  /** The villain's rolled name; null without a Crisis, or when its plan was never learned. */
   villain: string | null
   /** Each act, with the day it was thwarted or failed. Empty without a Crisis. */
   acts: { name: string; thwartedDay: number | null; failedDay: number | null }[]
@@ -73,7 +73,7 @@ export function runSummary(state: GameState, content: Content): RunSummary {
   return {
     ending: runEnding(state),
     day: state.day,
-    villain: crisis?.name ?? null,
+    villain: crisis && crisis.learned !== null ? crisis.name : null,
     acts: crisis
       ? crisis.acts.map((a, i) => ({
           name: villain?.acts[i]?.name ?? a.id,

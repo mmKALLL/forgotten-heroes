@@ -99,6 +99,9 @@ function actTitle(content: Content, crisis: CrisisState, i: number): string {
 
 type News = { day: number; act: number; kind: 'warn' | 'due' | 'fail' }
 
+/** How an act that fails before the plan was learned is told (the journal and the end screen). */
+export const UNLEARNED_FAILED = 'Far away, something you never learned of is finished.'
+
 /** The Crisis as it stood on `day`: what the party did after it (learned, thwarted) undone. */
 const crisisAsOf = (crisis: CrisisState, day: number): CrisisState => ({
   ...crisis,
@@ -148,7 +151,7 @@ export function crisisNews(before: GameState, after: GameState, content: Content
         const text =
           crisisAsOf(crisis, n.day - 1).learned !== null && failed
             ? crisisText(state, content, crisis, failed, crisis.acts[n.act].poi)
-            : 'Far away, something you never learned of is finished.'
+            : UNLEARNED_FAILED
         return appendLog(appendLog(state, text, 'bad'), 'The Crisis is lost.', 'bad')
       }
     }
@@ -205,7 +208,10 @@ export type CrisisInfo = {
   acts: CrisisActInfo[]
   /** The current act's index (0–2) while one is under way. */
   current: number | null
-  /** How the Crisis ended: the day, and the villain's victory text or the failed act's text. */
+  /**
+   * How the Crisis ended: the day, and the villain's victory text or the failed act's text (or,
+   * lost before the plan was learned, UNLEARNED_FAILED).
+   */
   ended: { outcome: 'won' | 'lost'; day: number; text: string } | null
   /** The end screen is due: ended, and not yet dismissed with "Keep playing". */
   showEnd: boolean
@@ -283,6 +289,7 @@ export function crisisInfo(state: GameState, content: Content): CrisisInfo | nul
           }
         : null
   const failedAt = ended?.outcome === 'lost' ? crisis.acts[status.act!].poi : crisis.reveal
+
   const sites = [crisis.reveal, ...crisis.acts.map((a) => a.poi)]
     .map((poi, i): CrisisSiteInfo => ({
       poi,
@@ -303,7 +310,11 @@ export function crisisInfo(state: GameState, content: Content): CrisisInfo | nul
         : null,
     acts,
     current: status.phase === 'act' ? status.act : null,
-    ended: ended && { ...ended, text: crisisText(state, content, crisis, ended.text, failedAt) },
+    // Lost before the plan was learned: nothing of the villain or its sites is told.
+    ended: ended && {
+      ...ended,
+      text: learned ? crisisText(state, content, crisis, ended.text, failedAt) : UNLEARNED_FAILED,
+    },
     showEnd: ended !== null && !crisis.endSeen,
     sites,
   }
