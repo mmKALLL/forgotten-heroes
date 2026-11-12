@@ -78,10 +78,10 @@ describe('travel', () => {
 
   test('a sea crossing charges its fare up front', () => {
     const after = travel(at('ashmoor-1', { gold: 20 }), 'ashmoor-1-farisle-1')
-    expect(after.gold).toBe(8)
-    expect(lastLine(after)).toMatch(/, 12 gp passage\.$/)
+    expect(after.gold).toBe(4)
+    expect(lastLine(after)).toMatch(/, 16 gp passage\.$/)
     expect(lastLine(travel(at('ashmoor-1', { gold: 5 }), 'ashmoor-1-farisle-1'))).toBe(
-      'Passage costs 12 gp.'
+      'Passage costs 16 gp.'
     )
   })
 
@@ -108,7 +108,7 @@ describe('travel', () => {
 
   test('at sea the ship sets the pace', () => {
     const at_sea = travel(at('ashmoor-1', { gold: 20 }), 'ashmoor-1-farisle-1', content, 'forced')
-    expect(at_sea.travel).toMatchObject({ pace: 'steady', kmPerDay: 75 })
+    expect(at_sea.travel).toMatchObject({ pace: 'steady', kmPerDay: 40 })
     expect(lastLine(at_sea)).toMatch(/The ship sets the pace\.$/)
   })
 })
@@ -503,7 +503,7 @@ describe('stowing away', () => {
       if (after.lastRoll?.tier !== 'success') continue
       expect(after.party[1].strain).toEqual({ stealth: 1 })
       // A one-day crossing: the party lands the next day, the stack still on.
-      const day1 = go({ ...after, travel: { ...after.travel!, km: 75, encounterDays: [] } })
+      const day1 = go({ ...after, travel: { ...after.travel!, km: 40, encounterDays: [] } })
       expect(day1.location).toBe('farisle-1')
       expect(day1.day).toBe(today + 1)
       expect(day1.party[1].strain).toEqual({ stealth: 1 })

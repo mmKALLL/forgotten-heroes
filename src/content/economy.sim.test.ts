@@ -8,6 +8,7 @@ import { trader, type TraderOptions, type TraderWhy } from '../engine/travel/tra
 import { wander } from '../engine/travel/wander'
 import { settlementName } from '../engine/world/geo'
 import { MAX_EXHAUSTION } from '../engine/rules/character'
+import { STARTING_GOLD } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { GOODS, type ContractKind, type Good } from '../schema/types'
 import { loadBundledContent } from './bundled'
@@ -28,6 +29,13 @@ const isCargo = (good: Good) => good !== 'food' && good !== 'water'
 
 /** The days the report's gold curve looks at. */
 const CURVE_DAYS = [5, 10, 15, 20, 25, 30]
+
+/**
+ * The sim's own starting gold: the guards and the policy tables start every party with this, so
+ * they don't move when the designer changes STARTING_GOLD. The report adds a section for a party
+ * that starts with the game's STARTING_GOLD.
+ */
+const SIM_GOLD = 50
 
 /** Gold under this with no cargo worth as much (and no contract in hand) is broke. */
 const BROKE_GP = 5
@@ -106,10 +114,9 @@ function simulate(
   seed: number,
   policy: Policy,
   days: number,
-  gold?: number
+  gold = SIM_GOLD
 ): { run: Run; state: GameState } {
-  const fresh = newGame(seed, content)
-  const start = gold === undefined ? fresh : { ...fresh, gold }
+  const start = { ...newGame(seed, content), gold }
   const run: Run = {
     seed,
     policy,
@@ -330,7 +337,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
     const lines: string[] = []
     const row = (cells: (string | number)[]) => lines.push(`| ${cells.join(' | ')} |`)
 
-    lines.push(`## Policies (seeds 1–${SEEDS.length}, ${DAYS} days)`, '')
+    lines.push(`## Policies (seeds 1–${SEEDS.length}, ${DAYS} days, a ${SIM_GOLD} gp start)`, '')
     row([
       'Policy',
       'gp/day by 30 (P10 / median / P90)',
@@ -459,14 +466,14 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
       }
     }
 
-    // For the designer's reference: the same trader with a 10 gp start (STARTING_GOLD is theirs).
-    const poor = SEEDS.map((seed) => simulate(seed, 'trader', DAYS, 10).run)
+    // For the designer's reference: the same trader with the game's own start (STARTING_GOLD).
+    const poor = SEEDS.map((seed) => simulate(seed, 'trader', DAYS, STARTING_GOLD).run)
     const poorBroke = (day: number) =>
       poor.filter((r) => r.brokeDay !== null && r.brokeDay <= day).length / poor.length
     const poorAt = (i: number) => poor.map((r) => r.curve[i] ?? 0)
     lines.push(
       '',
-      '## Reference: the trader with a 10 gp start',
+      `## Reference: the trader with the game's ${STARTING_GOLD} gp start (STARTING_GOLD)`,
       '',
       `gp/day by 30: median ${f1(median(poor.map((r) => r.perDay30)))}; ` +
         `broke by 30: ${pct(poorBroke(30))}, by 60: ${pct(poorBroke(60))}; ` +

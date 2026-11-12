@@ -198,14 +198,14 @@ describe('routeOptions', () => {
     expect(options[0]).toMatchObject({
       to: 'farisle-1',
       km: 160,
-      days: 3,
+      days: 4,
       terrain: 'sea',
-      fare: 12,
+      fare: 16,
       encounters: [0, 0],
       available: false,
-      reason: { code: 'fare', params: { gold: 12 } },
+      reason: { code: 'fare', params: { gold: 16 } },
     })
-    expect(roadReasonText(options[0].reason!)).toBe('Passage costs 12 gp.')
+    expect(roadReasonText(options[0].reason!)).toBe('Passage costs 16 gp.')
     expect(options[2]).toMatchObject({
       to: 'greenvale-2',
       days: 5,
@@ -363,7 +363,7 @@ describe('routeOptions', () => {
   test('at sea the ship sets the pace, and the preview says so', () => {
     const [sea] = routeOptions(makeState({ location: 'ashmoor-1' }), content)
     expect(sea.paceNote).toBe(SEA_PACE_NOTE)
-    expect(sea.paces).toMatchObject([{ pace: 'steady', days: 3 }])
+    expect(sea.paces).toMatchObject([{ pace: 'steady', days: 4 }])
   })
 
   test('says why a road can’t be taken: an open encounter, no one fit, or the fare', () => {

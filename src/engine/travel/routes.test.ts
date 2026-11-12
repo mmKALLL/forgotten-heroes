@@ -23,14 +23,14 @@ test('speed depends on the terrain', () => {
   expect(kmPerDay('plains')).toBe(30)
   expect(kmPerDay('marsh')).toBe(18)
   expect(kmPerDay('mountains')).toBe(15)
-  expect(kmPerDay('sea')).toBe(75)
+  expect(kmPerDay('sea')).toBe(40)
 })
 
 test('journeys take whole days, at least one', () => {
   expect(journeyDays({ km: 75, terrain: 'plains' })).toBe(3)
   expect(journeyDays({ km: 75, terrain: 'marsh' })).toBe(5)
   expect(journeyDays({ km: 10, terrain: 'plains' })).toBe(1)
-  expect(journeyDays({ km: 160, terrain: 'sea' })).toBe(3)
+  expect(journeyDays({ km: 160, terrain: 'sea' })).toBe(4)
 })
 
 describe('pace', () => {
@@ -52,8 +52,8 @@ describe('pace', () => {
 
   test('a ship sails at its own speed, whatever the pace', () => {
     for (const pace of ['stealthy', 'cautious', 'brisk', 'forced'] as const) {
-      expect(kmPerDay('sea', pace)).toBe(75)
-      expect(journeyDays({ km: 160, terrain: 'sea' }, pace)).toBe(3)
+      expect(kmPerDay('sea', pace)).toBe(40)
+      expect(journeyDays({ km: 160, terrain: 'sea' }, pace)).toBe(4)
     }
   })
 
@@ -193,7 +193,7 @@ test('site situations never make a route eventful', () => {
 })
 
 test('only sea crossings cost a fare: 2 gp per member per day', () => {
-  expect(fareFor(content.routes['ashmoor-1-farisle-1'], 2)).toBe(12)
+  expect(fareFor(content.routes['ashmoor-1-farisle-1'], 2)).toBe(16)
   expect(fareFor(content.routes['greenvale-1-greenvale-2'], 2)).toBe(0)
 })
 
