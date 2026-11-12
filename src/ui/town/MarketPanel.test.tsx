@@ -74,9 +74,20 @@ test('prices known elsewhere show their age, stale and heard', () => {
   const name = settlementName(state, 'greenvale-2')
   const row = screen.getByRole('rowheader', { name: /^Food/ }).closest('tr')!
   const known = within(row).getByText(name).closest('td')!
-  expect(known.textContent).toBe(`▲7 ${name} 25d heard stale`)
+  // ↑: it pays more there than here.
+  expect(known.textContent).toBe(`↑7 ${name} 25d heard stale`)
   expect(known.className).toMatch(/stale/)
   expect(known.getAttribute('title')).toMatch(`${name} pays 7 gp · 25 days ago heard stale`)
+  cleanup()
+  market(
+    town({
+      priceBook: {
+        'greenvale-2': { day: 1, heard: false, prices: { food: { buy: 0.2, sell: 0.1 } } },
+      },
+    })
+  )
+  const lower = screen.getByRole('rowheader', { name: /^Food/ }).closest('tr')!
+  expect(within(lower).getByText(name).closest('td')!.textContent).toMatch(/^↓0\.1 /)
 })
 
 test('a buy that would overload is disabled with the reason', () => {
@@ -86,6 +97,14 @@ test('a buy that would overload is disabled with the reason', () => {
   const buy = screen.getByRole('button', { name: /^Buy 1 Food/ }) as HTMLButtonElement
   expect(buy.disabled).toBe(true)
   expect(buy.getAttribute('title')).toBe('Too heavy: the party can carry 0 more')
+  expect(buy.closest('td')!.textContent).toMatch(/carry 0 more/)
+})
+
+test('a buy the gold can’t cover is disabled without a reason under it', () => {
+  market(town({ gold: 0 }))
+  const buy = screen.getByRole('button', { name: /^Buy 1 Food/ }) as HTMLButtonElement
+  expect(buy.disabled).toBe(true)
+  expect(buy.closest('td')!.querySelector('.trade-why')).toBeNull()
 })
 
 test('the supply and demand cell explains the price on hover only', () => {
@@ -94,7 +113,8 @@ test('the supply and demand cell explains the price on hover only', () => {
   const row = screen.getByRole('rowheader', { name: /^Alchemicals/ }).closest('tr')!
   const cell = row.querySelector('td.levels')!
   expect(cell.getAttribute('title')).toMatch(/^Supply \+2 · demand 0\nMade here: Herb-gatherers/)
-  expect(cell.textContent).toBe('▲▲/·')
+  // A level of 0 is a dash in the same slot as one arrow.
+  expect(cell.textContent).toBe('▲▲/—')
 })
 
 test('a shortage is marked in the supply and demand cell', () => {

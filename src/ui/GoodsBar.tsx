@@ -10,7 +10,14 @@ import { partyWaterCapacity } from '../engine/travel/supplies'
 import { GOODS, GOOD_CATEGORIES, type Good } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { useI18n } from './i18n/I18n'
-import { OVERLOAD_RATIO, WEALTH_MAX_STEPS } from '../engine/constants'
+import { Tip } from './Tip'
+import {
+  OVERLOAD_RATIO,
+  PURSE_FREE_PER_MEMBER,
+  WEALTH_HOSTILE_PER_STEP,
+  WEALTH_MAX_STEPS,
+  WEALTH_STEP_GP,
+} from '../engine/constants'
 
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
 
@@ -106,16 +113,17 @@ export function CapacityMeter({ laden }: { laden: Load }) {
 }
 
 /**
- * One pip per visible-wealth step; the tooltip says what it costs on the road (the wealth part of
- * the engine's hostile share).
+ * One diamond per visible-wealth step, with a short "Wealth" label. Hover or focus explains what
+ * wealth does on the road and what counts, and what the party's wealth costs now (the wealth part
+ * of the engine's hostile share).
  */
 export function WealthPips({ wealth }: { wealth: VisibleWealth }) {
   const { t } = useI18n()
   const pips = Array.from({ length: WEALTH_MAX_STEPS }, (_, i) => (i < wealth.steps ? '◆' : '◇'))
   const pct = formatPercent(wealth.hostile)
-  const hint =
+  const now =
     wealth.steps === 0
-      ? undefined
+      ? null
       : wealth.purse > 0
         ? t('wealth.hintPurse', {
             precious: Math.round(wealth.precious),
@@ -123,17 +131,22 @@ export function WealthPips({ wealth }: { wealth: VisibleWealth }) {
             pct,
           })
         : t('wealth.hint', { precious: Math.round(wealth.precious), pct })
+  const explain = t('wealth.explain', {
+    pct: formatPercent(WEALTH_HOSTILE_PER_STEP),
+    free: PURSE_FREE_PER_MEMBER,
+    step: WEALTH_STEP_GP,
+  })
   return (
-    <span
+    <Tip
       className={`wealth${wealth.steps > 0 ? ' shown' : ''}`}
-      role="img"
-      aria-label={[t('wealth.label', { steps: wealth.steps, max: WEALTH_MAX_STEPS }), hint]
+      label={[t('wealth.label', { steps: wealth.steps, max: WEALTH_MAX_STEPS }), now]
         .filter(Boolean)
         .join('. ')}
-      title={hint}
+      tip={[now, explain].filter(Boolean).join('\n')}
     >
-      {pips.join('')}
-    </span>
+      <span className="wealth-label">{t('wealth.short')}</span>
+      <span className="wealth-pips">{pips.join('')}</span>
+    </Tip>
   )
 }
 

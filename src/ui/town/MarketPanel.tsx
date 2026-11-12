@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import type { Content } from '../../content/build'
 import { load } from '../../engine/economy/capacity'
-import { MARKET_STALL, quote, type Quote } from '../../engine/economy/market'
+import { MARKET_STALL, qualityEffects, quote, type Quote } from '../../engine/economy/market'
 import { marketView, type KnownElsewhere, type MarketRow } from '../../engine/economy/trade'
 import { formatGp } from '../../engine/format'
 import type { Action } from '../../engine/state'
@@ -17,6 +17,8 @@ import type { GameState } from '../../schema/state'
 import { contractText } from '../contractText'
 import { CapacityMeter } from '../GoodsBar'
 import { useI18n, type I18n } from '../i18n/I18n'
+import { Tip } from '../Tip'
+import { qualityTip } from './ServicesPanel'
 import { WATERSKIN_PRICE, WATERSKIN_SELL_PRICE, WATERSKIN_WATER } from '../../engine/constants'
 
 /** The amounts the stepper offers; 'max' is all the party can buy, or all it carries. */
@@ -25,8 +27,8 @@ export type Amount = (typeof AMOUNTS)[number]
 
 type T = I18n['t']
 
-/** Supply or demand as arrows: ▲ per level above 0, ▼ per level below, · at 0. */
-const arrows = (n: number) => (n > 0 ? '▲'.repeat(n) : n < 0 ? '▼'.repeat(-n) : '·')
+/** Supply or demand as arrows: ▲ per level above 0, ▼ per level below, a dash at 0. */
+const arrows = (n: number) => (n > 0 ? '▲'.repeat(n) : n < 0 ? '▼'.repeat(-n) : '—')
 const signed = (n: number) => (n > 0 ? `+${n}` : n < 0 ? `−${-n}` : '0')
 const pips = (quality: number) => '●'.repeat(quality) + '○'.repeat(Math.max(0, 5 - quality))
 
@@ -267,13 +269,20 @@ function MarketLine({
     : row.buyLimit === 'weight'
       ? t('market.tooHeavy', { n: row.maxBuy })
       : t('market.tooDear', { n: row.maxBuy })
-  const buyWhy = !short
-    ? null
-    : t(row.buyLimit === 'weight' ? 'market.tooHeavyShort' : 'market.tooDearShort', {
-        n: row.maxBuy,
-      })
+  // Only the weight limit is spelled out under the button (designer decision: the gold is
+  // the player's own arithmetic); both are in the tooltip.
+  const buyWhy =
+    short && row.buyLimit === 'weight' ? t('market.tooHeavyShort', { n: row.maxBuy }) : null
   const known = row.known.sell ?? row.known.buy
   const knownSide = row.known.sell ? 'sell' : 'buy'
+  // Whether the price there is higher or lower than the same price here (↑ or ↓).
+  const herePrice = knownSide === 'sell' ? row.sell : row.buy
+  const trend =
+    !known || !herePrice || formatGp(known.price) === formatGp(herePrice.unitFirst)
+      ? null
+      : known.price > herePrice.unitFirst
+        ? 'up'
+        : 'down'
   const knownTitle = [
     row.known.sell && knownText(t, 'sell', row.known.sell),
     row.known.buy && knownText(t, 'buy', row.known.buy),
@@ -301,9 +310,10 @@ function MarketLine({
         title={whyText(t, row)}
         tabIndex={row.good === 'water' ? undefined : 0}
       >
-        <span className="supply">{arrows(row.supply)}</span>
+        {/* Fixed-width slots, so the "/" lines up down the column. */}
+        <span className={row.supply === 0 ? 'supply zero' : 'supply'}>{arrows(row.supply)}</span>
         <span className="sep">/</span>
-        <span className="demand">{arrows(row.demand)}</span>
+        <span className={row.demand === 0 ? 'demand zero' : 'demand'}>{arrows(row.demand)}</span>
         {row.shortage && (
           <span className="shortage" aria-label={t('market.shortage')}>
             !
@@ -314,14 +324,20 @@ function MarketLine({
       <td className="num">{unit(row.sell)}</td>
       <td className="shop">
         {row.shop ? (
-          <span title={t('market.shopValue', { name: shopName ?? '', quality: row.shop.quality })}>
-            <span className="pips" aria-hidden="true">
-              {pips(row.shop.quality)}
-            </span>
-            <span className="sr-only">
-              {t('market.shopValue', { name: shopName ?? '', quality: row.shop.quality })}
-            </span>
-          </span>
+          <Tip
+            className="pips"
+            label={t('market.shopValue', { name: shopName ?? '', quality: row.shop.quality })}
+            tip={[
+              shopName,
+              qualityTip(
+                t,
+                row.shop.quality,
+                qualityEffects(row.shop.quality, { trades: true, lodging: false })
+              ),
+            ].join(' · ')}
+          >
+            {pips(row.shop.quality)}
+          </Tip>
         ) : null}
       </td>
       <td
@@ -330,7 +346,14 @@ function MarketLine({
       >
         {known && (
           <>
-            {knownSide === 'sell' ? '▲' : '▼'}
+            {trend && (
+              <span
+                className={`trend ${trend}`}
+                aria-label={t(trend === 'up' ? 'market.higherThere' : 'market.lowerThere')}
+              >
+                {trend === 'up' ? '↑' : '↓'}
+              </span>
+            )}
             {formatGp(known.price)} <span className="known-name">{known.name}</span>{' '}
             <span className="muted">{t('market.ageShort', { n: known.age })}</span>
             {known.heard && <span className="mark"> {t('market.heard')}</span>}
@@ -361,6 +384,8 @@ function MarketLine({
         {row.sell && (
           <button
             disabled={sellN === 0}
+            // Nothing to sell: phones hide it to keep the rows short (theme.css).
+            className={forSale === 0 ? 'idle' : undefined}
             title={
               sellQuote
                 ? t('market.sellQuote', {
@@ -474,6 +499,7 @@ function WaterskinLine({
         </button>
         <button
           disabled={sellN === 0}
+          className={state.waterskins === 0 ? 'idle' : undefined}
           aria-label={t('market.sellLabel', {
             n: sellN,
             good: label,

@@ -324,7 +324,7 @@ export const en = {
   'services.restOwn': 'Rest a day, eating carried food',
   'market.amount': 'Amount',
   'market.max': 'Max',
-  'market.legend': 'gp per unit · ▲▼ supply / demand',
+  'market.legend': 'gp per unit · ▲▼ supply / demand · ↑↓ elsewhere vs here',
   'market.category': 'Category',
   'market.good': 'Good',
   'market.levels': 'S/D',
@@ -511,7 +511,6 @@ export const en = {
   'market.stalls': 'Market stalls',
   'market.cargoShort': '{n} cargo',
   'market.tooHeavyShort': 'carry {n} more',
-  'market.tooDearShort': 'gold for {n}',
   'market.sellCargo': 'Sell {n} cargo…',
   'market.sellCargoSure':
     'Selling the {n} {good} breaks “{title}”: the market pays {gp} gp, {patron} is owed {owed} gp for the goods, and you lose {standing} standing with {patron} and {town}.',
@@ -527,6 +526,19 @@ export const en = {
   'route.hireSaved': '−{n} days',
   'route.hireSavedOne': '−1 day',
   'route.hireNoFaster': 'no faster',
+  'market.higherThere': 'higher there than here',
+  'market.lowerThere': 'lower there than here',
+  'quality.spread':
+    'Each step of quality narrows the gap between buying and selling by {step} points of the price.',
+  'quality.narrower': 'This one’s gap is {n} points narrower than an average (3) shop’s.',
+  'quality.wider': 'This one’s gap is {n} points wider than an average (3) shop’s.',
+  'quality.average': 'This one is an average shop.',
+  'quality.rooms': 'Inns of quality {min} or better have private rooms: this one does.',
+  'quality.noRooms': 'Inns of quality {min} or better have private rooms: this one doesn’t.',
+  'quality.none': 'Its quality changes nothing yet.',
+  'wealth.short': 'Wealth',
+  'wealth.explain':
+    'Visible wealth draws trouble on the road: each ◆ adds about +{pct} hostile encounters, and thieves and tolls come more often. It counts precious goods (gems, relics, luxuries) and coin above about {free} gp per member; one ◆ per {step} gp per member.',
 }
 
 export type MessageKey = keyof typeof en

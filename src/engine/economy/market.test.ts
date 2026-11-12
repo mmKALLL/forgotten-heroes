@@ -9,6 +9,7 @@ import {
   midPrice,
   priceFactors,
   pressure,
+  qualityEffects,
   quote,
   recordTrade,
   shopsFor,
@@ -17,9 +18,11 @@ import {
   DRIFT,
   DRIFT_PERIOD_DAYS,
   PRICE_STEP,
+  PRIVATE_ROOM_MIN_QUALITY,
   RECOVERY_HALF_LIFE_DAYS,
   SHORTAGE_GAP,
   SPREAD_MIN,
+  SPREAD_PER_QUALITY,
   STANDING_POINTS,
   SUPPLY_MIN,
 } from '../constants'
@@ -311,5 +314,21 @@ describe('shops', () => {
       expect(Number.isInteger(q.unitLast) && q.unitLast >= 1).toBe(true)
     }
     expect(quote(shopping, content, 'greenvale-1', 'food', 'buy', 0)).toBeNull()
+  })
+})
+
+describe('quality effects', () => {
+  test('a shop’s quality moves its spread against an average shop; an inn’s gives private rooms', () => {
+    expect(qualityEffects(5, { trades: true, lodging: false })).toEqual([
+      { effect: 'spread', perStep: SPREAD_PER_QUALITY, vsAverage: -2 * SPREAD_PER_QUALITY },
+    ])
+    expect(qualityEffects(3, { trades: true, lodging: false })[0]).toMatchObject({ vsAverage: 0 })
+    expect(qualityEffects(PRIVATE_ROOM_MIN_QUALITY - 1, { trades: false, lodging: true })).toEqual([
+      { effect: 'privateRooms', minQuality: PRIVATE_ROOM_MIN_QUALITY, offered: false },
+    ])
+    expect(
+      qualityEffects(PRIVATE_ROOM_MIN_QUALITY, { trades: false, lodging: true })[0]
+    ).toMatchObject({ offered: true })
+    expect(qualityEffects(4, { trades: false, lodging: false })).toEqual([])
   })
 })

@@ -14,6 +14,7 @@ import {
   MARKET_DEPTH,
   MARKET_LEVEL_MAX,
   PRICE_STEP,
+  PRIVATE_ROOM_MIN_QUALITY,
   RECOVERY_HALF_LIFE_DAYS,
   SHORTAGE_GAP,
   SPREAD_BY_SIZE,
@@ -288,6 +289,45 @@ export const shopSpread = (sizeTier: number, quality: number, modifier = 0): num
       SPREAD_PER_QUALITY * (quality - 3) +
       modifier
   )
+
+/**
+ * What a service's quality does (designer request: explained on hover or focus of its pips). Only
+ * the effects the engine has: a shop's spread, and an inn's private rooms.
+ */
+export type QualityEffect =
+  | {
+      effect: 'spread'
+      /** How much each step narrows the spread (SPREAD_PER_QUALITY), as a share of the price. */
+      perStep: number
+      /** This quality's spread against an average (quality 3) shop's: negative is narrower. */
+      vsAverage: number
+    }
+  | {
+      effect: 'privateRooms'
+      /** Inns of at least this quality have private rooms (PRIVATE_ROOM_MIN_QUALITY). */
+      minQuality: number
+      offered: boolean
+    }
+
+/** The effects of a service's quality: `trades` for a shop, `lodging` for an inn. */
+export function qualityEffects(
+  quality: number,
+  { trades, lodging }: { trades: boolean; lodging: boolean }
+): QualityEffect[] {
+  const effects: QualityEffect[] = []
+  if (trades) {
+    const vsAverage = Math.round(SPREAD_PER_QUALITY * (3 - quality) * 1000) / 1000 || 0
+    effects.push({ effect: 'spread', perStep: SPREAD_PER_QUALITY, vsAverage })
+  }
+  if (lodging) {
+    effects.push({
+      effect: 'privateRooms',
+      minQuality: PRIVATE_ROOM_MIN_QUALITY,
+      offered: quality >= PRIVATE_ROOM_MIN_QUALITY,
+    })
+  }
+  return effects
+}
 
 type ShopState = Pick<GameState, 'world'> & Partial<Pick<GameState, 'reputation'>>
 

@@ -1249,12 +1249,57 @@ h2[tabindex='-1']:focus {
   color: var(--bad);
 }
 .wealth {
-  letter-spacing: 0.1em;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
   color: var(--muted);
-}
-.wealth.shown {
-  color: var(--crit);
   cursor: help;
+}
+.wealth-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.wealth-pips {
+  font-size: 1.15rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+.wealth.shown .wealth-pips {
+  color: var(--crit);
+}
+/* Explanations on hover or focus (Tip.tsx): fixed to the viewport, so nothing clips them. */
+.tip {
+  cursor: help;
+}
+.tip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+.tip-pop {
+  position: fixed;
+  z-index: 50;
+  max-width: calc(100vw - 16px);
+  padding: 0.4rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.25);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: normal;
+  font-style: normal;
+  line-height: 1.35;
+  letter-spacing: normal;
+  text-align: left;
+  text-transform: none;
+  white-space: pre-line;
+  pointer-events: none;
+}
+.tip-pop[hidden] {
+  display: none;
 }
 @media (max-width: 900px) {
   .goods-bar {
@@ -1403,27 +1448,42 @@ h2[tabindex='-1']:focus {
 .market-table .market-cat {
   width: 1.1rem;
   padding: 0;
-  font-size: 0.6rem;
+  font-size: 0.5rem;
   font-weight: normal;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  /* Vertical letters need more air than horizontal ones to read as separate letters. */
+  letter-spacing: 0.16em;
+  line-height: 1;
 }
 .market-cat span {
   display: block;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   margin: 0 auto;
+  padding: 0.25rem 0;
 }
 .levels {
   font-size: 0.6rem;
   letter-spacing: -0.05em;
 }
+/* Supply and demand sit in fixed slots (three arrows wide) either side of the "/", so it lines
+   up down the column; a level of 0 is a dash as wide as one arrow. */
+.levels .supply,
+.levels .demand {
+  display: inline-block;
+  width: 2.9em;
+}
 .levels .supply {
   color: var(--good);
+  text-align: right;
 }
 .levels .demand {
   color: var(--bad);
+  text-align: left;
+}
+.levels .zero {
+  color: var(--muted);
 }
 .levels .sep {
   color: var(--muted);
@@ -1446,6 +1506,16 @@ h2[tabindex='-1']:focus {
 }
 .known.stale {
   opacity: 0.55;
+}
+.known .trend {
+  margin-right: 0.1rem;
+  font-weight: bold;
+}
+.known .trend.up {
+  color: var(--good);
+}
+.known .trend.down {
+  color: var(--bad);
 }
 .known .mark {
   font-size: 0.65rem;
@@ -1854,4 +1924,42 @@ h2[tabindex='-1']:focus {
   color: var(--muted);
   text-decoration: underline;
   font-size: 0.75rem;
+}
+/*
+ * Phones (design §9: the target is a Samsung Galaxy S26, about 412 CSS px wide and tall): tighter
+ * gutters and panels, and a market table that fits the width with its trade buttons stacked.
+ */
+@media (max-width: 480px) {
+  .topbar {
+    gap: 0.3rem 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+  .topbar h1 {
+    font-size: 1.2rem;
+  }
+  .layout {
+    gap: 0.6rem;
+    padding: 0.5rem;
+  }
+  .panel {
+    padding: 0.65rem 0.6rem;
+  }
+  .market-table th,
+  .market-table td {
+    padding: 0.1rem 0.15rem;
+  }
+  .market-table .known {
+    max-width: 5.5rem;
+  }
+  .market-table .trade button {
+    display: block;
+    margin: 0.1rem 0 0.1rem auto;
+  }
+  .market-table .trade button.idle {
+    display: none;
+  }
+  .goods-bar {
+    gap: 0.3rem 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
 }

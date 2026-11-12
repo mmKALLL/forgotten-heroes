@@ -477,7 +477,6 @@ export const ja: Partial<Messages> = {
   'market.stalls': '露店',
   'market.cargoShort': '積荷{n}',
   'market.tooHeavyShort': 'あと{n}まで',
-  'market.tooDearShort': '金は{n}個分',
   'market.sellCargo': '積荷{n}を売る…',
   'market.sellCargoSure':
     '{good}{n}を売ると「{title}」の仕事を破る：市場は{gp} gpで買うが、{patron}に品代{owed} gpを払い、{patron}と{town}での評判が{standing}下がる。',

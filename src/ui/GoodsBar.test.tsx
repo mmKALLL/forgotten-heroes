@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen, within } from '@testing-library/react'
+import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
 import { fixtureContent, makeState } from '../engine/test-fixtures'
@@ -46,14 +46,21 @@ test('the capacity meter shows the load and its level', () => {
   expect(screen.getByRole('group', { name: 'Load' }).textContent).toMatch(/^2 \/ \d+ kg$/)
 })
 
-test('the wealth tooltip appears only when wealth shows', () => {
+test('the wealth diamonds are labelled and explain themselves on hover or focus', async () => {
   bar({ goods: {}, gold: 0 })
   const none = screen.getByRole('img', { name: /^Visible wealth 0 of 4$/ })
-  expect(none.getAttribute('title')).toBeNull()
+  expect(none.textContent).toMatch(/^Wealth◇◇◇◇/)
+  const tip = screen.getByRole('tooltip', { hidden: true })
+  expect(tip.hidden).toBe(true)
+  expect(tip.textContent).toMatch(/^Visible wealth draws trouble.*\+5% hostile.*50 gp per member/)
+  await userEvent.hover(none)
+  expect(tip.hidden).toBe(false)
   cleanup()
   bar({ goods: { gems: 3 }, gold: 0 })
   const shown = screen.getByRole('img', { name: /^Visible wealth 1 of 4\./ })
-  expect(shown.getAttribute('title')).toBe('Precious goods worth 300 gp: +5% hostile on the road')
+  act(() => shown.focus())
+  const now = screen.getByRole('tooltip')
+  expect(now.textContent).toMatch(/^Precious goods worth 300 gp: \+5% hostile on the road\n/)
 })
 
 test('Japanese falls back to English for missing keys', () => {

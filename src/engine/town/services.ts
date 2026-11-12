@@ -4,7 +4,7 @@ import type { GameState } from '../../schema/state'
 import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
 import { MAX_EXHAUSTION } from '../rules/character'
-import { serviceQuality } from '../economy/market'
+import { qualityEffects, serviceQuality, type QualityEffect } from '../economy/market'
 import { heardPrices, marketTalk } from '../economy/trade'
 import { withRng } from '../rng'
 import { settlementName, straightKm } from '../world/geo'
@@ -116,6 +116,8 @@ export type ServiceRow = {
   name: string
   function: ServiceFunction
   quality: number
+  /** What its quality does here (a shop's spread, an inn's private rooms), for its pips. */
+  qualityEffects: QualityEffect[]
   specialty: string | null
   actions: ServiceActionView[]
   /** Nothing the engine supports yet: shown as "coming later". */
@@ -188,11 +190,17 @@ export function serviceRows(state: GameState, content: Content): ServiceRow[] {
   const rows = info.services.map((service): ServiceRow => {
     const role = own(content.serviceRoles, service)
     const actions = (role?.actions ?? []).map((a) => actionView(state, content, service, a))
+    const quality = serviceQuality(state, here, service)
+    const trades = (role?.trades.length ?? 0) + (role?.buysOnly.length ?? 0) > 0
     return {
       service,
       name: own(content.services, service)?.name ?? service,
       function: role?.function ?? 'trade',
-      quality: serviceQuality(state, here, service),
+      quality,
+      qualityEffects: qualityEffects(quality, {
+        trades,
+        lodging: role?.actions.includes('lodging') ?? false,
+      }),
       specialty: role?.specialty ?? null,
       actions,
       later: actions.length === 0,

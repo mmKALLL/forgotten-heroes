@@ -14,7 +14,9 @@ import {
 import { goodDef } from '../../engine/economy/goods'
 import { SERVICE_FUNCTIONS, type Good } from '../../schema/types'
 import type { GameState } from '../../schema/state'
-import { useI18n } from '../i18n/I18n'
+import { useI18n, type I18n } from '../i18n/I18n'
+import { Tip } from '../Tip'
+import type { QualityEffect } from '../../engine/economy/market'
 import { StandingBadge } from './PeoplePanel'
 import { daysText } from '../world/travelText'
 import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
@@ -22,6 +24,42 @@ import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
 const pips = (quality: number) => '●'.repeat(quality) + '○'.repeat(Math.max(0, 5 - quality))
+
+/** What a service's quality does here (the engine's qualityEffects), one line each. */
+export function qualityTip(t: I18n['t'], quality: number, effects: QualityEffect[]): string {
+  const points = (share: number) => Math.round(Math.abs(share) * 100)
+  const lines = [t('services.quality', { quality })]
+  for (const e of effects) {
+    if (e.effect === 'spread') {
+      lines.push(t('quality.spread', { step: points(e.perStep) }))
+      lines.push(
+        e.vsAverage < 0
+          ? t('quality.narrower', { n: points(e.vsAverage) })
+          : e.vsAverage > 0
+            ? t('quality.wider', { n: points(e.vsAverage) })
+            : t('quality.average')
+      )
+    } else {
+      lines.push(t(e.offered ? 'quality.rooms' : 'quality.noRooms', { min: e.minQuality }))
+    }
+  }
+  if (effects.length === 0) lines.push(t('quality.none'))
+  return lines.join('\n')
+}
+
+/** Quality pips that explain themselves on hover or focus. */
+export function QualityPips({ quality, effects }: { quality: number; effects: QualityEffect[] }) {
+  const { t } = useI18n()
+  return (
+    <Tip
+      className="pips"
+      label={t('services.quality', { quality })}
+      tip={qualityTip(t, quality, effects)}
+    >
+      {pips(quality)}
+    </Tip>
+  )
+}
 
 /** Why a service's button is disabled, shown under it (not only in its tooltip). */
 function Why({ reason }: { reason: string | null | undefined }) {
@@ -104,14 +142,7 @@ function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRo
       title={hint}
     >
       <div className="service-name">
-        <span>{title}</span>{' '}
-        <span
-          className="pips"
-          role="img"
-          aria-label={t('services.quality', { quality: row.quality })}
-        >
-          {pips(row.quality)}
-        </span>
+        <span>{title}</span> <QualityPips quality={row.quality} effects={row.qualityEffects} />
       </div>
       {keeper && keeper.standing !== 'stranger' && (
         <div className="small">

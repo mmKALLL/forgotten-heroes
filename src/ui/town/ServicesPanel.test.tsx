@@ -121,3 +121,16 @@ test('the inn leaves its rumours and notice board to their own lines in the talk
   expect(inn.queryByText(/Rumours here|^Board: /)).toBeNull()
   expect(inn.queryByRole('button', { name: 'Take' })).toBeNull()
 })
+
+test('quality pips explain what quality does there on hover or focus', async () => {
+  panel(town())
+  const inn = screen.getByRole('region', { name: 'Inn/Tavern' })
+  const pips = within(inn).getByRole('img', { name: /^Quality \d of 5$/ })
+  await userEvent.hover(pips)
+  expect(within(inn).getByRole('tooltip').textContent).toMatch(
+    /^Quality \d of 5\nInns of quality 3 or better have private rooms: this one (does|doesn’t)\.$/
+  )
+  const jeweller = screen.getByRole('region', { name: 'Jewelry trader' })
+  const tip = within(jeweller).getByRole('tooltip', { hidden: true })
+  expect(tip.textContent).toMatch(/narrows the gap between buying and selling by 3 points/)
+})
