@@ -543,3 +543,19 @@ export const CRISIS_ACT_SPREAD = 3
 export const CRISIS_ACT_DAYS = 100
 /** Each due day is moved by up to ± this many days (seeded). */
 export const CRISIS_DUE_JITTER = 10
+
+// The Crisis: deadlines and news (crisis/status.ts)
+
+/** An act not thwarted this many days after its due day fails, and the Crisis is lost. */
+export const CRISIS_LEEWAY_DAYS = 30
+/** Each this many days late (or part of it) adds 1 to every DC at the act's site. */
+export const CRISIS_LATE_STEP_DAYS = 10
+/** The journal warns this many days before an act is due (once the plan is known). */
+export const CRISIS_WARN_DAYS = 14
+
+// The Crisis: clues and thwarting (crisis/progress.ts)
+
+/** Clues to an act that reveal its site (the first, its land, comes with the act). */
+export const CRISIS_SITE_CLUES = 2
+/** Clues to an act that reveal the villain's weakness there: the party goes in with the Edge. */
+export const CRISIS_WEAKNESS_CLUES = 3
