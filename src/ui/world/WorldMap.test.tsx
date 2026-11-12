@@ -3,9 +3,10 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
 import { step } from '../../engine/state'
+import { routeOptions } from '../../engine/travel/preview'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
-import { WorldMap, viewBoxFor } from './WorldMap'
+import { DANGER_COLOURS, WorldMap, nearestInDirection, viewBoxFor } from './WorldMap'
 
 const content = fixtureContent()
 afterEach(cleanup)
@@ -66,8 +67,89 @@ test('sea crossings are drawn apart from the roads', () => {
       imageUrl={null}
     />
   )
-  expect(container.querySelectorAll('line.route')).toHaveLength(4)
-  expect(container.querySelectorAll('line.route.sea')).toHaveLength(1)
+  const roads = container.querySelectorAll('.world-map line.route')
+  expect(roads).toHaveLength(4)
+  expect(container.querySelectorAll('.world-map line.route.sea')).toHaveLength(1)
+  // Each road has a dark casing beneath it, and its colour says how dangerous it is.
+  expect(container.querySelectorAll('.world-map line.route-casing')).toHaveLength(4)
+  for (const road of roads) {
+    const danger = Number(/danger-(\d)/.exec(road.getAttribute('class') ?? '')![1])
+    expect((road as SVGLineElement).style.stroke).toBe(hexToRgb(DANGER_COLOURS[danger]))
+  }
+})
+
+const hexToRgb = (hex: string) => {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+test('a legend names the four road dangers and sea crossings', () => {
+  render(
+    <WorldMap
+      content={content}
+      state={makeState()}
+      selected={null}
+      onSelect={() => {}}
+      imageUrl="/altaeus.jpg"
+    />
+  )
+  const legend = within(screen.getByRole('list', { name: 'Road danger' }))
+  expect(legend.getAllByRole('listitem').map((li) => li.textContent)).toEqual([
+    'Safe',
+    'Watchful',
+    'Dangerous',
+    'Deadly',
+    'Sea crossing',
+  ])
+})
+
+test('only the party’s place and its roads’ ends are tab stops; arrows reach the rest', async () => {
+  const state = makeState({ location: 'greenvale-1' })
+  const reachable = routeOptions(state, content).map((r) => r.to)
+  render(
+    <WorldMap content={content} state={state} selected={null} onSelect={() => {}} imageUrl={null} />
+  )
+  const markers = map().getAllByRole('button')
+  const stops = markers.filter((m) => m.getAttribute('tabindex') === '0')
+  expect(stops).toHaveLength(1 + reachable.length)
+  expect(stops.length).toBeLessThan(markers.length)
+  const far = map().getByRole('button', { name: settlementName(state, 'farisle-1') })
+  expect(far.getAttribute('tabindex')).toBe('-1')
+
+  // Tab goes from one stop to the next (after the zoom button), skipping the far settlement.
+  await userEvent.tab()
+  expect(document.activeElement?.textContent).toBe('Zoom to party')
+  await userEvent.tab()
+  expect(document.activeElement).toBe(stops[0])
+  for (let i = 1; i < stops.length; i++) await userEvent.tab()
+  expect(document.activeElement).toBe(stops[stops.length - 1])
+  await userEvent.tab()
+  expect(markers).not.toContain(document.activeElement)
+
+  // The arrow keys move to the nearest settlement that way, tab stop or not.
+  const here = map().getByRole('button', { name: /you are here/ })
+  here.focus()
+  const sites = Object.values(content.settlements)
+  const from = content.settlements['greenvale-1'].at
+  const moves = { ArrowLeft: { x: -1, y: 0 }, ArrowRight: { x: 1, y: 0 } }
+  const [key, dir] = Object.entries(moves).find(([, d]) => nearestInDirection(from, d, sites))!
+  const target = nearestInDirection(from, dir, sites)!
+  await userEvent.keyboard(`{${key}}`)
+  expect(document.activeElement?.getAttribute('aria-label')).toMatch(
+    new RegExp(`^${settlementName(state, target)}`)
+  )
+})
+
+test('nearestInDirection prefers settlements straight ahead', () => {
+  const sites = [
+    { id: 'ahead', at: { x: 100, y: 10 } },
+    { id: 'aside', at: { x: 60, y: 60 } },
+    { id: 'behind', at: { x: -10, y: 0 } },
+  ]
+  expect(nearestInDirection({ x: 0, y: 0 }, { x: 1, y: 0 }, sites)).toBe('ahead')
+  expect(nearestInDirection({ x: 0, y: 0 }, { x: 0, y: 1 }, sites)).toBe('aside')
+  expect(nearestInDirection({ x: 0, y: 0 }, { x: -1, y: 0 }, sites)).toBe('behind')
+  expect(nearestInDirection({ x: 0, y: 0 }, { x: 0, y: -1 }, sites)).toBeNull()
 })
 
 test('the road to the selected neighbour, and the journey under way, are highlighted', () => {
@@ -76,10 +158,10 @@ test('the road to the selected neighbour, and the journey under way, are highlig
   const { container, rerender } = render(
     <WorldMap {...props} state={state} selected="greenvale-2" />
   )
-  expect(container.querySelectorAll('line.active')).toHaveLength(1)
+  expect(container.querySelectorAll('line.route.active')).toHaveLength(1)
   const out = step(state, { type: 'travel', routeId: 'greenvale-1-greenvale-2' }, content)
   rerender(<WorldMap {...props} state={out} selected={null} />)
-  expect(container.querySelectorAll('line.active')).toHaveLength(1)
+  expect(container.querySelectorAll('line.route.active')).toHaveLength(1)
   expect(container.querySelector('circle.party-marker')).toBeTruthy()
   expect(map().queryByRole('button', { name: /you are here/ })).toBeNull()
 })

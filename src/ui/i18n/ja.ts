@@ -119,6 +119,8 @@ export const ja: Partial<Messages> = {
   'map.label': 'アルタエウスの地図',
   'map.zoomIn': 'パーティに寄る',
   'map.zoomOut': '全体図',
+  'map.legend': '道の危険度',
+  'map.sea': '航路',
   'map.here': '{name}（現在地）',
   'map.noImage': '地図画像が assets/ にない（pnpm sync-assets を実行）。道だけを表示している。',
 

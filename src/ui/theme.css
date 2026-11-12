@@ -749,6 +749,12 @@ h2[tabindex='-1']:focus {
   gap: 1rem;
   min-width: 0;
 }
+/* On narrow screens the settlement comes first and the map follows; on desktop it sits below. */
+@media (max-width: 900px) {
+  .centre > .place {
+    order: -1;
+  }
+}
 .map-head {
   display: flex;
   align-items: center;
@@ -777,31 +783,54 @@ h2[tabindex='-1']:focus {
   fill: var(--muted);
   pointer-events: none;
 }
+.world-map line,
+.legend-swatch line {
+  /* Road widths in screen pixels, the same on the whole map, zoomed in and in the legend. */
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+}
+.route-casing {
+  stroke: #2b2118;
+  stroke-opacity: 0.75;
+  stroke-width: 6.5px;
+}
 .route {
-  stroke: var(--ink);
-  stroke-opacity: 0.55;
-  stroke-width: 8;
+  stroke-width: 3.5px;
 }
-.route.sea {
-  stroke-dasharray: 26 18;
+.route.sea,
+.route-casing.sea {
+  stroke-dasharray: 7 6;
+  stroke-linecap: butt;
 }
-.route.danger-2 {
+.route-casing.active {
   stroke: var(--crit);
-}
-.route.danger-3 {
-  stroke: var(--bad);
-}
-.route.active {
-  stroke: var(--accent);
   stroke-opacity: 1;
-  stroke-width: 16;
+  stroke-width: 11px;
 }
 .route.travelled {
   stroke: var(--good);
-  stroke-opacity: 1;
-  stroke-width: 18;
+  stroke-width: 6px;
   stroke-dasharray: none;
   pointer-events: none;
+}
+.map-legend {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1rem;
+  margin: 0.5rem 0 0;
+  padding: 0;
+}
+.map-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.legend-swatch {
+  width: 2rem;
+  height: 0.7rem;
+  overflow: visible;
 }
 .site {
   cursor: pointer;
@@ -815,6 +844,9 @@ h2[tabindex='-1']:focus {
   stroke: var(--muted);
   stroke-width: 10;
 }
+.world-map.full .site rect {
+  stroke-width: 14;
+}
 .site.reachable rect {
   fill: var(--accent);
   fill-opacity: 0.85;
@@ -827,6 +859,10 @@ h2[tabindex='-1']:focus {
 .site:focus-visible rect {
   stroke: var(--crit) !important;
   stroke-width: 18;
+}
+.world-map.full .site.selected rect,
+.world-map.full .site:focus-visible rect {
+  stroke-width: 26;
 }
 .site-label {
   font-size: 40px;

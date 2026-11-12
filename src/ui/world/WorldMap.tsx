@@ -1,10 +1,11 @@
-import { useState, type KeyboardEvent } from 'react'
+import { useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
 import { routeOptions } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
 import type { GameState } from '../../schema/state'
 import { MAP_HEIGHT, MAP_WIDTH, type MapPoint } from '../../schema/world'
 import { useI18n } from '../i18n/I18n'
+import { dangerText } from './travelText'
 
 /** Marker outlines by kingdom, in kingdom order. They read on the parchment map in both themes. */
 export const KINGDOM_COLOURS = [
@@ -17,10 +18,25 @@ export const KINGDOM_COLOURS = [
   '#2f7a7a',
   '#8a2f5c',
 ]
+/**
+ * Road colours by danger (0 Safe to 3 Deadly): pale to dark red, so the scale reads by lightness
+ * as well as hue. Fixed rather than themed, since they sit on the same map image in both themes;
+ * a dark casing under each road keeps the pale ones visible.
+ */
+export const DANGER_COLOURS = ['#f4ead2', '#f0b429', '#e0662b', '#b51f18'] as const
 /** The zoomed view: this many map pixels around the party. */
 export const ZOOM = { width: 1600, height: 1200 }
-/** Half a marker's width, in map pixels (the map's own markers are about 20 px). */
-const MARKER = 26
+/**
+ * Half a marker's width, in map pixels (the map's own markers are about 20 px): larger on the
+ * whole map, which is drawn at about a fifth of its size, so markers stay easy to see and hit.
+ */
+const MARKER = { full: 38, zoomed: 26 }
+const ARROWS: Record<string, MapPoint> = {
+  ArrowLeft: { x: -1, y: 0 },
+  ArrowRight: { x: 1, y: 0 },
+  ArrowUp: { x: 0, y: -1 },
+  ArrowDown: { x: 0, y: 1 },
+}
 
 type Props = {
   content: Content
@@ -46,13 +62,37 @@ export function viewBoxFor(centre: MapPoint | null, zoomed: boolean): string {
 }
 
 /**
- * Altaeus: routes (coloured by danger; sea crossings dashed), settlements outlined in their
- * kingdom's colour, and the party, in a settlement or partway along a road. Settlements are
- * buttons that select.
+ * The settlement nearest `from` in the direction `dir` (a unit vector), favouring those straight
+ * ahead: distance along the direction plus twice the distance across it. Null if none lies that way.
+ */
+export function nearestInDirection(
+  from: MapPoint,
+  dir: MapPoint,
+  sites: readonly { id: string; at: MapPoint }[]
+): string | null {
+  let best: { id: string; score: number } | null = null
+  for (const s of sites) {
+    const dx = s.at.x - from.x
+    const dy = s.at.y - from.y
+    const along = dx * dir.x + dy * dir.y
+    if (along <= 0) continue
+    const score = along + 2 * Math.abs(dx * dir.y - dy * dir.x)
+    if (!best || score < best.score) best = { id: s.id, score }
+  }
+  return best?.id ?? null
+}
+
+/**
+ * Altaeus: routes (coloured by danger, with a legend; sea crossings dashed), settlements outlined
+ * in their kingdom's colour, and the party, in a settlement or partway along a road. Settlements
+ * are buttons that select. Only the party's place, the roads' ends and the selection are tab
+ * stops; the arrow keys move between all settlements.
  */
 export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props) {
   const { t } = useI18n()
   const [zoomed, setZoomed] = useState(false)
+  const svg = useRef<SVGSVGElement>(null)
+  const marker = zoomed ? MARKER.zoomed : MARKER.full
   const at = (id: string): MapPoint | null =>
     Object.hasOwn(content.settlements, id) ? content.settlements[id].at : null
   const travel = state.travel
@@ -75,10 +115,24 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
     Object.hasOwn(state.world.regions, region)
       ? colours.get(state.world.regions[region].kingdom)
       : undefined
-  const onKey = (id: string) => (e: KeyboardEvent) => {
-    if (e.key !== 'Enter' && e.key !== ' ') return
+  const sites = sortedEntries(content.settlements)
+  // Roving tab stops: where the party is (or is headed), where it can go, and the selection.
+  const tabStops = new Set(reachable)
+  if (state.location) tabStops.add(state.location)
+  if (travel) tabStops.add(travel.to)
+  if (selected) tabStops.add(selected)
+  if (tabStops.size === 0 && sites.length > 0) tabStops.add(sites[0].id)
+  const onKey = (id: string, at: MapPoint) => (e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onSelect(id)
+      return
+    }
+    if (!Object.hasOwn(ARROWS, e.key)) return
     e.preventDefault()
-    onSelect(id)
+    const next = nearestInDirection(at, ARROWS[e.key], sites)
+    if (!next) return
+    svg.current?.querySelector<SVGGElement>(`[data-site="${next}"]`)?.focus()
   }
 
   return (
@@ -90,7 +144,8 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
         </button>
       </div>
       <svg
-        className="world-map"
+        ref={svg}
+        className={`world-map ${zoomed ? 'zoomed' : 'full'}`}
         viewBox={viewBoxFor(party, zoomed)}
         role="group"
         aria-label={t('map.label')}
@@ -117,21 +172,20 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
           const a = at(r.from)
           const b = at(r.to)
           if (!a || !b) return null
-          const classes = [
-            'route',
-            `danger-${r.danger}`,
-            r.terrain === 'sea' && 'sea',
-            r.id === shownRoute && 'active',
-          ]
+          const danger = Math.max(0, Math.min(3, r.danger))
+          const extra = [r.terrain === 'sea' && 'sea', r.id === shownRoute && 'active']
+            .filter(Boolean)
+            .join(' ')
+          const ends = { x1: a.x, y1: a.y, x2: b.x, y2: b.y }
           return (
-            <line
-              key={r.id}
-              className={classes.filter(Boolean).join(' ')}
-              x1={a.x}
-              y1={a.y}
-              x2={b.x}
-              y2={b.y}
-            />
+            <g key={r.id}>
+              <line className={`route-casing ${extra}`} {...ends} />
+              <line
+                className={`route danger-${danger} ${extra}`}
+                style={{ stroke: DANGER_COLOURS[danger] }}
+                {...ends}
+              />
+            </g>
           )
         })}
         {travel && from && party && (
@@ -144,7 +198,7 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
             aria-hidden="true"
           />
         )}
-        {sortedEntries(content.settlements).map((s) => {
+        {sites.map((s) => {
           const here = s.id === state.location && !travel
           const name = settlementName(state, s.id)
           const classes = [
@@ -157,19 +211,20 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
             <g
               key={s.id}
               className={classes.filter(Boolean).join(' ')}
+              data-site={s.id}
               role="button"
-              tabIndex={0}
+              tabIndex={tabStops.has(s.id) ? 0 : -1}
               aria-label={here ? t('map.here', { name }) : name}
               aria-pressed={s.id === selected}
               onClick={() => onSelect(s.id)}
-              onKeyDown={onKey(s.id)}
+              onKeyDown={onKey(s.id, s.at)}
             >
               <title>{name}</title>
               <rect
-                x={s.at.x - MARKER}
-                y={s.at.y - MARKER}
-                width={MARKER * 2}
-                height={MARKER * 2}
+                x={s.at.x - marker}
+                y={s.at.y - marker}
+                width={marker * 2}
+                height={marker * 2}
                 rx={s.capital ? 4 : 10}
                 style={{ stroke: colourOf(s.region) }}
               />
@@ -177,7 +232,7 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
                 <text
                   className="site-label"
                   x={s.at.x}
-                  y={s.at.y - MARKER - 14}
+                  y={s.at.y - marker - 14}
                   textAnchor="middle"
                 >
                   {name}
@@ -191,11 +246,36 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
             className="party-marker"
             cx={party.x}
             cy={party.y}
-            r={MARKER + 18}
+            r={marker + 18}
             aria-hidden="true"
           />
         )}
       </svg>
+      <ul className="map-legend small" aria-label={t('map.legend')}>
+        {DANGER_COLOURS.map((colour, danger) => (
+          <li key={danger}>
+            <svg className="legend-swatch" viewBox="0 0 30 10" aria-hidden="true">
+              <line className="route-casing" x1={0} y1={5} x2={30} y2={5} />
+              <line className="route" x1={0} y1={5} x2={30} y2={5} style={{ stroke: colour }} />
+            </svg>
+            {dangerText(t, danger)}
+          </li>
+        ))}
+        <li>
+          <svg className="legend-swatch" viewBox="0 0 30 10" aria-hidden="true">
+            <line className="route-casing sea" x1={0} y1={5} x2={30} y2={5} />
+            <line
+              className="route sea"
+              x1={0}
+              y1={5}
+              x2={30}
+              y2={5}
+              style={{ stroke: DANGER_COLOURS[0] }}
+            />
+          </svg>
+          {t('map.sea')}
+        </li>
+      </ul>
       {!imageUrl && <p className="muted small">{t('map.noImage')}</p>}
     </section>
   )
