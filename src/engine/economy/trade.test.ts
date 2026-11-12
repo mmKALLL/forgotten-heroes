@@ -1,10 +1,20 @@
 import { describe, expect, test } from 'vitest'
+import { SituationSchema } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
-import { newGame, step } from '../state'
-import { fixtureContent, makeState } from '../test-fixtures'
+import { newGame, step, type Action } from '../state'
+import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { load } from './capacity'
-import { marketLevels, quote } from './market'
-import { marketTalk, marketView, maxBuy, priceAge } from './trade'
+import { createRng, withRng } from '../rng'
+import { marketLevels, midPrice, quote } from './market'
+import {
+  heardPrices,
+  marketPrices,
+  marketTalk,
+  marketView,
+  maxBuy,
+  priceAge,
+  pricesOn,
+} from './trade'
 
 const content = fixtureContent()
 const shops = ['inn-tavern', 'adventuring-supplies', 'jewelry-trader']
@@ -20,6 +30,28 @@ const buy = (s: GameState, good: 'gems' | 'food' | 'gear', amount: number) =>
   step(s, { type: 'buyGoods', good, amount }, content)
 const sell = (s: GameState, good: 'gems' | 'food', amount: number) =>
   step(s, { type: 'sellGoods', good, amount }, content)
+
+test('nothing is bought or sold mid-encounter', () => {
+  const busy = inTown({
+    encounter: makeEncounter({ situation: SituationSchema.parse(content.situations.cliff) }),
+    goods: { food: 4, water: 4, gems: 2 },
+    waterskins: 2,
+    animals: { mule: 1 },
+  })
+  const actions: Action[] = [
+    { type: 'buyGoods', good: 'gems', amount: 1 },
+    { type: 'sellGoods', good: 'gems', amount: 1 },
+    { type: 'buyAnimal', animal: 'mule' },
+    { type: 'sellAnimal', animal: 'mule' },
+    { type: 'buyWaterskin', count: 1 },
+    { type: 'sellWaterskin', count: 1 },
+  ]
+  for (const action of actions) {
+    const after = step(busy, action, content)
+    expect(after.log.at(-1)!.text, action.type).toBe('Finish the current encounter first.')
+    expect({ ...after, log: busy.log }, action.type).toEqual(busy)
+  }
+})
 
 describe('buying and selling', () => {
   test('costs and fetches exactly what the quote says', () => {
@@ -126,6 +158,28 @@ describe('dropping goods', () => {
     const none = step(dropped, { type: 'dropGoods', good: 'gems', amount: 1 }, content)
     expect(none.log.at(-1)!.text).toBe('There is no gems to leave.')
     expect(none.goods).toEqual(dropped.goods)
+  })
+})
+
+describe('heard prices', () => {
+  test('news of a day leaves out the party’s later trades there, and is a little off', () => {
+    const s = inTown({ day: 20 })
+    const sold = buy(s, 'gems', 20)
+    expect(midPrice(sold, content, 'greenvale-1', 'gems')).not.toBe(
+      midPrice(s, content, 'greenvale-1', 'gems')
+    )
+    // Today's trades are after day 19's news: it is as if they never happened.
+    expect(pricesOn(sold, content, 'greenvale-1', 19)).toEqual(
+      marketPrices({ ...s, day: 19 }, content, 'greenvale-1')
+    )
+    const truth = pricesOn(sold, content, 'greenvale-1', 19)
+    const [heard] = withRng(createRng(3), (d) => heardPrices(d, sold, content, 'greenvale-1', 19))
+    expect(Object.keys(heard)).toEqual(Object.keys(truth))
+    for (const [good, p] of Object.entries(truth)) {
+      const told = heard[good as keyof typeof heard]!
+      if (p.buy !== null) expect(told.buy! / p.buy, good).toBeLessThanOrEqual(1.1 + 1 / p.buy)
+      if (p.buy !== null) expect(told.buy! / p.buy, good).toBeGreaterThanOrEqual(0.9)
+    }
   })
 })
 

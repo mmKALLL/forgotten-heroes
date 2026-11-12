@@ -4,7 +4,7 @@ import { FORCED_MARCH_EXTRA_RATIONS, PACE_HOSTILE_AVOIDANCE } from '../constants
 
 // Travel pace (design §7). Every tuning number for pace lives in the constants' Pace section.
 
-/** The chance a hostile encounter is skipped at this pace (stealthy and cautious only). */
+/** The chance a hostile encounter is skipped at this pace (stealthy only). */
 export const paceHostileAvoidance = (pace: Pace): number => PACE_HOSTILE_AVOIDANCE[pace]
 
 /** A stealthy party covers its tracks: pursuers lose the trail (pursuit.ts). */
@@ -16,7 +16,7 @@ export const rationMultiplier = (pace: Pace): number =>
 
 /**
  * The footing an ambush meets the party on: stealthy → Edge (but not on a journey that forages:
- * the foragers' trails give the party away); cautious → normal; brisk and forced → Exposed;
+ * the foragers' trails give the party away); brisk and forced → Exposed;
  * steady → whatever the encounter defines.
  */
 export function ambushPositionForPace(
@@ -27,8 +27,6 @@ export function ambushPositionForPace(
   switch (pace) {
     case 'stealthy':
       return foraging ? 'normal' : 'edge'
-    case 'cautious':
-      return 'normal'
     case 'steady':
       return defined
     case 'brisk':

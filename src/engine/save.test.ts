@@ -9,8 +9,10 @@ import {
   v5ToV6,
   v6ToV7,
   v7ToV8,
+  v8ToV9,
 } from './save'
 import { newGame, step } from './state'
+import { passDay } from './travel/supplies'
 import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
 import type { GameState } from '../schema/state'
 import type { RollMode } from './rules/checks'
@@ -105,7 +107,7 @@ function migrated() {
   const world = generateWorld(worldSeed(5), content)
   return {
     ...V2_SAVE,
-    version: 8,
+    version: 9,
     party: [{ ...ada, strain: {} }],
     world,
     location: startingSettlement(world, content),
@@ -130,12 +132,12 @@ const PLAN_4_DEFAULTS = {
   doneHere: [],
 }
 
-test('a version 2 save loads as version 8 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(8)
+test('a version 2 save loads as version 9 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(9)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save chains through to version 8 too', () => {
+test('a version 1 save chains through to version 9 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -228,7 +230,7 @@ describe('v3 → v4', () => {
     const save = v3Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(8)
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
     expect(loaded.world).toEqual(generateWorld(worldSeed(save.seed), content))
     expect(loaded.location).toBe('greenvale-2')
     expect(loaded.gold).toBe(33)
@@ -298,7 +300,7 @@ describe('v4 → v5', () => {
   test('keeps each POI’s category, and a cleared one is cleared as of the save’s day', () => {
     const { save, first, second, state } = v4Save()
     const loaded = deserialize(JSON.stringify(save), content)!
-    expect(loaded.version).toBe(8)
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
     expect(loaded.world.pois[first]).toEqual({ ...state.world.pois[first], clearedDay: 12 })
     expect(loaded.world.pois[second]).toEqual(state.world.pois[second])
     expect(loaded.visited).toBe(false)
@@ -348,7 +350,7 @@ describe('v5 → v6', () => {
     const { save, state } = v5Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(8)
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
     expect(loaded.goods).toEqual({ food: 6, water: 3 })
     expect(loaded.waterskins).toBe(2)
     expect(loaded.gold).toBe(37)
@@ -435,22 +437,29 @@ describe('v6 → v7', () => {
 
   test('covering tracks becomes the stealthy pace, on the journey and every logged day', () => {
     const loaded = deserialize(JSON.stringify(v6Save()), content)!
-    expect(loaded.version).toBe(8)
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
     expect(loaded.travel).toMatchObject({ pace: 'stealthy', kmPerDay: 16, days: 5 })
     expect(loaded.travel).not.toHaveProperty('coverTracks')
+    // v7 kept the uncovered cautious day; v9 (Cautious removed) makes it stealthy too.
     expect(loaded.travel!.paceLog).toEqual([
       { day: 1, pace: 'stealthy' },
-      { day: 2, pace: 'cautious' },
+      { day: 2, pace: 'stealthy' },
     ])
+    expect(v6ToV7(structuredClone(v6Save()) as never).travel).toMatchObject({
+      paceLog: [
+        { day: 1, pace: 'stealthy' },
+        { day: 2, pace: 'cautious' },
+      ],
+    })
     expect(loaded.followUps[0].trail).toEqual([{ day: 1, pace: 'stealthy' }])
   })
 
-  test('a cautious journey without covered tracks stays cautious', () => {
+  test('a cautious journey without covered tracks becomes stealthy too (v9: Cautious is gone)', () => {
     const loaded = deserialize(
       JSON.stringify(v6Save({ ...v6Travel, coverTracks: false, paceLog: [] })),
       content
     )!
-    expect(loaded.travel).toMatchObject({ pace: 'cautious', paceLog: [] })
+    expect(loaded.travel).toMatchObject({ pace: 'stealthy', paceLog: [], kmPerDay: 16 })
   })
 
   test('the parsed save is not mutated', () => {
@@ -486,9 +495,69 @@ describe('v7 → v8: supply contracts split', () => {
     const save = { ...state, version: 7, contracts: [contract, courier] }
     const raw = structuredClone(save) as unknown as Record<string, unknown>
     const loaded = deserialize(JSON.stringify(save), content)!
-    expect(loaded.version).toBe(8)
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
     expect(loaded.contracts.map((c) => c.kind)).toEqual(['procurement', 'courier'])
     v7ToV8(raw)
     expect(raw).toEqual(save)
+  })
+})
+
+describe('v8 → v9 (the Cautious pace is gone)', () => {
+  test('a cautious journey, its pace log and a pursuer’s trail become stealthy', () => {
+    const state = makeState({ location: null })
+    const save = {
+      ...state,
+      version: 8,
+      travel: {
+        route: 'greenvale-1-greenvale-2',
+        from: 'greenvale-1',
+        to: 'greenvale-2',
+        km: 75,
+        kmPerDay: 22.5,
+        kmDone: 22.5,
+        daysDone: 1,
+        days: 4,
+        encounterDays: [],
+        pace: 'cautious',
+        paceLog: [{ day: 1, pace: 'cautious' }],
+        forage: true,
+        hired: null,
+      },
+      followUps: [
+        { situationId: 'grudge', wait: 1, queuedDay: 1, trail: [{ day: 1, pace: 'cautious' }] },
+      ],
+    }
+    const raw = structuredClone(save) as unknown as Record<string, unknown>
+    const loaded = deserialize(JSON.stringify(save), content)!
+    expect(loaded.version).toBe(9)
+    expect(loaded.travel).toMatchObject({
+      pace: 'stealthy',
+      kmPerDay: 22.5,
+      paceLog: [{ day: 1, pace: 'stealthy' }],
+    })
+    expect(loaded.followUps[0].trail).toEqual([{ day: 1, pace: 'stealthy' }])
+    v8ToV9(raw)
+    expect(raw).toEqual(save)
+  })
+})
+
+describe('whole goods', () => {
+  test('a camel (half a unit of water a day) leaves whole water, and the save still loads', () => {
+    const camels = fixtureContent()
+    camels.animals = {
+      ...camels.animals,
+      camel: { ...camels.animals.mule, id: 'camel', name: 'Camel', waterPerDay: 0.5 },
+    }
+    const state = makeState({ animals: { camel: 1 }, goods: { food: 10, water: 10 } })
+    const after = passDay(state, 'plains', 'steady', camels)
+    // Two members drink 2; the camel's half unit is rounded up to 1.
+    expect(after.goods.water).toBe(10 - state.party.length - 1)
+    expect(deserialize(serialize(after), camels)).toEqual(after)
+  })
+
+  test('a save already holding a fraction of a good loads, rounded down', () => {
+    const state = makeState({ goods: { food: 3, water: 4 } })
+    const broken = JSON.stringify({ ...state, goods: { food: 3, water: 4.5 } })
+    expect(deserialize(broken, content)?.goods).toEqual({ food: 3, water: 4 })
   })
 })

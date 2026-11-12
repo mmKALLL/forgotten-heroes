@@ -16,11 +16,13 @@ import {
   priceFactors,
   quote,
   recordTrade,
+  wholeGp,
   type Quote,
   type Shop,
 } from './market'
 import { production } from './supply'
-import { OVERLOAD_RATIO, STALE_DAYS } from '../constants'
+import type { Draw } from '../rng'
+import { OVERLOAD_RATIO, RUMOUR_SKEW, STALE_DAYS } from '../constants'
 
 // Buying and selling the 15 goods, and the price book: what the party knows of other markets.
 
@@ -35,6 +37,13 @@ const MAX_UNITS = 9999
 
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
 const lower = (content: Content, good: Good) => goodName(content, good).toLowerCase()
+
+/**
+ * The most units of a good the party may sell with sellGoods: what it carries, less the cargo
+ * reserved for courier and freight contracts (contractCargo; only sellCargo sells that).
+ */
+export const maxSell = (state: Pick<GameState, 'goods' | 'contracts'>, good: Good): number =>
+  Math.max(0, units(state, good) - contractCargo(state, good))
 
 /** What stops the party buying more of a good: gold, weight, or nothing (null). */
 export type BuyLimit = 'gold' | 'weight' | null
@@ -90,6 +99,7 @@ export function buyGoods(
   amount: number,
   shop?: string
 ): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const here = state.location
   if (!inSettlement(state) || here === null) {
     return appendLog(state, notHere(state, 'Goods can only be bought in a settlement.'), 'bad')
@@ -139,16 +149,19 @@ export function sellGoods(
   amount: number,
   shop?: string
 ): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const here = state.location
   if (!inSettlement(state) || here === null) {
     return appendLog(state, notHere(state, 'Goods can only be sold in a settlement.'), 'bad')
   }
-  // A contract's cargo is the patron's, not the party's to sell.
-  const cargo = contractCargo(state, good)
-  const free = Math.max(0, units(state, good) - cargo)
-  const n = Math.min(Math.max(0, Math.floor(amount)), free)
-  if (n === 0 && cargo > 0 && units(state, good) > 0) {
-    return appendLog(state, `The ${lower(content, good)} you carry is a contract's cargo.`, 'bad')
+  // A contract's cargo is the patron's: only sellCargo (town/contracts.ts) sells it.
+  const n = Math.min(Math.max(0, Math.floor(amount)), maxSell(state, good))
+  if (n === 0 && contractCargo(state, good) > 0 && units(state, good) > 0) {
+    return appendLog(
+      state,
+      `The ${lower(content, good)} you carry is a contract's cargo: selling it breaks the contract.`,
+      'bad'
+    )
   }
   if (n === 0) return appendLog(state, `There is no ${lower(content, good)} to sell.`, 'bad')
   const q = quote(state, content, here, good, 'sell', n, shop)
@@ -187,6 +200,50 @@ export function marketPrices(
   for (const good of GOODS) {
     const known = knownPrice(state, content, settlementId, good)
     if (known.buy !== null || known.sell !== null) prices[good] = known
+  }
+  return prices
+}
+
+/**
+ * A market's prices as they were on `day` (news from there): the party's own trades there after
+ * that day are left out, since the news left before them.
+ */
+export function pricesOn(
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  day: number
+): PriceBookEntry['prices'] {
+  const trades = Object.hasOwn(state.markets, settlementId) ? state.markets[settlementId] : null
+  const markets = trades
+    ? {
+        ...state.markets,
+        [settlementId]: Object.fromEntries(
+          Object.entries(trades).filter(([, t]) => t !== undefined && t.day <= day)
+        ),
+      }
+    : state.markets
+  return marketPrices({ ...state, day, markets }, content, settlementId)
+}
+
+/** A heard price: off by up to ±RUMOUR_SKEW (seeded), in whole gold like the price book's. */
+const skewed = (d: Draw, price: number | null): number | null =>
+  price === null ? null : wholeGp(price * (1 + (d.float() * 2 - 1) * RUMOUR_SKEW))
+
+/**
+ * Prices heard from a market (rumours and couriers): as they were on `day` (pricesOn), each a
+ * little off (±RUMOUR_SKEW, seeded). Never false.
+ */
+export function heardPrices(
+  d: Draw,
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  day: number
+): PriceBookEntry['prices'] {
+  const prices: PriceBookEntry['prices'] = {}
+  for (const [good, p] of Object.entries(pricesOn(state, content, settlementId, day))) {
+    prices[good as Good] = { buy: skewed(d, p.buy), sell: skewed(d, p.sell) }
   }
   return prices
 }

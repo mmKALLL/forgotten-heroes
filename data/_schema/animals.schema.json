@@ -72,7 +72,7 @@
           },
           "waterPerDay": {
             "default": 1,
-            "description": "Units of water it drinks per day",
+            "description": "Units of water it drinks per day (halves allowed); the total for all animals is rounded up to whole units",
             "$ref": "#/$defs/__schema6"
           },
           "upkeepPerDay": {
@@ -126,7 +126,8 @@
     },
     "__schema6": {
       "type": "number",
-      "minimum": 0
+      "minimum": 0,
+      "multipleOf": 0.5
     },
     "__schema7": {
       "type": "number",

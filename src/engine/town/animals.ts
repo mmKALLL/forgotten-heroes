@@ -3,6 +3,7 @@ import type { AnimalDef } from '../../schema/economy'
 import type { Biome } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
+import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
 import { animalDef, workingAnimals, type Hired } from '../economy/capacity'
 import { inSettlement, notHere } from '../travel/where'
@@ -56,7 +57,10 @@ export function mountSpeed(
   return Math.max(1, fastest[state.party.length - 1])
 }
 
-/** Units of water the party's animals (owned and hired) drink a day, before the terrain doubles it. */
+/**
+ * Units of water the party's animals (owned and hired) drink a day, before the terrain doubles it:
+ * rounded up to whole units, since carried goods are whole (a camel's half unit still opens a skin).
+ */
 export function animalWater(
   state: Pick<GameState, 'animals' | 'travel'>,
   content: Content,
@@ -67,7 +71,7 @@ export function animalWater(
     0
   )
   const rented = hired ? hired.count * (animalDef(content, hired.animal)?.waterPerDay ?? 0) : 0
-  return owned + rented
+  return Math.ceil(owned + rented - 1e-9)
 }
 
 /** What the owned animals cost a day: fodder, stabling and care. */
@@ -190,6 +194,7 @@ export function animalOffers(state: GameState, content: Content): AnimalOffer[] 
 
 /** Buys one animal (or cart) at an animals service. */
 export function buyAnimal(state: GameState, content: Content, id: string): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   if (!inSettlement(state)) {
     return appendLog(state, notHere(state, 'Animals can only be bought in a settlement.'), 'bad')
   }
@@ -217,6 +222,7 @@ export function buyAnimal(state: GameState, content: Content, id: string): GameS
 
 /** Sells one owned animal (or cart) at an animals service, for ANIMAL_RESALE of its price. */
 export function sellAnimal(state: GameState, content: Content, id: string): GameState {
+  if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   if (!inSettlement(state)) {
     return appendLog(state, notHere(state, 'Animals can only be sold in a settlement.'), 'bad')
   }

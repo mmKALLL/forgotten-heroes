@@ -49,7 +49,6 @@ export const DEFAULT_PACE: Pace = 'steady'
 /** Speed multiplier on land. Ships sail at their own speed, whatever the pace. */
 export const PACE_SPEED: Readonly<Record<Pace, number>> = {
   stealthy: 1 / 2,
-  cautious: 3 / 4,
   steady: 1,
   brisk: 1.25,
   forced: 1.5,
@@ -57,7 +56,6 @@ export const PACE_SPEED: Readonly<Record<Pace, number>> = {
 /** Added to the hostile share at this pace: a hurried party is noticed (slow ones avoid instead). */
 export const PACE_HOSTILE_BONUS: Readonly<Record<Pace, number>> = {
   stealthy: 0,
-  cautious: 0,
   steady: 0,
   brisk: 0.1,
   forced: 0.1,
@@ -68,11 +66,15 @@ export const PACE_HOSTILE_BONUS: Readonly<Record<Pace, number>> = {
  */
 export const PACE_HOSTILE_AVOIDANCE: Readonly<Record<Pace, number>> = {
   stealthy: 0.5,
-  cautious: 0.3,
   steady: 0,
   brisk: 0,
   forced: 0,
 }
+/**
+ * On land, a road this many steady days long or more is always at least a day shorter at a brisk
+ * pace, and a forced march never slower than brisk (designer rule, travel/routes.ts journeyDays).
+ */
+export const HURRY_SAVES_FROM = 3
 /** A forced march eats and drinks this share more per day on top of the daily ration. */
 export const FORCED_MARCH_EXTRA_RATIONS = 0.5
 /** Each forced-march day, every member makes a CON check against this DC or gains exhaustion. */
@@ -104,7 +106,6 @@ export const FORAGE_DC: Readonly<Record<Exclude<Biome, 'sea'>, number>> = {
 /** Added to the forager's Survival at this pace: a forced march leaves no time to look. */
 export const FORAGE_PACE_MODIFIER: Readonly<Record<Pace, number>> = {
   stealthy: 0,
-  cautious: 0,
   steady: 0,
   brisk: 0,
   forced: -2,
@@ -151,6 +152,13 @@ export const CARRY_EXHAUSTED_SHARE = 0.5
 export const OVERLOAD_RATIO = 1.5
 /** An encumbered party walks at this share of its speed (and can't force a march). */
 export const ENCUMBERED_SPEED = 2 / 3
+/**
+ * Exhaustion slows travel (designer decision): land speed loses this share per level of
+ * exhaustion of the most exhausted member, fixed at departure like the load...
+ */
+export const EXHAUSTION_SPEED_PENALTY = 0.1
+/** ...but never below this share. */
+export const EXHAUSTION_SPEED_MIN = 0.4
 
 // Markets (economy/market.ts)
 
@@ -306,18 +314,20 @@ export const TRADE_REP_MAX = 3
 export const RUMOUR_DC = 12
 /** A round for the table, per member. */
 export const RUMOUR_PRICE = 1
-/** Nearby towns whose prices each tier brings (a critical failure brings one false rumour). */
+/** Nearby towns whose prices each tier brings (a partial is idle gossip; nothing heard is false). */
 export const RUMOUR_PRICES: Readonly<Record<Tier, number>> = {
-  critFail: 1,
+  critFail: 0,
   fail: 0,
-  partial: 1,
+  partial: 0,
   success: 2,
   critSuccess: 3,
 }
-/** Heard prices are off by up to ±this share (seeded). */
+/** Heard prices (rumours and couriers) are off by up to ±this share (seeded). */
 export const RUMOUR_SKEW = 0.1
-/** A false rumour's prices are off by this share, up or down, with no tell. */
-export const FALSE_RUMOUR_SKEW = 0.4
+/** A critical failure's trouble is a fight (a tavern brawl) this often, else a pickpocket. */
+export const RUMOUR_TROUBLE_FIGHT = 0.5
+/** What a pickpocket lifts on a rumour's critical failure: 1d6 gp, as far as the purse goes. */
+export const PICKPOCKET_GP: readonly [number, number] = [1, 6]
 
 // Contracts and notice boards (town/contracts.ts)
 
@@ -343,6 +353,11 @@ export const GOOD_WORD_POINTS = 3
 export const FAIL_REP = 5
 /** Each this many gp of a lost cargo the party can't pay costs one more point of standing. */
 export const DEBT_REP_GP = 10
+/**
+ * Selling a courier's or freight contract's cargo (sellCargo) breaks the contract on the spot:
+ * this much standing lost with the patron and the board's settlement (instead of FAIL_REP).
+ */
+export const SOLD_CARGO_REP = 15
 /** Escorted passengers draw attention: added to the hostile share on the road. */
 export const ESCORT_HOSTILE = 0.1
 

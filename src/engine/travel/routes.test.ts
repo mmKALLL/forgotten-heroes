@@ -4,6 +4,8 @@ import { createRng, withRng } from '../rng'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { domainThreatLevel } from '../world/pois'
 import { paceHostileAvoidance } from './pace'
+import { routeOptions } from './preview'
+import { step } from '../state'
 import {
   canMeetEncounters,
   encounterRange,
@@ -34,9 +36,8 @@ test('journeys take whole days, at least one', () => {
 })
 
 describe('pace', () => {
-  test('stealthy is ½ speed, cautious ¾, brisk 1.25× and a forced march 1.5×', () => {
+  test('stealthy is ½ speed, brisk 1.25× and a forced march 1.5×', () => {
     expect(kmPerDay('plains', 'stealthy')).toBeCloseTo(15)
-    expect(kmPerDay('plains', 'cautious')).toBeCloseTo(22.5)
     expect(kmPerDay('plains', 'steady')).toBe(30)
     expect(kmPerDay('plains', 'brisk')).toBeCloseTo(37.5)
     expect(kmPerDay('plains', 'forced')).toBeCloseTo(45)
@@ -44,22 +45,59 @@ describe('pace', () => {
 
   test('the journey takes days by pace', () => {
     const plains = { km: 75, terrain: 'plains' as const }
-    expect(journeyDays(plains, 'cautious')).toBe(4)
+    expect(journeyDays(plains, 'stealthy')).toBe(5)
     expect(journeyDays(plains, 'steady')).toBe(3)
     expect(journeyDays(plains, 'brisk')).toBe(2)
     expect(journeyDays(plains, 'forced')).toBe(2)
   })
 
+  test('on a road of 3+ steady days, brisk saves at least a day and forced is never slower', () => {
+    for (const terrain of ['plains', 'forest', 'marsh', 'mountains'] as const) {
+      for (let km = 10; km <= 400; km += 7) {
+        for (const speed of [0.4, 2 / 3, 0.8, 1, 2]) {
+          const road = { km, terrain }
+          const [steady, brisk, forced] = (['steady', 'brisk', 'forced'] as const).map((p) =>
+            journeyDays(road, p, speed)
+          )
+          if (steady >= 3) expect(brisk, `${terrain} ${km} ${speed}`).toBeLessThan(steady)
+          if (steady >= 3) expect(forced).toBeLessThanOrEqual(brisk)
+        }
+      }
+    }
+    // 90 km of plains: 3 days steady and (unclamped) 3 brisk, so brisk takes 2.
+    expect(journeyDays({ km: 90, terrain: 'plains' }, 'brisk')).toBe(2)
+  })
+
+  test('the clamp is the journey’s: a brisk 90 km takes the 2 days the preview shows', () => {
+    const short = structuredClone(content)
+    short.routes['greenvale-1-greenvale-2'].km = 90
+    const home = makeState({ location: 'greenvale-1', goods: { food: 20, water: 8 } })
+    const preview = routeOptions(home, short)
+      .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+      .paces.find((p) => p.pace === 'brisk')!
+    expect(preview.days).toBe(2)
+    let s = step(
+      home,
+      { type: 'travel', routeId: 'greenvale-1-greenvale-2', pace: 'brisk', forage: false },
+      short
+    )
+    expect(s.travel!.days).toBe(2)
+    s = { ...s, travel: { ...s.travel!, encounterDays: [] } }
+    for (let i = 0; i < 5 && s.travel; i++) s = step(s, { type: 'continueJourney' }, short)
+    expect(s.location).toBe('greenvale-2')
+    expect(s.day).toBe(home.day + 2)
+  })
+
   test('a ship sails at its own speed, whatever the pace', () => {
-    for (const pace of ['stealthy', 'cautious', 'brisk', 'forced'] as const) {
+    for (const pace of ['stealthy', 'brisk', 'forced'] as const) {
       expect(kmPerDay('sea', pace)).toBe(40)
       expect(journeyDays({ km: 160, terrain: 'sea' }, pace)).toBe(4)
     }
   })
 
-  test('brisk and forced make encounters likelier to be hostile; stealthy and cautious avoid some', () => {
+  test('brisk and forced make encounters likelier to be hostile; stealthy avoids some', () => {
     expect(hostileShare(0, 0, 'steady')).toMatchObject({ drawn: 0.1, share: 0.1, avoided: 0 })
-    for (const pace of ['stealthy', 'cautious'] as const) {
+    for (const pace of ['stealthy'] as const) {
       const h = hostileShare(0, 0, pace)
       expect(h.drawn).toBeCloseTo(0.1)
       expect(h.share).toBeCloseTo(0.1 * (1 - paceHostileAvoidance(pace)))
@@ -72,7 +110,7 @@ describe('pace', () => {
 
   test('the encounter budget still follows the journey’s days', () => {
     const plains = { km: 75, terrain: 'plains' as const }
-    expect(encounterRange(journeyDays(plains, 'cautious'))).toEqual([1, 3])
+    expect(encounterRange(journeyDays(plains, 'stealthy'))).toEqual([2, 4])
     expect(encounterRange(journeyDays(plains, 'brisk'))).toEqual([0, 2])
   })
 })

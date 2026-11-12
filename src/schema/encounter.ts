@@ -412,8 +412,8 @@ const situationFields = {
     .optional()
     .describe('Only drawn on the road in these regions; omit for anywhere'),
   disposition: DispositionSchema.optional().describe(
-    'How it treats the party. A stealthy or cautious party avoids some hostile encounters, and ' +
-      'a stealthy one meets the rest on better footing. Required (by the lint) unless followUpOnly; wonders are never hostile.'
+    'How it treats the party. A stealthy party avoids some hostile encounters and ' +
+      'meets the rest on better footing. Required (by the lint) unless followUpOnly; wonders are never hostile.'
   ),
   slots: z
     .record(IdSchema, SlotSourceSchema)

@@ -8,11 +8,11 @@ test('the default pace is steady', () => {
   expect(DEFAULT_PACE).toBe('steady')
 })
 
-test('paces run slowest first, and only stealthy and cautious skip hostile encounters', () => {
+test('paces run slowest first, and only stealthy skips hostile encounters', () => {
+  expect(PACES).toEqual(['stealthy', 'steady', 'brisk', 'forced'])
   const speeds = PACES.map((p) => PACE_SPEED[p])
   expect([...speeds].sort((a, b) => a - b)).toEqual(speeds)
-  expect(PACES.filter((p) => paceHostileAvoidance(p) > 0)).toEqual(['stealthy', 'cautious'])
-  expect(paceHostileAvoidance('stealthy')).toBeGreaterThanOrEqual(paceHostileAvoidance('cautious'))
+  expect(PACES.filter((p) => paceHostileAvoidance(p) > 0)).toEqual(['stealthy'])
 })
 
 test('only a stealthy party covers its tracks', () => {
@@ -20,9 +20,8 @@ test('only a stealthy party covers its tracks', () => {
 })
 
 test('ambush footing by pace', () => {
-  // Stealthy meets it with Edge, and cautious on normal footing, whatever the encounter says.
+  // Stealthy meets it with Edge, whatever the encounter says.
   expect(ambushPositionForPace('stealthy', 'exposed')).toBe('edge')
-  expect(ambushPositionForPace('cautious', 'exposed')).toBe('normal')
   // Steady: as the encounter defines.
   expect(ambushPositionForPace('steady', 'exposed')).toBe('exposed')
   expect(ambushPositionForPace('steady')).toBe('normal')
@@ -35,7 +34,6 @@ test('ambush footing by pace', () => {
 test('foraging gives the party away: a stealthy party wins no Edge on a journey that forages', () => {
   expect(ambushPositionForPace('stealthy', 'normal', true)).toBe('normal')
   expect(ambushPositionForPace('stealthy', 'normal', false)).toBe('edge')
-  expect(ambushPositionForPace('cautious', 'normal', true)).toBe('normal')
   expect(ambushPositionForPace('brisk', 'normal', true)).toBe('exposed')
 })
 

@@ -7,11 +7,13 @@ import { step, type Action } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { passDay } from '../travel/days'
 import { routeOptions } from '../travel/preview'
-import { FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS } from '../constants'
+import { FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS, SOLD_CARGO_REP } from '../constants'
+import { maxSell } from '../economy/trade'
 import { kingdomOf } from './reputation'
 import { marketLevels } from '../economy/market'
 import { supplyOf } from '../economy/supply'
-import { contractRows, noticeBoard, type Offer } from './contracts'
+import { cycles, siteEmpty } from '../world/sites'
+import { cargoInfo, contractRows, noticeBoard, sellCargoPreview, type Offer } from './contracts'
 
 const content = fixtureContent()
 const HERE = 'greenvale-1'
@@ -98,7 +100,10 @@ describe('noticeBoard', () => {
     const s = at(HERE)
     const week = noticeBoard({ ...s, day: 8 }, content, HERE)
     expect(week.length).toBeGreaterThan(0)
-    expect(noticeBoard({ ...s, day: 14 }, content, HERE)).toEqual(week)
+    // The same offers; only the deadline if taken today moves with the day.
+    expect(noticeBoard({ ...s, day: 14 }, content, HERE)).toEqual(
+      week.map((o) => ({ ...o, deadline: o.deadline + 6 }))
+    )
     const weeks = new Set(
       Array.from({ length: 8 }, (_, w) =>
         signature(noticeBoard({ ...s, day: w * 7 + 1 }, content, HERE))
@@ -121,6 +126,7 @@ describe('noticeBoard', () => {
           expect(o.days).toBeGreaterThanOrEqual(o.forcedDays)
         } else expect(o.days).toBeGreaterThanOrEqual(o.steadyDays)
         expect(o.locked === null).toBe(!t.minStanding)
+        expect(o.deadline).toBe(w * 7 + 1 + o.days)
       }
     }
   })
@@ -302,6 +308,34 @@ describe('completing each kind', () => {
     expect(quit.goods.food).toBe(0)
     expect(quit.gold).toBe(sold.gold)
   })
+
+  test('cargo is reserved; selling it on purpose breaks the contract, as the preview says', () => {
+    const { state, offer } = boardWith('freight')
+    const taken = act(state, { type: 'acceptContract', offerId: offer.id })
+    const own = state.goods.food ?? 0
+    expect(maxSell(taken, 'food')).toBe(own)
+    expect(cargoInfo(taken, content)).toMatchObject({
+      reserved: { food: offer.amount },
+      lots: [{ contractId: offer.id, good: 'food', amount: offer.amount, carried: offer.amount }],
+    })
+    const sale = sellCargoPreview(taken, content, offer.id)!
+    expect(sale.units).toBe(offer.amount)
+    expect(sale.text).toMatch(/breaks/)
+    const sold = act(taken, { type: 'sellCargo', contractId: offer.id })
+    expect(sold.contracts).toEqual([])
+    expect(sold.goods.food).toBe(own)
+    expect(sold.gold).toBe(taken.gold + sale.gold - sale.owed)
+    const lost = taken.reputation.people[offer.patron] ?? 0
+    expect(sold.reputation.people[offer.patron]).toBe(lost - sale.standing)
+    expect(sale.standing).toBe(SOLD_CARGO_REP)
+    expect(sold.reputation.settlements[HERE]).toBe(
+      (taken.reputation.settlements[HERE] ?? 0) - SOLD_CARGO_REP
+    )
+    // No other contract's cargo, and nothing on the road.
+    const away = { ...taken, location: null, travel: null }
+    expect(sellCargoPreview(away, content, offer.id)).toBeNull()
+    expect(act(taken, { type: 'sellCargo', contractId: 'nope' }).contracts).toEqual(taken.contracts)
+  })
   test('a bounty is met by clearing its site, then claimed back home', () => {
     const base = at(HERE)
     const poi = Object.keys(base.world.pois)[0]
@@ -320,6 +354,33 @@ describe('completing each kind', () => {
       { type: 'completeContract', id: 'c-test', reward: 'gold' }
     )
     expect(done.contracts).toEqual([])
+  })
+
+  test('a bounty whose site the realm empties first is void, at no cost', () => {
+    const base = at(HERE)
+    const [poi, p] = Object.entries(base.world.pois).find(([, x]) => cycles(x))!
+    let day = 1
+    while (!siteEmpty(base.world.seed, poi, p, day)) day++
+    const c = contract(base, {
+      kind: 'bounty',
+      template: 'camp-bounty',
+      to: HERE,
+      poi,
+      passengers: 0,
+      deadline: day + 5,
+    })
+    const s = { ...base, day, contracts: [c] }
+    // Any action: the void is noticed after it.
+    const after = act(s, { type: 'abandonContract', id: 'none' })
+    expect(after.contracts).toEqual([])
+    expect(after.reputation).toEqual(s.reputation)
+    expect(after.log.at(-1)!.text).toMatch(/is void/)
+    // Met before it emptied (cleared by the party): still to be claimed.
+    const met = act(
+      { ...s, contracts: [{ ...c, met: true }] },
+      { type: 'abandonContract', id: 'x' }
+    )
+    expect(met.contracts).toHaveLength(1)
   })
 
   test('an errand is met by visiting its site', () => {

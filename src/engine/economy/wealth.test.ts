@@ -45,7 +45,7 @@ describe('on the road', () => {
     const [lo, hi] = HOSTILE_SHARE_RANGE
     expect(hostileShare(0, 0, 'steady', false, 4).share).toBeGreaterThan(hostileShare(0, 0).share)
     expect(hostileShare(3, 3, 'forced', true, 4).share).toBe(hi)
-    expect(hostileShare(0, 0, 'cautious', false, 0).drawn).toBeGreaterThanOrEqual(lo)
+    expect(hostileShare(0, 0, 'stealthy', false, 0).drawn).toBeGreaterThanOrEqual(lo)
   })
 
   test('the preview’s hostile share is the journey’s', () => {
@@ -57,6 +57,8 @@ describe('on the road', () => {
     const road = routeOptions(rich, content).find((o) => o.routeId === 'greenvale-1-greenvale-2')!
     const steady = road.paces.find((p) => p.pace === 'steady')!
     expect(steady.hostile.wealth).toBeGreaterThan(0)
+    // The goods bar reads the same share from visibleWealth.
+    expect(visibleWealth(rich, content).hostile).toBe(steady.hostile.wealth)
     const out = step(rich, { type: 'travel', routeId: road.routeId }, content)
     expect(placeOnRoute(out, content, out.travel!)!.hostileShare).toBe(steady.hostile.share)
   })

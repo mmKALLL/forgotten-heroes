@@ -9,7 +9,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 8
+export const CURRENT_SAVE_VERSION = 9
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -173,6 +173,32 @@ export function v7ToV8(raw: Record<string, unknown>): Record<string, unknown> {
   return { ...raw, version: 8, contracts }
 }
 
+/** A pace that no longer exists, as today's: Cautious (removed, designer decision) is Stealthy. */
+const v9Pace = (pace: unknown): unknown => (pace === 'cautious' ? 'stealthy' : pace)
+
+/**
+ * v8 → v9 (Plan 4 fixes): the Cautious pace is gone. A journey, every day logged for pursuit (the
+ * journey's pace log and each follow-up's trail) that was cautious becomes stealthy. A journey
+ * under way keeps the speed it set out at.
+ */
+export function v8ToV9(raw: Record<string, unknown>): Record<string, unknown> {
+  const day = (d: unknown): unknown =>
+    typeof d === 'object' && d !== null
+      ? { ...d, pace: v9Pace((d as Record<string, unknown>).pace) }
+      : d
+  const days = (log: unknown) => (Array.isArray(log) ? log.map(day) : log)
+  const travel = raw.travel as Record<string, unknown> | null | undefined
+  const nextTravel = travel
+    ? { ...travel, pace: v9Pace(travel.pace), paceLog: days(travel.paceLog) }
+    : travel
+  const followUps = Array.isArray(raw.followUps)
+    ? raw.followUps.map((f: Record<string, unknown>) =>
+        f && Array.isArray(f.trail) ? { ...f, trail: days(f.trail) } : f
+      )
+    : raw.followUps
+  return { ...raw, version: 9, travel: nextTravel, followUps }
+}
+
 /**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
@@ -198,6 +224,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v6ToV7(raw as Record<string, unknown>), content)
     case 7:
       return migrate(v7ToV8(raw as Record<string, unknown>), content)
+    case 8:
+      return migrate(v8ToV9(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:
@@ -205,10 +233,24 @@ export function migrate(raw: unknown, content: Content): unknown {
   }
 }
 
+/**
+ * Carried goods are whole units. Before Plan 4's fixes a camel's half unit of water could leave a
+ * fraction behind, which made the save unreadable: such a fraction is rounded down on load.
+ */
+export function wholeGoods(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return raw
+  const goods = (raw as { goods?: unknown }).goods
+  if (typeof goods !== 'object' || goods === null) return raw
+  const whole = Object.fromEntries(
+    Object.entries(goods).map(([g, n]) => [g, typeof n === 'number' ? Math.floor(n + 1e-9) : n])
+  )
+  return { ...raw, goods: whole }
+}
+
 /** Old saves need the content: migrating to v3 rolls the world. */
 export function deserialize(text: string, content: Content): GameState | null {
   try {
-    const parsed = GameStateSchema.safeParse(migrate(JSON.parse(text), content))
+    const parsed = GameStateSchema.safeParse(wholeGoods(migrate(JSON.parse(text), content)))
     return parsed.success ? parsed.data : null
   } catch {
     return null

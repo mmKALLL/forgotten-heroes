@@ -147,7 +147,14 @@ export const AnimalDefSchema = z.object({
     .max(3)
     .optional()
     .describe('Only takes paths to sites up to this pathDanger (horses avoid rough paths)'),
-  waterPerDay: z.number().min(0).default(1).describe('Units of water it drinks per day'),
+  waterPerDay: z
+    .number()
+    .min(0)
+    .multipleOf(0.5)
+    .default(1)
+    .describe(
+      'Units of water it drinks per day (halves allowed); the total for all animals is rounded up to whole units'
+    ),
   upkeepPerDay: z
     .number()
     .min(0)

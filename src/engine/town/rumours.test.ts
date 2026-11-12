@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { GameState } from '../../schema/state'
+import { marketPrices } from '../economy/trade'
 import { previewCheck } from '../preview'
 import { createRng } from '../rng'
 import { rollCheck, type Tier } from '../rules/checks'
@@ -7,7 +8,7 @@ import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { nearestSettlements } from '../travel/reach'
 import { STANDING_POINTS } from '../constants'
-import { RUMOUR_LEAD, RUMOURS_DONE, rumourOption } from './rumours'
+import { RUMOUR_LEAD, RUMOUR_TROUBLE_TAG, RUMOURS_DONE, rumourOption } from './rumours'
 import { serviceRows } from './services'
 
 const content = fixtureContent()
@@ -80,9 +81,9 @@ describe('listenRumours', () => {
   const near = nearestSettlements(content, HERE)
 
   test.each([
-    ['critFail', 1],
+    ['critFail', 0],
     ['fail', 0],
-    ['partial', 1],
+    ['partial', 0],
     ['success', 2],
     ['critSuccess', 3],
   ] as const)('a %s hears %i towns’ prices, dated by the road', (tier, count) => {
@@ -90,7 +91,10 @@ describe('listenRumours', () => {
     const after = listen(state)
     expect(after.lastRoll?.tier).toBe(tier)
     expect(after.day).toBe(state.day)
-    expect(after.gold).toBe(state.gold - rumourOption(state, content)!.cost)
+    // A critical failure may also meet a pickpocket.
+    const cost = rumourOption(state, content)!.cost
+    if (tier === 'critFail') expect(after.gold).toBeLessThan(state.gold - cost)
+    else expect(after.gold).toBe(state.gold - cost)
     expect(after.skillUses.length).toBe(state.skillUses.length + 1)
     const heard = Object.keys(after.priceBook)
     expect(heard).toEqual(near.slice(0, count).map((n) => n.id))
@@ -100,22 +104,57 @@ describe('listenRumours', () => {
     expect(after.doneHere.includes(RUMOUR_LEAD)).toBe(tier === 'critSuccess')
   })
 
-  test('heard prices are a little off; a false rumour is far off', () => {
-    const ok = listen(rolling('partial'))
-    const lie = listen(rolling('critFail'))
+  test('heard prices are true, a little off at most', () => {
+    const state = rolling('success')
+    const after = listen(state)
     const id = near[0].id
-    const ratio = (a: GameState, b: GameState) => {
-      const pa = a.priceBook[id].prices
-      const pb = b.priceBook[id].prices
-      return Object.keys(pa).flatMap((g) => {
-        const x = pa[g as keyof typeof pa]!.buy ?? pa[g as keyof typeof pa]!.sell!
-        const y = pb[g as keyof typeof pb]!.buy ?? pb[g as keyof typeof pb]!.sell!
-        // Prices are whole gold: a 1–2 gp price can't show the skew.
-        return y >= 10 ? [x / y] : []
-      })
+    const heard = after.priceBook[id].prices
+    const truth = marketPrices({ ...state, day: state.day - near[0].days }, content, id)
+    for (const [good, p] of Object.entries(truth)) {
+      const real = p.buy ?? p.sell!
+      const told = heard[good as keyof typeof heard]!
+      // Within ±10%, then rounded up to whole gold.
+      expect(told.buy ?? told.sell!, good).toBeGreaterThanOrEqual(Math.floor(real * 0.9))
+      expect(told.buy ?? told.sell!, good).toBeLessThanOrEqual(Math.ceil(real * 1.1) + 1)
     }
-    // Both are skewed from the same truth: ±10% against ±40% means a ratio far from 1.
-    for (const r of ratio(lie, ok)) expect(Math.abs(Math.log(r))).toBeGreaterThan(Math.log(1.2))
+  })
+
+  test('a partial is idle gossip: no prices, no site, no lead', () => {
+    const state = rolling('partial')
+    const after = listen(state)
+    expect(after.priceBook).toEqual({})
+    expect(undiscovered(after)).toEqual(undiscovered(state))
+    expect(after.log.at(-1)!.text).not.toMatch(/price|work|board/i)
+  })
+
+  test('a critical failure is trouble: a pickpocket (1d6 gp, within the purse) or a fight', () => {
+    const cost = rumourOption(here(), content)!.cost
+    // The fixtures have no tavern-trouble situation: always the pickpocket.
+    const robbed = listen(rolling('critFail'))
+    const lost = rolling('critFail').gold - cost - robbed.gold
+    expect(lost).toBeGreaterThanOrEqual(1)
+    expect(lost).toBeLessThanOrEqual(6)
+    expect(robbed.encounter).toBeNull()
+    const broke = listen(rolling('critFail', here({ gold: cost })))
+    expect(broke.gold).toBe(0)
+    // With one, some seeds start the fight instead.
+    const brawl = structuredClone(content)
+    brawl.situations['tavern-fight'] = {
+      ...brawl.situations.grudge,
+      id: 'tavern-fight',
+      followUpOnly: false,
+      weight: 0,
+      tags: [RUMOUR_TROUBLE_TAG],
+    }
+    const option = rumourOption(here(), brawl)!
+    const outcomes = new Set<string>()
+    for (let seed = 0; seed < 5000 && outcomes.size < 2; seed++) {
+      const state = { ...here(), rng: createRng(seed) }
+      if (rollCheck(state.rng, option.modifier, option.dc)[0].tier !== 'critFail') continue
+      const after = step(state, { type: 'listenRumours' }, brawl)
+      outcomes.add(after.encounter ? after.encounter.situation.id : 'pickpocket')
+    }
+    expect(outcomes).toEqual(new Set(['tavern-fight', 'pickpocket']))
   })
 
   test('a success reveals an undiscovered site of this land, and none when all are known', () => {

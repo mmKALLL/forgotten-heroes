@@ -7,7 +7,8 @@ import { inProgress } from '../encounters/run'
 import { fillText } from '../encounters/slots'
 import { load } from '../economy/capacity'
 import { goodName, goodPrice } from '../economy/goods'
-import { marketLevels } from '../economy/market'
+import { marketLevels, quote, recordTrade } from '../economy/market'
+import { observe } from '../economy/trade'
 import { nearestProducer, supplyOf } from '../economy/supply'
 import { appendLog } from '../log'
 import { createRng, withRng, type Draw } from '../rng'
@@ -38,6 +39,7 @@ import {
   GOOD_WORD_POINTS,
   MAX_CONTRACTS,
   OVERLOAD_RATIO,
+  SOLD_CARGO_REP,
   URGENT_PAY,
   URGENT_SLACK,
 } from '../constants'
@@ -103,6 +105,8 @@ export type Offer = {
   forcedDays: number
   /** Days from acceptance to the deadline (the last day it can be met). */
   days: number
+  /** The deadline if taken today (an absolute day): today + `days`. */
+  deadline: number
   pay: number
   /** Only met at a brisk pace or on a forced march. */
   urgent: boolean
@@ -163,12 +167,16 @@ function shortages(
   })
 }
 
-/** The settlements or sites a template can send the party to from `here`. */
+/**
+ * The settlements or sites a template can send the party to from `here`. A bounty's site must be
+ * inhabited on `weekStart`, the board's first day, so the board stays the same all week.
+ */
 function targets(
   state: GameState,
   content: Content,
   here: string,
-  template: ContractTemplate
+  template: ContractTemplate,
+  weekStart: number
 ): Target[] {
   const inRange = (r: Reach) => r.km >= template.km.min && r.km <= template.km.max
   if (TO_SETTLEMENT.includes(template.kind)) {
@@ -181,7 +189,7 @@ function targets(
   return Object.entries(state.world.pois)
     .filter(([, poi]) => categories.includes(poi.category))
     .filter(
-      ([id, poi]) => template.kind !== 'bounty' || !siteEmpty(state.world.seed, id, poi, state.day)
+      ([id, poi]) => template.kind !== 'bounty' || !siteEmpty(state.world.seed, id, poi, weekStart)
     )
     .flatMap(([id]) => {
       const reach = poiReach(state, content, here, id)
@@ -282,7 +290,7 @@ function makeOffer(
     supplyOf(state, content, to, g).level < supplyOf(state, content, here, g).level
   const options = procure
     ? sourcing.map((x) => ({ id: here, reach: x.reach }))
-    : targets(state, content, here, template).filter(
+    : targets(state, content, here, template, weekStart).filter(
         (t) =>
           !posted.has(`${template.id}/${t.id}`) && (!goods || goods.some((g) => scarcer(t.id, g)))
       )
@@ -356,6 +364,7 @@ function makeOffer(
     steadyDays: target.reach.days,
     forcedDays: target.reach.forcedDays,
     days,
+    deadline: state.day + days,
     pay,
     urgent,
     reputation: { ...template.reputation },
@@ -370,6 +379,9 @@ function makeOffer(
 /** Why an offer can't be taken now (English), or null. */
 function offerRefusal(state: GameState, content: Content, offer: Offer): string | null {
   if (offer.locked) return `needs standing ${offer.locked} in ${settlementName(state, offer.from)}`
+  if (offer.kind === 'bounty' && offer.poi && bountyEmptied(state, offer.poi)) {
+    return 'someone has cleared the site already'
+  }
   if (state.contracts.length >= MAX_CONTRACTS) return `at most ${MAX_CONTRACTS} contracts at once`
   if (HANDED_OVER.includes(offer.kind) && offer.good) {
     const goods = { ...state.goods, [offer.good]: (state.goods[offer.good] ?? 0) + offer.amount }
@@ -442,6 +454,11 @@ export type ContractAction =
   | { type: 'acceptContract'; offerId: string }
   | { type: 'abandonContract'; id: string }
   | { type: 'completeContract'; id: string; reward: ContractReward }
+  /**
+   * Sell a courier's or freight contract's cargo here: it breaks the contract (sellCargo). The UI
+   * asks for a confirmation first (sellCargoPreview says what it costs).
+   */
+  | { type: 'sellCargo'; contractId: string; shop?: string }
 
 /** Gold (and standing with the patron and their town), or a good word across their kingdom. */
 export type ContractReward = 'gold' | 'goodWord'
@@ -473,7 +490,7 @@ export function acceptContract(state: GameState, content: Content, offerId: stri
     poi: offer.poi,
     passengers: offer.passengers,
     accepted: state.day,
-    deadline: state.day + offer.days,
+    deadline: offer.deadline,
     pay: offer.pay,
     urgent: offer.urgent,
     reputation: offer.reputation,
@@ -525,19 +542,20 @@ export function contractTitle(state: GameState, content: Content, c: ContractSta
 /**
  * A contract fails (its deadline passed, or the party gave it up): FAIL_REP standing lost with the
  * patron and their settlement. A courier's cargo goes back; what is missing is paid for at its
- * base price, as far as the gold goes, and each DEBT_REP_GP left unpaid costs a point more.
+ * base price, as far as the gold goes, and each DEBT_REP_GP left unpaid costs a point more. When
+ * the party sold the cargo (sellCargo), all of it is missing and the loss is SOLD_CARGO_REP.
  */
 function failContract(
   state: GameState,
   content: Content,
   c: ContractState,
-  why: 'expired' | 'abandoned'
+  why: 'expired' | 'abandoned' | 'sold'
 ): GameState {
   let next: GameState = { ...state, contracts: state.contracts.filter((x) => x.id !== c.id) }
   let debt = 0
   let cargo = ''
   if (HANDED_OVER.includes(c.kind) && c.good) {
-    const carried = Math.min(next.goods[c.good] ?? 0, c.amount)
+    const carried = why === 'sold' ? 0 : Math.min(next.goods[c.good] ?? 0, c.amount)
     const owed = Math.ceil((c.amount - carried) * goodPrice(content, c.good))
     const paid = Math.min(Math.max(0, next.gold), owed)
     debt = owed - paid
@@ -554,14 +572,163 @@ function failContract(
       '.'
   }
   const title = contractTitle(state, content, c)
-  next = appendLog(
-    next,
-    (why === 'expired' ? `Time has run out on "${title}".` : `You give up "${title}".`) + cargo,
-    'bad'
-  )
-  const amount = -(FAIL_REP + Math.ceil(debt / DEBT_REP_GP))
+  const opening = {
+    expired: `Time has run out on "${title}".`,
+    abandoned: `You give up "${title}".`,
+    sold: `"${title}" is broken: the cargo was not yours to sell.`,
+  }[why]
+  next = appendLog(next, opening + cargo, 'bad')
+  const amount = -((why === 'sold' ? SOLD_CARGO_REP : FAIL_REP) + Math.ceil(debt / DEBT_REP_GP))
   next = addReputation(next, { person: c.patron, amount, reason: 'a broken contract' }, content)
   return addReputation(next, { settlement: c.from, amount, reason: 'a broken contract' }, content)
+}
+
+/** One courier's or freight contract's cargo: the goods it reserves, and how many are carried. */
+export type CargoLot = {
+  contractId: string
+  title: string
+  patronName: string
+  good: Good
+  /** Units handed over (reserved). */
+  amount: number
+  /** Of those, the units still carried (the carried units go to the contracts in order taken). */
+  carried: number
+}
+
+/** The cargo the party carries for contracts: reserved units per good, and each contract's lot. */
+export type CargoInfo = {
+  reserved: Partial<Record<Good, number>>
+  lots: CargoLot[]
+}
+
+/**
+ * The goods reserved as contract cargo (courier and freight), per good and per contract. Reserved
+ * units are left out of sellGoods and maxSell; sellCargo sells a lot and breaks its contract.
+ */
+export function cargoInfo(state: GameState, content: Content): CargoInfo {
+  const left: Partial<Record<Good, number>> = { ...state.goods }
+  const reserved: Partial<Record<Good, number>> = {}
+  const lots: CargoLot[] = []
+  for (const c of state.contracts) {
+    if (!HANDED_OVER.includes(c.kind) || !c.good) continue
+    const carried = Math.min(c.amount, left[c.good] ?? 0)
+    left[c.good] = (left[c.good] ?? 0) - carried
+    reserved[c.good] = (reserved[c.good] ?? 0) + c.amount
+    lots.push({
+      contractId: c.id,
+      title: contractTitle(state, content, c),
+      patronName: personDisplayName(state.world, content, c.patron),
+      good: c.good,
+      amount: c.amount,
+      carried,
+    })
+  }
+  return { reserved, lots }
+}
+
+/** What selling a contract's cargo here would bring and cost (shown before the confirmation). */
+export type CargoSale = {
+  contractId: string
+  good: Good
+  /** Units sold: the lot's carried units. */
+  units: number
+  /** What the market here pays for them. */
+  gold: number
+  /** The patron's goods paid for at base price (all of the lot), as far as the gold goes. */
+  owed: number
+  /** Standing lost with the patron and with the board's settlement. */
+  standing: number
+  patronName: string
+  fromName: string
+  /** English, for the confirmation. */
+  text: string
+}
+
+/** Why a contract's cargo can't be sold here now (English), or null. */
+function cargoSaleRefusal(
+  state: GameState,
+  content: Content,
+  c: ContractState | undefined,
+  shop?: string
+): string | null {
+  if (inProgress(state)) return BUSY
+  if (!c) return 'You hold no such contract.'
+  if (!HANDED_OVER.includes(c.kind) || !c.good) return 'That contract carries no cargo.'
+  if (!inSettlement(state) || state.location === null) return 'Cargo is sold in a settlement.'
+  const lot = cargoInfo(state, content).lots.find((l) => l.contractId === c.id)
+  if (!lot || lot.carried === 0) return 'None of that cargo is left to sell.'
+  if (!quote(state, content, state.location, c.good, 'sell', lot.carried, shop)) {
+    return `No one here buys ${goodName(content, c.good).toLowerCase()}.`
+  }
+  return null
+}
+
+/**
+ * What selling a contract's cargo here would bring and cost, or null when it can't be sold here
+ * now: the market's price for the carried units, the base value owed for all of the cargo (paid
+ * as far as the gold, the market's pay included, goes), and the standing lost.
+ */
+export function sellCargoPreview(
+  state: GameState,
+  content: Content,
+  contractId: string,
+  shop?: string
+): CargoSale | null {
+  const c = state.contracts.find((x) => x.id === contractId)
+  if (cargoSaleRefusal(state, content, c, shop)) return null
+  const good = c!.good!
+  const lot = cargoInfo(state, content).lots.find((l) => l.contractId === contractId)!
+  const q = quote(state, content, state.location!, good, 'sell', lot.carried, shop)!
+  const owed = Math.ceil(c!.amount * goodPrice(content, good))
+  const debt = Math.max(0, owed - Math.max(0, state.gold + q.total))
+  const standing = SOLD_CARGO_REP + Math.ceil(debt / DEBT_REP_GP)
+  const name = goodName(content, good).toLowerCase()
+  const fromName = settlementName(state, c!.from)
+  return {
+    contractId,
+    good,
+    units: lot.carried,
+    gold: q.total,
+    owed,
+    standing,
+    patronName: lot.patronName,
+    fromName,
+    text:
+      `Selling the ${lot.carried} ${name} breaks "${lot.title}": the market pays ${q.total} gp, ` +
+      `${lot.patronName} is owed ${owed} gp for the goods, and you lose ${standing} standing ` +
+      `with ${lot.patronName} and with ${fromName}.`,
+  }
+}
+
+/**
+ * Sells a courier's or freight contract's cargo at the best shop here (or `shop`), deliberately:
+ * the contract fails at once (failContract, 'sold'): the patron is owed the cargo's base value,
+ * paid as far as the gold goes, and the party loses SOLD_CARGO_REP standing (and a point per
+ * DEBT_REP_GP unpaid) with the patron and the board's settlement. No trade standing is earned.
+ */
+export function sellCargo(
+  state: GameState,
+  content: Content,
+  contractId: string,
+  shop?: string
+): GameState {
+  const c = state.contracts.find((x) => x.id === contractId)
+  const refused = cargoSaleRefusal(state, content, c, shop)
+  if (refused) return appendLog(state, refused, 'bad')
+  const sale = sellCargoPreview(state, content, contractId, shop)!
+  const here = state.location!
+  const sold: GameState = appendLog(
+    {
+      ...state,
+      gold: state.gold + sale.gold,
+      goods: { ...state.goods, [sale.good]: (state.goods[sale.good] ?? 0) - sale.units },
+      markets: recordTrade(state.markets, here, sale.good, sale.units, state.day),
+    },
+    `You sell ${sale.patronName}'s ${sale.units} ${goodName(content, sale.good).toLowerCase()} ` +
+      `for ${sale.gold} gp.`,
+    'bad'
+  )
+  return failContract(observe(sold, content, here), content, c!, 'sold')
 }
 
 /** Gives up a contract: it fails as if its deadline had passed. */
@@ -570,6 +737,36 @@ export function abandonContract(state: GameState, content: Content, id: string):
   const c = state.contracts.find((x) => x.id === id)
   if (!c) return appendLog(state, 'You hold no such contract.', 'bad')
   return failContract(state, content, c, 'abandoned')
+}
+
+/** A bounty's site lies empty today: the realm (or an accident) cleared it, or the party did. */
+const bountyEmptied = (state: GameState, poi: string): boolean =>
+  Object.hasOwn(state.world.pois, poi) &&
+  siteEmpty(state.world.seed, poi, state.world.pois[poi], state.day)
+
+/**
+ * A bounty whose site the site cycle emptied before the party cleared it (and before its
+ * deadline) is void: it is dropped with a line in the journal, at no cost in standing. Called
+ * after every action (state.ts step).
+ */
+export function voidBounties(state: GameState, content: Content): GameState {
+  const voided = state.contracts.filter(
+    (c) =>
+      c.kind === 'bounty' &&
+      !c.met &&
+      c.poi !== null &&
+      state.day <= c.deadline &&
+      bountyEmptied(state, c.poi)
+  )
+  return voided.reduce((next, c) => {
+    const site = own(next.world.pois, c.poi)?.name ?? c.poi
+    return appendLog(
+      { ...next, contracts: next.contracts.filter((x) => x.id !== c.id) },
+      `Someone else has cleared ${site}: "${contractTitle(next, content, c)}" is void, ` +
+        `and ${personDisplayName(next.world, content, c.patron)} holds nothing against you.`,
+      'info'
+    )
+  }, state)
 }
 
 /** Contracts not met by their deadline fail. Called after every action (state.ts step). */
@@ -786,5 +983,7 @@ export function stepContract(
       return abandonContract(state, content, action.id)
     case 'completeContract':
       return completeContract(state, content, action.id, action.reward)
+    case 'sellCargo':
+      return sellCargo(state, content, action.contractId, action.shop)
   }
 }

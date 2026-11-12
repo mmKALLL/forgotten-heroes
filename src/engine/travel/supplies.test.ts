@@ -16,6 +16,7 @@ import {
   buyWaterskin,
   dailyNeed,
   journeySupplies,
+  maxWaterskins,
   partyWaterCapacity,
   passDay,
   rest,
@@ -25,9 +26,12 @@ import {
   waterCapacity,
 } from './supplies'
 import { buyGoods, sellGoods } from '../economy/trade'
+import { load } from '../economy/capacity'
+import { step } from '../state'
 import {
   FORCED_MARCH_DC,
   LODGING_PRICE,
+  OVERLOAD_RATIO,
   WATERSKIN_PRICE,
   WATERSKIN_SELL_PRICE,
   WATERSKIN_WATER,
@@ -130,8 +134,8 @@ describe('passDay', () => {
 })
 
 describe('pace and supplies', () => {
-  test('cautious, steady and brisk days use the same daily ration, with no extra checks', () => {
-    for (const pace of ['cautious', 'steady', 'brisk'] as const) {
+  test('stealthy, steady and brisk days use the same daily ration, with no extra checks', () => {
+    for (const pace of ['stealthy', 'steady', 'brisk'] as const) {
       const before = base()
       const after = passDay(before, 'plains', pace)
       expect(after.goods).toEqual({ food: 8, water: 6 })
@@ -178,11 +182,10 @@ describe('pace and supplies', () => {
     expect(tough).toBeLessThan(15)
   })
 
-  test('supplies per km: stealthy worst, then cautious, forced, steady, and brisk best', () => {
+  test('supplies per km: stealthy worst, then forced, steady, and brisk best', () => {
     const route = { km: 300, terrain: 'plains' as const }
     const by = (pace: Pace) => journeySupplies(route, 2, pace)
     expect(by('steady')).toEqual({ days: 10, food: 20, water: 20 })
-    expect(by('cautious')).toEqual({ days: 14, food: 28, water: 28 })
     expect(by('brisk')).toEqual({ days: 8, food: 16, water: 16 })
     expect(by('forced')).toEqual({ days: 7, food: 21, water: 21 })
     expect(by('stealthy')).toEqual({ days: 20, food: 40, water: 40 })
@@ -299,14 +302,58 @@ describe('waterskins', () => {
   })
 
   test('are bought in a settlement, as many as the gold allows, and filled', () => {
-    const after = buyWaterskin(base({ gold: 5, goods: { food: 10, water: 3 } }), 4)
+    const after = buyWaterskin(base({ gold: 5, goods: { food: 10, water: 3 } }), content, 4)
     expect(after).toMatchObject({ gold: 5 - 2 * WATERSKIN_PRICE, waterskins: 2 })
     expect(after.goods).toEqual({ food: 10, water: 8 + 2 * WATERSKIN_WATER })
     expect(after.log.at(-1)!.text).toBe('Bought 2 waterskins for 4 gp and filled them.')
-    expect(buyWaterskin(base({ gold: 1 })).log.at(-1)!.text).toBe('Waterskins cost 2 gp each.')
-    expect(buyWaterskin(base({ location: null, travel: onTheRoad })).log.at(-1)!.text).toBe(
-      'Waterskins can only be bought in a settlement.'
+    expect(buyWaterskin(base({ gold: 1 }), content).log.at(-1)!.text).toBe(
+      'Waterskins cost 2 gp each.'
     )
+    expect(
+      buyWaterskin(base({ location: null, travel: onTheRoad }), content).log.at(-1)!.text
+    ).toBe('Waterskins can only be bought in a settlement.')
+  })
+
+  test('maxWaterskins stops where their water would overload the party; buying past it is refused', () => {
+    // Nearly overloaded with food: room for the water of two more skins, and no more.
+    const s = base({ gold: 500 })
+    const room = (x: GameState) => {
+      const l = load(x, content)
+      return l.capacity * OVERLOAD_RATIO - l.weight
+    }
+    const kgPerSkin = WATERSKIN_WATER * 2
+    const food = Math.floor(room(s)) - 2 * kgPerSkin - 1 + 10
+    const heavy = base({ gold: 500, goods: { food, water: 8 } })
+    expect(maxWaterskins(heavy, content, 5)).toEqual({ units: 2, limit: 'weight' })
+    expect(maxWaterskins(heavy, content, 1)).toEqual({ units: 1, limit: null })
+    expect(maxWaterskins(base({ gold: 3 }), content, 5)).toEqual({ units: 1, limit: 'gold' })
+    const bought = buyWaterskin(heavy, content, 5)
+    expect(bought.waterskins).toBe(2)
+    // Already encumbered: the new skins aren't filled by themselves.
+    expect(bought.goods.water).toBe(8)
+    expect(buyWaterskin(bought, content, 5).log.at(-1)!.text).toMatch(/^Too heavy/)
+  })
+
+  test('water refills by itself wherever it is free, up to what keeps the party light', () => {
+    // Arriving with a little water and many spare skins: filled until one more would encumber.
+    const arriving = base({
+      location: null,
+      travel: { ...onTheRoad, kmDone: 60, daysDone: 2, forage: false },
+      waterskins: 30,
+      goods: { food: 10, water: 2 },
+    })
+    const arrived = step(arriving, { type: 'continueJourney' }, content)
+    expect(arrived.location).toBe('greenvale-2')
+    const water = arrived.goods.water!
+    expect(water).toBeGreaterThan(waterCapacity(2))
+    expect(water).toBeLessThan(partyWaterCapacity(arrived))
+    expect(load(arrived, content).level).toBe('light')
+    const more = { ...arrived, goods: { ...arrived.goods, water: water + 1 } }
+    expect(load(more, content).level).not.toBe('light')
+    // Setting out tops the skins up too.
+    const home = base({ location: 'greenvale-1', goods: { food: 10, water: 1 } })
+    const out = step(home, { type: 'travel', routeId: 'greenvale-1-greenvale-2' }, content)
+    expect(out.goods.water).toBe(waterCapacity(2))
   })
 
   test('the extra water lasts the road and is refilled on arrival', () => {

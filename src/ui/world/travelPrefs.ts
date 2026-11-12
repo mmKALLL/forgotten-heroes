@@ -8,11 +8,15 @@ import { PACES, type Pace } from '../../schema/types'
 export type TravelPrefs = { pace: Pace; forage: boolean; mounted: boolean }
 
 /**
- * A remembered pace as one of today's: "cover" (cautious, covering tracks, before Stealthy) is
- * Stealthy, and anything unknown is steady.
+ * A remembered pace as one of today's: "cover" (cautious, covering tracks, before Stealthy) and
+ * "cautious" (removed) are Stealthy, and anything unknown is steady.
  */
 export const normalizePace = (pace: unknown): Pace =>
-  pace === 'cover' ? 'stealthy' : PACES.includes(pace as Pace) ? (pace as Pace) : 'steady'
+  pace === 'cover' || pace === 'cautious'
+    ? 'stealthy'
+    : PACES.includes(pace as Pace)
+      ? (pace as Pace)
+      : 'steady'
 
 export const DEFAULT_TRAVEL_PREFS: TravelPrefs = { pace: 'steady', forage: true, mounted: false }
 

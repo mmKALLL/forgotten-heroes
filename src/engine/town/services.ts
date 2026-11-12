@@ -5,7 +5,8 @@ import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
 import { MAX_EXHAUSTION } from '../rules/character'
 import { serviceQuality } from '../economy/market'
-import { marketPrices, marketTalk } from '../economy/trade'
+import { heardPrices, marketTalk } from '../economy/trade'
+import { withRng } from '../rng'
 import { settlementName, straightKm } from '../world/geo'
 import { inSettlement, notHere } from '../travel/where'
 import { serviceWith } from './animals'
@@ -253,11 +254,13 @@ function news(state: GameState, content: Content, settlement: string): GameState
     return appendLog(state, `You already know fresher prices from ${target.name}.`, 'info')
   }
   if (state.gold < NEWS_PRICE) return appendLog(state, `News costs ${NEWS_PRICE} gp.`, 'bad')
-  const prices = marketPrices({ ...state, day }, content, settlement)
+  // Heard, not seen: a little off, like a rumour's prices (RUMOUR_SKEW).
+  const [prices, rng] = withRng(state.rng, (d) => heardPrices(d, state, content, settlement, day))
   const talk = marketTalk(state, content, settlement, day)
   const told = appendLog(
     {
       ...state,
+      rng,
       gold: state.gold - NEWS_PRICE,
       priceBook: { ...state.priceBook, [settlement]: { day, heard: true, prices } },
     },

@@ -2,7 +2,7 @@ import type { Content } from '../../content/build'
 import type { GameState } from '../../schema/state'
 import { animalWater } from '../town/animals'
 import { escortPassengers } from '../town/contract-hooks'
-import { landSpeed, routeTerrain } from './routes'
+import { kmPerDay, routeTerrain } from './routes'
 import { forecastJourney } from './warnings'
 
 /** Whether the food and the water carried last to the end of the road (true when they do). */
@@ -23,7 +23,8 @@ export function supplyOutlook(state: GameState, content: Content): SupplyOutlook
     travel.pace,
     travel.forage,
     {
-      speed: landSpeed(state, content, terrain),
+      // The speed the journey set out at (load and exhaustion are fixed at departure).
+      speed: travel.kmPerDay / kmPerDay(terrain, travel.pace),
       content,
       animalWater: animalWater(state, content),
       escorts: escortPassengers(state),

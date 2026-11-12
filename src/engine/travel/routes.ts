@@ -1,6 +1,6 @@
 import type { Content } from '../../content/build'
 import type { Biome, Pace } from '../../schema/types'
-import type { GameState, TravelState } from '../../schema/state'
+import type { Character, GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { allSituations } from '../encounters/compile'
 import { fitsPlace } from '../encounters/run'
@@ -9,16 +9,20 @@ import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
 import { load, loadSpeed, type Hired } from '../economy/capacity'
 import { mountSpeed } from '../town/animals'
+import { escortPassengers } from '../town/contract-hooks'
 import { paceHostileAvoidance } from './pace'
 import {
   DEFAULT_PACE,
   ENCOUNTER_SLOT_CHANCE,
   ESCORT_HOSTILE,
+  EXHAUSTION_SPEED_MIN,
+  EXHAUSTION_SPEED_PENALTY,
   FORAGE_HOSTILE_BONUS,
   HOSTILE_BASE,
   HOSTILE_PER_DANGER,
   HOSTILE_PER_THREAT,
   HOSTILE_SHARE_RANGE,
+  HURRY_SAVES_FROM,
   KM_PER_DAY,
   LONG_JOURNEY_DAYS,
   PACE_HOSTILE_BONUS,
@@ -38,9 +42,19 @@ export function kmPerDay(terrain: Biome, pace: Pace = DEFAULT_PACE, speed = 1): 
 }
 
 /**
- * The party's land speed multiplier on this terrain: slowed by its load (loadSpeed), and sped up
- * by mounts when everyone rides (mountSpeed; `hired` previews hiring). Always 1 at sea, where the
- * ship carries everything at its own speed.
+ * The share of its speed the party keeps for its most exhausted member: EXHAUSTION_SPEED_PENALTY
+ * less per level, at least EXHAUSTION_SPEED_MIN.
+ */
+export const exhaustionSpeed = (party: readonly Pick<Character, 'exhaustion'>[]): number => {
+  const worst = party.reduce((most, c) => Math.max(most, c.exhaustion), 0)
+  return Math.max(EXHAUSTION_SPEED_MIN, 1 - EXHAUSTION_SPEED_PENALTY * worst)
+}
+
+/**
+ * The party's land speed multiplier on this terrain: slowed by its load (loadSpeed) and by the
+ * most exhausted member (exhaustionSpeed), and sped up by mounts when everyone rides (mountSpeed;
+ * `hired` previews hiring). Always 1 at sea, where the ship carries everything at its own speed.
+ * A journey keeps the speed it set out at (TravelState.kmPerDay).
  */
 export function landSpeed(
   state: Pick<GameState, 'party' | 'animals' | 'travel' | 'goods'>,
@@ -50,14 +64,46 @@ export function landSpeed(
 ): number {
   if (terrain === 'sea') return 1
   const laden = load(state, content, { hired })
-  return loadSpeed(laden.level) * mountSpeed(state, content, terrain, hired)
+  return (
+    loadSpeed(laden.level) *
+    exhaustionSpeed(state.party) *
+    mountSpeed(state, content, terrain, hired)
+  )
 }
 
-export const journeyDays = (
+/** Days on the road at this pace and speed, before the brisk and forced clamp (journeyDays). */
+const rawDays = (route: Pick<Route, 'km' | 'terrain'>, pace: Pace, speed: number): number =>
+  Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, speed)))
+
+/**
+ * Days on the road at this pace and speed (load, exhaustion and mounts). On land, hurrying always
+ * pays on a longer road (designer rule): where the steady pace takes HURRY_SAVES_FROM days or
+ * more, Brisk takes at least a day less than Steady, and Forced never more than Brisk. The one
+ * journey-days function: previews, deadlines and the journey itself (journeyKmPerDay) agree.
+ */
+export function journeyDays(
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace = DEFAULT_PACE,
   speed = 1
-): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, speed)))
+): number {
+  const days = rawDays(route, pace, speed)
+  if (route.terrain === 'sea' || (pace !== 'brisk' && pace !== 'forced')) return days
+  const steady = rawDays(route, 'steady', speed)
+  if (steady < HURRY_SAVES_FROM) return days
+  const brisk = Math.min(rawDays(route, 'brisk', speed), steady - 1)
+  return pace === 'brisk' ? brisk : Math.min(days, brisk)
+}
+
+/**
+ * km a journey covers each day: kmPerDay, or more where journeyDays' clamp shortens the road, so
+ * the journey ends on the day the preview says.
+ */
+export const journeyKmPerDay = (
+  route: Pick<Route, 'km' | 'terrain'>,
+  pace: Pace = DEFAULT_PACE,
+  speed = 1
+): number =>
+  Math.max(kmPerDay(route.terrain, pace, speed), route.km / journeyDays(route, pace, speed))
 
 /**
  * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one
@@ -73,7 +119,7 @@ export function encounterRange(days: number): [number, number] {
  * How likely each encounter on a journey is to be hostile, and what makes it so: the base share,
  * then route danger, the domain's threat level, foraging (FORAGE_HOSTILE_BONUS) and a brisk or
  * forced pace (PACE_HOSTILE_BONUS), within HOSTILE_SHARE_RANGE. That is the share `drawn` hostile;
- * a stealthy or cautious party then steers clear of some of those (PACE_HOSTILE_AVOIDANCE: a quiet
+ * a stealthy party then steers clear of some of those (PACE_HOSTILE_AVOIDANCE: a quiet
  * day instead), so the share actually met is `share` = drawn × (1 − avoidance), and `avoided` is
  * the (negative) difference. The rest are neutral or pleasant, by their situations' weights.
  */
@@ -205,10 +251,16 @@ export function routeThreat(
 export const fareFor = (route: Pick<Route, 'km' | 'terrain'>, members: number): number =>
   route.terrain === 'sea' ? SEA_FARE * members * journeyDays(route) : 0
 
-/** Who pays a ship's fare: every member, and every owned animal (and cart). */
+/**
+ * Who pays a ship's fare: every member, every escorted passenger (they pay like members), and
+ * every owned animal (and cart).
+ */
 export const passengers = (
-  state: Pick<GameState, 'party'> & Partial<Pick<GameState, 'animals'>>
-): number => state.party.length + Object.values(state.animals ?? {}).reduce((sum, n) => sum + n, 0)
+  state: Pick<GameState, 'party'> & Partial<Pick<GameState, 'animals' | 'contracts'>>
+): number =>
+  state.party.length +
+  escortPassengers({ contracts: state.contracts ?? [] }) +
+  Object.values(state.animals ?? {}).reduce((sum, n) => sum + n, 0)
 
 /** The terrain underfoot on a journey; null if its route or path has gone. */
 export const routeTerrain = (
