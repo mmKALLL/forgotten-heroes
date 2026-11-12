@@ -10,7 +10,7 @@ import { PX_PER_KM } from '../schema/world'
 /** Members in a new party. */
 export const STARTING_PARTY_SIZE = 2
 /** Gold a new party starts with. */
-export const STARTING_GOLD = 50
+export const STARTING_GOLD = 10
 
 // Travel: speed, fares and encounters (routes.ts)
 
@@ -23,7 +23,7 @@ export const KM_PER_DAY: Readonly<Record<Biome, number>> = {
   marsh: 18,
   desert: 21,
   jungle: 18,
-  sea: 75,
+  sea: 40,
 }
 /** Passage on a ship, per member per day. */
 export const SEA_FARE = 2
