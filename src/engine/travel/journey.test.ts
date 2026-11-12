@@ -179,6 +179,13 @@ describe('continueJourney', () => {
     expect(go(down).travel!.encounterDays).toEqual([1])
   })
 
+  test('a party that drops on the last stretch still reaches the gates', () => {
+    const out = encountersOn(travel(at('greenvale-1'), 'greenvale-1-greenvale-2'), [])
+    const there = { ...out, travel: { ...out.travel!, daysDone: 3, kmDone: 75 } }
+    const down = { ...there, party: there.party.map((c) => ({ ...c, hp: 0 })) }
+    expect(go(down).location).toBe('greenvale-2')
+  })
+
   test('road encounters fit the route’s terrain', () => {
     const tagged = structuredClone(content)
     tagged.situations.cliff.biomes = ['hills']

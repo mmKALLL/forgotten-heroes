@@ -4,6 +4,8 @@ import { encounterOptions } from './encounters/preview'
 import { deserialize, serialize } from './save'
 import { newGame, step } from './state'
 import { fixtureContent } from './test-fixtures'
+import { routeOptions } from './travel/preview'
+import { wander } from './travel/wander'
 
 const content = fixtureContent()
 
@@ -50,4 +52,37 @@ test('saving and loading in the middle of an encounter does not change what happ
   const finish = (state: GameState) =>
     play(step(state, { type: 'chooseOption', optionId: 'rob' }, content), 10)
   expect(finish(resumed!)).toEqual(finish(middle))
+})
+
+test('a seeded journey replays identically, and another seed differs', () => {
+  const run = wander(newGame(2024, content), content, 6)
+  expect(run.day).toBeGreaterThan(5)
+  expect(wander(newGame(2024, content), content, 6)).toEqual(run)
+  expect(wander(newGame(2025, content), content, 6)).not.toEqual(run)
+})
+
+test('the wandering party varies its pace from leg to leg', () => {
+  const departures = wander(newGame(2024, content), content, 6)
+    .log.map((e) =>
+      /^The party sets out for .+?( at a \w+ pace| on a forced march)?(, covering its tracks)?: /.exec(
+        e.text
+      )
+    )
+    .filter((m) => m !== null)
+    .map((m) => `${m[1] ?? 'steady'}${m[2] ?? ''}`)
+  // Six legs, but a party left without passage money rests instead of sailing on.
+  expect(departures.length).toBeGreaterThanOrEqual(3)
+  expect(new Set(departures).size).toBeGreaterThanOrEqual(3)
+})
+
+test('saving and loading in the middle of a journey does not change what happens next', () => {
+  const start = newGame(9, content)
+  const out = step(
+    start,
+    { type: 'travel', routeId: routeOptions(start, content)[0].routeId },
+    content
+  )
+  const resumed = deserialize(serialize(out), content)
+  expect(resumed).toEqual(out)
+  expect(wander(resumed!, content, 3)).toEqual(wander(out, content, 3))
 })

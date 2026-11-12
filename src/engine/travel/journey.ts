@@ -177,11 +177,9 @@ export function continueJourney(state: GameState, content: Content): GameState {
 
   for (let guard = 0; guard <= MAX_DAYS_PER_CONTINUE; guard++) {
     const travel = next.travel!
+    const fit = next.party.some(canAct)
     // A party that can't go on keeps its encounter days until it has made camp.
-    if (!next.party.some(canAct)) {
-      return appendLog(flush(next), `${UNFIT} Make camp to recover.`, 'bad')
-    }
-    if (travel.encounterDays.length > 0 && travel.encounterDays[0] <= travel.daysDone) {
+    if (fit && travel.encounterDays.length > 0 && travel.encounterDays[0] <= travel.daysDone) {
       const queued = {
         ...flush(next),
         travel: { ...travel, encounterDays: travel.encounterDays.slice(1) },
@@ -194,6 +192,7 @@ export function continueJourney(state: GameState, content: Content): GameState {
       continue
     }
     if (travel.kmDone >= travel.km) return arrive(flush(next), content)
+    if (!fit) return appendLog(flush(next), `${UNFIT} Make camp to recover.`, 'bad')
 
     const terrain = routeTerrain(content, travel)
     const short = runsShort(next, terrain)

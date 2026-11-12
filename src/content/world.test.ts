@@ -1,10 +1,13 @@
 import { describe, expect, test } from 'vitest'
 import { PUBLISHED_TOWNS } from '../../scripts/port/town-maps'
 import { slotNames } from '../engine/encounters/slots'
+import { newGame } from '../engine/state'
+import { wander } from '../engine/travel/wander'
 import { generateWorld, startingSettlement, worldSeed } from '../engine/world/generate'
 import { routesFrom } from '../engine/world/geo'
 import { worldIssues } from '../engine/world/validate'
 import { BIOMES } from '../schema/constants'
+import { GameStateSchema } from '../schema/state'
 import { WorldStateSchema } from '../schema/world'
 import { loadBundledContent } from './bundled'
 
@@ -93,5 +96,20 @@ describe('generated worlds on Altaeus', () => {
     const world = generateWorld(worldSeed(1), content)
     const named = Object.values(world.settlements).filter((s) => s.town !== null)
     expect(named.length).toBeGreaterThan(Object.keys(world.settlements).length / 2)
+  })
+})
+
+describe('journeys on Altaeus', () => {
+  test.each([1, 2, 3])('seed %i: twelve legs keep the state valid', (seed) => {
+    const state = wander(
+      newGame(seed, content),
+      content,
+      12,
+      (leg, count) => (leg * 7 + seed) % count,
+      (leg, count) => (leg * 3 + seed) % count
+    )
+    expect(GameStateSchema.parse(state)).toEqual(state)
+    expect(state.day).toBeGreaterThan(12)
+    expect(state.log.map((e) => e.text)).not.toContain('No encounters match that filter.')
   })
 })
