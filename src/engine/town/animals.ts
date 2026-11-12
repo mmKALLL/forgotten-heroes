@@ -87,7 +87,8 @@ export function payUpkeep(state: GameState, content: Content): GameState {
   const paid = Math.min(state.gold, Math.floor(due))
   const owed = Math.round((due - paid) * 100) / 100
   const next = { ...state, gold: state.gold - paid, upkeepOwed: owed }
-  if (owed > 0 && state.upkeepOwed === 0) {
+  // Fractions of a gp carry over quietly: only a whole gp the purse can't cover is news.
+  if (paid < Math.floor(due) && state.upkeepOwed < 1) {
     return appendLog(next, 'There is no coin left for the animals’ fodder and stabling.', 'bad')
   }
   return next

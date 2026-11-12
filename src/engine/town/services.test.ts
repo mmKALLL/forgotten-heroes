@@ -8,7 +8,7 @@ import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { carryCapacity } from '../economy/capacity'
 import { routeOptions } from '../travel/preview'
 import { restOption } from '../travel/supplies'
-import { animalOffers } from './animals'
+import { animalOffers, payUpkeep } from './animals'
 import { lodgingOptions, newsTargets, serviceRows } from './services'
 import { KM_PER_DAY, MOUNT_ROUGH_SPEED } from '../constants'
 
@@ -231,5 +231,24 @@ describe('hired horses', () => {
     expect(routeOptions(at('greenvale-2'), content).every((o) => o.mounted === null)).toBe(true)
     const sea = routeOptions(at('ashmoor-1'), content).find((o) => o.terrain === 'sea')!
     expect(sea.mounted).toBeNull()
+  })
+})
+
+describe('the animals’ upkeep', () => {
+  const cheap = structuredClone(fixtureContent())
+  cheap.animals.mule = { ...cheap.animals.mule, upkeepPerDay: 0.2 }
+  const owner = (gold: number) => makeState({ location: 'greenvale-1', gold, animals: { mule: 1 } })
+
+  test('carries fractions of a gp over quietly while the purse could pay', () => {
+    const paid = payUpkeep(owner(50), cheap)
+    expect(paid.gold).toBe(50)
+    expect(paid.upkeepOwed).toBeCloseTo(0.2)
+    expect(paid.log).toEqual(owner(50).log)
+  })
+
+  test('says so when the coin runs out', () => {
+    const broke = payUpkeep(owner(0), fixtureContent())
+    expect(broke.upkeepOwed).toBe(1)
+    expect(broke.log.at(-1)!.text).toMatch(/no coin left for the animals/)
   })
 })

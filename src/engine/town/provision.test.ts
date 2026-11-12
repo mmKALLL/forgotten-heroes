@@ -59,6 +59,12 @@ describe('provision for this road', () => {
     const done = act(poor, { type: 'provision', ...road })
     expect(done.gold).toBeGreaterThanOrEqual(0)
     expect(done.log.at(-1)!.text).toMatch(/all the gold allows\.$/)
+    // With no coin at all, nothing is bought, but the party is not "ready" either.
+    const broke = at('greenvale-1', { gold: 0 })
+    expect(provisionPlan(broke, content, road)).toMatchObject({ food: 0, ready: false })
+    expect(act(broke, { type: 'provision', ...road }).log.at(-1)!.text).toMatch(
+      /all the gold allows\.$/
+    )
   })
 
   test('feeds escorted passengers too, and the supply outlook on the road counts them', () => {

@@ -129,7 +129,8 @@ export function provisionPlan(
     water,
     total: foodCost + waterskinCost,
     limit,
-    ready: food === 0 && skins === 0 && water === 0,
+    // A party that can't afford a single ration isn't ready, it is broke.
+    ready: food === 0 && skins === 0 && water === 0 && limit === null,
   }
 }
 
