@@ -7,6 +7,7 @@ import type { Action } from '../../engine/state'
 import { recruitOffers, type RecruitOffer } from '../../engine/town/recruits'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
+import { ReasonButton } from '../ReasonButton'
 
 type Props = {
   content: Content
@@ -19,9 +20,10 @@ type Props = {
 
 /**
  * Who is looking for work at a service this week (Plan 5a U2, design §5): each offer's name,
- * level, ancestry and class, key abilities, proficient skills, fee and wage, and Hire, disabled
- * with the engine's reason inline. It replaces the service tiles until closed (the ledger stays on
- * one screen); Escape or Close goes back.
+ * level, ancestry and class, key abilities, proficient skills, fee and wage, and Hire (when
+ * refused, still focusable with the engine's reason inline and announced). After a hire, focus
+ * returns to the heading. It replaces the service tiles until closed (the ledger stays on one
+ * screen); Escape or Close goes back.
  */
 export function RecruitsPanel({ content, state, service, onAction, onClose }: Props) {
   const { t, name } = useI18n()
@@ -50,7 +52,16 @@ export function RecruitsPanel({ content, state, service, onAction, onClose }: Pr
       ) : (
         <ul className="recruit-list">
           {mine.map((o) => (
-            <RecruitRow key={o.id} offer={o} content={content} onAction={onAction} />
+            <RecruitRow
+              key={o.id}
+              offer={o}
+              content={content}
+              onAction={(a) => {
+                onAction(a)
+                // The hired row goes away: focus returns to the list's heading.
+                heading.current?.focus()
+              }}
+            />
           ))}
         </ul>
       )}
@@ -102,13 +113,13 @@ function RecruitRow({
         )}
       </div>
       <div className="recruit-hire">
-        <button
-          disabled={!o.available}
+        <ReasonButton
+          available={o.available}
+          reason={o.reason}
           onClick={() => onAction({ type: 'hireRecruit', offerId: o.id })}
         >
           {t('recruits.hire', { fee: o.fee, wage: formatGp(o.wage) })}
-        </button>
-        {o.reason && <span className="service-why muted small">{o.reason}</span>}
+        </ReasonButton>
       </div>
     </li>
   )

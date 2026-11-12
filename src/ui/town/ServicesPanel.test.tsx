@@ -140,18 +140,30 @@ test('the inn opens its recruits in place of the tiles; Hire dispatches hireRecr
     first.getByRole('button', { name: /^Hire · \d+ gp, then [\d.]+ gp a day$/ })
   )
   expect(onAction).toHaveBeenLastCalledWith({ type: 'hireRecruit', offerId: offers[0].id })
+  expect(document.activeElement).toBe(list.getByRole('heading', { name: 'Recruits · Inn/Tavern' }))
   await userEvent.keyboard('{Escape}')
   expect(document.activeElement).toBe(
     screen.getByRole('button', { name: `Recruits (${offers.length})` })
   )
 })
 
+test('with no one looking for work, the inn leaves out its Recruits opener', () => {
+  const ids = recruitOffers(town(), content, 'greenvale-1').map((o) => o.id)
+  panel(town({ recruitsTaken: ids }))
+  const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
+  expect(inn.queryByRole('button', { name: /^Recruits/ })).toBeNull()
+})
+
 test('a recruit the party cannot afford is disabled with the reason inline', async () => {
-  panel(town({ gold: 0 }))
+  const onAction = panel(town({ gold: 0 }))
   await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))
-  const hire = screen.getAllByRole('button', { name: /^Hire/ })[0] as HTMLButtonElement
-  expect(hire.disabled).toBe(true)
-  expect(hire.parentElement?.textContent).toMatch(/costs \d+ gp/)
+  const hire = screen.getAllByRole('button', { name: /^Hire/ })[0]
+  await userEvent.click(hire)
+  expect(onAction).not.toHaveBeenCalled()
+  expect(hire.getAttribute('aria-disabled')).toBe('true')
+  // The reason is inline and announced with the button.
+  const why = document.getElementById(hire.getAttribute('aria-describedby') ?? '')
+  expect(why?.textContent).toMatch(/costs \d+ gp/)
 })
 
 test('the accessory shop lists offers with their hooks and the gear to sell', async () => {

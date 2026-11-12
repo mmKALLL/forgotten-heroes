@@ -69,7 +69,8 @@ button.primary {
   color: #fff8ec;
   border-color: var(--accent);
 }
-button:disabled {
+button:disabled,
+button[aria-disabled='true'] {
   opacity: 0.5;
   cursor: default;
 }
@@ -1571,6 +1572,22 @@ h2[tabindex='-1']:focus {
 .explore-line,
 .gather-line {
   margin: 0.25rem 0 0.5rem;
+}
+/* Gathering's tiers on one line: "▮ 60% 6 fuel · ▮ 15% 3 fuel" (faces on hover). */
+.inline-outcomes {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.7rem;
+}
+.inline-outcomes li {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+}
+.inline-outcomes .tier-marker {
+  align-self: stretch;
 }
 .ledger p {
   margin: 0.1rem 0;

@@ -540,8 +540,10 @@ export const en = {
   'gather.picked': 'picked over: −{pct}%',
   'gather.room': 'room for {n}',
   'gather.outcomes': 'What a day brings home',
-  'gather.units': 'Brings home {n} {good}',
-  'gather.nothing': 'Brings home nothing',
+  'gather.units': '{n} {good}',
+  'gather.nothing': 'nothing',
+  'gather.mishapAmbush': 'A natural 1 ({pct}) brings trouble: a hostile encounter.',
+  'gather.mishapHurt': 'A natural 1 ({pct}) hurts {name}: −{hp} HP.',
 
   'journey.heading': 'On the road',
   'journey.route': '{from} → {to}',

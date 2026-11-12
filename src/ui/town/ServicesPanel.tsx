@@ -172,9 +172,12 @@ function ServiceTile({
     .filter(Boolean)
     .join(' · ')
   // Rumours and the notice board have their own lines in the talk zone (no pointer here).
-  const working = row.actions.filter(
+  const acting = row.actions.filter(
     (a) => !['market', 'passage', 'rumours', 'board'].includes(a.action)
   )
+  // An empty list opener ("Recruits (0)") only shows when it is the tile's one action.
+  const filled = acting.filter((a) => !emptyOpener(a.action, row.service, state, content))
+  const working = filled.length > 0 ? filled : acting
   const market = row.actions.some((a) => a.action === 'market')
   const passage = row.actions.some((a) => a.action === 'passage')
   return (
@@ -238,11 +241,7 @@ function ServiceAction({
   const [animal, setAnimal] = useState<string | null>(null)
   switch (view.action) {
     case 'recruit': {
-      const here = state.location
-      const n =
-        here === null
-          ? 0
-          : recruitOffers(state, content, here).filter((o) => o.service === row.service).length
+      const n = listCount('recruit', row.service, state, content)
       return (
         <ListOpener
           kind="recruits"
@@ -253,11 +252,7 @@ function ServiceAction({
       )
     }
     case 'accessories': {
-      const here = state.location
-      const n =
-        here === null
-          ? 0
-          : accessoryOffers(state, content, here).filter((o) => o.service === row.service).length
+      const n = listCount('accessories', row.service, state, content)
       return (
         <ListOpener
           kind="accessories"
@@ -401,6 +396,34 @@ function ServiceAction({
     default:
       return null
   }
+}
+
+/** How many recruits or accessories a service offers here this week. */
+function listCount(
+  action: 'recruit' | 'accessories',
+  service: string,
+  state: GameState,
+  content: Content
+): number {
+  const here = state.location
+  if (here === null) return 0
+  const offers =
+    action === 'recruit'
+      ? recruitOffers(state, content, here)
+      : accessoryOffers(state, content, here)
+  return offers.filter((o) => o.service === service).length
+}
+
+/**
+ * A list opener with nothing to open (no recruits this week; nothing for sale and no gear to
+ * sell). A tile with another action leaves it out, so the inn's tile stays short.
+ */
+function emptyOpener(action: string, service: string, state: GameState, content: Content): boolean {
+  if (action === 'recruit') return listCount(action, service, state, content) === 0
+  if (action === 'accessories') {
+    return state.gear.length === 0 && listCount(action, service, state, content) === 0
+  }
+  return false
 }
 
 /**

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Content } from '../../content/build'
 import { goodDef } from '../../engine/economy/goods'
-import { formatModifier } from '../../engine/format'
+import { formatModifier, formatPercent } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import { gatherOptions } from '../../engine/world/gather'
 import type { GameState } from '../../schema/state'
@@ -11,9 +11,10 @@ import { daysText } from './travelText'
 
 /**
  * Gathering a local good for a day (Plan 5a U3), under Explore in the town ledger: who leads, the
- * check and DC, how picked over the land is, and what each non-critical tier brings home (outcome
- * lines, never an odds bar: design §9). Several goods share one row with a picker, so the ledger
- * stays on one screen. Nothing when the engine offers no gathering here.
+ * check and DC, how picked over the land is, what each non-critical tier brings home (on one
+ * compact line, never an odds bar: design §9), and what a natural 1 brings (the engine's mishap).
+ * Several goods share one row with a picker, so the ledger stays on one screen. Nothing when the
+ * engine offers no gathering here.
  */
 export function GatherAction({
   content,
@@ -33,6 +34,7 @@ export function GatherAction({
   const units = (tier: string) => option.outcomes.find((o) => o.tier === tier)?.units ?? 0
   const picked = Math.round(option.depleted * 100)
   const most = Math.max(...option.outcomes.map((o) => o.units))
+  const { mishap } = option
   const facts = [
     t('gather.line', {
       name: option.actorName,
@@ -69,6 +71,7 @@ export function GatherAction({
       <span className="small">{facts.join(' · ')}</span>
       {option.reason && <p className="tone-bad small">{option.reason}</p>}
       <TierOutcomes
+        inline
         label={t('gather.outcomes')}
         odds={option.odds}
         faces={option.faces}
@@ -78,6 +81,17 @@ export function GatherAction({
             : t('gather.nothing')
         }
       />
+      {mishap.chance > 0 && (
+        <p className="muted small">
+          {mishap.ambush
+            ? t('gather.mishapAmbush', { pct: formatPercent(mishap.chance) })
+            : t('gather.mishapHurt', {
+                pct: formatPercent(mishap.chance),
+                name: option.actorName,
+                hp: mishap.injury,
+              })}
+        </p>
+      )}
     </div>
   )
 }

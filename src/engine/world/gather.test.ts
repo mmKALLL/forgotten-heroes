@@ -94,11 +94,13 @@ describe('a day of gathering', () => {
     expect(after.gathered['farisle-1']?.timber?.units).toBe(1)
   })
 
-  test('a critical failure brings trouble or hurts the lead', () => {
+  test('a critical failure brings what the preview says: trouble, or the lead hurt', () => {
     const state = rolling(at('ashmoor-1'), 'critFail')
-    const lead = only(state).actorId
+    const { actorId: lead, mishap, odds } = only(state)
+    expect(mishap.chance).toBe(odds.critFail)
     const after = gather(state, 'healing-herbs')
     const hp = (s: GameState) => s.party.find((c) => c.id === lead)!.hp
-    expect(after.encounter !== null || hp(after) < hp(state)).toBe(true)
+    if (mishap.ambush) expect(after.encounter).not.toBeNull()
+    else expect(hp(after)).toBe(Math.max(0, hp(state) - mishap.injury))
   })
 })

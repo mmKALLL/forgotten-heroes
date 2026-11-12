@@ -6,6 +6,7 @@ import type { Action } from '../../engine/state'
 import type { Accessory } from '../../schema/gear'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
+import { ReasonButton } from '../ReasonButton'
 
 type Props = {
   content: Content
@@ -18,8 +19,9 @@ type Props = {
 
 /**
  * A shop's accessories this week (Plan 5a U2, design §5): each offer's name, hook lines, price
- * and Buy (disabled with the engine's reason inline), then the party's unworn gear with what the
- * shop pays. It replaces the service tiles until closed, like the recruits list.
+ * and Buy (when refused, still focusable with the engine's reason inline and announced), then the
+ * party's unworn gear with what the shop pays. After a purchase or sale, focus returns to the
+ * heading. It replaces the service tiles until closed, like the recruits list.
  */
 export function AccessoryShop({ content, state, service, onAction, onClose }: Props) {
   const { t, name } = useI18n()
@@ -31,6 +33,11 @@ export function AccessoryShop({ content, state, service, onAction, onClose }: Pr
   )
   const sales = accessorySales(state, content)
   const serviceName = name('services', service, content.services[service]?.name ?? service)
+  // A bought or sold row goes away: focus returns to the shop's heading.
+  const act = (a: Action) => {
+    onAction(a)
+    heading.current?.focus()
+  }
   return (
     <section
       className="accessory-shop"
@@ -50,13 +57,14 @@ export function AccessoryShop({ content, state, service, onAction, onClose }: Pr
       ) : (
         <ul className="shop-list">
           {offers.map((o) => (
-            <ShopRow key={o.id} accessory={o.accessory} reason={o.reason}>
-              <button
-                disabled={!o.available}
-                onClick={() => onAction({ type: 'buyAccessory', offerId: o.id })}
+            <ShopRow key={o.id} accessory={o.accessory}>
+              <ReasonButton
+                available={o.available}
+                reason={o.reason}
+                onClick={() => act({ type: 'buyAccessory', offerId: o.id })}
               >
                 {t('shop.buy', { gp: o.price })}
-              </button>
+              </ReasonButton>
             </ShopRow>
           ))}
         </ul>
@@ -66,13 +74,14 @@ export function AccessoryShop({ content, state, service, onAction, onClose }: Pr
           <h4 className="shop-sell-head">{t('shop.sellHeading')}</h4>
           <ul className="shop-list">
             {sales.map((s) => (
-              <ShopRow key={s.accessory.id} accessory={s.accessory} reason={s.reason}>
-                <button
-                  disabled={!s.available}
-                  onClick={() => onAction({ type: 'sellAccessory', id: s.accessory.id })}
+              <ShopRow key={s.accessory.id} accessory={s.accessory}>
+                <ReasonButton
+                  available={s.available}
+                  reason={s.reason}
+                  onClick={() => act({ type: 'sellAccessory', id: s.accessory.id })}
                 >
                   {t('shop.sell', { gp: s.price })}
-                </button>
+                </ReasonButton>
               </ShopRow>
             ))}
           </ul>
@@ -83,15 +92,7 @@ export function AccessoryShop({ content, state, service, onAction, onClose }: Pr
 }
 
 /** One line: its name, "fine" for tier 2, what its hooks do, then the button and any reason. */
-function ShopRow({
-  accessory: a,
-  reason,
-  children,
-}: {
-  accessory: Accessory
-  reason: string | null
-  children: ReactNode
-}) {
+function ShopRow({ accessory: a, children }: { accessory: Accessory; children: ReactNode }) {
   const { t } = useI18n()
   return (
     <li className="shop-row" aria-label={a.name}>
@@ -103,7 +104,6 @@ function ShopRow({
         )}
       </span>
       {children}
-      {reason && <span className="service-why muted small">{reason}</span>}
     </li>
   )
 }

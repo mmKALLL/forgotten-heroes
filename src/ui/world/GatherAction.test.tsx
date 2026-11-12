@@ -19,7 +19,9 @@ test('the gather row shows its lead, DC and outcome lines, and dispatches gather
   expect(row.getByText(new RegExp(`^${option.actorName}, .* vs DC ${option.dc}`))).toBeTruthy()
   const lines = row.getByRole('list', { name: 'What a day brings home' })
   const success = option.outcomes.find((o) => o.tier === 'success')!
-  expect(lines.textContent).toContain(`Brings home ${success.units} timber`)
+  expect(lines.textContent).toContain(`${success.units} timber`)
+  // The critical failure is previewed too, from the engine's mishap.
+  expect(row.getByText(/^A natural 1 \(\d+%\) (brings trouble|hurts)/)).toBeTruthy()
   await userEvent.click(row.getByRole('button', { name: /^Gather/ }))
   expect(onAction).toHaveBeenCalledWith({ type: 'gather', rule: option.rule })
 })

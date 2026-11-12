@@ -195,6 +195,20 @@ const ambush = (state: GameState, content: Content): GameState =>
   drawAmbush(state, content) ??
   appendLog(state, 'The search turns up nothing but sore feet.', 'bad')
 
+/** The hostile road situations that fit where the party is: what drawAmbush picks from. */
+export function ambushCandidates(state: GameState, content: Content) {
+  const place = placeHere(state, content)
+  if (!place) return []
+  return allSituations(content).filter(
+    (s) =>
+      s.disposition === 'hostile' &&
+      !s.followUpOnly &&
+      !s.site &&
+      s.weight > 0 &&
+      fitsPlace(s, place)
+  )
+}
+
 /**
  * Trouble finds a party working the land where it is (a search or a day's gathering gone badly):
  * a hostile road situation that fits the place starts, picked by weight. Null when none fits or
@@ -202,16 +216,7 @@ const ambush = (state: GameState, content: Content): GameState =>
  */
 export function drawAmbush(state: GameState, content: Content): GameState | null {
   const place = placeHere(state, content)
-  const hostile = place
-    ? allSituations(content).filter(
-        (s) =>
-          s.disposition === 'hostile' &&
-          !s.followUpOnly &&
-          !s.site &&
-          s.weight > 0 &&
-          fitsPlace(s, place)
-      )
-    : []
+  const hostile = ambushCandidates(state, content)
   if (!place || hostile.length === 0 || !state.party.some(canAct)) return null
   const [picked, rng] = withRng(state.rng, (d) => d.weighted(hostile, (s) => s.weight).id)
   return startEncounter({ ...state, rng }, content, picked, place)

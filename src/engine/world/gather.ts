@@ -25,7 +25,7 @@ import { useSkill } from '../rules/strain'
 import { consumeDay } from '../travel/days'
 import { autoRefill } from '../travel/supplies'
 import { inSettlement } from '../travel/where'
-import { drawAmbush } from './explore'
+import { ambushCandidates, drawAmbush } from './explore'
 import { settlementName } from './geo'
 import {
   DEFAULT_PACE,
@@ -84,6 +84,11 @@ export type GatherOption = {
   depleted: number
   /** Units the party can still carry without being overloaded; the outcomes are capped by it. */
   room: number
+  /**
+   * What a critical failure (a natural 1) brings, besides nothing: a hostile encounter when one
+   * fits the place, else the lead is hurt for `injury` HP.
+   */
+  mishap: { chance: number; ambush: boolean; injury: number }
   available: boolean
   reason: string | null
 }
@@ -128,6 +133,7 @@ export function gatherOptions(state: GameState, content: Content): GatherOption[
   if (land === null || land === 'sea') return []
   const workers = state.party.filter(canAct).length
   const made = production(state, content, domain)
+  const ambush = ambushCandidates(state, content).length > 0
   return sortedEntries(content.gatherRules)
     .filter((rule) => (rule.biomes as readonly Biome[]).includes(land))
     .flatMap((rule): GatherOption[] => {
@@ -166,6 +172,7 @@ export function gatherOptions(state: GameState, content: Content): GatherOption[
           outcomes,
           depleted,
           room,
+          mishap: { chance: odds.critFail, ambush, injury: GATHER_INJURY },
           available: reason === null,
           reason,
         },
