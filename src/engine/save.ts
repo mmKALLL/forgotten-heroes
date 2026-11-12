@@ -1,11 +1,13 @@
 import type { Content } from '../content/build'
 import { GameStateSchema, type GameState } from '../schema/state'
-import { WorldStateSchema } from '../schema/world'
+import { WorldStateSchema, type WorldState } from '../schema/world'
 import { generateCrisis } from './crisis/generate'
 import { CAMARADERIE_START } from './constants'
 import { generatePeople } from './town/people'
 import { startingGoods } from './travel/supplies'
-import { generateWorld, startingSettlement, worldSeed } from './world/generate'
+import { generateWorld, mainlandSettlements, startingSettlement, worldSeed } from './world/generate'
+import { straightKm } from './world/geo'
+import { domainAt } from './world/pois'
 
 export const SAVE_KEY = 'forgotten-heroes/save/v1'
 /** Where a save that no longer loads is copied, so a new game doesn't destroy it. */
@@ -228,10 +230,26 @@ export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
 }
 
 /**
+ * The mainland settlement nearest (in a straight line) to `id`, a settlement or a site; the
+ * mainland start when `id` is unknown. Null for an empty world.
+ */
+function nearestMainland(world: WorldState, content: Content, id: string | null): string | null {
+  const domain = domainAt(world, id)
+  const from =
+    domain !== null && Object.hasOwn(content.settlements, domain)
+      ? content.settlements[domain]
+      : undefined
+  const mainland = mainlandSettlements(world, content)
+  if (!from || !mainland) return startingSettlement(world, content)
+  const near = [...mainland].sort((a, b) => straightKm(from.at, a.at) - straightKm(from.at, b.at))
+  return near[0]?.id ?? null
+}
+
+/**
  * v10 → v11 (Plan 5b): the world's Crisis, rolled from the save's world seed as a new game rolls
  * it, but starting on the save's current day (so an old run gets the full time for act I) and from
- * where the party is (on the road, where its journey set out from). Its sites join the world's
- * POIs. A save that already has a Crisis keeps it; one whose world doesn't parse gets none.
+ * where the party is (on the road, where its journey set out from; on an island, the nearest
+ * mainland settlement, as the Crisis lies on the mainland). Its sites join the world's POIs. A save that already has a Crisis keeps it; one whose world doesn't parse gets none.
  */
 export function v10ToV11(raw: Record<string, unknown>, content: Content): Record<string, unknown> {
   if (raw.crisis !== undefined) return { ...raw, version: 11 }
@@ -240,8 +258,13 @@ export function v10ToV11(raw: Record<string, unknown>, content: Content): Record
   const travel = raw.travel as { from?: unknown } | null | undefined
   const where = travel ? travel.from : raw.location
   const start = typeof where === 'string' ? where : null
+  // Crisis sites lie on the mainland: a party on an island rolls from the nearest settlement there.
   const rolled = world.success
-    ? generateCrisis(world.data, content, { startDay: day, start })
+    ? (generateCrisis(world.data, content, { startDay: day, start }) ??
+      generateCrisis(world.data, content, {
+        startDay: day,
+        start: nearestMainland(world.data, content, start),
+      }))
     : null
   if (!rolled) return { ...raw, version: 11, crisis: null }
   // Only the Crisis's own sites are added; the saved POIs stay exactly as they were.
