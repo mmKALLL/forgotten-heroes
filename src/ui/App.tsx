@@ -9,6 +9,7 @@ import { EncounterDeck } from './deck/EncounterDeck'
 import { DevArea } from './DevArea'
 import { prefersReducedMotion } from './dice/DiceRoll'
 import { EncounterView } from './encounter/EncounterView'
+import { GoodsBar } from './GoodsBar'
 import { addsRoll } from './encounter/rolls'
 import { I18nProvider, LanguageToggle, useI18n } from './i18n/I18n'
 import { LogPanel } from './LogPanel'
@@ -121,6 +122,7 @@ function Game() {
           </DevArea>
         </div>
       </main>
+      <GoodsBar content={content} state={shown} />
     </div>
   )
 }

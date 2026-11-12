@@ -14,6 +14,23 @@ export const en = {
   'top.water': 'Water {water}/{capacity}',
   'top.suppliesHint':
     'Rations and water: each member eats 1 and drinks 1 a day (2 in the desert); days are for the whole party',
+  'goods.heading': 'Goods carried',
+  'goods.none': '—',
+  'goodCategory.essentials': 'Essentials',
+  'goodCategory.consumables': 'Consumables',
+  'goodCategory.equipment': 'Equipment',
+  'goodCategory.materials': 'Materials',
+  'goodCategory.precious': 'Precious',
+  'load.label': 'Load',
+  'load.value': '{weight} / {capacity} kg',
+  'load.encumbered': 'Encumbered',
+  'load.overloaded': 'Overloaded',
+  'load.hint':
+    'Up to {capacity} kg the party walks freely; up to {max} kg it is encumbered (⅔ speed, no forced march); beyond that it can’t set out.',
+  'wealth.label': 'Visible wealth {steps} of {max}',
+  'wealth.hint': 'Precious goods worth {precious} gp: +{pct} hostile on the road',
+  'wealth.hintPurse':
+    'Precious goods worth {precious} gp and a heavy purse ({purse} gp showing): +{pct} hostile on the road',
   'start.heading': 'Where does the new party begin?',
   'start.calm': 'Small town, calm region',
   'start.random': 'Random settlement',

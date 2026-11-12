@@ -1152,3 +1152,90 @@ h2[tabindex='-1']:focus {
 .new-party-menu p {
   margin: 0 0 0.2rem;
 }
+/* The goods bar (design §9): goods by category, the capacity meter and visible wealth. */
+.goods-bar {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem 1.25rem;
+  padding: 0.4rem 1rem;
+  border-top: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 0.85rem;
+  z-index: 2;
+}
+.goods-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.goods-cat {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.goods-item b {
+  font-variant-numeric: tabular-nums;
+}
+.capacity {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.capacity-bar {
+  position: relative;
+  display: inline-block;
+  width: 6rem;
+  height: 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--bg);
+  overflow: hidden;
+}
+.capacity-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: var(--good);
+}
+.load-encumbered .capacity-fill {
+  background: var(--tier-partial);
+}
+.load-overloaded .capacity-fill {
+  background: var(--bad);
+}
+.capacity-mark {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--ink);
+  opacity: 0.6;
+}
+.load-badge {
+  margin-left: 0;
+}
+.load-encumbered .load-badge {
+  border-color: var(--tier-partial);
+}
+.load-overloaded .load-badge {
+  border-color: var(--bad);
+  color: var(--bad);
+}
+.wealth {
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+.wealth.shown {
+  color: var(--crit);
+  cursor: help;
+}
+@media (max-width: 900px) {
+  .goods-bar {
+    position: static;
+  }
+}
