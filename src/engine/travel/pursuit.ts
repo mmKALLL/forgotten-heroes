@@ -1,6 +1,6 @@
 import type { FollowUp, GameState, PaceDay } from '../../schema/state'
 import { appendLog } from '../log'
-import { PACE_SPEED } from './pace'
+import { PACE_SPEED, coversTracks } from './pace'
 
 // Pursuit (design §7): a follow-up flagged `pursuit` hunts the party down. When it comes due, the
 // party's pace since it was queued decides whether it catches up. Every tuning number is here.
@@ -39,10 +39,17 @@ export function paceSince(
   )
 }
 
-/** Covered tracks on any day lose them; a brisk or faster average outruns them; else they catch up. */
-export function pursuitOutcome(days: readonly (PaceDay | null)[]): PursuitOutcome {
+/**
+ * Covered tracks on any day lose them; a brisk or faster average outruns them; else they catch up.
+ * With no days to judge (queued today, or an old save), covering tracks right now loses them and
+ * anything else lets them catch up.
+ */
+export function pursuitOutcome(
+  days: readonly (PaceDay | null)[],
+  coveringNow = false
+): PursuitOutcome {
   if (days.some((d) => d?.coverTracks)) return 'lost'
-  if (days.length === 0) return 'caught'
+  if (days.length === 0) return coveringNow ? 'lost' : 'caught'
   const speed = days.reduce((sum, d) => sum + (d ? PACE_SPEED[d.pace] : 0), 0) / days.length
   return speed >= PURSUIT_ESCAPE_SPEED ? 'escaped' : 'caught'
 }
@@ -57,7 +64,8 @@ export function evadePursuit(
   followUp: FollowUp,
   rest: FollowUp[]
 ): GameState | null {
-  const outcome = pursuitOutcome(paceSince(state, followUp))
+  const covering = state.travel ? coversTracks(state.travel.pace, state.travel.coverTracks) : false
+  const outcome = pursuitOutcome(paceSince(state, followUp), covering)
   if (outcome === 'caught') return null
   if (outcome === 'lost') return appendLog({ ...state, followUps: rest }, PURSUIT_LOST, 'good')
   const escapes = followUp.escapes ?? 0

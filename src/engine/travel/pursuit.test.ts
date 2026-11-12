@@ -35,6 +35,7 @@ describe('pursuitOutcome', () => {
     // A day standing still (resting, or in town) counts as no distance at all.
     expect(pursuitOutcome([day(1, 'forced'), day(2, 'brisk'), null])).toBe('caught')
     expect(pursuitOutcome([])).toBe('caught')
+    expect(pursuitOutcome([], true)).toBe('lost')
   })
 })
 
@@ -139,6 +140,27 @@ describe('evadePursuit', () => {
     const third = evadePursuit(state, { ...due, escapes: PURSUIT_MAX_ESCAPES }, [])!
     expect(third.followUps).toEqual([])
     expect(third.log.at(-1)!.text).toBe(PURSUIT_GAVE_UP)
+  })
+
+  test('with no days to judge, covering tracks right now loses it; otherwise it catches up', () => {
+    const { state, due } = at([])
+    expect(evadePursuit(state, due, [])).toBeNull()
+    const covering = {
+      ...state,
+      travel: { ...state.travel!, pace: 'cautious' as const, coverTracks: true },
+    }
+    const lost = evadePursuit(covering, due, [other])!
+    expect(lost.followUps).toEqual([other])
+    expect(lost.log.at(-1)!.text).toBe(PURSUIT_LOST)
+    // An old save's follow-up has no queue day, so no history either.
+    const { queuedDay: _day, ...old } = due
+    expect(evadePursuit(covering, old, [])!.log.at(-1)!.text).toBe(PURSUIT_LOST)
+    // The flag only counts at a cautious pace.
+    const brisk = {
+      ...state,
+      travel: { ...state.travel!, pace: 'brisk' as const, coverTracks: true },
+    }
+    expect(evadePursuit(brisk, due, [])).toBeNull()
   })
 
   test('a slower march lets it catch up: the caller starts the encounter', () => {

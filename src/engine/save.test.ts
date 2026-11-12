@@ -121,6 +121,30 @@ test('migrating old saves does not mutate the parsed object', () => {
   }
 })
 
+test('a version 3 save from before waterskins, foraging, pace and strain loads with defaults', () => {
+  const travel = {
+    route: 'greenvale-1-greenvale-2',
+    from: 'greenvale-1',
+    to: 'greenvale-2',
+    km: 75,
+    kmPerDay: 30,
+    kmDone: 30,
+    daysDone: 1,
+    days: 3,
+    encounterDays: [2],
+  }
+  const state = makeState({ location: null })
+  const { waterskins: _skins, ...older } = state
+  const party = state.party.map(({ strain: _strain, ...c }) => c)
+  const loaded = deserialize(JSON.stringify({ ...older, party, travel }), content)
+  expect(loaded).toEqual({
+    ...state,
+    waterskins: 0,
+    party: state.party.map((c) => ({ ...c, strain: {} })),
+    travel: { ...travel, pace: 'steady', coverTracks: false, paceLog: [], forage: true },
+  })
+})
+
 test('a journey saves its pace, covered tracks and the pace of each day on the road', () => {
   const travel = {
     route: 'greenvale-1-greenvale-2',

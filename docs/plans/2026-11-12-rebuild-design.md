@@ -140,7 +140,7 @@ The town map image is a banner and backdrop.
 - **Geography** (`data/claude/`): 16 regions (name, biome, label position), 53 settlements (map-pixel position, region, island, capital marker, coastal) and 67 routes (km, terrain, danger 0–3). It was read off the map with `scripts/map/` (100 km = 484 px); land routes follow the dashed roads, and islands are reached by sea routes. The map image itself is never committed.
 - **Town names** (`data/original/towns.json`) are generated from the town-map filenames by `scripts/port/port-town-maps.ts`; towns labelled on the Altaeus map are pinned to their marker. Place names for the rest come from the prototype's generators (`data/original/place-names.json`).
 - **Political layer** (`state.world`), rolled per world seed: 4–6 kingdoms grow outward from seed regions (preferring capital markers) until every region is owned; each region rolls a threat (`data/claude/threats.json`, weighted towards its biome) whose strength is set against the kingdom's garrison (its defence split across its regions) to give a threat level of 0–3. Each marker gets a settlement type, population, size tier, wealth and services (the prototype's d20 + wealth thresholds); named towns go where their hints fit.
-- **Start:** "Small town, calm region" picks a settlement that is not a city or capital in the calmest mainland region; "Random settlement" picks any mainland settlement (`startingSettlement`, `START_MODES`). Both are seeded by the world, so a world always starts in the same place for the same choice.
+- **Start:** "Small town, calm region" picks a settlement that is not a city or capital in the calmest mainland region; "Random settlement" picks any mainland settlement (`startingSettlement`, `START_MODES`). Both are seeded by the world (salted, so the pick doesn't follow from the draws that rolled the world), so a world always starts in the same place for the same choice.
 
 ### Persistent world with successive parties
 
@@ -170,7 +170,7 @@ The town map image is a banner and backdrop.
   - Cautious with covered tracks loses it.
   - Brisk or faster usually outruns it.
   - Steady lets it catch up.
-  - In numbers (tunable, `src/engine/travel/pursuit.ts`): any cautious day with covered tracks since it was queued loses it; otherwise the average speed (days resting in town or camp count as 0) of 1.2 or more outruns it, and it comes back after 2 more encounters, at most twice before it gives up.
+  - In numbers (tunable, `src/engine/travel/pursuit.ts`): any cautious day with covered tracks since it was queued loses it; otherwise the average speed (days resting in town or camp count as 0) of 1.2 or more outruns it, and it comes back after 2 more encounters, at most twice before it gives up. With no days to judge (queued the same day), covering tracks right now loses it, and anything else lets it catch up.
   - At sea the ship sets the pace: always steady, no covered tracks.
 - **Timing:** Plan 3 builds Cautious, Steady, Brisk, Forced march and pursuit.
 - **Pace is a commitment:** it is chosen at departure only and cannot be changed mid-journey.

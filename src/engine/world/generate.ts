@@ -9,6 +9,12 @@ export const WORLD_SALT = 0x5eeda17a
 
 export const worldSeed = (seed: number): number => (seed ^ WORLD_SALT) >>> 0
 
+/**
+ * Mixed into the world seed for the starting pick, so where a party starts doesn't follow from
+ * the first draws that rolled the world (the kingdom count and seeds).
+ */
+export const START_SALT = 0x57a27ed5
+
 /** The political layer for a world seed: kingdoms, regional threats and settlements. Pure. */
 export function generateWorld(seed: number, content: Content): WorldState {
   return withRng(createRng(seed), (d) => {
@@ -47,7 +53,8 @@ export function startingSettlement(
   for (const s of sites) sizes.set(s.island, (sizes.get(s.island) ?? 0) + 1)
   const [mainland] = [...sizes].sort((a, b) => b[1] - a[1] || byCodeUnit(a[0], b[0]))[0]
   const onMainland = sites.filter((s) => s.island === mainland)
-  const pick = (pool: typeof sites) => withRng(createRng(world.seed), (d) => d.pick(pool).id)[0]
+  const pick = (pool: typeof sites) =>
+    withRng(createRng((world.seed ^ START_SALT) >>> 0), (d) => d.pick(pool).id)[0]
   if (mode === 'random') return pick(onMainland)
 
   const small = onMainland.filter((s) => !GRAND.includes(world.settlements[s.id].type))

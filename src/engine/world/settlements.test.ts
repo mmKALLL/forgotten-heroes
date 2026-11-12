@@ -3,7 +3,7 @@ import type { Content } from '../../content/build'
 import { WorldStateSchema } from '../../schema/world'
 import { createRng, withRng } from '../rng'
 import { fixtureContent } from '../test-fixtures'
-import { generateWorld, startingSettlement, worldSeed } from './generate'
+import { START_SALT, generateWorld, startingSettlement, worldSeed } from './generate'
 import { rollServices, sizeTierOf } from './settlements'
 
 const content = fixtureContent()
@@ -135,6 +135,19 @@ describe('startingSettlement', () => {
     }
     // Including the capital marker, which the calm start never picks while small places exist.
     expect([...starts].sort()).toEqual(['ashmoor-1', 'greenvale-1', 'greenvale-2'])
+  })
+
+  test('draws from its own stream, salted apart from the one that rolled the world', () => {
+    const mainland = ['ashmoor-1', 'greenvale-1', 'greenvale-2']
+    const pick = (seed: number) => withRng(createRng(seed), (d) => d.pick(mainland))[0]
+    expect(START_SALT).toBeTypeOf('number')
+    let differs = 0
+    for (let seed = 0; seed < 20; seed++) {
+      const start = startingSettlement(generateWorld(seed, content), content, 'random')
+      expect(start).toBe(pick((seed ^ START_SALT) >>> 0))
+      if (start !== pick(seed)) differs++
+    }
+    expect(differs).toBeGreaterThan(0)
   })
 
   test('an empty world has no starting place', () => {
