@@ -1,4 +1,4 @@
-import type { Content } from '../../content/build'
+import { sortedEntries, type Content } from '../../content/build'
 import type { MarketRule } from '../../schema/economy'
 import { GOODS, GOOD_CATEGORY, type Good, type PoiCategory } from '../../schema/types'
 import type { GameState, MarketTrade } from '../../schema/state'
@@ -7,6 +7,7 @@ import { domainThreatLevel } from '../world/pois'
 import { siteStatus } from '../world/sites'
 import { shopKeeper, standingSpreadModifier } from '../town/reputation'
 import { goodDef } from './goods'
+import { supplyOf, type SupplySource } from './supply'
 import {
   DRIFT,
   DRIFT_PERIOD_DAYS,
@@ -14,14 +15,15 @@ import {
   MARKET_LEVEL_MAX,
   PRICE_STEP,
   RECOVERY_HALF_LIFE_DAYS,
+  SHORTAGE_GAP,
   SPREAD_BY_SIZE,
   SPREAD_MIN,
   SPREAD_PER_QUALITY,
   STALL_QUALITY,
 } from '../constants'
 
-// Settlement markets (design §4, §5). Nothing ticks: supply and demand follow the settlement and
-// the market rules, prices drift by a seeded wave, and the party's bulk trades sag the price and
+// Settlement markets (design §4, §5). Nothing ticks: supply follows the nearby producers
+// (economy/supply.ts), demand the settlement and the market rules, prices drift by a seeded wave, and the party's bulk trades sag the price and
 // recover with a half-life. State only stores the party's net trades (GameState.markets).
 
 /** The pseudo-shop every settlement has: market stalls selling and buying the essentials. */
@@ -95,11 +97,38 @@ export function ruleApplies(rule: MarketRule, place: MarketPlace): boolean {
   )
 }
 
-export type MarketLevel = { supply: number; demand: number }
+export type MarketLevel = {
+  /** From the best producer within reach (economy/supply.ts), SUPPLY_MIN..MARKET_LEVEL_MAX. */
+  supply: number
+  /** The sum of the market rules that apply here today, within ±MARKET_LEVEL_MAX. */
+  demand: number
+  /** Demand is at least SHORTAGE_GAP levels over supply. */
+  shortage: boolean
+}
+
+/** A shortage: demand at least SHORTAGE_GAP levels over supply. */
+export const isShortage = (level: Pick<MarketLevel, 'supply' | 'demand'>): boolean =>
+  level.demand - level.supply >= SHORTAGE_GAP
+
+/** A glut: supply at least SHORTAGE_GAP levels over demand (made here or close by, little wanted). */
+export const isGlut = (level: Pick<MarketLevel, 'supply' | 'demand'>): boolean =>
+  level.supply - level.demand >= SHORTAGE_GAP
+
+/** The market rules that apply in a settlement on a day (their demand is summed). */
+export function demandRules(
+  state: Pick<GameState, 'world'>,
+  content: Content,
+  settlementId: string,
+  day: number
+): MarketRule[] {
+  const place = marketPlace(state, content, settlementId, day)
+  if (!place) return []
+  return sortedEntries(content.marketRules).filter((rule) => ruleApplies(rule, place))
+}
 
 /**
- * Supply and demand for every good in a settlement: the sums of the market rules that apply,
- * each within ±MARKET_LEVEL_MAX.
+ * Supply and demand for every good in a settlement: supply from the nearby producers, demand the
+ * sum of the market rules that apply, within ±MARKET_LEVEL_MAX.
  */
 export function marketLevels(
   state: Pick<GameState, 'world' | 'day'>,
@@ -107,24 +136,56 @@ export function marketLevels(
   settlementId: string,
   day = state.day
 ): Record<Good, MarketLevel> {
-  const levels = Object.fromEntries(GOODS.map((g) => [g, { supply: 0, demand: 0 }])) as Record<
-    Good,
-    MarketLevel
-  >
-  const place = marketPlace(state, content, settlementId, day)
-  if (!place) return levels
-  for (const rule of Object.values(content.marketRules)) {
-    if (!ruleApplies(rule, place)) continue
-    for (const g of GOODS) {
-      levels[g].supply += rule.supply[g] ?? 0
-      levels[g].demand += rule.demand[g] ?? 0
-    }
+  const rules = Object.hasOwn(state.world.settlements, settlementId)
+    ? demandRules(state, content, settlementId, day)
+    : []
+  return Object.fromEntries(
+    GOODS.map((g) => {
+      const demand = clamp(
+        rules.reduce((sum, r) => sum + (r.demand[g] ?? 0), 0),
+        -MARKET_LEVEL_MAX,
+        MARKET_LEVEL_MAX
+      )
+      const supply = Object.hasOwn(state.world.settlements, settlementId)
+        ? supplyOf(state, content, settlementId, g).level
+        : 0
+      return [g, { supply, demand, shortage: isShortage({ supply, demand }) }]
+    })
+  ) as Record<Good, MarketLevel>
+}
+
+/** Why a good costs what it does here (shown on hover, design §4): the few factors behind it. */
+export type PriceFactors = {
+  supply: SupplySource
+  /** The market rules adding demand (or taking it away) here today. */
+  demand: { id: string; label: string; level: number }[]
+  level: MarketLevel
+  /** The drift today, and what is left of the party's own trades here, as factors on the price. */
+  drift: number
+  trades: number
+}
+
+export function priceFactors(
+  state: Market,
+  content: Content,
+  settlementId: string,
+  good: Good,
+  day = state.day
+): PriceFactors {
+  const demand = Object.hasOwn(state.world.settlements, settlementId)
+    ? demandRules(state, content, settlementId, day)
+        .filter((r) => (r.demand[good] ?? 0) !== 0)
+        .map((r) => ({ id: r.id, label: r.label, level: r.demand[good]! }))
+    : []
+  const p = pressure(tradeOf(state, settlementId, good), day)
+  const depth = marketDepth(content, sizeOf(state, settlementId), good)
+  return {
+    supply: supplyOf(state, content, settlementId, good),
+    demand,
+    level: marketLevels(state, content, settlementId, day)[good],
+    drift: drift(state.world.seed, settlementId, good, day),
+    trades: Math.exp(-p / depth),
   }
-  for (const g of GOODS) {
-    levels[g].supply = clamp(levels[g].supply, -MARKET_LEVEL_MAX, MARKET_LEVEL_MAX)
-    levels[g].demand = clamp(levels[g].demand, -MARKET_LEVEL_MAX, MARKET_LEVEL_MAX)
-  }
-  return levels
 }
 
 /**
@@ -152,7 +213,10 @@ export const marketDepth = (content: Content, sizeTier: number, good: Good): num
   (MARKET_DEPTH[clamp(sizeTier, 0, MARKET_DEPTH.length - 1)] ?? 1) *
   (goodDef(content, good)?.depth ?? 1)
 
-/** The price before the party's own trades: base × PRICE_STEP^(demand − supply) × drift. */
+/**
+ * The price before the party's own trades: base × PRICE_STEP^(demand − supply) × drift, with
+ * demand − supply within ±MARKET_LEVEL_MAX (so about ½× to 2× the base price before drift).
+ */
 function levelPrice(
   state: Market,
   content: Content,
@@ -163,7 +227,8 @@ function levelPrice(
   const price = goodDef(content, good)?.price ?? 0
   if (price <= 0) return 0
   const { supply, demand } = marketLevels(state, content, settlementId, day)[good]
-  return price * PRICE_STEP ** (demand - supply) * drift(state.world.seed, settlementId, good, day)
+  const net = clamp(demand - supply, -MARKET_LEVEL_MAX, MARKET_LEVEL_MAX)
+  return price * PRICE_STEP ** net * drift(state.world.seed, settlementId, good, day)
 }
 
 const sizeOf = (state: Pick<GameState, 'world'>, id: string) =>

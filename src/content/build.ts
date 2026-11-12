@@ -44,6 +44,7 @@ export const emptyContent = (): Content => ({
   goods: {},
   serviceRoles: {},
   marketRules: {},
+  producers: {},
   animals: {},
   personRoles: {},
   contracts: {},

@@ -5,7 +5,7 @@ import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
 import { MAX_EXHAUSTION } from '../rules/character'
 import { serviceQuality } from '../economy/market'
-import { marketPrices } from '../economy/trade'
+import { marketPrices, marketTalk } from '../economy/trade'
 import { settlementName, straightKm } from '../world/geo'
 import { inSettlement, notHere } from '../travel/where'
 import { serviceWith } from './animals'
@@ -254,7 +254,8 @@ function news(state: GameState, content: Content, settlement: string): GameState
   }
   if (state.gold < NEWS_PRICE) return appendLog(state, `News costs ${NEWS_PRICE} gp.`, 'bad')
   const prices = marketPrices({ ...state, day }, content, settlement)
-  return appendLog(
+  const talk = marketTalk(state, content, settlement, day)
+  const told = appendLog(
     {
       ...state,
       gold: state.gold - NEWS_PRICE,
@@ -264,6 +265,7 @@ function news(state: GameState, content: Content, settlement: string): GameState
       `${target.age === 1 ? 'a day' : `${target.age} days`} old.`,
     'info'
   )
+  return talk ? appendLog(told, talk, 'info') : told
 }
 
 export function useService(state: GameState, content: Content, use: ServiceUse): GameState {

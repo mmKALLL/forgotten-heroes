@@ -7,6 +7,7 @@ import {
   drift,
   marketLevels,
   midPrice,
+  priceFactors,
   pressure,
   quote,
   recordTrade,
@@ -17,10 +18,13 @@ import {
   DRIFT_PERIOD_DAYS,
   PRICE_STEP,
   RECOVERY_HALF_LIFE_DAYS,
+  SHORTAGE_GAP,
   SPREAD_MIN,
   STANDING_POINTS,
+  SUPPLY_MIN,
 } from '../constants'
 import { shopKeeper } from '../town/reputation'
+import { supplyOf } from './supply'
 
 const content = fixtureContent()
 const base = makeState()
@@ -83,9 +87,36 @@ describe('marketLevels and midPrice', () => {
     )
   })
 
-  test('the biome rule applies only in its land', () => {
-    expect(marketLevels(base, content, 'ashmoor-1').alchemicals.supply).toBe(1)
-    expect(marketLevels(base, content, 'greenvale-2').alchemicals.supply).toBe(0)
+  test('a producer supplies its own market best, and less further down the road', () => {
+    // Ashmoor's marsh makes alchemicals (output 2); Greenvale lies 3+ days of road away.
+    expect(supplyOf(base, content, 'ashmoor-1', 'alchemicals')).toMatchObject({
+      level: 2,
+      from: 'ashmoor-1',
+      days: 0,
+    })
+    const near = supplyOf(base, content, 'greenvale-2', 'alchemicals')
+    expect(near.from).toBe('ashmoor-1')
+    expect(near.level).toBeLessThan(2)
+    expect(levelOnly(base, 'greenvale-2', 'alchemicals')).toBeGreaterThan(
+      levelOnly(base, 'ashmoor-1', 'alchemicals')
+    )
+  })
+
+  test('a good no producer can reach is scarce, and a shortage where it is wanted', () => {
+    const bare = { ...content, producers: {} }
+    expect(supplyOf(base, bare, 'greenvale-1', 'gems').from).toBeNull()
+    const level = marketLevels(rampant(base, 'greenvale-2'), bare, 'greenvale-2').arms
+    expect(level.supply).toBe(SUPPLY_MIN)
+    expect(level.shortage).toBe(level.demand - level.supply >= SHORTAGE_GAP)
+    expect(level.shortage).toBe(true)
+  })
+
+  test('priceFactors names the producer and the demand behind a price', () => {
+    const threatened = rampant(base, 'greenvale-2')
+    const f = priceFactors(threatened, content, 'greenvale-2', 'arms')
+    expect(f.demand.map((d) => d.id)).toEqual(['under-threat'])
+    expect(f.level).toEqual(marketLevels(threatened, content, 'greenvale-2').arms)
+    expect(f.trades).toBe(1)
   })
 
   test('water is never priced', () => {
@@ -236,9 +267,11 @@ describe('shops', () => {
       quote(s, content, id, 'gems', side, 1, shop)!.unitFirst
     const liked = withRep({ [id]: STANDING_POINTS.liked })
     const disliked = withRep({ [id]: STANDING_POINTS.disliked })
-    expect(unit(liked, 'buy')).toBeLessThan(unit(shopping, 'buy'))
-    expect(unit(liked, 'sell')).toBeGreaterThan(unit(shopping, 'sell'))
+    // A good shop may already be at SPREAD_MIN, so liked can only match a stranger's price there.
+    expect(unit(liked, 'buy')).toBeLessThanOrEqual(unit(shopping, 'buy'))
+    expect(unit(liked, 'sell')).toBeGreaterThanOrEqual(unit(shopping, 'sell'))
     expect(unit(disliked, 'buy')).toBeGreaterThan(unit(shopping, 'buy'))
+    expect(unit(disliked, 'sell')).toBeLessThan(unit(liked, 'sell'))
     // An outfitter keeping the supplies shop and liking the party narrows that shop's spread only.
     const outfitter = {
       ...content.personRoles.innkeeper,
@@ -264,8 +297,7 @@ describe('shops', () => {
     const stranger = { ...shopping, world }
     expect(at(friend, 'adventuring-supplies')).toBeLessThan(at(stranger, 'adventuring-supplies'))
     // The stalls have no keeper, so the outfitter's liking doesn't reach them.
-    const stall = (s: GameState) =>
-      quote(s, kept, id, 'food', 'buy', 1, MARKET_STALL)!.unitFirst
+    const stall = (s: GameState) => quote(s, kept, id, 'food', 'buy', 1, MARKET_STALL)!.unitFirst
     expect(stall(friend)).toBe(stall(stranger))
   })
 

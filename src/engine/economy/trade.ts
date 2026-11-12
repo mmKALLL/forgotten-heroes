@@ -9,7 +9,16 @@ import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
 import { load } from './capacity'
 import { goodDef, goodName, goodWeight } from './goods'
-import { marketLevels, quote, recordTrade, type Quote, type Shop } from './market'
+import {
+  isGlut,
+  marketLevels,
+  priceFactors,
+  quote,
+  recordTrade,
+  type Quote,
+  type Shop,
+} from './market'
+import { production } from './supply'
 import { OVERLOAD_RATIO, STALE_DAYS } from '../constants'
 
 // Buying and selling the 15 goods, and the price book: what the party knows of other markets.
@@ -251,6 +260,10 @@ export type MarketRow = {
   /** Supply and demand here, −3..3 (shown as arrows). */
   supply: number
   demand: number
+  /** Wanted here and made nowhere near: demand at least SHORTAGE_GAP over supply. */
+  shortage: boolean
+  /** Why it costs what it does here, for the tooltip (design §4): the few factors behind it. */
+  why: PriceWhy
   /** The most the party can buy now, and what stops it buying more. */
   maxBuy: number
   buyLimit: BuyLimit
@@ -258,6 +271,72 @@ export type MarketRow = {
   shop: Shop | null
   /** The best prices known elsewhere, from the price book. */
   known: { sell: KnownElsewhere | null; buy: KnownElsewhere | null }
+}
+
+/** The factors behind a price, named for the tooltip. */
+export type PriceWhy = {
+  /** The producer the supply comes from (here or elsewhere), or null when none is in reach. */
+  producer: { id: string; name: string; days: number; labels: string[] } | null
+  /** The market rules adding demand here today: their labels and levels. */
+  demand: { label: string; level: number }[]
+  /** Today's drift and what is left of the party's own trades, as shares (+0.08 is 8% dearer). */
+  swing: number
+  trades: number
+}
+
+/** Why a good costs what it does in a settlement today (economy/market.ts priceFactors). */
+export function priceWhy(
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  good: Good
+): PriceWhy {
+  const f = priceFactors(state, content, settlementId, good)
+  const from = f.supply.from
+  const labels = from
+    ? (production(state, content, from).find((p) => p.good === good)?.rules ?? []).map(
+        (id) => content.producers[id]?.label ?? id
+      )
+    : []
+  return {
+    producer: from
+      ? { id: from, name: settlementName(state, from), days: f.supply.days ?? 0, labels }
+      : null,
+    demand: f.demand.map((d) => ({ label: d.label, level: d.level })),
+    swing: f.drift - 1,
+    trades: f.trades - 1,
+  }
+}
+
+/** "arms", "arms and gems", "arms, gems and luxuries". */
+const goodList = (content: Content, goods: Good[]) => {
+  const names = goods.map((g) => lower(content, g))
+  return names.length <= 1
+    ? (names[0] ?? '')
+    : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
+}
+
+/**
+ * What talk of a market says beyond its prices (rumours and couriers, design §4): the traded goods
+ * it is short of and those it is awash with on a day, as a journal line; null when neither.
+ */
+export function marketTalk(
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  day = state.day
+): string | null {
+  const levels = marketLevels(state, content, settlementId, day)
+  const traded = GOODS.filter((g) => (goodDef(content, g)?.price ?? 0) > 0)
+  const short = traded.filter((g) => levels[g].shortage)
+  const glut = traded.filter((g) => isGlut(levels[g]))
+  if (short.length === 0 && glut.length === 0) return null
+  const name = settlementName(state, settlementId)
+  const parts = [
+    short.length > 0 && `short of ${goodList(content, short)}`,
+    glut.length > 0 && `awash with ${goodList(content, glut)}`,
+  ].filter(Boolean)
+  return `Talk has it that ${name} is ${parts.join(', and ')}.`
 }
 
 /** The market of the settlement the party is in, one row per defined good in design order. */
@@ -282,6 +361,8 @@ export function marketView(state: GameState, content: Content): MarketRow[] {
       sell,
       supply: levels[good].supply,
       demand: levels[good].demand,
+      shortage: levels[good].shortage,
+      why: priceWhy(state, content, here, good),
       maxBuy: most.units,
       buyLimit: buy ? most.limit : null,
       shop: buy?.shop ?? sell?.shop ?? null,

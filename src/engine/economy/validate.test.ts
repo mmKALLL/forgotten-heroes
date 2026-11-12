@@ -1,6 +1,12 @@
 import { describe, expect, test } from 'vitest'
 import type { Content, Sourced } from '../../content/build'
-import type { AnimalDef, MarketRule, PersonRole, ServiceRole } from '../../schema/economy'
+import type {
+  AnimalDef,
+  MarketRule,
+  PersonRole,
+  ProducerRule,
+  ServiceRole,
+} from '../../schema/economy'
 import { fixtureContent } from '../test-fixtures'
 import { economyIssues } from './validate'
 
@@ -77,8 +83,8 @@ describe('economyIssues', () => {
     })
     content.marketRules.forts = sourced<MarketRule>({
       id: 'forts',
+      label: 'Forts',
       when: { types: ['keep'] },
-      supply: {},
       demand: { arms: 1 },
     })
     content.contracts['bring-timber'] = {
@@ -114,9 +120,9 @@ describe('economyIssues', () => {
     })
     content.marketRules.coast = sourced<MarketRule>({
       id: 'coast',
+      label: 'Coast',
       when: { coastal: true },
-      supply: { water: 1 },
-      demand: {},
+      demand: { water: 1 },
     })
     const issues = economyIssues(content)
     expect(issues).toContain('serviceRoles port: trades goods but has no "market" action')
@@ -134,13 +140,13 @@ describe('economyIssues', () => {
     })
     content.marketRules.idle = sourced<MarketRule>({
       id: 'idle',
+      label: 'Idle',
       when: { coastal: false },
-      supply: {},
       demand: {},
     })
     const issues = economyIssues(content)
     expect(issues).toContain('serviceRoles jewelry-trader: "relics" is in both trades and buysOnly')
-    expect(issues).toContain('marketRules idle: changes no supply or demand')
+    expect(issues).toContain('marketRules idle: changes no demand')
   })
 
   test('reports a hired animal that carries no rider, and a vehicle drawing itself', () => {
@@ -156,10 +162,33 @@ describe('economyIssues', () => {
     const content = cleanContent()
     content.marketRules.odd = sourced<MarketRule>({
       id: 'odd',
+      label: 'Odd',
       when: { minSize: 4, maxSize: 2 },
-      supply: { food: 1 },
-      demand: {},
+      demand: { food: 1 },
     })
     expect(economyIssues(content)).toContain('marketRules odd: minSize is above maxSize')
+  })
+
+  test('reports a good no producer makes, and a producer of water or of nothing', () => {
+    const content = cleanContent()
+    content.producers = Object.fromEntries(
+      Object.entries(content.producers).filter(([, r]) => !('gems' in r.output))
+    )
+    content.producers.well = sourced<ProducerRule>({
+      id: 'well',
+      label: 'Wells',
+      when: {},
+      output: { water: 1 },
+    })
+    content.producers.idle = sourced<ProducerRule>({
+      id: 'idle',
+      label: 'Idle',
+      when: {},
+      output: {},
+    })
+    const issues = economyIssues(content)
+    expect(issues).toContain('goods: no producer makes "gems"')
+    expect(issues).toContain('producers well: water is free and never traded')
+    expect(issues).toContain('producers idle: makes nothing')
   })
 })

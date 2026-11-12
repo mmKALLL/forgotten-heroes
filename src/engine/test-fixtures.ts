@@ -773,7 +773,7 @@ const good = (id: string, unit: string, weight: number, price: number, spoilPerD
 
 /**
  * Plan 4 content with round numbers (weights in kg): the 15 goods, four service roles, three
- * market rules, a mule, a cart and a riding horse, three person roles and one contract template
+ * market rules, four producer rules, a mule, a cart and a riding horse, three person roles and one contract template
  * per kind.
  */
 export const testEconomy: Record<string, unknown> = {
@@ -825,13 +825,44 @@ export const testEconomy: Record<string, unknown> = {
     kind: 'marketRules',
     source: 'claude',
     entries: [
-      { id: 'coast', when: { coastal: true }, supply: { food: 1 }, demand: { timber: 1 } },
-      { id: 'under-threat', when: { threatAtLeast: 2 }, demand: { arms: 2, armour: 1 } },
+      { id: 'coast', label: 'Shipwrights', when: { coastal: true }, demand: { timber: 1 } },
       {
-        id: 'marsh',
+        id: 'under-threat',
+        label: 'Raids',
+        when: { threatAtLeast: 2 },
+        demand: { arms: 2, armour: 1 },
+      },
+      { id: 'marsh', label: 'Soft ground', when: { biomes: ['marsh'] }, demand: { stone: 1 } },
+    ],
+  },
+  'data/claude/producers.json': {
+    kind: 'producers',
+    source: 'claude',
+    entries: [
+      { id: 'fishing', label: 'Fishing boats', when: { coastal: true }, output: { food: 1 } },
+      {
+        id: 'herbs',
+        label: 'Herb-gatherers',
         when: { biomes: ['marsh'] },
-        supply: { alchemicals: 1 },
-        demand: { stone: 1 },
+        output: { alchemicals: 2, healing: 1 },
+      },
+      { id: 'woods', label: 'Sawmills', when: { biomes: ['forest'] }, output: { timber: 3 } },
+      {
+        id: 'workshops',
+        label: 'Workshops',
+        when: { minSize: 4 },
+        output: {
+          fuel: 1,
+          arcana: 1,
+          arms: 1,
+          armour: 1,
+          gear: 1,
+          stone: 1,
+          metal: 1,
+          gems: 1,
+          relics: 1,
+          luxuries: 1,
+        },
       },
     ],
   },

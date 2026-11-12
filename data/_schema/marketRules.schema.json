@@ -30,6 +30,10 @@
           "id": {
             "$ref": "#/$defs/__schema0"
           },
+          "label": {
+            "type": "string",
+            "description": "A short reason shown when the price is explained, e.g. \"Garrison\""
+          },
           "when": {
             "type": "object",
             "properties": {
@@ -48,22 +52,21 @@
               "maxSize": {
                 "$ref": "#/$defs/__schema8"
               },
-              "threatAtLeast": {
+              "minWealth": {
                 "$ref": "#/$defs/__schema9"
               },
-              "nearPoi": {
-                "$ref": "#/$defs/__schema11"
+              "threatAtLeast": {
+                "$ref": "#/$defs/__schema10"
               },
-              "minWealth": {
-                "$ref": "#/$defs/__schema13"
+              "nearPoi": {
+                "$ref": "#/$defs/__schema12"
               }
             },
             "description": "Every listed condition must hold"
           },
-          "supply": {
-            "$ref": "#/$defs/__schema14"
-          },
           "demand": {
+            "default": {},
+            "description": "Good → −2 (unwanted) to +2 (sought after)",
             "$ref": "#/$defs/__schema14"
           },
           "notes": {
@@ -72,6 +75,7 @@
         },
         "required": [
           "id",
+          "label",
           "when"
         ]
       }
@@ -135,19 +139,24 @@
       "maximum": 5
     },
     "__schema9": {
-      "description": "The domain's threat level today",
-      "$ref": "#/$defs/__schema10"
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
     },
     "__schema10": {
+      "description": "The domain's threat level today",
+      "$ref": "#/$defs/__schema11"
+    },
+    "__schema11": {
       "type": "integer",
       "minimum": 0,
       "maximum": 3
     },
-    "__schema11": {
-      "description": "An inhabited site of one of these categories in the domain",
-      "$ref": "#/$defs/__schema12"
-    },
     "__schema12": {
+      "description": "An inhabited site of one of these categories in the domain",
+      "$ref": "#/$defs/__schema13"
+    },
+    "__schema13": {
       "type": "array",
       "items": {
         "type": "string",
@@ -162,17 +171,7 @@
         ]
       }
     },
-    "__schema13": {
-      "type": "integer",
-      "minimum": -9007199254740991,
-      "maximum": 9007199254740991
-    },
     "__schema14": {
-      "default": {},
-      "description": "Good → −2 (scarce or unwanted) to +2 (plentiful or sought after)",
-      "$ref": "#/$defs/__schema15"
-    },
-    "__schema15": {
       "type": "object",
       "propertyNames": {
         "type": "string",

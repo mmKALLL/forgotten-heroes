@@ -1,5 +1,8 @@
 import { describe, expect, test } from 'vitest'
+import { midPrice } from '../engine/economy/market'
+import { production, producersOf, supplyOf } from '../engine/economy/supply'
 import { economyIssues } from '../engine/economy/validate'
+import { newGame } from '../engine/state'
 import { generateWorld, worldSeed } from '../engine/world/generate'
 import { domainThreatLevel } from '../engine/world/pois'
 import { siteEmpty } from '../engine/world/sites'
@@ -61,26 +64,6 @@ const applies = ({ when }: MarketRule, p: Place): boolean =>
   (when.nearPoi === undefined || when.nearPoi.some((c) => p.near.has(c))) &&
   (when.minWealth === undefined || p.wealth >= when.minWealth)
 
-const clamp = (n: number) => Math.max(-3, Math.min(3, n))
-
-/** Demand minus supply for a good at a place: the exponent of its price step (A2). */
-function netLevel(place: Place, good: Good): number {
-  let supply = 0
-  let demand = 0
-  for (const rule of Object.values(content.marketRules)) {
-    if (!applies(rule, place)) continue
-    supply += rule.supply[good] ?? 0
-    demand += rule.demand[good] ?? 0
-  }
-  return clamp(demand) - clamp(supply)
-}
-
-/**
- * A data-level stand-in for A2's PRICE_STEP (1.25), so this test runs before the market engine
- * exists. I1 checks the same spread with the real midPrice, drift included.
- */
-const PRICE_STEP_PROXY = 1.25
-
 describe('the economy data', () => {
   test('has no issues', () => {
     expect(economyIssues(content)).toEqual([])
@@ -89,8 +72,9 @@ describe('the economy data', () => {
   test('defines all 15 goods, every service role, and the animals and people B1 names', () => {
     expect(Object.keys(content.goods).sort()).toEqual([...GOODS].sort())
     expect(Object.keys(content.serviceRoles).sort()).toEqual(Object.keys(content.services).sort())
-    expect(Object.keys(content.marketRules).length).toBeGreaterThanOrEqual(25)
+    expect(Object.keys(content.marketRules).length).toBeGreaterThanOrEqual(12)
     expect(Object.keys(content.marketRules).length).toBeLessThanOrEqual(40)
+    expect(Object.keys(content.producers).length).toBeGreaterThanOrEqual(12)
     for (const id of ['mule', 'cart', 'riding-horse']) expect(content.animals).toHaveProperty(id)
     expect(Object.keys(content.personRoles).length).toBeGreaterThanOrEqual(10)
     expect(Object.keys(content.personRoles).length).toBeLessThanOrEqual(15)
@@ -130,24 +114,62 @@ describe('the economy data', () => {
     expect(TRADED.filter((g) => !sellable.has(g))).toEqual([])
   })
 
-  test.each(SEEDS)(
-    'seed %i: each good’s dearest mid price is 1.5–4× its cheapest (data proxy)',
-    (seed) => {
-      const world = worlds[seed - 1]
-      const outOfRange: string[] = []
+  test('prices stay within about ½× and 2× the base price (seeds 1–5, days 1 and 100)', () => {
+    const out: string[] = []
+    worlds.forEach((world, i) => {
+      const state = { ...newGame(SEEDS[i], content), world }
       for (const day of DAYS) {
-        const all = places(world, day)
-        for (const good of TRADED) {
-          const nets = all.map((p) => netLevel(p, good))
-          const ratio = PRICE_STEP_PROXY ** (Math.max(...nets) - Math.min(...nets))
-          if (ratio < 1.5 || ratio > 4) {
-            outOfRange.push(`day ${day} ${good}: ${ratio.toFixed(2)}×`)
+        for (const id of Object.keys(world.settlements)) {
+          for (const good of TRADED) {
+            const m = midPrice(state, content, id, good, day) / content.goods[good].price
+            // PRICE_STEP^±3 with ±10% drift: about 0.46× to 2.15×.
+            if (m < 0.4 || m > 2.3) out.push(`seed ${SEEDS[i]} ${id} ${good}: ${m.toFixed(2)}×`)
           }
         }
       }
-      expect(outOfRange).toEqual([])
+    })
+    expect(out).toEqual([])
+  })
+
+  test('luxuries and relics are made in very few places, food and timber in many', () => {
+    for (const [i, world] of worlds.entries()) {
+      const state = { world }
+      const n = (good: Good) => producersOf(state, content, good).length
+      const all = Object.keys(world.settlements).length
+      expect(n('luxuries'), `seed ${SEEDS[i]}`).toBeLessThanOrEqual(all / 6)
+      expect(n('relics'), `seed ${SEEDS[i]}`).toBeLessThanOrEqual(all / 10)
+      expect(n('relics'), `seed ${SEEDS[i]}`).toBeGreaterThan(0)
+      expect(n('food'), `seed ${SEEDS[i]}`).toBeGreaterThan(all / 2)
+      expect(n('timber'), `seed ${SEEDS[i]}`).toBeGreaterThan(n('luxuries'))
+      expect(n('metal'), `seed ${SEEDS[i]}`).toBeLessThan(n('food'))
     }
-  )
+  })
+
+  test('far from its producers a good is dearer than where it is made', () => {
+    for (const [i, world] of worlds.entries()) {
+      const state = { ...newGame(SEEDS[i], content), world }
+      for (const good of ['luxuries', 'metal', 'timber'] as const) {
+        const mean = (ids: string[]) =>
+          ids.reduce((sum, id) => sum + midPrice(state, content, id, good, 1), 0) / ids.length
+        const ids = Object.keys(world.settlements)
+        const made = ids.filter((id) => supplyOf(state, content, id, good).days === 0)
+        const far = ids.filter((id) => supplyOf(state, content, id, good).level <= -1)
+        if (made.length === 0 || far.length === 0) continue
+        expect(mean(far), `seed ${SEEDS[i]} ${good}`).toBeGreaterThan(mean(made))
+      }
+    }
+  })
+
+  test('every producer rule applies somewhere in seeds 1–5', () => {
+    const made = new Set(
+      worlds.flatMap((world) =>
+        Object.keys(world.settlements).flatMap((id) =>
+          production({ world }, content, id).flatMap((p) => p.rules)
+        )
+      )
+    )
+    expect(Object.keys(content.producers).filter((id) => !made.has(id))).toEqual([])
+  })
 
   test('every market rule applies somewhere in seeds 1–5', () => {
     const all = worlds.flatMap((world) => DAYS.flatMap((day) => places(world, day)))

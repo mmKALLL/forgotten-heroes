@@ -4,7 +4,7 @@ import type { GameState, PriceBookEntry } from '../../schema/state'
 import { revealPois } from '../encounters/effects'
 import { inProgress } from '../encounters/run'
 import { wholeGp } from '../economy/market'
-import { marketPrices } from '../economy/trade'
+import { marketPrices, marketTalk } from '../economy/trade'
 import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
 import { withRng, type Draw } from '../rng'
@@ -216,6 +216,11 @@ export function listenRumours(state: GameState, content: Content): GameState {
   if (heard.heard.length > 0) {
     // A false rumour reads like any other.
     next = appendLog(next, `You hear talk of prices in ${listNames(next, heard.heard)}.`, 'info')
+    // ...and of what each is short of or awash with, as it was when the news left.
+    for (const id of heard.heard) {
+      const talk = marketTalk(next, content, id, next.priceBook[id]?.day ?? next.day)
+      if (talk) next = appendLog(next, talk, 'info')
+    }
   } else if (tier === 'fail' || tier === 'critFail') {
     next = appendLog(next, 'The talk is all weather and old grudges.', 'info')
   }
