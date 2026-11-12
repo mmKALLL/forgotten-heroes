@@ -20,6 +20,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - `pnpm schemas`: regenerate `data/_schema/` after changing `src/schema/` (a test fails if stale)
 - `pnpm sync-assets`: copy the assets listed in `assets.manifest.txt` from `~/dnd5e`
 - `ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts`: the economy simulation report (seeds 1–30, 60 days: six policies, the 10 gp start, gathering, recruits and levels; plus 120-day runs for levels and danger); see `docs/notes/economy-report.md`. Without the variable only its guard tests run (they are part of `pnpm test`)
+- `CRISIS_REPORT=/tmp/crisis.md pnpm vitest run src/content/crisis.sim.test.ts`: the Crisis simulation report (seeds 1–20, up to day 360, the crusader and the trader); see `docs/notes/crisis-report.md`. Without the variable only its guard test runs
 
 ## Architecture rules
 
