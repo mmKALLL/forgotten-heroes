@@ -287,7 +287,9 @@ export const en = {
   'route.provisionWater': 'fill the water',
   'route.provisionReady': 'Provisioned',
   'route.provisionHint':
-    'Buys the food and waterskins for {days} at this pace without foraging, and fills the water free.',
+    'Buys the food and waterskins for {days} at this pace without foraging, and fills as much water as the road needs, free.',
+  'route.provisionHeavy':
+    'The water this road needs leaves the party encumbered: slower, and no forced march.',
   'route.provisionLimit.gold': 'Only what the gold allows.',
   'route.provisionLimit.weight': 'Only what the party can carry.',
   'route.hire': 'Hire {count} × {name} ({gp} gp a day each)',

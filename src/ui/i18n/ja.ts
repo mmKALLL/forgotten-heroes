@@ -99,7 +99,9 @@ export const ja: Partial<Messages> = {
   'route.provisionSkins': '水袋{n}',
   'route.provisionWater': '水を満たす',
   'route.provisionReady': '支度済み',
-  'route.provisionHint': 'この速度で{days}分の食料と水袋を（採集なしで）買い、水を無料で満たす。',
+  'route.provisionHint':
+    'この速度で{days}分の食料と水袋を（採集なしで）買い、道中に必要な分だけ水を無料で汲む。',
+  'route.provisionHeavy': 'この道に必要な水で荷が重くなる：遅くなり、強行軍ができない。',
   'route.provisionLimit.gold': '所持金の許す分だけ。',
   'route.provisionLimit.weight': '運べる分だけ。',
   'route.hire': '{name}を{count}頭借りる（1頭1日{gp} gp）',

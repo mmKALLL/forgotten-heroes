@@ -169,7 +169,8 @@ The town map image is a banner and backdrop.
   - At most 3 held. On completion the party takes the pay, or asks for **a good word** instead (§8). Failing or abandoning one costs 5 standing with the patron and their settlement.
   - The roads out badge a contract's destination and, for each pace, show "Arrives day 18 · deadline day 17 ✗".
 - **Click-savers** (designer decisions):
-  - **Provision for this road:** one button buys the waterskins and food the chosen road and pace need without foraging, and fills the water, within the gold and the weight, showing what it buys and the cost.
+  - **Provision for this road:** one button buys the waterskins and food the chosen road and pace need without foraging, and pours in as much water as the road needs (never every spare skin), within the gold and the weight, showing what it buys and the cost. Water still comes first (designer decision); when the road's water would leave the party encumbered, the roads out say so before the click and the journal after it.
+  - **Refilling by itself** (arriving in a settlement or at a well, resting in town, a spring): every member's own skin is filled, and spare waterskins only as far as the party stays unencumbered.
   - **Continue** walks on until something happens: an encounter, a supply warning, someone going short, or arrival.
   - **Travel from the map:** a reachable marker opens a popover with the days, encounters and hostile share, and a Travel button that uses the last pace, forage and hire choices.
   - **Auto-rest on arrival** (a setting, remembered per viewer): arriving hurt, exhausted or strained, the party rests a day, at an inn if it can pay.

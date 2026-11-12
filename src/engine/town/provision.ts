@@ -7,14 +7,7 @@ import { load } from '../economy/capacity'
 import { quote } from '../economy/market'
 import { buyGoods, maxBuy, type BuyLimit } from '../economy/trade'
 import { landSpeed } from '../travel/routes'
-import {
-  buyWaterskin,
-  goodsOf,
-  inSettlement,
-  partyWaterCapacity,
-  refillWater,
-  waterCapacity,
-} from '../travel/supplies'
+import { buyWaterskin, goodsOf, inSettlement, refillWater, waterCapacity } from '../travel/supplies'
 import { forecastJourney } from '../travel/warnings'
 import { paceFor } from '../travel/journey'
 import { otherEnd, settlementName } from '../world/geo'
@@ -24,7 +17,9 @@ import { escortPassengers } from './contract-hooks'
 import { WATERSKIN_PRICE } from '../constants'
 
 // "Provision for this road" (a click-saver, Plan 4 designer decisions): one action buys the food
-// and the waterskins a road needs at a pace, and fills the water, within the gold and the weight.
+// and the waterskins a road needs at a pace, and fills as much water as the road needs (no more),
+// within the gold and the weight. Water comes first; the plan warns when it makes the party
+// encumbered.
 
 /** The road and how it would be walked, as the travel action names them. */
 export type ProvisionFor = {
@@ -41,9 +36,14 @@ export type ProvisionPlan = {
   /** Extra waterskins to buy, and their price. */
   waterskins: number
   waterskinCost: number
-  /** Water poured in free, to fill every skin. */
+  /** Water poured in free: as much as the road needs, never more than the skins hold. */
   water: number
   total: number
+  /**
+   * The water for this road would leave the party encumbered (slower, no forced march) when it
+   * would be light without it: shown as a warning before the click (designer decision).
+   */
+  waterEncumbers: boolean
   /** What stops it buying all the road needs: the gold, the weight, or nothing. */
   limit: BuyLimit
   /** Nothing to buy or fill: the party already carries what the road needs. */
@@ -94,6 +94,7 @@ export function provisionPlan(
       goods: refillWater(state.goods, waterCapacity(members, waterskins)),
     }
   }
+  const carried = goodsOf(state.goods, 'water')
   while (runsOut(withSkins(skins), 'waterRunsOut') && skins < MAX_STEPS) skins += 1
   if (skins * WATERSKIN_PRICE > state.gold) {
     skins = Math.floor(state.gold / WATERSKIN_PRICE)
@@ -103,7 +104,13 @@ export function provisionPlan(
     skins -= 1
     limit = 'weight'
   }
-  const skinned = { ...withSkins(skins), gold: state.gold - skins * WATERSKIN_PRICE }
+  // Only the water the road needs: the fewest units (at least what is carried) that last it.
+  const full = withSkins(skins)
+  const capacity = goodsOf(full.goods, 'water')
+  const withWater = (w: number): GameState => ({ ...full, goods: { ...full.goods, water: w } })
+  let needed = carried
+  while (needed < capacity && runsOut(withWater(needed), 'waterRunsOut')) needed += 1
+  const skinned = { ...withWater(needed), gold: state.gold - skins * WATERSKIN_PRICE }
 
   // Food: the fewest rations after which the food lasts the road.
   const withFood = (n: number): GameState => ({
@@ -118,8 +125,12 @@ export function provisionPlan(
     food = most.units
   }
   const foodCost = food > 0 ? (quote(skinned, content, here, 'food', 'buy', food)?.total ?? 0) : 0
-  const water = Math.max(0, partyWaterCapacity(state) - goodsOf(state.goods, 'water'))
+  const water = Math.max(0, needed - carried)
   const waterskinCost = skins * WATERSKIN_PRICE
+  const after = withFood(food)
+  const dry = { ...after, goods: { ...after.goods, water: carried } }
+  const waterEncumbers =
+    water > 0 && load(after, content).level !== 'light' && load(dry, content).level === 'light'
   return {
     food,
     foodCost,
@@ -127,6 +138,7 @@ export function provisionPlan(
     waterskinCost,
     water,
     total: foodCost + waterskinCost,
+    waterEncumbers,
     limit,
     // A party that can't afford a single ration isn't ready, it is broke.
     ready: food === 0 && skins === 0 && water === 0 && limit === null,
@@ -143,12 +155,20 @@ export function provision(state: GameState, content: Content, plan: ProvisionFor
     return appendLog(state, `The party already has what the road to ${to} needs.`, 'info')
   let next = p.waterskins > 0 ? buyWaterskin(state, p.waterskins) : state
   if (p.food > 0) next = buyGoods(next, content, 'food', p.food)
-  next = { ...next, goods: refillWater(next.goods, partyWaterCapacity(next)) }
+  // Buying skins fills them; provisioning keeps only the water the road needs.
+  next = { ...next, goods: { ...next.goods, water: goodsOf(state.goods, 'water') + p.water } }
   const short =
     p.limit === 'gold'
       ? ', all the gold allows'
       : p.limit === 'weight'
         ? ', all the party can carry'
         : ''
-  return appendLog(next, `Provisioned for the road to ${to}${short}.`, p.limit ? 'bad' : 'info')
+  const heavy = p.waterEncumbers
+    ? ' The water leaves the party encumbered: slower, and no forced march.'
+    : ''
+  return appendLog(
+    next,
+    `Provisioned for the road to ${to}${short}.${heavy}`,
+    p.limit || p.waterEncumbers ? 'bad' : 'info'
+  )
 }

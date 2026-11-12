@@ -25,15 +25,7 @@ import {
   routeTerrain,
   routeThreat,
 } from './routes'
-import {
-  buyWaterskin,
-  partyWaterCapacity,
-  passDay,
-  refillWater,
-  rest,
-  runsShort,
-  sellWaterskin,
-} from './supplies'
+import { autoRefill, buyWaterskin, passDay, rest, runsShort, sellWaterskin } from './supplies'
 import { observe } from '../economy/trade'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
 import { suppliesLast, supplyOutlook } from './outlook'
@@ -296,7 +288,7 @@ function arrive(state: GameState, content: Content): GameState {
     // A new arrival: the site here may be visited again, and once-per-arrival actions reset.
     visited: false,
     doneHere: [],
-    goods: water ? refillWater(state.goods, partyWaterCapacity(state)) : state.goods,
+    goods: water ? autoRefill(state, content) : state.goods,
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }
   // The party sees the market of the settlement it arrives in (economy/trade.ts), and its contracts

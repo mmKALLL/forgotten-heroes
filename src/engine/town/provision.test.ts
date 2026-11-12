@@ -3,7 +3,8 @@ import type { ContractState, GameState } from '../../schema/state'
 import { step, type Action } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { routeOptions } from '../travel/preview'
-import { partyWaterCapacity } from '../travel/supplies'
+import { autoRefill, partyWaterCapacity, waterCapacity } from '../travel/supplies'
+import { load } from '../economy/capacity'
 import { supplyOutlook } from '../travel/outlook'
 import { arrivalRest } from './arrival'
 import { provisionPlan } from './provision'
@@ -48,7 +49,40 @@ describe('provision for this road', () => {
     expect(plan.waterskins).toBeGreaterThan(0)
     const done = act(solo, { type: 'provision', ...long })
     expect(done.waterskins).toBe(plan.waterskins)
-    expect(done.goods.water).toBe(partyWaterCapacity(done))
+    // Filled as far as the road needs, never past the skins.
+    expect(done.goods.water).toBe(1 + plan.water)
+    expect(done.goods.water).toBeLessThanOrEqual(partyWaterCapacity(done))
+    expect(warns(done, 'ashmoor-1')).toEqual([])
+  })
+
+  test('fills only the water the road needs, not every spare skin', () => {
+    // Four spare skins, nearly dry: the short road to Greenvale needs far less than they hold.
+    const s = at('greenvale-1', { goods: { food: 20, water: 1 }, waterskins: 4 })
+    const plan = provisionPlan(s, content, road)!
+    expect(plan.waterskins).toBe(0)
+    const done = act(s, { type: 'provision', ...road })
+    expect(done.goods.water).toBe(1 + plan.water)
+    expect(done.goods.water).toBeLessThan(partyWaterCapacity(done))
+    expect(warns(done, 'greenvale-2')).toEqual([])
+  })
+
+  test('warns when the water the road needs leaves the party encumbered', () => {
+    // A solo walker already near capacity with cargo: the long road's water tips the balance.
+    const laden = at('greenvale-1', {
+      party: [brom],
+      goods: { food: 8, water: 0, metal: 1 },
+      waterskins: 6,
+    })
+    const plan = provisionPlan(laden, content, { routeId: 'ashmoor-1-greenvale-1' })!
+    expect(plan.water).toBeGreaterThan(0)
+    expect(plan.waterEncumbers).toBe(true)
+    const done = act(laden, { type: 'provision', routeId: 'ashmoor-1-greenvale-1' })
+    expect(done.log.at(-1)!.text).toMatch(/encumbered/)
+    // Without the cargo the same water is no burden.
+    const light = { ...laden, goods: { food: 8, water: 0 } }
+    expect(
+      provisionPlan(light, content, { routeId: 'ashmoor-1-greenvale-1' })!.waterEncumbers
+    ).toBe(false)
   })
 
   test('stays within the gold, and says so', () => {
@@ -127,5 +161,18 @@ describe('auto-rest on arrival', () => {
     expect(act(fine, { type: 'autoRest' })).toEqual(fine)
     const strained = at('ashmoor-1', { party: [{ ...brom, strain: { survival: 1 } }, lyra] })
     expect(arrivalRest(strained, content)).not.toBeNull()
+  })
+})
+
+describe('refilling by itself', () => {
+  test('fills the members’ own skins, and spare skins only while the party stays light', () => {
+    const s = at('greenvale-1', { party: [brom], goods: { food: 4, water: 0 }, waterskins: 10 })
+    const water = autoRefill(s, content).water!
+    expect(water).toBeGreaterThanOrEqual(waterCapacity(1))
+    expect(water).toBeLessThan(partyWaterCapacity(s))
+    expect(load({ ...s, goods: { ...s.goods, water } }, content).level).toBe('light')
+    // Unladen with few spare skins, they are all filled.
+    const few = { ...s, waterskins: 1 }
+    expect(autoRefill(few, content).water).toBe(partyWaterCapacity(few))
   })
 })

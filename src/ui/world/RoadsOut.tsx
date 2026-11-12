@@ -385,6 +385,7 @@ export function RouteInfo({
             title={[
               t('route.provisionHint', { days: daysText(t, option.days) }),
               supplies.limit && t(`route.provisionLimit.${supplies.limit}`),
+              supplies.waterEncumbers && t('route.provisionHeavy'),
             ]
               .filter(Boolean)
               .join(' ')}
@@ -411,6 +412,9 @@ export function RouteInfo({
           </button>
         )}
       </div>
+      {supplies && onProvision && supplies.waterEncumbers && (
+        <p className="tone-bad small">{t('route.provisionHeavy')}</p>
+      )}
       {road.stowaway && (
         <div className="check-preview">
           <p className="small">
