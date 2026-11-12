@@ -714,7 +714,7 @@ export const testWorld: Record<string, unknown> = {
         name: 'War camp',
         weight: 2,
         biomes: ['hills'],
-        threats: ['orc-warband'],
+        threats: ['orc-warband', 'bandits'],
         hostile: true,
         threat: { min: 1, max: 2 },
         pathDanger: 2,

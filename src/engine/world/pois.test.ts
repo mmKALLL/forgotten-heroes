@@ -155,7 +155,12 @@ describe('generatePois', () => {
     const c = structuredClone(content)
     const camp = c.poiTypes['orc-war-camp']
     c.poiTypes = {
-      'orc-war-camp': { ...camp, biomes: ['hills', 'jungle', 'marsh', 'plains'], weight: 5 },
+      'orc-war-camp': {
+        ...camp,
+        biomes: ['hills', 'jungle', 'marsh', 'plains'],
+        threats: ['orc-warband'],
+        weight: 5,
+      },
       // other kinds of site keep threats as a mere favour
       'orc-shrine': { ...camp, id: 'orc-shrine', category: 'shrine', hostile: false },
       plain: { ...c.poiTypes['singing-stones'], id: 'plain', weight: 1 },
