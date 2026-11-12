@@ -1,6 +1,6 @@
 import type { Content } from '../../content/build'
 import type { Source } from '../../schema/common'
-import type { Biome, Pace, Position } from '../../schema/types'
+import type { Biome, LogTone, Pace, Position } from '../../schema/types'
 import {
   TWIST_STAGE,
   type Effect,
@@ -24,6 +24,8 @@ import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
 import { anyUndiscovered, domainAt } from '../world/pois'
 import { crisisHidden } from '../crisis/sites'
+import { crisisActNumber } from '../crisis/status'
+import { omenFactor } from '../crisis/clues'
 import { boonReadyIn, siteStatus } from '../world/sites'
 import { dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
@@ -140,6 +142,16 @@ function sitePowerDc(state: GameState, poi: string | undefined): number {
 }
 
 /**
+ * How a situation starts beyond its place: more DC on every check (a late Crisis act), a starting
+ * position (the Edge, from knowing the villain's weakness), and lines for its log saying why.
+ */
+export type StartOptions = {
+  dcBonus?: number
+  position?: Position
+  lines?: { text: string; tone: LogTone }[]
+}
+
+/**
  * Starts a situation. On the road, `place` weights the twist table towards kinds that fit the
  * place, and on a journey a hostile encounter meets the party on the footing its pace gives
  * (ambushPositionForPace). The encounter happens in the place's domain (or, without a place,
@@ -152,7 +164,8 @@ export function startEncounter(
   content: Content,
   situationId: string,
   place?: Place,
-  poi?: string
+  poi?: string,
+  options: StartOptions = {}
 ): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
@@ -176,7 +189,8 @@ export function startEncounter(
     return { slots: { ...slots, ...rollSlots(d, content, own) }, twist, kind }
   })
   const danger = dangerLevel(state.day)
-  const dcBonus = sitePowerDc(state, poi)
+  const powerDc = sitePowerDc(state, poi)
+  const dcBonus = powerDc + (options.dcBonus ?? 0)
   const joined = harden(kind ? attachTwistKind(compiled, kind, content) : compiled, {
     dcBonus,
     danger,
@@ -195,9 +209,10 @@ export function startEncounter(
     source: found.source,
     stage: situation.start,
     position:
-      place?.pace && situation.disposition === 'hostile'
+      options.position ??
+      (place?.pace && situation.disposition === 'hostile'
         ? ambushPositionForPace(place.pace, 'normal', place.forage ?? false)
-        : 'normal',
+        : 'normal'),
     slots,
     twist,
     twistRevealed: false,
@@ -211,14 +226,15 @@ export function startEncounter(
     used: [],
     log: [
       { text, tone: 'info' },
-      ...(dcBonus > 0
+      ...(powerDc > 0
         ? [
             {
-              text: `It has grown stronger since it was taken: every check here is DC +${dcBonus}.`,
+              text: `It has grown stronger since it was taken: every check here is DC +${powerDc}.`,
               tone: 'bad' as const,
             },
           ]
         : []),
+      ...(options.lines ?? []),
     ],
   }
   return appendLog(
@@ -272,7 +288,8 @@ export function drawEncounter(
       !s.site &&
       s.weight > 0 &&
       (!sources || sources.includes(s.source)) &&
-      (!place || fitsPlace(s, place))
+      (!place || fitsPlace(s, place)) &&
+      omenFactor(state, content, s, place) > 0
   )
   if (candidates.length === 0) {
     return place ? state : appendLog(state, 'No encounters match that filter.', 'bad')
@@ -289,7 +306,11 @@ export function drawEncounter(
       if (kind.length > 0) pool = kind
     }
     const steps = place?.wealthSteps ?? 0
-    const picked = d.weighted(pool, (s) => wealthWeight(s.weight, s.tags, steps))
+    // An omen weighs more on a road in the current Crisis act's land (crisis/clues.ts).
+    const picked = d.weighted(
+      pool,
+      (s) => wealthWeight(s.weight, s.tags, steps) * omenFactor(state, content, s, place)
+    )
     const avoided = picked.disposition === 'hostile' && avoidance > 0 && d.float() < avoidance
     return { picked, avoided }
   })
@@ -390,7 +411,8 @@ function resolve(
     ...(xp > 0 ? [{ effect: 'xp' as const, amount: xp }] : []),
   ]
   const place = encounterSettlementName(state)
-  const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone', place) ?? [])
+  const act = crisisActNumber(state)
+  const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone', place, act) ?? [])
   const text = fill(branch.text) + (chips.length > 0 ? ` (${chips.join(', ')})` : '')
 
   // The outcome text comes before any log effects it triggers.

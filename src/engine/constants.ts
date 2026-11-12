@@ -559,3 +559,14 @@ export const CRISIS_WARN_DAYS = 14
 export const CRISIS_SITE_CLUES = 2
 /** Clues to an act that reveal the villain's weakness there: the party goes in with the Edge. */
 export const CRISIS_WEAKNESS_CLUES = 3
+/** Thwarting act n pays this much XP × n (rules/progression.ts gainXp). */
+export const XP_THWART = 300
+
+// The Crisis: rumours, the summons and omens (crisis/clues.ts)
+
+/** Clues a rumour success in the current act's land gives (one more on a critical success). */
+export const CRISIS_RUMOUR_CLUES = 1
+/** From this day, arriving in a settlement while the plan is unknown brings the summons. */
+export const CRISIS_SUMMONS_DAY = 15
+/** An omen weighs this much more on a road in the current act's land. */
+export const CRISIS_OMEN_FAVOUR = 3

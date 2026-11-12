@@ -36,6 +36,7 @@ import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/anima
 import type { Room } from '../town/services'
 import { contractsOnArrival, isEscorting } from '../town/contracts'
 import { desertOnArrival } from '../town/camaraderie'
+import { summonsOnArrival } from '../crisis/clues'
 import { DEFAULT_PACE } from '../constants'
 
 /**
@@ -320,7 +321,8 @@ function arrive(state: GameState, content: Content): GameState {
     travel.to
   )
   // A fractured party may lose hired members on arrival (town/camaraderie.ts).
-  return desertOnArrival(contractsOnArrival(seen, content))
+  // From CRISIS_SUMMONS_DAY, someone may take the party aside about the Crisis (crisis/clues.ts).
+  return desertOnArrival(summonsOnArrival(contractsOnArrival(seen, content), content))
 }
 
 /**

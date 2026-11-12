@@ -209,7 +209,14 @@ export function crisisSiteActive(crisis: CrisisState, poi: string, day: number):
   const status = crisisStatus(crisis, day)
   if (status.phase === 'won' || status.phase === 'lost') return false
   if (poi === crisis.reveal) return crisis.learned === null
-  return status.act !== null && crisis.acts[status.act].poi === poi
+  return status.phase === 'act' && crisis.acts[status.act!].poi === poi
+}
+
+/** The current act's number (1–3) while one is under way (the plan known), for effect chips. */
+export function crisisActNumber(state: Pick<GameState, 'crisis' | 'day'>): number | null {
+  if (!state.crisis) return null
+  const status = crisisStatus(state.crisis, state.day)
+  return status.phase === 'act' ? status.act! + 1 : null
 }
 
 /** The Crisis panel's view model, or null without a Crisis (or when the content lost its villain). */

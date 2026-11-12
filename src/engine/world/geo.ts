@@ -61,3 +61,22 @@ export const settlementName = (state: Pick<GameState, 'world'>, id: string): str
     : Object.hasOwn(state.world.pois, id)
       ? state.world.pois[id].name
       : id
+
+/** The eight compass points, counter-clockwise from east (map y grows southwards). */
+const COMPASS = [
+  'east',
+  'north-east',
+  'north',
+  'north-west',
+  'west',
+  'south-west',
+  'south',
+  'south-east',
+] as const
+export type CompassPoint = (typeof COMPASS)[number]
+
+/** Which way `to` lies from `from` on the map, to the nearest of eight points. */
+export function compass(from: MapPoint, to: MapPoint): CompassPoint {
+  const degrees = (Math.atan2(from.y - to.y, to.x - from.x) * 180) / Math.PI
+  return COMPASS[(Math.round(degrees / 45) + 8) % 8]
+}

@@ -19,6 +19,10 @@ import { conditionHolds, describeCondition, describeEffect, openingEffects } fro
 import { defaultXp, isHighStakes, tierOutcome } from './outcomes'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
+import { crisisActNumber } from '../crisis/status'
+
+/** What effect chips name: the settlement a reputation effect changes, and the Crisis's current act. */
+type ChipContext = { place?: string; act: number | null }
 
 /** `next` is "escalates" for a twist branch that goes on to the twist's escalation stage. */
 export type BranchPreview = {
@@ -104,13 +108,15 @@ function effectChips(
   effects: readonly Effect[],
   encounter: EncounterState,
   actorName: string,
-  place?: string
+  ctx: ChipContext
 ) {
   return effects.flatMap((effect): string[] => {
     const chips =
       effect.effect === 'openingHit' && twistKindKnown(encounter)
-        ? openingEffects(encounter).flatMap((e) => describeEffect(e, actorName, place) ?? [])
-        : [describeEffect(effect, actorName, place) ?? []].flat()
+        ? openingEffects(encounter).flatMap(
+            (e) => describeEffect(e, actorName, ctx.place, ctx.act) ?? []
+          )
+        : [describeEffect(effect, actorName, ctx.place, ctx.act) ?? []].flat()
     if (!effect.if || conditionHolds(effect.if, encounter)) return chips
     return chips.map((chip) => `${chip} (${describeCondition(effect.if!)})`)
   })
@@ -125,14 +131,14 @@ function branchPreview(
   encounter: EncounterState,
   values: Record<string, string>,
   actorName: string,
-  place: string | undefined,
+  ctx: ChipContext,
   xpFor: (branch: OutcomeBranch) => number
 ): BranchPreview {
   const fallback = xpFor(branch)
   const own = branch.effects
     .filter((e) => e.effect === 'xp' && (!e.if || conditionHolds(e.if, encounter)))
     .reduce((sum, e) => sum + (e.effect === 'xp' ? e.amount : 0), 0)
-  const chips = effectChips(branch.effects, encounter, actorName, place)
+  const chips = effectChips(branch.effects, encounter, actorName, ctx)
   return {
     text: fillText(branch.text, values),
     effects:
@@ -157,15 +163,15 @@ function outcomePreview(
   encounter: EncounterState,
   values: Record<string, string>,
   actorName: string,
-  place: string | undefined,
+  ctx: ChipContext,
   xpFor: (branch: OutcomeBranch) => number = () => 0
 ): ShownOutcome {
   return {
-    ...branchPreview(outcome, encounter, values, actorName, place, xpFor),
+    ...branchPreview(outcome, encounter, values, actorName, ctx, xpFor),
     tier,
     hidden: false,
     twist: outcome.twist
-      ? branchPreview(outcome.twist, encounter, values, actorName, place, xpFor)
+      ? branchPreview(outcome.twist, encounter, values, actorName, ctx, xpFor)
       : null,
   }
 }
@@ -182,7 +188,7 @@ export function encounterOptions(
   if (!encounter) return []
   const mode = POSITION_MODE[encounter.position]
   const situationalModifier = encounter.nextCheckModifier
-  const place = encounterSettlementName(state)
+  const ctx: ChipContext = { place: encounterSettlementName(state), act: crisisActNumber(state) }
   return currentOptions(encounter).map((option) => {
     const unmet = unmetRequirements(state, option.requires)
     const base = {
@@ -193,7 +199,7 @@ export function encounterOptions(
     }
     if (option.kind === 'fixed') {
       const outcomes = [
-        outcomePreview(option.outcome, null, encounter, encounter.slots, 'someone', place),
+        outcomePreview(option.outcome, null, encounter, encounter.slots, 'someone', ctx),
       ]
       return { ...base, available: optionAvailable(state, option), unmet, check: null, outcomes }
     }
@@ -231,7 +237,7 @@ export function encounterOptions(
       encounter,
       values,
       preview.actorName,
-      place,
+      ctx,
       xpFor('success')
     )
     const check: OptionCheckPreview = {
@@ -261,7 +267,7 @@ export function encounterOptions(
             encounter,
             values,
             preview.actorName,
-            place,
+            ctx,
             xpFor(tier)
           )
     )

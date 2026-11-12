@@ -12,6 +12,8 @@ import { addReputation, encounterSettlement } from '../town/reputation'
 import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
 import { crisisHidden } from '../crisis/sites'
+import { crisisClue, learnPlan, thwartAct } from '../crisis/progress'
+import { actNumeral } from '../crisis/text'
 import { changeGoods } from '../economy/goods'
 import { changeAnimals } from '../town/animals'
 import { siteContractsMet } from '../town/contract-hooks'
@@ -33,14 +35,14 @@ export type EffectContext = { actorId?: string; content?: Content }
 export const NOTHING_TO_LEARN = 'There is nothing new to learn about the land around here.'
 
 /** A line in the journal, and in the encounter's own log when one is open. */
-function note(state: GameState, text: string, tone: LogTone): GameState {
+export function note(state: GameState, text: string, tone: LogTone): GameState {
   const next = appendLog(state, text, tone)
   if (!next.encounter) return next
   return { ...next, encounter: { ...next.encounter, log: [...next.encounter.log, { text, tone }] } }
 }
 
 /** XP gained, with a line in the journal (and the encounter's log when one is open). */
-const xpNote = (state: GameState, amount: number, why: string): GameState =>
+export const xpNote = (state: GameState, amount: number, why: string): GameState =>
   amount > 0 ? note(gainXp(state, amount), xpLine(amount, why), 'good') : state
 
 /**
@@ -255,11 +257,13 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       if (!looted) return state
       return note(looted.state, `Found: ${describeAccessory(looted.accessory)}.`, 'good')
     }
+    // The Crisis (Plan 5b, crisis/progress.ts). Without content they do nothing.
     case 'learnPlan':
+      return ctx.content ? learnPlan(state, ctx.content) : state
     case 'crisisClue':
+      return ctx.content ? crisisClue(state, ctx.content, effect.amount) : state
     case 'thwartAct':
-      // The Crisis (Plan 5b): wired in crisis/progress.ts (E3). Until then they do nothing.
-      return state
+      return ctx.content ? thwartAct(state, ctx.content) : state
   }
 }
 
@@ -300,7 +304,9 @@ export function describeEffect(
   effect: Effect,
   actorName: string,
   /** The settlement a reputation effect changes, named in its chip. */
-  place?: string
+  place?: string,
+  /** The Crisis's current act (1–3), named in clue and thwart chips; null when none. */
+  act: number | null = null
 ): string | null {
   switch (effect.effect) {
     case 'gold':
@@ -364,8 +370,10 @@ export function describeEffect(
     case 'learnPlan':
       return 'Learn the plan'
     case 'crisisClue':
-      return `+${effect.amount} clue`
+      return act === null
+        ? `+${effect.amount} clue`
+        : `+${effect.amount} clue: Act ${actNumeral(act - 1)}`
     case 'thwartAct':
-      return 'Thwart the act'
+      return act === null ? 'Thwart the act' : `Thwart Act ${actNumeral(act - 1)}`
   }
 }
