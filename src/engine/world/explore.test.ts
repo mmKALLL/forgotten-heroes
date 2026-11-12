@@ -296,6 +296,7 @@ describe('visitPoi', () => {
           coverTracks: false,
           paceLog: [],
           forage: false,
+          hired: null,
         },
       }) as GameState
     const back = step(road('greenvale-1', 'poi-1'), { type: 'continueJourney' }, content)

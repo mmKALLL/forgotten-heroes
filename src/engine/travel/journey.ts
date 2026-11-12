@@ -173,6 +173,7 @@ function setOut(
     coverTracks,
     paceLog: [],
     forage: (options.forage ?? true) && route.terrain !== 'sea',
+    hired: null,
   }
   const how = PACE_PHRASE[pace] + (coverTracks ? ', covering its tracks' : '')
   const ship =
@@ -236,8 +237,9 @@ function arrive(state: GameState, content: Content): GameState {
     ...state,
     travel: null,
     location: travel.to,
-    // A new arrival: the site here may be visited again.
+    // A new arrival: the site here may be visited again, and once-per-arrival actions reset.
     visited: false,
+    doneHere: [],
     goods: water ? refillWater(state.goods, partyWaterCapacity(state)) : state.goods,
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }
@@ -260,7 +262,7 @@ function turnBack(state: GameState, content: Content): GameState {
   const back = candidates.find((id) => id !== null && nodeOf(state, content, id) !== null)
   if (!back) return appendLog(state, 'The way is lost, and there is no going back.', 'bad')
   return appendLog(
-    { ...state, travel: null, location: back, visited: false },
+    { ...state, travel: null, location: back, visited: false, doneHere: [] },
     `The way to ${settlementName(state, travel.to)} can no longer be found. ` +
       `The party makes its way back to ${settlementName(state, back)}.`,
     'bad'

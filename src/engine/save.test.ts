@@ -1,7 +1,16 @@
 import { describe, expect, test } from 'vitest'
-import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize, v3ToV4, v4ToV5 } from './save'
+import {
+  CURRENT_SAVE_VERSION,
+  deserialize,
+  migrate,
+  serialize,
+  v3ToV4,
+  v4ToV5,
+  v5ToV6,
+} from './save'
 import { newGame, step } from './state'
-import { fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
+import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
+import type { GameState } from '../schema/state'
 import type { RollMode } from './rules/checks'
 import { generateWorld, startingSettlement, worldSeed } from './world/generate'
 
@@ -94,7 +103,7 @@ function migrated() {
   const world = generateWorld(worldSeed(5), content)
   return {
     ...V2_SAVE,
-    version: 5,
+    version: 6,
     party: [{ ...ada, strain: {} }],
     world,
     location: startingSettlement(world, content),
@@ -102,15 +111,29 @@ function migrated() {
     travel: null,
     goods: { food: 5, water: 4 },
     waterskins: 0,
+    ...PLAN_4_DEFAULTS,
   }
 }
 
-test('a version 2 save loads as version 5 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(5)
+/** What a save from before Plan 4 starts with: no trades, prices, reputation or contracts. */
+const PLAN_4_DEFAULTS = {
+  markets: {},
+  priceBook: {},
+  spoilage: {},
+  animals: {},
+  upkeepOwed: 0,
+  reputation: { settlements: {}, people: {} },
+  contracts: [],
+  contractsTaken: [],
+  doneHere: [],
+}
+
+test('a version 2 save loads as version 6 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(6)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save chains through to version 5 too', () => {
+test('a version 1 save chains through to version 6 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -142,7 +165,14 @@ test('a version 3 save from before waterskins, foraging, pace and strain loads w
     ...state,
     waterskins: 0,
     party: state.party.map((c) => ({ ...c, strain: {} })),
-    travel: { ...travel, pace: 'steady', coverTracks: false, paceLog: [], forage: true },
+    travel: {
+      ...travel,
+      pace: 'steady',
+      coverTracks: false,
+      paceLog: [],
+      forage: true,
+      hired: null,
+    },
   })
 })
 
@@ -161,6 +191,7 @@ test('a journey saves its pace, covered tracks and the pace of each day on the r
     coverTracks: true,
     paceLog: [{ day: 1, pace: 'cautious' as const, coverTracks: true }],
     forage: true,
+    hired: null,
   }
   const state = makeState({ location: null, travel })
   expect(deserialize(serialize(state), content)).toEqual(state)
@@ -197,7 +228,7 @@ describe('v3 → v4', () => {
     const save = v3Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(5)
+    expect(loaded.version).toBe(6)
     expect(loaded.world).toEqual(generateWorld(worldSeed(save.seed), content))
     expect(loaded.location).toBe('greenvale-2')
     expect(loaded.gold).toBe(33)
@@ -241,7 +272,7 @@ describe('v3 → v4', () => {
       forage: true,
     }
     const onRoad = deserialize(JSON.stringify(v3Save({ location: null, travel })), content)!
-    expect(onRoad.travel).toEqual(travel)
+    expect(onRoad.travel).toEqual({ ...travel, hired: null })
     expect(onRoad.location).toBeNull()
     const lost = { ...travel, route: 'nowhere-road' }
     const stranded = deserialize(JSON.stringify(v3Save({ location: null, travel: lost })), content)!
@@ -268,7 +299,7 @@ describe('v4 → v5', () => {
   test('keeps each POI’s category, and a cleared one is cleared as of the save’s day', () => {
     const { save, first, second, state } = v4Save()
     const loaded = deserialize(JSON.stringify(save), content)!
-    expect(loaded.version).toBe(5)
+    expect(loaded.version).toBe(6)
     expect(loaded.world.pois[first]).toEqual({ ...state.world.pois[first], clearedDay: 12 })
     expect(loaded.world.pois[second]).toEqual(state.world.pois[second])
     expect(loaded.visited).toBe(false)
@@ -282,5 +313,84 @@ describe('v4 → v5', () => {
     world.pois[first].threat = 2
     const migrated = v4ToV5(raw, content) as { world: typeof world }
     expect(migrated.world.pois[first].category).toBe('lair')
+  })
+})
+
+describe('v5 → v6', () => {
+  /** A v5 save: no people, markets, price book, reputation, contracts or animals yet. */
+  function v5Save(overrides: Partial<GameState> = {}) {
+    const state = makeState({
+      location: 'greenvale-2',
+      gold: 37,
+      goods: { food: 6, water: 3 },
+      waterskins: 2,
+      ...overrides,
+    })
+    const { people: _people, ...world } = state.world
+    const {
+      markets: _markets,
+      priceBook: _priceBook,
+      spoilage: _spoilage,
+      animals: _animals,
+      upkeepOwed: _upkeep,
+      reputation: _reputation,
+      contracts: _contracts,
+      contractsTaken: _taken,
+      doneHere: _done,
+      ...older
+    } = state
+    const travel = state.travel && (({ hired: _hired, ...t }) => t)(state.travel)
+    return { save: { ...older, version: 5, world, travel }, state }
+  }
+
+  test('migrates and parses, leaving goods, waterskins, gold, party and location alone', () => {
+    const { save, state } = v5Save()
+    const loaded = deserialize(JSON.stringify(save), content)!
+    expect(loaded).not.toBeNull()
+    expect(loaded.version).toBe(6)
+    expect(loaded.goods).toEqual({ food: 6, water: 3 })
+    expect(loaded.waterskins).toBe(2)
+    expect(loaded.gold).toBe(37)
+    expect(loaded.party).toEqual(state.party)
+    expect(loaded.location).toBe('greenvale-2')
+    expect(loaded).toMatchObject(PLAN_4_DEFAULTS)
+    expect(loaded).toEqual(state)
+  })
+
+  test('the people are those of a new game with the same seed', () => {
+    for (const seed of [1, 2, 3]) {
+      const { save } = v5Save({ ...newGame(seed, content), party: [brom] })
+      const loaded = deserialize(JSON.stringify(save), content)!
+      expect(Object.keys(loaded.world.people).length).toBeGreaterThan(0)
+      expect(loaded.world.people).toEqual(newGame(seed, content).world.people)
+    }
+  })
+
+  test('a journey under way goes on, with no hired mounts', () => {
+    const travel = {
+      route: 'greenvale-1-greenvale-2',
+      from: 'greenvale-1',
+      to: 'greenvale-2',
+      km: 75,
+      kmPerDay: 30,
+      kmDone: 30,
+      daysDone: 1,
+      days: 3,
+      encounterDays: [2],
+      pace: 'steady' as const,
+      coverTracks: false,
+      paceLog: [],
+      forage: true,
+      hired: null,
+    }
+    const { save, state } = v5Save({ location: null, travel })
+    expect(deserialize(JSON.stringify(save), content)).toEqual(state)
+  })
+
+  test('migrating twice gives identical output, and the parsed save is not mutated', () => {
+    const { save } = v5Save()
+    const raw = structuredClone(save) as unknown as Record<string, unknown>
+    expect(v5ToV6(raw, content)).toEqual(v5ToV6(structuredClone(raw), content))
+    expect(raw).toEqual(save)
   })
 })

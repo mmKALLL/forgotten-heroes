@@ -40,6 +40,18 @@ export function generatePlaceName(
   return name
 }
 
+/**
+ * A person's name from the name tables for their ancestry (any table when none names it): a
+ * given name, plus a family name when the table has them.
+ */
+export function personName(d: Draw, content: Content, ancestry: string): string {
+  const tables = sortedEntries(content.names)
+  const matching = tables.filter((t) => t.ancestries.includes(ancestry))
+  const names = d.pick(matching.length > 0 ? matching : tables)
+  const given = d.pick(names.given)
+  return names.family.length > 0 ? `${given} ${d.pick(names.family)}` : given
+}
+
 /** A realm's name from the realm-name table, e.g. "Principality of Ravenford". */
 export function realmName(d: Draw, content: Content, place: string): string {
   if (!Object.hasOwn(content.partsTables, REALM_TABLE)) return `Kingdom of ${place}`

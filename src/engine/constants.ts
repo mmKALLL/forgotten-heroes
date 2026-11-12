@@ -166,6 +166,13 @@ export const RAMPANT_WEALTH = -1
 /** How often a settlement's ancestry is the ruling one, when its town doesn't name one. */
 export const RULING_ANCESTRY_SHARE = 0.75
 
+// Notable people (town/people.ts)
+
+/** Notable people per settlement, by size tier (outpost first), when enough roles fit. */
+export const PEOPLE_BY_SIZE: readonly number[] = [1, 2, 2, 3, 4, 5]
+/** How often a notable person shares their settlement's ancestry. */
+export const PEOPLE_LOCAL_ANCESTRY = 0.75
+
 // Points of interest (pois.ts)
 
 /** A domain expects spots / this many POIs: about 40–60 per world on Altaeus (mean ≈ 49). */

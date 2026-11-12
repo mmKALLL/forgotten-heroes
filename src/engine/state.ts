@@ -67,6 +67,15 @@ export function newGame(
     travel: null,
     goods: startingGoods(party.length),
     waterskins: 0,
+    markets: {},
+    priceBook: {},
+    spoilage: {},
+    animals: {},
+    upkeepOwed: 0,
+    reputation: { settlements: {}, people: {} },
+    contracts: [],
+    contractsTaken: [],
+    doneHere: [],
   }
 }
 

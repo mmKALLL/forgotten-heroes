@@ -60,6 +60,7 @@ test('each day on the road records its pace, for pursuit', () => {
     coverTracks: true,
     paceLog: [],
     forage: true,
+    hired: null,
   }
   const once = logPaceDay(travel, 4)
   expect(once.paceLog).toEqual([{ day: 4, pace: 'cautious', coverTracks: true }])

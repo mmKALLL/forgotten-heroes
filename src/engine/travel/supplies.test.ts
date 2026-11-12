@@ -50,6 +50,7 @@ const onTheRoad: TravelState = {
   coverTracks: false,
   paceLog: [],
   forage: true,
+  hired: null,
 }
 const withCon = (id: string, con: number) =>
   makeCharacter({ id, name: id, abilities: { str: 10, dex: 10, con, int: 10, wis: 10, cha: 10 } })

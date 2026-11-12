@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   AbilitySchema,
   AbilityScoresSchema,
+  ContractKindSchema,
   GoodSchema,
   IdSchema,
   LogToneSchema,
@@ -128,10 +129,7 @@ export const SkillUseSchema = z.object({
 })
 export type SkillUse = z.infer<typeof SkillUseSchema>
 
-/**
- * Goods carried, by good. Only the essentials exist so far (GOODS); Plan 4 adds the rest of the
- * 15, and a good that is missing counts as 0, so saves keep loading.
- */
+/** Goods carried, by good (all 15 of GOODS). A good that is missing counts as 0. */
 export const GoodsSchema = z.partialRecord(GoodSchema, z.number().int().min(0))
 export type Goods = z.infer<typeof GoodsSchema>
 
@@ -157,11 +155,71 @@ export const TravelStateSchema = z.object({
   paceLog: z.array(PaceDaySchema).default([]),
   /** The best-suited member forages for water (and food) each day on land (design §7). */
   forage: z.boolean().default(true),
+  /** Mounts hired for this journey (one per member), returned on arrival; null when on foot. */
+  hired: z
+    .object({ animal: IdSchema, count: z.number().int().min(1) })
+    .nullable()
+    .default(null),
 })
 export type TravelState = z.infer<typeof TravelStateSchema>
 
+/**
+ * The party's net trades with one good in one market, as of `day`: sales positive, purchases
+ * negative. How far the market has recovered since is derived (economy/market.ts).
+ */
+export const MarketTradeSchema = z.object({
+  units: z.number().int(),
+  day: z.number().int().min(1),
+})
+export type MarketTrade = z.infer<typeof MarketTradeSchema>
+
+/** A price the party knows: what a market buys (sell to it) and sells (buy from it) for. */
+export const KnownPriceSchema = z.object({
+  buy: z.number().min(0).nullable().describe('What the party pays per unit; null if not sold'),
+  sell: z.number().min(0).nullable().describe('What the party gets per unit; null if not bought'),
+})
+export type KnownPrice = z.infer<typeof KnownPriceSchema>
+
+/** One market's prices as the party last saw (or heard) them. */
+export const PriceBookEntrySchema = z.object({
+  /** The day the prices were true: seen on arrival, or dated back by distance when heard. */
+  day: z.number().int().min(1),
+  /** Heard from rumours or couriers (and maybe wrong), not seen. */
+  heard: z.boolean(),
+  prices: z.partialRecord(GoodSchema, KnownPriceSchema),
+})
+export type PriceBookEntry = z.infer<typeof PriceBookEntrySchema>
+
+/** Reputation points with settlements and notable people; standing tiers are derived. */
+export const ReputationSchema = z.object({
+  settlements: z.record(IdSchema, z.number().int()).default({}),
+  people: z.record(IdSchema, z.number().int()).default({}),
+})
+export type Reputation = z.infer<typeof ReputationSchema>
+
+/** An accepted contract (design §8). */
+export const ContractStateSchema = z.object({
+  /** The offer id, e.g. "c-norrikk-2-w3-1" (settlement, week, slot). */
+  id: z.string(),
+  template: IdSchema,
+  kind: ContractKindSchema,
+  patron: IdSchema.describe('The person who posted it'),
+  from: IdSchema.describe('The settlement it was taken in'),
+  to: IdSchema.describe('Where it is delivered or reported: a bounty or errand reports to `from`'),
+  good: GoodSchema.nullable(),
+  amount: z.number().int().min(0),
+  poi: IdSchema.nullable().describe('The site a bounty or errand sends the party to'),
+  passengers: z.number().int().min(0),
+  accepted: z.number().int().min(1).describe('The day it was accepted'),
+  deadline: z.number().int().min(1).describe('The last day it can be completed'),
+  pay: z.number().int().min(0).describe('gp on completion'),
+  urgent: z.boolean(),
+  reputation: z.object({ patron: z.number().int(), settlement: z.number().int() }),
+})
+export type ContractState = z.infer<typeof ContractStateSchema>
+
 export const GameStateSchema = z.object({
-  version: z.literal(5),
+  version: z.literal(6),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -183,5 +241,22 @@ export const GameStateSchema = z.object({
   goods: GoodsSchema,
   /** Extra waterskins bought in town, on top of each member's own (WATERSKIN_WATER in engine/constants.ts). */
   waterskins: z.number().int().min(0).default(0),
+  /** The party's net trades by market (settlement id) and good. */
+  markets: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
+  /** The prices the party knows, by settlement id. */
+  priceBook: z.record(IdSchema, PriceBookEntrySchema).default({}),
+  /** The fraction of a unit of each good that has spoiled but not yet been lost (0–1). */
+  spoilage: z.partialRecord(GoodSchema, z.number().min(0).max(1)).default({}),
+  /** Owned animals and carts by animals id (bought; hired mounts are in travel.hired). */
+  animals: z.record(IdSchema, z.number().int().min(0)).default({}),
+  /** Upkeep for owned animals (gp) that went unpaid for lack of coin. */
+  upkeepOwed: z.number().min(0).default(0),
+  reputation: ReputationSchema.default({ settlements: {}, people: {} }),
+  /** Accepted contracts, in progress. */
+  contracts: z.array(ContractStateSchema).default([]),
+  /** Offer ids accepted, so a board never offers them again. */
+  contractsTaken: z.array(z.string()).default([]),
+  /** Once-per-arrival actions taken here, e.g. "rumours" or "bless:<service>". Cleared on arrival. */
+  doneHere: z.array(z.string()).default([]),
 })
 export type GameState = z.infer<typeof GameStateSchema>

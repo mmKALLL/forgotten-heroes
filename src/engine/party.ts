@@ -2,6 +2,7 @@ import { sortedEntries, type Content } from '../content/build'
 import type { Character } from '../schema/state'
 import { withRng, type Rng } from './rng'
 import { ABILITIES } from './rules/abilities'
+import { personName } from './world/names'
 
 export type GenerateOptions = { classId?: string; ancestryId?: string }
 
@@ -28,11 +29,7 @@ export function generateCharacter(
     const abilities = { ...cls.baseAbilities }
     for (let i = 0; i < 3; i++) abilities[d.pick(ABILITIES)] += 1
 
-    const tables = sortedEntries(content.names)
-    const matching = tables.filter((t) => t.ancestries.includes(ancestry.id))
-    const names = d.pick(matching.length > 0 ? matching : tables)
-    const given = d.pick(names.given)
-    const name = names.family.length > 0 ? `${given} ${d.pick(names.family)}` : given
+    const name = personName(d, content, ancestry.id)
 
     // Ported from the prototype: generous starting HP, since there is no full combat yet.
     const maxHp = Math.max(1, cls.hitDie * 2 + (abilities.con - 10) * 2)

@@ -240,6 +240,15 @@ export const SettlementStateSchema = z.object({
 })
 export type SettlementState = z.infer<typeof SettlementStateSchema>
 
+/** A notable person, generated with the world where their role fits (town/people.ts). */
+export const PersonStateSchema = z.object({
+  settlement: IdSchema.describe('Where they live'),
+  role: IdSchema.describe('A personRoles id'),
+  name: z.string(),
+  ancestry: IdSchema,
+})
+export type PersonState = z.infer<typeof PersonStateSchema>
+
 export const WorldStateSchema = z.object({
   seed: z.number().int().min(0).max(0xffffffff),
   kingdoms: z.array(KingdomSchema),
@@ -250,5 +259,7 @@ export const WorldStateSchema = z.object({
   /** Points of interest, by id ("poi-<n>"). */
   pois: z.record(IdSchema, PoiStateSchema),
   settlements: z.record(IdSchema, SettlementStateSchema),
+  /** Notable people, by id ("p-<settlement>-<role>"). Rolled last, from their own stream. */
+  people: z.record(IdSchema, PersonStateSchema).default({}),
 })
 export type WorldState = z.infer<typeof WorldStateSchema>

@@ -53,6 +53,7 @@ describe('paceSince', () => {
     coverTracks: false,
     paceLog,
     forage: true,
+    hired: null,
   })
 
   test('every day since it was queued: earlier journeys, this one, and days standing still', () => {
@@ -111,6 +112,7 @@ describe('evadePursuit', () => {
         coverTracks: false,
         paceLog,
         forage: true,
+        hired: null,
       },
     }
     return { state, due }

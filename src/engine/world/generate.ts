@@ -1,6 +1,7 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
 import type { WorldState } from '../../schema/world'
 import { createRng, withRng } from '../rng'
+import { generatePeople } from '../town/people'
 import { generatePolitics } from './politics'
 import { domainThreatLevel, generatePois } from './pois'
 import { generateSettlements } from './settlements'
@@ -19,10 +20,11 @@ export const START_SALT = 0x57a27ed5
 
 /**
  * The political layer for a world seed, in one RNG stream: domain territory (from content), then
- * kingdoms, land threats and garrisons, then points of interest, then settlements. Pure.
+ * kingdoms, land threats and garrisons, then points of interest, then settlements. Notable people
+ * come last, from their own stream (town/people.ts). Pure.
  */
 export function generateWorld(seed: number, content: Content): WorldState {
-  return withRng(createRng(seed), (d) => {
+  const world = withRng(createRng(seed), (d) => {
     const usedNames = new Set<string>()
     const land = territory(content)
     const { kingdoms, lands, domains } = generatePolitics(d, content, land, usedNames)
@@ -35,6 +37,7 @@ export function generateWorld(seed: number, content: Content): WorldState {
     )
     return { seed, kingdoms, lands, domains, pois, settlements }
   })[0]
+  return { ...world, people: generatePeople(seed, content, world) }
 }
 
 /**

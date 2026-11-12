@@ -159,6 +159,17 @@ describe('continueJourney', () => {
     ])
   })
 
+  test('arriving, or turning back, clears the once-per-arrival actions', () => {
+    const here = at('greenvale-1', { doneHere: ['rumours', 'bless:church'] })
+    const out = encountersOn(
+      act(here, { type: 'travel', routeId: 'greenvale-1-greenvale-2', forage: false }),
+      []
+    )
+    expect(go(out).doneHere).toEqual([])
+    const lost = { ...out, travel: { ...out.travel!, route: 'path-poi-99-greenvale-2' } }
+    expect(go(lost)).toMatchObject({ location: 'greenvale-1', doneHere: [] })
+  })
+
   test('an encounter stops the march on its day; the road resumes once it is closed', () => {
     const out = encountersOn(travel(at('greenvale-1'), 'greenvale-1-greenvale-2'), [2])
     const met = go(out)

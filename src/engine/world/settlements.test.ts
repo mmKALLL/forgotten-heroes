@@ -141,6 +141,7 @@ describe('generateWorld', () => {
       domains: {},
       pois: {},
       settlements: {},
+      people: {},
     })
   })
 })
@@ -196,7 +197,15 @@ describe('startingSettlement', () => {
   })
 
   test('an empty world has no starting place', () => {
-    const empty = { seed: 1, kingdoms: [], lands: {}, domains: {}, pois: {}, settlements: {} }
+    const empty = {
+      seed: 1,
+      kingdoms: [],
+      lands: {},
+      domains: {},
+      pois: {},
+      settlements: {},
+      people: {},
+    }
     expect(startingSettlement(empty, content)).toBeNull()
     expect(startingSettlement(empty, content, 'random')).toBeNull()
   })

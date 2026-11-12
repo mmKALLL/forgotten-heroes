@@ -1,5 +1,6 @@
 import type { Content } from '../content/build'
 import { GameStateSchema, type GameState } from '../schema/state'
+import { generatePeople } from './town/people'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed } from './world/generate'
 
@@ -8,7 +9,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 5
+export const CURRENT_SAVE_VERSION = 6
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -94,6 +95,38 @@ export function v4ToV5(raw: Record<string, unknown>, content: Content): Record<s
 }
 
 /**
+ * v5 → v6 (Plan 4): the world's notable people, rolled from its seed and settlements just as a
+ * new game rolls them, and no trades, prices, reputation, contracts or animals yet. A journey
+ * under way has no hired mounts. Goods and waterskins stay as they are (the old goods are a
+ * subset of the 15).
+ */
+export function v5ToV6(raw: Record<string, unknown>, content: Content): Record<string, unknown> {
+  const world = raw.world as
+    | { seed?: unknown; settlements?: Parameters<typeof generatePeople>[2]['settlements'] }
+    | undefined
+  const travel = raw.travel as Record<string, unknown> | null | undefined
+  const people =
+    world && typeof world.seed === 'number' && world.settlements
+      ? generatePeople(world.seed, content, { settlements: world.settlements })
+      : {}
+  return {
+    ...raw,
+    version: 6,
+    world: world ? { ...world, people } : world,
+    travel: travel ? { ...travel, hired: null } : travel,
+    markets: {},
+    priceBook: {},
+    spoilage: {},
+    animals: {},
+    upkeepOwed: 0,
+    reputation: { settlements: {}, people: {} },
+    contracts: [],
+    contractsTaken: [],
+    doneHere: [],
+  }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -112,6 +145,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v3ToV4(raw as Record<string, unknown>, content), content)
     case 4:
       return migrate(v4ToV5(raw as Record<string, unknown>, content), content)
+    case 5:
+      return migrate(v5ToV6(raw as Record<string, unknown>, content), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:
