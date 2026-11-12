@@ -4,6 +4,7 @@ import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { allSituations } from '../encounters/compile'
 import { fitsPlace } from '../encounters/run'
+import { domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
 import {
   COVER_TRACKS_EXTRA_DAYS,
@@ -65,14 +66,14 @@ export const encounterChance = (
   )
 
 /**
- * True when some situation can be drawn on this route: one that fits its terrain and the region
+ * True when some situation can be drawn on this route: one that fits its terrain and the land
  * at either end (fitsPlace). At sea only `sea` situations can; site situations never count.
  */
 export function canMeetEncounters(
   content: Content,
   route: Pick<Route, 'from' | 'to' | 'terrain'>
 ): boolean {
-  const regions = [route.from, route.to]
+  const lands = [route.from, route.to]
     .filter((id) => Object.hasOwn(content.settlements, id))
     .map((id) => content.settlements[id].region)
   return allSituations(content).some(
@@ -80,7 +81,7 @@ export function canMeetEncounters(
       !s.followUpOnly &&
       !s.site &&
       s.weight > 0 &&
-      regions.some((region) => fitsPlace(s, { biome: route.terrain, region }))
+      lands.some((land) => fitsPlace(s, { biome: route.terrain, land }))
   )
 }
 
@@ -111,18 +112,16 @@ export function rollEncounterDays(
   return Array.from({ length: count }, () => d.int(1, days)).sort((a, b) => a - b)
 }
 
-/** The higher threat level of the regions at either end of a route. */
+/** The higher threat level of the domains at either end of a route (domainThreatLevel). */
 export function routeThreat(
   state: Pick<GameState, 'world'>,
-  content: Content,
+  _content: Content,
   route: Pick<Route, 'from' | 'to'>
 ): number {
-  const level = (id: string) => {
-    if (!Object.hasOwn(content.settlements, id)) return 0
-    const region = content.settlements[id].region
-    return Object.hasOwn(state.world.regions, region) ? state.world.regions[region].threatLevel : 0
-  }
-  return Math.max(level(route.from), level(route.to))
+  return Math.max(
+    domainThreatLevel(state.world, route.from),
+    domainThreatLevel(state.world, route.to)
+  )
 }
 
 /** Sea passage; the ship's speed doesn't depend on pace, so neither does the fare. */

@@ -4,7 +4,9 @@ import { WorldStateSchema } from '../../schema/world'
 import { createRng, withRng } from '../rng'
 import { fixtureContent } from '../test-fixtures'
 import { START_SALT, generateWorld, startingSettlement, worldSeed } from './generate'
-import { rollServices, sizeTierOf } from './settlements'
+import { domainThreatLevel } from './pois'
+import { RAMPANT_WEALTH, rollServices, sizeTierOf } from './settlements'
+import { territory } from './territory'
 
 const content = fixtureContent()
 const edit = (change: (c: Content) => void): Content => {
@@ -50,7 +52,7 @@ describe('generateWorld', () => {
   test('every marker becomes a settlement with a consistent type, size and services', () => {
     for (let seed = 0; seed < 30; seed++) {
       const world = generateWorld(seed, content)
-      const seats = new Set(world.kingdoms.map((k) => k.capital))
+      const seats = new Set(world.kingdoms.map((k) => k.seat))
       expect(Object.keys(world.settlements).sort()).toEqual(Object.keys(content.settlements).sort())
       for (const [id, s] of Object.entries(world.settlements)) {
         const site = content.settlements[id]
@@ -90,18 +92,60 @@ describe('generateWorld', () => {
     }
   })
 
+  test('holds lands, domains and points of interest, with seats as capitals', () => {
+    for (let seed = 0; seed < 20; seed++) {
+      const world = generateWorld(seed, content)
+      expect(Object.keys(world.lands).sort()).toEqual(Object.keys(content.regions).sort())
+      expect(Object.keys(world.domains).sort()).toEqual(Object.keys(content.settlements).sort())
+      const t = territory(content)
+      for (const poi of Object.values(world.pois)) expect(t.domainOf[poi.spot]).toBe(poi.domain)
+      for (const k of world.kingdoms) expect(world.settlements[k.seat].type).toBe('capital')
+    }
+  })
+
+  test('settlements in a rampant domain are poorer', () => {
+    // Only the threats' strength differs, so both worlds draw the same numbers.
+    const calm = edit((c) => {
+      for (const t of Object.values(c.threats)) t.strength = { min: 1, max: 1 }
+    })
+    const wild = edit((c) => {
+      for (const t of Object.values(c.threats)) t.strength = { min: 6, max: 6 }
+    })
+    let rampant = 0
+    for (let seed = 0; seed < 40; seed++) {
+      const a = generateWorld(seed, calm)
+      const b = generateWorld(seed, wild)
+      for (const id of Object.keys(a.settlements)) {
+        expect(domainThreatLevel(a, id)).toBeLessThan(3)
+        const poorer = domainThreatLevel(b, id) === 3
+        if (poorer) rampant++
+        expect(b.settlements[id].wealth).toBe(
+          Math.max(-4, a.settlements[id].wealth + (poorer ? RAMPANT_WEALTH : 0))
+        )
+      }
+    }
+    expect(rampant).toBeGreaterThan(0)
+  })
+
   test('an empty geography makes an empty world', () => {
     const empty = edit((c) => {
       c.regions = {}
       c.settlements = {}
       c.routes = {}
     })
-    expect(generateWorld(5, empty)).toEqual({ seed: 5, kingdoms: [], regions: {}, settlements: {} })
+    expect(generateWorld(5, empty)).toEqual({
+      seed: 5,
+      kingdoms: [],
+      lands: {},
+      domains: {},
+      pois: {},
+      settlements: {},
+    })
   })
 })
 
 describe('startingSettlement', () => {
-  test('is a small mainland settlement in the calmest region, the same for a world', () => {
+  test('is a small mainland settlement in the calmest domain, the same for a world', () => {
     for (let seed = 0; seed < 30; seed++) {
       const world = generateWorld(seed, content)
       const start = startingSettlement(world, content)!
@@ -115,7 +159,7 @@ describe('startingSettlement', () => {
           !['capital', 'city'].includes(world.settlements[id].type)
       )
       if (small.length > 0) expect(small).toContain(start)
-      const level = (id: string) => world.regions[content.settlements[id].region].threatLevel
+      const level = (id: string) => domainThreatLevel(world, id)
       const mainland = Object.keys(world.settlements).filter(
         (id) => content.settlements[id].island === 'mainland'
       )
@@ -151,7 +195,7 @@ describe('startingSettlement', () => {
   })
 
   test('an empty world has no starting place', () => {
-    const empty = { seed: 1, kingdoms: [], regions: {}, settlements: {} }
+    const empty = { seed: 1, kingdoms: [], lands: {}, domains: {}, pois: {}, settlements: {} }
     expect(startingSettlement(empty, content)).toBeNull()
     expect(startingSettlement(empty, content, 'random')).toBeNull()
   })

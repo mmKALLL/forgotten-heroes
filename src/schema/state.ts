@@ -131,7 +131,7 @@ export type SkillUse = z.infer<typeof SkillUseSchema>
 export const GoodsSchema = z.partialRecord(GoodSchema, z.number().int().min(0))
 export type Goods = z.infer<typeof GoodsSchema>
 
-/** A journey along one route, from settlement to settlement. */
+/** A journey along one route or path, between settlements and points of interest. */
 export const TravelStateSchema = z.object({
   route: IdSchema,
   from: IdSchema,
@@ -157,7 +157,7 @@ export const TravelStateSchema = z.object({
 export type TravelState = z.infer<typeof TravelStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(3),
+  version: z.literal(4),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -171,7 +171,7 @@ export const GameStateSchema = z.object({
   skillUses: z.array(SkillUseSchema),
   /** The political layer of this world, rolled from its seed (see generateWorld). */
   world: WorldStateSchema,
-  /** The settlement the party is in; null while on the road. */
+  /** The settlement or point of interest the party is at; null while on the road. */
   location: IdSchema.nullable(),
   travel: TravelStateSchema.nullable(),
   goods: GoodsSchema,

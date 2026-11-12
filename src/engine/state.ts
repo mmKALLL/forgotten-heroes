@@ -29,7 +29,7 @@ export type Action =
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
- * settlement in the calmest mainland region, or any mainland settlement.
+ * settlement in the calmest mainland domain, or any mainland settlement.
  */
 export function newGame(
   seed: number,

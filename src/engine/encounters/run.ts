@@ -61,44 +61,54 @@ const BUSY = 'Finish the current encounter first.'
 const UNFIT = 'No one is fit to travel on.'
 /** Logged when a cautious party steers clear of a hostile encounter. */
 export const WIDE_BERTH = 'You spot trouble ahead and give it a wide berth.'
-/** A twist kind tagged with the region, or with the threat holding it, weighs this much more. */
+/** A twist kind tagged with the land, or with the threat holding it, weighs this much more. */
 export const TWIST_PLACE_WEIGHT = 2
 
 /**
- * Where the party is when an encounter is drawn on the road, and, on a journey, how it is moving
- * (a cautious party avoids some hostile encounters).
+ * Where the party is when an encounter is drawn on the road: the terrain, the land (a `regions`
+ * id) and the domain (a settlement id), and, on a journey, how it is moving (a cautious party
+ * avoids some hostile encounters).
  */
-export type Place = { biome: Biome; region: string; pace?: Pace; coverTracks?: boolean }
-
-/** Untagged situations happen anywhere on land; at sea only those tagged "sea" do. */
-export function fitsPlace(
-  situation: Pick<Situation, 'biomes' | 'regions'>,
-  place: Pick<Place, 'biome' | 'region'>
-): boolean {
-  const biomes = situation.biomes ?? []
-  const regions = situation.regions ?? []
-  const biomeFits = biomes.length === 0 ? place.biome !== 'sea' : biomes.includes(place.biome)
-  return biomeFits && (regions.length === 0 || regions.includes(place.region))
+export type Place = {
+  biome: Biome
+  land: string
+  domain: string
+  pace?: Pace
+  coverTracks?: boolean
 }
 
-/** The threat holding a region in this world, or null. */
-const threatIn = (state: GameState, region: string | undefined): string | null =>
-  region !== undefined && Object.hasOwn(state.world.regions, region)
-    ? state.world.regions[region].threat
+/**
+ * Untagged situations happen anywhere on land; at sea only those tagged "sea" do. A situation's
+ * `regions` tag names lands.
+ */
+export function fitsPlace(
+  situation: Pick<Situation, 'biomes' | 'regions'>,
+  place: Pick<Place, 'biome' | 'land'>
+): boolean {
+  const biomes = situation.biomes ?? []
+  const lands = situation.regions ?? []
+  const biomeFits = biomes.length === 0 ? place.biome !== 'sea' : biomes.includes(place.biome)
+  return biomeFits && (lands.length === 0 || lands.includes(place.land))
+}
+
+/** The threat roaming a land in this world, or null. */
+const threatIn = (state: GameState, land: string | undefined): string | null =>
+  land !== undefined && Object.hasOwn(state.world.lands, land)
+    ? state.world.lands[land].threat
     : null
 
 /**
  * A twist kind's draw weight here: TWIST_PLACE_WEIGHT× when it fits the place, i.e. its tags name
- * the terrain, the region, or the threat holding the region.
+ * the terrain, the land, or the threat roaming the land.
  */
 export function twistKindWeight(
   kind: Pick<TwistKind, 'weight' | 'biomes' | 'regions' | 'threats'>,
-  place: Pick<Place, 'biome' | 'region'> | undefined,
+  place: Pick<Place, 'biome' | 'land'> | undefined,
   threat: string | null
 ): number {
   const fits =
     (place !== undefined &&
-      (kind.biomes.includes(place.biome) || kind.regions.includes(place.region))) ||
+      (kind.biomes.includes(place.biome) || kind.regions.includes(place.land))) ||
     (threat !== null && kind.threats.includes(threat))
   return fits ? kind.weight * TWIST_PLACE_WEIGHT : kind.weight
 }
@@ -134,7 +144,7 @@ export function startEncounter(
     const twist = compiled.twist ? d.float() < compiled.twist.chance : false
     const kinds = compiled.twist?.table ? twistKindsFor(content, compiled.twist) : []
     if (kinds.length === 0) return { slots, twist, kind: null as TwistKind | null }
-    const threat = threatIn(state, place?.region)
+    const threat = threatIn(state, place?.land)
     const kind = d.weighted(kinds, (k) => twistKindWeight(k, place, threat))
     const own = Object.fromEntries(
       Object.entries(kind.slots).filter(([name]) => !Object.hasOwn(compiled.slots, name))
@@ -180,7 +190,7 @@ export function startEncounter(
  * A due follow-up (wait 0) comes first, whatever the source filter or place, except that at sea
  * it waits for land unless its situation fits the sea; one whose situation no longer exists is
  * dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly or site situation.
- * On the road, `place` limits the pick to situations that fit its terrain and region (fitsPlace);
+ * On the road, `place` limits the pick to situations that fit its terrain and land (fitsPlace);
  * when none fits, nothing happens. A cautious party then skips a hostile pick with chance
  * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
  * starts moves the other queued follow-ups one closer (see startEncounter).

@@ -114,7 +114,9 @@ export function depart(
     const refused = stowawayRefusal(state, route)
     if (refused) return appendLog(state, refused, 'bad')
     const site = Object.hasOwn(content.settlements, here) ? content.settlements[here] : null
-    const place: Place | null = site ? { biome: route.terrain, region: site.region } : null
+    const place: Place | null = site
+      ? { biome: route.terrain, land: site.region, domain: here }
+      : null
     const { state: aboard, outcome, brawl } = stowAway(state, content, place)
     const out = setOut(aboard, content, route, here, options, STOWAWAY_PHRASE[outcome])
     if (!brawl) return out
@@ -189,8 +191,8 @@ function setOut(
 }
 
 /**
- * Where an encounter on this journey happens (the route's terrain and the nearer end's region),
- * and how the party is moving.
+ * Where an encounter on this journey happens (the route's terrain, and the land and domain of the
+ * nearer end), and how the party is moving.
  */
 export function placeOnRoute(content: Content, travel: TravelState): Place | null {
   const route = Object.hasOwn(content.routes, travel.route) ? content.routes[travel.route] : null
@@ -199,7 +201,8 @@ export function placeOnRoute(content: Content, travel: TravelState): Place | nul
   if (!route || !site) return null
   return {
     biome: route.terrain,
-    region: site.region,
+    land: site.region,
+    domain: end,
     pace: travel.pace,
     coverTracks: travel.coverTracks,
   }

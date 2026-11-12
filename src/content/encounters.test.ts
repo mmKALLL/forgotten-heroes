@@ -152,7 +152,9 @@ test('Claude wrote eight situations, two of them wonders, four at sea, plus foll
 })
 
 test('the sea has its own situations, and a hostile one for a stowaway brawl', () => {
-  const sea = { biome: 'sea', region: Object.keys(content.regions)[0] } as const
+  const land = Object.keys(content.regions)[0]
+  const domain = Object.values(content.settlements).find((s) => s.region === land)!.id
+  const sea = { biome: 'sea', land, domain } as const
   const atSea = allSituations(content).filter(
     (s) => !s.followUpOnly && s.weight > 0 && fitsPlace(s, sea)
   )

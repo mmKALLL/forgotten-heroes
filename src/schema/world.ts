@@ -210,25 +210,6 @@ export const PoiStateSchema = z.object({
 })
 export type PoiState = z.infer<typeof PoiStateSchema>
 
-/** The v3 kingdom over regions. Replaced by KingdomSchema in GameState v4. */
-export const RegionKingdomSchema = z.object({
-  id: IdSchema,
-  name: z.string(),
-  ancestry: IdSchema.describe('The ruling ancestry'),
-  capital: IdSchema.describe('The settlement that is its seat'),
-  regions: z.array(IdSchema).min(1),
-  defence: z.number().int().min(0).describe('Split evenly across its regions as garrisons'),
-})
-export type RegionKingdom = z.infer<typeof RegionKingdomSchema>
-
-export const RegionStateSchema = z.object({
-  kingdom: IdSchema,
-  threat: IdSchema,
-  threatStrength: z.number().int().min(1).max(6),
-  threatLevel: z.number().int().min(0).max(3).describe('How far the threat outweighs the garrison'),
-})
-export type RegionState = z.infer<typeof RegionStateSchema>
-
 export const SettlementStateSchema = z.object({
   name: z.string(),
   town: IdSchema.nullable().describe('The towns entry it is named after, for the banner'),
@@ -243,8 +224,13 @@ export type SettlementState = z.infer<typeof SettlementStateSchema>
 
 export const WorldStateSchema = z.object({
   seed: z.number().int().min(0).max(0xffffffff),
-  kingdoms: z.array(RegionKingdomSchema),
-  regions: z.record(IdSchema, RegionStateSchema),
+  kingdoms: z.array(KingdomSchema),
+  /** Each land (a map area, a `regions` entry) and the threat roaming it, by region id. */
+  lands: z.record(IdSchema, LandStateSchema),
+  /** Each domain (one per settlement), by settlement id. */
+  domains: z.record(IdSchema, DomainStateSchema),
+  /** Points of interest, by id ("poi-<n>"). */
+  pois: z.record(IdSchema, PoiStateSchema),
   settlements: z.record(IdSchema, SettlementStateSchema),
 })
 export type WorldState = z.infer<typeof WorldStateSchema>

@@ -5,6 +5,7 @@ import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'
 import { canAct } from '../rules/character'
 import { otherEnd, routesFrom, settlementName } from '../world/geo'
+import { domainThreatLevel } from '../world/pois'
 import { ambushPositionForPace, paceHostileAvoidance } from './pace'
 import {
   canMeetEncounters,
@@ -41,8 +42,12 @@ export type PlaceInfo = {
   /** 0 (outpost) to 5 (metropolis), by population; sizeLabel is its English name. */
   sizeTier: number
   population: number
-  regionName: string
+  /** The land (map area) it stands in. */
+  landName: string
   biome: Biome | null
+  /** Its domain: the settlement itself (design §6). */
+  domainId: string
+  /** The kingdom holding the domain. */
   kingdomName: string
   /** The ruling ancestry's name. */
   rulerAncestry: string
@@ -50,7 +55,9 @@ export type PlaceInfo = {
   ancestryName: string
   /** True for the kingdom's seat. */
   seat: boolean
+  /** The threat roaming the land. */
   threatName: string
+  /** The domain's threat level (domainThreatLevel): the land's threat and its lairs, against its garrison. */
   threatLevel: number
   services: { id: string; name: string }[]
   /** The town map, as a path under assets/, or null. */
@@ -62,9 +69,10 @@ export function placeInfo(state: GameState, content: Content, id: string): Place
   const site = own(content.settlements, id)
   const info = own(state.world.settlements, id)
   if (!site || !info) return null
-  const region = own(content.regions, site.region)
-  const regionState = own(state.world.regions, site.region)
-  const kingdom = state.world.kingdoms.find((k) => k.id === regionState?.kingdom)
+  const land = own(content.regions, site.region)
+  const landState = own(state.world.lands, site.region)
+  const domain = own(state.world.domains, id)
+  const kingdom = state.world.kingdoms.find((k) => k.id === domain?.kingdom)
   const ancestry = (aid: string | undefined) => own(content.ancestries, aid)?.name ?? aid ?? '?'
   return {
     id,
@@ -73,14 +81,15 @@ export function placeInfo(state: GameState, content: Content, id: string): Place
     sizeLabel: SIZE_LABELS[info.sizeTier],
     sizeTier: info.sizeTier,
     population: info.population,
-    regionName: region?.name ?? site.region,
-    biome: region?.biome ?? null,
+    landName: land?.name ?? site.region,
+    biome: land?.biome ?? null,
+    domainId: id,
     kingdomName: kingdom?.name ?? 'No kingdom',
     rulerAncestry: ancestry(kingdom?.ancestry),
     ancestryName: ancestry(info.ancestry),
-    seat: kingdom?.capital === id,
-    threatName: own(content.threats, regionState?.threat)?.name ?? 'None',
-    threatLevel: regionState?.threatLevel ?? 0,
+    seat: kingdom?.seat === id,
+    threatName: own(content.threats, landState?.threat)?.name ?? 'None',
+    threatLevel: domainThreatLevel(state.world, id),
     services: info.services.map((s) => ({ id: s, name: own(content.services, s)?.name ?? s })),
     banner: own(content.towns, info.town)?.banner ?? null,
     coastal: site.coastal,

@@ -446,10 +446,14 @@ describe('drawing for a place on the road', () => {
   const tagged = structuredClone(content)
   tagged.situations.cliff.biomes = ['hills', 'mountains']
   tagged.situations.roadside.regions = ['ashmoor']
-  const drawnIn = (biome: 'plains' | 'hills' | 'marsh', region: string) => {
+  const drawnIn = (biome: 'plains' | 'hills' | 'marsh', land: string) => {
     const seen = new Set<string>()
     for (let seed = 0; seed < 100; seed++) {
-      const state = drawEncounter(reseed(makeState(), seed), tagged, undefined, { biome, region })
+      const state = drawEncounter(reseed(makeState(), seed), tagged, undefined, {
+        biome,
+        land,
+        domain: `${land}-1`,
+      })
       if (state.encounter) seen.add(state.encounter.situation.id)
     }
     return seen
@@ -463,15 +467,21 @@ describe('drawing for a place on the road', () => {
 
   test('at sea only sea situations are drawn, and with none nothing happens', () => {
     const state = makeState()
-    expect(drawEncounter(state, tagged, undefined, { biome: 'sea', region: 'farisle' })).toBe(state)
-    expect(fitsPlace({ biomes: ['sea'] }, { biome: 'sea', region: 'farisle' })).toBe(true)
-    expect(fitsPlace({}, { biome: 'sea', region: 'farisle' })).toBe(false)
+    expect(
+      drawEncounter(state, tagged, undefined, {
+        biome: 'sea',
+        land: 'farisle',
+        domain: 'farisle-1',
+      })
+    ).toBe(state)
+    expect(fitsPlace({ biomes: ['sea'] }, { biome: 'sea', land: 'farisle' })).toBe(true)
+    expect(fitsPlace({}, { biome: 'sea', land: 'farisle' })).toBe(false)
   })
 
   test('a due follow-up comes first on land; at sea it waits for land unless it fits the sea', () => {
     const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] })
-    const sea = { biome: 'sea', region: 'farisle' } as const
-    const land = { biome: 'marsh', region: 'ashmoor' } as const
+    const sea = { biome: 'sea', land: 'farisle', domain: 'farisle-1' } as const
+    const land = { biome: 'marsh', land: 'ashmoor', domain: 'ashmoor-1' } as const
     expect(drawEncounter(due, tagged, undefined, land).encounter?.situation.id).toBe('grudge')
     // Nothing fits the sea: nothing happens, and the follow-up is still due.
     const waited = drawEncounter(due, tagged, undefined, sea)
@@ -500,7 +510,9 @@ describe('site situations', () => {
     const atSea = structuredClone(content)
     atSea.situations['orc-war-camp-raid'].biomes = ['sea']
     const state = makeState()
-    expect(drawEncounter(state, atSea, undefined, { biome: 'sea', region: 'farisle' })).toBe(state)
+    expect(
+      drawEncounter(state, atSea, undefined, { biome: 'sea', land: 'farisle', domain: 'farisle-1' })
+    ).toBe(state)
 
     // The deck's unplaced draw skips them too.
     const onlySites = structuredClone(content)
@@ -511,7 +523,8 @@ describe('site situations', () => {
     for (let seed = 0; seed < 200; seed++) {
       const drawn = drawEncounter(reseed(makeState(), seed), content, undefined, {
         biome: 'hills',
-        region: 'greenvale',
+        land: 'greenvale',
+        domain: 'greenvale-1',
       })
       expect(SITES).not.toContain(drawn.encounter?.situation.id)
     }
@@ -521,7 +534,9 @@ describe('site situations', () => {
     const aboard = structuredClone(content)
     aboard.situations['orc-war-camp-raid'].biomes = ['sea']
     aboard.situations['orc-war-camp-raid'].tags = [STOWAWAY_BRAWL_TAG]
-    expect(brawlCandidates(aboard, { biome: 'sea', region: 'farisle' })).toEqual([])
+    expect(brawlCandidates(aboard, { biome: 'sea', land: 'farisle', domain: 'farisle-1' })).toEqual(
+      []
+    )
   })
 
   test('a site can still be started directly', () => {
@@ -534,7 +549,7 @@ describe('a cautious party on the road', () => {
   const hostile = structuredClone(content)
   hostile.situations.cliff.disposition = 'hostile'
   hostile.situations.cliff.weight = 10
-  const hills = { biome: 'hills', region: 'greenvale' } as const
+  const hills = { biome: 'hills', land: 'greenvale', domain: 'greenvale-1' } as const
   const draws = (pace: 'cautious' | 'steady') =>
     Array.from({ length: 400 }, (_, seed) =>
       drawEncounter(reseed(makeState(), seed), hostile, undefined, {
@@ -579,19 +594,19 @@ describe('a cautious party on the road', () => {
 })
 
 describe('twist kinds that fit the place', () => {
-  const regions = makeState().world.regions
-  const threat = regions.ashmoor.threat
+  const lands = makeState().world.lands
+  const threat = lands.ashmoor.threat
   const byRegion = structuredClone(content)
   byRegion.twists.theft.regions = ['greenvale']
   const byThreat = structuredClone(content)
   byThreat.twists.ambush.threats = [threat]
 
-  test('kinds tagged with the region or its threat weigh more', () => {
+  test('kinds tagged with the land or its threat weigh more', () => {
     const { theft } = byRegion.twists
     const { ambush } = byThreat.twists
-    const greenvale = { biome: 'plains', region: 'greenvale' } as const
+    const greenvale = { biome: 'plains', land: 'greenvale', domain: 'greenvale-1' } as const
     expect(twistKindWeight(theft, greenvale, null)).toBe(theft.weight * TWIST_PLACE_WEIGHT)
-    expect(twistKindWeight(theft, { ...greenvale, region: 'ashmoor' }, null)).toBe(theft.weight)
+    expect(twistKindWeight(theft, { ...greenvale, land: 'ashmoor' }, null)).toBe(theft.weight)
     expect(twistKindWeight(ambush, greenvale, threat)).toBe(ambush.weight * TWIST_PLACE_WEIGHT)
     expect(twistKindWeight(ambush, undefined, null)).toBe(ambush.weight)
     // Terrain counts too, but tags never stack.
@@ -600,12 +615,13 @@ describe('twist kinds that fit the place', () => {
     expect(twistKindWeight(both, { ...greenvale, biome: 'hills' }, null)).toBe(ambush.weight)
   })
 
-  const thefts = (c: Content, region: string) => {
+  const thefts = (c: Content, land: string) => {
     let count = 0
     for (let seed = 0; seed < 300; seed++) {
       const state = startEncounter(reseed(makeState(), seed), c, 'stranger', {
         biome: 'plains',
-        region,
+        land,
+        domain: `${land}-1`,
       })
       if (state.encounter?.twistKind?.id === 'theft') count++
     }
@@ -616,7 +632,7 @@ describe('twist kinds that fit the place', () => {
     // Theft weighs 1 against ambush's 3; in Greenvale it weighs 2.
     expect(thefts(byRegion, 'greenvale')).toBeGreaterThan(thefts(byRegion, 'ashmoor') + 30)
     // Where Ashmoor's threat holds the roads, ambush weighs 6, so theft is rarer.
-    const elsewhere = Object.keys(regions).find((r) => regions[r].threat !== threat)
+    const elsewhere = Object.keys(lands).find((r) => lands[r].threat !== threat)
     if (elsewhere)
       expect(thefts(byThreat, 'ashmoor')).toBeLessThan(thefts(byThreat, elsewhere) - 15)
     expect(thefts(byThreat, 'ashmoor')).toBeLessThan(thefts(content, 'ashmoor') - 15)

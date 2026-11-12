@@ -92,7 +92,7 @@ export function PlacePanel({
       </p>
       <p className="muted small">
         {t('place.realm', {
-          region: here.regionName,
+          region: here.landName,
           kingdom: here.kingdomName,
           ancestry: here.rulerAncestry,
         })}
@@ -205,7 +205,7 @@ export function PlacePanel({
             {t('place.elsewhere', {
               name: elsewhere.name,
               type: elsewhere.typeName,
-              region: elsewhere.regionName,
+              region: elsewhere.landName,
               kingdom: elsewhere.kingdomName,
             })}{' '}
             ·{' '}
@@ -256,7 +256,7 @@ function RouteInfo({
       <h3>{t('route.heading', { name: road.toName })}</h3>
       {there && (
         <p className="small">
-          {there.typeName} · {there.regionName} · {there.kingdomName} ·{' '}
+          {there.typeName} · {there.landName} · {there.kingdomName} ·{' '}
           {t('place.threat', { threat: there.threatName, level: threatText(t, there.threatLevel) })}
         </p>
       )}
