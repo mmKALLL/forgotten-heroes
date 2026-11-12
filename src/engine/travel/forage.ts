@@ -3,7 +3,7 @@ import type { GameState } from '../../schema/state'
 import { chooseActor } from '../rules/character'
 import { rollCheck, tierOdds, TIERS } from '../rules/checks'
 import { useSkill } from '../rules/strain'
-import { goodsOf, waterCapacity, waterNeed } from './supplies'
+import { goodsOf, partyWaterCapacity, waterNeed } from './supplies'
 import { FORAGE_DC, FORAGE_PACE_MODIFIER } from './tuning'
 
 export const FORAGE_SKILL = 'survival' as const
@@ -109,7 +109,7 @@ export function forageDay(
   const [roll, rng] = rollCheck(state.rng, check.modifier, check.dc)
   const found = forageYield(roll.tier, state.party.length, terrain)
   const water = goodsOf(state.goods, 'water')
-  const kept = Math.max(water, Math.min(waterCapacity(state.party.length), water + found.water))
+  const kept = Math.max(water, Math.min(partyWaterCapacity(state), water + found.water))
   const { party, skillUses, strained } = useSkill(state, check.actorId, FORAGE_SKILL)
   const goods = {
     ...state.goods,

@@ -12,7 +12,21 @@ import {
 } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { FORCED_MARCH_DC } from './pace'
-import { buyFood, dailyNeed, journeySupplies, passDay, rest, runsShort } from './supplies'
+import {
+  buyFood,
+  buyWaterskin,
+  dailyNeed,
+  journeySupplies,
+  partyWaterCapacity,
+  passDay,
+  rest,
+  restOption,
+  runsShort,
+  saleValue,
+  sellSupplies,
+  waterCapacity,
+} from './supplies'
+import { LODGING_PRICE, WATERSKIN_PRICE, WATERSKIN_WATER, WATER_DAYS } from './tuning'
 
 const content = fixtureContent()
 const base = (overrides: Partial<GameState> = {}): GameState =>
@@ -157,23 +171,44 @@ describe('pace and supplies', () => {
 })
 
 describe('rest', () => {
-  test('a day in a settlement heals fully, eases exhaustion and refills the water', () => {
+  test('a day at an inn heals fully, eases exhaustion, refills the water and feeds the party', () => {
     const tired = base({
+      gold: 5,
       goods: { food: 10, water: 2 },
-      party: [{ ...brom, hp: 3, exhaustion: 2 }, lyra],
+      party: [{ ...brom, hp: 3, exhaustion: 2, strain: { survival: 1 } }, lyra],
     })
     const after = rest(tired, content)
     expect(after.day).toBe(2)
-    expect(after.party[0]).toMatchObject({ hp: 20, exhaustion: 1 })
+    expect(after.gold).toBe(5 - 2 * LODGING_PRICE)
+    expect(after.party[0]).toMatchObject({ hp: 20, exhaustion: 1, strain: {} })
+    expect(after.goods).toEqual({ food: 10, water: 8 })
+    expect(after.log.at(-1)!.text).toBe(
+      `The party rests a day at an inn in ${settlementName(after, 'greenvale-2')}: 2 gp, meals included.`
+    )
+    expect(restOption(tired)).toEqual({ inTown: true, lodgingCost: 2, lodging: true })
+  })
+
+  test('a party that can’t pay for lodging, or won’t, rests in town on its own food', () => {
+    const broke = base({ gold: 1, party: [{ ...brom, hp: 3 }, lyra] })
+    expect(restOption(broke)).toEqual({ inTown: true, lodgingCost: 2, lodging: false })
+    const after = rest(broke, content)
+    expect(after.gold).toBe(1)
+    expect(after.party[0].hp).toBe(20)
     expect(after.goods).toEqual({ food: 8, water: 8 })
     expect(after.log.at(-1)!.text).toBe(
-      `The party rests a day in ${settlementName(after, 'greenvale-2')}.`
+      `The party rests a day in ${settlementName(after, 'greenvale-2')}, eating its own food.`
     )
+    expect(rest(base({ gold: 20 }), content, false)).toMatchObject({
+      gold: 20,
+      goods: { food: 8 },
+    })
   })
 
   test('a day in camp heals a quarter of max HP and stays on the road', () => {
     const camp = base({ location: null, travel: onTheRoad, party: [{ ...brom, hp: 0 }, lyra] })
+    expect(restOption(camp)).toEqual({ inTown: false, lodgingCost: 0, lodging: false })
     const after = rest(camp, content)
+    expect(after.gold).toBe(camp.gold)
     expect(after.party[0].hp).toBe(5)
     expect(after.travel).toEqual(onTheRoad)
     expect(after.goods).toEqual({ food: 8, water: 6 })
@@ -206,5 +241,56 @@ describe('buyFood', () => {
     expect(buyFood(base({ gold: 0 }), 5).log.at(-1)!.text).toBe('Rations cost 1 gp each.')
     const road = base({ location: null, travel: onTheRoad })
     expect(buyFood(road, 5).log.at(-1)!.text).toBe('Food can only be bought in a settlement.')
+  })
+})
+
+describe('waterskins', () => {
+  test('each member carries WATER_DAYS of water; each extra waterskin adds WATERSKIN_WATER', () => {
+    expect(WATER_DAYS).toBe(4)
+    expect(waterCapacity(2)).toBe(8)
+    expect(waterCapacity(2, 3)).toBe(8 + 3 * WATERSKIN_WATER)
+    expect(partyWaterCapacity(base({ waterskins: 1 }))).toBe(10)
+  })
+
+  test('are bought in a settlement, as many as the gold allows, and filled', () => {
+    const after = buyWaterskin(base({ gold: 5, goods: { food: 10, water: 3 } }), 4)
+    expect(after).toMatchObject({ gold: 5 - 2 * WATERSKIN_PRICE, waterskins: 2 })
+    expect(after.goods).toEqual({ food: 10, water: 8 + 2 * WATERSKIN_WATER })
+    expect(after.log.at(-1)!.text).toBe('Bought 2 waterskins for 4 gp and filled them.')
+    expect(buyWaterskin(base({ gold: 1 })).log.at(-1)!.text).toBe('Waterskins cost 2 gp each.')
+    expect(buyWaterskin(base({ location: null, travel: onTheRoad })).log.at(-1)!.text).toBe(
+      'Waterskins can only be bought in a settlement.'
+    )
+  })
+
+  test('the extra water lasts the road and is refilled on arrival', () => {
+    const roomy = base({ waterskins: 2, goods: { food: 10, water: 12 } })
+    expect(passDay(roomy, 'plains').goods.water).toBe(10)
+    expect(buyFood(base({ waterskins: 2, goods: { water: 0 } }), 1).goods.water).toBe(12)
+  })
+})
+
+describe('sellSupplies', () => {
+  test('sells food and waterskins for half their price, rounded down', () => {
+    expect(saleValue(3, 0)).toBe(1)
+    expect(saleValue(3, 1)).toBe(2)
+    const after = sellSupplies(base({ gold: 0, waterskins: 2, goods: { food: 10, water: 12 } }), {
+      food: 4,
+      waterskins: 1,
+    })
+    expect(after).toMatchObject({ gold: 3, waterskins: 1, goods: { food: 6, water: 10 } })
+    expect(after.log.at(-1)!.text).toBe('Sold 4 rations and 1 waterskin for 3 gp.')
+  })
+
+  test('sells no more than the party has, and only in a settlement', () => {
+    expect(sellSupplies(base({ gold: 0 }), { food: 99, waterskins: 5 })).toMatchObject({
+      gold: 5,
+      waterskins: 0,
+      goods: { food: 0 },
+    })
+    expect(sellSupplies(base(), {}).log.at(-1)!.text).toBe('There is nothing to sell.')
+    expect(
+      sellSupplies(base({ location: null, travel: onTheRoad }), { food: 1 }).log.at(-1)!.text
+    ).toBe('Supplies can only be sold in a settlement.')
   })
 })

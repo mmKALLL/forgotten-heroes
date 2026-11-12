@@ -2,7 +2,7 @@ import type { Content } from '../../content/build'
 import type { Pace } from '../../schema/constants'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
-import { drawEncounter, inProgress, type Place } from '../encounters/run'
+import { drawEncounter, inProgress, startEncounter, type Place } from '../encounters/run'
 import { appendLog } from '../log'
 import { withRng } from '../rng'
 import { canAct } from '../rules/character'
@@ -20,7 +20,17 @@ import {
   routeTerrain,
   routeThreat,
 } from './routes'
-import { buyFood, passDay, refillWater, rest, runsShort } from './supplies'
+import {
+  buyFood,
+  buyWaterskin,
+  partyWaterCapacity,
+  passDay,
+  refillWater,
+  rest,
+  runsShort,
+  sellSupplies,
+} from './supplies'
+import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
 
 /**
  * The pace, covering tracks and foraging are chosen at departure only (design §7): no action
@@ -34,15 +44,20 @@ export type TravelAction =
       coverTracks?: boolean
       /** Forage each day on land (default true). */
       forage?: boolean
+      /** Sneak aboard a ship the party can't pay for (stowaway.ts). */
+      stowaway?: boolean
     }
   | { type: 'continueJourney' }
-  | { type: 'rest' }
+  | { type: 'rest'; lodging?: boolean }
   | { type: 'buyFood'; amount: number }
+  | { type: 'buyWaterskin'; count?: number }
+  | { type: 'sellSupplies'; food?: number; waterskins?: number }
 
 export type DepartOptions = {
   pace?: Pace
   coverTracks?: boolean
   forage?: boolean
+  stowaway?: boolean
 }
 
 const BUSY = 'Finish the current encounter first.'
@@ -73,7 +88,7 @@ export function paceFor(
 /**
  * Sets out from the current settlement along one of its routes, at a pace (steady by default),
  * foraging each day on land unless told not to. Covering tracks only counts at a cautious pace;
- * at sea the ship sets the pace.
+ * at sea the ship sets the pace. A party that can't pay a ship's fare may stow away instead.
  */
 export function depart(
   state: GameState,
@@ -95,13 +110,32 @@ export function depart(
     )
   }
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
+  if (options.stowaway) {
+    const refused = stowawayRefusal(state, route)
+    if (refused) return appendLog(state, refused, 'bad')
+    const site = Object.hasOwn(content.settlements, here) ? content.settlements[here] : null
+    const place: Place | null = site ? { biome: route.terrain, region: site.region } : null
+    const { state: aboard, outcome, brawl } = stowAway(state, content, place)
+    const out = setOut(aboard, content, route, here, options, STOWAWAY_PHRASE[outcome])
+    if (!brawl) return out
+    const at = placeOnRoute(content, out.travel!) ?? place ?? undefined
+    return startEncounter(out, content, brawl, at)
+  }
   const fare = fareFor(route, state.party.length)
   if (state.gold < fare) return appendLog(state, `Passage costs ${fare} gp.`, 'bad')
   const passage = fare > 0 ? `, ${fare} gp passage` : ''
   return setOut({ ...state, gold: state.gold - fare }, content, route, here, options, passage)
 }
 
-/** Starts the journey itself, once the fare is paid. */
+/** How the departure line ends for a stowaway, by what happened on the gangplank. */
+const STOWAWAY_PHRASE: Readonly<Record<StowawayOutcome, string>> = {
+  unseen: ', hidden in the hold',
+  fined: ', below decks',
+  worked: ', working its passage',
+  brawl: ', below decks',
+}
+
+/** Starts the journey itself, once the fare (or the stowaway check) is settled. */
 function setOut(
   state: GameState,
   content: Content,
@@ -175,7 +209,7 @@ function arrive(state: GameState, content: Content): GameState {
     ...state,
     travel: null,
     location: travel.to,
-    goods: refillWater(state.goods, state.party.length),
+    goods: refillWater(state.goods, partyWaterCapacity(state)),
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }
   return appendLog(
@@ -301,8 +335,12 @@ export function stepTravel(state: GameState, action: TravelAction, content: Cont
     case 'continueJourney':
       return continueJourney(state, content)
     case 'rest':
-      return rest(state, content)
+      return rest(state, content, action.lodging)
     case 'buyFood':
       return buyFood(state, action.amount)
+    case 'buyWaterskin':
+      return buyWaterskin(state, action.count)
+    case 'sellSupplies':
+      return sellSupplies(state, action)
   }
 }

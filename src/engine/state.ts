@@ -55,6 +55,7 @@ export function newGame(
     location,
     travel: null,
     goods: startingGoods(party.length),
+    waterskins: 0,
   }
 }
 
@@ -82,6 +83,8 @@ export function step(state: GameState, action: Action, content: Content): GameSt
     case 'continueJourney':
     case 'rest':
     case 'buyFood':
+    case 'buyWaterskin':
+    case 'sellSupplies':
       return stepTravel(state, action, content)
     default:
       return stepEncounter(state, action, content)

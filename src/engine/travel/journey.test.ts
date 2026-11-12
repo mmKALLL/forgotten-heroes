@@ -207,8 +207,14 @@ describe('continueJourney', () => {
     }
   })
 
-  test('buying food is an action too', () => {
+  test('buying food and waterskins and selling supplies are actions too', () => {
     expect(act(at('greenvale-1', { gold: 10 }), { type: 'buyFood', amount: 2 }).gold).toBe(8)
+    const skins = act(at('greenvale-1', { gold: 10 }), { type: 'buyWaterskin', count: 2 })
+    expect(skins).toMatchObject({ gold: 6, waterskins: 2 })
+    expect(act(skins, { type: 'sellSupplies', waterskins: 2 })).toMatchObject({
+      gold: 8,
+      waterskins: 0,
+    })
   })
 })
 
@@ -393,6 +399,83 @@ describe('foraging', () => {
   })
 })
 
+describe('stowing away', () => {
+  const stow = (state: GameState, c: Content = content) =>
+    act(state, { type: 'travel', routeId: 'ashmoor-1-farisle-1', stowaway: true }, c)
+  /** The first seed whose stowaway roll lands on `tier`. */
+  const rolled = (tier: string, gold = 5, c: Content = content) => {
+    for (let seed = 0; seed < 500; seed++) {
+      const before = at('ashmoor-1', { gold, rng: createRng(seed) })
+      const after = stow(before, c)
+      if (after.lastRoll?.tier === tier) return { before, after }
+    }
+    throw new Error(`no seed rolls ${tier}`)
+  }
+
+  test('only on a ship the party can’t pay for', () => {
+    expect(
+      lastLine(
+        act(at('greenvale-1', { gold: 0 }), {
+          type: 'travel',
+          routeId: 'greenvale-1-greenvale-2',
+          stowaway: true,
+        })
+      )
+    ).toBe('Only a ship can be stowed away on.')
+    expect(lastLine(stow(at('ashmoor-1', { gold: 20 })))).toBe('The party can pay its passage.')
+  })
+
+  test('the stealthiest member sneaks aboard, and it counts as a use of Stealth', () => {
+    const { before, after } = rolled('success')
+    expect(after.lastRoll).toMatchObject({ stat: 'stealth', actorId: 'lyra', dc: 13 })
+    expect(after.skillUses).toEqual([{ day: before.day, characterId: 'lyra', skill: 'stealth' }])
+    expect(after.gold).toBe(5)
+    expect(after.travel).toMatchObject({ to: 'farisle-1', pace: 'steady' })
+    expect(texts(after)).toContain('The party slips aboard unseen.')
+    expect(lastLine(after)).toMatch(/, hidden in the hold\.$/)
+  })
+
+  test('caught with coin, the party is fined all of it and sails', () => {
+    const { after } = rolled('fail')
+    expect(after.gold).toBe(0)
+    expect(after.travel?.to).toBe('farisle-1')
+  })
+
+  test('caught with no coin, or at the gangplank, it works its passage off', () => {
+    for (const [tier, gold] of [
+      ['fail', 0],
+      ['partial', 5],
+    ] as const) {
+      const { before, after } = rolled(tier, gold)
+      expect(after.day).toBe(before.day + 2)
+      expect(after.gold).toBe(gold)
+      expect(after.party.find((c) => c.id === 'lyra')!.exhaustion).toBe(1)
+      expect(after.goods).toEqual(before.goods)
+      expect(after.travel?.to).toBe('farisle-1')
+      expect(lastLine(after)).toMatch(/, working its passage\.$/)
+    }
+  })
+
+  test('a critical failure is a brawl: a hostile sea situation tagged brawl, or a beating', () => {
+    const beaten = rolled('critFail')
+    const hurt = beaten.before.party[1].hp - beaten.after.party[1].hp
+    expect(hurt).toBeGreaterThanOrEqual(3)
+    expect(hurt).toBeLessThanOrEqual(8)
+    expect(beaten.after.travel?.to).toBe('farisle-1')
+    expect(beaten.after.encounter).toBeNull()
+
+    const rowdy = structuredClone(content)
+    Object.assign(rowdy.situations.cliff, {
+      tags: ['brawl'],
+      biomes: ['sea'],
+      disposition: 'hostile',
+    })
+    const brawl = rolled('critFail', 5, rowdy).after
+    expect(brawl.encounter?.situation.id).toBe('cliff')
+    expect(brawl.travel?.to).toBe('farisle-1')
+  })
+})
+
 describe('pace is set at departure', () => {
   test('nothing on the road changes the pace, covering tracks or foraging', () => {
     const out = encountersOn(
@@ -414,7 +497,7 @@ describe('pace is set at departure', () => {
     expect(lastLine(again)).toBe('The party is already on the road.')
     const set = { pace: 'cautious', coverTracks: true, forage: false }
     expect(again.travel).toMatchObject(set)
-    expect(act(out, { type: 'rest' }).travel).toMatchObject(set)
+    expect(act(out, { type: 'rest', lodging: true }).travel).toMatchObject(set)
     const met = go(encountersOn(act(out, { type: 'rest' }), [2]))
     expect(met.travel).toMatchObject(set)
     expect(met.travel!.paceLog.map((d) => [d.pace, d.coverTracks])).toEqual([

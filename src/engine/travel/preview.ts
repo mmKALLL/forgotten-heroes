@@ -14,7 +14,7 @@ import {
   routeTerrain,
   routeThreat,
 } from './routes'
-import { goodsOf, journeySupplies, waterCapacity, waterNeed } from './supplies'
+import { goodsOf, journeySupplies, partyWaterCapacity, waterNeed } from './supplies'
 
 export const DANGER_LABELS = ['Safe', 'Watchful', 'Dangerous', 'Deadly'] as const
 export const THREAT_LABELS = ['Held', 'Stirring', 'Rising', 'Rampant'] as const
@@ -237,7 +237,7 @@ export function suppliesInfo(state: GameState, terrain: Biome | null = null): Su
   return {
     food,
     water,
-    waterCapacity: waterCapacity(state.party.length),
+    waterCapacity: partyWaterCapacity(state),
     foodDays: Math.floor(food / members),
     waterDays: Math.floor(water / (members * waterNeed(terrain))),
   }

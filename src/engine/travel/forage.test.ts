@@ -115,6 +115,8 @@ describe('forageDay', () => {
     const { state, result } = forageDay(full, 'plains', 'steady')
     expect(state.goods.water).toBe(8)
     expect(result).toMatchObject({ water: 1, wasted: 1 })
+    const roomy = seeded('success', { goods: { food: 4, water: 7 }, waterskins: 1 })
+    expect(forageDay(roomy, 'plains', 'steady').state.goods.water).toBe(9)
   })
 
   test('foraging every day on top of other Survival checks strains the forager', () => {

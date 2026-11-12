@@ -100,6 +100,7 @@ function migrated() {
     location: startingSettlement(world, content),
     travel: null,
     goods: { food: 5, water: 4 },
+    waterskins: 0,
   }
 }
 
