@@ -5,6 +5,7 @@ import { goodsValue } from './goods'
 import {
   PURSE_FREE_PER_MEMBER,
   PURSE_SHARE,
+  WEALTH_HOSTILE_PER_STEP,
   WEALTH_MAX_STEPS,
   WEALTH_STEP_GP,
   WEALTH_TAG_WEIGHT,
@@ -23,6 +24,11 @@ export type VisibleWealth = {
   perMember: number
   /** 0 to WEALTH_MAX_STEPS: one per WEALTH_STEP_GP per member. */
   steps: number
+  /**
+   * What it adds to the share of hostile encounters on the road (HostileShare.wealth, before the
+   * clamp and the pace's avoidance): WEALTH_HOSTILE_PER_STEP per step. For the goods bar's %.
+   */
+  hostile: number
 }
 
 export function visibleWealth(
@@ -35,7 +41,7 @@ export function visibleWealth(
   const value = precious + purse
   const perMember = value / members
   const steps = Math.min(WEALTH_MAX_STEPS, Math.max(0, Math.floor(perMember / WEALTH_STEP_GP)))
-  return { value, precious, purse, perMember, steps }
+  return { value, precious, purse, perMember, steps, hostile: WEALTH_HOSTILE_PER_STEP * steps }
 }
 
 /** True for situations visible wealth makes likelier: thieves and tolls (WEALTH_TAGS). */

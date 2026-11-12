@@ -105,6 +105,8 @@ export type Offer = {
   forcedDays: number
   /** Days from acceptance to the deadline (the last day it can be met). */
   days: number
+  /** The deadline if taken today (an absolute day): today + `days`. */
+  deadline: number
   pay: number
   /** Only met at a brisk pace or on a forced march. */
   urgent: boolean
@@ -362,6 +364,7 @@ function makeOffer(
     steadyDays: target.reach.days,
     forcedDays: target.reach.forcedDays,
     days,
+    deadline: state.day + days,
     pay,
     urgent,
     reputation: { ...template.reputation },
@@ -487,7 +490,7 @@ export function acceptContract(state: GameState, content: Content, offerId: stri
     poi: offer.poi,
     passengers: offer.passengers,
     accepted: state.day,
-    deadline: state.day + offer.days,
+    deadline: offer.deadline,
     pay: offer.pay,
     urgent: offer.urgent,
     reputation: offer.reputation,

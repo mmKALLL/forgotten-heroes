@@ -100,7 +100,10 @@ describe('noticeBoard', () => {
     const s = at(HERE)
     const week = noticeBoard({ ...s, day: 8 }, content, HERE)
     expect(week.length).toBeGreaterThan(0)
-    expect(noticeBoard({ ...s, day: 14 }, content, HERE)).toEqual(week)
+    // The same offers; only the deadline if taken today moves with the day.
+    expect(noticeBoard({ ...s, day: 14 }, content, HERE)).toEqual(
+      week.map((o) => ({ ...o, deadline: o.deadline + 6 }))
+    )
     const weeks = new Set(
       Array.from({ length: 8 }, (_, w) =>
         signature(noticeBoard({ ...s, day: w * 7 + 1 }, content, HERE))
@@ -123,6 +126,7 @@ describe('noticeBoard', () => {
           expect(o.days).toBeGreaterThanOrEqual(o.forcedDays)
         } else expect(o.days).toBeGreaterThanOrEqual(o.steadyDays)
         expect(o.locked === null).toBe(!t.minStanding)
+        expect(o.deadline).toBe(w * 7 + 1 + o.days)
       }
     }
   })
