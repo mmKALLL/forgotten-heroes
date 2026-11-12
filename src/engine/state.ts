@@ -24,6 +24,7 @@ import { generateWorld, startingSettlement, worldSeed, type StartMode } from './
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
+import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
@@ -52,6 +53,8 @@ export type Action =
   | ({ type: 'provision' } & ProvisionFor)
   /** Rest a day on arrival if hurt or strained: at an inn if affordable (town/arrival.ts). */
   | { type: 'autoRest' }
+  /** Buy, sell, wear or take off an accessory (gear/accessories.ts). */
+  | AccessoryAction
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -195,6 +198,11 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return provision(state, content, action)
     case 'autoRest':
       return autoRest(state, content)
+    case 'buyAccessory':
+    case 'sellAccessory':
+    case 'equipAccessory':
+    case 'unequipAccessory':
+      return stepAccessory(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

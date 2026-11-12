@@ -414,6 +414,10 @@ export const EXPLORE_FINDS: Readonly<Record<Tier, { found: number; extraDays: nu
 
 /** A sale with a `sellBonus` hook never pays more than this × the middle price (no arbitrage). */
 export const SELL_BONUS_CAP = 1
+/** A shop sells accessories back to the party at this share of their value. */
+export const ACCESSORY_RESALE = 0.5
+/** The chance each offer of a shop that sells tier 2 (Magic Items) is tier 2 rather than 1. */
+export const ACCESSORY_SHOP_FINE_CHANCE = 0.35
 
 // Strain (strain.ts)
 

@@ -19,6 +19,9 @@ The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`]
 | `data/claude/person-roles.json` | `weight`, `minSize`, `service` per role | Which notable people a settlement has |
 | `data/claude/contracts.json` | `km`, `amount`, `passengers`, `urgentChance`, `pay`, `reputation`, `minSize`, `minStanding` per template | Notice-board contracts: how far they send the party, how much cargo, how often they are urgent, the pay multiplier and the reputation they earn |
 | `data/claude/poi-situations.json` | precious `goods` amounts in lair-leader and vault outcomes | How much dungeon and lair loot comes as relics, gems and luxuries rather than gold |
+| `data/claude/service-roles.json` | `accessories.offers` and `accessories.maxTier` (Magic Items, finesmith) | How many accessories a shop offers a week and the best tier it sells |
+| `data/procedural/accessories.json` | `weight`, `minTier`, `value`, `bases` and the hook's amount per part | How often each base and affix is rolled, which tier it needs, what it adds to the price, which bases it fits and how strong its rule hook is |
+| `data/claude/poi-situations.json` | `accessory` effects (and their `tier`) in lair and dungeon clearings | Where accessories drop as loot |
 
 Encounter odds and rewards live in the situations themselves (`situations.json` files in every source).
 

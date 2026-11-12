@@ -14,6 +14,7 @@ import { domainAt, poisToDiscover } from '../world/pois'
 import { changeGoods } from '../economy/goods'
 import { changeAnimals } from '../town/animals'
 import { siteContractsMet } from '../town/contract-hooks'
+import { describeAccessory, lootAccessory } from '../gear/accessories'
 
 export { MAX_EXHAUSTION }
 
@@ -223,8 +224,13 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     // Plan 5a: the schema exists so content can use them; each track wires its own case.
     case 'xp': // A2: grantXp
     case 'camaraderie': // B2
-    case 'accessory': // C2: rollAccessory into gear
       return state
+    case 'accessory': {
+      // Loot: one rolled into the party's gear (gear/accessories.ts). Without content, nothing.
+      const looted = ctx.content ? lootAccessory(state, ctx.content, effect.tier) : null
+      if (!looted) return state
+      return note(looted.state, `Found: ${describeAccessory(looted.accessory)}.`, 'good')
+    }
   }
 }
 

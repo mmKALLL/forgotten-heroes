@@ -1,0 +1,251 @@
+{
+  "$schema": "../_schema/accessoryParts.schema.json",
+  "kind": "accessoryParts",
+  "source": "procedural",
+  "notes": "The affix tables accessories are rolled from (Plan 5a, design §4): a base, then one affix at tier 1 (a prefix or a suffix: \"Fox-eyed Ring\", \"Ring of the Long Road\") or, at tier 2, a tier-2 affix and an affix of the other part with a different hook kind (\"Tireless Boots of the Mule\"). Each affix carries one rule hook (src/engine/gear/hooks.ts). `bases` limits an affix to some bases; `minTier: 2` keeps an affix off tier-1 accessories. Values are in gp: a tier-1 accessory comes to about 30–80 gp, a tier-2 one about 120–250 gp (low-end only). Every hook kind appears at least once (a content test checks this). Original names only. Written by Claude; add rows freely.",
+  "entries": [
+    { "id": "ring", "part": "base", "name": "Ring", "weight": 3, "value": 10 },
+    { "id": "amulet", "part": "base", "name": "Amulet", "weight": 2, "value": 15 },
+    { "id": "cloak", "part": "base", "name": "Cloak", "weight": 2, "value": 12 },
+    { "id": "boots", "part": "base", "name": "Boots", "weight": 2, "value": 12 },
+    { "id": "charm", "part": "base", "name": "Charm", "weight": 2, "value": 5 },
+    { "id": "brooch", "part": "base", "name": "Brooch", "weight": 1, "value": 10 },
+    { "id": "belt", "part": "base", "name": "Belt", "weight": 1, "value": 8 },
+    { "id": "gloves", "part": "base", "name": "Gloves", "weight": 1, "value": 8 },
+
+    {
+      "id": "fox-eyed",
+      "part": "prefix",
+      "name": "Fox-eyed",
+      "value": 40,
+      "hook": { "hook": "skill", "skill": "perception", "amount": 1 }
+    },
+    {
+      "id": "silver-tongued",
+      "part": "prefix",
+      "name": "Silver-tongued",
+      "value": 40,
+      "hook": { "hook": "skill", "skill": "persuasion", "amount": 1 },
+      "bases": ["ring", "amulet", "charm", "brooch"]
+    },
+    {
+      "id": "steady-handed",
+      "part": "prefix",
+      "name": "Steady-handed",
+      "value": 35,
+      "hook": { "hook": "skill", "skill": "medicine", "amount": 1 },
+      "bases": ["ring", "gloves", "charm", "amulet"]
+    },
+    {
+      "id": "sure-footed",
+      "part": "prefix",
+      "name": "Sure-footed",
+      "value": 35,
+      "hook": { "hook": "skill", "skill": "acrobatics", "amount": 1 },
+      "bases": ["boots"]
+    },
+    {
+      "id": "brawlers",
+      "part": "prefix",
+      "name": "Brawler's",
+      "value": 35,
+      "hook": { "hook": "skill", "skill": "athletics", "amount": 1 },
+      "bases": ["gloves", "belt"]
+    },
+    {
+      "id": "wayfinders",
+      "part": "prefix",
+      "name": "Wayfinder's",
+      "value": 40,
+      "hook": { "hook": "skill", "skill": "survival", "amount": 1 }
+    },
+    {
+      "id": "shadowed",
+      "part": "prefix",
+      "name": "Shadowed",
+      "value": 40,
+      "hook": { "hook": "skill", "skill": "stealth", "amount": 1 },
+      "bases": ["cloak", "boots", "ring"]
+    },
+    {
+      "id": "hale",
+      "part": "prefix",
+      "name": "Hale",
+      "value": 35,
+      "hook": { "hook": "maxHp", "amount": 3 },
+      "bases": ["amulet", "belt", "charm", "brooch"]
+    },
+    {
+      "id": "quartermasters",
+      "part": "prefix",
+      "name": "Quartermaster's",
+      "value": 45,
+      "hook": { "hook": "sellBonus", "category": "equipment", "share": 0.1 },
+      "bases": ["ring", "brooch", "belt"]
+    },
+
+    {
+      "id": "of-the-long-road",
+      "part": "suffix",
+      "name": "of the Long Road",
+      "value": 35,
+      "hook": { "hook": "endurance", "amount": 1 }
+    },
+    {
+      "id": "of-the-mule",
+      "part": "suffix",
+      "name": "of the Mule",
+      "value": 30,
+      "hook": { "hook": "carry", "kg": 5 },
+      "bases": ["cloak", "belt", "boots"]
+    },
+    {
+      "id": "of-the-forager",
+      "part": "suffix",
+      "name": "of the Forager",
+      "value": 30,
+      "hook": { "hook": "activity", "activity": "forage", "amount": 2 }
+    },
+    {
+      "id": "of-the-woodwright",
+      "part": "suffix",
+      "name": "of the Woodwright",
+      "value": 30,
+      "hook": { "hook": "activity", "activity": "gather", "amount": 2 },
+      "bases": ["gloves", "belt", "boots", "charm"]
+    },
+    {
+      "id": "of-the-pathfinder",
+      "part": "suffix",
+      "name": "of the Pathfinder",
+      "value": 35,
+      "hook": { "hook": "activity", "activity": "explore", "amount": 2 }
+    },
+    {
+      "id": "of-the-taproom",
+      "part": "suffix",
+      "name": "of the Taproom",
+      "value": 30,
+      "hook": { "hook": "activity", "activity": "rumours", "amount": 2 },
+      "bases": ["ring", "brooch", "amulet", "charm"]
+    },
+    {
+      "id": "of-quiet-passage",
+      "part": "suffix",
+      "name": "of Quiet Passage",
+      "value": 30,
+      "hook": { "hook": "activity", "activity": "stowaway", "amount": 2 },
+      "bases": ["cloak", "boots", "charm"]
+    },
+    {
+      "id": "of-warding",
+      "part": "suffix",
+      "name": "of Warding",
+      "value": 45,
+      "hook": { "hook": "ward", "share": 0.03 }
+    },
+    {
+      "id": "of-the-appraiser",
+      "part": "suffix",
+      "name": "of the Appraiser",
+      "value": 45,
+      "hook": { "hook": "sellBonus", "category": "precious", "share": 0.1 },
+      "bases": ["ring", "brooch", "amulet", "gloves"]
+    },
+    {
+      "id": "of-the-teamster",
+      "part": "suffix",
+      "name": "of the Teamster",
+      "value": 40,
+      "hook": { "hook": "sellBonus", "category": "materials", "share": 0.1 },
+      "bases": ["belt", "gloves", "boots"]
+    },
+
+    {
+      "id": "eagle-eyed",
+      "part": "prefix",
+      "name": "Eagle-eyed",
+      "minTier": 2,
+      "value": 100,
+      "hook": { "hook": "skill", "skill": "perception", "amount": 2 }
+    },
+    {
+      "id": "honeyed",
+      "part": "prefix",
+      "name": "Honeyed",
+      "minTier": 2,
+      "value": 100,
+      "hook": { "hook": "skill", "skill": "persuasion", "amount": 2 },
+      "bases": ["ring", "amulet", "charm", "brooch"]
+    },
+    {
+      "id": "tireless",
+      "part": "prefix",
+      "name": "Tireless",
+      "minTier": 2,
+      "value": 110,
+      "hook": { "hook": "strainFade", "amount": 1 }
+    },
+    {
+      "id": "unflagging",
+      "part": "prefix",
+      "name": "Unflagging",
+      "minTier": 2,
+      "value": 95,
+      "hook": { "hook": "strainGrace", "amount": 1 }
+    },
+    {
+      "id": "stout",
+      "part": "prefix",
+      "name": "Stout",
+      "minTier": 2,
+      "value": 95,
+      "hook": { "hook": "maxHp", "amount": 8 },
+      "bases": ["amulet", "belt", "charm", "brooch"]
+    },
+    {
+      "id": "of-fortune",
+      "part": "suffix",
+      "name": "of Fortune",
+      "minTier": 2,
+      "weight": 0.75,
+      "value": 120,
+      "hook": { "hook": "lucky" }
+    },
+    {
+      "id": "of-the-ox",
+      "part": "suffix",
+      "name": "of the Ox",
+      "minTier": 2,
+      "value": 85,
+      "hook": { "hook": "carry", "kg": 15 },
+      "bases": ["cloak", "belt", "boots"]
+    },
+    {
+      "id": "of-the-sentinel",
+      "part": "suffix",
+      "name": "of the Sentinel",
+      "minTier": 2,
+      "value": 110,
+      "hook": { "hook": "ward", "share": 0.06 }
+    },
+    {
+      "id": "of-iron-guts",
+      "part": "suffix",
+      "name": "of Iron Guts",
+      "minTier": 2,
+      "value": 85,
+      "hook": { "hook": "endurance", "amount": 3 },
+      "bases": ["belt", "amulet", "charm"]
+    },
+    {
+      "id": "of-the-merchant-prince",
+      "part": "suffix",
+      "name": "of the Merchant Prince",
+      "minTier": 2,
+      "value": 110,
+      "hook": { "hook": "sellBonus", "category": "precious", "share": 0.2 },
+      "bases": ["ring", "brooch", "amulet"]
+    }
+  ]
+}
