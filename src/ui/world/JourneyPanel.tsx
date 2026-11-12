@@ -27,24 +27,17 @@ export function JourneyPanel({
     <section className="panel journey" aria-label={t('journey.heading')}>
       <h2>{t('journey.heading')}</h2>
       <p>{t('journey.route', { from: j.fromName, to: j.toName })}</p>
-      <div
-        className="progress"
-        role="progressbar"
-        aria-label={t('journey.progress')}
-        aria-valuemin={0}
-        aria-valuemax={j.km}
-        aria-valuenow={j.kmDone}
-        aria-valuetext={t('journey.progressValue', { done: j.kmDone, km: j.km })}
-      >
-        <span style={{ width: `${Math.min(100, (100 * j.kmDone) / j.km)}%` }} />
-      </div>
-      <p className="muted small">
+      {/* The party's marker on the map shows how far along the road it is. */}
+      <p className="small">
         {t('journey.days', {
           done: j.daysDone,
           days: j.days,
-          terrain: biomeText(t, j.terrain),
-          danger: dangerText(t, j.danger),
+          kmDone: j.kmDone,
+          km: j.km,
         })}
+      </p>
+      <p className="muted small">
+        {biomeText(t, j.terrain)} · {dangerText(t, j.danger)}
       </p>
       <p className="small">
         {sea

@@ -14,10 +14,11 @@ export const PACE_SPEED: Readonly<Record<Pace, number>> = {
 }
 
 /**
- * Added to the chance that each encounter slot above the minimum fills. Cautious keeps the usual
- * rate: it skips some hostile encounters instead (paceHostileAvoidance).
+ * Added to the share of a journey's encounters that are hostile (hostileShare in routes.ts): a
+ * hurried party is noticed. Cautious keeps the usual mix and skips some hostile encounters instead
+ * (paceHostileAvoidance).
  */
-export const PACE_ENCOUNTER_BONUS: Readonly<Record<Pace, number>> = {
+export const PACE_HOSTILE_BONUS: Readonly<Record<Pace, number>> = {
   cautious: 0,
   steady: 0,
   brisk: 0.1,
@@ -53,17 +54,19 @@ export const rationMultiplier = (pace: Pace): number =>
   pace === 'forced' ? 1 + FORCED_MARCH_EXTRA_RATIONS : 1
 
 /**
- * The footing an ambush meets the party on: cautious → normal, or Edge with covered tracks;
- * brisk and forced → Exposed; steady → whatever the encounter defines.
+ * The footing an ambush meets the party on: cautious → normal, or Edge with covered tracks (but
+ * not on a journey that forages: the foragers' trails give the party away); brisk and forced →
+ * Exposed; steady → whatever the encounter defines.
  */
 export function ambushPositionForPace(
   pace: Pace,
   coverTracks: boolean,
-  defined: Position = 'normal'
+  defined: Position = 'normal',
+  foraging = false
 ): Position {
   switch (pace) {
     case 'cautious':
-      return coversTracks(pace, coverTracks) ? 'edge' : 'normal'
+      return coversTracks(pace, coverTracks) && !foraging ? 'edge' : 'normal'
     case 'steady':
       return defined
     case 'brisk':

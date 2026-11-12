@@ -86,6 +86,20 @@ test('the developer tools start collapsed, and remember being opened', async () 
   expect(screen.getByRole('region', { name: 'Practice check' })).toBeTruthy()
 })
 
+test('the map sits in the left column under the party; the centre holds the settlement', async () => {
+  const { container } = render(<App />)
+  const [left, centre] = [container.querySelector('.left')!, container.querySelector('.centre')!]
+  const party = screen.getByRole('region', { name: 'Party' })
+  const map = screen.getByRole('region', { name: 'Altaeus' })
+  expect([...left.children]).toEqual([party, map])
+  expect(centre.contains(screen.getByRole('region', { name: 'Settlement' }))).toBe(true)
+  // An encounter takes the centre; the map stays in view.
+  const deck = within(screen.getByRole('region', { name: 'Encounter Deck' }))
+  await userEvent.click(deck.getByRole('button', { name: 'Play The flooded ferry' }))
+  expect(centre.contains(screen.getByRole('region', { name: 'Encounter' }))).toBe(true)
+  expect(left.contains(screen.getByRole('group', { name: 'Map of Altaeus' }))).toBe(true)
+})
+
 test('the party starts in a settlement on the map and can set out along a road', async () => {
   render(<App />)
   const map = within(screen.getByRole('group', { name: 'Map of Altaeus' }))

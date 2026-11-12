@@ -1,6 +1,6 @@
 import type { Content } from '../../content/build'
 import type { Biome, Pace, PoiCategory, Position } from '../../schema/constants'
-import type { GameState } from '../../schema/state'
+import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'
 import { canAct } from '../rules/character'
@@ -11,8 +11,10 @@ import { ambushPositionForPace, paceHostileAvoidance } from './pace'
 import {
   canMeetEncounters,
   fareFor,
+  hostileShare,
   journeyDays,
   routeEncounters,
+  type HostileShare,
   routeTerrain,
   routeThreat,
 } from './routes'
@@ -168,14 +170,24 @@ export type PaceOption = {
   forage: ForageCheck | null
   /** Supply and exhaustion warnings, as codes with params (warningText for English). */
   warnings: TravelWarning[]
-  /** The encounter budget, fewest to most. */
+  /** The encounter budget, fewest to most, rolled once at departure (at most one a day). */
   encounters: [number, number]
-  /** The chance each slot above the fewest fills. */
+  /** The chance each slot above the fewest fills (ENCOUNTER_SLOT_CHANCE, or 0). */
   chance: number
+  /** How likely each encounter is to be hostile, and what raises it (with foraging as chosen). */
+  hostile: HostileShare
   /** The share of hostile encounters the party steers clear of. */
   hostileAvoided: number
-  /** The footing an ambush meets the party on. */
+  /** The footing an ambush meets the party on (with foraging as chosen). */
   ambush: Position
+  /**
+   * What foraging changes at this pace, to explain the toggle: the hostile share and ambush
+   * footing with and without it. Null at sea, where no one forages.
+   */
+  forageTradeOff: {
+    foraging: { hostile: number; ambush: Position }
+    notForaging: { hostile: number; ambush: Position }
+  } | null
 }
 
 /** The paces a land road offers, in order; a sea crossing has only steady. */
@@ -194,9 +206,18 @@ function paceOptions(
   forage: boolean,
   meets: boolean
 ): PaceOption[] {
-  const paces = route.terrain === 'sea' ? LAND_PACES.filter(([p]) => p === 'steady') : LAND_PACES
+  const sea = route.terrain === 'sea'
+  const paces = sea ? LAND_PACES.filter(([p]) => p === 'steady') : LAND_PACES
   return paces.map(([pace, coverTracks]) => {
     const { days, water, food, warnings } = forecastJourney(state, route, pace, coverTracks, forage)
+    // As the journey would record it (depart): no foraging at sea.
+    const exposure = (foraging: boolean) => ({
+      hostile: hostileShare(route.danger, threatLevel, pace, foraging),
+      ambush: ambushPositionForPace(pace, coverTracks, 'normal', foraging),
+    })
+    const chosen = exposure(forage && !sea)
+    const on = exposure(true)
+    const off = exposure(false)
     return {
       pace,
       coverTracks,
@@ -205,9 +226,16 @@ function paceOptions(
       food,
       forage: forage ? forageCheck(state, route.terrain, pace) : null,
       warnings,
-      ...routeEncounters(meets, days, route.danger, threatLevel, pace),
+      ...routeEncounters(meets, days),
+      hostile: chosen.hostile,
       hostileAvoided: paceHostileAvoidance(pace),
-      ambush: ambushPositionForPace(pace, coverTracks),
+      ambush: chosen.ambush,
+      forageTradeOff: sea
+        ? null
+        : {
+            foraging: { hostile: on.hostile.share, ambush: on.ambush },
+            notForaging: { hostile: off.hostile.share, ambush: off.ambush },
+          },
     }
   })
 }
@@ -289,7 +317,7 @@ export function routeOptions(state: GameState, content: Content, forage = true):
       terrain: route.terrain,
       danger: route.danger,
       threatLevel,
-      ...routeEncounters(meets, days, route.danger, threatLevel),
+      ...routeEncounters(meets, days),
       fare,
       stowaway: busy ? null : stowawayCheck(state, route),
       paces: paceOptions(state, route, threatLevel, forage, meets),
@@ -307,6 +335,8 @@ export type JourneyInfo = {
   toName: string
   km: number
   kmDone: number
+  /** The share of the road travelled, 0 to 1 (journeyProgress). */
+  progress: number
   daysDone: number
   days: number
   terrain: Biome | null
@@ -316,6 +346,10 @@ export type JourneyInfo = {
   /** False during an encounter or when no one can walk on (then only camp helps). */
   canMove: boolean
 }
+
+/** How far along its road a journey is, as a share of the km from 0 (setting out) to 1 (there). */
+export const journeyProgress = (travel: Pick<TravelState, 'km' | 'kmDone'>): number =>
+  travel.km > 0 ? Math.min(1, Math.max(0, travel.kmDone / travel.km)) : 1
 
 export function journeyInfo(state: GameState, content: Content): JourneyInfo | null {
   const t = state.travel
@@ -327,6 +361,7 @@ export function journeyInfo(state: GameState, content: Content): JourneyInfo | n
     toName: settlementName(state, t.to),
     km: t.km,
     kmDone: Math.round(t.kmDone),
+    progress: journeyProgress(t),
     daysDone: t.daysDone,
     days: t.days,
     terrain: routeTerrain(state, content, t),

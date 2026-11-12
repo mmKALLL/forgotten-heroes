@@ -5,6 +5,7 @@ import { CAUTIOUS_HOSTILE_AVOIDANCE } from './pace'
 import {
   SEA_PACE_NOTE,
   journeyInfo,
+  journeyProgress,
   placeInfo,
   poiInfo,
   roadReasonText,
@@ -17,7 +18,8 @@ import type { PoiState } from '../../schema/world'
 import { FORAGE_DC, WATERSKIN_WATER } from './tuning'
 import { FORCED_MARCH_DC } from './pace'
 import { isSevere, warningText } from './warnings'
-import { encounterChance } from './routes'
+import { ENCOUNTER_SLOT_CHANCE, hostileShare } from './routes'
+import { placeOnRoute } from './journey'
 import { domainThreatLevel } from '../world/pois'
 
 const content = fixtureContent()
@@ -173,8 +175,7 @@ describe('routeOptions', () => {
     const [road] = routeOptions(makeState({ location: 'greenvale-1' }), content).filter(
       (o) => o.routeId === 'greenvale-1-greenvale-2'
     )
-    const chance = (pace: 'cautious' | 'steady' | 'brisk' | 'forced') =>
-      encounterChance(0, road.threatLevel, pace)
+    const chance = (_pace: string) => ENCOUNTER_SLOT_CHANCE
     expect(road.paceNote).toBeNull()
     expect(
       road.paces.map((p) => [
@@ -200,11 +201,83 @@ describe('routeOptions', () => {
         CAUTIOUS_HOSTILE_AVOIDANCE,
         'normal',
       ],
-      ['cautious', true, 5, 10, 10, [2, 4], chance('cautious'), CAUTIOUS_HOSTILE_AVOIDANCE, 'edge'],
+      [
+        'cautious',
+        true,
+        5,
+        10,
+        10,
+        [2, 4],
+        chance('cautious'),
+        CAUTIOUS_HOSTILE_AVOIDANCE,
+        'normal',
+      ],
       ['steady', false, 3, 6, 6, [1, 3], chance('steady'), 0, 'normal'],
       ['brisk', false, 2, 4, 4, [0, 2], chance('brisk'), 0, 'exposed'],
       ['forced', false, 2, 6, 6, [0, 2], chance('forced'), 0, 'exposed'],
     ])
+  })
+
+  describe('foraging draws attention', () => {
+    const at = makeState({ location: 'greenvale-1' })
+    const roadOf = (forage: boolean) =>
+      routeOptions(at, content, forage).find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+    const covered = (forage: boolean) =>
+      roadOf(forage).paces.find((p) => p.pace === 'cautious' && p.coverTracks)!
+
+    test('it raises the hostile share and costs covered tracks their Edge', () => {
+      const road = roadOf(true)
+      const on = covered(true)
+      const off = covered(false)
+      expect(on.hostile).toEqual(hostileShare(road.danger, road.threatLevel, 'cautious', true))
+      expect(off.hostile).toEqual(hostileShare(road.danger, road.threatLevel, 'cautious', false))
+      expect(on.hostile.share - off.hostile.share).toBeCloseTo(0.1)
+      expect([on.ambush, off.ambush]).toEqual(['normal', 'edge'])
+      // The toggle's explanation is the same either way round.
+      expect(on.forageTradeOff).toEqual(off.forageTradeOff)
+      expect(on.forageTradeOff).toEqual({
+        foraging: { hostile: on.hostile.share, ambush: 'normal' },
+        notForaging: { hostile: off.hostile.share, ambush: 'edge' },
+      })
+      // Not how many encounters: only what kind.
+      expect([on.encounters, on.chance]).toEqual([off.encounters, off.chance])
+    })
+
+    test('the preview is what the journey records, foraging or not', () => {
+      for (const forage of [true, false]) {
+        for (const option of roadOf(forage).paces) {
+          const out = step(
+            at,
+            {
+              type: 'travel',
+              routeId: 'greenvale-1-greenvale-2',
+              pace: option.pace,
+              coverTracks: option.coverTracks,
+              forage,
+            },
+            content
+          )
+          const place = placeOnRoute(out, content, out.travel!)!
+          expect(place.hostileShare).toBe(option.hostile.share)
+          const footing = step(
+            { ...out, travel: { ...out.travel!, encounterDays: [1] } },
+            { type: 'continueJourney' },
+            content
+          )
+          if (footing.encounter?.situation.disposition === 'hostile') {
+            expect(footing.encounter.position).toBe(option.ambush)
+          }
+          expect(out.travel!.encounterDays.length).toBeGreaterThanOrEqual(option.encounters[0])
+          expect(out.travel!.encounterDays.length).toBeLessThanOrEqual(option.encounters[1])
+        }
+      }
+    })
+
+    test('at sea no one forages, so the toggle changes nothing', () => {
+      const [sea] = routeOptions(makeState({ location: 'ashmoor-1', gold: 20 }), content, true)
+      expect(sea.paces[0].forageTradeOff).toBeNull()
+      expect(sea.paces[0].hostile.forage).toBe(0)
+    })
   })
 
   test('a road where nothing can be met promises no encounters', () => {
@@ -215,10 +288,7 @@ describe('routeOptions', () => {
     const salty = structuredClone(content)
     salty.situations.cliff.biomes = ['sea']
     const [shipped] = routeOptions(here, salty)
-    expect(shipped).toMatchObject({
-      encounters: [1, 3],
-      chance: encounterChance(1, sea.threatLevel),
-    })
+    expect(shipped).toMatchObject({ encounters: [1, 3], chance: ENCOUNTER_SLOT_CHANCE })
     expect(shipped.paces[0].encounters).toEqual([1, 3])
   })
 
@@ -282,6 +352,21 @@ describe('journeyInfo and suppliesInfo', () => {
       waterDays: 4,
     })
     expect(suppliesInfo(state, 'desert').waterDays).toBe(2)
+  })
+
+  test('progress is the share of the road travelled, from 0 to 1', () => {
+    expect(journeyProgress({ km: 75, kmDone: 0 })).toBe(0)
+    expect(journeyProgress({ km: 75, kmDone: 37.5 })).toBe(0.5)
+    expect(journeyProgress({ km: 75, kmDone: 90 })).toBe(1)
+    expect(journeyProgress({ km: 0, kmDone: 0 })).toBe(1)
+    const out = step(
+      makeState({ location: 'greenvale-1' }),
+      { type: 'travel', routeId: 'greenvale-1-greenvale-2' },
+      content
+    )
+    const walked = { ...out, travel: { ...out.travel!, kmDone: 30, daysDone: 1 } }
+    expect(journeyInfo(out, content)!.progress).toBe(0)
+    expect(journeyInfo(walked, content)!.progress).toBeCloseTo(0.4)
   })
 })
 
@@ -387,12 +472,11 @@ describe('supply forecasts and warnings', () => {
       },
     })
     expect(isSevere(deadly!)).toBe(true)
-    // The severe warning replaces the ordinary one for the same member.
+    // The severe warning replaces the ordinary one for the same member; the ordinary one then
+    // names the worst-off of the others.
     expect(
-      forced.warnings.filter(
-        (w) => w.code === 'forcedMarchExhaustion' && w.params.characterId === 'lyra'
-      )
-    ).toEqual([])
+      forced.warnings.filter((w) => w.code === 'forcedMarchExhaustion').map((w) => w.params)
+    ).toEqual([expect.objectContaining({ characterId: 'brom', name: 'Brom' })])
     expect(warningText(deadly!)).toBe(
       'A forced march of 4 days could kill Lyra (81% chance of reaching the sixth level of exhaustion).'
     )

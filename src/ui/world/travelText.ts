@@ -1,3 +1,4 @@
+import { formatPercent } from '../../engine/format'
 import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/preview'
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
 import type { TravelWarning } from '../../engine/travel/warnings'
@@ -19,6 +20,18 @@ export const paceFields = (choice: PaceChoice): { pace: Pace; coverTracks: boole
     : { pace: choice, coverTracks: false }
 
 type T = I18n['t']
+
+/**
+ * What makes up a road's hostile share, e.g. "25% base, +20% road danger, +10% foraging": the
+ * base and every part that adds something (the share is clamped, so they may not sum to it).
+ */
+export function hostileParts(t: T, option: Pick<PaceOption, 'hostile'>): string {
+  const h = option.hostile
+  const parts = (['danger', 'threat', 'forage', 'pace'] as const)
+    .filter((part) => h[part] !== 0)
+    .map((part) => t(`route.hostilePart.${part}`, { pct: formatPercent(h[part]) }))
+  return [t('route.hostilePart.base', { pct: formatPercent(h.base) }), ...parts].join(', ')
+}
 
 export const daysText = (t: T, n: number): string =>
   n === 1 ? t('count.day') : t('count.days', { n })

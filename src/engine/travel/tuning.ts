@@ -24,6 +24,12 @@ export const FORAGE_PACE_MODIFIER: Readonly<Record<Pace, number>> = {
   forced: -2,
 }
 
+/**
+ * Foraging draws attention: on a journey that forages, this is added to the share of encounters
+ * that are hostile (hostileShare in routes.ts), and covering tracks gives ambushes no Edge.
+ */
+export const FORAGE_HOSTILE_BONUS = 0.1
+
 /** Water each member carries without extra waterskins, in days of drinking. */
 export const WATER_DAYS = 4
 /** Each extra waterskin holds this many days of water for one member (units of water). */

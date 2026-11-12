@@ -2,7 +2,8 @@
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { afterEach, expect, test } from 'vitest'
+import { afterEach, describe, expect, test } from 'vitest'
+import { readFileSync } from 'node:fs'
 import { step, type Action } from '../../engine/state'
 import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../../engine/test-fixtures'
 import { SituationSchema } from '../../schema/encounter'
@@ -26,6 +27,7 @@ const card = (name: string) => screen.getByRole('article', { name })
 const outcomes = () => within(screen.getByRole('region', { name: 'Outcomes' }))
 const choose = (name: string) => screen.getByRole('button', { name: `Choose ${name}` })
 const checkLine = (name: string) => card(name).querySelector('.check-line')!.textContent
+const chooseTargets = () => screen.getAllByRole('button', { name: /^Choose / })
 
 test('shows the situation, its source, and every option compactly with its odds', () => {
   const state = started('roadside')
@@ -43,7 +45,9 @@ test('shows the situation, its source, and every option compactly with its odds'
   expect(read.queryByText(/Lyra reads them\./)).toBeNull()
   expect(within(card('Help them')).queryByText(/If it is a trap:/)).toBeNull()
   expect(within(card('Help them')).queryByText('−20 gp')).toBeNull()
-  expect(outcomes().getByText('Hover or focus an option to see its outcomes.')).toBeTruthy()
+  // The first option is focused, so the panel shows its outcomes.
+  expect(document.activeElement).toBe(chooseTargets()[0])
+  expect(outcomes().queryByText('Hover or focus an option to see its outcomes.')).toBeNull()
 })
 
 test("hovering an option's card shows its outcome tiers, and its twist, in the shared panel", async () => {
@@ -79,8 +83,8 @@ test('the outcomes panel shows no rows for the critical tiers, whose odds stay o
 test('focusing anything in a card shows its outcomes, and its choose target is described by the panel', async () => {
   render(<Harness initial={started('roadside')} />)
   const read = choose('Read them')
-  expect(read.tabIndex).toBe(0)
   act(() => read.focus())
+  expect(read.tabIndex).toBe(0)
   expect(outcomes().getAllByText(/Lyra reads them\./)).toHaveLength(1)
   const ids = read.getAttribute('aria-describedby')!.split(' ')
   const panel = document.getElementById(ids[ids.length - 1])!
@@ -115,6 +119,80 @@ test('clicking or changing the actor picker does not choose the card', async () 
   expect(screen.queryByRole('button', { name: 'Skip dice animation' })).toBeNull()
   expect(choose('Read them')).toBeTruthy()
   expect((actor as HTMLSelectElement).value).toBe('brom')
+})
+
+describe('the keyboard moves between the cards', () => {
+  // With no gold, "Give them money" can't be chosen.
+  const poor = () => {
+    const state = started('roadside', makeState({ gold: 0 }))
+    render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
+  }
+  const focused = () => document.activeElement?.getAttribute('aria-label')
+  const tabStops = () => chooseTargets().filter((b) => b.tabIndex === 0)
+
+  test('the arrow keys move to the next or previous card, wrapping; only one is a tab stop', async () => {
+    poor()
+    const labels = chooseTargets().map((b) => b.getAttribute('aria-label'))
+    expect(labels).toEqual([
+      'Choose Help them',
+      'Choose Help carefully',
+      'Choose Read them',
+      'Choose Rob them',
+      'Choose Give them money',
+      'Choose Leave',
+    ])
+    expect(focused()).toBe('Choose Help them')
+    expect(tabStops()).toEqual([choose('Help them')])
+    await userEvent.keyboard('{ArrowDown}')
+    expect(focused()).toBe('Choose Help carefully')
+    expect(tabStops()).toEqual([choose('Help carefully')])
+    // The outcomes panel follows.
+    expect(outcomes().getByText(/carefully/i)).toBeTruthy()
+    await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+    expect(focused()).toBe('Choose Rob them')
+    // The card that can't be chosen is skipped.
+    await userEvent.keyboard('{ArrowDown}')
+    expect(focused()).toBe('Choose Leave')
+    await userEvent.keyboard('{ArrowDown}')
+    expect(focused()).toBe('Choose Help them')
+    await userEvent.keyboard('{ArrowUp}')
+    expect(focused()).toBe('Choose Leave')
+    await userEvent.keyboard('{ArrowLeft}')
+    expect(focused()).toBe('Choose Rob them')
+    await userEvent.keyboard('{Home}')
+    expect(focused()).toBe('Choose Help them')
+    await userEvent.keyboard('{End}')
+    expect(focused()).toBe('Choose Leave')
+    // Tab leaves the cards from the tab stop.
+    await userEvent.tab({ shift: true })
+    expect(chooseTargets()).not.toContain(document.activeElement)
+  })
+
+  test('Space or Enter chooses the card the arrows reached', async () => {
+    poor()
+    await userEvent.keyboard('{End}')
+    await userEvent.keyboard(' ')
+    expect(screen.getByText('You walk on.')).toBeTruthy()
+  })
+
+  test('the arrow keys inside an actor picker stay there', async () => {
+    poor()
+    const actor = screen.getByRole('combobox', { name: 'Actor for Read them' })
+    act(() => actor.focus())
+    await userEvent.keyboard('{ArrowDown}{ArrowUp}{Home}{End}')
+    expect(document.activeElement).toBe(actor)
+  })
+
+  test('focus shows as the card’s own outline, not the browser’s ring on the choose target', () => {
+    // Vitest runs from the project root.
+    const css = readFileSync('src/ui/theme.css', 'utf8')
+    const rules = css.replace(/\/\*[\s\S]*?\*\//g, '')
+    expect(rules).toMatch(/\.card-choose:focus\s*\{\s*outline:\s*none;/)
+    expect(rules).toMatch(
+      /\.option-card:has\(\.card-choose:focus-visible\)\s*\{[^}]*border-color:\s*var\(--accent\)/
+    )
+    expect(rules).not.toMatch(/\.card-choose:focus-visible\s*\{[^}]*outline:\s*\d/)
+  })
 })
 
 test('hovering never changes the cards themselves', async () => {

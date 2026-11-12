@@ -76,6 +76,13 @@ export type Place = {
   domain: string
   pace?: Pace
   coverTracks?: boolean
+  /** The journey forages: covering tracks then gives ambushes no Edge. */
+  forage?: boolean
+  /**
+   * On a journey, the chance each encounter drawn is hostile (hostileShare); without it, every
+   * fitting situation is drawn by weight alone.
+   */
+  hostileShare?: number
 }
 
 /**
@@ -170,7 +177,12 @@ export function startEncounter(
     stage: situation.start,
     position:
       place?.pace && situation.disposition === 'hostile'
-        ? ambushPositionForPace(place.pace, place.coverTracks ?? false)
+        ? ambushPositionForPace(
+            place.pace,
+            place.coverTracks ?? false,
+            'normal',
+            place.forage ?? false
+          )
         : 'normal',
     slots,
     twist,
@@ -196,7 +208,9 @@ export function startEncounter(
  * it waits for land unless its situation fits the sea; one whose situation no longer exists is
  * dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly or site situation.
  * On the road, `place` limits the pick to situations that fit its terrain and land (fitsPlace);
- * when none fits, nothing happens. A cautious party then skips a hostile pick with chance
+ * when none fits, nothing happens. On a journey, `place.hostileShare` first decides whether the
+ * encounter is hostile, then the pick is among fitting situations of that kind (any fitting one
+ * if none of that kind fits). A cautious party then skips a hostile pick with chance
  * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
  * starts moves the other queued follow-ups one closer (see startEncounter).
  */
@@ -239,8 +253,17 @@ export function drawEncounter(
     return place ? state : appendLog(state, 'No encounters match that filter.', 'bad')
   }
   const avoidance = place?.pace ? paceHostileAvoidance(place.pace) : 0
+  const share = place?.hostileShare
   const [{ picked, avoided }, rng] = withRng(state.rng, (d) => {
-    const picked = d.weighted(candidates, (s) => s.weight)
+    // On a journey, first whether it is hostile, then a fitting situation of that kind (or any
+    // fitting one, if none of that kind fits here).
+    let pool = candidates
+    if (share !== undefined) {
+      const hostile = d.float() < share
+      const kind = candidates.filter((s) => (s.disposition === 'hostile') === hostile)
+      if (kind.length > 0) pool = kind
+    }
+    const picked = d.weighted(pool, (s) => s.weight)
     const avoided = picked.disposition === 'hostile' && avoidance > 0 && d.float() < avoidance
     return { picked, avoided }
   })

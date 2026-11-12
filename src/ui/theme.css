@@ -95,6 +95,7 @@ input {
 }
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1.25rem;
   padding: 0.6rem 1rem;
@@ -107,13 +108,14 @@ input {
   display: grid;
   grid-template-columns: minmax(250px, 1fr) minmax(360px, 2fr) minmax(240px, 1fr);
   align-items: start;
+  align-content: start;
   gap: 1rem;
   padding: 1rem;
   flex: 1;
 }
 @media (max-width: 900px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .panel {
@@ -445,9 +447,16 @@ label.inline {
   font-weight: normal;
   font-variant-numeric: tabular-nums;
 }
-.card-choose:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+/*
+ * One focus style: the card's own accent outline (as when hovered, a little stronger), never
+ * the browser's ring on the choose target inside it.
+ */
+.card-choose:focus {
+  outline: none;
+}
+.option-card:has(.card-choose:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 .card-side {
   display: flex;
@@ -743,20 +752,37 @@ label.inline {
 h2[tabindex='-1']:focus {
   outline: none;
 }
+.left,
 .centre {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
 }
-/* On narrow screens the settlement comes first and the map follows; on desktop it sits below. */
+/*
+ * On narrow screens the columns stack as party, then the centre (settlement, site, journey or
+ * encounter, so the actions come early), then the map, then the journal.
+ */
 @media (max-width: 900px) {
-  .centre > .place {
-    order: -1;
+  .left {
+    display: contents;
+  }
+  .left > * {
+    order: 1;
+  }
+  .centre {
+    order: 2;
+  }
+  .left > .map-panel {
+    order: 3;
+  }
+  .side {
+    order: 4;
   }
 }
 .map-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
@@ -934,11 +960,54 @@ h2[tabindex='-1']:focus {
 .kingdom-swatch rect {
   fill-opacity: 0.7;
 }
+/*
+ * The party: a bright ring on a dark casing around a solid centre, with a slow pulsing halo.
+ * Fixed colours, like the roads', since it sits on the same map image in both themes; no
+ * settlement or site marker uses them.
+ */
 .party-marker {
-  fill: none;
-  stroke: var(--good);
-  stroke-width: 10;
   pointer-events: none;
+}
+.party-casing {
+  fill: none;
+  stroke: #1b140e;
+  stroke-width: 30;
+}
+.party-ring {
+  fill: none;
+  stroke: #fff6d8;
+  stroke-width: 14;
+}
+.party-core {
+  fill: #fff6d8;
+  stroke: #1b140e;
+  stroke-width: 8;
+}
+.party-halo {
+  fill: #fff6d8;
+  fill-opacity: 0.35;
+  stroke: #1b140e;
+  stroke-opacity: 0.4;
+  stroke-width: 6;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: party-pulse 2.4s ease-out infinite;
+}
+@keyframes party-pulse {
+  from {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .party-halo {
+    animation: none;
+    opacity: 0.35;
+  }
 }
 .banner {
   display: block;
@@ -1032,19 +1101,6 @@ h2[tabindex='-1']:focus {
   flex-wrap: wrap;
   gap: 0.5rem;
   margin: 0.5rem 0;
-}
-.progress {
-  position: relative;
-  height: 0.8rem;
-  margin: 0.5rem 0;
-  border-radius: 3px;
-  overflow: hidden;
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-}
-.progress > span {
-  position: absolute;
-  inset: 0 auto 0 0;
-  background: var(--accent);
 }
 .badge.strain {
   border-color: var(--crit);
