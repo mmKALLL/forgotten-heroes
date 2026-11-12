@@ -8,6 +8,7 @@ import { withRng, type Rng } from '../rng'
 import { statLabel } from '../rules/abilities'
 import { MAX_EXHAUSTION, canAct, statModifier } from '../rules/character'
 import { passDay } from '../travel/days'
+import { addReputation, encounterSettlement } from '../town/reputation'
 import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
 
@@ -203,10 +204,15 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         'good'
       )
     }
-    // Plan 4: the goods effect lands with A1, reputation with B2 and animals with A4. Until then
-    // they change nothing, and no content uses them.
-    case 'goods':
     case 'reputation':
+      return addReputation(
+        state,
+        { settlement: encounterSettlement(state), amount: effect.amount },
+        ctx.content
+      )
+    // Plan 4: the goods effect lands with A1 and animals with A4. Until then they change nothing,
+    // and no content uses them.
+    case 'goods':
     case 'animals':
       return state
   }
@@ -245,7 +251,12 @@ export function describeCondition(condition: Condition): string {
  * A short chip for previews and the journal, e.g. "Lyra −3 HP". Log effects return null. The
  * condition is not included (see describeCondition).
  */
-export function describeEffect(effect: Effect, actorName: string): string | null {
+export function describeEffect(
+  effect: Effect,
+  actorName: string,
+  /** The settlement a reputation effect changes, named in its chip. */
+  place?: string
+): string | null {
   switch (effect.effect) {
     case 'gold':
       return `${formatModifier(effect.amount)} gp`
@@ -291,7 +302,7 @@ export function describeEffect(effect: Effect, actorName: string): string | null
         : `${formatModifier(effect.amount ?? 0)} ${what}`
     }
     case 'reputation':
-      return `${formatModifier(effect.amount)} reputation`
+      return `${formatModifier(effect.amount)} reputation${place ? ` in ${place}` : ''}`
     case 'animals':
       return `${formatModifier(effect.amount)} ${effect.animal ?? 'animal'}`
   }

@@ -13,6 +13,7 @@ import {
   type RollMode,
   type Tier,
 } from '../rules/checks'
+import { encounterSettlementName } from '../town/reputation'
 import { conditionHolds, describeCondition, describeEffect, openingEffects } from './effects'
 import { isHighStakes, tierOutcome } from './outcomes'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
@@ -88,12 +89,17 @@ const twistKindKnown = (encounter: EncounterState): boolean =>
  * Effect chips. A condition that doesn't hold yet is spelled out ("Edge (if you know the odds)"),
  * and the opening hit stays generic until the player knows which twist it would be.
  */
-function effectChips(effects: readonly Effect[], encounter: EncounterState, actorName: string) {
+function effectChips(
+  effects: readonly Effect[],
+  encounter: EncounterState,
+  actorName: string,
+  place?: string
+) {
   return effects.flatMap((effect): string[] => {
     const chips =
       effect.effect === 'openingHit' && twistKindKnown(encounter)
-        ? openingEffects(encounter).flatMap((e) => describeEffect(e, actorName) ?? [])
-        : [describeEffect(effect, actorName) ?? []].flat()
+        ? openingEffects(encounter).flatMap((e) => describeEffect(e, actorName, place) ?? [])
+        : [describeEffect(effect, actorName, place) ?? []].flat()
     if (!effect.if || conditionHolds(effect.if, encounter)) return chips
     return chips.map((chip) => `${chip} (${describeCondition(effect.if!)})`)
   })
@@ -103,11 +109,12 @@ function branchPreview(
   branch: OutcomeBranch,
   encounter: EncounterState,
   values: Record<string, string>,
-  actorName: string
+  actorName: string,
+  place?: string
 ): BranchPreview {
   return {
     text: fillText(branch.text, values),
-    effects: effectChips(branch.effects, encounter, actorName),
+    effects: effectChips(branch.effects, encounter, actorName, place),
     next:
       branch.goto === TWIST_STAGE
         ? 'escalates'
@@ -124,13 +131,14 @@ function outcomePreview(
   tier: Tier | null,
   encounter: EncounterState,
   values: Record<string, string>,
-  actorName: string
+  actorName: string,
+  place?: string
 ): ShownOutcome {
   return {
-    ...branchPreview(outcome, encounter, values, actorName),
+    ...branchPreview(outcome, encounter, values, actorName, place),
     tier,
     hidden: false,
-    twist: outcome.twist ? branchPreview(outcome.twist, encounter, values, actorName) : null,
+    twist: outcome.twist ? branchPreview(outcome.twist, encounter, values, actorName, place) : null,
   }
 }
 
@@ -146,6 +154,7 @@ export function encounterOptions(
   if (!encounter) return []
   const mode = POSITION_MODE[encounter.position]
   const situationalModifier = encounter.nextCheckModifier
+  const place = encounterSettlementName(state)
   return currentOptions(encounter).map((option) => {
     const unmet = unmetRequirements(state, option.requires)
     const base = {
@@ -155,7 +164,9 @@ export function encounterOptions(
       kind: option.kind,
     }
     if (option.kind === 'fixed') {
-      const outcomes = [outcomePreview(option.outcome, null, encounter, encounter.slots, 'someone')]
+      const outcomes = [
+        outcomePreview(option.outcome, null, encounter, encounter.slots, 'someone', place),
+      ]
       return { ...base, available: optionAvailable(state, option), unmet, check: null, outcomes }
     }
     const { skill, ability, dc } = option.check
@@ -202,7 +213,14 @@ export function encounterOptions(
     const outcomes = TIERS.map((tier): OutcomePreview =>
       isCritical(tier)
         ? { tier, hidden: true }
-        : outcomePreview(tierOutcome(option, tier), tier, encounter, values, preview.actorName)
+        : outcomePreview(
+            tierOutcome(option, tier),
+            tier,
+            encounter,
+            values,
+            preview.actorName,
+            place
+          )
     )
     return { ...base, available: optionAvailable(state, option), unmet, check, outcomes }
   })

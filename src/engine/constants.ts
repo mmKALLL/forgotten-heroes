@@ -1,4 +1,4 @@
-import type { Biome, Pace, Tier } from '../schema/types'
+import type { Biome, Pace, Standing, Tier } from '../schema/types'
 import { PX_PER_KM } from '../schema/world'
 
 // The engine's balance and tuning numbers, by topic (docs/notes/constants.md). Each section names
@@ -172,6 +172,25 @@ export const RULING_ANCESTRY_SHARE = 0.75
 export const PEOPLE_BY_SIZE: readonly number[] = [1, 2, 2, 3, 4, 5]
 /** How often a notable person shares their settlement's ancestry. */
 export const PEOPLE_LOCAL_ANCESTRY = 0.75
+
+// Reputation (town/reputation.ts)
+
+/** The fewest points for each standing (hated has no floor). Points are whole numbers. */
+export const STANDING_POINTS: Readonly<Record<Standing, number>> = {
+  hated: -Infinity,
+  disliked: -19,
+  stranger: -4,
+  known: 5,
+  liked: 15,
+  trusted: 30,
+  honoured: 50,
+}
+/** Each standing tier above stranger narrows a market's buy/sell spread this much (below: widens). */
+export const STANDING_SPREAD = 0.02
+/** Trading this many gp (bought plus sold) in a settlement earns a point of standing there... */
+export const TRADE_REP_GP = 50
+/** ...up to this many points per arrival. */
+export const TRADE_REP_MAX = 3
 
 // Points of interest (pois.ts)
 
