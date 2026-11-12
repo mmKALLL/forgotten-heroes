@@ -11,6 +11,9 @@ import { CURRENT_SAVE_VERSION } from './save'
 import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, type RollMode } from './rules/checks'
+import { startingGoods } from './travel/supplies'
+import { generateWorld, startingSettlement, worldSeed } from './world/generate'
+import { settlementName } from './world/geo'
 
 export const STARTING_PARTY_SIZE = 2
 export const STARTING_GOLD = 50
@@ -28,7 +31,11 @@ export function newGame(
   partySize = STARTING_PARTY_SIZE
 ): GameState {
   const [party, rng] = generateParty(createRng(seed), content, partySize)
+  // The world draws from its own stream, so it doesn't change the party or later rolls.
+  const world = generateWorld(worldSeed(seed), content)
+  const location = startingSettlement(world, content)
   const names = party.map((c) => c.name).join(' and ')
+  const from = location ? ` from ${settlementName({ world }, location)}` : ''
   return {
     version: CURRENT_SAVE_VERSION,
     seed,
@@ -37,11 +44,15 @@ export function newGame(
     party,
     gold: STARTING_GOLD,
     inspiration: 0,
-    log: [{ day: 1, text: `${names} set out together.`, tone: 'info' }],
+    log: [{ day: 1, text: `${names} set out together${from}.`, tone: 'info' }],
     lastRoll: null,
     encounter: null,
     followUps: [],
     skillUses: [],
+    world,
+    location,
+    travel: null,
+    goods: startingGoods(party.length),
   }
 }
 

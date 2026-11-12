@@ -1,8 +1,11 @@
 import { describe, expect, test } from 'vitest'
 import { GameStateSchema, type GameState } from '../schema/state'
+import { generateParty } from './party'
+import { createRng } from './rng'
 import { tierOdds } from './rules/checks'
 import { newGame, previewCheck, step } from './state'
 import { fixtureContent, makeCharacter } from './test-fixtures'
+import { generateWorld, startingSettlement, worldSeed } from './world/generate'
 
 const content = fixtureContent()
 
@@ -13,6 +16,21 @@ describe('newGame', () => {
     expect(GameStateSchema.parse(a)).toEqual(a)
     expect(a.party).toHaveLength(2)
     expect(a.log.length).toBeGreaterThan(0)
+  })
+
+  test('starts at a settlement of a freshly rolled world, with supplies and no strain', () => {
+    const state = newGame(99, content)
+    expect(state.world).toEqual(generateWorld(worldSeed(99), content))
+    expect(state.location).toBe(startingSettlement(state.world, content))
+    expect(state.travel).toBeNull()
+    expect(state.goods).toEqual({ food: 10, water: 8 })
+    expect(state.party.map((c) => c.strain)).toEqual([{}, {}])
+    expect(state.log[0].text).toMatch(/ set out together from \w+\.$/)
+  })
+
+  test('rolling the world leaves the run’s random stream alone', () => {
+    const [, rng] = generateParty(createRng(99), content, 2)
+    expect(newGame(99, content).rng).toEqual(rng)
   })
 })
 

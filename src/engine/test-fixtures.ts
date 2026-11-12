@@ -713,6 +713,7 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     hp: 10,
     maxHp: 10,
     exhaustion: 0,
+    strain: {},
     ...overrides,
   }
 }

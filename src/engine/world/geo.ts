@@ -1,4 +1,5 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
+import type { GameState } from '../../schema/state'
 import { PX_PER_KM, type MapPoint, type Route } from '../../schema/world'
 
 export const straightKm = (a: MapPoint, b: MapPoint): number =>
@@ -49,3 +50,7 @@ export function components(
   }
   return groups
 }
+
+/** A settlement's name in this world, or its id when the political layer doesn't know it. */
+export const settlementName = (state: Pick<GameState, 'world'>, id: string): string =>
+  Object.hasOwn(state.world.settlements, id) ? state.world.settlements[id].name : id

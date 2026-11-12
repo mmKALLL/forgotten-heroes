@@ -92,3 +92,10 @@ export type Alignment = (typeof ALIGNMENTS)[number]
  */
 export const GOODS = ['food', 'water'] as const
 export type Good = (typeof GOODS)[number]
+
+/**
+ * Travel pace, chosen per journey (design §7), slowest first. Its tuning (speed, supplies,
+ * encounters, ambush footing) lives in src/engine/travel/pace.ts.
+ */
+export const PACES = ['cautious', 'steady', 'brisk', 'forced'] as const
+export type Pace = (typeof PACES)[number]

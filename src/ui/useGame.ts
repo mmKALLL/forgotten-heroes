@@ -13,7 +13,7 @@ const reducer =
 
 export const randomSeed = (): number => Math.floor(Math.random() * 2 ** 32)
 
-function loadSaved(): GameState | null {
+function loadSaved(content: Content): GameState | null {
   let text: string | null
   try {
     text = localStorage.getItem(SAVE_KEY)
@@ -21,7 +21,7 @@ function loadSaved(): GameState | null {
     return null // storage blocked or unavailable
   }
   if (!text) return null
-  const state = deserialize(text)
+  const state = deserialize(text, content)
   if (!state) {
     // The new game about to start would overwrite it: keep a copy for recovery or a future migration.
     try {
@@ -37,7 +37,7 @@ export function useGame(content: Content) {
   const [state, dispatch] = useReducer(
     reducer(content),
     null,
-    () => loadSaved() ?? newGame(randomSeed(), content)
+    () => loadSaved(content) ?? newGame(randomSeed(), content)
   )
   useEffect(() => {
     try {

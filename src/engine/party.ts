@@ -49,6 +49,7 @@ export function generateCharacter(
       hp: maxHp,
       maxHp,
       exhaustion: 0,
+      strain: {},
     }
   })
 }

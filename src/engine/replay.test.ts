@@ -31,7 +31,7 @@ test('a seeded run replays identically, and another seed differs', () => {
 
 test('saving and loading mid-run does not change what happens next', () => {
   const half = play(newGame(7, content), 15)
-  const resumed = deserialize(serialize(half))
+  const resumed = deserialize(serialize(half), content)
   expect(resumed).toEqual(half)
   expect(play(resumed!, 15)).toEqual(play(half, 15))
 })
@@ -45,7 +45,7 @@ test('saving and loading in the middle of an encounter does not change what happ
   const middle = step(started, { type: 'chooseOption', optionId: 'read' }, content) // stays on the stage
   expect(middle.encounter?.stage).toBe('start')
   expect(middle.encounter?.used).toEqual(['start/read'])
-  const resumed = deserialize(serialize(middle))
+  const resumed = deserialize(serialize(middle), content)
   expect(resumed).toEqual(middle)
   const finish = (state: GameState) =>
     play(step(state, { type: 'chooseOption', optionId: 'rob' }, content), 10)

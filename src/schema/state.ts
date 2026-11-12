@@ -2,14 +2,17 @@ import { z } from 'zod'
 import {
   AbilitySchema,
   AbilityScoresSchema,
+  GoodSchema,
   IdSchema,
   LogToneSchema,
+  PaceSchema,
   PositionSchema,
   SkillSchema,
   SourceSchema,
 } from './common'
 import { ABILITIES, SKILLS, TIERS } from './constants'
 import { SituationSchema } from './encounter'
+import { WorldStateSchema } from './world'
 
 export const CharacterSchema = z.object({
   id: z.string(),
@@ -23,6 +26,8 @@ export const CharacterSchema = z.object({
   hp: z.number().int(),
   maxHp: z.number().int().min(1),
   exhaustion: z.number().int().min(0).max(6),
+  /** Strain stacks by skill (design §3): each is −1 to that skill. One stack per skill fades each day. */
+  strain: z.partialRecord(SkillSchema, z.number().int().min(1)).default({}),
 })
 export type Character = z.infer<typeof CharacterSchema>
 
@@ -104,8 +109,47 @@ export const SkillUseSchema = z.object({
 })
 export type SkillUse = z.infer<typeof SkillUseSchema>
 
+/**
+ * Goods carried, by good. Only the essentials exist so far (GOODS); Plan 4 adds the rest of the
+ * 15, and a good that is missing counts as 0, so saves keep loading.
+ */
+export const GoodsSchema = z.partialRecord(GoodSchema, z.number().int().min(0))
+export type Goods = z.infer<typeof GoodsSchema>
+
+/** One day on the road and the pace it was walked at, so pursuit can judge "pace since queued". */
+export const PaceDaySchema = z.object({
+  /** The game day travelled (state.day when the day began). */
+  day: z.number().int().min(1),
+  pace: PaceSchema,
+  coverTracks: z.boolean(),
+})
+export type PaceDay = z.infer<typeof PaceDaySchema>
+
+/** A journey along one route, from settlement to settlement. */
+export const TravelStateSchema = z.object({
+  route: IdSchema,
+  from: IdSchema,
+  to: IdSchema,
+  km: z.number().int().min(1),
+  /** Speed at the journey's pace (see travel/pace.ts). */
+  kmPerDay: z.number().min(1),
+  kmDone: z.number().min(0),
+  daysDone: z.number().int().min(0),
+  /** The expected length in days, shown before departure. */
+  days: z.number().int().min(1),
+  /** Journey days (1-based) with an encounter, ascending; drawn at departure. Spent as they happen. */
+  encounterDays: z.array(z.number().int().min(1)),
+  /** Chosen per journey (design §7). */
+  pace: PaceSchema.default('steady'),
+  /** Covering tracks (cautious pace only) slows the party but makes pursuers lose the trail. */
+  coverTracks: z.boolean().default(false),
+  /** Each day travelled so far, oldest first. */
+  paceLog: z.array(PaceDaySchema).default([]),
+})
+export type TravelState = z.infer<typeof TravelStateSchema>
+
 export const GameStateSchema = z.object({
-  version: z.literal(2),
+  version: z.literal(3),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -117,5 +161,11 @@ export const GameStateSchema = z.object({
   encounter: EncounterStateSchema.nullable(),
   followUps: z.array(FollowUpSchema),
   skillUses: z.array(SkillUseSchema),
+  /** The political layer of this world, rolled from its seed (see generateWorld). */
+  world: WorldStateSchema,
+  /** The settlement the party is in; null while on the road. */
+  location: IdSchema.nullable(),
+  travel: TravelStateSchema.nullable(),
+  goods: GoodsSchema,
 })
 export type GameState = z.infer<typeof GameStateSchema>

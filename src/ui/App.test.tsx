@@ -2,6 +2,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, test } from 'vitest'
+import { loadBundledContent } from '../content/bundled'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize } from '../engine/save'
 import { App } from './App'
 
@@ -87,7 +88,7 @@ test('an unreadable save is kept under a backup key before a new game replaces i
   localStorage.setItem(SAVE_KEY, broken)
   render(<App />)
   expect(localStorage.getItem(UNREADABLE_SAVE_KEY)).toBe(broken)
-  expect(deserialize(localStorage.getItem(SAVE_KEY) ?? '')).not.toBeNull()
+  expect(deserialize(localStorage.getItem(SAVE_KEY) ?? '', loadBundledContent())).not.toBeNull()
 })
 
 test('a readable save leaves no backup behind', () => {
