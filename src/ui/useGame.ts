@@ -1,7 +1,8 @@
 import { useEffect, useReducer } from 'react'
 import type { Content } from '../content/build'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize, serialize } from '../engine/save'
-import { newGame, step, type Action } from '../engine/state'
+import { STARTING_PARTY_SIZE, newGame, step, type Action } from '../engine/state'
+import type { StartMode } from '../engine/world/generate'
 import type { GameState } from '../schema/state'
 
 type UiAction = Action | { type: 'replace'; state: GameState }
@@ -46,6 +47,11 @@ export function useGame(content: Content) {
       // storage blocked or unavailable: the game still works, it just won't persist
     }
   }, [state])
-  const restart = () => dispatch({ type: 'replace', state: newGame(randomSeed(), content) })
+  /** A new party in a new world, starting where `start` says (design §6). */
+  const restart = (start: StartMode = 'calm') =>
+    dispatch({
+      type: 'replace',
+      state: newGame(randomSeed(), content, STARTING_PARTY_SIZE, start),
+    })
   return { state, dispatch, restart }
 }

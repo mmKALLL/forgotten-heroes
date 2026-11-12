@@ -135,7 +135,13 @@ export function OptionCard({
             >
               {check.actors.map((a) => (
                 <option key={a.id} value={a.id}>
-                  {a.name} {formatModifier(a.modifier)}
+                  {a.strain > 0
+                    ? t('option.actorStrain', {
+                        name: a.name,
+                        modifier: formatModifier(a.modifier),
+                        n: a.strain,
+                      })
+                    : `${a.name} ${formatModifier(a.modifier)}`}
                 </option>
               ))}
               {check.unableActors.map((a) => (

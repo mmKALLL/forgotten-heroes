@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { formatModifier, formatPercent } from '../engine/format'
-import { ABILITIES, SKILLS, type CheckStat } from '../engine/rules/abilities'
+import { ABILITIES, SKILLS, isSkill, type CheckStat } from '../engine/rules/abilities'
 import { rankActors } from '../engine/rules/character'
+import { strainOf } from '../engine/rules/strain'
 import { successChance, tierFaces, type RollMode } from '../engine/rules/checks'
 import { MAX_DC, MIN_DC, previewCheck, type Action } from '../engine/state'
 import type { GameState } from '../schema/state'
@@ -99,11 +100,19 @@ export function CheckPanel({
           {t('practice.actor')}
           <select value={selected} onChange={(e) => setActorId(e.target.value)}>
             <option value="">{t('practice.auto')}</option>
-            {rankActors(state.party, stat).map((r) => (
-              <option key={r.characterId} value={r.characterId}>
-                {nameOf(r.characterId)} {formatModifier(r.modifier)}
-              </option>
-            ))}
+            {rankActors(state.party, stat).map((r) => {
+              const c = state.party.find((p) => p.id === r.characterId)
+              const strain = c && isSkill(stat) ? strainOf(c, stat) : 0
+              const name = nameOf(r.characterId)
+              const modifier = formatModifier(r.modifier)
+              return (
+                <option key={r.characterId} value={r.characterId}>
+                  {strain > 0
+                    ? t('option.actorStrain', { name, modifier, n: strain })
+                    : `${name} ${modifier}`}
+                </option>
+              )
+            })}
           </select>
         </label>
       </div>

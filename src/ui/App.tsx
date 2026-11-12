@@ -1,16 +1,25 @@
 import { useState } from 'react'
 import { loadBundledContent } from '../content/bundled'
+import { formatDate } from '../engine/calendar'
+import { suppliesInfo } from '../engine/travel/preview'
+import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
 import { EncounterDeck } from './deck/EncounterDeck'
+import { DevArea } from './DevArea'
 import { prefersReducedMotion } from './dice/DiceRoll'
 import { EncounterView } from './encounter/EncounterView'
 import { addsRoll } from './encounter/rolls'
 import { I18nProvider, LanguageToggle, useI18n } from './i18n/I18n'
 import { LogPanel } from './LogPanel'
+import { NewPartyButton } from './NewPartyButton'
 import { PartyPanel } from './PartyPanel'
 import { useGame } from './useGame'
+import { JourneyPanel } from './world/JourneyPanel'
+import { PlacePanel } from './world/PlacePanel'
+import { WorldMap } from './world/WorldMap'
 
 const content = loadBundledContent()
+const mapImage = assetUrl(WORLD_MAP_IMAGE)
 
 export function App() {
   return (
@@ -27,33 +36,73 @@ function Game() {
   // state, so they don't give the result away. A reload starts from the current state.
   const [revealed, setRevealed] = useState(state)
   const [reducedMotion] = useState(prefersReducedMotion)
+  // The settlement picked on the map or in the roads list (UI state only).
+  const [selected, setSelected] = useState<string | null>(null)
   const rolling = revealed !== state && !reducedMotion && addsRoll(revealed, state)
   if (!rolling && revealed !== state) setRevealed(state)
   const shown = rolling ? revealed : state
+  const supplies = suppliesInfo(shown)
   return (
     <div className="app">
       <header className="topbar">
         <h1>{t('app.title')}</h1>
-        <span>{t('top.day', { day: shown.day })}</span>
+        <span title={formatDate(shown.day)}>{t('top.day', { day: shown.day })}</span>
         <span>{t('top.gold', { gold: shown.gold })}</span>
+        <span title={t('top.suppliesHint')}>
+          {t('top.food', { food: supplies.food, days: supplies.foodDays })} ·{' '}
+          {t('top.water', { water: supplies.water, capacity: supplies.waterCapacity })}
+        </span>
         <span title={t('top.inspirationHint')}>
           {t('top.inspiration', { n: shown.inspiration })}
         </span>
         <span className="spacer" />
         <span className="muted small">{t('top.seed', { seed: state.seed })}</span>
         <LanguageToggle />
-        <button onClick={restart}>{t('top.newParty')}</button>
+        <NewPartyButton
+          onStart={(mode) => {
+            setSelected(null)
+            restart(mode)
+          }}
+        />
       </header>
       <main className="layout">
         <PartyPanel party={shown.party} skillUses={shown.skillUses} day={shown.day} />
-        {state.encounter ? (
-          <EncounterView state={state} onAction={dispatch} onRevealed={() => setRevealed(state)} />
-        ) : (
-          <CheckPanel state={state} onAction={dispatch} />
-        )}
+        <div className="centre">
+          {state.encounter ? (
+            <EncounterView
+              state={state}
+              onAction={dispatch}
+              onRevealed={() => setRevealed(state)}
+            />
+          ) : (
+            <>
+              <WorldMap
+                content={content}
+                state={shown}
+                selected={selected}
+                onSelect={(id) => setSelected(id === selected ? null : id)}
+                imageUrl={mapImage}
+              />
+              {shown.travel ? (
+                <JourneyPanel content={content} state={shown} onAction={dispatch} />
+              ) : (
+                <PlacePanel
+                  content={content}
+                  state={shown}
+                  selected={selected}
+                  onSelect={setSelected}
+                  onAction={dispatch}
+                />
+              )}
+            </>
+          )}
+        </div>
         <div className="side">
-          <EncounterDeck content={content} state={shown} rolling={rolling} onAction={dispatch} />
           <LogPanel log={shown.log} />
+          <DevArea>
+            <EncounterDeck content={content} state={shown} rolling={rolling} onAction={dispatch} />
+            <CheckPanel state={state} onAction={dispatch} />
+          </DevArea>
         </div>
       </main>
     </div>

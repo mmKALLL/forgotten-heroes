@@ -2,6 +2,7 @@ import { useId, useState } from 'react'
 import { formatModifier } from '../engine/format'
 import { ABILITIES, SKILLS, SKILL_ABILITY, abilityModifier } from '../engine/rules/abilities'
 import { statModifier } from '../engine/rules/character'
+import { strainOf } from '../engine/rules/strain'
 import type { Character, SkillUse } from '../schema/state'
 import { useI18n } from './i18n/I18n'
 
@@ -52,6 +53,7 @@ function CharacterCard({
   const best = SKILLS.map((s) => ({ s, m: statModifier(c, s) }))
     .sort((a, b) => b.m - a.m)
     .slice(0, 3)
+  const strained = SKILLS.map((s) => [s, strainOf(c, s)] as const).filter(([, n]) => n > 0)
   return (
     <article className={expanded ? 'card expanded' : 'card'} aria-label={c.name}>
       <h3 className="card-name">
@@ -89,9 +91,16 @@ function CharacterCard({
           {c.hp}/{c.maxHp} HP
         </span>
       </div>
-      {c.exhaustion > 0 && (
+      {(c.exhaustion > 0 || strained.length > 0) && (
         <p className="conditions small">
-          <span className="badge condition">{t('party.exhaustion', { n: c.exhaustion })}</span>
+          {c.exhaustion > 0 && (
+            <span className="badge condition">{t('party.exhaustion', { n: c.exhaustion })}</span>
+          )}
+          {strained.map(([skill, n]) => (
+            <span key={skill} className="badge condition strain" title={t('party.strainHint')}>
+              {t('party.strain', { skill: stat(skill), n })}
+            </span>
+          ))}
         </p>
       )}
       {/* Always in the page, so aria-controls has a target; hidden while collapsed. */}
@@ -114,6 +123,7 @@ function CharacterCard({
                 {skills.map((s) => {
                   const proficient = c.skillProficiencies.includes(s)
                   const uses = usesToday.filter((u) => u.skill === s).length
+                  const strain = strainOf(c, s)
                   return (
                     <li key={s} className={proficient ? 'proficient' : undefined}>
                       {proficient ? (
@@ -130,6 +140,11 @@ function CharacterCard({
                       )}
                       <span className="skill-name">{stat(s)}</span>
                       <span className="skill-mod">{formatModifier(statModifier(c, s))}</span>
+                      {strain > 0 && (
+                        <span className="badge strain" title={t('party.strainHint')}>
+                          {t('party.strainSheet', { n: strain })}
+                        </span>
+                      )}
                       {uses > 0 && (
                         <span className="skill-uses muted small">
                           {t('party.usesToday', { n: uses })}

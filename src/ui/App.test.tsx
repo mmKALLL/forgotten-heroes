@@ -5,9 +5,14 @@ import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { loadBundledContent } from '../content/bundled'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize } from '../engine/save'
 import { App } from './App'
+import { DEV_EXPANDED_KEY } from './DevArea'
 
-// These tests play situations from the Deck's list, so they start with it expanded.
-beforeEach(() => localStorage.setItem('forgotten-heroes/ui/deck-expanded', 'true'))
+// These tests use the dev panels and play situations from the Deck's list, so they start with
+// the developer tools and the list expanded.
+beforeEach(() => {
+  localStorage.setItem(DEV_EXPANDED_KEY, 'true')
+  localStorage.setItem('forgotten-heroes/ui/deck-expanded', 'true')
+})
 
 afterEach(() => {
   cleanup()
@@ -58,11 +63,62 @@ test('an actor override from a previous party falls back to Auto', async () => {
   await userEvent.selectOptions(actor, actor.options[1].value)
   expect(actor.value).not.toBe('')
   await userEvent.click(screen.getByRole('button', { name: 'New party' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Small town, calm region' }))
   expect(actor.value).toBe('')
   await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
   expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(
     /rolls/
   )
+})
+
+test('the developer tools start collapsed, and remember being opened', async () => {
+  localStorage.removeItem(DEV_EXPANDED_KEY)
+  const { unmount } = render(<App />)
+  const toggle = screen.getByRole('button', { name: 'Show developer tools' })
+  expect(toggle.getAttribute('aria-expanded')).toBe('false')
+  expect(screen.queryByRole('region', { name: 'Practice check' })).toBeNull()
+  expect(screen.queryByRole('region', { name: 'Encounter Deck' })).toBeNull()
+  await userEvent.click(toggle)
+  expect(screen.getByRole('region', { name: 'Practice check' })).toBeTruthy()
+  expect(screen.getByRole('region', { name: 'Encounter Deck' })).toBeTruthy()
+  unmount()
+  render(<App />)
+  expect(screen.getByRole('region', { name: 'Practice check' })).toBeTruthy()
+})
+
+test('the party starts in a settlement on the map and can set out along a road', async () => {
+  render(<App />)
+  const map = within(screen.getByRole('group', { name: 'Map of Altaeus' }))
+  expect(map.getAllByRole('button').length).toBeGreaterThanOrEqual(50)
+  const here = map.getByRole('button', { name: /\(you are here\)$/ })
+  const place = within(screen.getByRole('region', { name: 'Settlement' }))
+  expect(here.getAttribute('aria-label')).toBe(
+    `${place.getByRole('heading', { level: 2 }).textContent} (you are here)`
+  )
+  const roads = within(place.getByRole('list', { name: 'Roads from here' }))
+  await userEvent.click(roads.getAllByRole('button')[0])
+  await userEvent.click(place.getByRole('button', { name: 'Travel' }))
+  expect(screen.getByRole('region', { name: 'On the road' })).toBeTruthy()
+  expect(screen.queryByRole('region', { name: 'Settlement' })).toBeNull()
+  expect(screen.getByRole('list', { name: 'Log' }).textContent).toMatch(/sets out for/)
+})
+
+test('a new party starts where the player chooses', async () => {
+  render(<App />)
+  await userEvent.click(screen.getByRole('button', { name: 'New party' }))
+  const choice = within(screen.getByRole('group', { name: 'Where does the new party begin?' }))
+  expect(choice.getByRole('button', { name: 'Small town, calm region' })).toBeTruthy()
+  const before = screen.getByText(/^seed \d+$/).textContent
+  await userEvent.click(choice.getByRole('button', { name: 'Random settlement' }))
+  expect(screen.queryByRole('group', { name: 'Where does the new party begin?' })).toBeNull()
+  expect(screen.getByText(/^seed \d+$/).textContent).not.toBe(before)
+  const place = within(screen.getByRole('region', { name: 'Settlement' }))
+  expect(place.getByRole('list', { name: 'Roads from here' })).toBeTruthy()
+})
+
+test('the top bar shows the supplies', () => {
+  render(<App />)
+  expect(screen.getByText(/^Food \d+ \(\d+ d\) · Water \d+\/\d+$/)).toBeTruthy()
 })
 
 test('the roll announcer exists before the first roll, and HP bars are meters', async () => {

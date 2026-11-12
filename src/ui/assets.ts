@@ -6,11 +6,11 @@ const images: Record<string, string> = {
     query: '?url',
     import: 'default',
   }),
-  ...import.meta.glob<string>('../../assets/town maps/**/*.{jpg,jpeg,png,webp}', {
-    eager: true,
-    query: '?url',
-    import: 'default',
-  }),
+  // Vite refuses file names with a colon (e.g. "elf:halfling village"): those towns go bannerless.
+  ...import.meta.glob<string>(
+    ['../../assets/town maps/**/*.{jpg,jpeg,png,webp}', '!../../assets/town maps/**/*:*'],
+    { eager: true, query: '?url', import: 'default' }
+  ),
 }
 const PREFIX = '../../assets/'
 

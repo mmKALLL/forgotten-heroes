@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, expect, test } from 'vitest'
 import { step, type Action } from '../../engine/state'
-import { fixtureContent, makeEncounter, makeState } from '../../engine/test-fixtures'
+import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../../engine/test-fixtures'
 import { SituationSchema } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { EncounterView } from './EncounterView'
@@ -411,4 +411,12 @@ test('a check that moves to another stage still shows its dice, DC track and out
   expect(screen.getByText(/^It jams\./)).toBeTruthy()
   expect(screen.getByText('A quiet yard.')).toBeTruthy()
   expect(choose('Rest')).toBeTruthy()
+})
+
+test('the actor picker shows strain', () => {
+  const party = [{ ...brom, strain: { athletics: 2 } }, lyra]
+  render(<Harness initial={started('cliff', makeState({ party }))} />)
+  const picker = screen.getByRole('combobox', { name: 'Actor for Climb' })
+  expect(within(picker).getByRole('option', { name: 'Brom +3 · strain −2' })).toBeTruthy()
+  expect(within(picker).getByRole('option', { name: /^Lyra [+−]\d+$/ })).toBeTruthy()
 })

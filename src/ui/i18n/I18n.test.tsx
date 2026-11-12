@@ -1,11 +1,15 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, describe, expect, test } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test } from 'vitest'
 import { App } from '../App'
+import { DEV_EXPANDED_KEY } from '../DevArea'
 import { en } from './en'
 import { LANGUAGE_KEY, translate } from './I18n'
 import { ja } from './ja'
+
+// The practice check lives in the developer tools, collapsed by default.
+beforeEach(() => localStorage.setItem(DEV_EXPANDED_KEY, 'true'))
 
 afterEach(() => {
   cleanup()

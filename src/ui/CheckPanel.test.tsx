@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test } from 'vitest'
-import { makeState } from '../engine/test-fixtures'
+import { brom, lyra, makeState } from '../engine/test-fixtures'
 import { CheckPanel } from './CheckPanel'
 
 const ODDS_LABEL_KEY = 'forgotten-heroes/ui/odds-label'
@@ -39,4 +39,13 @@ test('the label toggle, when shown, switches to % and remembers the choice', asy
   await userEvent.click(screen.getByRole('button', { name: 'd20' }))
   expect(bar().textContent).toMatch(/\d+\+/)
   expect(localStorage.getItem(ODDS_LABEL_KEY)).toBe('faces')
+})
+
+test('the actor picker shows strain for the chosen skill', async () => {
+  const party = [{ ...brom, strain: { persuasion: 1 } }, lyra]
+  render(<CheckPanel state={makeState({ party })} onAction={() => {}} />)
+  const actor = within(screen.getByRole('combobox', { name: 'Actor' }))
+  expect(actor.getByRole('option', { name: /^Brom [+−]\d+ · strain −1$/ })).toBeTruthy()
+  await userEvent.selectOptions(screen.getByRole('combobox', { name: 'Check' }), 'athletics')
+  expect(actor.getByRole('option', { name: /^Brom [+−]\d+$/ })).toBeTruthy()
 })
