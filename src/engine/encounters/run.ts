@@ -17,7 +17,7 @@ import { withRng } from '../rng'
 import { checkLabel, statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
-import { addStrain, strainFrom, strainOf } from '../rules/strain'
+import { SKILL_USE_DAYS, useSkill } from '../rules/strain'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
@@ -38,8 +38,7 @@ export const POSITION_MODE: Record<Position, RollMode> = {
   exposed: 'disadvantage',
 }
 
-/** Skill uses older than this many days are dropped; Strain (Plan 3) looks back at most a week. */
-export const SKILL_USE_DAYS = 7
+export { SKILL_USE_DAYS }
 
 /** An option can be chosen when its requirements are met and, for a check, someone can roll it. */
 export const optionAvailable = (state: GameState, option: Option): boolean =>
@@ -319,15 +318,8 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
     `${name} rolls ${checkLabel(skill, ability)}: ${roll.kept} ${formatModifier(roll.modifier)} = ` +
     `${roll.total} vs DC ${dc}. ${TIER_LABELS[roll.tier]}.` +
     (inspired ? ' Inspiration gained!' : '')
-  const skillUses = [
-    ...state.skillUses.filter((u) => u.day > state.day - SKILL_USE_DAYS),
-    { day: state.day, characterId: actor.characterId, skill },
-  ]
   // The new stack applies from the next check on; this roll used the old modifier.
-  const strained = strainFrom(skillUses, actor.characterId, skill, state.day)
-  const party = strained
-    ? state.party.map((c) => (c.id === actor.characterId ? addStrain(c, skill) : c))
-    : state.party
+  const { party, skillUses, strained } = useSkill(state, actor.characterId, skill)
   let rolled = appendLog(
     {
       ...state,
@@ -348,14 +340,10 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
     rollText,
     TIER_TONE[roll.tier]
   )
-  if (strained) {
-    const stacks = strainOf(
-      party.find((c) => c.id === actor.characterId)!,
-      skill
-    )
+  if (strained > 0) {
     rolled = appendLog(
       rolled,
-      `${name} is strained: ${statLabel(skill)} −${stacks} until it fades.`,
+      `${name} is strained: ${statLabel(skill)} −${strained} until it fades.`,
       'bad'
     )
   }

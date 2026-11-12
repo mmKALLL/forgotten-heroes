@@ -151,6 +151,8 @@ export const TravelStateSchema = z.object({
   coverTracks: z.boolean().default(false),
   /** Each day travelled so far, oldest first. */
   paceLog: z.array(PaceDaySchema).default([]),
+  /** The best-suited member forages for water (and food) each day on land (design §7). */
+  forage: z.boolean().default(true),
 })
 export type TravelState = z.infer<typeof TravelStateSchema>
 

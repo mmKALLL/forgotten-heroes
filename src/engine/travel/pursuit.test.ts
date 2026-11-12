@@ -52,6 +52,7 @@ describe('paceSince', () => {
     pace: 'steady' as const,
     coverTracks: false,
     paceLog,
+    forage: true,
   })
 
   test('every day since it was queued: earlier journeys, this one, and days standing still', () => {
@@ -109,6 +110,7 @@ describe('evadePursuit', () => {
         pace: paceLog[0]?.pace ?? 'steady',
         coverTracks: false,
         paceLog,
+        forage: true,
       },
     }
     return { state, due }

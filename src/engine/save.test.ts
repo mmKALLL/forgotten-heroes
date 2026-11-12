@@ -134,6 +134,7 @@ test('a journey saves its pace, covered tracks and the pace of each day on the r
     pace: 'cautious' as const,
     coverTracks: true,
     paceLog: [{ day: 1, pace: 'cautious' as const, coverTracks: true }],
+    forage: true,
   }
   const state = makeState({ location: null, travel })
   expect(deserialize(serialize(state), content)).toEqual(state)

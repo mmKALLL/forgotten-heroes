@@ -5,7 +5,7 @@ import type { GameState } from '../../schema/state'
 import { WIDE_BERTH, inProgress } from '../encounters/run'
 import { createRng } from '../rng'
 import { step, type Action } from '../state'
-import { fixtureContent, makeState } from '../test-fixtures'
+import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
 
@@ -111,7 +111,14 @@ describe('travel', () => {
 
 describe('continueJourney', () => {
   test('quiet days collapse into one line, then the party arrives', () => {
-    const out = encountersOn(travel(at('greenvale-1'), 'greenvale-1-greenvale-2'), [])
+    const out = encountersOn(
+      act(at('greenvale-1'), {
+        type: 'travel',
+        routeId: 'greenvale-1-greenvale-2',
+        forage: false,
+      }),
+      []
+    )
     const arrived = go(out)
     const name = settlementName(arrived, 'greenvale-2')
     expect(arrived).toMatchObject({ travel: null, location: 'greenvale-2', day: out.day + 3 })
@@ -283,8 +290,8 @@ describe('pursuit', () => {
     expect(after.encounter).toBeNull()
     expect(after.followUps).toEqual([])
     expect(texts(after)).toContain(PURSUIT_LOST)
-    // The march goes on past the encounter day (until the water runs short on day 5).
-    expect(after.travel!.daysDone).toBe(5)
+    // The march goes on past the encounter day, all the way there.
+    expect(after.location).toBe('greenvale-2')
   })
 
   test('a brisk march outruns them for now', () => {
@@ -318,5 +325,102 @@ describe('pursuit', () => {
       { day: base.day, pace: 'brisk', coverTracks: false },
       { day: base.day + 1, pace: 'brisk', coverTracks: false },
     ])
+  })
+})
+
+describe('foraging', () => {
+  const plains = (overrides: Partial<GameState> = {}, forage?: boolean) =>
+    encountersOn(
+      act(at('greenvale-1', overrides), {
+        type: 'travel',
+        routeId: 'greenvale-1-greenvale-2',
+        forage,
+      }),
+      []
+    )
+  const thirsty = (state: GameState) => texts(state).some((t) => /goes without water/.test(t))
+  /** Brom with WIS 30 only fails on a natural 1. */
+  const sage = { ...brom, abilities: { ...brom.abilities, wis: 30 } }
+
+  test('each day on land the best Survival forages, and the finds join the day line', () => {
+    const out = plains()
+    const arrived = go(out)
+    expect(arrived.location).toBe('greenvale-2')
+    expect(texts(arrived)).toContainEqual(
+      expect.stringMatching(
+        /^3 quiet days on the road to .+ \(75 of 75 km\)\. Foraging \(Survival DC 10, Brom\): /
+      )
+    )
+    expect(arrived.skillUses.filter((u) => u.skill === 'survival')).toEqual([
+      { day: out.day, characterId: 'brom', skill: 'survival' },
+      { day: out.day + 1, characterId: 'brom', skill: 'survival' },
+      { day: out.day + 2, characterId: 'brom', skill: 'survival' },
+    ])
+  })
+
+  test('foraging keeps a party without water going', () => {
+    let withForage = 0
+    let without = 0
+    for (let seed = 0; seed < 30; seed++) {
+      const dry = { party: [sage, lyra], goods: { food: 10, water: 0 }, rng: createRng(seed) }
+      const run = (forage: boolean) => {
+        let state = plains(dry, forage)
+        for (let i = 0; i < 5 && state.travel; i++) state = go(state)
+        return state
+      }
+      if (thirsty(run(true))) withForage++
+      if (thirsty(run(false))) without++
+    }
+    expect(without).toBe(30)
+    expect(withForage).toBeLessThan(10)
+  })
+
+  test('a journey can set out without foraging', () => {
+    const out = plains({}, false)
+    expect(out.travel!.forage).toBe(false)
+    expect(lastLine(out)).toMatch(/ No foraging\.$/)
+    const arrived = go(out)
+    expect(arrived.skillUses).toEqual([])
+    expect(texts(arrived).some((t) => t.includes('Foraging'))).toBe(false)
+  })
+
+  test('there is nothing to forage at sea', () => {
+    const out = encountersOn(travel(at('ashmoor-1', { gold: 20 }), 'ashmoor-1-farisle-1'), [])
+    expect(out.travel!.forage).toBe(false)
+    const arrived = go(out)
+    expect(arrived.location).toBe('farisle-1')
+    expect(arrived.skillUses).toEqual([])
+  })
+})
+
+describe('pace is set at departure', () => {
+  test('nothing on the road changes the pace, covering tracks or foraging', () => {
+    const out = encountersOn(
+      act(at('greenvale-1'), {
+        type: 'travel',
+        routeId: 'greenvale-1-greenvale-2',
+        pace: 'cautious',
+        coverTracks: true,
+        forage: false,
+      }),
+      []
+    )
+    const again = act(out, {
+      type: 'travel',
+      routeId: 'greenvale-1-greenvale-2',
+      pace: 'forced',
+      forage: true,
+    })
+    expect(lastLine(again)).toBe('The party is already on the road.')
+    const set = { pace: 'cautious', coverTracks: true, forage: false }
+    expect(again.travel).toMatchObject(set)
+    expect(act(out, { type: 'rest' }).travel).toMatchObject(set)
+    const met = go(encountersOn(act(out, { type: 'rest' }), [2]))
+    expect(met.travel).toMatchObject(set)
+    expect(met.travel!.paceLog.map((d) => [d.pace, d.coverTracks])).toEqual([
+      ['cautious', true],
+      ['cautious', true],
+    ])
+    expect(texts(met).some((t) => t.includes('Foraging'))).toBe(false)
   })
 })
