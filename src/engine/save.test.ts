@@ -11,6 +11,7 @@ import {
   v7ToV8,
 } from './save'
 import { newGame, step } from './state'
+import { passDay } from './travel/supplies'
 import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
 import type { GameState } from '../schema/state'
 import type { RollMode } from './rules/checks'
@@ -490,5 +491,26 @@ describe('v7 → v8: supply contracts split', () => {
     expect(loaded.contracts.map((c) => c.kind)).toEqual(['procurement', 'courier'])
     v7ToV8(raw)
     expect(raw).toEqual(save)
+  })
+})
+
+describe('whole goods', () => {
+  test('a camel (half a unit of water a day) leaves whole water, and the save still loads', () => {
+    const camels = fixtureContent()
+    camels.animals = {
+      ...camels.animals,
+      camel: { ...camels.animals.mule, id: 'camel', name: 'Camel', waterPerDay: 0.5 },
+    }
+    const state = makeState({ animals: { camel: 1 }, goods: { food: 10, water: 10 } })
+    const after = passDay(state, 'plains', 'steady', camels)
+    // Two members drink 2; the camel's half unit is rounded up to 1.
+    expect(after.goods.water).toBe(10 - state.party.length - 1)
+    expect(deserialize(serialize(after), camels)).toEqual(after)
+  })
+
+  test('a save already holding a fraction of a good loads, rounded down', () => {
+    const state = makeState({ goods: { food: 3, water: 4 } })
+    const broken = JSON.stringify({ ...state, goods: { food: 3, water: 4.5 } })
+    expect(deserialize(broken, content)?.goods).toEqual({ food: 3, water: 4 })
   })
 })

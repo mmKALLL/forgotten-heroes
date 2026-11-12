@@ -205,10 +205,24 @@ export function migrate(raw: unknown, content: Content): unknown {
   }
 }
 
+/**
+ * Carried goods are whole units. Before Plan 4's fixes a camel's half unit of water could leave a
+ * fraction behind, which made the save unreadable: such a fraction is rounded down on load.
+ */
+export function wholeGoods(raw: unknown): unknown {
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) return raw
+  const goods = (raw as { goods?: unknown }).goods
+  if (typeof goods !== 'object' || goods === null) return raw
+  const whole = Object.fromEntries(
+    Object.entries(goods).map(([g, n]) => [g, typeof n === 'number' ? Math.floor(n + 1e-9) : n])
+  )
+  return { ...raw, goods: whole }
+}
+
 /** Old saves need the content: migrating to v3 rolls the world. */
 export function deserialize(text: string, content: Content): GameState | null {
   try {
-    const parsed = GameStateSchema.safeParse(migrate(JSON.parse(text), content))
+    const parsed = GameStateSchema.safeParse(wholeGoods(migrate(JSON.parse(text), content)))
     return parsed.success ? parsed.data : null
   } catch {
     return null

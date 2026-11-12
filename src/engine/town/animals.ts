@@ -56,7 +56,10 @@ export function mountSpeed(
   return Math.max(1, fastest[state.party.length - 1])
 }
 
-/** Units of water the party's animals (owned and hired) drink a day, before the terrain doubles it. */
+/**
+ * Units of water the party's animals (owned and hired) drink a day, before the terrain doubles it:
+ * rounded up to whole units, since carried goods are whole (a camel's half unit still opens a skin).
+ */
 export function animalWater(
   state: Pick<GameState, 'animals' | 'travel'>,
   content: Content,
@@ -67,7 +70,7 @@ export function animalWater(
     0
   )
   const rented = hired ? hired.count * (animalDef(content, hired.animal)?.waterPerDay ?? 0) : 0
-  return owned + rented
+  return Math.ceil(owned + rented - 1e-9)
 }
 
 /** What the owned animals cost a day: fodder, stabling and care. */
