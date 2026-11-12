@@ -63,9 +63,9 @@ describe('pace', () => {
   })
 
   test('brisk and forced make encounters likelier to be hostile; cautious keeps the usual mix', () => {
-    expect(hostileShare(0, 0, 'cautious').share).toBeCloseTo(0.25)
-    expect(hostileShare(0, 0, 'steady').share).toBeCloseTo(0.25)
-    expect(hostileShare(0, 0, 'brisk').share).toBeCloseTo(0.35)
+    expect(hostileShare(0, 0, 'cautious').share).toBeCloseTo(0.1)
+    expect(hostileShare(0, 0, 'steady').share).toBeCloseTo(0.1)
+    expect(hostileShare(0, 0, 'brisk').share).toBeCloseTo(0.2)
     expect(hostileShare(0, 0, 'forced')).toMatchObject({ pace: 0.1 })
   })
 
@@ -88,14 +88,14 @@ test('short hops get 0–2 encounters, middling journeys 1–3, long ones 2–4,
 })
 
 test('every slot fills with the same chance, whatever the road', () => {
-  expect(ENCOUNTER_SLOT_CHANCE).toBe(0.4)
+  expect(ENCOUNTER_SLOT_CHANCE).toBe(0.3)
 })
 
 describe('hostileShare', () => {
   test('danger, threat, foraging and a hurried pace each make encounters likelier hostile', () => {
     expect(hostileShare(0, 0)).toEqual({
-      share: 0.25,
-      base: 0.25,
+      share: 0.1,
+      base: 0.1,
       danger: 0,
       threat: 0,
       forage: 0,
@@ -103,7 +103,7 @@ describe('hostileShare', () => {
     })
     const share = hostileShare(2, 1, 'brisk', true)
     expect(share).toMatchObject({ danger: 0.2, threat: 0.1, forage: 0.1, pace: 0.1 })
-    expect(share.share).toBeCloseTo(0.75)
+    expect(share.share).toBeCloseTo(0.6)
   })
 
   test('stays within 10–85%', () => {

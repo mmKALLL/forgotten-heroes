@@ -53,7 +53,7 @@ export const journeyDays = (
  * The chance that each encounter slot above the minimum fills: the same on every road and at
  * every pace. Danger, threat, pace and foraging change what is met, not how often (hostileShare).
  */
-export const ENCOUNTER_SLOT_CHANCE = 0.4
+export const ENCOUNTER_SLOT_CHANCE = 0.3
 
 /**
  * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one
@@ -66,7 +66,7 @@ export function encounterRange(days: number): [number, number] {
 }
 
 /** The share of encounters that are hostile before danger, threat, foraging and pace. */
-export const HOSTILE_BASE = 0.25
+export const HOSTILE_BASE = 0.1
 /** Added to the hostile share per level of route danger, and per level of the domain's threat. */
 export const HOSTILE_PER_DANGER = 0.1
 export const HOSTILE_PER_THREAT = 0.1

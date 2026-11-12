@@ -64,7 +64,7 @@ test('shows the settlement and its roads; picking a road shows its odds; Travel 
       `2–4 encounters · about ${Math.round(steady.hostile.share * 100)}% of them hostile`
     )
   ).toBeTruthy()
-  expect(road(greenvale2).getByText(/^Hostile share: 25% base, .*\+10% foraging$/)).toBeTruthy()
+  expect(road(greenvale2).getByText(/^Hostile share: 10% base, .*\+10% foraging$/)).toBeTruthy()
   expect(road(greenvale2).getByText(/forages each day: Survival/)).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenCalledWith({
