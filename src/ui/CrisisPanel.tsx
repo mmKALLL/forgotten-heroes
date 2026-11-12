@@ -125,8 +125,8 @@ function ActRow({ t, act }: { t: T; act: CrisisActInfo }) {
 
 /**
  * The Crisis at the site the party is at (the site panel): which act of whose plot, lateness and
- * the weakness at the current act's site, the reveal site's promise, or why a quiet site holds
- * nothing more.
+ * the weakness at the current act's site, or the reveal site's promise. Why a quiet site holds
+ * nothing more is the visit's refusal (`crisisRefusal`), which the site panel shows.
  */
 export function CrisisSiteNote({ content, state }: { content: Content; state: GameState }) {
   const { t } = useI18n()
@@ -134,11 +134,7 @@ export function CrisisSiteNote({ content, state }: { content: Content; state: Ga
   const site = info?.sites.find((s) => s.poi === state.location)
   if (!info || !site) return null
   if (site.kind === 'reveal') {
-    return (
-      <p className={site.quiet ? 'muted small' : 'small crisis-note'}>
-        {t(site.quiet ? 'crisis.quietReveal' : 'crisis.siteReveal')}
-      </p>
-    )
+    return site.quiet ? null : <p className="small crisis-note">{t('crisis.siteReveal')}</p>
   }
   const act = info.acts[site.act! - 1]
   const numeral = act?.numeral ?? String(site.act)
@@ -149,21 +145,15 @@ export function CrisisSiteNote({ content, state }: { content: Content; state: Ga
           {t('crisis.siteAct', { numeral, name: info.short, act: act.name })}
         </p>
       )}
-      {site.quiet ? (
-        <p className="muted">
-          {site.thwarted ? t('crisis.quietThwarted', { numeral }) : t('crisis.quiet')}
-        </p>
-      ) : (
-        act && (
-          <>
-            {act.late > 0 && <LateLine t={t} act={act} />}
-            {act.weakness ? (
-              <p className="tone-good">{t('crisis.weakness', { name: info.short ?? '' })}</p>
-            ) : (
-              <p className="muted">{t('crisis.noWeakness', { at: act.weaknessAt })}</p>
-            )}
-          </>
-        )
+      {!site.quiet && act && (
+        <>
+          {act.late > 0 && <LateLine t={t} act={act} />}
+          {act.weakness ? (
+            <p className="tone-good">{t('crisis.weakness', { name: info.short ?? '' })}</p>
+          ) : (
+            <p className="muted">{t('crisis.noWeakness', { at: act.weaknessAt })}</p>
+          )}
+        </>
       )}
     </div>
   )

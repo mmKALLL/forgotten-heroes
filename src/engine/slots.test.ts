@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import { slotSummary } from './slots'
 import { newGame } from './state'
-import { fixtureContent } from './test-fixtures'
+import { brom, fixtureContent, lyra, makeState } from './test-fixtures'
 
 const content = fixtureContent()
 
@@ -30,4 +30,9 @@ test('on the road, the summary gives where the party is headed', () => {
     place: state.world.settlements[to].name,
     onRoad: true,
   })
+})
+
+test('a fallen party’s slot says so', () => {
+  const party = [brom, lyra].map((c) => ({ ...c, exhaustion: 6 }))
+  expect(slotSummary(makeState({ party }), content).ending).toBe('fallen')
 })

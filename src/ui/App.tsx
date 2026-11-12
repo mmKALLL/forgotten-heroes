@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadBundledContent } from '../content/bundled'
 import { inProgress } from '../engine/encounters/run'
+import { runEnding, runRecord } from '../engine/crisis/ending'
 import { crisisInfo } from '../engine/crisis/status'
 import { camaraderieInfo } from '../engine/town/camaraderie'
 import { suppliesInfo } from '../engine/travel/preview'
@@ -11,9 +12,11 @@ import { ContractsPanel } from './ContractsPanel'
 import { CrisisPanel } from './CrisisPanel'
 import { EncounterDeck } from './deck/EncounterDeck'
 import { DevArea } from './DevArea'
+import { EndDialog } from './EndDialog'
 import { prefersReducedMotion } from './dice/DiceRoll'
 import { EncounterView } from './encounter/EncounterView'
 import { GoodsBar } from './GoodsBar'
+import { recordRun } from './hall'
 import { addsRoll } from './encounter/rolls'
 import { I18nProvider, LanguageToggle, useI18n } from './i18n/I18n'
 import { LogPanel } from './LogPanel'
@@ -62,6 +65,17 @@ function Game() {
     wasTravelling.current = { run, travelling: state.travel !== null }
     if (arrived && autoRest) dispatch({ type: 'autoRest' })
   }, [state, run, autoRest, dispatch])
+  // The Hall of the Fallen records each ending once (a run that ends again is updated in place).
+  const ending = runEnding(state)
+  const recorded = useRef<string | null>(null)
+  useEffect(() => {
+    const key = `${state.seed}:${ending}`
+    if (!ending || recorded.current === key) return
+    recorded.current = key
+    recordRun(runRecord(state, content, new Date().toISOString()))
+  }, [state, ending])
+  // "Look back" closes the fallen screen for this session (per run).
+  const [lookedBack, setLookedBack] = useState<string | null>(null)
   const rolling = revealed !== state && !reducedMotion && addsRoll(revealed, state)
   if (!rolling && revealed !== state) setRevealed(state)
   const shown = rolling ? revealed : state
@@ -69,11 +83,25 @@ function Game() {
   const atSite = shown.location !== null && nodeOf(shown, content, shown.location)?.kind === 'poi'
   // The town ledger takes a wider centre column (theme.css), so a settlement fits one screen.
   const inTown = !state.encounter && !shown.travel && !atSite
+  const crisis = crisisInfo(shown, content)
+  const fallen = runEnding(shown) === 'fallen'
+  // The end screen: fallen at once; a won or lost Crisis once the encounter that decided it closes.
+  const endScreen = fallen
+    ? lookedBack === run
+      ? null
+      : 'fallen'
+    : crisis?.showEnd && !shown.encounter
+      ? crisis.ended!.outcome
+      : null
+  const newParty = () => {
+    setSelected(null)
+    restart(slot)
+  }
   return (
     <div className="app">
       <header className="topbar">
         <h1>{t('app.title')}</h1>
-        <DayMark day={shown.day} crisis={crisisInfo(shown, content)} />
+        <DayMark day={shown.day} crisis={crisis} />
         <span>{t('top.gold', { gold: shown.gold })}</span>
         <span title={t('top.suppliesHint')}>
           {t('top.food', { food: supplies.food, days: supplies.foodDays })} ·{' '}
@@ -103,6 +131,14 @@ function Game() {
           }}
         />
       </header>
+      {fallen && (
+        <div className="fallen-banner" role="status">
+          <span>{t('end.fallenBanner')}</span>
+          <button className="primary" onClick={newParty}>
+            {t('end.newParty')}
+          </button>
+        </div>
+      )}
       <main className={inTown ? 'layout town' : 'layout'}>
         {/* On narrow screens the columns stack: party, then the centre, then the map (theme.css). */}
         <div className="left">
@@ -175,6 +211,17 @@ function Game() {
         </div>
       </main>
       <GoodsBar content={content} state={shown} onAction={dispatch} />
+      {endScreen && (
+        <EndDialog
+          key={`${run}:${endScreen}`}
+          content={content}
+          state={shown}
+          ending={endScreen}
+          onKeepPlaying={() => dispatch({ type: 'acknowledgeEnd' })}
+          onNewParty={newParty}
+          onLookBack={() => setLookedBack(run)}
+        />
+      )}
     </div>
   )
 }

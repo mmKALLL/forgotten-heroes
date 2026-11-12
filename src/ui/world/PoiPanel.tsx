@@ -54,14 +54,19 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
           </button>
         </div>
       )}
-      {reason && (
-        <p className="tone-bad small">
-          {reason === 'cleared'
-            ? t('poi.clearedReason', { name: info.name })
-            : reason === 'visited'
-              ? t('poi.visitedReason', { name: info.name })
-              : t('roadReason.busy')}
-        </p>
+      {reason === 'quiet' ? (
+        // A Crisis site where nothing more happens: the engine's words (crisis/progress.ts).
+        <p className="muted small">{visit?.reason}</p>
+      ) : (
+        reason && (
+          <p className="tone-bad small">
+            {reason === 'cleared'
+              ? t('poi.clearedReason', { name: info.name })
+              : reason === 'visited'
+                ? t('poi.visitedReason', { name: info.name })
+                : t('roadReason.busy')}
+          </p>
+        )
       )}
       <h3>{t('place.supplies')}</h3>
       <p className="small">
