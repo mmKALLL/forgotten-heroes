@@ -90,6 +90,8 @@ describe('a day of gathering', () => {
     expect(after.goods.timber).toBe(loads + 1)
     expect(load(after, content).level).not.toBe('overloaded')
     expect(after.log.some((l) => l.text.includes('left behind'))).toBe(true)
+    // What is left behind still lies there: the land is picked over by what was carried only.
+    expect(after.gathered['farisle-1']?.timber?.units).toBe(1)
   })
 
   test('a critical failure brings trouble or hurts the lead', () => {

@@ -37,8 +37,8 @@ import {
 
 // Gathering (Plan 5a, design §10b): a day's work in a settlement's domain, cutting timber,
 // quarrying stone, gathering fuel, food or healing herbs (content `gatherRules`). The lead rolls,
-// the whole able party works, and the land is picked over by what it took: `gathered` recovers
-// like a market's pressure (economy/market.ts). Nothing ticks.
+// the whole able party works, and the land is picked over by what it carried away: `gathered`
+// recovers like a market's pressure (economy/market.ts). Nothing ticks.
 
 const BUSY = 'Finish the current encounter first.'
 
@@ -176,7 +176,7 @@ export function gatherOptions(state: GameState, content: Content): GatherOption[
 /**
  * A day's gathering (gatherOptions): the lead rolls (it counts toward Strain; a natural 20 grants
  * Inspiration), the units the tier yields arrive as goods (what the party can't carry is left
- * behind), and the land records what was taken. Then the day passes as a day in town on the
+ * behind), and the land records what was carried away. Then the day passes as a day in town on the
  * party's own food (water is free in town). A critical failure draws a hostile situation that
  * fits the place, or else hurts the lead (GATHER_INJURY).
  */
@@ -203,7 +203,8 @@ export function gather(state: GameState, content: Content, ruleId: string): Game
       inspiration: state.inspiration + (inspired ? 1 : 0),
       lastRoll: { ...roll, stat: option.skill, ability: rule.ability, actorId: option.actorId },
       goods: { ...state.goods, [option.good]: (state.goods[option.good] ?? 0) + units },
-      gathered: recordTrade(state.gathered, domain, option.good, taken, state.day),
+      // The land is picked over by what is carried home: what is left behind still lies there.
+      gathered: recordTrade(state.gathered, domain, option.good, units, state.day),
     },
     `${option.label} near ${settlementName(state, domain)}: ${name} rolls ` +
       `${option.checkLabel} ${roll.kept} ${formatModifier(roll.modifier)} = ${roll.total} ` +
