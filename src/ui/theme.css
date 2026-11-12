@@ -872,6 +872,61 @@ h2[tabindex='-1']:focus {
   paint-order: stroke;
   pointer-events: none;
 }
+.map-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+/* Points of interest: a dark disc with a light category glyph, outlined in the domain's kingdom colour. */
+.poi circle:not(.poi-glyph) {
+  fill: var(--ink);
+  fill-opacity: 0.75;
+  stroke: var(--muted);
+  stroke-width: 8;
+}
+.world-map.full .poi circle:not(.poi-glyph) {
+  stroke-width: 12;
+}
+.poi-glyph {
+  fill: #f8f2e3;
+}
+.poi.reachable circle:not(.poi-glyph) {
+  fill: var(--accent);
+  fill-opacity: 0.9;
+}
+.poi.here circle:not(.poi-glyph) {
+  fill: var(--good);
+  fill-opacity: 1;
+}
+.poi.selected circle:not(.poi-glyph),
+.poi:focus-visible circle:not(.poi-glyph) {
+  stroke: var(--crit) !important;
+  stroke-width: 16;
+}
+.world-map.full .poi.selected circle:not(.poi-glyph),
+.world-map.full .poi:focus-visible circle:not(.poi-glyph) {
+  stroke-width: 22;
+}
+/* A cleared site stays on the map, dimmed. */
+.poi.cleared {
+  opacity: 0.5;
+}
+.kingdom-spot {
+  fill-opacity: 0.38;
+  pointer-events: none;
+}
+.crown {
+  stroke: var(--ink);
+  stroke-width: 4;
+  pointer-events: none;
+}
+.kingdom-swatch {
+  width: 0.8rem;
+  height: 0.8rem;
+}
+.kingdom-swatch rect {
+  fill-opacity: 0.7;
+}
 .party-marker {
   fill: none;
   stroke: var(--good);
