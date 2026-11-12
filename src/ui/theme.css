@@ -1253,7 +1253,7 @@ h2[tabindex='-1']:focus {
 }
 .ledger {
   display: grid;
-  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
   grid-template-areas:
     'head head'
     'market roads'
@@ -1507,4 +1507,105 @@ h2[tabindex='-1']:focus {
 }
 .ledger .services {
   margin: 0 0 0.3rem;
+}
+/* Services as compact tiles in four columns; a function's tiles share an edge colour. */
+.service-tiles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+.service-group {
+  display: contents;
+}
+.service-tile {
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--line);
+  border-radius: 4px;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.78rem;
+  min-width: 0;
+}
+.service-tile.fn-trade {
+  border-left-color: var(--good);
+}
+.service-tile.fn-rest {
+  border-left-color: var(--tier-partial);
+}
+.service-tile.fn-hire {
+  border-left-color: var(--accent);
+}
+.service-tile.fn-temple {
+  border-left-color: #6a3f8a;
+}
+.service-tile.fn-underworld {
+  border-left-color: var(--ink);
+}
+.service-tile.later {
+  opacity: 0.6;
+}
+.service-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.3rem;
+  font-weight: bold;
+}
+.service-name > span:last-child {
+  white-space: nowrap;
+}
+.service-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  margin-top: 0.15rem;
+}
+.ledger .service-actions button {
+  font-size: 0.72rem;
+  padding: 0 0.3rem;
+}
+.service-actions .small {
+  font-size: 0.72rem;
+}
+.service-actions .trades {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.inline-pick {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem;
+}
+.inline-pick select {
+  width: 100%;
+  min-width: 0;
+  font-size: 0.72rem;
+  padding: 0 0.2rem;
+}
+.hire-toggle {
+  display: block;
+}
+@media (max-width: 900px) {
+  .service-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.ledger .route-info > p.dest {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ledger .pace-choice button {
+  font-size: 0.7rem;
+  padding: 0.05rem 0.35rem;
+}
+.ledger .check-outcomes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.8rem;
+}
+.ledger .check-outcomes .faces {
+  min-width: 0;
+  margin-right: 0.25rem;
 }

@@ -151,6 +151,42 @@ export const hireCost = (offer: Pick<HireOffer, 'count' | 'perDay'>, days: numbe
 export const resaleValue = (def: Pick<AnimalDef, 'price'>): number =>
   Math.floor(def.price * ANIMAL_RESALE)
 
+/** One animal at an animals service, as the services panel offers it. */
+export type AnimalOffer = {
+  id: string
+  name: string
+  price: number
+  /** What one sells back for here. */
+  resale: number
+  /** kg it carries or hauls. */
+  capacity: number
+  /** gp a day while owned. */
+  upkeep: number
+  /** Land speed while ridden, or null if it carries no rider. */
+  rides: number | null
+  owned: number
+  /** Why it can't be bought now (gold), or null. */
+  buyReason: string | null
+}
+
+/** The animals for sale here, cheapest first; none without an animals service. */
+export function animalOffers(state: GameState, content: Content): AnimalOffer[] {
+  if (!serviceWith(state, content, 'animals')) return []
+  return Object.values(content.animals)
+    .sort((a, b) => a.price - b.price || (a.id < b.id ? -1 : 1))
+    .map((def) => ({
+      id: def.id,
+      name: def.name,
+      price: def.price,
+      resale: resaleValue(def),
+      capacity: def.capacity,
+      upkeep: def.upkeepPerDay,
+      rides: def.rider ? def.speed : null,
+      owned: state.animals[def.id] ?? 0,
+      buyReason: state.gold < def.price ? `costs ${def.price} gp` : null,
+    }))
+}
+
 /** Buys one animal (or cart) at an animals service. */
 export function buyAnimal(state: GameState, content: Content, id: string): GameState {
   if (!inSettlement(state)) {

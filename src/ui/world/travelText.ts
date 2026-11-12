@@ -152,5 +152,7 @@ export function roadReasonMessage(t: T, r: RoadReason): string {
       return t(r.params.roadsOnly ? 'roadReason.cart' : 'roadReason.roughPath', {
         name: r.params.name.toLowerCase(),
       })
+    case 'hire':
+      return t('roadReason.hire', { gp: r.params.gold })
   }
 }

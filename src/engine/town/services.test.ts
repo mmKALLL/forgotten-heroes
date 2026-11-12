@@ -8,6 +8,7 @@ import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { carryCapacity } from '../economy/capacity'
 import { routeOptions } from '../travel/preview'
 import { restOption } from '../travel/supplies'
+import { animalOffers } from './animals'
 import { lodgingOptions, newsTargets, serviceRows } from './services'
 import { KM_PER_DAY, MOUNT_ROUGH_SPEED } from '../constants'
 
@@ -163,6 +164,17 @@ describe('animals', () => {
   })
 })
 
+describe('animal offers', () => {
+  test('list what is for sale where there is an animals service, with resale and keep', () => {
+    const offers = animalOffers(at('greenvale-1', { gold: 15, animals: { mule: 1 } }), content)
+    expect(offers.map((o) => o.id)).toEqual(['mule', 'cart', 'riding-horse'])
+    expect(offers[0]).toMatchObject({ owned: 1, capacity: 100, upkeep: 1, buyReason: null })
+    expect(offers[0].resale).toBeLessThan(offers[0].price)
+    expect(offers[2]).toMatchObject({ rides: 2, buyReason: 'costs 80 gp' })
+    expect(animalOffers(at('greenvale-2'), content)).toEqual([])
+  })
+})
+
 describe('hired horses', () => {
   const ride = (s: GameState, routeId: string) => {
     const option = routeOptions(s, content).find((o) => o.routeId === routeId)!
@@ -199,6 +211,20 @@ describe('hired horses', () => {
     expect(s.location).toBe('greenvale-2')
     expect(s.log.some((e) => e.text.includes('hired mounts are returned'))).toBe(true)
     expect(carryCapacity(s, content)).toBe(carryCapacity(at('greenvale-2'), content))
+  })
+
+  test('carry what the party can’t on foot, and say when the hire is too dear', () => {
+    const empty = at('greenvale-1', { goods: {} })
+    const kg = Math.floor(carryCapacity(empty, content) * 1.5) + 10
+    const heavy = at('greenvale-1', { goods: { food: kg } })
+    const road = routeOptions(heavy, content).find((o) => o.to === 'greenvale-2')!
+    expect(road.reason?.code).toBe('overloaded')
+    expect(road.mounted!.paces.every((p) => p.reason === null)).toBe(true)
+    const poor = at('greenvale-1', { gold: 1 })
+    const steady = routeOptions(poor, content)
+      .find((o) => o.to === 'greenvale-2')!
+      .mounted!.paces.find((p) => p.pace === 'steady')!
+    expect(steady.reason).toEqual({ code: 'hire', params: { gold: steady.cost } })
   })
 
   test('are not for hire where there is no animals service, or at sea', () => {
