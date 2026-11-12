@@ -1,0 +1,128 @@
+{
+  "$schema": "../_schema/poiTypes.schema.json",
+  "kind": "poiTypes",
+  "source": "claude",
+  "notes": "Crisis sites (Plan 5b): one reveal site and three act sites per villain in villains.json. They are weight 0, so never drawn as ordinary POIs; the Crisis places them when it is rolled (and with them the villain's act biomes and seat hints). Category quest, never hostile: they don't feed threat or cycle. Their names are in crisis-names.json and their situations in crisis-situations.json. Until K2 the act sites play their villain's reveal situation as a stand-in. Written by Claude.",
+  "entries": [
+    {
+      "id": "burned-chapel",
+      "category": "quest",
+      "name": "Burned chapel",
+      "weight": 0,
+      "pathDanger": 1,
+      "names": "crisis-site-burned-chapel",
+      "situations": ["burned-chapel-search"],
+      "icon": "burning-embers"
+    },
+    {
+      "id": "desecrated-barrow-field",
+      "category": "quest",
+      "name": "Desecrated barrow-field",
+      "weight": 0,
+      "pathDanger": 2,
+      "names": "crisis-site-barrow-field",
+      "situations": ["burned-chapel-search"],
+      "icon": "tombstone"
+    },
+    {
+      "id": "hidden-ossuary",
+      "category": "quest",
+      "name": "Hidden ossuary",
+      "weight": 0,
+      "pathDanger": 2,
+      "names": "crisis-site-ossuary",
+      "situations": ["burned-chapel-search"],
+      "icon": "crossed-bones"
+    },
+    {
+      "id": "royal-crypt",
+      "category": "quest",
+      "name": "Royal crypt",
+      "weight": 0,
+      "pathDanger": 1,
+      "names": "crisis-site-royal-crypt",
+      "situations": ["burned-chapel-search"],
+      "icon": "crowned-skull"
+    },
+    {
+      "id": "waylaid-courier-camp",
+      "category": "quest",
+      "name": "Waylaid courier's camp",
+      "weight": 0,
+      "pathDanger": 1,
+      "names": "crisis-site-courier-camp",
+      "situations": ["courier-camp-search"],
+      "icon": "scroll-unfurled"
+    },
+    {
+      "id": "forgers-den",
+      "category": "quest",
+      "name": "Forger's den",
+      "weight": 0,
+      "pathDanger": 1,
+      "names": "crisis-site-forgers-den",
+      "situations": ["courier-camp-search"],
+      "icon": "quill-ink"
+    },
+    {
+      "id": "mercenary-muster",
+      "category": "quest",
+      "name": "Mercenary muster",
+      "weight": 0,
+      "pathDanger": 2,
+      "names": "crisis-site-muster",
+      "situations": ["courier-camp-search"],
+      "icon": "crossed-swords"
+    },
+    {
+      "id": "usurpers-chapel",
+      "category": "quest",
+      "name": "Usurper's chapel",
+      "weight": 0,
+      "pathDanger": 1,
+      "names": "crisis-site-usurpers-chapel",
+      "situations": ["courier-camp-search"],
+      "icon": "crown"
+    },
+    {
+      "id": "scorched-shepherds-hut",
+      "category": "quest",
+      "name": "Scorched shepherd's hut",
+      "weight": 0,
+      "pathDanger": 1,
+      "names": "crisis-site-shepherds-hut",
+      "situations": ["shepherds-hut-search"],
+      "icon": "sheep"
+    },
+    {
+      "id": "brood-cave",
+      "category": "quest",
+      "name": "Brood cave",
+      "weight": 0,
+      "pathDanger": 2,
+      "names": "crisis-site-brood-cave",
+      "situations": ["shepherds-hut-search"],
+      "icon": "egg-clutch"
+    },
+    {
+      "id": "beacon-heights",
+      "category": "quest",
+      "name": "Beacon heights",
+      "weight": 0,
+      "pathDanger": 2,
+      "names": "crisis-site-beacon-heights",
+      "situations": ["shepherds-hut-search"],
+      "icon": "campfire"
+    },
+    {
+      "id": "wyrm-hall",
+      "category": "quest",
+      "name": "Hall under the mountain",
+      "weight": 0,
+      "pathDanger": 2,
+      "names": "crisis-site-wyrm-hall",
+      "situations": ["shepherds-hut-search"],
+      "icon": "dragon-head"
+    }
+  ]
+}

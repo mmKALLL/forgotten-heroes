@@ -1,0 +1,346 @@
+{
+  "$schema": "../_schema/situations.schema.json",
+  "kind": "situations",
+  "source": "claude",
+  "notes": "The Crisis (Plan 5b): the situations of the crisis sites in crisis-sites.json. Reveal situations (one per villain, two stages): a check or a price decides what getting in costs (a trap, a survivor to tend, a guard to slip past), and every ending except 'leave' learns the plan (learnPlan); a slower or riskier reading can also give a clue to act I (crisisClue). Texts name the villain by title only (the Ashen Prophet), since situations have no {villain} slot. Written by Claude.",
+  "entries": [
+    {
+      "id": "burned-chapel-search",
+      "title": "The burned chapel",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["crisis", "dark-cult"],
+      "stages": {
+        "start": {
+          "text": "The chapel burned from the inside. The roof is down, the pews are charcoal, and the door was barred from the outside. In the vestry, under a fallen beam, an iron-bound strongbox has come through the fire. Someone has scratched a warning into the vestry door: a skull, and an arrow pointing at the floor.",
+          "options": [
+            {
+              "id": "search",
+              "kind": "check",
+              "label": "Find out what the warning means",
+              "description": "Look for the trap before you touch the strongbox. A miss costs blood, not the ledger.",
+              "check": { "skill": "investigation", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} misses the wire under the ash. The beam comes down across {actor}'s back, and the strongbox rolls out from under it.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "goto": "ledger"
+                },
+                "partial": {
+                  "text": "{actor} finds the wire, and trips a second one stepping round it. A loose stone catches {actor} on the shoulder.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "goto": "ledger"
+                },
+                "success": {
+                  "text": "{actor} finds the tripwire in the ash, and the second one behind it, and cuts both. The strongbox comes out clean.",
+                  "goto": "ledger"
+                }
+              }
+            },
+            {
+              "id": "rope",
+              "kind": "fixed",
+              "label": "Rope the beam and pull it from the doorway",
+              "description": "Slow and safe: whatever is rigged to it can fall on nobody. It takes the rest of the day.",
+              "outcome": {
+                "text": "You rope the beam and haul from the doorway. Half the vestry wall comes down with it, and a sharpened stake swings through the space where someone would have stood. By dusk the strongbox is yours.",
+                "effects": [{ "effect": "days", "amount": 1 }],
+                "goto": "ledger"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the chapel to the crows",
+              "outcome": {
+                "text": "You leave the strongbox under its beam. Whatever is in it will keep."
+              }
+            }
+          ]
+        },
+        "ledger": {
+          "text": "The strongbox holds a purse of the cult's silver and a ledger, scorched at the edges and still readable. It is written small and neat, and some of the margins are full of a cipher.",
+          "options": [
+            {
+              "id": "read",
+              "kind": "fixed",
+              "label": "Read it through and go",
+              "outcome": {
+                "text": "You read it standing in the ashes, then pocket the silver. The plan is plain enough without the margins.",
+                "effects": [{ "effect": "gold", "amount": 8 }, { "effect": "learnPlan" }]
+              }
+            },
+            {
+              "id": "decipher",
+              "kind": "check",
+              "label": "Work out the cipher in the margins",
+              "description": "It takes a day. The margins may say where the diggers went.",
+              "check": { "skill": "religion", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} spends the day on the margins and gets nowhere. The main text is plain enough.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "learnPlan" }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} cracks the cipher: prayers for the dead, said backwards. Nothing useful, but the main text is plain enough.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "learnPlan" }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} cracks the cipher by evening. Among the prayers is a list of payments to diggers, and where to find them.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "learnPlan" },
+                    { "effect": "crisisClue" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "courier-camp-search",
+      "title": "The courier's camp",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "pretender"],
+      "stages": {
+        "start": {
+          "text": "The courier's camp is a cold firepit, a dead horse and a lean-to with its canvas slashed. Two of the men who did it are still here, picking through the courier's things and arguing over his boots. His dispatch case lies between them, unopened.",
+          "options": [
+            {
+              "id": "slip-in",
+              "kind": "check",
+              "label": "Creep in and take the case",
+              "description": "Quiet, if it works. If it doesn't, you are within knife's reach of two cutthroats.",
+              "check": { "skill": "stealth", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "A twig cracks under {actor}'s boot. The robbers come up with knives out, and {actor} takes one in the arm before they run off with the boots.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "goto": "case"
+                },
+                "partial": {
+                  "text": "{actor} gets a hand on the case as the robbers turn round. A knife opens {actor}'s sleeve, and then they are gone into the trees.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "goto": "case"
+                },
+                "success": {
+                  "text": "{actor} lifts the case from between them while they argue. They are still arguing about the boots when you are out of earshot.",
+                  "goto": "case"
+                }
+              }
+            },
+            {
+              "id": "drive-off",
+              "kind": "check",
+              "label": "Drive them off",
+              "description": "Two of them, and you. They are robbers, not soldiers.",
+              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "They fight dirtier than you expected. You hold the camp in the end, but everyone is cut.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "goto": "case"
+                },
+                "partial": {
+                  "text": "{actor} sends one sprawling and the other runs, but not before a knife finds {actor}'s ribs.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "goto": "case"
+                },
+                "success": {
+                  "text": "{actor} is on them before they reach their knives. They run, and leave the boots.",
+                  "goto": "case"
+                }
+              }
+            },
+            {
+              "id": "buy",
+              "kind": "fixed",
+              "label": "Offer them silver for his papers (5 gp)",
+              "description": "They can't read. They would rather have coin than paper.",
+              "requires": [{ "req": "gold", "min": 5 }],
+              "outcome": {
+                "text": "They bite the coins, shrug and hand over the case. One of them wishes you luck with it.",
+                "effects": [{ "effect": "gold", "amount": -5 }],
+                "goto": "case"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave them to it",
+              "outcome": {
+                "text": "You leave the robbers to their argument. The case can wait, if they don't burn it."
+              }
+            }
+          ]
+        },
+        "case": {
+          "text": "The dispatch case holds a dozen letters in a careless cipher, the courier's purse and a seal ring that is not the courier's. The seal on the letters matches the ring.",
+          "options": [
+            {
+              "id": "read",
+              "kind": "fixed",
+              "label": "Read what you can and go",
+              "outcome": {
+                "text": "The cipher is a child's one, a letter shifted three places. You read the plan by the dead fire and take the purse; the courier has no more use for it.",
+                "effects": [{ "effect": "gold", "amount": 6 }, { "effect": "learnPlan" }]
+              }
+            },
+            {
+              "id": "trace",
+              "kind": "check",
+              "label": "Trace the seal ring to its maker",
+              "description": "Spend a day on the ring's marks and the letters' routes. It may tell you where the forger works.",
+              "check": { "skill": "investigation", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The ring's marks have been filed off. {actor} gives up on it at dusk and reads the letters instead.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 6 },
+                    { "effect": "learnPlan" }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} finds a maker's mark under the bezel, but not a name. The letters, at least, are plain.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 6 },
+                    { "effect": "learnPlan" }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} matches the ring's maker's mark to a route in the letters. The forger who cut this seal is not hard to find now.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 6 },
+                    { "effect": "learnPlan" },
+                    { "effect": "crisisClue" }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "shepherds-hut-search",
+      "title": "The scorched hut",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["crisis", "drake-brood"],
+      "stages": {
+        "start": {
+          "text": "The hill is burned black to the top and the fold is full of dead sheep, cooked where they stood. The hut's turf roof has fallen in. Someone inside is groaning, and drake tracks the size of shields circle the door.",
+          "options": [
+            {
+              "id": "tracks",
+              "kind": "check",
+              "label": "Read the tracks before you go in",
+              "description": "Make sure the drake is gone. Read them wrong and you meet it at the door.",
+              "check": { "skill": "survival", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} reads the tracks as old. They aren't. The drake comes over the hill as you reach the door, and {actor} is caught in the open.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "goto": "shepherd"
+                },
+                "partial": {
+                  "text": "{actor} reads them well enough. The drake makes one pass over the hill and leaves, and {actor} is scorched diving for the door.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "goto": "shepherd"
+                },
+                "success": {
+                  "text": "{actor} reads it all: one drake, gone east a day ago, with a man on foot beside it. You go in calm.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "goto": "shepherd"
+                }
+              }
+            },
+            {
+              "id": "go-in",
+              "kind": "fixed",
+              "label": "Go straight in",
+              "outcome": {
+                "text": "You duck under the fallen turf into the dark of the hut.",
+                "goto": "shepherd"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the hill",
+              "outcome": {
+                "text": "You leave the hill to the flies and whoever is groaning in the hut."
+              }
+            }
+          ]
+        },
+        "shepherd": {
+          "text": "The shepherd lies under his blankets, burned down one side, talking to himself. He heard everything through the wall: the drake coming down, and the man who came with it and spoke to it like a dog, and then spoke to someone else about what comes next.",
+          "options": [
+            {
+              "id": "tend",
+              "kind": "check",
+              "label": "Tend his burns while he talks",
+              "description": "Treat him properly, and he may remember more than the man's words.",
+              "check": { "skill": "medicine", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} does what can be done, which is not much. He tells you everything before the fever takes him.",
+                  "effects": [{ "effect": "learnPlan" }]
+                },
+                "partial": {
+                  "text": "{actor} keeps him alive, but he makes no sense until the next morning. Then he tells you all of it.",
+                  "effects": [{ "effect": "days", "amount": 1 }, { "effect": "learnPlan" }]
+                },
+                "success": {
+                  "text": "Clean dressings and a little sense from {actor}, and the shepherd sits up. He tells you all of it, and which way the drake flew.",
+                  "effects": [{ "effect": "learnPlan" }, { "effect": "crisisClue" }]
+                }
+              }
+            },
+            {
+              "id": "salve",
+              "kind": "fixed",
+              "label": "Give him a healing draught (1 healing)",
+              "description": "No roll: he will be on his feet, and clear-headed.",
+              "requires": [{ "req": "goods", "good": "healing", "min": 1 }],
+              "outcome": {
+                "text": "The draught takes the fire out of his burns. He walks you to the door and points out the way the drake went home.",
+                "effects": [
+                  { "effect": "goods", "good": "healing", "amount": -1 },
+                  { "effect": "learnPlan" },
+                  { "effect": "crisisClue" }
+                ]
+              }
+            },
+            {
+              "id": "question",
+              "kind": "fixed",
+              "label": "Just ask him what he heard",
+              "description": "Quick, and hard on him. Not everyone in the party will like it.",
+              "outcome": {
+                "text": "You get what you came for and leave him to it. Nobody says much on the way down the hill.",
+                "effects": [{ "effect": "learnPlan" }, { "effect": "camaraderie", "amount": -1 }]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
