@@ -306,18 +306,20 @@ export const TRADE_REP_MAX = 3
 export const RUMOUR_DC = 12
 /** A round for the table, per member. */
 export const RUMOUR_PRICE = 1
-/** Nearby towns whose prices each tier brings (a critical failure brings one false rumour). */
+/** Nearby towns whose prices each tier brings (a partial is idle gossip; nothing heard is false). */
 export const RUMOUR_PRICES: Readonly<Record<Tier, number>> = {
-  critFail: 1,
+  critFail: 0,
   fail: 0,
-  partial: 1,
+  partial: 0,
   success: 2,
   critSuccess: 3,
 }
-/** Heard prices are off by up to ±this share (seeded). */
+/** Heard prices (rumours and couriers) are off by up to ±this share (seeded). */
 export const RUMOUR_SKEW = 0.1
-/** A false rumour's prices are off by this share, up or down, with no tell. */
-export const FALSE_RUMOUR_SKEW = 0.4
+/** A critical failure's trouble is a fight (a tavern brawl) this often, else a pickpocket. */
+export const RUMOUR_TROUBLE_FIGHT = 0.5
+/** What a pickpocket lifts on a rumour's critical failure: 1d6 gp, as far as the purse goes. */
+export const PICKPOCKET_GP: readonly [number, number] = [1, 6]
 
 // Contracts and notice boards (town/contracts.ts)
 

@@ -12,6 +12,7 @@ import { poiTypeIssues } from '../engine/world/validate'
 import { lintSituation, validateSituation, validateTwistKind } from '../engine/encounters/validate'
 import { newGame, step } from '../engine/state'
 import { brawlCandidates } from '../engine/travel/stowaway'
+import { troubleCandidates } from '../engine/town/rumours'
 import { loadBundledContent } from './bundled'
 
 const content = loadBundledContent()
@@ -154,6 +155,7 @@ test('Claude wrote road and sea situations, two of them wonders, plus follow-ups
     'sold-out-ambush',
     'something-under-the-hull',
     'squall-off-the-bow',
+    'tavern-brawl',
     'toll-bridge',
     'tribute-at-the-pass',
     'wardens-on-your-trail',
@@ -162,6 +164,12 @@ test('Claude wrote road and sea situations, two of them wonders, plus follow-ups
     (s) => s.source === 'claude' && s.wonder && !s.site
   )
   expect(wonders.map((s) => s.id).sort()).toEqual(['lantern-moths', 'singing-stones'])
+})
+
+test('a rumour’s critical failure has a tavern brawl, never drawn on the road', () => {
+  const fights = troubleCandidates(content)
+  expect(fights.map((s) => s.id)).toEqual(['tavern-brawl'])
+  expect(fights.every((s) => s.weight === 0)).toBe(true)
 })
 
 test('the sea has its own situations, and a hostile one for a stowaway brawl', () => {

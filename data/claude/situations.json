@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it. Seven road situations (ambush-at-the-narrows, mapmakers-apprentice, hedge-witch, pilgrims-at-dusk, flooded-ferry, lizardfolk-herb, wardens-on-your-trail) leave a clue on success: a discoverPoi effect that reveals a nearby point of interest (Plan 3b B3). Plan 4 (B5): consumables unlock surer or easier options, and each one is spent by the option that needs it: a gear line across the flooded ferry, healing kits for the hedge-witch, the creeping fever and the burning barn, alchemist's fire at the narrows and on the sea, and an arcana warding against the ghoul pilgrims. Five new road situations: horse-thieves (thieves who lead off a stealable animal and take a share of precious goods), cutpurse-at-the-fair (thieves), toll-bridge and tribute-at-the-pass (tolls in gold or goods), and barn-on-fire. ambush-at-the-narrows is now tagged thieves. Reputation effects (standing with the nearby settlement) reward helping locals and punish wronging them: mapmakers-apprentice, grudge-on-the-road, wardens-on-your-trail, horse-thieves, toll-bridge, cutpurse-at-the-fair and barn-on-fire.",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it. Seven road situations (ambush-at-the-narrows, mapmakers-apprentice, hedge-witch, pilgrims-at-dusk, flooded-ferry, lizardfolk-herb, wardens-on-your-trail) leave a clue on success: a discoverPoi effect that reveals a nearby point of interest (Plan 3b B3). Plan 4 (B5): consumables unlock surer or easier options, and each one is spent by the option that needs it: a gear line across the flooded ferry, healing kits for the hedge-witch, the creeping fever and the burning barn, alchemist's fire at the narrows and on the sea, and an arcana warding against the ghoul pilgrims. Five new road situations: horse-thieves (thieves who lead off a stealable animal and take a share of precious goods), cutpurse-at-the-fair (thieves), toll-bridge and tribute-at-the-pass (tolls in gold or goods), and barn-on-fire. ambush-at-the-narrows is now tagged thieves. Reputation effects (standing with the nearby settlement) reward helping locals and punish wronging them: mapmakers-apprentice, grudge-on-the-road, wardens-on-your-trail, horse-thieves, toll-bridge, cutpurse-at-the-fair and barn-on-fire. tavern-brawl (weight 0, tagged tavern-trouble) is never drawn on the road: only a critical failure listening for rumours starts it.",
   "entries": [
     {
       "id": "flooded-ferry",
@@ -1867,6 +1867,102 @@
               "kind": "fixed",
               "label": "It's not your barn",
               "outcome": { "text": "You walk on through the smoke. Nobody looks up as you pass." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tavern-brawl",
+      "title": "Trouble in the taproom",
+      "disposition": "hostile",
+      "weight": 0,
+      "tags": ["tavern-trouble"],
+      "notes": "Never drawn on the road (weight 0): a critical failure listening for rumours at a tavern may start it (town/rumours.ts, tag tavern-trouble). Fists cost HP, talking it down costs a skill roll, and paying for the damage costs gold.",
+      "stages": {
+        "start": {
+          "text": "Someone at the next table decides your questions are an insult. A drover the size of a door pushes back his bench, his friends stand with him, and the keeper is already reaching under the bar for the cudgel.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight",
+              "description": "Fists and chairs. Win, and the room is on your side.",
+              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "outcomes": {
+                "critFail": {
+                  "text": "You come to in the street, bruised all over, and someone has been through your purses.",
+                  "effects": [
+                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "gold", "amount": -5 },
+                    { "effect": "reputation", "amount": -1 }
+                  ]
+                },
+                "fail": {
+                  "text": "The keeper's cudgel ends it, and you are the ones thrown out.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "reputation", "amount": -1 }
+                  ]
+                },
+                "partial": {
+                  "text": "A short, ugly scuffle among the benches. {actor} takes the worst of it.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} puts the drover on the floor, and his friends remember they were leaving.",
+                  "effects": [{ "effect": "hp", "amount": -1, "target": "actor" }]
+                },
+                "critSuccess": {
+                  "text": "{actor} lays the drover out with one blow. The room cheers, and the keeper stands you a round.",
+                  "effects": [{ "effect": "reputation", "amount": 1 }]
+                }
+              }
+            },
+            {
+              "id": "talk-down",
+              "kind": "check",
+              "label": "Talk him down",
+              "description": "He is drunk, not stupid. Probably.",
+              "once": true,
+              "check": { "skill": "persuasion", "dc": 14 },
+              "outcomes": {
+                "critFail": {
+                  "text": "Whatever {actor} says, it is the wrong thing. He swings first.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
+                  "stay": true
+                },
+                "fail": {
+                  "text": "He isn't listening, and his friends are closing in.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "He sits down grumbling, once you have bought his table a round.",
+                  "effects": [{ "effect": "gold", "amount": -3 }]
+                },
+                "success": {
+                  "text": "{actor} turns it into a joke, and by the end of it the drover is laughing too."
+                },
+                "critSuccess": {
+                  "text": "{actor} talks him round so well that he insists on buying the next round himself.",
+                  "effects": [{ "effect": "reputation", "amount": 1 }]
+                }
+              }
+            },
+            {
+              "id": "pay-and-leave",
+              "kind": "fixed",
+              "label": "Pay for the damage and leave",
+              "description": "Coin on the bar, and out the door before the first chair flies.",
+              "requires": [{ "req": "gold", "min": 6 }],
+              "outcome": {
+                "text": "The keeper sweeps the coins off the bar and waves you out the back way.",
+                "effects": [{ "effect": "gold", "amount": -6 }]
+              }
             }
           ]
         }

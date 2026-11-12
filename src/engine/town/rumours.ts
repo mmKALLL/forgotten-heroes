@@ -2,7 +2,8 @@ import type { Content } from '../../content/build'
 import { GOODS } from '../../schema/types'
 import type { GameState, PriceBookEntry } from '../../schema/state'
 import { revealPois } from '../encounters/effects'
-import { inProgress } from '../encounters/run'
+import { allSituations } from '../encounters/compile'
+import { inProgress, startEncounter } from '../encounters/run'
 import { wholeGp } from '../economy/market'
 import { marketPrices, marketTalk } from '../economy/trade'
 import { formatModifier } from '../format'
@@ -19,15 +20,17 @@ import { poisToDiscover } from '../world/pois'
 import { serviceWith } from './animals'
 import { personStanding, settlementStanding, shopKeeper, standingSteps } from './reputation'
 import {
-  FALSE_RUMOUR_SKEW,
+  PICKPOCKET_GP,
   RUMOUR_DC,
   RUMOUR_PRICE,
   RUMOUR_PRICES,
   RUMOUR_SKEW,
+  RUMOUR_TROUBLE_FIGHT,
 } from '../constants'
 
 // Rumours at the tavern (design §4, §6; Plan 4 B3): buy a round, listen, and come away with other
 // towns' prices (heard, dated by distance and a little off), a clue to a site, or a lead on work.
+// What is heard is never false: a partial is idle gossip, and a critical failure is trouble.
 
 /** The skills a rumour check can use; the better one rolls (Insight on a tie). */
 export const RUMOUR_SKILLS = ['insight', 'persuasion'] as const
@@ -35,11 +38,14 @@ export const RUMOUR_SKILLS = ['insight', 'persuasion'] as const
 export const RUMOURS_DONE = 'rumours'
 export const RUMOUR_LEAD = 'lead'
 
+/** A critical failure starts a hostile situation with this tag (a tavern brawl), if one exists. */
+export const RUMOUR_TROUBLE_TAG = 'tavern-trouble'
+
 /** What each tier brings (English). Critical tiers stay hidden in previews. */
 export const RUMOUR_OUTCOMES: Readonly<Record<Tier, string>> = {
-  critFail: 'A false rumour, told with a straight face',
+  critFail: 'Trouble: a pickpocket, or a fight',
   fail: 'Nothing worth hearing',
-  partial: "One nearby town's prices",
+  partial: 'Idle gossip and old news, of no use',
   success: "Two nearby towns' prices, and word of a site",
   critSuccess: "Three towns' prices, word of a site, and a lead on work",
 }
@@ -109,22 +115,18 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
 }
 
 /** A heard price, off by up to ±`skew` (seeded), in whole gold like the price book's. */
-const skewed = (d: Draw, price: number | null, skew: number, sign?: 1 | -1): number | null => {
-  if (price === null) return null
-  const factor = sign === undefined ? 1 + (d.float() * 2 - 1) * skew : 1 + sign * skew
-  return wholeGp(price * factor)
-}
+const skewed = (d: Draw, price: number | null, skew: number): number | null =>
+  price === null ? null : wholeGp(price * (1 + (d.float() * 2 - 1) * skew))
 
 /**
  * Heard prices from up to `count` of the nearest settlements (by road) whose prices the book
  * doesn't know fresher. Each is dated back by the steady days from there, and each price is off by
- * up to ±RUMOUR_SKEW; a false rumour is off by FALSE_RUMOUR_SKEW, up or down, with no tell.
+ * up to ±RUMOUR_SKEW.
  */
 function hearPrices(
   state: GameState,
   content: Content,
-  count: number,
-  misleading: boolean
+  count: number
 ): { state: GameState; heard: string[] } {
   if (count <= 0) return { state, heard: [] }
   const here = state.location!
@@ -145,9 +147,7 @@ function hearPrices(
       for (const good of GOODS) {
         const p = n.prices[good]
         if (!p) continue
-        const sign = misleading ? (d.float() < 0.5 ? -1 : 1) : undefined
-        const skew = misleading ? FALSE_RUMOUR_SKEW : RUMOUR_SKEW
-        prices[good] = { buy: skewed(d, p.buy, skew, sign), sell: skewed(d, p.sell, skew, sign) }
+        prices[good] = { buy: skewed(d, p.buy, RUMOUR_SKEW), sell: skewed(d, p.sell, RUMOUR_SKEW) }
       }
       book[n.id] = { day: n.day, heard: true, prices }
     }
@@ -163,11 +163,50 @@ const listNames = (state: GameState, ids: readonly string[]) => {
     : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
 }
 
+/** Harmless talk for a partial: nothing about prices, sites or work (seeded pick). */
+const GOSSIP: readonly string[] = [
+  "The talk is of the miller's daughter and the tinker, and who saw what behind the granary.",
+  'An old soldier tells the war of his youth again, battle by battle, to anyone who will listen.',
+  'Everyone has an opinion on last spring’s flood, and none of them agree.',
+  'A long argument about whose grandfather built the bridge, settled by nobody.',
+  'Talk of a two-headed calf born three valleys over, years ago now.',
+]
+
+/** Hostile situations tagged RUMOUR_TROUBLE_TAG (a tavern brawl), never drawn on the road. */
+export const troubleCandidates = (content: Content) =>
+  allSituations(content).filter(
+    (s) => s.disposition === 'hostile' && s.tags.includes(RUMOUR_TROUBLE_TAG) && !s.site
+  )
+
+/**
+ * A critical failure: trouble (seeded). With chance RUMOUR_TROUBLE_FIGHT a fight breaks out (a
+ * situation tagged RUMOUR_TROUBLE_TAG starts); otherwise, or when there is none, a pickpocket
+ * lifts PICKPOCKET_GP (1d6) gp, as far as the purse goes.
+ */
+function trouble(state: GameState, content: Content): GameState {
+  const fights = troubleCandidates(content)
+  const [{ fight, gp }, rng] = withRng(state.rng, (d) => {
+    const fight = fights.length > 0 && d.float() < RUMOUR_TROUBLE_FIGHT ? d.pick(fights) : null
+    return { fight, gp: fight ? 0 : d.int(...PICKPOCKET_GP) }
+  })
+  const next = { ...state, rng }
+  if (fight) return startEncounter(next, content, fight.id)
+  const lifted = Math.min(gp, Math.max(0, next.gold))
+  return appendLog(
+    { ...next, gold: next.gold - lifted },
+    lifted > 0
+      ? `Too busy listening, you miss the hand in your purse: a pickpocket lifts ${lifted} gp.`
+      : 'A hand slips into your purse and finds it empty.',
+    'bad'
+  )
+}
+
 /**
  * Buys a round and listens: the best of Insight and Persuasion rolls against the rumour DC (it
- * counts toward Strain; a natural 20 grants Inspiration). No day passes; once per arrival. The
- * tier brings heard prices (RUMOUR_PRICES), and from a success a clue to an undiscovered site in
- * this land, and from a critical success a lead (a bonus offer on the board here).
+ * counts toward Strain; a natural 20 grants Inspiration). No day passes; once per arrival. A
+ * success brings heard prices (RUMOUR_PRICES) and a clue to an undiscovered site in this land, and
+ * a critical success a lead too (a bonus offer on the board here). A partial is idle gossip, a
+ * failure nothing worth hearing, and a critical failure trouble: a pickpocket or a fight.
  */
 export function listenRumours(state: GameState, content: Content): GameState {
   const refused = rumourRefusal(state, content)
@@ -211,17 +250,19 @@ export function listenRumours(state: GameState, content: Content): GameState {
       'bad'
     )
   }
-  const heard = hearPrices(next, content, RUMOUR_PRICES[tier], tier === 'critFail')
+  const heard = hearPrices(next, content, RUMOUR_PRICES[tier])
   next = heard.state
   if (heard.heard.length > 0) {
-    // A false rumour reads like any other.
     next = appendLog(next, `You hear talk of prices in ${listNames(next, heard.heard)}.`, 'info')
     // ...and of what each is short of or awash with, as it was when the news left.
     for (const id of heard.heard) {
       const talk = marketTalk(next, content, id, next.priceBook[id]?.day ?? next.day)
       if (talk) next = appendLog(next, talk, 'info')
     }
-  } else if (tier === 'fail' || tier === 'critFail') {
+  } else if (tier === 'partial') {
+    const [line, rng] = withRng(next.rng, (d) => d.pick(GOSSIP))
+    next = appendLog({ ...next, rng }, line, 'info')
+  } else if (tier === 'fail') {
     next = appendLog(next, 'The talk is all weather and old grudges.', 'info')
   }
   if (tier === 'success' || tier === 'critSuccess') {
@@ -231,5 +272,5 @@ export function listenRumours(state: GameState, content: Content): GameState {
   if (tier === 'critSuccess') {
     next = appendLog(next, 'Someone mentions work going begging: look at the board here.', 'good')
   }
-  return next
+  return tier === 'critFail' ? trouble(next, content) : next
 }
