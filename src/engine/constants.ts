@@ -559,3 +559,5 @@ export const CRISIS_WARN_DAYS = 14
 export const CRISIS_SITE_CLUES = 2
 /** Clues to an act that reveal the villain's weakness there: the party goes in with the Edge. */
 export const CRISIS_WEAKNESS_CLUES = 3
+/** Thwarting act n pays this much XP × n (rules/progression.ts gainXp). */
+export const XP_THWART = 300

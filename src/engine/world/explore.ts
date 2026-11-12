@@ -19,6 +19,7 @@ import { passDay } from '../travel/supplies'
 import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
 import { crisisHidden } from '../crisis/sites'
+import { crisisRefusal, crisisVisit } from '../crisis/progress'
 import { siteStatus } from './sites'
 import { rumourOption, type RumourOption } from '../town/rumours'
 import { siteContractsMet } from '../town/contract-hooks'
@@ -182,7 +183,7 @@ export function explore(state: GameState, content: Content): GameState {
   }
   if (finds.found > 0) {
     const search = { count: finds.found, scope: 'domain' } as const
-    const ids = poisToDiscover(next.world, content, domain, search, crisisHidden(next))
+    const ids = poisToDiscover(next.world, content, domain, search, crisisHidden(next, domain))
     return ids.length > 0 ? revealPois(next, content, ids) : appendLog(next, PICKED_CLEAN, 'info')
   }
   if (roll.tier !== 'critFail') return appendLog(next, 'The search turns up nothing.', 'info')
@@ -242,13 +243,25 @@ export function visitPoi(state: GameState, content: Content): GameState {
   if (situations.length === 0) return appendLog(state, `Nothing happens at ${poi.name}.`, 'bad')
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const place = placeHere(state, content) ?? undefined
-  const started = startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
+  // The current Crisis act's site is harder when late, and easier with its weakness known.
+  const options = crisisVisit(state, id)
+  const started = startEncounter(
+    { ...state, rng, visited: true },
+    content,
+    situation,
+    place,
+    id,
+    options
+  )
   // An errand to this site is done by going there (town/contracts.ts).
   return siteContractsMet(started, 'errand', id)
 }
 
-/** Why a site can't be visited now: busy, lying empty (cleared), or visited since the party arrived. */
-export type VisitBlock = 'busy' | 'cleared' | 'visited'
+/**
+ * Why a site can't be visited now: busy, lying empty (cleared), visited since the party arrived,
+ * or a Crisis site where nothing more happens (quiet: crisis/progress.ts).
+ */
+export type VisitBlock = 'busy' | 'cleared' | 'visited' | 'quiet'
 
 /** Why the party can't visit this (discovered) POI right now, or null when it can. */
 function visitRefusal(
@@ -257,6 +270,8 @@ function visitRefusal(
   poi: PoiState
 ): { code: VisitBlock; text: string } | null {
   if (inProgress(state)) return { code: 'busy', text: BUSY }
+  const quiet = crisisRefusal(state, id)
+  if (quiet) return { code: 'quiet', text: quiet }
   const status = siteStatus(state.world.seed, id, poi, state.day)
   if (status?.phase === 'empty') {
     return { code: 'cleared', text: `${poi.name} lies empty for now.` }
