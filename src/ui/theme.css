@@ -521,11 +521,11 @@ label.inline {
   letter-spacing: 0.08em;
   color: var(--accent);
 }
-/* A fixed height, room for three tiers and a twist line (the critical tiers stay hidden):
-   changing what it shows never moves the cards above it. Longer text scrolls inside. */
+/* A minimum height, room for three tiers and a twist line (the critical tiers stay hidden), so
+   short outcome sets don't jump; it grows to show every line, never scrolling or clipping. It sits
+   under the option cards, so growing never moves them (designer bug fix). */
 .outcomes-box {
-  height: 8rem;
-  overflow: auto;
+  min-height: 8rem;
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 0.4rem 0.6rem;
