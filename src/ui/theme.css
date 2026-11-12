@@ -955,38 +955,49 @@ h2[tabindex='-1']:focus {
   padding: 0.05rem 0.45rem;
 }
 /* Points of interest: a dark disc with a light category glyph, outlined in the domain's kingdom colour. */
-.poi circle:not(.poi-glyph) {
+.poi circle.poi-disc {
   fill: var(--ink);
   fill-opacity: 0.75;
   stroke: var(--muted);
   stroke-width: 8;
 }
-.world-map.full .poi circle:not(.poi-glyph) {
+.world-map.full .poi circle.poi-disc {
   stroke-width: 12;
 }
 .poi-glyph {
   fill: #f8f2e3;
 }
-.poi.reachable circle:not(.poi-glyph) {
+.poi.reachable circle.poi-disc {
   fill: var(--accent);
   fill-opacity: 0.9;
 }
-.poi.here circle:not(.poi-glyph) {
+.poi.here circle.poi-disc {
   fill: var(--good);
   fill-opacity: 1;
 }
-.poi.selected circle:not(.poi-glyph),
-.poi:focus-visible circle:not(.poi-glyph) {
+.poi.selected circle.poi-disc,
+.poi:focus-visible circle.poi-disc {
   stroke: var(--crit) !important;
   stroke-width: 16;
 }
-.world-map.full .poi.selected circle:not(.poi-glyph),
-.world-map.full .poi:focus-visible circle:not(.poi-glyph) {
+.world-map.full .poi.selected circle.poi-disc,
+.world-map.full .poi:focus-visible circle.poi-disc {
   stroke-width: 22;
 }
-/* A cleared site stays on the map, dimmed. */
-.poi.cleared {
+/* A cleared site stays on the map, dimmed; so does a quiet Crisis site (Plan 5b U2). */
+.poi.cleared,
+.poi.quiet {
   opacity: 0.5;
+}
+/* A Crisis site: a wide dashed ring in the danger colour, unlike any other marker. */
+.poi .crisis-ring {
+  fill: none;
+  stroke: var(--bad);
+  stroke-width: 7;
+  stroke-dasharray: 18 9;
+}
+.world-map.full .poi .crisis-ring {
+  stroke-width: 11;
 }
 .kingdom-spot {
   fill-opacity: 0.38;
@@ -1963,6 +1974,52 @@ h2[tabindex='-1']:focus {
 .contract-abandon button {
   padding: 0 0.35rem;
   font-size: 0.75rem;
+}
+/* The Crisis (Plan 5b U2): under the contracts, compact; its mark after the day in the top bar. */
+.crisis h2 {
+  margin-bottom: 0.15rem;
+}
+.crisis-summary {
+  margin: 0 0 0.3rem;
+}
+.crisis-acts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1.3;
+}
+.crisis-acts li {
+  padding: 0.25rem 0;
+  border-top: 1px solid var(--line);
+}
+.crisis-acts li:first-child {
+  border-top: 0;
+}
+.crisis-acts li.future,
+.crisis-acts li.done {
+  padding: 0.1rem 0;
+}
+.crisis-acts li.future strong {
+  font-weight: normal;
+}
+.crisis-ended {
+  margin: 0;
+}
+.crisis-note p {
+  margin: 0.15rem 0;
+}
+.crisis-note-head {
+  font-weight: bold;
+}
+.badge.crisis-badge {
+  color: var(--bad);
+  border-color: var(--bad);
+}
+.day-mark {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.6rem;
 }
 
 /* UI pass (Plan 4 review): gold and load at the head of the market, big. */
