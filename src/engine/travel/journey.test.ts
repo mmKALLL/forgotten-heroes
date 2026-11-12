@@ -120,6 +120,26 @@ describe('travel', () => {
 })
 
 describe('continueJourney', () => {
+  test('a road gone from the data since the save turns the party back, not onwards', () => {
+    const out = act(at('greenvale-1'), {
+      type: 'travel',
+      routeId: 'greenvale-1-greenvale-2',
+      forage: false,
+    })
+    const lost = { ...out, travel: { ...out.travel!, route: 'path-poi-99-greenvale-2' } }
+    const back = act(lost, { type: 'continueJourney' })
+    expect(back).toMatchObject({ travel: null, location: 'greenvale-1', day: out.day })
+    expect(back.log.at(-1)).toMatchObject({
+      tone: 'bad',
+      text:
+        `The way to ${settlementName(out, 'greenvale-2')} can no longer be found. ` +
+        `The party makes its way back to ${settlementName(out, 'greenvale-1')}.`,
+    })
+    // A start that is gone too: the far end will do.
+    const gone = { ...lost, travel: { ...lost.travel, from: 'poi-99' } }
+    expect(act(gone, { type: 'continueJourney' }).location).toBe('greenvale-2')
+  })
+
   test('quiet days collapse into one line, then the party arrives', () => {
     const out = encountersOn(
       act(at('greenvale-1'), {

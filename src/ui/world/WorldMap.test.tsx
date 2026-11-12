@@ -259,7 +259,7 @@ test('the party marker stands out: a ring, a centre and a pulsing halo on the pa
 const discover = (state: ReturnType<typeof makeState>, ids: string[], cleared: string[] = []) => {
   const next = structuredClone(state)
   for (const id of ids) next.world.pois[id].discovered = true
-  for (const id of cleared) next.world.pois[id].cleared = true
+  for (const id of cleared) next.world.pois[id].clearedDay = next.day
   return next
 }
 
@@ -270,15 +270,18 @@ test('undiscovered sites are not drawn; discovered ones are labelled buttons tha
     <WorldMap content={content} state={state} selected={null} onSelect={onSelect} imageUrl={null} />
   )
   expect(container.querySelectorAll('.poi')).toHaveLength(0)
-  const found = discover(state, ['poi-1', 'poi-3'], ['poi-3'])
+  const found = discover(state, ['poi-1', 'poi-2', 'poi-3'], ['poi-2'])
   rerender(
     <WorldMap content={content} state={found} selected={null} onSelect={onSelect} imageUrl={null} />
   )
-  expect(map().getAllByRole('button')).toHaveLength(6)
+  expect(map().getAllByRole('button')).toHaveLength(7)
   const hut = map().getByRole('button', { name: 'Old Wen’s hut (expert)' })
   const stones = map().getByRole('button', { name: 'The Hum (wonder)' })
+  const camp = map().getByRole('button', { name: 'Redtusk camp (lair)' })
   expect(hut.getAttribute('tabindex')).toBe('-1')
-  expect(stones.getAttribute('class')).toMatch(/\bcleared\b/)
+  // A lair cleared today lies empty.
+  expect(camp.getAttribute('class')).toMatch(/\bcleared\b/)
+  expect(stones.getAttribute('class')).not.toMatch(/\bcleared\b/)
   expect(hut.getAttribute('class')).not.toMatch(/\bcleared\b/)
   // Each category draws its own glyph.
   expect(hut.querySelector('.glyph-expert')).toBeTruthy()
@@ -362,6 +365,13 @@ test('twelve kingdoms get twelve distinct colours', () => {
   const colours = kingdomColours(kingdoms)
   expect(new Set(colours.values()).size).toBe(12)
   expect(new Set(KINGDOM_COLOURS).size).toBe(KINGDOM_COLOURS.length)
+})
+
+test('kingdoms past the twelfth still get distinct colours', () => {
+  const kingdoms = Array.from({ length: 20 }, (_, i) => ({ id: `kingdom-${i + 1}` }))
+  const colours = [...kingdomColours(kingdoms).values()]
+  expect(new Set(colours).size).toBe(20)
+  for (const c of colours) expect(c).toMatch(/^#[0-9a-f]{6}$/)
 })
 
 test('paths to discovered sites are drawn like roads, and highlighted when chosen', () => {

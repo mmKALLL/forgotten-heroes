@@ -161,7 +161,7 @@ export const TravelStateSchema = z.object({
 export type TravelState = z.infer<typeof TravelStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(4),
+  version: z.literal(5),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -177,6 +177,8 @@ export const GameStateSchema = z.object({
   world: WorldStateSchema,
   /** The settlement or point of interest the party is at; null while on the road. */
   location: IdSchema.nullable(),
+  /** The party has visited the site it is at since it arrived: one visit per arrival. */
+  visited: z.boolean().default(false),
   travel: TravelStateSchema.nullable(),
   goods: GoodsSchema,
   /** Extra waterskins bought in town, on top of each member's own (travel/tuning.ts). */

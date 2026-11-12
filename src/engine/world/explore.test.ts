@@ -19,21 +19,28 @@ import {
   PICKED_CLEAN,
   exploreOption,
 } from './explore'
+import { edgeById, pathId } from './graph'
 import { domainThreatLevel } from './pois'
+import { BOON_COOLDOWN_DAYS, POWER_DC, POWER_STEP_DAYS, REINHABIT_DAYS } from './sites'
 import { territory } from './territory'
 
 const content = fixtureContent()
 const spots = territory(content).spots
 
-/** A POI on the i-th spot of a domain's territory (sorted by id). */
+/** Taken again on day 1, the first day: a lair cleared REINHABIT_DAYS before is inhabited. */
+const TAKEN_ON_DAY_1 = 1 - REINHABIT_DAYS
+
+/** A POI on the i-th spot of a domain's territory (sorted by id): a lair, inhabited from day 1. */
 const poi = (domain: string, i: number, overrides: Partial<PoiState> = {}): PoiState => ({
   type: 'orc-war-camp',
+  category: 'lair',
   spot: spots[domain][i],
   domain,
   name: `Camp ${domain} ${i}`,
   threat: 2,
   discovered: false,
-  cleared: false,
+  clearedDay: TAKEN_ON_DAY_1,
+  boonDay: null,
   ...overrides,
 })
 
@@ -98,6 +105,27 @@ describe('discoverPoi', () => {
     expect(after.log.at(-1)!.text).toBe(NOTHING_TO_LEARN)
   })
 
+  test('undiscovered: met while a search like it would still find something', () => {
+    const req = (r: object) => [RequirementSchema.parse({ req: 'undiscovered', ...r })]
+    // Only lairs here (the war camps), in Greenvale 1 and 2.
+    expect(unmetRequirements(at(), req({}))).toEqual([])
+    expect(unmetRequirements(at(), req({ category: 'expert' }))).toEqual([
+      'no expert left to learn of around here',
+    ])
+    const known = structuredClone(at())
+    for (const id of ['poi-1', 'poi-2']) known.world.pois[id].discovered = true
+    expect(unmetRequirements(known, req({}))).toEqual(['nothing left to learn of around here'])
+    // Greenvale 2 is in the same land.
+    expect(unmetRequirements(known, req({ scope: 'land', category: 'lair' }))).toEqual([])
+    known.world.pois['poi-3'].discovered = true
+    expect(unmetRequirements(known, req({ scope: 'land' }))).toEqual([
+      'nothing left to learn of in this land',
+    ])
+    // Outside an encounter it looks around the party's place.
+    const town = { ...known, encounter: null, location: 'ashmoor-1' }
+    expect(unmetRequirements(town, req({}))).toEqual([])
+  })
+
   test('reads as a clue in previews', () => {
     expect(describeEffect(fx({ effect: 'discoverPoi' })[0], 'Lyra')).toBe('reveals a site nearby')
     expect(describeEffect(fx({ effect: 'discoverPoi', count: 2, scope: 'land' })[0], 'Lyra')).toBe(
@@ -110,17 +138,19 @@ describe('discoverPoi', () => {
 })
 
 describe('clearPoi', () => {
-  test('clears the POI being visited, lowering its domain’s threat', () => {
+  test('clears the POI being visited for a while, lowering its domain’s threat', () => {
     const state = withPois(
       { 'poi-1': poi('ashmoor-1', 0, { discovered: true }) },
       { encounter: makeEncounter({ poi: 'poi-1', domain: 'ashmoor-1' }) }
     )
     state.world.lands.ashmoor.threatStrength = 3
     state.world.domains['ashmoor-1'].garrison = 2
-    expect(domainThreatLevel(state.world, 'ashmoor-1')).toBe(3)
+    expect(domainThreatLevel(state.world, 'ashmoor-1', state.day)).toBe(3)
     const after = applyEffects(state, fx({ effect: 'clearPoi' }), { content })
-    expect(after.world.pois['poi-1'].cleared).toBe(true)
-    expect(domainThreatLevel(after.world, 'ashmoor-1')).toBe(1)
+    expect(after.world.pois['poi-1'].clearedDay).toBe(state.day)
+    expect(domainThreatLevel(after.world, 'ashmoor-1', state.day)).toBe(1)
+    // Something moves in again REINHABIT_DAYS later.
+    expect(domainThreatLevel(after.world, 'ashmoor-1', state.day + REINHABIT_DAYS)).toBe(3)
     expect(describeEffect(fx({ effect: 'clearPoi' })[0], 'Lyra')).toBe('clears the site')
   })
 
@@ -204,7 +234,7 @@ describe('visitPoi', () => {
   const pois = {
     'poi-1': poi('greenvale-1', 0, { discovered: true }),
     'poi-2': poi('greenvale-1', 1),
-    'poi-3': poi('greenvale-2', 0, { discovered: true, cleared: true }),
+    'poi-3': poi('greenvale-2', 0, { discovered: true, clearedDay: 1 }),
   }
   const visit = (location: string | null, extra: Partial<GameState> = {}) =>
     step(withPois(pois, { location, ...extra }), { type: 'visitPoi' }, content)
@@ -216,7 +246,7 @@ describe('visitPoi', () => {
     expect(state.encounter?.domain).toBe('greenvale-1')
   })
 
-  test('is refused away from a POI, at an undiscovered or cleared one, and in an encounter', () => {
+  test('is refused away from a POI, at an undiscovered or empty one, and in an encounter', () => {
     for (const where of ['greenvale-1', 'poi-2', 'poi-3', null]) {
       const state = visit(where)
       expect(state.encounter).toBeNull()
@@ -232,6 +262,158 @@ describe('visitPoi', () => {
       content
     )
     expect(busy.encounter?.situation.id).toBe('cliff')
+  })
+
+  test('once per arrival: a second visit is refused until the party has been away', () => {
+    const first = visit('poi-1')
+    expect(first.visited).toBe(true)
+    const closed = step(first, { type: 'closeEncounter' }, content)
+    const again = step(closed, { type: 'visitPoi' }, content)
+    expect(again.encounter).toBeNull()
+    expect(again.log.at(-1)).toMatchObject({ tone: 'bad' })
+    expect(again.log.at(-1)!.text).toMatch(/already visited/)
+    expect(availableActions(closed, content)).toContainEqual(
+      expect.objectContaining({ type: 'visitPoi', available: false, code: 'visited' })
+    )
+    // Walk to Greenvale 1 and back: each arrival allows one visit.
+    const route = edgeById(closed, content, pathId('poi-1', 'greenvale-1'))!
+    const road = (from: string, to: string) =>
+      ({
+        ...closed,
+        location: null,
+        travel: {
+          route: route.id,
+          from,
+          to,
+          km: route.km,
+          kmPerDay: 30,
+          kmDone: route.km,
+          daysDone: 1,
+          days: 1,
+          encounterDays: [],
+          pace: 'steady',
+          coverTracks: false,
+          paceLog: [],
+          forage: false,
+        },
+      }) as GameState
+    const back = step(road('greenvale-1', 'poi-1'), { type: 'continueJourney' }, content)
+    expect(back.location).toBe('poi-1')
+    expect(back.visited).toBe(false)
+    expect(step(back, { type: 'visitPoi' }, content).encounter?.poi).toBe('poi-1')
+  })
+})
+
+describe('dungeons and lairs over time', () => {
+  test('one grown strong raises every check’s DC, and says so', () => {
+    const day = 1 + 2 * POWER_STEP_DAYS
+    const state = withPois(
+      { 'poi-1': poi('greenvale-1', 0, { discovered: true }) },
+      { location: 'poi-1', day }
+    )
+    const plain = withPois(
+      { 'poi-1': poi('greenvale-1', 0, { discovered: true, clearedDay: day - REINHABIT_DAYS }) },
+      { location: 'poi-1', day }
+    )
+    const dcOf = (s: GameState) => {
+      const option = s.encounter!.situation.stages.start.options.find((o) => o.kind === 'check')!
+      return option.kind === 'check' ? Number(option.check.dc) : 0
+    }
+    const strong = step(state, { type: 'visitPoi' }, content)
+    const fresh = step(plain, { type: 'visitPoi' }, content)
+    expect(dcOf(strong)).toBe(dcOf(fresh) + 2 * POWER_DC)
+    expect(strong.encounter!.log.at(-1)!.text).toBe(
+      `It has grown stronger since it was taken: every check here is DC +${2 * POWER_DC}.`
+    )
+  })
+
+  test('word of a known site cleared by the realm, or taken again, reaches the party', () => {
+    // Cleared by the party on day 1: something moves in on day 1 + REINHABIT_DAYS.
+    const state = withPois(
+      {
+        'poi-1': poi('greenvale-1', 0, { discovered: true, clearedDay: 1 }),
+        'poi-2': poi('greenvale-1', 1, { clearedDay: 1 }),
+      },
+      { location: 'greenvale-1', day: REINHABIT_DAYS }
+    )
+    const rested = step(state, { type: 'rest' }, content)
+    const news = rested.log.filter((e) => e.text.startsWith('Word reaches you'))
+    expect(news.map((e) => e.text)).toEqual([
+      'Word reaches you: something has moved into Camp greenvale-1 0 again.',
+    ])
+    // Nothing more the next day.
+    const again = step(rested, { type: 'rest' }, content)
+    expect(again.log.filter((e) => e.text.startsWith('Word reaches you'))).toHaveLength(1)
+  })
+})
+
+describe('siteReady: a site’s boon on a cooldown', () => {
+  const shrine = makeEncounter({
+    poi: 'poi-1',
+    domain: 'greenvale-1',
+    situation: {
+      ...makeEncounter().situation,
+      site: true,
+      stages: {
+        start: {
+          text: 'A shrine.',
+          options: [
+            {
+              id: 'pray',
+              kind: 'fixed',
+              label: 'Pray',
+              requires: [RequirementSchema.parse({ req: 'siteReady' })],
+              outcome: {
+                text: 'You feel blessed.',
+                effects: fx({ effect: 'inspiration', amount: 1 }),
+              },
+            },
+            {
+              id: 'leave',
+              kind: 'fixed',
+              label: 'Leave',
+              requires: [],
+              outcome: { text: 'Bye.', effects: [] },
+            },
+          ],
+        },
+      },
+    } as never,
+  })
+  const at = (boonDay: number | null, day = 40) =>
+    withPois(
+      { 'poi-1': poi('greenvale-1', 0, { discovered: true, boonDay }) },
+      { location: 'poi-1', encounter: shrine, day }
+    )
+  const ready = [RequirementSchema.parse({ req: 'siteReady' })]
+
+  test('is met until the boon is taken; taking it starts the cooldown', () => {
+    const state = at(null)
+    expect(unmetRequirements(state, ready)).toEqual([])
+    const after = step(state, { type: 'chooseOption', optionId: 'pray' }, content)
+    expect(after.inspiration).toBe(state.inspiration + 1)
+    expect(after.world.pois['poi-1'].boonDay).toBe(40)
+  })
+
+  test(`is unmet for ${BOON_COOLDOWN_DAYS} days, with the days left as the reason`, () => {
+    expect(unmetRequirements(at(30), ready)).toEqual([
+      'the blessing here is spent; it returns in 20 days',
+    ])
+    expect(unmetRequirements(at(11), ready)).toEqual([
+      'the blessing here is spent; it returns in 1 day',
+    ])
+    expect(unmetRequirements(at(10), ready)).toEqual([])
+    const [pray] = encounterOptions(at(30))
+    expect(pray.available).toBe(false)
+    const refused = step(at(30), { type: 'chooseOption', optionId: 'pray' }, content)
+    expect(refused.inspiration).toBe(0)
+  })
+
+  test('away from a site there is no boon to spend', () => {
+    const deck = { ...at(null), encounter: { ...shrine, poi: null } }
+    expect(unmetRequirements(deck, ready)).toEqual([])
+    const after = step(deck, { type: 'chooseOption', optionId: 'pray' }, content)
+    expect(after.world.pois['poi-1'].boonDay).toBeNull()
   })
 })
 
@@ -251,6 +433,9 @@ describe('explore', () => {
     // Brom (WIS 12) beats Lyra; Survival comes first on a tie.
     expect(option).toMatchObject({ actorId: 'brom', skill: 'survival', dc, days: EXPLORE_DAYS })
     expect(option.chances).toEqual(previewCheck(state, 'survival', dc, 'normal')!.odds)
+    expect(option.findChance).toBeCloseTo(
+      option.chances.partial + option.chances.success + option.chances.critSuccess
+    )
     expect(option.outcomes).toHaveLength(TIERS.length)
     // What each tier finds and how long it takes, for previews in any language.
     expect(option.finds).toEqual({

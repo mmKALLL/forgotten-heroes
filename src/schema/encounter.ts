@@ -62,7 +62,7 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     .describe('Gain (+) or lose (−) Inspiration; it never drops below 0'),
   z
     .object({ effect: z.literal('days'), amount: z.number().int().min(1), ...when })
-    .describe('Time passes'),
+    .describe('Time passes: each day everyone eats and drinks from the supplies, or goes without'),
   z
     .object({ effect: z.literal('position'), position: PositionSchema, ...when })
     .describe('Edge or Exposed for the next check in this encounter'),
@@ -123,7 +123,8 @@ export const EffectSchema = z.discriminatedUnion('effect', [
   z
     .object({ effect: z.literal('clearPoi'), ...when })
     .describe(
-      "Clear the point of interest being visited, so it no longer feeds its domain's threat"
+      'Clear the dungeon or lair being visited: it lies empty (and feeds no threat) until ' +
+        'something moves in again (REINHABIT_DAYS)'
     ),
   z
     .object({ effect: z.literal('trainSkill'), skill: SkillSchema, ...when })
@@ -143,6 +144,25 @@ export const RequirementSchema = z.discriminatedUnion('req', [
   z
     .object({ req: z.literal('untrained'), skill: SkillSchema })
     .describe('Some member is not yet proficient in the skill (e.g. paying to train)'),
+  z
+    .object({
+      req: z.literal('undiscovered'),
+      scope: z
+        .enum(['domain', 'land'])
+        .default('domain')
+        .describe("Where to look: the encounter's domain, or every domain of its land"),
+      category: PoiCategorySchema.optional().describe('Only sites of this category'),
+    })
+    .describe(
+      'Some point of interest there is still undiscovered (e.g. before selling what one knows), ' +
+        'so no one pays for a clue that reveals nothing'
+    ),
+  z
+    .object({ req: z.literal('siteReady') })
+    .describe(
+      "A site's boon (a blessing, healing, a find): only in site situations. Unavailable while " +
+        "the site's boon is spent; choosing the option spends it for BOON_COOLDOWN_DAYS days"
+    ),
   // Extension point: Plan 4 adds { "req": "goods", "good": "healing", "min": 1 }.
 ])
 export type Requirement = z.infer<typeof RequirementSchema>

@@ -6,10 +6,12 @@ import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { withRng, type Rng } from '../rng'
 import { statLabel } from '../rules/abilities'
-import { canAct, statModifier } from '../rules/character'
+import { MAX_EXHAUSTION, canAct, statModifier } from '../rules/character'
+import { passDay } from '../travel/days'
+import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
 
-export const MAX_EXHAUSTION = 6
+export { MAX_EXHAUSTION }
 
 /**
  * Who "actor" means for this batch of effects: the member who rolled (fixed options have none),
@@ -118,8 +120,13 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     }
     case 'inspiration':
       return { ...state, inspiration: Math.max(0, state.inspiration + effect.amount) }
-    case 'days':
-      return { ...state, day: state.day + effect.amount }
+    case 'days': {
+      // Time passes as on any day: everyone eats and drinks (or goes without), strain fades.
+      const terrain = ctx.content ? terrainHere(state, ctx.content) : null
+      let next = state
+      for (let day = 0; day < effect.amount; day++) next = passDay(next, terrain)
+      return next
+    }
     case 'position':
       return state.encounter
         ? { ...state, encounter: { ...state.encounter, position: effect.position } }
@@ -167,11 +174,9 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       const id = state.encounter?.poi
       if (!id || !Object.hasOwn(state.world.pois, id)) return state
       const poi = state.world.pois[id]
-      const cleared = {
-        ...state,
-        world: { ...state.world, pois: { ...state.world.pois, [id]: { ...poi, cleared: true } } },
-      }
-      return note(cleared, `${poi.name} is cleared.`, 'good')
+      const pois = { ...state.world.pois, [id]: { ...poi, clearedDay: state.day } }
+      const cleared = { ...state, world: { ...state.world, pois } }
+      return note(cleared, `${poi.name} is cleared. It will lie empty for a while.`, 'good')
     }
     case 'trainSkill': {
       const untrained = state.party

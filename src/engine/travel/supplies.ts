@@ -1,33 +1,28 @@
 import type { Content } from '../../content/build'
-import type { Biome, Good, LogTone, Pace } from '../../schema/constants'
-import type { Character, GameState, Goods } from '../../schema/state'
+import type { Biome, Pace } from '../../schema/constants'
+import type { GameState, Goods } from '../../schema/state'
 import type { Route } from '../../schema/world'
-import { MAX_EXHAUSTION } from '../encounters/effects'
 import { inProgress } from '../encounters/run'
-import { formatModifier } from '../format'
 import { appendLog } from '../log'
-import type { Rng } from '../rng'
-import { statModifier } from '../rules/character'
-import { rollCheck } from '../rules/checks'
+import { MAX_EXHAUSTION } from '../rules/character'
 import { fadeStrainAfter } from '../rules/strain'
 import { settlementName } from '../world/geo'
-import { DEFAULT_PACE, FORCED_MARCH_DC, rationMultiplier } from './pace'
-import { journeyDays, routeTerrain } from './routes'
+import { springAt, terrainHere } from '../world/graph'
+import { consumeDay, dailyNeed, goodsOf, waterNeed } from './days'
+import { DEFAULT_PACE } from './pace'
+import { journeyDays } from './routes'
 import { LODGING_PRICE, SELL_SHARE, WATER_DAYS, WATERSKIN_PRICE, WATERSKIN_WATER } from './tuning'
 
+export { HUNGER_DC, THIRST_DC, dailyNeed, goodsOf, passDay, waterNeed } from './days'
 export { WATER_DAYS }
 
 /** A new party carries this many days of food per member. */
 export const STARTING_FOOD_DAYS = 5
 /** A stop-gap price per ration until the Plan 4 market. */
 export const FOOD_PRICE = 1
-/** CON check DCs for a day without food, and a day without water. */
-export const HUNGER_DC = 10
-export const THIRST_DC = 15
 /** A day in camp restores this share of max HP; a day in a settlement restores all of it. */
 export const CAMP_HEAL = 0.25
 
-export const goodsOf = (goods: Goods, good: Good): number => goods[good] ?? 0
 /** Each member's own waterskin holds WATER_DAYS of water; each extra one adds WATERSKIN_WATER. */
 export const waterCapacity = (members: number, waterskins = 0): number =>
   WATER_DAYS * members + WATERSKIN_WATER * waterskins
@@ -37,27 +32,10 @@ export const startingGoods = (members: number): Goods => ({
   food: STARTING_FOOD_DAYS * members,
   water: waterCapacity(members),
 })
-/** Water per member per day: the desert takes twice as much. */
-export const waterNeed = (terrain: Biome | null): number => (terrain === 'desert' ? 2 : 1)
 export const refillWater = (goods: Goods, capacity: number): Goods => ({
   ...goods,
   water: Math.max(goodsOf(goods, 'water'), capacity),
 })
-
-/** The party's extra on top of the daily rations at this pace (a forced march eats more). */
-const extraFor = (ration: number, pace: Pace): number =>
-  Math.ceil(ration * (rationMultiplier(pace) - 1))
-
-/** What the whole party eats and drinks in one day at this pace. */
-export function dailyNeed(
-  members: number,
-  terrain: Biome | null,
-  pace: Pace = DEFAULT_PACE
-): { food: number; water: number } {
-  const food = members
-  const water = waterNeed(terrain) * members
-  return { food: food + extraFor(food, pace), water: water + extraFor(water, pace) }
-}
 
 /** The days a route takes and the food and water it needs at this pace, for previews. */
 export function journeySupplies(
@@ -78,89 +56,6 @@ export function journeySupplies(
 export const runsShort = (state: GameState, terrain: Biome | null): boolean =>
   goodsOf(state.goods, 'food') < state.party.length ||
   goodsOf(state.goods, 'water') < waterNeed(terrain) * state.party.length
-
-type Line = { text: string; tone: LogTone }
-
-/** A CON check against a level of exhaustion; returns the character after it, and a log line. */
-function endure(
-  rng: Rng,
-  c: Character,
-  dc: number,
-  what: string
-): { rng: Rng; character: Character; line: Line } {
-  const [roll, next] = rollCheck(rng, statModifier(c, 'con'), dc)
-  const holds = roll.tier === 'success' || roll.tier === 'critSuccess'
-  const line =
-    `${c.name} ${what}: CON ${roll.kept} ${formatModifier(roll.modifier)} = ` +
-    `${roll.total} vs DC ${dc}, ${holds ? 'holds up' : 'gains a level of exhaustion'}.`
-  const character = holds ? c : { ...c, exhaustion: Math.min(MAX_EXHAUSTION, c.exhaustion + 1) }
-  return { rng: next, character, line: { text: line, tone: holds ? 'info' : 'bad' } }
-}
-
-/**
- * One day passes. Members eat and drink in party order. Whoever goes without makes a CON check
- * (DC 10 without food, 15 without water) or gains a level of exhaustion. On a forced march the
- * party then eats its extra rations (what is left of them), and every member makes a CON check
- * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades, except stacks gained today.
- * Returns the ids of those who went without, for rest.
- */
-function consumeDay(
-  state: GameState,
-  terrain: Biome | null,
-  pace: Pace
-): { state: GameState; unfed: string[] } {
-  let food = goodsOf(state.goods, 'food')
-  let water = goodsOf(state.goods, 'water')
-  const need = waterNeed(terrain)
-  let rng = state.rng
-  const unfed: string[] = []
-  const lines: Line[] = []
-  const party = state.party.map((c) => {
-    const fed = food >= 1
-    if (fed) food -= 1
-    const watered = water >= need
-    if (watered) water -= need
-    let character = fadeStrainAfter(c, state.skillUses, state.day)
-    if (!fed || !watered) {
-      unfed.push(c.id)
-      const lack = !fed && !watered ? 'food and water' : fed ? 'water' : 'food'
-      const dc = watered ? HUNGER_DC : THIRST_DC
-      const result = endure(rng, character, dc, `goes without ${lack}`)
-      rng = result.rng
-      character = result.character
-      lines.push(result.line)
-    }
-    return character
-  })
-  const extra = dailyNeed(state.party.length, terrain, pace)
-  food = Math.max(0, food - (extra.food - state.party.length))
-  water = Math.max(0, water - (extra.water - need * state.party.length))
-  const marched =
-    pace === 'forced'
-      ? party.map((c) => {
-          const result = endure(rng, c, FORCED_MARCH_DC, 'pushes on')
-          rng = result.rng
-          lines.push(result.line)
-          return result.character
-        })
-      : party
-  let next: GameState = {
-    ...state,
-    rng,
-    party: marched,
-    day: state.day + 1,
-    goods: { ...state.goods, food, water },
-  }
-  for (const line of lines) next = appendLog(next, line.text, line.tone)
-  return { state: next, unfed }
-}
-
-/** A day on the road at this pace. */
-export const passDay = (
-  state: GameState,
-  terrain: Biome | null,
-  pace: Pace = DEFAULT_PACE
-): GameState => consumeDay(state, terrain, pace).state
 
 /** Lodging for the whole party for one night. */
 export const lodgingCost = (members: number): number => LODGING_PRICE * members
@@ -183,14 +78,18 @@ export function restOption(state: GameState, lodging = true): RestOption {
 /**
  * A day of rest. In a settlement: all HP back and the waterskins refilled. The party takes
  * lodging (LODGING_PRICE per member, meals included, carried food untouched) when it wants to and
- * can pay; otherwise it eats its own food. In camp it eats carried food and heals a quarter of
- * max HP. Either way, everyone who ate and drank loses a level of exhaustion. Resting is never a
- * forced march. (Plan 4 sets lodging by inn quality.)
+ * can pay; otherwise it eats its own food. In camp (on the road or at a point of interest) it eats
+ * carried food, drinking as the terrain there needs, and heals a quarter of max HP; at a site with
+ * a spring or well (`water`) the waterskins are refilled after the day's drinking. Either way,
+ * everyone who ate and drank loses a level of exhaustion. Resting is never a forced march. (Plan 4
+ * sets lodging by inn quality.)
  */
 export function rest(state: GameState, content: Content, lodging = true): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const option = restOption(state, lodging)
-  const terrain = state.travel ? routeTerrain(state, content, state.travel) : null
+  // Water is free in town; in camp the party drinks what the terrain there asks.
+  const terrain = option.inTown ? null : terrainHere(state, content)
+  const spring = !state.travel && springAt(state, content, state.location)
   const { state: after, unfed } = option.lodging
     ? {
         state: {
@@ -208,10 +107,13 @@ export function rest(state: GameState, content: Content, lodging = true): GameSt
     const exhaustion = unfed.includes(c.id) ? c.exhaustion : Math.max(0, c.exhaustion - 1)
     return { ...c, hp, exhaustion }
   })
-  const goods = option.inTown ? refillWater(after.goods, partyWaterCapacity(state)) : after.goods
+  const refill = option.inTown || spring
+  const goods = refill ? refillWater(after.goods, partyWaterCapacity(state)) : after.goods
   const place = option.inTown ? settlementName(state, state.location!) : ''
   const text = !option.inTown
-    ? 'The party makes camp and rests a day.'
+    ? spring
+      ? 'The party makes camp by the water and rests a day. The waterskins are refilled.'
+      : 'The party makes camp and rests a day.'
     : option.lodging
       ? `The party rests a day at an inn in ${place}: ${option.lodgingCost} gp, meals included.`
       : `The party rests a day in ${place}, eating its own food.`

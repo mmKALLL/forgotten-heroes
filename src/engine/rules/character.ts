@@ -9,6 +9,9 @@ import {
 } from './abilities'
 import { strainOf } from './strain'
 
+/** The sixth level of exhaustion is death. */
+export const MAX_EXHAUSTION = 6
+
 /** 2024 rules: each exhaustion level is −2 to d20 tests. Level 6 is death. */
 export const EXHAUSTION_PENALTY = 2
 

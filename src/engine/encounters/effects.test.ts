@@ -1,11 +1,12 @@
 import { describe, expect, test } from 'vitest'
 import { EffectSchema, type Effect } from '../../schema/encounter'
 import { createRng } from '../rng'
-import { makeEncounter, makeState } from '../test-fixtures'
+import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { applyEffects, describeEffect } from './effects'
 
 const fx = (...effects: unknown[]): Effect[] => effects.map((e) => EffectSchema.parse(e))
 const hp = (state: ReturnType<typeof makeState>) => state.party.map((c) => c.hp)
+const fed = () => makeState({ goods: { food: 10, water: 10 } })
 
 describe('applyEffects', () => {
   const state = makeState({ gold: 10, encounter: makeEncounter() })
@@ -75,6 +76,30 @@ describe('applyEffects', () => {
     )
     expect(after.inspiration).toBe(state.inspiration + 1)
     expect(after.day).toBe(state.day + 2)
+  })
+
+  test('days are eaten and drunk through, with no free healing', () => {
+    const fed = { ...state, goods: { food: 10, water: 10 } }
+    const after = applyEffects(fed, fx({ effect: 'days', amount: 2 }))
+    expect(after.goods).toEqual({ food: 6, water: 6 })
+    expect(hp(after)).toEqual(hp(fed))
+    // Without food, each member makes a CON check against exhaustion, as on the road.
+    const hungry = applyEffects(
+      { ...fed, goods: { food: 0, water: 10 } },
+      fx({ effect: 'days', amount: 1 })
+    )
+    expect(hungry.log.filter((e) => e.text.includes('goes without food'))).toHaveLength(2)
+  })
+
+  test('at a site, days drink as its terrain asks', () => {
+    const content = fixtureContent()
+    const dry = structuredClone(content)
+    const id = Object.keys(fed().world.pois)[0]
+    const poi = fed().world.pois[id]
+    dry.landSpots[poi.spot].terrain = 'desert'
+    const there = { ...fed(), encounter: makeEncounter({ poi: id }) }
+    const after = applyEffects(there, fx({ effect: 'days', amount: 1 }), { content: dry })
+    expect(after.goods).toEqual({ food: 8, water: 6 })
   })
 
   test('position and revealTwist change the encounter', () => {

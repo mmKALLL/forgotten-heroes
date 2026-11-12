@@ -376,7 +376,7 @@
               "effect",
               "amount"
             ],
-            "description": "Time passes"
+            "description": "Time passes: each day everyone eats and drinks from the supplies, or goes without"
           },
           {
             "type": "object",
@@ -540,7 +540,7 @@
             "required": [
               "effect"
             ],
-            "description": "Clear the point of interest being visited, so it no longer feeds its domain's threat"
+            "description": "Clear the dungeon or lair being visited: it lies empty (and feeds no threat) until something moves in again (REINHABIT_DAYS)"
           },
           {
             "type": "object",

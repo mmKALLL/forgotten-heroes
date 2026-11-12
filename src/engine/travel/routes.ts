@@ -170,13 +170,13 @@ export function rollEncounterDays(
  * POI end counts as its domain.
  */
 export function routeThreat(
-  state: Pick<GameState, 'world'>,
+  state: Pick<GameState, 'world' | 'day'>,
   _content: Content,
   route: Pick<Route, 'from' | 'to'>
 ): number {
   const level = (id: string) => {
     const domain = domainAt(state.world, id)
-    return domain === null ? 0 : domainThreatLevel(state.world, domain)
+    return domain === null ? 0 : domainThreatLevel(state.world, domain, state.day)
   }
   return Math.max(level(route.from), level(route.to))
 }

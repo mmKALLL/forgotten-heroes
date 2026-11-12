@@ -277,6 +277,12 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
     if (effect.effect === 'clearPoi' && !compiled.site)
       issues.push(`${where}: clearPoi only works in a site situation`)
   }
+  if (!compiled.site) {
+    for (const [stageId, stage] of Object.entries(compiled.stages))
+      for (const option of stage.options)
+        if (option.requires.some((r) => r.req === 'siteReady'))
+          issues.push(`${stageId}/${option.id}: siteReady only works in a site situation`)
+  }
   return issues
 }
 
@@ -323,22 +329,10 @@ const twistKindAsSituation = (kind: TwistKind): Situation => ({
   stages: kind.stages,
 })
 
-const isCost = (e: Effect) =>
-  ((e.effect === 'gold' ||
-    e.effect === 'hp' ||
-    e.effect === 'nextCheckModifier' ||
-    e.effect === 'inspiration') &&
-    e.amount < 0) ||
-  e.effect === 'openingHit' ||
-  (e.effect === 'exhaustion' && e.amount > 0) ||
-  e.effect === 'days' ||
-  e.effect === 'followUp' ||
-  (e.effect === 'position' && e.position === 'exposed')
-
 /**
  * Design quality rules (design §7). Every situation that can be drawn has a disposition. Regular stages offer at least 2 options, and at least one of
  * them is neither `once` nor gated by requirements, so a stage can't become a dead end. Wonders
- * are one stage with one fixed option and never cost anything.
+ * are one stage with one fixed option and flavour only: no effects but log lines.
  */
 export function lintSituation(situation: Situation, content: Content): string[] {
   const compiled = compileSituation(situation, content)
@@ -380,7 +374,8 @@ function lintCompiled(compiled: Situation): string[] {
     issues.push('a wonder is one stage with one fixed option')
   }
   for (const { effect, where } of allEffects(compiled)) {
-    if (isCost(effect)) issues.push(`${where}: wonders never cost anything (${effect.effect})`)
+    if (effect.effect !== 'log')
+      issues.push(`${where}: wonders are flavour only, with no effects but log (${effect.effect})`)
   }
   return issues
 }

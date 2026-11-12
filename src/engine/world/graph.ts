@@ -108,6 +108,36 @@ export function edgesFrom(state: World, content: Content, nodeId: string): Route
   return [...routes, ...paths].sort((a, b) => byCodeUnit(a.id, b.id))
 }
 
+/**
+ * The terrain where the party is: the spot of the POI it is visiting or at (or its domain's land),
+ * its journey's route on the road, or its settlement's land. Null when unknown.
+ */
+export function terrainHere(
+  state: Pick<GameState, 'world' | 'travel' | 'location' | 'encounter'>,
+  content: Content,
+  id: string | null = state.encounter?.poi ?? null
+): Biome | null {
+  const at = id ?? (state.travel ? null : state.location)
+  if (at === null) {
+    return state.travel ? (edgeById(state, content, state.travel.route)?.terrain ?? null) : null
+  }
+  const poi = own(state.world.pois, at)
+  const spot = own(content.landSpots, poi?.spot)
+  if (spot?.terrain) return spot.terrain
+  const site = own(content.settlements, poi?.domain ?? at)
+  return own(content.regions, site?.region)?.biome ?? null
+}
+
+/** A point of interest with a spring or well (its type's `water`): arriving or camping refills. */
+export function springAt(
+  state: Pick<GameState, 'world'>,
+  content: Content,
+  id: string | null
+): boolean {
+  const poi = own(state.world.pois, id)
+  return own(content.poiTypes, poi?.type)?.water ?? false
+}
+
 const PATH = /^path-(poi-\d+)-(.+)$/
 
 /** A content route or a path to a discovered POI, by id; null if there is none. */

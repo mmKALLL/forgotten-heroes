@@ -8,7 +8,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 4
+export const CURRENT_SAVE_VERSION = 5
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -67,6 +67,33 @@ export function v3ToV4(raw: Record<string, unknown>, content: Content): Record<s
 }
 
 /**
+ * v4 → v5 (Plan 3b fixes): each POI keeps its type's category, and `cleared` becomes the day it
+ * was cleared (the save's current day, so a site cleared before stays empty a while yet).
+ */
+export function v4ToV5(raw: Record<string, unknown>, content: Content): Record<string, unknown> {
+  const world = raw.world as { pois?: Record<string, Record<string, unknown>> } | undefined
+  const day = typeof raw.day === 'number' ? raw.day : 1
+  if (!world?.pois) return { ...raw, version: 5 }
+  const pois = Object.fromEntries(
+    Object.entries(world.pois).map(([id, poi]) => {
+      const { cleared, ...rest } = poi
+      const type = typeof poi.type === 'string' ? poi.type : ''
+      const known = Object.hasOwn(content.poiTypes, type) ? content.poiTypes[type] : null
+      const fallback = typeof poi.threat === 'number' && poi.threat > 0 ? 'lair' : 'landmark'
+      return [
+        id,
+        {
+          ...rest,
+          category: known?.category ?? fallback,
+          clearedDay: cleared === true ? day : null,
+        },
+      ]
+    })
+  )
+  return { ...raw, version: 5, world: { ...world, pois } }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -83,6 +110,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v2ToV3(raw as Record<string, unknown>, content), content)
     case 3:
       return migrate(v3ToV4(raw as Record<string, unknown>, content), content)
+    case 4:
+      return migrate(v4ToV5(raw as Record<string, unknown>, content), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

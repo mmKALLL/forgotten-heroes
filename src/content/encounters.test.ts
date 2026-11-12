@@ -415,6 +415,52 @@ describe('points of interest', () => {
     }
   })
 
+  test('shrines and landmarks give their boons on a cooldown (siteReady)', () => {
+    // A boon: Inspiration, healing, exhaustion removed or gold found. Paying for it doesn't count.
+    const boon = (b: OutcomeBranch) =>
+      b.effects.some(
+        (e) =>
+          (e.effect === 'inspiration' && e.amount > 0) ||
+          (e.effect === 'hp' && e.amount > 0) ||
+          (e.effect === 'exhaustion' && e.amount < 0) ||
+          (e.effect === 'gold' && e.amount > 0)
+      )
+    for (const t of [...ofCategory('shrine'), ...ofCategory('landmark')]) {
+      for (const id of t.situations) {
+        for (const [stageId, stage] of Object.entries(content.situations[id].stages)) {
+          for (const option of stage.options) {
+            if (!outcomesOf(option).some(boon)) continue
+            expect(
+              option.requires.some((r) => r.req === 'siteReady'),
+              `${id} ${stageId}/${option.id}`
+            ).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
+  test('no site sells a clue that might reveal nothing (undiscovered)', () => {
+    for (const t of types) {
+      for (const id of t.situations) {
+        for (const [stageId, stage] of Object.entries(content.situations[id].stages)) {
+          for (const option of stage.options) {
+            const branches = outcomesOf(option)
+            const pays = branches.some((b) =>
+              b.effects.some((e) => e.effect === 'gold' && e.amount < 0)
+            )
+            const clue = branches.some((b) => b.effects.some((e) => e.effect === 'discoverPoi'))
+            if (!pays || !clue) continue
+            expect(
+              option.requires.some((r) => r.req === 'undiscovered'),
+              `${id} ${stageId}/${option.id}`
+            ).toBe(true)
+          }
+        }
+      }
+    }
+  })
+
   test('quest sites are neutral placeholders with a clue and a hook for later quests', () => {
     expect(ofCategory('quest').length).toBeGreaterThanOrEqual(2)
     for (const t of ofCategory('quest')) {

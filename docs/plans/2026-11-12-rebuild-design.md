@@ -122,11 +122,20 @@ The town map image is a banner and backdrop.
   - **Types** come from a weighted table in `data/procedural/`:
     - **Dungeons and ruins:** a multi-stage encounter chain until the real dungeon system exists.
     - **Lone experts:** they train skills, identify things or sell knowledge, sometimes for a price or a favour.
-    - **Lairs and camps:** the domain's threat made concrete. Clearing one lowers that domain's threat; a new one can appear later.
+    - **Lairs and camps:** the domain's threat made concrete. Clearing one lowers that domain's threat; something moves in again later (see "over time" below).
     - **Shrines, landmarks and wonders.**
     - **Quest sites.**
   - **Discovery:** points of interest start hidden. They are found through rumours (Plan 4 taverns), encounter clues, or by spending days exploring a domain (Survival or Perception). Once discovered, they appear on the map.
   - **Visiting:** a point of interest is a map node joined to its domain's settlement (and to nearby routes where sensible) by a path with real distance and terrain. Getting there can take anything from half a day to many days, with the normal pace, supply and encounter rules.
+  - **Over time** (designer decisions after the Plan 3b review; `src/engine/world/sites.ts`). Nothing ticks: every status is derived from the day, the world seed and what is stored on the POI.
+    - **One visit per arrival:** a site can be visited (or entered) once each time the party arrives; leaving and coming back allows another (`GameState.visited`, cleared on arrival).
+    - **Dungeons and lairs live in cycles.** Clearing one wins it once. After any clearing it lies empty `REINHABIT_DAYS` = 30 days. Then something moves in and holds it for `INHABITED_DAYS` = 120 ± `INHABITED_JITTER` = 20 days (seeded per site and per cycle), growing stronger: a level of power every `POWER_STEP_DAYS` = 40 days, up to `MAX_POWER` = 2. Each level adds `POWER_DC` = +1 to every check there, and from power 2 a hostile site adds 1 more threat (at most 3). At the end of its spell the realm or an accident clears it, its power resets, and the cycle repeats. About four in five are inhabited at any time; a new world's sites start at seeded points of their first cycle, so they start at mixed powers.
+    - **Stored:** `clearedDay`, the day the party last cleared it (or null), and `category`, so the rules need no content. The threat level uses the derived status, so an empty lair feeds nothing.
+    - **Shown:** the site panel says "Cleared N days ago", "Re-inhabited" or "Growing stronger: every check here is DC +N"; the map draws an empty site faded. When days pass, the journal carries word of the sites the party knows: one cleared by the realm's soldiers (or emptied by an accident), or one something has moved into again.
+    - **Boons on a cooldown:** a boon (Inspiration, healing, exhaustion removed, gold found) at a shrine, well, landmark or other boon site is an option with `{ "req": "siteReady" }`. Choosing it spends the site's boon for `BOON_COOLDOWN_DAYS` = 30 days; until then the situation still plays, but the boon is greyed out with "the blessing here is spent; it returns in N days". A content test checks that every shrine and landmark boon has it.
+    - **Experts** train once per character (`untrained`). Paid knowledge has `{ "req": "undiscovered", "scope", "category"? }`, so it is greyed out ("nothing left to learn of in this land") when there is nothing left to reveal; a content test checks that no site sells a clue without it.
+    - **Wonders are flavour only:** the lint allows no effects in a wonder but log lines.
+    - **Time at a site is eaten through:** a `days` effect (a vigil, a night at the waystation) eats and drinks each day like any other day, so there is no healing without food. Camping at a site drinks as the spot's terrain asks (twice as much in the desert) and refills the waterskins at a spring or well.
   - **Status:** built in Plan 3b, before Plan 4. Rumours from taverns arrive with Plan 4.
 - **New world:** re-rolls the political layer on top of the fixed geography: borders, ruling ancestries, threats, and settlement names and types.
 - **Town names** come first from the town-map filenames in `~/dnd5e/town maps/` (including `__altaeus/`). Their `Name - description - alignment` pattern also hints at the settlement type, biome, wealth and alignment, and the map image becomes that town's banner. The generators from the prototype's `towns.ts` (English, French and Spanish style compounds) fill any remaining settlements.
@@ -147,13 +156,15 @@ The town map image is a banner and backdrop.
 - **Land spots** (`data/claude/land-spots.json`, kind `landSpots`): a grid of 404 land points about 21 km (100 px) apart. They are sampled off the map image by `scripts/map/sample_land_spots.py`, which needs anaconda Python with Pillow, numpy and scipy. Each spot has a position and an island, and some have their own terrain. Otherwise a spot takes its land's biome.
 - **Territory** (`src/engine/world/territory.ts`) is computed from content and memoised, never stored. Spots link within about 1.6 grid steps on the same island. Each spot belongs to the settlement nearest to it in off-road km (the straight line × 1.2). Two domains are adjacent when their spots touch or a route joins them.
 - **State v4:** `world` is `{ seed, kingdoms, lands, domains, pois, settlements }`. A v3 save is re-rolled from its seed, so names may change. The party, gold and position are kept.
+- **State v5** (the review fixes): each POI keeps its `category`, `clearedDay` replaces `cleared` (a v4 save's cleared sites count as cleared on its current day) and `boonDay` records its last boon; `GameState.visited` allows one visit per arrival.
 - **Kingdoms:** 8–12, seated at distinct capital markers. The smallest kingdom that can still grow claims a bordering domain, and a domain in a land it already holds is twice as likely. Each kingdom rolls a defence of 9–22 (`DEFENCE`). The defence is split over its domains with weight `1 / (1 + 0.5 × hops from the seat)` (`SEAT_FALLOFF`), so border domains are thin.
-- **Threat level per domain** is the land's threat strength, plus the threat of its uncleared hostile POIs (undiscovered ones count too), minus the domain's garrison, clamped to 0–3. It is derived, never stored, so clearing a lair takes effect at once.
-  - **Measured over 1,200 worlds:** Held 51%, Stirring 21%, Rising 15%, **Rampant 12.3%** (6–7 of 53 domains per world). It would be 7% without POIs.
+- **Threat level per domain** is the land's threat strength, plus the threat of its inhabited hostile POIs on that day (undiscovered ones count too; an empty one adds nothing, a strong one 1 more), minus the domain's garrison, clamped to 0–3. It is derived, never stored, so clearing a lair takes effect at once.
+  - **Measured over 1,200 worlds, with the sites' cycles:** Held 52%, Stirring 20–21%, Rising 15%, **Rampant 12.4–12.5%** on days 1, 60, 120, 365 and 1000 (6–7 of 53 domains per world). It would be 7% without POIs.
   - **Seats versus borders:** a seat's median level is 0 and a border domain's median is 1.
-  - `src/content/world.test.ts` holds the Rampant share to 10–15%. Details and knobs are in `docs/notes/threat-levels.md`.
-- **Points of interest** (`src/engine/world/pois.ts`): 46–55 per world on seeds 1–5, of which about a quarter are hostile (7–15).
-  - **Placement:** each domain draws `spots / 8` sites (`POI_SPOTS_EACH`), rounded at random, and at most 2. Each site goes on a free spot at least 8 km from its settlement and from other sites.
+  - `src/content/world.test.ts` holds the Rampant share to 8–18% on days 1, 120 and 365 (the target stays 10–15%), with 2–12 Rampant domains in at least 80% of worlds. Details and knobs are in `docs/notes/threat-levels.md`.
+  - **Later:** threats may weaken with distance across a realm instead of affecting all its domains equally.
+- **Points of interest** (`src/engine/world/pois.ts`): 46–53 per world on seeds 1–5 (41–60 over 1,200 worlds, mean 49.5), of which about a quarter are hostile (7–15).
+  - **Placement:** each domain draws `spots / 8` sites (`POI_SPOTS_EACH`), rounded at random, and at most 2. Each site goes on a free spot at least 8 km from its settlement (`POI_MIN_KM`) and 25 km from other sites (`POI_SPACING_KM`, more than one spot step, so sites never sit on neighbouring spots).
   - **Type:** drawn by weight from the 29 types in `data/procedural/poi-types.json` (kind `poiTypes`). A type weighs ×3 where its biomes match the spot's terrain, or its threats name the land's threat. A lair keyed to threats is only drawn where one of those threats holds the land (`lairFits`).
   - **Names** come from the parts tables in `data/procedural/poi-names.json`, with twelve or more names per type and no repeats while a table lasts.
 - **The 29 types:**
@@ -176,9 +187,9 @@ The town map image is a banner and backdrop.
 - **Visiting** (`src/engine/world/graph.ts`): a discovered POI is a map node.
   - **Paths:** a POI has a path to its own settlement, plus one to every other settlement on its island whose off-road km is within 1.25× of the first (`PATH_DETOUR`), so a site can be a waypoint between towns. A path's terrain is the spot's, and its danger is the type's `pathDanger`.
   - **Journeys:** travel, previews and the map read the graph, so paths use the normal pace, supply and encounter rules. A route's threat is the higher level of its two ends.
-  - **At the site:** Visit (Enter for dungeons and lairs) plays one of the type's site situations. `clearPoi` clears the site, which removes its threat and disables visiting.
-  - **Water and rest:** arriving refills the water only where the type has a spring or a well (`water: true`). Resting at a POI is camp-only, and there is nothing to buy or sell.
-- **Not built yet:** identifying items (it needs accessories), new lairs appearing over time, joining POIs to the middle of existing routes, rumours as a discovery source (Plan 4), and the `wander` smoke policy exploring or visiting sites. The POI icons (game-icons names in `poiTypes`) are not synced into `assets/` yet, so the map draws an inline glyph per category.
+  - **At the site:** Visit (Enter for dungeons and lairs) plays one of the type's site situations, once per arrival. `clearPoi` clears a dungeon or lair, which empties it (no threat, no visiting) until something moves in again (see "Over time" in §6 above). A hostile site whose type names the land's threat "feeds" it; one that doesn't (the kobold mine) is "a danger of its own".
+  - **Water and rest:** arriving refills the water only where the type has a spring or a well (`water: true`). Resting at a POI is camp-only, drinks as the spot's terrain asks, refills at a spring or well, and there is nothing to buy or sell.
+- **Not built yet:** identifying items (it needs accessories), new lairs appearing on new spots over time (existing ones do fill up again), joining POIs to the middle of existing routes, rumours as a discovery source (Plan 4), and the `wander` smoke policy exploring or visiting sites. The POI icons (game-icons names in `poiTypes`) are not synced into `assets/` yet, so the map draws an inline glyph per category.
 
 ### Persistent world with successive parties
 
@@ -223,7 +234,7 @@ The town map image is a banner and backdrop.
   - Proper ways to earn money arrive with Plan 4.
 - **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4, at most one a day. How many is the same on every road; route danger, regional threat, foraging, pace (and later visible wealth) change what kind: how many of them are hostile.
 - **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.
-- **Wonders:** a separate kind of encounter. Rare, one click, flavour only, never a burden.
+- **Wonders:** a separate kind of encounter. Rare, one click, flavour only (no rewards either: the lint allows only log lines), never a burden.
 
 ### Travel (Plan 3)
 
@@ -287,7 +298,7 @@ The town map image is a banner and backdrop.
 - **Saves** store a compiled snapshot of the active situation, so editing content never breaks a save.
 - **High-stakes rolls** (slow, glowing dice) are flagged by content, or are close calls (25–75%) where an outcome costs HP.
 - **Skill uses** from encounter checks are recorded for Strain (Plan 3).
-- Every bundled situation is tested for playability (reachable stages, valid gotos, slots, archetypes, follow-ups) and the quality rules (at least 2 options per regular stage, at least one of them neither `once` nor gated by requirements so no stage is a dead end; wonders cost nothing).
+- Every bundled situation is tested for playability (reachable stages, valid gotos, slots, archetypes, follow-ups) and the quality rules (at least 2 options per regular stage, at least one of them neither `once` nor gated by requirements so no stage is a dead end; wonders are flavour only).
 
 ## 8. Reputation, accessories and modifiers
 

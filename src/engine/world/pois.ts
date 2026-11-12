@@ -6,6 +6,7 @@ import type { Draw } from '../rng'
 import { straightKm } from './geo'
 import { NAME_TRIES } from './names'
 import { threatLevelFor } from './politics'
+import { siteThreat } from './sites'
 import { territory, type Territory } from './territory'
 
 // Points of interest (design §6): dungeons, experts, lairs, shrines, landmarks, wonders and quest
@@ -18,13 +19,20 @@ import { territory, type Territory } from './territory'
 export const POI_SPOTS_EACH = 8
 /** No domain gets more than this many POIs; most get 0 or 1. */
 export const POI_MAX_PER_DOMAIN = 2
-/** The closest a POI may stand to its settlement, and to another POI. */
+/** The closest a POI may stand to its settlement. */
 export const POI_MIN_KM = 8
+/**
+ * The closest two POIs may stand: more than one grid step of land spots (SPOT_SPACING_KM, about
+ * 20.7 km), so sites never sit on neighbouring spots. (A plain number: territory.ts and this
+ * module import each other indirectly, so a constant from there may not be set yet.)
+ */
+export const POI_SPACING_KM = 25
 /** A type whose biome matches the spot, or whose threats name the land's threat, weighs this much more. */
 export const POI_FAVOURED = 3
 
-/** The parts of a world the threat of a domain depends on. */
+/** The parts of a world the threat of a domain depends on (the seed sets the sites' cycles). */
 export type PoiWorld = {
+  seed: number
   lands: Record<string, LandState>
   domains: Record<string, DomainState>
   pois: Record<string, PoiState>
@@ -82,10 +90,11 @@ export type PoiOptions = {
 /**
  * The POIs of a world, ids `poi-<n>` in generation order. Domains are walked in id order; each
  * draws its count (poisPerDomain), then for each POI a free spot of its territory at least
- * POI_MIN_KM from its settlement and every POI so far (fewer when none is left), and a type by
- * weight, POI_FAVOURED× when the type's biomes match the spot's terrain (or the land's biome) or
- * its threats name the land's threat. A lair keyed to other threats is not drawn (lairFits). Hostile types roll their threat. Names avoid repeats while
- * the type's table allows (see PoiOptions.usedNames).
+ * POI_MIN_KM from its settlement and POI_SPACING_KM from every POI so far (fewer when none is
+ * left), and a type by weight, POI_FAVOURED× when the type's biomes match the spot's terrain (or
+ * the land's biome) or its threats name the land's threat. A lair keyed to other threats is not
+ * drawn (lairFits). Hostile types roll their threat. Names avoid repeats while the type's table
+ * allows (see PoiOptions.usedNames).
  */
 export function generatePois(
   d: Draw,
@@ -111,7 +120,7 @@ export function generatePois(
       const free = spots.filter(
         (s) =>
           straightKm(s.at, site.at) >= POI_MIN_KM &&
-          placed.every((p) => p !== s && straightKm(p.at, s.at) >= POI_MIN_KM)
+          placed.every((p) => p !== s && straightKm(p.at, s.at) >= POI_SPACING_KM)
       )
       if (free.length === 0) break
       const spot = d.pick(free)
@@ -131,44 +140,56 @@ export function generatePois(
       used.add(name)
       result[`poi-${Object.keys(result).length + 1}`] = {
         type: type.id,
+        category: type.category,
         spot: spot.id,
         domain: site.id,
         name,
         threat: type.threat ? d.int(type.threat.min, type.threat.max) : 0,
         discovered: false,
-        cleared: false,
+        clearedDay: null,
+        boonDay: null,
       }
     }
   }
   return result
 }
 
-/** The threat holding a domain: its land's strength plus every uncleared hostile POI in it. */
-export function domainThreatStrength(world: PoiWorld, domainId: string): number {
+/**
+ * The threat holding a domain on a day: its land's strength plus what each of its hostile POIs
+ * adds while inhabited (siteThreat: more once it has grown strong, nothing while it lies empty).
+ */
+export function domainThreatStrength(world: PoiWorld, domainId: string, day: number): number {
   const domain = own(world.domains, domainId)
   if (!domain) return 0
   const land = own(world.lands, domain.land)?.threatStrength ?? 0
-  const lairs = Object.values(world.pois)
-    .filter((p) => p.domain === domainId && !p.cleared)
-    .reduce((sum, p) => sum + p.threat, 0)
+  const lairs = Object.entries(world.pois)
+    .filter(([, p]) => p.domain === domainId)
+    .reduce((sum, [id, p]) => sum + siteThreat(world.seed, id, p, day), 0)
   return land + lairs
 }
 
 /**
- * What the party knows lairs add to a domain's threat: the threat of its discovered, uncleared
- * POIs. Undiscovered ones still count in the level (domainThreatLevel), silently.
+ * What the party knows lairs add to a domain's threat on a day: the threat of its discovered
+ * POIs (siteThreat). Undiscovered ones still count in the level (domainThreatLevel), silently.
  */
-export function knownLairThreat(world: Pick<PoiWorld, 'pois'>, domainId: string): number {
-  return Object.values(world.pois)
-    .filter((p) => p.domain === domainId && p.discovered && !p.cleared)
-    .reduce((sum, p) => sum + p.threat, 0)
+export function knownLairThreat(
+  world: Pick<PoiWorld, 'seed' | 'pois'>,
+  domainId: string,
+  day: number
+): number {
+  return Object.entries(world.pois)
+    .filter(([, p]) => p.domain === domainId && p.discovered)
+    .reduce((sum, [id, p]) => sum + siteThreat(world.seed, id, p, day), 0)
 }
 
-/** How far the threat outweighs the domain's garrison, 0 (held) to 3 (rampant); derived, never stored. */
-export function domainThreatLevel(world: PoiWorld, domainId: string): number {
+/**
+ * How far the threat outweighs the domain's garrison on a day, 0 (held) to 3 (rampant); derived,
+ * never stored.
+ */
+export function domainThreatLevel(world: PoiWorld, domainId: string, day: number): number {
   const domain = own(world.domains, domainId)
   if (!domain) return 0
-  return threatLevelFor(domainThreatStrength(world, domainId), domain.garrison)
+  return threatLevelFor(domainThreatStrength(world, domainId, day), domain.garrison)
 }
 
 /** What discoverPoi looks for: how many, where, and of which category. */
@@ -210,6 +231,26 @@ export function poisToDiscover(
     .sort((a, b) => a.d[0] - b.d[0] || a.d[1] - b.d[1] || byCodeUnit(a.id, b.id))
     .slice(0, count)
     .map((p) => p.id)
+}
+
+/**
+ * True when a search like this (discoverPoi) would still find something: an undiscovered POI in
+ * the domain, or with scope "land" in any domain of its land, of the category if one is given.
+ */
+export function anyUndiscovered(
+  world: Pick<PoiWorld, 'domains' | 'pois'>,
+  domainId: string | null,
+  { scope, category }: Omit<PoiSearch, 'count'>
+): boolean {
+  const domain = domainId === null ? undefined : own(world.domains, domainId)
+  if (!domain) return false
+  return Object.values(world.pois).some(
+    (poi) =>
+      !poi.discovered &&
+      (!category || poi.category === category) &&
+      (poi.domain === domainId ||
+        (scope === 'land' && own(world.domains, poi.domain)?.land === domain.land))
+  )
 }
 
 /** The domain a place belongs to: a settlement is its own, a POI its owner's. Null otherwise. */

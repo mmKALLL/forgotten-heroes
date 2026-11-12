@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { newGame, step } from '../engine/state'
 import { edgesFrom } from '../engine/world/graph'
+import { REINHABIT_DAYS } from '../engine/world/sites'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { PlacePanel } from '../ui/world/PlacePanel'
 import { PoiPanel } from '../ui/world/PoiPanel'
@@ -22,7 +23,10 @@ afterEach(() => {
 const capitalised = (s: string) => s[0].toUpperCase() + s.slice(1)
 const CATEGORY_TEXT: Record<string, string> = { quest: 'quest site' }
 
-/** A fresh game on seed 1 with its first POI turned into `typeId`, discovered, the party there. */
+/**
+ * A fresh game on seed 1 with its first POI turned into `typeId`, discovered and (a dungeon or
+ * lair) inhabited since today, the party there.
+ */
 function atSite(typeId: string): { state: GameState; id: string } {
   const state = newGame(1, content)
   const [id, poi] = Object.entries(state.world.pois)[0]
@@ -30,6 +34,8 @@ function atSite(typeId: string): { state: GameState; id: string } {
   state.world.pois[id] = {
     ...poi,
     type: typeId,
+    category: type.category,
+    clearedDay: state.day - REINHABIT_DAYS,
     name: `The ${type.name}`,
     threat: type.hostile ? (type.threat?.max ?? 1) : 0,
     discovered: true,
@@ -49,7 +55,7 @@ describe('every POI type in the bundled content', () => {
     '%s shows in its panel and plays a site situation',
     async (typeId) => {
       const type = content.poiTypes[typeId]
-      const { state } = atSite(typeId)
+      const { state, id } = atSite(typeId)
       const onAction = vi.fn()
       render(
         <PoiPanel content={content} state={state} selected={null} onAction={onAction} {...props} />
@@ -59,7 +65,12 @@ describe('every POI type in the bundled content', () => {
       const category = capitalised(CATEGORY_TEXT[type.category] ?? type.category)
       expect(panel.getByText(`${category} · ${type.name}`)).toBeTruthy()
       expect(panel.queryByText(/A spring here/) !== null).toBe(type.water)
-      expect(panel.queryByText(/^Feeds the /) !== null).toBe(type.hostile)
+      // A lair keyed to the land's threat feeds it; another hostile site is a danger of its own.
+      const feeds = type.threats.includes(
+        state.world.lands[content.settlements[state.world.pois[id].domain].region].threat
+      )
+      expect(panel.queryByText(/^Feeds the /) !== null).toBe(type.hostile && feeds)
+      expect(panel.queryByText(/^A danger of its own/) !== null).toBe(type.hostile && !feeds)
       const entered = type.category === 'dungeon' || type.category === 'lair'
       await userEvent.click(panel.getByRole('button', { name: entered ? 'Enter' : 'Visit' }))
       expect(onAction).toHaveBeenCalledWith({ type: 'visitPoi' })

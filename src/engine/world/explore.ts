@@ -1,6 +1,7 @@
 import type { Content } from '../../content/build'
 import type { Biome } from '../../schema/constants'
 import type { GameState } from '../../schema/state'
+import type { PoiState } from '../../schema/world'
 import { revealPois } from '../encounters/effects'
 
 export { NOTHING_TO_LEARN } from '../encounters/effects'
@@ -11,7 +12,7 @@ import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
-import { TIERS, TIER_LABELS, rollCheck, tierOdds, type Tier } from '../rules/checks'
+import { TIERS, TIER_LABELS, normalizeDc, rollCheck, tierOdds, type Tier } from '../rules/checks'
 import { useSkill } from '../rules/strain'
 import { DEFAULT_PACE } from '../travel/pace'
 import { forageDay } from '../travel/forage'
@@ -19,6 +20,7 @@ import { passDay } from '../travel/supplies'
 import { FORAGE_DC } from '../travel/tuning'
 import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
+import { POWER_DC, siteStatus } from './sites'
 
 // Visiting and exploring points of interest (design §6). A visit plays one of the site's
 // situations; exploring spends days searching the domain for sites not yet found.
@@ -43,6 +45,8 @@ export type ExploreOption = {
   days: number
   /** The odds of each tier (tierOdds). */
   chances: Record<Tier, number>
+  /** The chance to find at least one site (the tiers that find something). */
+  findChance: number
   /** What each tier leads to, in TIERS order (English). */
   outcomes: string[]
   /** The sites each tier finds and the days it takes, for previews in any language. */
@@ -107,13 +111,15 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
   }).sort((a, b) => b.actor.modifier - a.actor.modifier)
   if (!best) return null
   const dc = FORAGE_DC[terrain] + EXPLORE_DC_BONUS
+  const chances = tierOdds(best.actor.modifier, dc)
   return {
     actorId: best.actor.characterId,
     skill: best.skill,
     modifier: best.actor.modifier,
     dc,
     days: EXPLORE_DAYS,
-    chances: tierOdds(best.actor.modifier, dc),
+    chances,
+    findChance: TIERS.filter((tier) => FINDS[tier].found > 0).reduce((p, t) => p + chances[t], 0),
     outcomes: TIERS.map((tier) => EXPLORE_OUTCOMES[tier]),
     finds: Object.fromEntries(
       TIERS.map((tier) => [
@@ -208,8 +214,9 @@ function ambush(state: GameState, content: Content): GameState {
 }
 
 /**
- * Plays one of the POI's situations, picked by the seeded RNG, when the party is at a
- * discovered POI that isn't cleared.
+ * Plays one of the POI's situations, picked by the seeded RNG, when the party is at a discovered
+ * POI it hasn't visited since arriving, and that isn't a dungeon or lair lying empty. A site that
+ * has grown stronger (siteStatus power) raises every check's DC by POWER_DC per level.
  */
 export function visitPoi(state: GameState, content: Content): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
@@ -218,29 +225,94 @@ export function visitPoi(state: GameState, content: Content): GameState {
   if (!id || !poi || !poi.discovered) {
     return appendLog(state, 'There is no site to visit here.', 'bad')
   }
-  if (poi.cleared) return appendLog(state, `${poi.name} has been cleared.`, 'bad')
+  const refused = visitRefusal(state, id, poi)
+  if (refused) return appendLog(state, refused.text, 'bad')
   const type = own(content.poiTypes, poi.type)
   const known = new Set(allSituations(content).map((s) => s.id))
   const situations = type?.situations.filter((s) => known.has(s)) ?? []
   if (situations.length === 0) return appendLog(state, `Nothing happens at ${poi.name}.`, 'bad')
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const place = placeHere(state, content) ?? undefined
-  return startEncounter({ ...state, rng }, content, situation, place, id)
+  const started = startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
+  const power = siteStatus(state.world.seed, id, poi, state.day)?.power ?? 0
+  return power > 0 && started.encounter ? strengthen(started, power * POWER_DC) : started
+}
+
+/** Raises every check of the open encounter by `dc`, with a line saying so. */
+function strengthen(state: GameState, dc: number): GameState {
+  const encounter = state.encounter!
+  const stages = Object.fromEntries(
+    Object.entries(encounter.situation.stages).map(([id, stage]) => [
+      id,
+      {
+        ...stage,
+        options: stage.options.map((o) =>
+          o.kind === 'check'
+            ? { ...o, check: { ...o.check, dc: normalizeDc(Number(o.check.dc) + dc) } }
+            : o
+        ),
+      },
+    ])
+  )
+  const text = `It has grown stronger since it was taken: every check here is DC +${dc}.`
+  return {
+    ...state,
+    encounter: {
+      ...encounter,
+      situation: { ...encounter.situation, stages },
+      log: [...encounter.log, { text, tone: 'bad' }],
+    },
+  }
+}
+
+/** Why a site can't be visited now: busy, lying empty (cleared), or visited since the party arrived. */
+export type VisitBlock = 'busy' | 'cleared' | 'visited'
+
+/** Why the party can't visit this (discovered) POI right now, or null when it can. */
+function visitRefusal(
+  state: GameState,
+  id: string,
+  poi: PoiState
+): { code: VisitBlock; text: string } | null {
+  if (inProgress(state)) return { code: 'busy', text: BUSY }
+  const status = siteStatus(state.world.seed, id, poi, state.day)
+  if (status?.phase === 'empty') {
+    return { code: 'cleared', text: `${poi.name} lies empty for now.` }
+  }
+  if (state.visited) {
+    return {
+      code: 'visited',
+      text: `You have already visited ${poi.name}. Leave and come back another time.`,
+    }
+  }
+  return null
 }
 
 /** The site actions open where the party is, with their previews. */
 export type SiteAction =
   | { type: 'explore'; option: ExploreOption }
-  | { type: 'visitPoi'; poiId: string; available: boolean; reason: string | null }
+  | {
+      type: 'visitPoi'
+      poiId: string
+      available: boolean
+      /** Why not (English), and the same as a code for the UI; null when available. */
+      reason: string | null
+      code: VisitBlock | null
+    }
 
 /** Exploring (with its preview), and visiting when the party is at a discovered POI. */
 export function siteActions(state: GameState, content: Content): SiteAction[] {
   const actions: SiteAction[] = []
   const poi = state.travel ? undefined : own(state.world.pois, state.location)
   if (poi?.discovered && state.location) {
-    const busy = inProgress(state)
-    const reason = busy ? BUSY : poi.cleared ? `${poi.name} has been cleared.` : null
-    actions.push({ type: 'visitPoi', poiId: state.location, available: !reason, reason })
+    const refused = visitRefusal(state, state.location, poi)
+    actions.push({
+      type: 'visitPoi',
+      poiId: state.location,
+      available: !refused,
+      reason: refused?.text ?? null,
+      code: refused?.code ?? null,
+    })
   }
   const option = exploreOption(state, content)
   if (option) actions.push({ type: 'explore', option })

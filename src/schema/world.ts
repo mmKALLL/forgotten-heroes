@@ -196,9 +196,10 @@ export const DomainStateSchema = z.object({
 })
 export type DomainState = z.infer<typeof DomainStateSchema>
 
-/** A point of interest placed in this world: hidden until discovered, hostile until cleared. */
+/** A point of interest placed in this world: hidden until discovered; dungeons and lairs empty and fill up again. */
 export const PoiStateSchema = z.object({
   type: IdSchema.describe('A poiTypes id'),
+  category: PoiCategorySchema.describe("Its type's category, kept so the rules need no content"),
   spot: IdSchema.describe('The land spot it stands on'),
   domain: IdSchema.describe('The domain (settlement id) that owns the spot'),
   name: z.string(),
@@ -207,9 +208,23 @@ export const PoiStateSchema = z.object({
     .int()
     .min(0)
     .max(3)
-    .describe("What it adds to its domain's threat until cleared; 0 unless hostile"),
+    .describe("What it adds to its domain's threat while inhabited; 0 unless hostile"),
   discovered: z.boolean(),
-  cleared: z.boolean(),
+  clearedDay: z
+    .number()
+    .int()
+    .nullable()
+    .describe(
+      'The day the party last cleared it (a dungeon or lair), or null. Whether it is empty or ' +
+        'inhabited now is derived from this, the day and the world seed (world/sites.ts)'
+    ),
+  boonDay: z
+    .number()
+    .int()
+    .min(1)
+    .nullable()
+    .default(null)
+    .describe('The day its boon was last taken (a siteReady option); null if never'),
 })
 export type PoiState = z.infer<typeof PoiStateSchema>
 
