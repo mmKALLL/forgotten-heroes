@@ -1,6 +1,7 @@
 import type { Biome, Pace } from '../../schema/constants'
-import type { GameState } from '../../schema/state'
+import type { Character, GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
+import { MAX_EXHAUSTION } from '../encounters/effects'
 import { canAct, statModifier } from '../rules/character'
 import { tierOdds } from '../rules/checks'
 import { expectedForage } from './forage'
@@ -48,6 +49,47 @@ export type TravelWarning =
         expectedLevels: number
       }
     }
+  /**
+   * Severe: the march could exhaust someone to death (MAX_EXHAUSTION) with at least
+   * DEADLY_MARCH_CHANCE; the member most at risk and that chance.
+   */
+  | {
+      code: 'forcedMarchDeadly'
+      params: { days: number; dc: number; characterId: string; name: string; chance: number }
+    }
+
+/** A forced march this likely to kill someone (exhaustion level 6) gets a severe warning. */
+export const DEADLY_MARCH_CHANCE = 0.1
+
+/** Warnings the UI should show as severe. */
+export const isSevere = (w: TravelWarning): boolean => w.code === 'forcedMarchDeadly'
+
+/**
+ * How a member's exhaustion may end up after `days` of forced-march CON checks: the chance of
+ * each level, 0 to MAX_EXHAUSTION. Each level gained is −2 to the following days' checks
+ * (statModifier), so failures compound; the last level is death and ends the walk.
+ */
+export function marchExhaustion(c: Character, days: number, dc: number): number[] {
+  let levels: number[] = Array.from({ length: MAX_EXHAUSTION + 1 }, (_, l) =>
+    l === c.exhaustion ? 1 : 0
+  )
+  for (let day = 0; day < days; day++) {
+    const next = levels.map(() => 0)
+    levels.forEach((p, level) => {
+      if (p === 0) return
+      if (level >= MAX_EXHAUSTION) {
+        next[level] += p
+        return
+      }
+      const odds = tierOdds(statModifier({ ...c, exhaustion: level }, 'con'), dc)
+      const holds = odds.success + odds.critSuccess
+      next[level] += p * holds
+      next[level + 1] += p * (1 - holds)
+    })
+    levels = next
+  }
+  return levels
+}
 
 const EPSILON = 1e-9
 
@@ -135,13 +177,12 @@ export function forecastJourney(
     })
   }
   if (pace === 'forced' && terrain !== 'sea') {
-    const worst = state.party
-      .filter(canAct)
-      .map((c) => {
-        const odds = tierOdds(statModifier(c, 'con'), FORCED_MARCH_DC)
-        return { c, fail: 1 - odds.success - odds.critSuccess }
-      })
-      .sort((a, b) => b.fail - a.fail)[0]
+    const risks = state.party.filter(canAct).map((c) => {
+      const levels = marchExhaustion(c, days, FORCED_MARCH_DC)
+      const expected = levels.reduce((sum, p, level) => sum + p * level, 0) - c.exhaustion
+      return { c, expected, death: levels[MAX_EXHAUSTION] }
+    })
+    const worst = [...risks].sort((a, b) => b.expected - a.expected)[0]
     if (worst) {
       warnings.push({
         code: 'forcedMarchExhaustion',
@@ -150,7 +191,20 @@ export function forecastJourney(
           dc: FORCED_MARCH_DC,
           characterId: worst.c.id,
           name: worst.c.name,
-          expectedLevels: days * worst.fail,
+          expectedLevels: worst.expected,
+        },
+      })
+    }
+    const deadliest = [...risks].sort((a, b) => b.death - a.death)[0]
+    if (deadliest && deadliest.death >= DEADLY_MARCH_CHANCE) {
+      warnings.push({
+        code: 'forcedMarchDeadly',
+        params: {
+          days,
+          dc: FORCED_MARCH_DC,
+          characterId: deadliest.c.id,
+          name: deadliest.c.name,
+          chance: deadliest.death,
         },
       })
     }
@@ -195,6 +249,11 @@ export function warningText(w: TravelWarning): string {
       return (
         `A forced march of ${plural(w.params.days, 'day')} (CON DC ${w.params.dc} each day) will ` +
         `likely exhaust ${w.params.name}: about ${w.params.expectedLevels.toFixed(1)} levels.`
+      )
+    case 'forcedMarchDeadly':
+      return (
+        `A forced march of ${plural(w.params.days, 'day')} could kill ${w.params.name} ` +
+        `(${Math.round(w.params.chance * 100)}% chance of reaching the sixth level of exhaustion).`
       )
   }
 }

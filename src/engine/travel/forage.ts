@@ -15,6 +15,8 @@ export type ForageCheck = {
   dc: number
   modifier: number
   odds: Record<Tier, number>
+  /** What each tier finds (forageYield), before the waterskins fill up. */
+  outcomes: Record<Tier, { food: number; water: number }>
 }
 
 /**
@@ -32,12 +34,16 @@ export function forageCheck(
   if (!actor) return null
   const dc = FORAGE_DC[terrain]
   const modifier = actor.modifier + FORAGE_PACE_MODIFIER[pace]
+  const members = state.party.length
   return {
     actorId: actor.characterId,
     skill: FORAGE_SKILL,
     dc,
     modifier,
     odds: tierOdds(modifier, dc),
+    outcomes: Object.fromEntries(
+      TIERS.map((tier) => [tier, forageYield(tier, members, terrain)])
+    ) as ForageCheck['outcomes'],
   }
 }
 
@@ -92,11 +98,13 @@ export type ForageResult = {
   wasted: number
   /** The forager's new Survival Strain stacks, or 0 when none was added. */
   strained: number
+  /** A natural 20: Inspiration gained, as on any check. */
+  inspired: boolean
 }
 
 /**
  * One day's foraging (journey.ts calls it before the day's rations). The roll counts as a use of
- * Survival for Strain. Water is kept up to the party's capacity. Logs nothing: the journey folds
+ * Survival for Strain, and a natural 20 grants Inspiration. Water is kept up to the party's capacity. Logs nothing: the journey folds
  * the day's finds into its summary line.
  */
 export function forageDay(
@@ -116,8 +124,16 @@ export function forageDay(
     food: goodsOf(state.goods, 'food') + found.food,
     water: kept,
   }
+  const inspired = roll.tier === 'critSuccess'
   return {
-    state: { ...state, rng, party, skillUses, goods },
+    state: {
+      ...state,
+      rng,
+      party,
+      skillUses,
+      goods,
+      inspiration: state.inspiration + (inspired ? 1 : 0),
+    },
     result: {
       actorId: check.actorId,
       tier: roll.tier,
@@ -126,6 +142,7 @@ export function forageDay(
       water: kept - water,
       wasted: found.water - (kept - water),
       strained,
+      inspired,
     },
   }
 }

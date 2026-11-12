@@ -218,6 +218,8 @@ export const en = {
     'Not enough food for the journey: it runs out on day {day} ({missing} short).',
   'warning.forcedMarch':
     'A forced march of {days} (CON DC {dc} each day) will likely exhaust {name}: about {levels} levels.',
+  'warning.forcedMarchDeadly':
+    'A forced march of {days} could kill {name} ({pct}% chance of reaching the sixth level of exhaustion).',
 
   'journey.heading': 'On the road',
   'journey.route': '{from} → {to}',

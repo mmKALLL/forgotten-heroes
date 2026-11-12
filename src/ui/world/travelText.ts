@@ -54,5 +54,11 @@ export function warningMessage(t: T, w: TravelWarning): string {
         name: w.params.name,
         levels: w.params.expectedLevels.toFixed(1),
       })
+    case 'forcedMarchDeadly':
+      return t('warning.forcedMarchDeadly', {
+        days: daysText(t, w.params.days),
+        name: w.params.name,
+        pct: Math.round(w.params.chance * 100),
+      })
   }
 }

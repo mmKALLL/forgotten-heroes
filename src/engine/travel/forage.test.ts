@@ -36,6 +36,16 @@ describe('forageCheck', () => {
     expect(FORAGE_DC.mountains).toBeLessThan(FORAGE_DC.desert)
   })
 
+  test('shows what each tier finds: a success a day of water, a partial half, a failure nothing', () => {
+    expect(forageCheck(base(), 'plains', 'steady')!.outcomes).toEqual({
+      critFail: { food: 0, water: 0 },
+      fail: { food: 0, water: 0 },
+      partial: { food: 0, water: 1 },
+      success: { food: 0, water: 2 },
+      critSuccess: { food: 2, water: 2 },
+    })
+  })
+
   test('nothing to forage at sea, or with no one fit to look', () => {
     expect(forageCheck(base(), 'sea', 'steady')).toBeNull()
     expect(forageCheck(base(), null, 'steady')).toBeNull()
@@ -105,9 +115,14 @@ describe('forageDay', () => {
     expect(state.log).toEqual(before.log)
   })
 
-  test('a critical success brings back food as well', () => {
-    const { state } = forageDay(seeded('critSuccess'), 'plains', 'steady')
+  test('a critical success brings back food as well, and Inspiration like any natural 20', () => {
+    const before = seeded('critSuccess')
+    const { state, result } = forageDay(before, 'plains', 'steady')
     expect(state.goods).toEqual({ food: 6, water: 4 })
+    expect(state.inspiration).toBe(before.inspiration + 1)
+    expect(result!.inspired).toBe(true)
+    const plain = seeded('success')
+    expect(forageDay(plain, 'plains', 'steady').state.inspiration).toBe(plain.inspiration)
   })
 
   test('the waterskins only hold so much', () => {

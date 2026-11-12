@@ -227,7 +227,14 @@ function arrive(state: GameState, content: Content): GameState {
 }
 
 /** The finds of the days foraged since the last summary line. */
-type ForageTally = { dc: number; foragers: string[]; food: number; water: number; full: boolean }
+type ForageTally = {
+  dc: number
+  foragers: string[]
+  food: number
+  water: number
+  full: boolean
+  inspired: boolean
+}
 
 const names = (list: readonly string[]): string =>
   list.length <= 1 ? (list[0] ?? '') : `${list.slice(0, -1).join(', ')} and ${list.at(-1)}`
@@ -238,7 +245,8 @@ function forageText(t: ForageTally): string {
   return (
     `Foraging (Survival DC ${t.dc}, ${names(t.foragers)}): ` +
     `${found.length > 0 ? found.join(', ') : 'nothing found'}.` +
-    (t.full ? ' The waterskins are full.' : '')
+    (t.full ? ' The waterskins are full.' : '') +
+    (t.inspired ? ' Inspiration gained!' : '')
   )
 }
 
@@ -277,13 +285,21 @@ export function continueJourney(state: GameState, content: Content): GameState {
   }
   const record = (s: GameState, r: ForageResult) => {
     const name = s.party.find((c) => c.id === r.actorId)?.name ?? '?'
-    const t: ForageTally = tally ?? { dc: r.dc, foragers: [], food: 0, water: 0, full: false }
+    const t: ForageTally = tally ?? {
+      dc: r.dc,
+      foragers: [],
+      food: 0,
+      water: 0,
+      full: false,
+      inspired: false,
+    }
     tally = {
       dc: r.dc,
       foragers: t.foragers.includes(name) ? t.foragers : [...t.foragers, name],
       food: t.food + r.food,
       water: t.water + r.water,
       full: t.full || r.wasted > 0,
+      inspired: t.inspired || r.inspired,
     }
     if (r.strained > 0) {
       strainLines.push(`${name} is strained: Survival −${r.strained} until it fades.`)

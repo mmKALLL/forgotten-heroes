@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'vitest'
 import { newGame, step } from '../state'
-import { fixtureContent, makeState } from '../test-fixtures'
+import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { CAUTIOUS_HOSTILE_AVOIDANCE } from './pace'
 import { SEA_PACE_NOTE, journeyInfo, placeInfo, routeOptions, suppliesInfo } from './preview'
 import { tierOdds } from '../rules/checks'
 import type { GameState } from '../../schema/state'
 import { FORAGE_DC, WATERSKIN_WATER } from './tuning'
 import { FORCED_MARCH_DC } from './pace'
-import { warningText } from './warnings'
+import { isSevere, warningText } from './warnings'
 import { encounterChance } from './routes'
 
 const content = fixtureContent()
@@ -237,19 +237,56 @@ describe('supply forecasts and warnings', () => {
       {
         code: 'forcedMarchExhaustion',
         // Lyra (CON +1) fails DC 12 half the time; Brom (CON +2) 45%.
+        // Each level is −2 to the next day's check: 0.5 + (0.5 × 0.5 + 0.5 × 0.6) = 1.05.
         params: {
           days: 2,
           dc: FORCED_MARCH_DC,
           characterId: 'lyra',
           name: 'Lyra',
-          expectedLevels: 1,
+          expectedLevels: expect.closeTo(1.05, 12),
         },
       },
     ])
     expect(forced.warnings.map(warningText)).toEqual([
       'Water runs out on day 1 even with foraging (2 days without).',
-      'A forced march of 2 days (CON DC 12 each day) will likely exhaust Lyra: about 1.0 levels.',
+      expect.stringMatching(
+        /^A forced march of 2 days \(CON DC 12 each day\) will likely exhaust Lyra: about 1\.\d levels\.$/
+      ),
     ])
+  })
+
+  test('a forced march that could kill someone gets a severe warning', () => {
+    // 180 km of plains is 4 days of forced march. At CON 1 and already two levels down, only a
+    // natural 20 holds up: 95% a day, so 0.95⁴ to reach the sixth level.
+    const long = structuredClone(content)
+    long.routes['greenvale-1-greenvale-2'].km = 180
+    const frail = { ...lyra, exhaustion: 2, abilities: { ...lyra.abilities, con: 1 } }
+    const state = makeState({ location: 'greenvale-1', party: [brom, frail] })
+    const forced = routeOptions(state, long)
+      .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+      .paces.find((p) => p.pace === 'forced')!
+    expect(forced.days).toBe(4)
+    const deadly = forced.warnings.find((w) => w.code === 'forcedMarchDeadly')
+    expect(deadly).toEqual({
+      code: 'forcedMarchDeadly',
+      params: {
+        days: 4,
+        dc: FORCED_MARCH_DC,
+        characterId: 'lyra',
+        name: 'Lyra',
+        chance: expect.closeTo(0.95 ** 4, 12),
+      },
+    })
+    expect(isSevere(deadly!)).toBe(true)
+    expect(warningText(deadly!)).toBe(
+      'A forced march of 4 days could kill Lyra (81% chance of reaching the sixth level of exhaustion).'
+    )
+    // A short march, or a hardier party, carries no such risk.
+    expect(at('forced').warnings.some((w) => w.code === 'forcedMarchDeadly')).toBe(false)
+    const hardy = routeOptions(makeState({ location: 'greenvale-1' }), long)
+      .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+      .paces.find((p) => p.pace === 'forced')!
+    expect(hardy.warnings.some((w) => w.code === 'forcedMarchDeadly')).toBe(false)
   })
 
   test('extra waterskins raise the capacity', () => {
@@ -265,6 +302,19 @@ describe('supply forecasts and warnings', () => {
       dc: 13,
       modifier: 2,
       odds: tierOdds(2, 13),
+      outcomes: {
+        critSuccess: { code: 'unseen' },
+        success: { code: 'unseen' },
+        partial: { code: 'worked', params: { days: 2, exhaustion: 1 } },
+        fail: { code: 'fined', params: { gold: 5 } },
+        critFail: { code: 'brawl' },
+      },
+    })
+    // With no coin for a fine, a failure means work too.
+    const [broke] = routeOptions(makeState({ location: 'ashmoor-1', gold: 0 }), content)
+    expect(broke.stowaway!.outcomes.fail).toEqual({
+      code: 'worked',
+      params: { days: 2, exhaustion: 1 },
     })
     expect(sea.paces[0].forage).toBeNull()
     for (const o of land) expect(o.stowaway).toBeNull()

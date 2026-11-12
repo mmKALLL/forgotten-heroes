@@ -25,13 +25,45 @@ import {
 
 export const STOWAWAY_SKILL = 'stealth' as const
 
-/** Who would sneak the party aboard, against what DC, and the odds of every tier. */
+/**
+ * What a stowaway roll's tier leads to (stowAway): slipping aboard unseen, being put to work for
+ * the passage (days lost, and exhaustion for the one caught), a fine of all the party's coin, or
+ * a brawl.
+ */
+export type StowawayTierOutcome =
+  | { code: 'unseen' }
+  | { code: 'worked'; params: { days: number; exhaustion: number } }
+  | { code: 'fined'; params: { gold: number } }
+  | { code: 'brawl' }
+
+/** Who would sneak the party aboard, against what DC, the odds of every tier and what follows. */
 export type StowawayCheck = {
   actorId: string
   skill: typeof STOWAWAY_SKILL
   dc: number
   modifier: number
   odds: Record<Tier, number>
+  outcomes: Record<Tier, StowawayTierOutcome>
+}
+
+const WORKED: StowawayTierOutcome = {
+  code: 'worked',
+  params: { days: STOWAWAY_WORK_DAYS, exhaustion: STOWAWAY_WORK_EXHAUSTION },
+}
+
+/**
+ * What each tier leads to for a party with this much coin: a success slips aboard; a partial is
+ * put to work; a failure is fined all its coin, or put to work with none; a critical failure is
+ * a brawl.
+ */
+export function stowawayOutcomes(gold: number): Record<Tier, StowawayTierOutcome> {
+  return {
+    critSuccess: { code: 'unseen' },
+    success: { code: 'unseen' },
+    partial: WORKED,
+    fail: gold > 0 ? { code: 'fined', params: { gold } } : WORKED,
+    critFail: { code: 'brawl' },
+  }
 }
 
 /** Why the party can't stow away on this route, or null if it can. */
@@ -58,11 +90,12 @@ export function stowawayCheck(
     dc: STOWAWAY_DC,
     modifier: actor.modifier,
     odds: tierOdds(actor.modifier, STOWAWAY_DC),
+    outcomes: stowawayOutcomes(state.gold),
   }
 }
 
 /** What happened on the gangplank, for depart's own departure line. */
-export type StowawayOutcome = 'unseen' | 'fined' | 'worked' | 'brawl'
+export type StowawayOutcome = StowawayTierOutcome['code']
 
 /** The party works its passage off in port: days pass (the crew feeds it) and the caught one tires. */
 function putToWork(state: GameState, actorId: string): GameState {
@@ -87,7 +120,7 @@ function putToWork(state: GameState, actorId: string): GameState {
  * - partial: caught at the gangplank, and put to work for its passage;
  * - failure: caught and fined all its coin, or put to work if it has none;
  * - critical failure: a brawl. depart() starts a hostile sea situation tagged STOWAWAY_BRAWL_TAG
- *   if one exists (brawlSituation); otherwise the one caught takes STOWAWAY_BRAWL_DAMAGE.
+ *   if one exists (brawlCandidates); otherwise the one caught takes STOWAWAY_BRAWL_DAMAGE.
  * Whatever happens, the ship sails with the party aboard. Call only when stowawayRefusal is null.
  */
 export function stowAway(
@@ -125,41 +158,37 @@ export function stowAway(
       'bad'
     )
 
-  switch (roll.tier) {
-    case 'critSuccess':
-    case 'success':
+  const outcome = stowawayOutcomes(next.gold)[roll.tier]
+  switch (outcome.code) {
+    case 'unseen':
       return {
         state: appendLog(next, 'The party slips aboard unseen.', 'good'),
         outcome: 'unseen',
         brawl: null,
       }
-    case 'partial':
+    case 'worked':
       return {
-        state: work(next, 'The party is caught at the gangplank.'),
+        state: work(
+          next,
+          roll.tier === 'partial'
+            ? 'The party is caught at the gangplank.'
+            : 'The party is caught sneaking aboard with no coin for a fine.'
+        ),
         outcome: 'worked',
         brawl: null,
       }
-    case 'fail': {
-      if (next.gold > 0) {
-        const fine = next.gold
-        return {
-          state: appendLog(
-            { ...next, gold: 0 },
-            `The party is caught sneaking aboard and fined all its coin (${fine} gp), ` +
-              'then sails below decks.',
-            'bad'
-          ),
-          outcome: 'fined',
-          brawl: null,
-        }
-      }
+    case 'fined':
       return {
-        state: work(next, 'The party is caught sneaking aboard with no coin for a fine.'),
-        outcome: 'worked',
+        state: appendLog(
+          { ...next, gold: 0 },
+          `The party is caught sneaking aboard and fined all its coin (${outcome.params.gold} gp), ` +
+            'then sails below decks.',
+          'bad'
+        ),
+        outcome: 'fined',
         brawl: null,
       }
-    }
-    case 'critFail': {
+    case 'brawl': {
       const caught = appendLog(next, 'A sailor raises the alarm, and a brawl breaks out.', 'bad')
       const [{ brawl, damage }, rolled] = withRng(caught.rng, (d) => {
         const candidates = brawlCandidates(content, place)

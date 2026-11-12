@@ -208,6 +208,8 @@ export const ja: Partial<Messages> = {
   'warning.foodRunsOutShort': '食料が足りない：{day}日目に尽きる（{missing}不足）。',
   'warning.forcedMarch':
     '{days}の強行軍（毎日耐久力DC {dc}）で{name}はおそらく消耗する：およそ{levels}段階。',
+  'warning.forcedMarchDeadly':
+    '{days}の強行軍で{name}が死ぬおそれがある（消耗6段階に達する確率{pct}%）。',
 
   'journey.heading': '道中',
   'journey.route': '{from} → {to}',
