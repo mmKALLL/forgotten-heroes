@@ -467,7 +467,17 @@ T1 (shared, on `rebuild`) ──┬── Track A: A1 → A2 → A3 → A4 ═M1
 
 ---
 
-## Design decisions to confirm with the user
+## Decisions confirmed by the designer (override anything above)
+
+- **POI count:** sparser, ~40–60 per world (not 80–110); roughly a quarter hostile. Adjust A3's per-domain counts (0–2 per domain, weighted so most domains have 0–1) and the Rampant re-tune in I1 accordingly.
+- **Water at POIs:** only types with a spring/well (shrines by springs, oases, hermit huts…) refill water; dungeons/lairs don't. Resting at a POI is camp-only. (As proposed.)
+- **Exploring an exhausted domain:** do NOT say "nothing more to find" up front. Instead, a SUCCESSFUL search that finds nothing gives the hint "this area seems picked clean"; a failed search tells you nothing.
+- **Old saves:** re-rolled from their seed (names may change) — accepted.
+- **Border domains weaker** (defence falls off with distance from the seat), **borders loosely follow lands**, **undiscovered lairs still count toward threat** — accepted as proposed.
+- **Also fix (small, any track touching warnings):** a deadly forced march shows both `forcedMarchDeadly` and the normal exhaustion warning for the same member — the severe one should replace the normal one.
+- **Docs (I2):** design §9 should also note the mobile order (settlement panel above the map ≤ 900px) and danger-coloured roads with legend.
+
+## Design decisions to confirm with the user (original proposals)
 
 1. **Old saves are re-rolled.** A v3 save's world is regenerated from its seed. Kingdoms and threats change, and so do **settlement names**, because the name draws move. The party, gold and position are kept, and the journal keeps the old names. The alternative is to keep the v3 names and re-roll only the politics, which takes more code.
 2. **Border domains are weaker.** A kingdom's defence is weighted towards its seat and falls off with hops, rather than being split evenly. This is what makes "sprawling kingdoms crack at the edges" visible.
