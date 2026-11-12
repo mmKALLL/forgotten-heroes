@@ -3,8 +3,9 @@ import { economyIssues } from '../engine/economy/validate'
 import { generateWorld, worldSeed } from '../engine/world/generate'
 import { domainThreatLevel } from '../engine/world/pois'
 import { siteEmpty } from '../engine/world/sites'
-import type { MarketRule } from '../schema/economy'
-import { GOOD_CATEGORY, GOODS, type Good, type PoiCategory } from '../schema/types'
+import { straightKm } from '../engine/world/geo'
+import type { ContractTemplate, MarketRule } from '../schema/economy'
+import { CONTRACT_KINDS, GOOD_CATEGORY, GOODS, type Good, type PoiCategory } from '../schema/types'
 import type { WorldState } from '../schema/world'
 import { loadBundledContent } from './bundled'
 
@@ -154,6 +155,46 @@ describe('the economy data', () => {
       .filter((rule) => !all.some((p) => applies(rule, p)))
       .map((rule) => rule.id)
     expect(unused).toEqual([])
+  })
+
+  test('contract templates cover all five kinds', () => {
+    const templates = Object.values(content.contracts)
+    expect(templates.length).toBeGreaterThanOrEqual(15)
+    expect(templates.length).toBeLessThanOrEqual(25)
+    expect(new Set(templates.map((t) => t.kind))).toEqual(new Set(CONTRACT_KINDS))
+  })
+
+  /**
+   * A data-level stand-in for B4's noticeBoard: a board big enough, with the service, and a
+   * destination (another settlement on the same island) or an inhabited site of the right
+   * kind within the template's km, as the crow flies.
+   */
+  test('every contract template can be offered somewhere in seeds 1–5', () => {
+    const offered = (template: ContractTemplate, world: WorldState): boolean =>
+      Object.entries(world.settlements).some(([id, s]) => {
+        if (s.sizeTier < template.minSize) return false
+        if (template.service !== undefined && !s.services.includes(template.service)) return false
+        const here = content.settlements[id]
+        const within = (km: number) => km >= template.km.min && km <= template.km.max
+        if (template.poiCategories === undefined) {
+          return Object.values(content.settlements).some(
+            (there) =>
+              there.id !== id &&
+              there.island === here.island &&
+              within(straightKm(here.at, there.at))
+          )
+        }
+        return Object.entries(world.pois).some(
+          ([poiId, poi]) =>
+            template.poiCategories!.includes(poi.category) &&
+            !siteEmpty(world.seed, poiId, poi, 1) &&
+            within(straightKm(here.at, content.landSpots[poi.spot].at))
+        )
+      })
+    const never = Object.values(content.contracts)
+      .filter((template) => !worlds.some((world) => offered(template, world)))
+      .map((template) => template.id)
+    expect(never).toEqual([])
   })
 
   test('every person role can appear: its service turns up in seeds 1–5', () => {

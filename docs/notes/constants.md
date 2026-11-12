@@ -16,6 +16,8 @@ The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`]
 | `data/claude/service-roles.json` | `trades`, `buysOnly`, `actions` per service | Which shops buy and sell which goods, and what each service offers (none means "coming later") |
 | `data/claude/animals.json` | `price`, `hirePerDay`, `capacity` (kg), `speed`, `waterPerDay`, `upkeepPerDay`, `maxPathDanger` | Pack and riding animals and vehicles: what they cost, carry and drink, and where they can go |
 | `data/claude/person-roles.json` | `weight`, `minSize`, `service` per role | Which notable people a settlement has |
+| `data/claude/contracts.json` | `km`, `amount`, `passengers`, `urgentChance`, `pay`, `reputation`, `minSize`, `minStanding` per template | Notice-board contracts: how far they send the party, how much cargo, how often they are urgent, the pay multiplier and the reputation they earn |
+| `data/claude/poi-situations.json` | precious `goods` amounts in lair-leader and vault outcomes | How much dungeon and lair loot comes as relics, gems and luxuries rather than gold |
 
 Encounter odds and rewards live in the situations themselves (`situations.json` files in every source).
 

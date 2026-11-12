@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it. Seven road situations (ambush-at-the-narrows, mapmakers-apprentice, hedge-witch, pilgrims-at-dusk, flooded-ferry, lizardfolk-herb, wardens-on-your-trail) leave a clue on success: a discoverPoi effect that reveals a nearby point of interest (Plan 3b B3).",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it. Seven road situations (ambush-at-the-narrows, mapmakers-apprentice, hedge-witch, pilgrims-at-dusk, flooded-ferry, lizardfolk-herb, wardens-on-your-trail) leave a clue on success: a discoverPoi effect that reveals a nearby point of interest (Plan 3b B3). Plan 4 (B5): consumables unlock surer or easier options, and each one is spent by the option that needs it: a gear line across the flooded ferry, healing kits for the hedge-witch, the creeping fever and the burning barn, alchemist's fire at the narrows and on the sea, and an arcana warding against the ghoul pilgrims. Five new road situations: horse-thieves (thieves who lead off a stealable animal and take a share of precious goods), cutpurse-at-the-fair (thieves), toll-bridge and tribute-at-the-pass (tolls in gold or goods), and barn-on-fire. ambush-at-the-narrows is now tagged thieves. Reputation effects (standing with the nearby settlement) reward helping locals and punish wronging them: mapmakers-apprentice, grudge-on-the-road, wardens-on-your-trail, horse-thieves, toll-bridge, cutpurse-at-the-fair and barn-on-fire.",
   "entries": [
     {
       "id": "flooded-ferry",
@@ -70,6 +70,31 @@
                   "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
                 },
                 "success": { "text": "{actor} finds the shallows and leads you over." }
+              }
+            },
+            {
+              "id": "rope",
+              "kind": "check",
+              "label": "Rig a line across (1 gear)",
+              "description": "Rope and pitons make the ford a far safer bet. The river keeps the rope.",
+              "requires": [{ "req": "goods", "good": "gear", "min": 1 }],
+              "check": { "skill": "athletics", "dc": 10 },
+              "outcomes": {
+                "fail": {
+                  "text": "The line holds, just. You haul yourselves over hand over hand, half drowned.",
+                  "effects": [
+                    { "effect": "goods", "good": "gear", "amount": -1 },
+                    { "effect": "hp", "amount": -2, "target": "all" }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} gets the line across on the second try, and you cross wet to the waist.",
+                  "effects": [{ "effect": "goods", "good": "gear", "amount": -1 }]
+                },
+                "success": {
+                  "text": "{actor} swims the line over and makes it fast. You cross dry-shod, and Ilse swears at you from her ferry.",
+                  "effects": [{ "effect": "goods", "good": "gear", "amount": -1 }]
+                }
               }
             },
             {
@@ -177,6 +202,20 @@
                     { "effect": "discoverPoi", "count": 1, "scope": "domain" }
                   ]
                 }
+              }
+            },
+            {
+              "id": "kit",
+              "kind": "fixed",
+              "label": "Pay her in bandages (1 healing)",
+              "description": "She is short of clean linen and salves. A kit buys her best work.",
+              "requires": [{ "req": "goods", "good": "healing", "min": 1 }],
+              "outcome": {
+                "text": "She sniffs the salve, approves, and uses half of it on you. The rest goes on her shelf.",
+                "effects": [
+                  { "effect": "goods", "good": "healing", "amount": -1 },
+                  { "effect": "hp", "amount": 8, "target": "all" }
+                ]
               }
             },
             {
@@ -314,6 +353,24 @@
                   }
                 }
               }
+            },
+            {
+              "id": "ward",
+              "kind": "fixed",
+              "label": "Ward the camp with salt and chalk (1 arcana)",
+              "description": "A circle nothing dead can cross. Whatever they are, you all sleep.",
+              "requires": [{ "req": "goods", "good": "arcana", "min": 1 }],
+              "outcome": {
+                "text": "You draw the circle round your bedrolls, and the pilgrims watch you do it without a word. At dawn they are gone.",
+                "effects": [
+                  { "effect": "goods", "good": "arcana", "amount": -1 },
+                  { "effect": "inspiration", "amount": 1 }
+                ],
+                "twist": {
+                  "text": "At midnight the pilgrims rise, grey and silent, and stop at the chalk line. They circle until dawn, hissing, then slink off down the road.",
+                  "effects": [{ "effect": "goods", "good": "arcana", "amount": -1 }]
+                }
+              }
             }
           ]
         },
@@ -368,7 +425,7 @@
       "id": "ambush-at-the-narrows",
       "title": "Ambush at the narrows",
       "disposition": "hostile",
-      "tags": ["road", "hill"],
+      "tags": ["road", "hill", "thieves"],
       "slots": { "foe": { "from": "creature", "types": ["humanoid"], "maxCr": 1 } },
       "stages": {
         "start": {
@@ -405,6 +462,37 @@
                   "effects": [
                     { "effect": "gold", "amount": 5 },
                     { "effect": "discoverPoi", "count": 1, "scope": "domain", "category": "lair" }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "firepot",
+              "kind": "check",
+              "label": "Throw alchemist's fire (1 alchemicals)",
+              "description": "Fire in a narrow place breaks a line fast. The flask is gone either way.",
+              "requires": [{ "req": "goods", "good": "alchemicals", "min": 1 }],
+              "check": { "skill": "athletics", "dc": 10, "combat": true },
+              "outcomes": {
+                "fail": {
+                  "text": "The flask bursts short. They come through the smoke, and it's a brawl after all.",
+                  "effects": [
+                    { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                    { "effect": "hp", "amount": -3, "target": "all" }
+                  ]
+                },
+                "partial": {
+                  "text": "The fire splits them. You force the gap, singed, and leave them beating at their cloaks.",
+                  "effects": [
+                    { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                    { "effect": "hp", "amount": -1, "target": "actor" }
+                  ]
+                },
+                "success": {
+                  "text": "{actor}'s flask lands square among them. They scatter screaming, and drop what they'd already taken from others.",
+                  "effects": [
+                    { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                    { "effect": "gold", "amount": 12 }
                   ]
                 }
               }
@@ -457,11 +545,12 @@
                   ]
                 },
                 "success": {
-                  "text": "You find the thieves' camp and take the instruments back. His master pays well, and lets you copy a page of his survey.",
+                  "text": "You find the thieves' camp and take the instruments back. His master pays well, lets you copy a page of his survey, and tells the whole town who helped.",
                   "effects": [
                     { "effect": "gold", "amount": 15 },
                     { "effect": "days", "amount": 1 },
-                    { "effect": "discoverPoi", "count": 2, "scope": "land" }
+                    { "effect": "discoverPoi", "count": 2, "scope": "land" },
+                    { "effect": "reputation", "amount": 2 }
                   ],
                   "twist": {
                     "text": "The trail loops straight back to the 'apprentice', and you come up behind his waiting friends.",
@@ -511,7 +600,8 @@
                   "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
                 },
                 "success": {
-                  "text": "They go into the river. The bridge-keeper pretends not to see."
+                  "text": "They go into the river. The bridge-keeper pretends not to see, but word of it gets about.",
+                  "effects": [{ "effect": "reputation", "amount": -1 }]
                 }
               }
             },
@@ -521,8 +611,11 @@
               "label": "Make it right",
               "requires": [{ "req": "gold", "min": 10 }],
               "outcome": {
-                "text": "You pay back what you took, and a little more. They spit, but they let it go.",
-                "effects": [{ "effect": "gold", "amount": -10 }]
+                "text": "You pay back what you took, and a little more, in front of the whole bridge. They spit, but they let it go, and the locals see you settle your debts.",
+                "effects": [
+                  { "effect": "gold", "amount": -10 },
+                  { "effect": "reputation", "amount": 1 }
+                ]
               }
             },
             {
@@ -777,6 +870,17 @@
               }
             },
             {
+              "id": "dose",
+              "kind": "fixed",
+              "label": "Dose them from the kit (1 healing)",
+              "description": "Willow bark and fever-salts from your own packs. Sure, and no day lost.",
+              "requires": [{ "req": "goods", "good": "healing", "min": 1 }],
+              "outcome": {
+                "text": "Bitter tea and cold cloths. By evening the shivering stops, and you walk on in the morning.",
+                "effects": [{ "effect": "goods", "good": "healing", "amount": -1 }]
+              }
+            },
+            {
               "id": "push-on",
               "kind": "fixed",
               "label": "Push on regardless",
@@ -868,12 +972,18 @@
                   "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
                 },
                 "partial": {
-                  "text": "You unhorse two, and the rest decide you aren't worth it.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "text": "You unhorse two, and the rest decide you aren't worth it. The duke's people won't forget it.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "reputation", "amount": -2 }
+                  ]
                 },
                 "success": {
-                  "text": "You send them back to the duke with bruised pride and lighter purses.",
-                  "effects": [{ "effect": "gold", "amount": 8 }]
+                  "text": "You send them back to the duke with bruised pride and lighter purses. Every town on this road will hear who did it.",
+                  "effects": [
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "reputation", "amount": -3 }
+                  ]
                 }
               }
             }
@@ -1056,7 +1166,7 @@
       "biomes": ["sea"],
       "disposition": "neutral",
       "tags": ["sea", "beast"],
-      "notes": "Stealth, a harpoon, or silver for the sea. Only the harpoon pays, and it can go badly.",
+      "notes": "Stealth, a harpoon, silver for the sea, or a flask of alchemist's fire. The harpoon pays and can go badly; the flask is sure but costs 20 gp of goods for a 5 gp thank-you.",
       "stages": {
         "start": {
           "text": "The ship shudders, then shudders again. Something long and dark is passing under the keel, and the sailors have gone very quiet. One of them is fingering a harpoon.",
@@ -1130,6 +1240,20 @@
               "outcome": {
                 "text": "You throw a handful of silver over the side and the sailors nod. Whether by luck or by custom, it sinks away.",
                 "effects": [{ "effect": "gold", "amount": -5 }]
+              }
+            },
+            {
+              "id": "fire-on-the-water",
+              "kind": "fixed",
+              "label": "Pour alchemist's fire on the water (1 alchemicals)",
+              "description": "Nothing that lives in the deep likes burning water over its head.",
+              "requires": [{ "req": "goods", "good": "alchemicals", "min": 1 }],
+              "outcome": {
+                "text": "The flask bursts on the swell and the sea burns green. Something huge flinches away beneath it, and does not come back. The crew stand you a share of the fare.",
+                "effects": [
+                  { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                  { "effect": "gold", "amount": 5 }
+                ]
               }
             }
           ]
@@ -1225,6 +1349,524 @@
                 "text": "They count it twice, and leave you be.",
                 "effects": [{ "effect": "gold", "amount": -10 }]
               }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "horse-thieves",
+      "title": "Thieves in the night",
+      "disposition": "hostile",
+      "tags": ["road", "thieves", "night"],
+      "notes": "Thieves come for the animals and the precious goods. A loss without a named animal takes the most valuable stealable ones; precious goods go by fraction. A party with neither loses nothing to them, but still has to deal with the knives.",
+      "stages": {
+        "start": {
+          "text": "A hoof stamps in the dark, and a hand is already in your packs. Shadows are cutting your picket line, and someone is whispering to the animals to keep them quiet.",
+          "options": [
+            {
+              "id": "rush",
+              "kind": "check",
+              "label": "Rush them",
+              "description": "Steel in the dark. Keep what's yours if you're quick enough.",
+              "check": { "skill": "athletics", "dc": 13, "combat": true },
+              "outcomes": {
+                "critFail": {
+                  "text": "A knife finds {actor} in the dark, and by the time you have a light lit they are gone, with an animal and a share of your goods.",
+                  "effects": [
+                    { "effect": "hp", "amount": -5, "target": "actor" },
+                    { "effect": "animals", "amount": -1 },
+                    { "effect": "goods", "category": "precious", "fraction": 0.25 }
+                  ],
+                  "goto": "trail"
+                },
+                "fail": {
+                  "text": "You trade blows with shadows. They get away with an animal on a lead.",
+                  "effects": [
+                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "animals", "amount": -1 }
+                  ],
+                  "goto": "trail"
+                },
+                "partial": {
+                  "text": "You save the animals, but one of them was already off with a pack of your precious goods.",
+                  "effects": [{ "effect": "goods", "category": "precious", "fraction": 0.25 }],
+                  "goto": "trail"
+                },
+                "success": {
+                  "text": "{actor} is among them before they know it. They flee empty-handed into the dark."
+                },
+                "critSuccess": {
+                  "text": "{actor} knocks one flat. He wakes up tied to a tree, and his purse pays for your trouble.",
+                  "effects": [{ "effect": "gold", "amount": 10 }]
+                }
+              }
+            },
+            {
+              "id": "shout",
+              "kind": "check",
+              "label": "Raise the camp and light the fires",
+              "description": "Thieves hate light and noise. Safer than steel, if everyone wakes fast.",
+              "check": { "skill": "perception", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "By the time the fire catches, they've gone, and so has an animal and a share of your goods.",
+                  "effects": [
+                    { "effect": "animals", "amount": -1 },
+                    { "effect": "goods", "category": "precious", "fraction": 0.25 }
+                  ],
+                  "goto": "trail"
+                },
+                "partial": {
+                  "text": "The fire flares up and they scatter, but a pack goes with them.",
+                  "effects": [{ "effect": "goods", "category": "precious", "fraction": 0.25 }]
+                },
+                "success": {
+                  "text": "{actor} spots them first and roars the camp awake. They bolt without a thing."
+                }
+              }
+            },
+            {
+              "id": "lie-still",
+              "kind": "fixed",
+              "label": "Lie still and let them take it",
+              "description": "Nobody gets stabbed. Everything else is negotiable.",
+              "outcome": {
+                "text": "You lie still and listen to them work. They are thorough, and they take their time.",
+                "effects": [
+                  { "effect": "animals", "amount": -1 },
+                  { "effect": "goods", "category": "precious", "fraction": 0.5 }
+                ]
+              }
+            }
+          ]
+        },
+        "trail": {
+          "text": "At first light the trail is plain: hoofprints and boot-marks, heading for the nearest village's back roads.",
+          "options": [
+            {
+              "id": "track",
+              "kind": "check",
+              "label": "Track them down",
+              "description": "A day's work. What they've already sold is gone, but their purse is not.",
+              "check": { "skill": "survival", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The trail splits and splits again. You lose a day and find nothing.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "partial": {
+                  "text": "You find their fire still warm and a purse they forgot in a hurry.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 10 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} runs them to ground in a byre. You take their takings, and the village reeve thanks you for ridding the road of them.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "gold", "amount": 25 },
+                    { "effect": "reputation", "amount": 2 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "cut-losses",
+              "kind": "fixed",
+              "label": "Cut your losses and move on",
+              "outcome": { "text": "You repack what's left and take the road, a little lighter." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "toll-bridge",
+      "title": "The toll bridge",
+      "disposition": "neutral",
+      "tags": ["road", "river", "toll"],
+      "notes": "A lord's toll in coin or in kind. Arguing the charter or slipping across at night is free if it works; a fine and a black mark with the locals if it doesn't. The ford costs a day.",
+      "stages": {
+        "start": {
+          "text": "A stone bridge with a gatehouse squats over a fast river. A bored toll-keeper in a lord's livery eyes your packs and names a price, then a higher one when he sees what's in them.",
+          "options": [
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Pay the toll",
+              "requires": [{ "req": "gold", "min": 8 }],
+              "outcome": {
+                "text": "He bites a coin, writes you in his book, and lifts the bar.",
+                "effects": [{ "effect": "gold", "amount": -8 }]
+              }
+            },
+            {
+              "id": "in-kind",
+              "kind": "fixed",
+              "label": "Pay in kind (1 luxuries)",
+              "description": "He'll take a bolt of silk or a cask of wine for his lord's cellar, and fewer questions.",
+              "requires": [{ "req": "goods", "good": "luxuries", "min": 1 }],
+              "outcome": {
+                "text": "His eyes light up at the wine. He waves you through without writing anything down.",
+                "effects": [{ "effect": "goods", "good": "luxuries", "amount": -1 }]
+              }
+            },
+            {
+              "id": "charter",
+              "kind": "check",
+              "label": "Argue the old charter",
+              "description": "Travellers on the king's business pass free. Are you? Can you sound like it?",
+              "once": true,
+              "check": { "skill": "persuasion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "He's heard that one. Now the price includes his trouble.",
+                  "effects": [{ "effect": "gold", "amount": -12 }]
+                },
+                "partial": {
+                  "text": "He doesn't believe you, but he halves it to be rid of you.",
+                  "effects": [{ "effect": "gold", "amount": -4 }]
+                },
+                "success": {
+                  "text": "{actor} quotes the charter at him until he lifts the bar to make it stop."
+                }
+              }
+            },
+            {
+              "id": "night",
+              "kind": "check",
+              "label": "Slip across after dark",
+              "description": "Free if nobody sees. If they do, the lord's men fine you, and the locals hear of it.",
+              "check": { "skill": "stealth", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "A dog barks, a lantern swings, and you are fined on the spot in front of half the village.",
+                  "effects": [
+                    { "effect": "gold", "amount": -15 },
+                    { "effect": "reputation", "amount": -2 }
+                  ]
+                },
+                "partial": {
+                  "text": "You get across, but the keeper sees your backs and shouts after you. Word will get round.",
+                  "effects": [{ "effect": "reputation", "amount": -1 }]
+                },
+                "success": { "text": "{actor} leads you over under the gatehouse's nose." }
+              }
+            },
+            {
+              "id": "ford",
+              "kind": "fixed",
+              "label": "Go round by the ford",
+              "description": "A day downstream and back.",
+              "outcome": {
+                "text": "A long wet day to a ford and back to the road. The toll-keeper waves as you pass on the far bank.",
+                "effects": [{ "effect": "days", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "cutpurse-at-the-fair",
+      "title": "A cutpurse at the fair",
+      "disposition": "neutral",
+      "tags": ["road", "thieves", "market"],
+      "notes": "A crossroads fair is a good place to sell and a better one to be robbed. Catching the cutpurse leads to a choice between the reeve's thanks (reputation), a bribe (gold), or rough justice (gold, but the locals turn against you).",
+      "stages": {
+        "start": {
+          "text": "A crossroads fair has sprung up in a meadow: stalls, pipers, a dancing bear, and a crowd thick enough to lose a purse in. Someone small and quick is already brushing past your packs.",
+          "options": [
+            {
+              "id": "watch",
+              "kind": "check",
+              "label": "Browse the stalls, one eye on your packs",
+              "description": "Good bargains, if you can keep your goods.",
+              "check": { "skill": "perception", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "By evening you notice the slit in the pack. Some of your best goods are somewhere in the crowd.",
+                  "effects": [
+                    { "effect": "goods", "category": "precious", "fraction": 0.25 },
+                    { "effect": "gold", "amount": -3 }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} feels the tug too late. A purse is gone, but the packs are whole.",
+                  "effects": [{ "effect": "gold", "amount": -5 }]
+                },
+                "success": {
+                  "text": "{actor} catches a thin wrist halfway into your pack, and holds on.",
+                  "goto": "caught"
+                }
+              }
+            },
+            {
+              "id": "guard",
+              "kind": "fixed",
+              "label": "Take turns guarding the packs",
+              "description": "Safe, slow, and you see half the fair each.",
+              "outcome": {
+                "text": "One of you sits on the packs while the others wander. Nothing goes missing, but the fair takes all day.",
+                "effects": [{ "effect": "days", "amount": 1 }]
+              }
+            },
+            {
+              "id": "pass",
+              "kind": "fixed",
+              "label": "Skirt the crowd and keep going",
+              "outcome": { "text": "You keep to the edge of the meadow and the road beyond it." }
+            }
+          ]
+        },
+        "caught": {
+          "text": "The cutpurse is a wiry youth with a fistful of your goods and a face full of fear. People are turning to look. The reeve is somewhere nearby.",
+          "options": [
+            {
+              "id": "reeve",
+              "kind": "fixed",
+              "label": "Hand them to the reeve",
+              "outcome": {
+                "text": "The reeve thanks you loudly, for the crowd's benefit. By nightfall half the fair knows your names.",
+                "effects": [{ "effect": "reputation", "amount": 2 }]
+              }
+            },
+            {
+              "id": "bribe",
+              "kind": "fixed",
+              "label": "Let them buy their way out",
+              "outcome": {
+                "text": "The youth empties a pouch into your hand and is gone into the crowd. Nobody else saw.",
+                "effects": [{ "effect": "gold", "amount": 8 }]
+              }
+            },
+            {
+              "id": "rough",
+              "kind": "check",
+              "label": "Teach them a lesson yourselves",
+              "description": "Rough justice, and their purse besides. The crowd may not like it.",
+              "check": { "skill": "intimidation", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "The crowd turns on you, not the thief, who slips away in the shouting.",
+                  "effects": [{ "effect": "reputation", "amount": -3 }]
+                },
+                "partial": {
+                  "text": "You take their purse and frighten them half to death. The crowd mutters.",
+                  "effects": [
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "reputation", "amount": -2 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} gives the youth a fright they won't forget, and takes their purse for the trouble. The crowd laughs.",
+                  "effects": [
+                    { "effect": "gold", "amount": 12 },
+                    { "effect": "reputation", "amount": -1 }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "tribute-at-the-pass",
+      "title": "Tribute at the pass",
+      "disposition": "hostile",
+      "tags": ["road", "toll"],
+      "biomes": ["hills", "mountains", "forest"],
+      "slots": { "foe": { "from": "creature", "types": ["humanoid", "giant"], "maxCr": 2 } },
+      "notes": "A hill clan's road tax: coin, a share of the cargo (equipment and precious goods, and food for their pot), or a fight. Paying in kind is cheap for a poor party and dear for a laden one.",
+      "stages": {
+        "start": {
+          "text": "Where the road narrows into the pass, {foe} have built a wall of stacked stones with a gap just wide enough for a cart. 'Clan's road,' says their chief. 'Clan's tax.'",
+          "options": [
+            {
+              "id": "coin",
+              "kind": "fixed",
+              "label": "Pay in coin",
+              "requires": [{ "req": "gold", "min": 20 }],
+              "outcome": {
+                "text": "The chief weighs your purse in her hand and nods you through.",
+                "effects": [{ "effect": "gold", "amount": -20 }]
+              }
+            },
+            {
+              "id": "kind",
+              "kind": "fixed",
+              "label": "Let them take their pick of the cargo",
+              "description": "They want weapons, armour, gear and anything that glitters, and food for their pot.",
+              "outcome": {
+                "text": "They go through your packs like a flock of crows: blades, rope, a jewelled thing, a sack of food. Then they wave you through, grinning.",
+                "effects": [
+                  { "effect": "goods", "category": "equipment", "fraction": 0.5 },
+                  { "effect": "goods", "category": "precious", "fraction": 0.25 },
+                  { "effect": "goods", "good": "food", "amount": -3 }
+                ]
+              }
+            },
+            {
+              "id": "stare-down",
+              "kind": "check",
+              "label": "Stare down the chief",
+              "description": "Hill clans respect nerve. Show none and the price goes up.",
+              "once": true,
+              "check": { "skill": "intimidation", "dc": 15 },
+              "outcomes": {
+                "fail": {
+                  "text": "The chief laughs in your face. Now they want more, and they're ready for trouble.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "She respects the nerve, if not the threat, and takes a token tax.",
+                  "effects": [{ "effect": "gold", "amount": -8 }]
+                },
+                "success": {
+                  "text": "{actor} doesn't blink. The chief spits, laughs, and lets you through for nothing. 'Next time, you pay double.'"
+                }
+              }
+            },
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Force the gap",
+              "description": "They have the wall and the high ground.",
+              "check": { "skill": "athletics", "dc": 15, "combat": true },
+              "outcomes": {
+                "critFail": {
+                  "text": "They beat you back from the wall and take their tax from your fallen packs.",
+                  "effects": [
+                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "goods", "category": "precious", "fraction": 0.5 }
+                  ]
+                },
+                "fail": {
+                  "text": "You break through at last, bloodied, with stones bouncing after you.",
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                },
+                "partial": {
+                  "text": "You force the gap. {actor} takes a club to the ribs on the way.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} is over the wall before they are ready. They scatter, and leave the day's tax behind.",
+                  "effects": [{ "effect": "gold", "amount": 15 }]
+                }
+              }
+            },
+            {
+              "id": "goat-track",
+              "kind": "check",
+              "label": "Find a way round by the goat tracks",
+              "check": { "skill": "survival", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The goat track ends at a cliff. Two days of scrambling before you find the road again.",
+                  "effects": [
+                    { "effect": "days", "amount": 2 },
+                    { "effect": "hp", "amount": -2, "target": "all" }
+                  ]
+                },
+                "partial": {
+                  "text": "A long way round, but they never see you.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "success": {
+                  "text": "{actor} finds a herders' path over the shoulder of the hill."
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "barn-on-fire",
+      "title": "A barn on fire",
+      "disposition": "neutral",
+      "tags": ["road", "village"],
+      "notes": "Helping the locals costs HP, a healing kit or time and earns standing with the nearby town; looting while they're busy earns gold and loses it.",
+      "stages": {
+        "start": {
+          "text": "Smoke on the road ahead: a farm's barn is burning, the family is fighting it with buckets, and somewhere inside a horse is screaming. The farmhouse door stands open and unwatched.",
+          "options": [
+            {
+              "id": "fight-fire",
+              "kind": "check",
+              "label": "Join the bucket line, and go in for the horse",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The roof comes down while {actor} is inside. You drag them out, burned and choking. The barn is lost, but the family won't forget you tried.",
+                  "effects": [
+                    { "effect": "hp", "amount": -5, "target": "actor" },
+                    { "effect": "reputation", "amount": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "The barn is lost, but {actor} leads the horse out through the smoke, singed and coughing.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "reputation", "amount": 2 }
+                  ]
+                },
+                "success": {
+                  "text": "You save the horse and half the barn. The farmer's wife feeds you, and her brother is a reeve in town.",
+                  "effects": [
+                    { "effect": "hp", "amount": 2, "target": "all" },
+                    { "effect": "reputation", "amount": 3 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "tend-burns",
+              "kind": "fixed",
+              "label": "Tend the burned (1 healing)",
+              "description": "The farmer's boy is badly burned. A kit from your packs.",
+              "requires": [{ "req": "goods", "good": "healing", "min": 1 }],
+              "outcome": {
+                "text": "You salve and bind the boy's burns while the others fight the fire. The family can't pay, but they'll tell everyone.",
+                "effects": [
+                  { "effect": "goods", "good": "healing", "amount": -1 },
+                  { "effect": "reputation", "amount": 2 }
+                ]
+              }
+            },
+            {
+              "id": "loot",
+              "kind": "check",
+              "label": "Help yourselves at the farmhouse",
+              "description": "Everyone's busy. Nobody would know. Probably.",
+              "check": { "skill": "sleightOfHand", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "The farmer's daughter sees you coming out of the door with the strongbox. You drop it and run, and the story runs ahead of you.",
+                  "effects": [{ "effect": "reputation", "amount": -4 }]
+                },
+                "partial": {
+                  "text": "You get away with a few coins, and a neighbour's long, hard look at your faces.",
+                  "effects": [
+                    { "effect": "gold", "amount": 6 },
+                    { "effect": "reputation", "amount": -1 }
+                  ]
+                },
+                "success": {
+                  "text": "The savings jar under the hearthstone, and nobody the wiser.",
+                  "effects": [{ "effect": "gold", "amount": 15 }]
+                }
+              }
+            },
+            {
+              "id": "walk-on",
+              "kind": "fixed",
+              "label": "It's not your barn",
+              "outcome": { "text": "You walk on through the smoke. Nobody looks up as you pass." }
             }
           ]
         }

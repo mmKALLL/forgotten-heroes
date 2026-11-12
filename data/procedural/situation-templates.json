@@ -2,7 +2,7 @@
   "$schema": "../_schema/situationTemplates.schema.json",
   "kind": "situationTemplates",
   "source": "procedural",
-  "notes": "Archetypes dressed with parts tables. Each becomes a one-stage situation when played. Someone-in-need templates draw their twist from the twist table (twists.json).",
+  "notes": "Archetypes dressed with parts tables. Each becomes a one-stage situation when played. Someone-in-need templates draw their twist from the twist table (twists.json). toll-gang is tagged toll, so visible wealth makes it likelier (Plan 4).",
   "entries": [
     {
       "id": "roadside-plea",
@@ -21,6 +21,7 @@
       "id": "toll-gang",
       "title": "A toll that isn't",
       "disposition": "hostile",
+      "tags": ["road", "toll"],
       "text": "{Foe} have dragged a log across the road, and want paying to move it. {Complication}",
       "slots": {
         "foe": { "from": "creature", "types": ["humanoid", "giant"], "maxCr": 2 },

@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Site situations, played on a visit to a point of interest and never drawn on the road (design §6). The POI types in data/procedural/poi-types.json name them. Shrines trade gold for Inspiration (a fixed offering) or a day for healing (a Religion check). Landmarks offer a risky vantage point (Perception for Edge) and then lore (History for a journal line and a little gold). Wonders are one click and flavour only (no rewards). A boon (an offering, a vigil, healing, lore with a find) has `siteReady`: a site gives one boon per BOON_COOLDOWN_DAYS (30) days. Lairs (Plan 3b B3) are hostile tugs of war: an approach that sets the footing, the assault, and the leader (high stakes); success clears the lair (clearPoi) for gold, a failure drives the party off with HP and days lost and the lair stays. Dungeons run entrance, hazard, a high-stakes guardian and the vault, which clears them. Lone experts are services the party can come back to: paid training (gold, days and someone untrained), paid knowledge (only while something is left to learn: `undiscovered`) and paid care are always on offer; a check to earn it free, a free rest (a quarter of everyone's HP and a level of exhaustion, with `siteReady`, so once per BOON_COOLDOWN_DAYS at that site), and a way to just talk. Quest sites give a clue and log a hook for Plan 4. Written by Claude.",
+  "notes": "Site situations, played on a visit to a point of interest and never drawn on the road (design §6). The POI types in data/procedural/poi-types.json name them. Shrines trade gold for Inspiration (a fixed offering) or a day for healing (a Religion check). Landmarks offer a risky vantage point (Perception for Edge) and then lore (History for a journal line and a little gold). Wonders are one click and flavour only (no rewards). A boon (an offering, a vigil, healing, lore with a find) has `siteReady`: a site gives one boon per BOON_COOLDOWN_DAYS (30) days. Lairs (Plan 3b B3) are hostile tugs of war: an approach that sets the footing, the assault, and the leader (high stakes); success clears the lair (clearPoi) for gold, a failure drives the party off with HP and days lost and the lair stays. Dungeons run entrance, hazard, a high-stakes guardian and the vault, which clears them. Lone experts are services the party can come back to: paid training (gold, days and someone untrained), paid knowledge (only while something is left to learn: `undiscovered`) and paid care are always on offer; a check to earn it free, a free rest (a quarter of everyone's HP and a level of exhaustion, with `siteReady`, so once per BOON_COOLDOWN_DAYS at that site), and a way to just talk. Quest sites give a clue and log a hook for Plan 4. Plan 4 (B5): the lair leaders' fight and the dungeon vaults pay part of their gold as precious goods (relics, gems, luxuries; the kobold seam adds heavy silver as metal), so loot has to be carried home and sold where it is wanted; the nominal value is about 1.3–2.5× the old gold, to be tuned with the I1 economy report. Consumables: a smoke flask and a healing kit in the goblin warren, alchemist's fire in the kobold mine, and an arcana warding against the hag coven and the barrow lord. Written by Claude.",
   "entries": [
     {
       "id": "wayside-shrine-visit",
@@ -742,8 +742,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The war-chief goes down, and the camp goes with him. By nightfall the stockade is burning and the warriors are scattered over three valleys.",
-                  "effects": [{ "effect": "gold", "amount": 30 }, { "effect": "clearPoi" }]
+                  "text": "The war-chief goes down, and the camp goes with him. By nightfall the stockade is burning, the warriors are scattered over three valleys, and their plunder is yours.",
+                  "effects": [
+                    { "effect": "gold", "amount": 20 },
+                    { "effect": "goods", "good": "luxuries", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -841,6 +845,21 @@
               }
             },
             {
+              "id": "smoke-flask",
+              "kind": "fixed",
+              "label": "Drop a smoke flask down the main hole (1 alchemicals)",
+              "description": "An alchemist's smoke does what wet bracken only might: a sure Edge.",
+              "requires": [{ "req": "goods", "good": "alchemicals", "min": 1 }],
+              "outcome": {
+                "text": "Yellow smoke pours out of every hole on the hill at once. The goblins come boiling out, weeping and blind.",
+                "effects": [
+                  { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                  { "effect": "position", "position": "edge" }
+                ],
+                "goto": "assault"
+              }
+            },
+            {
               "id": "charge",
               "kind": "fixed",
               "label": "Crawl in after them",
@@ -923,6 +942,22 @@
               }
             },
             {
+              "id": "bind",
+              "kind": "fixed",
+              "label": "Bind your wounds and go again (1 healing)",
+              "description": "A breather in a side tunnel, and a kit's worth of bandages.",
+              "once": true,
+              "requires": [{ "req": "goods", "good": "healing", "min": 1 }],
+              "outcome": {
+                "text": "You hold a side tunnel long enough to bind the worst of the cuts. Then back into the dark.",
+                "effects": [
+                  { "effect": "goods", "good": "healing", "amount": -1 },
+                  { "effect": "hp", "amount": 4, "target": "all" }
+                ],
+                "stay": true
+              }
+            },
+            {
               "id": "fall-back",
               "kind": "fixed",
               "label": "Back out of the tunnels",
@@ -962,8 +997,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The worg runs and the boss dies on his saddles. The rest of the tribe scatters, and his heap of stolen goods is yours.",
-                  "effects": [{ "effect": "gold", "amount": 25 }, { "effect": "clearPoi" }]
+                  "text": "The worg runs and the boss dies on his saddles. The rest of the tribe scatters, and his heap of stolen goods is yours: coin, and a bale of silks still in a merchant's wrapping.",
+                  "effects": [
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "goods", "good": "luxuries", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -1180,8 +1219,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The captain falls in the barn door. Her outlaws throw down their weapons and run, and her chest of tolls is yours.",
-                  "effects": [{ "effect": "gold", "amount": 35 }, { "effect": "clearPoi" }]
+                  "text": "The captain falls in the barn door. Her outlaws throw down their weapons and run, and her chest of tolls is yours. Under the coins lie a merchant's silks, never sold.",
+                  "effects": [
+                    { "effect": "gold", "amount": 25 },
+                    { "effect": "goods", "good": "luxuries", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -1401,8 +1444,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The pretender falls, and the banner with them. The host is gone by morning, and the pay-chest with it, except for the part you took.",
-                  "effects": [{ "effect": "gold", "amount": 30 }, { "effect": "clearPoi" }]
+                  "text": "The pretender falls, and the banner with them. The host is gone by morning, and the pay-chest with it, except for the part you took. In their tent: a silver service, pledged to buy a crown.",
+                  "effects": [
+                    { "effect": "gold", "amount": 20 },
+                    { "effect": "goods", "good": "luxuries", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -1619,8 +1666,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The knight falls, and every grave in the place goes still. His tomb holds a king's ransom in rust, and some gold that isn't.",
-                  "effects": [{ "effect": "gold", "amount": 30 }, { "effect": "clearPoi" }]
+                  "text": "The knight falls, and every grave in the place goes still. His tomb holds a king's ransom in rust, and some gold that isn't. Among the rust lies his old crown, worth more to the right buyer than all the coin.",
+                  "effects": [
+                    { "effect": "gold", "amount": 10 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -1837,8 +1888,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The priest falls, and the shadow with him. In his chambers you find the cult's purse and letters that would ruin half the town council.",
-                  "effects": [{ "effect": "gold", "amount": 30 }, { "effect": "clearPoi" }]
+                  "text": "The priest falls, and the shadow with him. In his chambers you find the cult's purse and letters that would ruin half the town council. On the altar lies a carved idol, very old, that some collector would pay for.",
+                  "effects": [
+                    { "effect": "gold", "amount": 10 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -2055,8 +2110,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The serpent dies in the pit and the priestess with it. The temple's hoard of venom-gold is yours.",
-                  "effects": [{ "effect": "gold", "amount": 35 }, { "effect": "clearPoi" }]
+                  "text": "The serpent dies in the pit and the priestess with it. The temple's hoard of venom-gold is yours. In the serpent's nest, among the bones, lies an emerald as big as an egg.",
+                  "effects": [
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "goods", "good": "gems", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -2139,6 +2198,22 @@
                 "effects": [
                   { "effect": "gold", "amount": -10 },
                   { "effect": "position", "position": "edge" }
+                ],
+                "goto": "assault"
+              }
+            },
+            {
+              "id": "ward",
+              "kind": "fixed",
+              "label": "Ward yourselves with salt and iron (1 arcana)",
+              "description": "Fey magic slides off a proper warding. You go in with the Edge, and their first curses miss.",
+              "requires": [{ "req": "goods", "good": "arcana", "min": 1 }],
+              "outcome": {
+                "text": "You chalk the signs on your brows and hang cold iron at your throats. The charms in the trees turn away from you, one by one.",
+                "effects": [
+                  { "effect": "goods", "good": "arcana", "amount": -1 },
+                  { "effect": "position", "position": "edge" },
+                  { "effect": "nextCheckModifier", "amount": 2, "reason": "warded" }
                 ],
                 "goto": "assault"
               }
@@ -2265,8 +2340,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The coven breaks. The eldest falls and the others flee screaming into the bog. Their hut is full of payment for old bargains.",
-                  "effects": [{ "effect": "gold", "amount": 30 }, { "effect": "clearPoi" }]
+                  "text": "The coven breaks. The eldest falls and the others flee screaming into the bog. Their hut is full of payment for old bargains. Among the payment hangs an old saint's finger-bone in a silver case.",
+                  "effects": [
+                    { "effect": "gold", "amount": 10 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -2486,8 +2565,12 @@
                   ]
                 },
                 "success": {
-                  "text": "The brood-mother dies in her cave, and with her the roost. Her hoard is not large, but it is gold.",
-                  "effects": [{ "effect": "gold", "amount": 45 }, { "effect": "clearPoi" }]
+                  "text": "The brood-mother dies in her cave, and with her the roost. Her hoard is not large, but it is gold. In among it, one ruby the size of a thumb.",
+                  "effects": [
+                    { "effect": "gold", "amount": 25 },
+                    { "effect": "goods", "good": "gems", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -2704,8 +2787,12 @@
                   ]
                 },
                 "success": {
-                  "text": "She falls across her own hearth, and the clan scatters to the high peaks. The steading's store is yours.",
-                  "effects": [{ "effect": "gold", "amount": 45 }, { "effect": "clearPoi" }]
+                  "text": "She falls across her own hearth, and the clan scatters to the high peaks. The steading's store is yours. Among the plunder: a cask of good wine, carried up the pass like a thimble.",
+                  "effects": [
+                    { "effect": "gold", "amount": 30 },
+                    { "effect": "goods", "good": "luxuries", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             },
@@ -2916,6 +3003,42 @@
               }
             },
             {
+              "id": "ward",
+              "kind": "check",
+              "label": "Ward the bier with salt and chalk (1 arcana)",
+              "description": "Bind him inside a circle first, then speak the rites. Far easier, and the warding is spent either way.",
+              "requires": [{ "req": "goods", "good": "arcana", "min": 1 }],
+              "check": { "skill": "religion", "dc": 11 },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The chalk line smokes and breaks as he rises. {actor} is caught too close.",
+                  "effects": [
+                    { "effect": "goods", "good": "arcana", "amount": -1 },
+                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "He strains at the circle, then lies back, cursing {actor} in a dead tongue.",
+                  "effects": [
+                    { "effect": "goods", "good": "arcana", "amount": -1 },
+                    { "effect": "hp", "amount": -1, "target": "actor" }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "He rises, finds the circle, and cannot cross it. {actor} speaks the rites, and he lies back with a sigh.",
+                  "effects": [
+                    { "effect": "goods", "good": "arcana", "amount": -1 },
+                    { "effect": "inspiration", "amount": 1 }
+                  ],
+                  "goto": "vault"
+                }
+              }
+            },
+            {
               "id": "flee",
               "kind": "fixed",
               "label": "Flee",
@@ -2934,11 +3057,13 @@
               "id": "take-all",
               "kind": "fixed",
               "label": "Take everything, coffer and all",
-              "description": "The most gold, and the curse's sting.",
+              "description": "The most loot, and the curse's sting.",
               "outcome": {
-                "text": "You take it all. The curse bites as you lift the coffer, a cold that goes to the bone, but the gold is real.",
+                "text": "You take it all. The curse bites as you lift the coffer, a cold that goes to the bone, but the gold and the gems are real.",
                 "effects": [
-                  { "effect": "gold", "amount": 45 },
+                  { "effect": "gold", "amount": 15 },
+                  { "effect": "goods", "good": "relics", "amount": 1 },
+                  { "effect": "goods", "good": "gems", "amount": 1 },
                   { "effect": "hp", "amount": -3, "target": "all" },
                   { "effect": "clearPoi" }
                 ]
@@ -2950,7 +3075,11 @@
               "label": "Take the grave-goods and leave the coffer",
               "outcome": {
                 "text": "You take what lies loose and leave the coffer to its curse. The barrow is quiet now, for good.",
-                "effects": [{ "effect": "gold", "amount": 20 }, { "effect": "clearPoi" }]
+                "effects": [
+                  { "effect": "gold", "amount": 10 },
+                  { "effect": "goods", "good": "relics", "amount": 1 },
+                  { "effect": "clearPoi" }
+                ]
               }
             },
             {
@@ -2967,11 +3096,20 @@
                 },
                 "partial": {
                   "text": "{actor} blunts the curse enough to open the coffer, if not to empty it.",
-                  "effects": [{ "effect": "gold", "amount": 30 }, { "effect": "clearPoi" }]
+                  "effects": [
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 },
                 "success": {
                   "text": "{actor} unpicks the curse word by word, and the coffer opens on a lord's fortune.",
-                  "effects": [{ "effect": "gold", "amount": 45 }, { "effect": "clearPoi" }]
+                  "effects": [
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
+                    { "effect": "goods", "good": "gems", "amount": 1 },
+                    { "effect": "clearPoi" }
+                  ]
                 }
               }
             }
@@ -3138,6 +3276,38 @@
               }
             },
             {
+              "id": "firepot",
+              "kind": "check",
+              "label": "Hurl alchemist's fire at the throne (1 alchemicals)",
+              "description": "Kobolds fear fire more than steel. An easier fight, and the flask is gone either way.",
+              "requires": [{ "req": "goods", "good": "alchemicals", "min": 1 }],
+              "check": { "skill": "athletics", "dc": 11, "combat": true },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The flask smashes on the rock wall and lights the ore-carts. Through smoke and spears you flee back up the tunnels.",
+                  "effects": [
+                    { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "days", "amount": 1 }
+                  ]
+                },
+                "partial": {
+                  "text": "The throne goes up in green fire. The tribe scatters, but not before their spears find you.",
+                  "effects": [
+                    { "effect": "goods", "good": "alchemicals", "amount": -1 },
+                    { "effect": "hp", "amount": -2, "target": "all" }
+                  ],
+                  "goto": "vault"
+                },
+                "success": {
+                  "text": "{actor}'s flask bursts on the ore-cart throne. The chief and his tribe flee shrieking down every shaft at once.",
+                  "effects": [{ "effect": "goods", "good": "alchemicals", "amount": -1 }],
+                  "goto": "vault"
+                }
+              }
+            },
+            {
               "id": "talk",
               "kind": "check",
               "label": "Offer them a deeper mine elsewhere",
@@ -3182,38 +3352,47 @@
               "kind": "fixed",
               "label": "Take the hoard and go",
               "outcome": {
-                "text": "You fill your packs from the hoard. With the tribe gone, the mine is just a mine again.",
-                "effects": [{ "effect": "gold", "amount": 25 }, { "effect": "clearPoi" }]
+                "text": "You fill your packs from the hoard. With the tribe gone, the mine is just a mine again. The strongbox holds a fat uncut gem the old miners never sent to market.",
+                "effects": [
+                  { "effect": "gold", "amount": 15 },
+                  { "effect": "goods", "good": "gems", "amount": 1 },
+                  { "effect": "clearPoi" }
+                ]
               }
             },
             {
               "id": "seam",
               "kind": "check",
               "label": "Work the silver seam as well",
-              "description": "A day's hard work for more silver. The old timbers creak.",
+              "description": "A day's hard work for silver ore: heavy bars to carry home. The old timbers creak.",
               "check": { "skill": "athletics", "dc": 13 },
               "outcomes": {
                 "fail": {
                   "text": "The roof groans, and stones come down on {actor}. You take the hoard and get out.",
                   "effects": [
                     { "effect": "hp", "amount": -3, "target": "actor" },
-                    { "effect": "gold", "amount": 25 },
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "goods", "good": "gems", "amount": 1 },
                     { "effect": "clearPoi" }
                   ]
                 },
                 "partial": {
-                  "text": "A day of hard work brings out a little silver.",
+                  "text": "A day of hard work brings out a little silver ore, heavy as sin.",
                   "effects": [
                     { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 35 },
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "goods", "good": "gems", "amount": 1 },
+                    { "effect": "goods", "good": "metal", "amount": 2 },
                     { "effect": "clearPoi" }
                   ]
                 },
                 "success": {
-                  "text": "{actor} works the seam like an old miner. You leave with heavy packs.",
+                  "text": "{actor} works the seam like an old miner. You leave with heavy packs: bars of rough silver, if you can carry them.",
                   "effects": [
                     { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 50 },
+                    { "effect": "gold", "amount": 15 },
+                    { "effect": "goods", "good": "gems", "amount": 1 },
+                    { "effect": "goods", "good": "metal", "amount": 4 },
                     { "effect": "clearPoi" }
                   ]
                 }
@@ -3416,8 +3595,12 @@
               "kind": "fixed",
               "label": "Take the coin and go",
               "outcome": {
-                "text": "You take the coin and leave the rest. The ruin has nothing more to give.",
-                "effects": [{ "effect": "gold", "amount": 35 }, { "effect": "clearPoi" }]
+                "text": "You take the coin, and the lord's seal-ring, older than the keep, and leave the rest. The ruin has nothing more to give.",
+                "effects": [
+                  { "effect": "gold", "amount": 25 },
+                  { "effect": "goods", "good": "relics", "amount": 1 },
+                  { "effect": "clearPoi" }
+                ]
               }
             },
             {
@@ -3430,7 +3613,8 @@
                 "fail": {
                   "text": "The ledger is mould and old names. A day lost over it.",
                   "effects": [
-                    { "effect": "gold", "amount": 35 },
+                    { "effect": "gold", "amount": 25 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
                     { "effect": "days", "amount": 1 },
                     { "effect": "clearPoi" }
                   ]
@@ -3438,7 +3622,8 @@
                 "partial": {
                   "text": "{actor} reads of the lord's last days, and why he left.",
                   "effects": [
-                    { "effect": "gold", "amount": 35 },
+                    { "effect": "gold", "amount": 25 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
                     {
                       "effect": "log",
                       "text": "The ruined keep's last lord fled his debts in a single night, leaving his gold behind for fear of being followed."
@@ -3449,7 +3634,8 @@
                 "success": {
                   "text": "{actor} finds a page about the lord's other holdings, and one of them is near.",
                   "effects": [
-                    { "effect": "gold", "amount": 35 },
+                    { "effect": "gold", "amount": 25 },
+                    { "effect": "goods", "good": "relics", "amount": 1 },
                     {
                       "effect": "log",
                       "text": "The ruined keep's ledger names another of its lord's old holdings."
