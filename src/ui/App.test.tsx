@@ -19,6 +19,13 @@ afterEach(() => {
   localStorage.clear()
 })
 
+/** Opens the Saves menu and asks for a new party in the slot being played. */
+const newPartyHere = async () => {
+  await userEvent.click(screen.getByRole('button', { name: 'Saves' }))
+  const playing = within(screen.getByRole('region', { name: 'Slot 1' }))
+  await userEvent.click(playing.getByRole('button', { name: 'New party here' }))
+}
+
 test('shows the party and logs a practice roll', async () => {
   render(<App />)
   expect(screen.getByRole('heading', { name: 'Forgotten Heroes' })).toBeTruthy()
@@ -62,7 +69,7 @@ test('an actor override from a previous party falls back to Auto', async () => {
   const actor = screen.getByRole('combobox', { name: 'Actor' }) as HTMLSelectElement
   await userEvent.selectOptions(actor, actor.options[1].value)
   expect(actor.value).not.toBe('')
-  await userEvent.click(screen.getByRole('button', { name: 'New party' }))
+  await newPartyHere()
   await userEvent.click(screen.getByRole('button', { name: 'Start' }))
   expect(actor.value).toBe('')
   await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
@@ -150,7 +157,7 @@ test('the pace and foraging chosen outlast an encounter, but not a new party', a
   expect(pressed()).toBe('Brisk')
   expect(foraging()).toBe(false)
 
-  await userEvent.click(screen.getByRole('button', { name: 'New party' }))
+  await newPartyHere()
   await userEvent.click(screen.getByRole('button', { name: 'Start' }))
   await land()
   expect(pressed()).toBe('Steady')
@@ -159,7 +166,7 @@ test('the pace and foraging chosen outlast an encounter, but not a new party', a
 
 test('a new party starts after a confirmation, in a new world', async () => {
   render(<App />)
-  await userEvent.click(screen.getByRole('button', { name: 'New party' }))
+  await newPartyHere()
   const choice = within(screen.getByRole('group', { name: 'Start a new party in a new world?' }))
   const before = screen.getByText(/^seed \d+$/).textContent
   await userEvent.click(choice.getByRole('button', { name: 'Start' }))

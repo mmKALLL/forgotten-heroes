@@ -1,0 +1,136 @@
+{
+  "$schema": "../_schema/villains.schema.json",
+  "kind": "villains",
+  "source": "claude",
+  "notes": "The Crisis (Plan 5b, design §10b): each world rolls one villain, favoured where one of its threats holds a land. Each has a reveal site, where the plan is learned, and three acts, each played out at its own site (the poiTypes in crisis-sites.json, weight 0, category quest). Text slots: {villain} (the rolled name, e.g. \"Morvaine, the Ashen Prophet\"), {land} (the act's land), {site} (the act site's name) and {seat} (the kingdom seat, only in acts with seat: true). Their situations are in crisis-situations.json, and their personal names in crisis-names.json. Original names and texts, written by Claude.",
+  "entries": [
+    {
+      "id": "ashen-prophet",
+      "name": "the Ashen Prophet",
+      "names": "crisis-name-ashen-prophet",
+      "threats": ["dark-cult", "restless-dead"],
+      "summary": "{villain} means to wake the barrow-kings and set a dead one on a living throne.",
+      "omen": "Graves have been opened in {land}: dug out neatly, at night, by people with lanterns and ladders who took the bones and left the rings. The priest of the old chapel out that way wrote to his bishop about it. Then his chapel burned.",
+      "plan": "The ledger is kept in a careful hand. {villain} has been buying the dead: barrows from farmers, bones from sextons, and the names of old kings from scholars who did not ask why. First the old barrow-field is to be opened and its sleepers woken. Then, in a hidden ossuary, the dead are to be taught to march and to keep step. Last, the oldest of the barrow-kings is to be crowned again in the royal crypt beneath a living lord's seat, and every grave in the realm is to kneel to him. The last page is a list of dates.",
+      "reveal": "burned-chapel",
+      "acts": [
+        {
+          "id": "opened-graves",
+          "name": "The Opened Graves",
+          "goal": "open the old barrow-field and wake the kings buried there",
+          "site": "desecrated-barrow-field",
+          "biomes": ["plains", "hills"],
+          "clue": "Night-diggers who pay in grave silver: {villain}'s people are opening barrows somewhere in {land}.",
+          "thwarted": "The barrows of {site} are shut again, the diggers scattered and the woken dead back in the ground. {villain} will have heard by now.",
+          "failed": "The barrow-field stands open. What woke there walks out across {land} in a long, quiet line, and {villain} walks with it."
+        },
+        {
+          "id": "bone-choir",
+          "name": "The Bone Choir",
+          "goal": "teach the risen dead to march as one",
+          "site": "hidden-ossuary",
+          "biomes": ["marsh", "forest"],
+          "clue": "Bells ring at night where there is no church, and the dead are said to walk in step: {villain}'s choir is gathering in {land}.",
+          "thwarted": "The choir of {site} is broken and its bells are cracked. Without them the dead wander and fall, and {villain} has lost an army before it could march.",
+          "failed": "The choir has learned its song. An army of the dead marches out of {land} in step, and no wall it comes to stays standing for long."
+        },
+        {
+          "id": "ashen-crowning",
+          "name": "The Ashen Crowning",
+          "goal": "crown a barrow-king in the crypt beneath a living lord's seat",
+          "site": "royal-crypt",
+          "seat": true,
+          "clue": "Ash on the crypt steps and frost in the cellars: {villain} has gone down under {seat}, in {land}, to crown a dead king.",
+          "thwarted": "The crown is off the dead king's head and the rite is ash. {villain} falls among the tombs of {site} with nothing left to raise.",
+          "failed": "Beneath {seat} a dead king opens his eyes with a crown on his head, and every grave in the realm turns towards him. The living have lost the realm."
+        }
+      ],
+      "victory": "{villain} is dead and stays dead: you made sure of it. The barrows are shut, the choir is silent and the crypt is sealed. The graves will be quiet for a long time."
+    },
+    {
+      "id": "pretenders-hand",
+      "name": "the Pretender's Hand",
+      "names": "crisis-name-pretenders-hand",
+      "threats": ["pretender", "bandit-lord"],
+      "summary": "{villain}, a disinherited heir, is buying swords and forging proof for a crown.",
+      "omen": "Couriers keep going missing on the roads of {land}, and the ones who turn up again carry letters nobody sent. The last was found in a ditch with his bag slit open and his seal gone. His camp is still out there, if the crows have left anything.",
+      "plan": "The dispatches are in cipher, and the cipher is careless. {villain} was cut out of a royal will and means to write a better one. First the old king's seal is to be stolen and copied, so that a will naming {villain} heir can be found in good time. Then a border garrison is to be bought outright, captain and all, with silver the bandit roads have been collecting for a year. Last, {villain} is to be crowned in a seat's own chapel, with bought swords at the door and the forged will on the altar, before the true lords can ride. Every order is signed the same way: by the Pretender's Hand.",
+      "reveal": "waylaid-courier-camp",
+      "acts": [
+        {
+          "id": "stolen-seal",
+          "name": "The Stolen Seal",
+          "goal": "copy the old king's seal onto a forged will",
+          "site": "forgers-den",
+          "clue": "A master forger has dropped off the guild rolls, and his last order was paid in {villain}'s silver: look for him in {land}.",
+          "thwarted": "The forged will is ash, the copied seal is broken and the forger at {site} is talking to anyone who will listen. {villain} will need another proof.",
+          "failed": "A will turns up in {land}, sealed with the old king's own seal and naming {villain} heir. Half the lords who read it believe it, and the other half are paid to."
+        },
+        {
+          "id": "bought-garrison",
+          "name": "The Bought Garrison",
+          "goal": "buy a border garrison with stolen silver",
+          "site": "mercenary-muster",
+          "biomes": ["plains", "hills"],
+          "clue": "Swords are being hired by the hundred and paid in new silver: {villain}'s muster is somewhere in {land}.",
+          "thwarted": "The muster at {site} breaks up. The silver is gone, the captains have scattered, and the garrison {villain} paid for will not open its gates.",
+          "failed": "The garrison has taken {villain}'s silver. Its gates open from the inside, and {villain}'s banner flies over {land}."
+        },
+        {
+          "id": "false-coronation",
+          "name": "The False Coronation",
+          "goal": "be crowned in a seat's own chapel before the true lords can ride",
+          "site": "usurpers-chapel",
+          "seat": true,
+          "clue": "A crown has been ordered from a goldsmith and a bishop has been bought: {villain} will be crowned at {seat}, in {land}.",
+          "thwarted": "The crowning at {site} is broken up, the crown is in the dirt and the bishop has fled. Nobody kneels to {villain} now.",
+          "failed": "{villain} is crowned at {seat} with bought swords at the door. By the time the true lords ride there is a king to ride against, and a war that will last a generation."
+        }
+      ],
+      "victory": "{villain} is taken in chains, still insisting. The forged will is ash, the bought swords have gone home and the crown is back in its vault. The realm keeps its king, for whatever he is worth."
+    },
+    {
+      "id": "drake-speaker",
+      "name": "the Drake-Speaker",
+      "names": "crisis-name-drake-speaker",
+      "threats": ["drake-brood", "giant-clan"],
+      "summary": "{villain}, an outcast who talks to drakes, means to wake the old wyrm under the mountain.",
+      "omen": "Drakes are taking the flocks in the hills of {land}, and the shepherds say a man walks with them when they come down to feed. One shepherd's hut, on a hill burned black, took the worst of it. Nobody has heard from him since.",
+      "plan": "The shepherd heard all of it through the wall. {villain} was driven out of the giant clans for talking to drakes, and the drakes talked back. First a clutch of drake eggs is to be stolen from a brood cave, so that the wyrm's heralds hatch to {villain}'s voice. Then the old beacons on the heights are to be lit: the fires that once called the wyrm down to feed. Last, the wyrm itself is to be woken in the giants' hall under the mountain, where it has slept since before there were kings. {villain} believes it will listen.",
+      "reveal": "scorched-shepherds-hut",
+      "acts": [
+        {
+          "id": "stolen-clutch",
+          "name": "The Stolen Clutch",
+          "goal": "steal a drake clutch and hatch the wyrm's heralds",
+          "site": "brood-cave",
+          "biomes": ["mountains", "hills", "desert"],
+          "clue": "Burned goats and a broken drake egg on the scree: {villain} has been robbing broods in {land}.",
+          "thwarted": "The stolen eggs of {site} are smashed or back under their mother, and {villain} has no heralds to raise.",
+          "failed": "The clutch hatches to {villain}'s voice. A brood of young drakes takes the skies over {land}, and they answer to no one else."
+        },
+        {
+          "id": "burning-beacons",
+          "name": "The Burning Beacons",
+          "goal": "light the old watch-fires that once called the wyrm to feed",
+          "site": "beacon-heights",
+          "biomes": ["hills", "mountains"],
+          "clue": "Giants are hauling wood and pitch up the old beacon hills of {land} by night: {villain} is building fires.",
+          "thwarted": "The beacons of {site} are cold and their wood is thrown down the hill. Nothing under the mountain heard them.",
+          "failed": "The beacons burn all night across {land}, and something under the mountain hears them and turns over in its sleep."
+        },
+        {
+          "id": "the-waking",
+          "name": "The Waking",
+          "goal": "wake the old wyrm in the hall under the mountain",
+          "site": "wyrm-hall",
+          "biomes": ["mountains", "hills"],
+          "clue": "The ground shakes in {land} and the hot springs have run dry: {villain} has gone into the mountain to wake what sleeps there.",
+          "thwarted": "The waking is broken off. The wyrm settles back into its sleep, and {villain} is buried in {site} with it.",
+          "failed": "The wyrm wakes. {villain} speaks to it, and for a moment it listens. Then it eats {villain} and goes looking for more, and {land} burns first."
+        }
+      ],
+      "victory": "{villain} is dead, the clutch is broken and the beacons are cold. Under the mountain the old wyrm sleeps on, and with luck nobody will be fool enough to try waking it again."
+    }
+  ]
+}

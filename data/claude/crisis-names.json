@@ -1,0 +1,218 @@
+{
+  "$schema": "../_schema/partsTables.schema.json",
+  "kind": "partsTables",
+  "source": "claude",
+  "notes": "Names for the Crisis (Plan 5b). The crisis-name-* tables give each villain's own name, put before its title (\"Morvaine, the Ashen Prophet\"). The crisis-site-* tables name the crisis sites in crisis-sites.json; {land} is the land the site stands in, filled when the Crisis is rolled. Each villain table has 8 names and each site table 8. Original names only. Written by Claude; add rows freely.",
+  "entries": [
+    {
+      "id": "crisis-name-ashen-prophet",
+      "description": "The Ashen Prophet's own name",
+      "rows": [
+        { "text": "Morvaine" },
+        { "text": "Sister Hesk" },
+        { "text": "Ammon Grail" },
+        { "text": "Oriel Vasse" },
+        { "text": "Brother Cadoc" },
+        { "text": "Ysolde Marr" },
+        { "text": "Tobin Sallow" },
+        { "text": "Mother Wenna" }
+      ]
+    },
+    {
+      "id": "crisis-name-pretenders-hand",
+      "description": "The Pretender's Hand's own name",
+      "rows": [
+        { "text": "Aldric Vane" },
+        { "text": "Lady Isolde Carrow" },
+        { "text": "Edmer Ashby" },
+        { "text": "Corwin Hale" },
+        { "text": "Lady Maud Tressel" },
+        { "text": "Rainald Voss" },
+        { "text": "Gisela Thorne" },
+        { "text": "Osric Delamere" }
+      ]
+    },
+    {
+      "id": "crisis-name-drake-speaker",
+      "description": "The Drake-Speaker's own name",
+      "rows": [
+        { "text": "Skarn" },
+        { "text": "Hruga" },
+        { "text": "Tarrik Halfborn" },
+        { "text": "Velka" },
+        { "text": "Grimmald" },
+        { "text": "Oddny Ashtongue" },
+        { "text": "Brannoc" },
+        { "text": "Yrsa Coldhand" }
+      ]
+    },
+    {
+      "id": "crisis-site-burned-chapel",
+      "description": "The Ashen Prophet's reveal site: a burned chapel",
+      "rows": [
+        { "text": "Saint Edda's Chapel" },
+        { "text": "the Burned Chapel" },
+        { "text": "the Ash Chapel of {land}" },
+        { "text": "Saint Corrin's" },
+        { "text": "the Chapel on the Rise" },
+        { "text": "the Black Chapel" },
+        { "text": "Holloway Chapel" },
+        { "text": "the Sexton's Chapel" }
+      ]
+    },
+    {
+      "id": "crisis-site-barrow-field",
+      "description": "The Ashen Prophet's first act: an opened barrow-field",
+      "rows": [
+        { "text": "the Kings' Barrows" },
+        { "text": "the Barrow-Downs of {land}" },
+        { "text": "the Nine Mounds" },
+        { "text": "Hoarfield" },
+        { "text": "the Old Kings' Field" },
+        { "text": "the Long Barrows" },
+        { "text": "Gallow Downs" },
+        { "text": "the Seven Howes" }
+      ]
+    },
+    {
+      "id": "crisis-site-ossuary",
+      "description": "The Ashen Prophet's second act: a hidden ossuary",
+      "rows": [
+        { "text": "the Bone Church" },
+        { "text": "the Chantry of Bones" },
+        { "text": "the Undercroft of {land}" },
+        { "text": "the Charnel Vault" },
+        { "text": "Saint Mabyn's Ossuary" },
+        { "text": "the Quiet Choir" },
+        { "text": "the Lantern Vault" },
+        { "text": "the Sunken Charnel" }
+      ]
+    },
+    {
+      "id": "crisis-site-royal-crypt",
+      "description": "The Ashen Prophet's last act: the royal crypt under a seat",
+      "rows": [
+        { "text": "the Kings' Crypt" },
+        { "text": "the Royal Vault of {land}" },
+        { "text": "the Crypt of Crowns" },
+        { "text": "the Low Chapel" },
+        { "text": "the Undercroft of Kings" },
+        { "text": "the Hall of Sleeping Kings" },
+        { "text": "the Crown Vault" },
+        { "text": "the Old Kings' Rest" }
+      ]
+    },
+    {
+      "id": "crisis-site-courier-camp",
+      "description": "The Pretender's Hand's reveal site: a waylaid courier's camp",
+      "rows": [
+        { "text": "the Courier's Ditch" },
+        { "text": "the Cut-Strap Camp" },
+        { "text": "the Ravens' Camp" },
+        { "text": "the Dead Courier's Camp" },
+        { "text": "the Broken Seal Camp" },
+        { "text": "the Last Camp in {land}" },
+        { "text": "Courier's Rest" },
+        { "text": "the Lean-to by the Ford" }
+      ]
+    },
+    {
+      "id": "crisis-site-forgers-den",
+      "description": "The Pretender's Hand's first act: a forger's den",
+      "rows": [
+        { "text": "the Inkhouse" },
+        { "text": "the Wax Cellar" },
+        { "text": "the Scrivener's Den" },
+        { "text": "the Quiet Press" },
+        { "text": "the Seal-Cutter's Shop" },
+        { "text": "the Tannery Cellar of {land}" },
+        { "text": "the Forger's Loft" },
+        { "text": "the Lamp-Black Cellar" }
+      ]
+    },
+    {
+      "id": "crisis-site-muster",
+      "description": "The Pretender's Hand's second act: a mercenary muster",
+      "rows": [
+        { "text": "the Silver Muster" },
+        { "text": "the Paid Camp" },
+        { "text": "the {land} Muster" },
+        { "text": "Hireling Field" },
+        { "text": "the Sword Fair" },
+        { "text": "the Free Companies' Camp" },
+        { "text": "the Captains' Camp" },
+        { "text": "Coin Hill" }
+      ]
+    },
+    {
+      "id": "crisis-site-usurpers-chapel",
+      "description": "The Pretender's Hand's last act: the chapel of a seat",
+      "rows": [
+        { "text": "the Coronation Chapel" },
+        { "text": "the Chapel Royal" },
+        { "text": "the Crown Chapel of {land}" },
+        { "text": "Saint Aldhelm's" },
+        { "text": "the Throne Chapel" },
+        { "text": "the Lords' Chapel" },
+        { "text": "the High Chapel" },
+        { "text": "the Chapel of Oaths" }
+      ]
+    },
+    {
+      "id": "crisis-site-shepherds-hut",
+      "description": "The Drake-Speaker's reveal site: a shepherd's hut on a scorched hill",
+      "rows": [
+        { "text": "the Burnt Hut" },
+        { "text": "the Scorched Fold" },
+        { "text": "Old Gammer's Hut" },
+        { "text": "the Black Hill Fold" },
+        { "text": "the Smoking Fold" },
+        { "text": "the Hut on Char Hill" },
+        { "text": "the Fold under Scorch Hill" },
+        { "text": "the Cinder Fold of {land}" }
+      ]
+    },
+    {
+      "id": "crisis-site-brood-cave",
+      "description": "The Drake-Speaker's first act: a drake brood cave",
+      "rows": [
+        { "text": "the Brood Cave" },
+        { "text": "the Hatching Hollow" },
+        { "text": "the Smoking Cave" },
+        { "text": "the Drakes' Nursery" },
+        { "text": "Eggshell Cave" },
+        { "text": "the Warm Cave of {land}" },
+        { "text": "the Brood Hollow" },
+        { "text": "the Cinder Den" }
+      ]
+    },
+    {
+      "id": "crisis-site-beacon-heights",
+      "description": "The Drake-Speaker's second act: the old beacon hills",
+      "rows": [
+        { "text": "the Beacon Hills" },
+        { "text": "the Watch-Fire Heights" },
+        { "text": "the Seven Beacons" },
+        { "text": "the Old Beacons of {land}" },
+        { "text": "Firehold Ridge" },
+        { "text": "the Signal Crags" },
+        { "text": "the Pyre Hills" },
+        { "text": "Warden's Height" }
+      ]
+    },
+    {
+      "id": "crisis-site-wyrm-hall",
+      "description": "The Drake-Speaker's last act: the giants' hall under the mountain",
+      "rows": [
+        { "text": "the Hall under the Mountain" },
+        { "text": "the Giants' Old Hall" },
+        { "text": "the Wyrm's Bed" },
+        { "text": "the Deep Hall of {land}" },
+        { "text": "the Hollow King-Hall" },
+        { "text": "Emberdeep" },
+        { "text": "the Long Hall" },
+        { "text": "the Ash Hall" }
+      ]
+    }
+  ]
+}

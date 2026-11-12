@@ -128,10 +128,13 @@ test('SRD creatures are imported, and parts tables feed three templates', () => 
   ])
 })
 
-/** Road situations from one source (site situations are played at points of interest). */
+/**
+ * Road situations from one source (site situations are played at points of interest). Crisis
+ * omens are checked in src/content/crisis.test.ts.
+ */
 const idsFrom = (source: string) =>
   Object.values(content.situations)
-    .filter((s) => s.source === source && !s.site)
+    .filter((s) => s.source === source && !s.site && s.villains.length === 0)
     .map((s) => s.id)
     .sort()
 
@@ -230,6 +233,8 @@ const outcomesOf = (option: Option): OutcomeBranch[] =>
 
 describe('points of interest', () => {
   const types = Object.values(content.poiTypes)
+  // Crisis sites (weight 0) are placed by the Crisis, never drawn: src/content/crisis.test.ts.
+  const drawn = types.filter((t) => t.weight > 0)
   const ofCategory = (category: string) => types.filter((t) => t.category === category)
 
   test('the POI type table passes the validator', () => {
@@ -406,7 +411,7 @@ describe('points of interest', () => {
     for (const s of clues) expect(s.biomes ?? []).not.toContain('sea')
   })
 
-  test.each(types.map((t) => [t.id, t.names] as const))(
+  test.each(drawn.map((t) => [t.id, t.names] as const))(
     '%s can be named at least 12 ways (%s), so a world rarely repeats one',
     (_, table) => {
       const [names] = withRng(createRng(11), (d) =>
@@ -516,8 +521,9 @@ describe('points of interest', () => {
   })
 
   test('quest sites are neutral placeholders with a clue and a hook for later quests', () => {
-    expect(ofCategory('quest').length).toBeGreaterThanOrEqual(2)
-    for (const t of ofCategory('quest')) {
+    const quests = ofCategory('quest').filter((t) => t.weight > 0)
+    expect(quests.length).toBeGreaterThanOrEqual(2)
+    for (const t of quests) {
       expect(t.hostile).toBe(false)
       for (const id of t.situations) {
         const s = content.situations[id]
@@ -537,7 +543,7 @@ describe('points of interest', () => {
     }
   })
 
-  test.each(types.map((t) => [t.id, t.names] as const))(
+  test.each(drawn.map((t) => [t.id, t.names] as const))(
     '%s names come out whole from %s',
     (_, table) => {
       const [names] = withRng(createRng(7), (d) =>
