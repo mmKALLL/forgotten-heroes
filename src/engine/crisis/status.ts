@@ -99,6 +99,13 @@ function actTitle(content: Content, crisis: CrisisState, i: number): string {
 
 type News = { day: number; act: number; kind: 'warn' | 'due' | 'fail' }
 
+/** The Crisis as it stood on `day`: what the party did after it (learned, thwarted) undone. */
+const crisisAsOf = (crisis: CrisisState, day: number): CrisisState => ({
+  ...crisis,
+  learned: crisis.learned !== null && crisis.learned <= day ? crisis.learned : null,
+  thwarted: crisis.thwarted.map((d) => (d !== null && d <= day ? d : null)),
+})
+
 /**
  * The Crisis's deadline lines for the days after `before.day` up to `after.day`, each once, in day
  * order: a warning CRISIS_WARN_DAYS before the current act's due day and on it (once the plan is
@@ -117,10 +124,12 @@ export function crisisNews(before: GameState, after: GameState, content: Content
     ])
     .filter((n) => n.day > before.day && n.day <= after.day)
     .filter((n) => {
-      // The act must still be the current one, undecided, as the day begins.
-      const status = crisisStatus(crisis, n.day - 1)
+      // The act must still be the current one, undecided, as the day begins: a step that spans
+      // several days may thwart the act (or learn the plan) only after this day's news.
+      const then = crisisAsOf(crisis, n.day - 1)
+      const status = crisisStatus(then, n.day - 1)
       if (status.act !== n.act || status.phase === 'won' || status.phase === 'lost') return false
-      return n.kind === 'fail' || crisis.learned !== null
+      return n.kind === 'fail' || then.learned !== null
     })
     .sort((a, b) => a.day - b.day || a.act - b.act)
   return news.reduce((state, n) => {
@@ -137,7 +146,7 @@ export function crisisNews(before: GameState, after: GameState, content: Content
       case 'fail': {
         const failed = villainOf(content, crisis)?.acts[n.act]?.failed
         const text =
-          crisis.learned !== null && failed
+          crisisAsOf(crisis, n.day - 1).learned !== null && failed
             ? crisisText(state, content, crisis, failed, crisis.acts[n.act].poi)
             : 'Far away, something you never learned of is finished.'
         return appendLog(appendLog(state, text, 'bad'), 'The Crisis is lost.', 'bad')

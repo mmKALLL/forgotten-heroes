@@ -68,6 +68,24 @@ describe('crisisNews', () => {
     expect(later.log).toHaveLength(told.log.length)
   })
 
+  test('news on days before a thwart in the same step is still told', () => {
+    // Days 80 to 101 pass, and act I is thwarted on day 101: its warning (day 86) and due day
+    // (100) came while it still stood.
+    const before = withCrisis({ learned: 10 }, { day: 80 })
+    const after = {
+      ...before,
+      day: 101,
+      crisis: { ...before.crisis!, thwarted: [101, null, null] },
+    }
+    const lines = crisisNews(before, after, content)
+      .log.slice(after.log.length)
+      .map((l) => l.text)
+    expect(lines).toEqual([
+      `Act I, The Test Act 1, is due in ${CRISIS_WARN_DAYS}d.`,
+      'Act I, The Test Act 1, is due today: each 10d late from now makes it harder.',
+    ])
+  })
+
   test('a real step that reaches the due day logs it', () => {
     const state = withCrisis({ learned: 10 }, { day: 99 })
     const rested = step(state, { type: 'rest', lodging: false }, content)
