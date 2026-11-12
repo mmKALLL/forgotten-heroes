@@ -43,10 +43,11 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
   - `procedural/`: parts tables that runtime combinators assemble.
   - `claude/`: everything Claude writes goes here, never into `original/`.
 - **Skills** live in `data/original/skills.json` (default abilities are editable there; new skill ids must also be added to `src/schema/constants.ts`).
-- **Encounters** live in `situations.json` files in any source, plus `archetypes`, `situationTemplates`, `partsTables` and `creatures`. `pnpm test` checks every situation for playability and the quality rules. The Encounter Deck (right column) plays any situation and shows a ⚠ count for broken ones.
+- **Encounters** live in `situations.json` files in any source, plus `archetypes`, `situationTemplates`, `partsTables` and `creatures`. `pnpm test` checks every situation for playability and the quality rules. The Encounter Deck (developer tools, under the journal) plays any situation and shows a ⚠ count for broken ones.
+- **World** data lives in `data/claude/` (`regions`, `settlements`, `routes`, `threats`), `data/original/towns.json` (generated: run `pnpm tsx scripts/port/port-town-maps.ts`, don't hand-edit) and `data/original/place-names.json`. `pnpm test` checks the route graph (`worldIssues`). `scripts/map/*.py` read the map image to propose markers and routes (Python with Pillow, numpy, scipy); their output is hand-checked.
 - **Localization** (design §9): English is the default; Japanese is optional and rough. UI strings are in `src/ui/i18n/` (`en.ts` defines the keys; `ja.ts` is partial and falls back to English). Content translations are `translations` files in `data/locales/<locale>/` that overlay text fields of entries by id and dotted path; loading validates ids and paths. Engine-made text (roll lines, effect chips, the journal) is still English; it should become structured messages later.
 - **No AI generation at play time.** Content is written ahead of time and committed as editable data.
-- `pnpm build` bundles `data/imported-private/` when present locally — never publish a build made with private content.
+- `pnpm build` bundles `data/imported-private/` and the local images in `assets/` when present — never publish a build made with private content or local assets.
 
 ## Design principles to respect
 

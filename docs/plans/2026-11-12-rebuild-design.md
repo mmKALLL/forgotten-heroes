@@ -67,9 +67,9 @@ The old Svelte code is removed on this branch. The useful types and data are por
 - **Carrying capacity:** each member's contribution scales with STR, from about 0.8× at STR 8 to about 1.8× at STR 18 (2.25× at most). Pack animals and carts add more. Magical alternatives (floating disk, unseen porters, teleport circles) come later.
 - **Endurance:** forced-march days before exhaustion scale with CON.
 - **Strain (working name):** this discourages leaning on one specialist and rewards spreading work across the party.
-  - **What counts:** every roll of a skill in encounters counts, including each round of a multi-round skill challenge. Once a character reaches the threshold for a skill (inclusive: about 3 rolls a day or 10 a week, to tune), that roll and each later one add a Strain stack. Practice rolls don't count.
+  - **What counts:** every roll of a skill in encounters counts, including each round of a multi-round skill challenge. Once a character reaches the threshold for a skill (inclusive: about 3 rolls a day or 10 a week, to tune), that roll and each later one add a Strain stack. Practice rolls don't count. The thresholds are 3 uses in a day or 10 within seven days. Daily foraging and stowing away count too.
   - **Effect:** each stack is −1 to that skill and lowers the character's mood.
-  - **Recovery:** one stack fades per day, slower in poor lodging and faster in good lodging (ties into inn quality and lifestyle).
+  - **Recovery:** each strained skill loses one stack per day (Plan 3), slower in poor lodging and faster in good lodging (Plan 4).
   - **Visibility:** Strain shows in the actor preview, so the automatic actor choice rotates on its own.
   - **Timing:** encounters record skill uses from Plan 2. Strain itself comes with daily travel (Plan 3), and the lodging effects with towns (Plan 4).
 - **Mood:** each character has their own mood on a 0–100 scale, with 50 as neutral.
@@ -120,6 +120,13 @@ The town map image is a banner and backdrop.
 - **Layout:** the Altaeus map fills the centre column. Encounters replace it while active, the party is on the left and the journal on the right.
 - **Region names** are read from the map, e.g. Nörrikk, Kard Krait, Olsari, Deadcliff Mesa, Tradal, and Ard Jurgenvren for the southern island.
 
+### World data (Plan 3)
+
+- **Geography** (`data/claude/`): 16 regions (name, biome, label position), 53 settlements (map-pixel position, region, island, capital marker, coastal) and 67 routes (km, terrain, danger 0–3). It was read off the map with `scripts/map/` (100 km = 484 px); land routes follow the dashed roads, and islands are reached by sea routes. The map image itself is never committed.
+- **Town names** (`data/original/towns.json`) are generated from the town-map filenames by `scripts/port/port-town-maps.ts`; towns labelled on the Altaeus map are pinned to their marker. Place names for the rest come from the prototype's generators (`data/original/place-names.json`).
+- **Political layer** (`state.world`), rolled per world seed: 4–6 kingdoms grow outward from seed regions (preferring capital markers) until every region is owned; each region rolls a threat (`data/claude/threats.json`, weighted towards its biome) whose strength is set against the kingdom's garrison (its defence split across its regions) to give a threat level of 0–3. Each marker gets a settlement type, population, size tier, wealth and services (the prototype's d20 + wealth thresholds); named towns go where their hints fit.
+- **Start:** "Small town, calm region" picks a settlement that is not a city or capital in the calmest mainland region; "Random settlement" picks any mainland settlement (`startingSettlement`, `START_MODES`). Both are seeded by the world, so a world always starts in the same place for the same choice.
+
 ### Persistent world with successive parties
 
 - **Party wipes are permanent** (ironman), but the world continues.
@@ -164,6 +171,17 @@ The town map image is a banner and backdrop.
 - **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4. The chance scales with route danger, regional threat and visible wealth.
 - **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.
 - **Wonders:** a separate kind of encounter. Rare, one click, flavour only, never a burden.
+
+### Travel (Plan 3)
+
+- The player picks a neighbouring settlement; journeys are one route long.
+- **Speed** in km per day: plains 30, forest and hills 24, desert 21, marsh and jungle 18, mountains 15, sea 75 (with a passage of 2 gp per member per day). Land speed scales with pace: cautious ⅔, brisk 1.25×, forced march 1.5×; covering tracks adds a quarter more days. Pace numbers live in `src/engine/travel/pace.ts`, the rest in `routes.ts`, `supplies.ts` and `tuning.ts`.
+- **Each day** the best-suited member forages first (Survival; DC plains and forest 10, jungle 11, hills 12, marsh 13, mountains 15, desert 18; −2 on a forced march). Then every member eats 1 food and drinks 1 water (2 in the desert; half as much again on a forced march). Whoever goes without makes a CON check (DC 10 without food, 15 without water) or gains a level of exhaustion; the march stops after such a day.
+- **Water** capacity is 4 days per member, plus 2 per extra waterskin (2 gp each). Rations cost a flat 1 gp until the Plan 4 market. Supplies sell back at half price. Arriving anywhere refills the water.
+- **Encounters** are drawn at departure: up to 2 days 0–2, 3–4 days 1–3, 5 or more 2–4; each slot beyond the minimum fills with 20% + 15% per danger + 10% per threat level (+10% when brisk or forced), 5–90%. Cautious parties skip 40% of hostile encounters. Situations may name `biomes` and `regions`; untagged ones happen anywhere on land, and at sea only `sea` situations are drawn.
+- **Rest:** a day in a settlement restores all HP and the water, at an inn (1 gp per member, meals included, carried food untouched) or on carried food when the party can't or won't pay; a day in camp eats carried food and restores a quarter of max HP. Either removes a level of exhaustion from everyone who ate and drank.
+- **Stowaway:** on a sea route the party can't pay for, the best sneak rolls Stealth DC 13. Success slips aboard; a partial gets the party put to work (2 days lost, and a level of exhaustion for the one caught); a failure costs all its coin (or work, if it has none); a critical failure starts a brawl.
+- **Road preview:** for every pace, the days, food and water needed against what is carried (with expected foraging), the forager and odds, the encounter range and chance, hostile avoidance, ambush footing, and warnings (water or food running out, relying on foraging, forced-march exhaustion).
 
 ### Encounter composition (all JSON)
 
@@ -227,8 +245,8 @@ The town map image is a banner and backdrop.
 
 - **Layout:**
   - Left: party portraits with HP, conditions and key modifiers.
-  - Centre: a backdrop image (a battle map chosen by biome tag, or the town map), the narrative, and compact option cards with odds bars, plus a shared Outcomes panel for the hovered or focused option.
-  - Right: the Altaeus map with the route and log.
+  - Centre: the Altaeus map with its routes, and below it the settlement (services, rest and supplies, roads out with the pace chooser and forecasts) or the journey under way. While an encounter is open it takes the whole column: narrative, compact option cards with odds bars, and the shared Outcomes panel for the hovered or focused option. A backdrop image (a battle map by biome, or the town map) may come later; the town map shows as the settlement's banner.
+  - Right: the journal, and below it the developer tools (practice check, Encounter Deck), collapsed by default and remembered per viewer.
   - Bottom: the goods bar by category, a capacity meter, and a visible-wealth indicator.
 - **Style:** the prototype only had the Vite default stylesheet, so the visual style is a fresh pass. Parchment and ink tones suit the Altaeus map.
 - **Dice animation:** flat d20 outlines whose faces flicker, then settle in quick succession, in at most 1.5 s. Every roll draws the DC as a short line beside the dice, with the total marked once they settle. On high-stakes rolls the last die slows and glows while it rolls; once settled, only a natural 20 (gold) or natural 1 (red) stays highlighted. A click skips it, and reduced-motion is respected.
