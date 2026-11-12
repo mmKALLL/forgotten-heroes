@@ -1,0 +1,102 @@
+{
+  "$schema": "../_schema/poiTypes.schema.json",
+  "kind": "poiTypes",
+  "source": "procedural",
+  "notes": "The weighted table each world's points of interest are drawn from (design §6). Written by Claude; tune the weights freely. Only springs and wells refill the waterskins. Wonders are rarer than shrines and landmarks. Dungeons, lone experts, lairs and quest sites come in Plan 3b B3.",
+  "entries": [
+    {
+      "id": "wayside-shrine",
+      "category": "shrine",
+      "name": "Wayside shrine",
+      "weight": 1.5,
+      "biomes": ["plains", "forest"],
+      "pathDanger": 0,
+      "names": "poi-name-shrine",
+      "situations": ["wayside-shrine-visit"],
+      "icon": "candles"
+    },
+    {
+      "id": "saints-well",
+      "category": "shrine",
+      "name": "Saint's well",
+      "biomes": ["plains", "hills"],
+      "pathDanger": 0,
+      "water": true,
+      "names": "poi-name-well",
+      "situations": ["saints-well-visit"],
+      "icon": "well"
+    },
+    {
+      "id": "drowned-chapel",
+      "category": "shrine",
+      "name": "Drowned chapel",
+      "weight": 0.8,
+      "biomes": ["marsh", "jungle"],
+      "threats": ["restless-dead"],
+      "pathDanger": 2,
+      "names": "poi-name-shrine",
+      "situations": ["drowned-chapel-visit"],
+      "icon": "church"
+    },
+    {
+      "id": "standing-stones",
+      "category": "landmark",
+      "name": "Standing stones",
+      "biomes": ["hills", "plains"],
+      "names": "poi-name-stones",
+      "situations": ["standing-stones-visit"],
+      "icon": "dolmen"
+    },
+    {
+      "id": "drowned-bell-tower",
+      "category": "landmark",
+      "name": "Drowned bell tower",
+      "weight": 0.8,
+      "biomes": ["marsh"],
+      "pathDanger": 2,
+      "names": "poi-name-belfry",
+      "situations": ["drowned-bell-tower-visit"],
+      "icon": "ringing-bell"
+    },
+    {
+      "id": "broken-watchtower",
+      "category": "landmark",
+      "name": "Broken watchtower",
+      "biomes": ["hills", "mountains"],
+      "names": "poi-name-tower",
+      "situations": ["broken-watchtower-visit"],
+      "icon": "watchtower"
+    },
+    {
+      "id": "glowing-falls",
+      "category": "wonder",
+      "name": "Glowing falls",
+      "weight": 0.5,
+      "biomes": ["mountains", "forest", "jungle"],
+      "names": "poi-name-falls",
+      "situations": ["glowing-falls-sight"],
+      "icon": "waterfall"
+    },
+    {
+      "id": "glass-field",
+      "category": "wonder",
+      "name": "Glass field",
+      "weight": 0.5,
+      "biomes": ["desert"],
+      "pathDanger": 2,
+      "names": "poi-name-glass",
+      "situations": ["glass-field-sight"],
+      "icon": "crystal-growth"
+    },
+    {
+      "id": "bone-arch",
+      "category": "wonder",
+      "name": "Bone arch",
+      "weight": 0.5,
+      "biomes": ["plains", "desert", "hills"],
+      "names": "poi-name-bones",
+      "situations": ["bone-arch-sight"],
+      "icon": "ribcage"
+    }
+  ]
+}

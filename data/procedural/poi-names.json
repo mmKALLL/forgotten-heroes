@@ -1,0 +1,289 @@
+{
+  "$schema": "../_schema/partsTables.schema.json",
+  "kind": "partsTables",
+  "source": "procedural",
+  "notes": "Names for points of interest, drawn from the table a POI type names. Most are \"{first} {second}\" from two smaller tables; a few wonders have whole names. Original names only, nothing from published settings. Written by Claude; add rows freely. poi-name-ruin, poi-name-camp and poi-name-hermit are for the dungeons, lairs and lone experts of Plan 3b B3.",
+  "entries": [
+    {
+      "id": "poi-name-shrine",
+      "description": "Shrines and chapels",
+      "rows": [{ "text": "{poi-shrine-first} {poi-shrine-second}" }]
+    },
+    {
+      "id": "poi-shrine-first",
+      "description": "Whose shrine it is",
+      "rows": [
+        { "text": "Old Saint's" },
+        { "text": "the Grey Lady's" },
+        { "text": "the Pilgrim's" },
+        { "text": "Mother Hollin's" },
+        { "text": "the Shepherd's" },
+        { "text": "Saint Ambrel's" },
+        { "text": "Saint Wynna's" },
+        { "text": "the Thornwood" },
+        { "text": "the Lantern" }
+      ]
+    },
+    {
+      "id": "poi-shrine-second",
+      "description": "What kind of shrine",
+      "rows": [
+        { "text": "Shrine", "weight": 3 },
+        { "text": "Chapel", "weight": 2 },
+        { "text": "Altar" },
+        { "text": "Cairn" },
+        { "text": "Oratory", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "poi-name-well",
+      "description": "Holy wells and springs",
+      "rows": [{ "text": "{poi-well-first} {poi-well-second}" }]
+    },
+    {
+      "id": "poi-well-first",
+      "description": "Whose well, or what it is like",
+      "rows": [
+        { "text": "Old Saint's" },
+        { "text": "the Maiden's" },
+        { "text": "the Weeping" },
+        { "text": "the Wishing" },
+        { "text": "Saint Ambrel's" },
+        { "text": "Crowfoot" },
+        { "text": "Greenstone" }
+      ]
+    },
+    {
+      "id": "poi-well-second",
+      "description": "Well or spring",
+      "rows": [
+        { "text": "Well", "weight": 3 },
+        { "text": "Spring", "weight": 2 },
+        { "text": "Font" },
+        { "text": "Pool" }
+      ]
+    },
+    {
+      "id": "poi-name-stones",
+      "description": "Standing stones",
+      "rows": [{ "text": "{poi-stones-first} {poi-stones-second}" }]
+    },
+    {
+      "id": "poi-stones-first",
+      "description": "What the stones are like",
+      "rows": [
+        { "text": "the Hollow" },
+        { "text": "the Nine" },
+        { "text": "the Grey" },
+        { "text": "the Leaning" },
+        { "text": "the Whispering" },
+        { "text": "the Old Men's" },
+        { "text": "the Weeping" }
+      ]
+    },
+    {
+      "id": "poi-stones-second",
+      "description": "A ring of stones",
+      "rows": [
+        { "text": "Stones", "weight": 3 },
+        { "text": "Ring", "weight": 2 },
+        { "text": "Circle" },
+        { "text": "Menhirs" },
+        { "text": "Henge" }
+      ]
+    },
+    {
+      "id": "poi-name-tower",
+      "description": "Old watchtowers on the heights",
+      "rows": [{ "text": "{poi-tower-first} {poi-tower-second}" }]
+    },
+    {
+      "id": "poi-tower-first",
+      "description": "What is left of it",
+      "rows": [
+        { "text": "the Broken" },
+        { "text": "Old" },
+        { "text": "the Leaning" },
+        { "text": "Hob's" },
+        { "text": "the Widow's" },
+        { "text": "the Last" },
+        { "text": "the Crow's" }
+      ]
+    },
+    {
+      "id": "poi-tower-second",
+      "description": "A tower to watch from",
+      "rows": [
+        { "text": "Tower", "weight": 2 },
+        { "text": "Watchtower", "weight": 2 },
+        { "text": "Beacon" },
+        { "text": "Lookout" }
+      ]
+    },
+    {
+      "id": "poi-name-belfry",
+      "description": "Bell towers standing in the water",
+      "rows": [{ "text": "{poi-belfry-first} {poi-belfry-second}" }]
+    },
+    {
+      "id": "poi-belfry-first",
+      "description": "What became of it",
+      "rows": [
+        { "text": "the Drowned" },
+        { "text": "the Sunken" },
+        { "text": "the Silent" },
+        { "text": "the Reed" },
+        { "text": "Old Marrow's" },
+        { "text": "the Green" }
+      ]
+    },
+    {
+      "id": "poi-belfry-second",
+      "description": "A bell tower",
+      "rows": [
+        { "text": "Belfry", "weight": 2 },
+        { "text": "Bell Tower", "weight": 2 },
+        { "text": "Bell" },
+        { "text": "Steeple" }
+      ]
+    },
+    {
+      "id": "poi-name-falls",
+      "description": "Waterfalls that glow",
+      "rows": [{ "text": "{poi-falls-first} {poi-falls-second}" }]
+    },
+    {
+      "id": "poi-falls-first",
+      "description": "How the falls shine",
+      "rows": [
+        { "text": "the Glimmering" },
+        { "text": "the Moonlit" },
+        { "text": "the Lantern" },
+        { "text": "the Ghostlight" },
+        { "text": "the Blue" },
+        { "text": "the Starfall" }
+      ]
+    },
+    {
+      "id": "poi-falls-second",
+      "description": "A waterfall",
+      "rows": [
+        { "text": "Falls", "weight": 3 },
+        { "text": "Cascade" },
+        { "text": "Force" },
+        { "text": "Spout" }
+      ]
+    },
+    {
+      "id": "poi-name-glass",
+      "description": "Fields of glass in the waste (whole names)",
+      "rows": [
+        { "text": "the Glass Sea" },
+        { "text": "the Burning Glass" },
+        { "text": "the Mirror Waste" },
+        { "text": "Sunglass Vale" },
+        { "text": "the Shimmer" },
+        { "text": "the Glazed Hollow" }
+      ]
+    },
+    {
+      "id": "poi-name-bones",
+      "description": "The bones of something enormous (whole names)",
+      "rows": [
+        { "text": "the Giant's Ribs" },
+        { "text": "Wyrmrest Arch" },
+        { "text": "the Bone Gate" },
+        { "text": "the Old Ribs" },
+        { "text": "the Ribcage" },
+        { "text": "Leviathan's Gate" }
+      ]
+    },
+    {
+      "id": "poi-name-ruin",
+      "description": "Ruins, barrows and vaults",
+      "rows": [{ "text": "{poi-ruin-first} {poi-ruin-second}" }]
+    },
+    {
+      "id": "poi-ruin-first",
+      "description": "What the ruin is like",
+      "rows": [
+        { "text": "the Hollow" },
+        { "text": "the Black" },
+        { "text": "the Sunken" },
+        { "text": "the Fallen" },
+        { "text": "the Ashen" },
+        { "text": "Old King's" },
+        { "text": "the Nameless" }
+      ]
+    },
+    {
+      "id": "poi-ruin-second",
+      "description": "What was built there",
+      "rows": [
+        { "text": "Barrow", "weight": 2 },
+        { "text": "Vault" },
+        { "text": "Halls" },
+        { "text": "Crypt" },
+        { "text": "Keep" },
+        { "text": "Undercroft", "weight": 0.5 }
+      ]
+    },
+    {
+      "id": "poi-name-camp",
+      "description": "War camps and raider dens",
+      "rows": [{ "text": "{poi-camp-first} {poi-camp-second}" }]
+    },
+    {
+      "id": "poi-camp-first",
+      "description": "What the locals call it",
+      "rows": [
+        { "text": "Redtusk" },
+        { "text": "Gallows" },
+        { "text": "Cutthroat" },
+        { "text": "Burnt" },
+        { "text": "Crowbait" },
+        { "text": "Skullpike" },
+        { "text": "Blackfire" }
+      ]
+    },
+    {
+      "id": "poi-camp-second",
+      "description": "A camp",
+      "rows": [
+        { "text": "Camp", "weight": 2 },
+        { "text": "Hold" },
+        { "text": "Den" },
+        { "text": "Stockade" },
+        { "text": "Hollow" }
+      ]
+    },
+    {
+      "id": "poi-name-hermit",
+      "description": "Lone experts' homes",
+      "rows": [{ "text": "{poi-hermit-first} {poi-hermit-second}" }]
+    },
+    {
+      "id": "poi-hermit-first",
+      "description": "Who lives there",
+      "rows": [
+        { "text": "Grey Hermit's" },
+        { "text": "Old Wen's" },
+        { "text": "Mother Hollin's" },
+        { "text": "One-Eye's" },
+        { "text": "the Herbwife's" },
+        { "text": "the Crooked" }
+      ]
+    },
+    {
+      "id": "poi-hermit-second",
+      "description": "Where they live",
+      "rows": [
+        { "text": "Hut", "weight": 2 },
+        { "text": "Cottage" },
+        { "text": "Cave" },
+        { "text": "Shack" },
+        { "text": "Hollow" }
+      ]
+    }
+  ]
+}

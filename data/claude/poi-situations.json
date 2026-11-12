@@ -1,0 +1,563 @@
+{
+  "$schema": "../_schema/situations.schema.json",
+  "kind": "situations",
+  "source": "claude",
+  "notes": "Site situations, played on a visit to a point of interest and never drawn on the road (design §6). The POI types in data/procedural/poi-types.json name them. Shrines trade gold for Inspiration (a fixed offering) or a day for healing (a Religion check). Landmarks offer a risky vantage point (Perception for Edge) and then lore (History for a journal line and a little gold). Wonders are one click and cost nothing. Written by Claude.",
+  "entries": [
+    {
+      "id": "wayside-shrine-visit",
+      "title": "Wayside shrine",
+      "disposition": "pleasant",
+      "site": true,
+      "tags": ["shrine"],
+      "stages": {
+        "start": {
+          "text": "A roofless shrine of fieldstone stands where two tracks meet. Someone still sweeps it: there are fresh flowers on the altar, and a cracked bowl for coins.",
+          "options": [
+            {
+              "id": "offer",
+              "kind": "fixed",
+              "label": "Leave an offering and pray",
+              "description": "5 gold in the bowl.",
+              "requires": [{ "req": "gold", "min": 5 }],
+              "once": true,
+              "outcome": {
+                "text": "The coins ring in the bowl. For a moment the wind drops, and the quiet feels like an answer.",
+                "effects": [
+                  { "effect": "gold", "amount": -5 },
+                  { "effect": "inspiration", "amount": 1 }
+                ]
+              }
+            },
+            {
+              "id": "vigil",
+              "kind": "check",
+              "label": "Keep a vigil through the night",
+              "description": "Costs a day. A good vigil mends body and spirit.",
+              "check": { "skill": "religion", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} says the old words until they stop meaning anything. The night is cold and long.",
+                  "effects": [{ "effect": "days", "amount": 1 }]
+                },
+                "partial": {
+                  "text": "The night passes quietly, and you rise a little mended.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "hp", "amount": 3, "target": "all" }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} keeps the rites the old way. You wake more rested than you have in weeks.",
+                  "effects": [
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "hp", "amount": 5, "target": "all" },
+                    { "effect": "exhaustion", "amount": -1, "target": "all" }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Move on",
+              "outcome": { "text": "You bow your heads and walk on." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "saints-well-visit",
+      "title": "Saint's well",
+      "disposition": "pleasant",
+      "site": true,
+      "tags": ["shrine"],
+      "stages": {
+        "start": {
+          "text": "A mossy well stands under a stone hood, carved with a saint nobody remembers. The water is cold and very clear, and someone has hung a new rope.",
+          "options": [
+            {
+              "id": "offer",
+              "kind": "fixed",
+              "label": "Drop in a coin and make a wish",
+              "description": "3 gold down the well.",
+              "requires": [{ "req": "gold", "min": 3 }],
+              "once": true,
+              "outcome": {
+                "text": "The coin falls a long way. You hear it land, and then, faintly, something like a laugh.",
+                "effects": [
+                  { "effect": "gold", "amount": -3 },
+                  { "effect": "inspiration", "amount": 1 }
+                ]
+              }
+            },
+            {
+              "id": "bathe",
+              "kind": "check",
+              "label": "Bless the water and bathe",
+              "description": "Said right, the old blessing washes weariness away. The stones are slick.",
+              "check": { "skill": "religion", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "The water is only cold. {actor} slips on the wet stones climbing out.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "The cold drives the ache out of {actor}'s bones, if no one else's.",
+                  "effects": [{ "effect": "exhaustion", "amount": -1, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} says the blessing, and the water seems to brighten. Everyone climbs out lighter.",
+                  "effects": [
+                    { "effect": "exhaustion", "amount": -1, "target": "all" },
+                    { "effect": "hp", "amount": 3, "target": "all" }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "drink",
+              "kind": "fixed",
+              "label": "Drink, fill your skins and go",
+              "outcome": {
+                "text": "The water tastes of iron and stone. It is the best you have had in days."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "drowned-chapel-visit",
+      "title": "Drowned chapel",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["shrine"],
+      "stages": {
+        "start": {
+          "text": "A chapel has sunk to its windows in the mire. Black water fills the nave, and candle stubs still stand along the dry gallery. Something has kept them lit.",
+          "options": [
+            {
+              "id": "offer",
+              "kind": "fixed",
+              "label": "Light a candle and leave an offering",
+              "description": "5 gold on the gallery rail.",
+              "requires": [{ "req": "gold", "min": 5 }],
+              "once": true,
+              "outcome": {
+                "text": "Your candle takes at once. Out over the water the other flames gutter and go out, one by one, as if satisfied.",
+                "effects": [
+                  { "effect": "gold", "amount": -5 },
+                  { "effect": "inspiration", "amount": 1 }
+                ]
+              }
+            },
+            {
+              "id": "rites",
+              "kind": "check",
+              "label": "Say the rites for the drowned",
+              "description": "The dead here want remembering. Doing it badly offends them.",
+              "check": { "skill": "religion", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} stumbles over the words. The water stirs, and cold hands catch at your ankles all the way out.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "partial": {
+                  "text": "The water stills. You rest a while on the gallery and leave a little mended.",
+                  "effects": [{ "effect": "hp", "amount": 3, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} names the drowned as best anyone can. A warmth fills the nave, and your weariness lifts.",
+                  "effects": [
+                    { "effect": "hp", "amount": 5, "target": "all" },
+                    { "effect": "exhaustion", "amount": -1, "target": "all" }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "font",
+              "kind": "check",
+              "label": "Fish the offerings out of the font",
+              "description": "Coins glint in the drowned font. Taking them is not polite.",
+              "check": { "skill": "sleightOfHand", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "Something under the water takes hold of {actor}'s wrist and does not let go for far too long.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "{actor} comes up with a handful of green coins and a chill that won't shift.",
+                  "effects": [
+                    { "effect": "gold", "amount": 6 },
+                    { "effect": "hp", "amount": -2, "target": "actor" }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} works quickly and quietly, and comes up with a fistful of old silver.",
+                  "effects": [{ "effect": "gold", "amount": 15 }]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the dead to their water",
+              "outcome": {
+                "text": "You back out along the gallery, and nobody looks at the water."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "standing-stones-visit",
+      "title": "Standing stones",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["landmark"],
+      "stages": {
+        "start": {
+          "text": "Nine grey stones stand in a ring on the crest, leaning like tired old men. The tallest has a ledge cut into it, and the rest are covered in worn carvings.",
+          "options": [
+            {
+              "id": "climb",
+              "kind": "check",
+              "label": "Climb the tall stone and look around",
+              "description": "A good look gives you Edge on the carvings. A fall hurts.",
+              "check": { "skill": "perception", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} slips off the wet ledge and lands badly.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }],
+                  "goto": "carvings"
+                },
+                "partial": {
+                  "text": "The view is fine, but it tells {actor} nothing.",
+                  "goto": "carvings"
+                },
+                "success": {
+                  "text": "From the ledge {actor} sees the stones line up with the hills around: the carvings are a map.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "goto": "carvings"
+                }
+              }
+            },
+            {
+              "id": "walk",
+              "kind": "fixed",
+              "label": "Go straight to the carvings",
+              "outcome": { "text": "You walk the ring, stone by stone.", "goto": "carvings" }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Move on",
+              "outcome": { "text": "You leave the stones to the wind." }
+            }
+          ]
+        },
+        "carvings": {
+          "text": "The carvings are old, older than the kingdoms. Someone patient could make sense of them.",
+          "options": [
+            {
+              "id": "read",
+              "kind": "check",
+              "label": "Read the carvings",
+              "description": "A good reading is worth knowing, and maybe more.",
+              "check": { "skill": "history", "dc": 13 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} traces the marks for an hour and makes nothing of them."
+                },
+                "partial": {
+                  "text": "{actor} makes out a name, and a warning.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "The standing stones remember a king buried upright, so that he would never kneel, and warn against waking him."
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} reads the dedication, and a line telling where the offerings were buried. A little digging turns up a pot of old coins.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "The standing stones remember a king buried upright, so that he would never kneel, and warn against waking him."
+                    },
+                    { "effect": "gold", "amount": 10 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave them be",
+              "outcome": { "text": "You leave the stones as you found them." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "drowned-bell-tower-visit",
+      "title": "Drowned bell tower",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["landmark"],
+      "stages": {
+        "start": {
+          "text": "A bell tower leans out of the reeds, the village it served long gone under the water. The bell still hangs in it, green with age. On still nights, people say, it rings by itself.",
+          "options": [
+            {
+              "id": "climb",
+              "kind": "check",
+              "label": "Climb to the belfry and look out",
+              "description": "Rotten stairs. A good look gives you Edge on what lies below.",
+              "check": { "skill": "perception", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "A stair gives way under {actor}, who drops into the black water among the timbers.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "goto": "bell"
+                },
+                "partial": {
+                  "text": "{actor} sees only reeds and water, and climbs back down.",
+                  "goto": "bell"
+                },
+                "success": {
+                  "text": "From the belfry {actor} can make out the drowned streets under the water, and the tower's own carvings from above.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "goto": "bell"
+                }
+              }
+            },
+            {
+              "id": "wade",
+              "kind": "fixed",
+              "label": "Wade out to the tower",
+              "outcome": {
+                "text": "You wade out, waist-deep and cold, to the tower door.",
+                "goto": "bell"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Move on",
+              "outcome": { "text": "You leave the tower to the reeds." }
+            }
+          ]
+        },
+        "bell": {
+          "text": "Names and dates are cut into the bell and into the stones of the tower: a whole village, remembered by its bell.",
+          "options": [
+            {
+              "id": "read",
+              "kind": "check",
+              "label": "Piece together the village's story",
+              "description": "A good reading is worth knowing, and maybe more.",
+              "check": { "skill": "history", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "The names mean nothing to {actor}, and the water is getting colder."
+                },
+                "partial": {
+                  "text": "{actor} reads enough to know how the village died.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "The drowned bell tower served a village that went under in one night when the dykes broke."
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} pieces it together: the dykes were broken on purpose, and the reeve fled with the tithe. His strongbox is still wedged in the belfry.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "The drowned bell tower served a village that went under in one night when its reeve broke the dykes and fled with the tithe."
+                    },
+                    { "effect": "gold", "amount": 12 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the names to the water",
+              "outcome": { "text": "You wade back to dry land without a word." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "broken-watchtower-visit",
+      "title": "Broken watchtower",
+      "disposition": "neutral",
+      "site": true,
+      "tags": ["landmark"],
+      "stages": {
+        "start": {
+          "text": "A watchtower of some older kingdom stands broken-topped on the height, its stair spiralling up to nothing. On a clear day, they say, you can see three lands from the top.",
+          "options": [
+            {
+              "id": "climb",
+              "kind": "check",
+              "label": "Climb to the top and look out",
+              "description": "A good look gives you Edge on what the walls say. The stair crumbles.",
+              "check": { "skill": "perception", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "The stair crumbles under {actor}'s feet. It is a bad fall.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }],
+                  "goto": "walls"
+                },
+                "partial": {
+                  "text": "Haze hides the far lands. {actor} climbs down none the wiser.",
+                  "goto": "walls"
+                },
+                "success": {
+                  "text": "From the top {actor} sees the old border road, and where the soldiers' marks on the walls point.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "goto": "walls"
+                }
+              }
+            },
+            {
+              "id": "walls",
+              "kind": "fixed",
+              "label": "Look over the guardroom walls",
+              "outcome": { "text": "You duck into the old guardroom.", "goto": "walls" }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Move on",
+              "outcome": { "text": "You leave the tower to the crows." }
+            }
+          ]
+        },
+        "walls": {
+          "text": "Soldiers left their marks on the guardroom walls: names, tallies, a rough map of a border that is long gone.",
+          "options": [
+            {
+              "id": "read",
+              "kind": "check",
+              "label": "Make sense of the marks",
+              "description": "A good reading is worth knowing, and maybe more.",
+              "check": { "skill": "history", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} reads names and tallies, and nothing more."
+                },
+                "partial": {
+                  "text": "{actor} works out which kingdom held the tower, and what it feared.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "Soldiers' marks in a broken watchtower show the border as it ran two kingdoms ago, and the raids it was built to watch for."
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} spots a tally that isn't a tally: a soldier's note of where he hid his pay. It is still there.",
+                  "effects": [
+                    {
+                      "effect": "log",
+                      "text": "Soldiers' marks in a broken watchtower show the border as it ran two kingdoms ago, and the raids it was built to watch for."
+                    },
+                    { "effect": "gold", "amount": 8 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave",
+              "outcome": { "text": "You leave the tower to the crows." }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "glowing-falls-sight",
+      "title": "The glowing falls",
+      "disposition": "pleasant",
+      "wonder": true,
+      "site": true,
+      "tags": ["wonder"],
+      "stages": {
+        "start": {
+          "text": "A waterfall drops from the cliff into a deep pool, and the water glows a soft blue-green, brighter as dusk comes on. Fish like lanterns turn in the pool. Nobody fills a waterskin here, and nobody can say why not.",
+          "options": [
+            {
+              "id": "stay",
+              "kind": "fixed",
+              "label": "Stay until dark",
+              "outcome": {
+                "text": "When night falls the whole gorge is lit from below. You sleep to the sound of it, and wake with the light still in your eyes.",
+                "effects": [{ "effect": "inspiration", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "glass-field-sight",
+      "title": "The glass field",
+      "disposition": "neutral",
+      "wonder": true,
+      "site": true,
+      "tags": ["wonder"],
+      "stages": {
+        "start": {
+          "text": "Out in the waste the sand has turned to glass across a whole valley, rippled like a frozen pond. At noon it blinds you. At sunset, they say, it burns.",
+          "options": [
+            {
+              "id": "wait",
+              "kind": "fixed",
+              "label": "Wait for the sunset",
+              "outcome": {
+                "text": "For a few minutes the whole valley is on fire, red and gold. Then it is only glass again, ticking as it cools."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bone-arch-sight",
+      "title": "The bone arch",
+      "disposition": "neutral",
+      "wonder": true,
+      "site": true,
+      "tags": ["wonder"],
+      "stages": {
+        "start": {
+          "text": "The ribs of something enormous arch out of the ground, bleached white and taller than a house. The old track runs right through them.",
+          "options": [
+            {
+              "id": "walk",
+              "kind": "fixed",
+              "label": "Walk through the ribs",
+              "outcome": {
+                "text": "Your voices echo strangely between the bones. On the far side everyone is quiet for a while, and nobody says what they were thinking."
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
