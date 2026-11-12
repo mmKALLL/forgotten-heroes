@@ -177,8 +177,9 @@ export function startEncounter(
 }
 
 /**
- * A due follow-up (wait 0) comes first, whatever the source filter or place; one whose situation
- * no longer exists is dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly situation.
+ * A due follow-up (wait 0) comes first, whatever the source filter or place, except that at sea
+ * it waits for land unless its situation fits the sea; one whose situation no longer exists is
+ * dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly situation.
  * On the road, `place` limits the pick to situations that fit its terrain and region (fitsPlace);
  * when none fits, nothing happens. A cautious party then skips a hostile pick with chance
  * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
@@ -195,7 +196,13 @@ export function drawEncounter(
   const situations = allSituations(content)
   const known = new Set(situations.map((s) => s.id))
   const followUps = state.followUps.filter((f) => f.wait > 0 || known.has(f.situationId))
-  const due = followUps.findIndex((f) => f.wait === 0)
+  // At sea, a due follow-up waits for land unless its situation fits the sea.
+  const fitsHere = (id: string) => {
+    if (place?.biome !== 'sea') return true
+    const situation = situations.find((s) => s.id === id)
+    return situation !== undefined && fitsPlace(situation, place)
+  }
+  const due = followUps.findIndex((f) => f.wait === 0 && fitsHere(f.situationId))
   if (due >= 0) {
     const rest = followUps.filter((_, i) => i !== due)
     const followUp = followUps[due]

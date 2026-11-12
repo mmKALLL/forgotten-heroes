@@ -96,6 +96,15 @@ describe('travel', () => {
     expect(steady.travel).toMatchObject({ pace: 'steady', coverTracks: false })
   })
 
+  test('a crossing with nothing to meet at sea draws no encounter days', () => {
+    const quiet = travel(at('ashmoor-1', { gold: 20 }), 'ashmoor-1-farisle-1')
+    expect(quiet.travel!.encounterDays).toEqual([])
+    const salty = structuredClone(content)
+    salty.situations.cliff.biomes = ['sea']
+    const lively = travel(at('ashmoor-1', { gold: 20 }), 'ashmoor-1-farisle-1', salty)
+    expect(lively.travel!.encounterDays.length).toBeGreaterThanOrEqual(1)
+  })
+
   test('at sea the ship sets the pace', () => {
     const at_sea = travel(
       at('ashmoor-1', { gold: 20 }),

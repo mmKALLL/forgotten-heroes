@@ -2,6 +2,8 @@ import type { Content } from '../../content/build'
 import type { Biome, Pace } from '../../schema/constants'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
+import { allSituations } from '../encounters/compile'
+import { fitsPlace } from '../encounters/run'
 import type { Draw } from '../rng'
 import {
   COVER_TRACKS_EXTRA_DAYS,
@@ -61,6 +63,40 @@ export const encounterChance = (
     0.9,
     Math.max(0.05, 0.2 + 0.15 * danger + 0.1 * threatLevel + PACE_ENCOUNTER_BONUS[pace])
   )
+
+/**
+ * True when some situation can be drawn on this route: one that fits its terrain and the region
+ * at either end (fitsPlace). At sea only `sea` situations can.
+ */
+export function canMeetEncounters(
+  content: Content,
+  route: Pick<Route, 'from' | 'to' | 'terrain'>
+): boolean {
+  const regions = [route.from, route.to]
+    .filter((id) => Object.hasOwn(content.settlements, id))
+    .map((id) => content.settlements[id].region)
+  return allSituations(content).some(
+    (s) =>
+      !s.followUpOnly &&
+      s.weight > 0 &&
+      regions.some((region) => fitsPlace(s, { biome: route.terrain, region }))
+  )
+}
+
+/**
+ * The encounter budget and the chance each slot above the fewest fills, for a journey of `days`
+ * at this pace; none at all on a route where nothing can be met (canMeetEncounters).
+ */
+export function routeEncounters(
+  meets: boolean,
+  days: number,
+  danger: number,
+  threatLevel: number,
+  pace: Pace = DEFAULT_PACE
+): { encounters: [number, number]; chance: number } {
+  if (!meets) return { encounters: [0, 0], chance: 0 }
+  return { encounters: encounterRange(days), chance: encounterChance(danger, threatLevel, pace) }
+}
 
 /** The journey days with an encounter, ascending; a day may hold more than one. */
 export function rollEncounterDays(

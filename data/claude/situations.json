@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up.",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it.",
   "entries": [
     {
       "id": "flooded-ferry",
@@ -860,6 +860,355 @@
                   "text": "You send them back to the duke with bruised pride and lighter purses.",
                   "effects": [{ "effect": "gold", "amount": 8 }]
                 }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "squall-off-the-bow",
+      "title": "A squall off the bow",
+      "biomes": ["sea"],
+      "disposition": "neutral",
+      "tags": ["sea", "storm"],
+      "notes": "Strong backs earn back part of the fare; a weather eye can spare everyone the worst; hiding below costs a day.",
+      "stages": {
+        "start": {
+          "text": "The sky to windward goes the colour of a bruise. Within the hour the squall is on you: rain flying sideways, the deck tilting, and the bosun bellowing for every pair of hands.",
+          "options": [
+            {
+              "id": "haul",
+              "kind": "check",
+              "label": "Haul on the lines with the crew",
+              "description": "Hard, wet work. The captain remembers who helped.",
+              "check": { "skill": "athletics", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "A wave takes {actor}'s feet from under them and slams them into the rail.",
+                  "effects": [
+                    { "effect": "hp", "amount": -6, "target": "actor" },
+                    { "effect": "exhaustion", "amount": 1, "target": "actor" }
+                  ]
+                },
+                "fail": {
+                  "text": "{actor} hangs on, but a loose block cracks them across the shoulder.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "You keep the sail from tearing loose, at the cost of skinned palms all round.",
+                  "effects": [{ "effect": "hp", "amount": -1, "target": "all" }]
+                },
+                "success": {
+                  "text": "{actor} is first to the lines and last to leave them. When the sky clears, the captain hands back part of your fare.",
+                  "effects": [{ "effect": "gold", "amount": 4 }]
+                },
+                "critSuccess": {
+                  "text": "{actor} spots a parting halyard just before it goes and saves the mainsail. The captain hands back your fare and pours you his good rum.",
+                  "effects": [
+                    { "effect": "gold", "amount": 8 },
+                    { "effect": "inspiration", "amount": 1 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "read-sky",
+              "kind": "check",
+              "label": "Read the weather for the captain",
+              "description": "Call the turn early and the worst passes astern. Call it wrong and you sail into it.",
+              "once": true,
+              "check": { "skill": "nature", "dc": 14 },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} calls the turn the wrong way, and the ship runs straight into the heart of it.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} calls the turn late. It takes the edge off the squall, but there is still work on deck.",
+                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "stay": true
+                },
+                "success": {
+                  "text": "{actor} reads the cloud and calls the turn early. The squall passes astern with barely a drop on deck."
+                },
+                "critSuccess": {
+                  "text": "{actor} calls the turn early, and the captain, impressed, refuses to hear of a fare for the rest of the voyage.",
+                  "effects": [{ "effect": "gold", "amount": 6 }]
+                }
+              }
+            },
+            {
+              "id": "below",
+              "kind": "fixed",
+              "label": "Wait it out below decks",
+              "description": "Safe, but with fewer hands the ship runs before the wind and loses a day.",
+              "outcome": {
+                "text": "You wedge yourselves between the cargo and listen to the hull groan all night. By morning the ship is far off its course.",
+                "effects": [{ "effect": "days", "amount": 1 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "passenger-overboard",
+      "title": "Passenger overboard",
+      "biomes": ["sea"],
+      "disposition": "neutral",
+      "tags": ["sea"],
+      "notes": "A swimmer earns the reward and risks the sea; a sharp eye earns less safely; or let the crew deal with it.",
+      "stages": {
+        "start": {
+          "text": "A shriek from the stern. A merchant's boy has gone over the rail, and the ship is already leaving him behind. The crew are slow with the boat; his father is not slow to wave his purse.",
+          "options": [
+            {
+              "id": "dive",
+              "kind": "check",
+              "label": "Dive in after him",
+              "description": "Fast, and dangerous in this swell.",
+              "highStakes": true,
+              "check": { "skill": "athletics", "dc": 14 },
+              "outcomes": {
+                "critFail": {
+                  "text": "The swell drives {actor} under twice. The crew haul out the boy and then {actor}, half-drowned.",
+                  "effects": [
+                    { "effect": "hp", "amount": -6, "target": "actor" },
+                    { "effect": "exhaustion", "amount": 1, "target": "actor" }
+                  ]
+                },
+                "fail": {
+                  "text": "{actor} reaches him, but the sea fights them all the way back, and in the end it is the crew's boat that brings them in. The father's thanks are warm; his purse stays shut.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "partial": {
+                  "text": "{actor} gets him back, having swallowed half the sea. The father pays, if less than he waved.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "gold", "amount": 6 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} has the boy back aboard before the crew have the boat untied. His father empties his purse into {actor}'s wet hands.",
+                  "effects": [{ "effect": "gold", "amount": 12 }]
+                },
+                "critSuccess": {
+                  "text": "{actor} has the boy back aboard before the crew have the boat untied. His father empties his purse, and the whole ship drinks to {actor} that night.",
+                  "effects": [
+                    { "effect": "gold", "amount": 12 },
+                    { "effect": "inspiration", "amount": 1 }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "guide",
+              "kind": "check",
+              "label": "Keep him in sight and guide the boat",
+              "description": "Safer. Someone has to watch where he went under.",
+              "check": { "skill": "perception", "dc": 12 },
+              "outcomes": {
+                "fail": {
+                  "text": "You lose him in the swell for a long minute. The boat finds him in the end, no thanks to you."
+                },
+                "partial": {
+                  "text": "{actor} points the boat to him, a little late. The boy comes back cold and frightened, and his father presses a few coins on you.",
+                  "effects": [{ "effect": "gold", "amount": 3 }]
+                },
+                "success": {
+                  "text": "{actor} never takes their eyes off him and calls the boat straight to him. His father is grateful.",
+                  "effects": [{ "effect": "gold", "amount": 6 }]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave it to the crew",
+              "outcome": {
+                "text": "The crew get the boat over at last, and the boy lives. His father does not look at you again for the rest of the voyage."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "something-under-the-hull",
+      "title": "Something under the hull",
+      "biomes": ["sea"],
+      "disposition": "neutral",
+      "tags": ["sea", "beast"],
+      "notes": "Stealth, a harpoon, or silver for the sea. Only the harpoon pays, and it can go badly.",
+      "stages": {
+        "start": {
+          "text": "The ship shudders, then shudders again. Something long and dark is passing under the keel, and the sailors have gone very quiet. One of them is fingering a harpoon.",
+          "options": [
+            {
+              "id": "keep-still",
+              "kind": "check",
+              "label": "Keep still and quiet",
+              "description": "Old sailors say it hunts by sound.",
+              "check": { "skill": "stealth", "dc": 13 },
+              "outcomes": {
+                "critFail": {
+                  "text": "Someone drops a pail. A coil as thick as a mast breaks the water and sweeps the deck before it sinks away.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "fail": {
+                  "text": "A loose block knocks against the rail. The ship lurches as the thing rises to look, and someone is thrown against the hatch.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "random" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "It circles once more, then sinks away, and a barrel of your stores goes with it, torn from its lashings.",
+                  "effects": [{ "effect": "gold", "amount": -4 }]
+                },
+                "success": { "text": "It loses interest and sinks back into the dark." },
+                "critSuccess": {
+                  "text": "It rises close enough to show one vast, ancient eye, looks at you for a long moment, and goes. Nobody speaks for a long time.",
+                  "effects": [{ "effect": "inspiration", "amount": 1 }]
+                }
+              }
+            },
+            {
+              "id": "harpoon",
+              "kind": "check",
+              "label": "Help the sailor drive it off",
+              "description": "If it takes the iron, the crew will stand you a share of the fare.",
+              "highStakes": true,
+              "check": { "skill": "athletics", "dc": 15, "combat": true },
+              "outcomes": {
+                "critFail": {
+                  "text": "The harpoon line snaps taut and drags {actor} the length of the deck.",
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
+                },
+                "fail": {
+                  "text": "The iron glances off. The thing shoulders the hull hard enough to spring a plank, and everyone bails until dawn.",
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                },
+                "partial": {
+                  "text": "It takes the iron and dives, and the line burns through {actor}'s hands.",
+                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor}'s throw goes deep. The thing thrashes and is gone, and the crew roar and pass the hat.",
+                  "effects": [{ "effect": "gold", "amount": 5 }]
+                },
+                "critSuccess": {
+                  "text": "{actor}'s throw goes deep, and the thing is gone for good. The captain hands back your fare and the crew pass the hat as well.",
+                  "effects": [{ "effect": "gold", "amount": 10 }]
+                }
+              }
+            },
+            {
+              "id": "offering",
+              "kind": "fixed",
+              "label": "Give the sea its due",
+              "description": "The sailors swear by an offering of silver.",
+              "requires": [{ "req": "gold", "min": 5 }],
+              "outcome": {
+                "text": "You throw a handful of silver over the side and the sailors nod. Whether by luck or by custom, it sinks away.",
+                "effects": [{ "effect": "gold", "amount": -5 }]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "smugglers-below-decks",
+      "title": "Smugglers below decks",
+      "biomes": ["sea"],
+      "disposition": "hostile",
+      "tags": ["sea", "brawl"],
+      "notes": "Tagged brawl: a stowaway's critical failure starts it (travel/stowaway.ts). Fists, a convincing lie, or coin; a half-believed lie follows you ashore.",
+      "stages": {
+        "start": {
+          "text": "Below decks, among crates that are plainly not salt fish, a knot of sailors closes in with belaying pins in their fists. They would rather you went over the side than ashore talking.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight",
+              "description": "Sailors brawl dirty, and there are more of them.",
+              "check": { "skill": "athletics", "dc": 13, "combat": true },
+              "outcomes": {
+                "critFail": {
+                  "text": "They beat you to the deck and go through your purses before the mate breaks it up.",
+                  "effects": [
+                    { "effect": "hp", "amount": -5, "target": "all" },
+                    { "effect": "gold", "amount": -8 }
+                  ]
+                },
+                "fail": {
+                  "text": "You hold them off until the mate breaks it up, and every one of you is bruised and bleeding.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                },
+                "partial": {
+                  "text": "A short, ugly fight in the dark. {actor} takes the worst of it.",
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                },
+                "success": {
+                  "text": "{actor} drops the biggest of them, and the rest lose their nerve.",
+                  "effects": [{ "effect": "hp", "amount": -1, "target": "actor" }]
+                },
+                "critSuccess": {
+                  "text": "{actor} lays out two of them, and the rest suddenly want to be friends. Friends who share.",
+                  "effects": [{ "effect": "gold", "amount": 10 }]
+                }
+              }
+            },
+            {
+              "id": "swear-silence",
+              "kind": "check",
+              "label": "Swear you saw nothing",
+              "description": "Talk them round. If they half believe you, they will be waiting in port.",
+              "once": true,
+              "check": { "skill": "deception", "dc": 14 },
+              "outcomes": {
+                "critFail": {
+                  "text": "Nobody believes a word, and now they are angry as well. Someone swings first.",
+                  "effects": [
+                    { "effect": "hp", "amount": -2, "target": "random" },
+                    { "effect": "position", "position": "exposed" }
+                  ],
+                  "stay": true
+                },
+                "fail": {
+                  "text": "They aren't convinced, and they close in.",
+                  "effects": [{ "effect": "position", "position": "exposed" }],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They let you be for now, but you catch them watching you all the way to port.",
+                  "effects": [
+                    { "effect": "followUp", "situation": "grudge-on-the-road", "after": 2 }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} convinces them you can't tell salt fish from brandy. They laugh and leave you be."
+                },
+                "critSuccess": {
+                  "text": "{actor} convinces them so well that they cut you in for your silence.",
+                  "effects": [{ "effect": "gold", "amount": 6 }]
+                }
+              }
+            },
+            {
+              "id": "pay",
+              "kind": "fixed",
+              "label": "Pay for your silence",
+              "description": "Coin talks louder than promises.",
+              "requires": [{ "req": "gold", "min": 10 }],
+              "outcome": {
+                "text": "They count it twice, and leave you be.",
+                "effects": [{ "effect": "gold", "amount": -10 }]
               }
             }
           ]

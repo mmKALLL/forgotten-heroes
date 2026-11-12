@@ -7,10 +7,10 @@ import { canAct } from '../rules/character'
 import { otherEnd, routesFrom, settlementName } from '../world/geo'
 import { ambushPositionForPace, paceHostileAvoidance } from './pace'
 import {
-  encounterChance,
-  encounterRange,
+  canMeetEncounters,
   fareFor,
   journeyDays,
+  routeEncounters,
   routeTerrain,
   routeThreat,
 } from './routes'
@@ -120,7 +120,8 @@ function paceOptions(
   state: GameState,
   route: Route,
   threatLevel: number,
-  forage: boolean
+  forage: boolean,
+  meets: boolean
 ): PaceOption[] {
   const paces = route.terrain === 'sea' ? LAND_PACES.filter(([p]) => p === 'steady') : LAND_PACES
   return paces.map(([pace, coverTracks]) => {
@@ -133,8 +134,7 @@ function paceOptions(
       food,
       forage: forage ? forageCheck(state, route.terrain, pace) : null,
       warnings,
-      encounters: encounterRange(days),
-      chance: encounterChance(route.danger, threatLevel, pace),
+      ...routeEncounters(meets, days, route.danger, threatLevel, pace),
       hostileAvoided: paceHostileAvoidance(pace),
       ambush: ambushPositionForPace(pace, coverTracks),
     }
@@ -151,9 +151,9 @@ export type RouteOption = {
   terrain: Biome
   danger: number
   threatLevel: number
-  /** The encounter budget, fewest to most. */
+  /** The encounter budget, fewest to most ([0, 0] where nothing can be met, e.g. at sea). */
   encounters: [number, number]
-  /** The chance each slot above the fewest fills. */
+  /** The chance each slot above the fewest fills (0 where nothing can be met). */
   chance: number
   fare: number
   /**
@@ -184,6 +184,7 @@ export function routeOptions(state: GameState, content: Content, forage = true):
     const days = journeyDays(route)
     const threatLevel = routeThreat(state, content, route)
     const fare = fareFor(route, state.party.length)
+    const meets = canMeetEncounters(content, route)
     const reason = busy
       ? 'Finish the current encounter first.'
       : !fit
@@ -200,11 +201,10 @@ export function routeOptions(state: GameState, content: Content, forage = true):
       terrain: route.terrain,
       danger: route.danger,
       threatLevel,
-      encounters: encounterRange(days),
-      chance: encounterChance(route.danger, threatLevel),
+      ...routeEncounters(meets, days, route.danger, threatLevel),
       fare,
       stowaway: busy ? null : stowawayCheck(state, route),
-      paces: paceOptions(state, route, threatLevel, forage),
+      paces: paceOptions(state, route, threatLevel, forage, meets),
       paceNote: route.terrain === 'sea' ? SEA_PACE_NOTE : null,
       available: reason === null,
       reason,

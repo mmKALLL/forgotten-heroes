@@ -466,10 +466,24 @@ describe('drawing for a place on the road', () => {
     expect(fitsPlace({}, { biome: 'sea', region: 'farisle' })).toBe(false)
   })
 
-  test('a due follow-up comes first wherever the party is', () => {
+  test('a due follow-up comes first on land; at sea it waits for land unless it fits the sea', () => {
     const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] })
-    const state = drawEncounter(due, tagged, undefined, { biome: 'sea', region: 'farisle' })
-    expect(state.encounter?.situation.id).toBe('grudge')
+    const sea = { biome: 'sea', region: 'farisle' } as const
+    const land = { biome: 'marsh', region: 'ashmoor' } as const
+    expect(drawEncounter(due, tagged, undefined, land).encounter?.situation.id).toBe('grudge')
+    // Nothing fits the sea: nothing happens, and the follow-up is still due.
+    const waited = drawEncounter(due, tagged, undefined, sea)
+    expect(waited.encounter).toBeNull()
+    expect(waited.followUps).toEqual(due.followUps)
+    // A sea situation is drawn instead, and the follow-up stays due for land.
+    const salty = structuredClone(tagged)
+    salty.situations.cliff.biomes = ['sea']
+    const drawn = drawEncounter(due, salty, undefined, sea)
+    expect(drawn.encounter?.situation.id).toBe('cliff')
+    expect(drawn.followUps).toEqual(due.followUps)
+    // A follow-up that fits the sea happens there.
+    salty.situations.grudge.biomes = ['sea']
+    expect(drawEncounter(due, salty, undefined, sea).encounter?.situation.id).toBe('grudge')
   })
 })
 

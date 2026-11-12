@@ -3,9 +3,10 @@ import type { FixedOption } from '../schema/encounter'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
-import { encounterOver } from '../engine/encounters/run'
+import { encounterOver, fitsPlace } from '../engine/encounters/run'
 import { lintSituation, validateSituation, validateTwistKind } from '../engine/encounters/validate'
 import { newGame, step } from '../engine/state'
+import { brawlCandidates } from '../engine/travel/stowaway'
 import { loadBundledContent } from './bundled'
 
 const content = loadBundledContent()
@@ -127,7 +128,7 @@ const idsFrom = (source: string) =>
     .map((s) => s.id)
     .sort()
 
-test('Claude wrote eight situations, two of them wonders, plus follow-ups for the lizardfolk port and the twist table', () => {
+test('Claude wrote eight situations, two of them wonders, four at sea, plus follow-ups for the lizardfolk port and the twist table', () => {
   expect(idsFrom('claude')).toEqual([
     'ambush-at-the-narrows',
     'creeping-fever',
@@ -137,13 +138,27 @@ test('Claude wrote eight situations, two of them wonders, plus follow-ups for th
     'lantern-moths',
     'lizardfolk-herb',
     'mapmakers-apprentice',
+    'passenger-overboard',
     'pilgrims-at-dusk',
     'singing-stones',
+    'smugglers-below-decks',
     'sold-out-ambush',
+    'something-under-the-hull',
+    'squall-off-the-bow',
     'wardens-on-your-trail',
   ])
   const wonders = Object.values(content.situations).filter((s) => s.source === 'claude' && s.wonder)
   expect(wonders.map((s) => s.id).sort()).toEqual(['lantern-moths', 'singing-stones'])
+})
+
+test('the sea has its own situations, and a hostile one for a stowaway brawl', () => {
+  const sea = { biome: 'sea', region: Object.keys(content.regions)[0] } as const
+  const atSea = allSituations(content).filter(
+    (s) => !s.followUpOnly && s.weight > 0 && fitsPlace(s, sea)
+  )
+  expect(atSea.length).toBeGreaterThanOrEqual(3)
+  expect(new Set(atSea.map((s) => s.disposition))).toEqual(new Set(['neutral', 'hostile']))
+  expect(brawlCandidates(content, sea).map((s) => s.id)).toEqual(['smugglers-below-decks'])
 })
 
 test('the six prototype events are ported to original/', () => {

@@ -58,7 +58,7 @@ describe('routeOptions', () => {
       days: 3,
       terrain: 'sea',
       fare: 12,
-      encounters: [1, 3],
+      encounters: [0, 0],
       available: false,
       reason: 'Passage costs 12 gp.',
     })
@@ -110,6 +110,21 @@ describe('routeOptions', () => {
       ['brisk', false, 2, 4, 4, [0, 2], chance('brisk'), 0, 'exposed'],
       ['forced', false, 2, 6, 6, [0, 2], chance('forced'), 0, 'exposed'],
     ])
+  })
+
+  test('a road where nothing can be met promises no encounters', () => {
+    const here = makeState({ location: 'ashmoor-1', gold: 20 })
+    const [sea] = routeOptions(here, content)
+    expect(sea).toMatchObject({ terrain: 'sea', encounters: [0, 0], chance: 0 })
+    expect(sea.paces.map((p) => [p.encounters, p.chance])).toEqual([[[0, 0], 0]])
+    const salty = structuredClone(content)
+    salty.situations.cliff.biomes = ['sea']
+    const [shipped] = routeOptions(here, salty)
+    expect(shipped).toMatchObject({
+      encounters: [1, 3],
+      chance: encounterChance(1, sea.threatLevel),
+    })
+    expect(shipped.paces[0].encounters).toEqual([1, 3])
   })
 
   test('at sea the ship sets the pace, and the preview says so', () => {

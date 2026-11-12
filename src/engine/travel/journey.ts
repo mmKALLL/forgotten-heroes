@@ -11,12 +11,12 @@ import { DEFAULT_PACE, coversTracks, logPaceDay } from './pace'
 import { forageDay, type ForageResult } from './forage'
 import { foldTrail } from './pursuit'
 import {
-  encounterChance,
-  encounterRange,
+  canMeetEncounters,
   fareFor,
   journeyDays,
   kmPerDay,
   rollEncounterDays,
+  routeEncounters,
   routeTerrain,
   routeThreat,
 } from './routes'
@@ -149,9 +149,15 @@ function setOut(
   const { pace, coverTracks } = paceFor(route, requestedPace, requestedCover)
   const to = otherEnd(route, here)
   const length = journeyDays(route, pace, coverTracks)
-  const chance = encounterChance(route.danger, routeThreat(state, content, route), pace)
+  const { encounters, chance } = routeEncounters(
+    canMeetEncounters(content, route),
+    length,
+    route.danger,
+    routeThreat(state, content, route),
+    pace
+  )
   const [encounterDays, rng] = withRng(state.rng, (d) =>
-    rollEncounterDays(d, length, encounterRange(length), chance)
+    rollEncounterDays(d, length, encounters, chance)
   )
   const travel: TravelState = {
     route: route.id,
