@@ -7,6 +7,7 @@ import { placeInfo, routeOptions } from '../../engine/travel/preview'
 import { restOption } from '../../engine/travel/supplies'
 import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
+import { I18nProvider, LANGUAGE_KEY } from '../i18n/I18n'
 import { PlacePanel } from './PlacePanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
 
@@ -237,5 +238,83 @@ test('a forced march that could kill someone gets a severe warning, listed first
   for (const other of items.slice(1)) {
     expect(other.className).toBe('')
     expect(other.textContent).toMatch(/^⚠ /)
+  }
+})
+
+/** The fixture world with one extra lair in Mirefold's domain (ashmoor-1), found or not. */
+const withLair = (discovered: boolean, cleared = false) => {
+  const state = makeState({ location: 'ashmoor-1', gold: 50 })
+  state.world.pois['poi-9'] = {
+    type: 'orc-war-camp',
+    spot: 'spot-0009',
+    domain: 'ashmoor-1',
+    name: 'Bonepile camp',
+    threat: 2,
+    discovered,
+    cleared,
+  }
+  return state
+}
+
+test('shows the land, the domain and the kingdom, with the domain’s threat', () => {
+  const state = makeState({ location: 'greenvale-1', gold: 50 })
+  panel(state, null)
+  const info = placeInfo(state, content, 'greenvale-1')!
+  const kingdom = state.world.kingdoms.find((k) => k.domains.includes('greenvale-1'))!
+  const realm = `Greenvale · domain of ${info.name} · ${kingdom.name} (${info.rulerAncestry} rule)`
+  expect(screen.getByText(info.seat ? `${realm} · seat of the realm` : realm)).toBeTruthy()
+  expect(
+    screen.getByText(
+      `Threat: ${info.threatName} (${['Held', 'Stirring', 'Rising', 'Rampant'][info.threatLevel]})`
+    )
+  ).toBeTruthy()
+})
+
+test('the lair note appears only for a discovered, uncleared lair in the domain', () => {
+  const { unmount } = panel(withLair(false), null)
+  expect(screen.queryByText(/from lairs/)).toBeNull()
+  unmount()
+  const view = panel(withLair(true), null)
+  expect(screen.getByText(/· \+2 from lairs$/)).toBeTruthy()
+  view.unmount()
+  panel(withLair(true, true), null)
+  expect(screen.queryByText(/from lairs/)).toBeNull()
+})
+
+test('a settlement elsewhere and a road’s end use the same realm and threat lines', () => {
+  const state = makeState({ location: 'greenvale-1', gold: 50 })
+  const far = placeInfo(state, content, 'farisle-1')!
+  const { unmount } = panel(state, 'farisle-1')
+  expect(screen.getByText(new RegExp(`^${far.name}: ${far.typeName}$`))).toBeTruthy()
+  expect(screen.getAllByText(new RegExp(`^Far Isle · domain of ${far.name} · `))).toHaveLength(1)
+  unmount()
+  const next = placeInfo(state, content, 'greenvale-2')!
+  panel(state, 'greenvale-2')
+  const group = road(next.name)
+  expect(group.getByText(new RegExp(`^Greenvale · domain of ${next.name} · `))).toBeTruthy()
+  expect(group.getByText(new RegExp(`^${next.typeName} · Threat: ${next.threatName}`))).toBeTruthy()
+})
+
+test('in Japanese the realm line is translated, with every placeholder filled', () => {
+  localStorage.setItem(LANGUAGE_KEY, 'ja')
+  try {
+    const state = withLair(true)
+    const info = placeInfo(state, content, 'ashmoor-1')!
+    const { container } = render(
+      <I18nProvider content={content}>
+        <Panel
+          content={content}
+          state={state}
+          selected="greenvale-2"
+          onSelect={() => {}}
+          onAction={() => {}}
+        />
+      </I18nProvider>
+    )
+    expect(screen.getByText(new RegExp(`^Ashmoor · ${info.name}の領地 · `))).toBeTruthy()
+    expect(screen.getByText(/巣窟から\+2/)).toBeTruthy()
+    expect(container.textContent).not.toMatch(/\{\w+\}/)
+  } finally {
+    localStorage.clear()
   }
 })

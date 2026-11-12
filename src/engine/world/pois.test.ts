@@ -10,6 +10,7 @@ import {
   domainThreatLevel,
   domainThreatStrength,
   generatePois,
+  knownLairThreat,
   poisPerDomain,
   type PoiWorld,
 } from './pois'
@@ -236,6 +237,18 @@ describe('domain threat', () => {
     // A lair elsewhere doesn't count here.
     const away = world({ 'poi-1': poi({ domain: 'greenvale-1' }) })
     expect(domainThreatLevel(away, 'ashmoor-1')).toBe(2)
+  })
+
+  test('the known lair threat counts only discovered, uncleared hostile POIs in the domain', () => {
+    expect(knownLairThreat(world({ 'poi-1': poi({ threat: 2 }) }), 'ashmoor-1')).toBe(0)
+    const found = world({
+      'poi-1': poi({ threat: 2, discovered: true }),
+      'poi-2': poi({ threat: 1, discovered: true, cleared: true }),
+      'poi-3': poi({ threat: 1, discovered: true, domain: 'greenvale-1' }),
+      'poi-4': poi({ threat: 1 }),
+    })
+    expect(knownLairThreat(found, 'ashmoor-1')).toBe(2)
+    expect(knownLairThreat(found, 'atlantis')).toBe(0)
   })
 
   test('an unknown domain has no threat', () => {

@@ -194,7 +194,8 @@ test('a readable save leaves no backup behind', () => {
 
 test('the odds bar labels tiers with d20 thresholds by default, with no label toggle', () => {
   render(<App />)
-  const bar = screen.getByRole('img', { name: /Success/ })
+  const practice = within(screen.getByRole('region', { name: 'Practice check' }))
+  const bar = practice.getByRole('img', { name: /Success/ })
   expect(bar.textContent).toMatch(/\d+\+/)
   expect(bar.textContent).not.toMatch(/–|%/)
   expect(bar.getAttribute('aria-label')).toMatch(/Success: \d+–\d+ \(\d+%\)/)

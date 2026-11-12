@@ -16,6 +16,7 @@ import { PartyPanel } from './PartyPanel'
 import { useGame } from './useGame'
 import { JourneyPanel } from './world/JourneyPanel'
 import { PlacePanel } from './world/PlacePanel'
+import { PoiPanel } from './world/PoiPanel'
 import { useTravelPrefs } from './world/travelPrefs'
 import { WorldMap } from './world/WorldMap'
 
@@ -37,7 +38,7 @@ function Game() {
   // state, so they don't give the result away. A reload starts from the current state.
   const [revealed, setRevealed] = useState(state)
   const [reducedMotion] = useState(prefersReducedMotion)
-  // The settlement picked on the map or in the roads list (UI state only).
+  // The settlement or site picked on the map or in the roads list (UI state only).
   const [selected, setSelected] = useState<string | null>(null)
   // The pace and foraging chosen for the roads out: kept across journeys, reset by a new party.
   const [travelPrefs, setTravelPrefs] = useTravelPrefs(state.seed)
@@ -88,6 +89,16 @@ function Game() {
               />
               {shown.travel ? (
                 <JourneyPanel content={content} state={shown} onAction={dispatch} />
+              ) : shown.location && Object.hasOwn(shown.world.pois, shown.location) ? (
+                <PoiPanel
+                  content={content}
+                  state={shown}
+                  selected={selected}
+                  onSelect={setSelected}
+                  prefs={travelPrefs}
+                  onPrefs={setTravelPrefs}
+                  onAction={dispatch}
+                />
               ) : (
                 <PlacePanel
                   content={content}

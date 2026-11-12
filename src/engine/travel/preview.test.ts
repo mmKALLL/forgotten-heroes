@@ -6,12 +6,14 @@ import {
   SEA_PACE_NOTE,
   journeyInfo,
   placeInfo,
+  poiInfo,
   roadReasonText,
   routeOptions,
   suppliesInfo,
 } from './preview'
 import { tierOdds } from '../rules/checks'
 import type { GameState } from '../../schema/state'
+import type { PoiState } from '../../schema/world'
 import { FORAGE_DC, WATERSKIN_WATER } from './tuning'
 import { FORCED_MARCH_DC } from './pace'
 import { isSevere, warningText } from './warnings'
@@ -34,6 +36,8 @@ describe('placeInfo', () => {
       landName: 'Ashmoor',
       biome: 'marsh',
       domainId: 'ashmoor-1',
+      domainName: s.name,
+      lairThreat: 0,
       kingdomName: kingdom.name,
       seat: kingdom.seat === 'ashmoor-1',
       threatName: content.threats[state.world.lands.ashmoor.threat].name,
@@ -44,6 +48,31 @@ describe('placeInfo', () => {
     expect(placeInfo(state, content, 'atlantis')).toBeNull()
   })
 
+  test('notes the threat of the lairs the party has found in the domain', () => {
+    const base = makeState()
+    const pois = {
+      ...base.world.pois,
+      'poi-9': {
+        type: 'orc-war-camp',
+        spot: 'spot-0009',
+        domain: 'ashmoor-1',
+        name: 'Bonepile camp',
+        threat: 2,
+        discovered: false,
+        cleared: false,
+      },
+    }
+    const hidden = { ...base, world: { ...base.world, pois } }
+    expect(placeInfo(hidden, content, 'ashmoor-1')!.lairThreat).toBe(0)
+    const found = structuredClone(hidden)
+    found.world.pois['poi-9'].discovered = true
+    expect(placeInfo(found, content, 'ashmoor-1')!.lairThreat).toBe(2)
+    // Hidden or not, the lair is in the level.
+    expect(placeInfo(hidden, content, 'ashmoor-1')!.threatLevel).toBe(
+      placeInfo(found, content, 'ashmoor-1')!.threatLevel
+    )
+  })
+
   test('a settlement named after a town map has its banner', () => {
     const state = newGame(0, content)
     const id = Object.keys(state.world.settlements).find(
@@ -52,6 +81,60 @@ describe('placeInfo', () => {
     expect(placeInfo(state, content, id)!.banner).toBe(
       'town maps/Harbourne - rich seaside town - LN.jpg'
     )
+  })
+})
+
+describe('poiInfo', () => {
+  const withPoi = (overrides: Partial<PoiState>) => {
+    const state = makeState()
+    state.world.pois['poi-9'] = {
+      type: 'orc-war-camp',
+      spot: 'spot-0009',
+      domain: 'ashmoor-1',
+      name: 'Bonepile camp',
+      threat: 2,
+      discovered: true,
+      cleared: false,
+      ...overrides,
+    }
+    return state
+  }
+
+  test('describes a discovered site: type, owner, threat and water', () => {
+    const state = withPoi({})
+    const kingdom = state.world.kingdoms.find((k) => k.domains.includes('ashmoor-1'))!
+    expect(poiInfo(state, content, 'poi-9')).toEqual({
+      id: 'poi-9',
+      name: 'Bonepile camp',
+      category: 'lair',
+      typeName: 'War camp',
+      domainId: 'ashmoor-1',
+      domainName: state.world.settlements['ashmoor-1'].name,
+      kingdomName: kingdom.name,
+      landName: 'Ashmoor',
+      hostile: true,
+      threat: 2,
+      threatName: content.threats[state.world.lands.ashmoor.threat].name,
+      cleared: false,
+      water: false,
+    })
+    const hut = withPoi({ type: 'herbalist-hut', threat: 0 })
+    expect(poiInfo(hut, content, 'poi-9')).toMatchObject({
+      category: 'expert',
+      hostile: false,
+      threat: 0,
+      water: true,
+    })
+  })
+
+  test('a cleared lair adds nothing; an undiscovered or unknown site is not described', () => {
+    expect(poiInfo(withPoi({ cleared: true }), content, 'poi-9')).toMatchObject({
+      cleared: true,
+      threat: 0,
+    })
+    expect(poiInfo(withPoi({ discovered: false }), content, 'poi-9')).toBeNull()
+    expect(poiInfo(makeState(), content, 'ashmoor-1')).toBeNull()
+    expect(poiInfo(makeState(), content, 'poi-404')).toBeNull()
   })
 })
 

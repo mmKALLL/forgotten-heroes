@@ -252,6 +252,14 @@ describe('explore', () => {
     expect(option).toMatchObject({ actorId: 'brom', skill: 'survival', dc, days: EXPLORE_DAYS })
     expect(option.chances).toEqual(previewCheck(state, 'survival', dc, 'normal')!.odds)
     expect(option.outcomes).toHaveLength(TIERS.length)
+    // What each tier finds and how long it takes, for previews in any language.
+    expect(option.finds).toEqual({
+      critFail: { found: 0, days: EXPLORE_DAYS },
+      fail: { found: 0, days: EXPLORE_DAYS },
+      partial: { found: 1, days: EXPLORE_DAYS + 1 },
+      success: { found: 1, days: EXPLORE_DAYS },
+      critSuccess: { found: 2, days: EXPLORE_DAYS },
+    })
     // A trained eye wins.
     const keen = {
       ...lyra,

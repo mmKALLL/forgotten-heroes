@@ -1,4 +1,4 @@
-import type { PaceOption, RoadReason } from '../../engine/travel/preview'
+import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/preview'
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
 import type { TravelWarning } from '../../engine/travel/warnings'
 import type { Biome, Pace } from '../../schema/constants'
@@ -32,6 +32,32 @@ export const threatText = (t: T, level: number): string =>
   t(`threat.${Math.max(0, Math.min(3, level))}` as MessageKey)
 export const sizeText = (t: T, tier: number): string =>
   t(`size.${Math.max(0, Math.min(5, tier))}` as MessageKey)
+
+/** "{land} · domain of {settlement} · {kingdom} ({ancestry} rule)", and the seat marked. */
+export function realmText(
+  t: T,
+  p: Pick<PlaceInfo, 'landName' | 'domainName' | 'kingdomName' | 'rulerAncestry' | 'seat'>
+): string {
+  const realm = t('place.realm', {
+    land: p.landName,
+    domain: p.domainName,
+    kingdom: p.kingdomName,
+    ancestry: p.rulerAncestry,
+  })
+  return p.seat ? `${realm} · ${t('place.seat')}` : realm
+}
+
+/** The domain's threat and level, plus what the lairs the party has found add to it. */
+export function threatLine(
+  t: T,
+  p: Pick<PlaceInfo, 'threatName' | 'threatLevel' | 'lairThreat'>
+): string {
+  const line = t('place.domainThreat', {
+    threat: p.threatName,
+    level: threatText(t, p.threatLevel),
+  })
+  return p.lairThreat > 0 ? `${line} · ${t('place.lairThreat', { n: p.lairThreat })}` : line
+}
 
 /** What a forage roll finds (ForageCheck.outcomes), in the UI language. */
 export function findsText(t: T, found: { food: number; water: number }): string {
