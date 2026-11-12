@@ -110,9 +110,12 @@ The town map image is a banner and backdrop.
 
 - **Altaeus** is the fixed geography, taken from the world map. About 14 named regions and about 45 settlement markers form a graph: nodes are settlements and points of interest at the marker coordinates, and edges are routes with a distance (km, from the 100 km scale bar), a terrain type, and a danger level.
 - **Political layer:** this is the randomised part.
-  - Each region has a local threat or usurper (orcs, undead, a cult...) with its own strength.
-  - Kingdoms own one or more regions.
-  - A kingdom's defence is split across its regions, so growth thins its garrisons and lets threats rise.
+  - **Two scales:**
+    - **Lands:** the 16 named map areas. They carry geography, biome and the roaming local threat or usurper (orcs, undead, a cult...) with its own strength.
+    - **Domains:** the political unit, one per settlement with its surroundings (about 53).
+  - **Kingdoms:** there are 8–12, each holding a handful of domains, with seats at the 14 capitals.
+  - **Threat level is worked out per domain:** the land's threat strength minus that domain's garrison. A kingdom's defence is split across its domains, so growth thins its garrisons. Border domains of a sprawling kingdom become the weak spots where threats rise.
+  - **Status:** decided after Plan 3. Plan 3 built kingdoms over the 16 lands, and the domain rework follows Plan 3's fixes.
 - **New world:** re-rolls the political layer on top of the fixed geography: borders, ruling ancestries, threats, and settlement names and types.
 - **Town names** come first from the town-map filenames in `~/dnd5e/town maps/` (including `__altaeus/`). Their `Name - description - alignment` pattern also hints at the settlement type, biome, wealth and alignment, and the map image becomes that town's banner. The generators from the prototype's `towns.ts` (English, French and Spanish style compounds) fill any remaining settlements.
   - **Which file a town goes in:** names that come from published settings or the real world (Waterdeep, Neverwinter, Phandalin, Barovia, Rivendell, Gondolin, Moria, Absalom, Emon, Athens and so on) go in `data/imported-private/towns.json`, which is gitignored. Original or generic names go in the committed `data/original/towns.json`. Without the private file, generated names take their place.
