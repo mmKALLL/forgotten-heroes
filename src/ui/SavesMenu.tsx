@@ -67,8 +67,9 @@ export function SavesMenu({
             {SLOTS.map((n) => {
               const v = view(n)
               const active = n === slot
-              // A run that hasn't ended is lost when replaced: ask first.
-              const ongoing = v.kind === 'saved' && v.summary.ending === null
+              // A run whose party lives (a won or lost Crisis plays on) is lost when replaced: ask
+              // first. Only a fallen run has nothing left to lose.
+              const ongoing = v.kind === 'saved' && v.summary.ending !== 'fallen'
               const asking = confirm?.slot === n ? confirm.what : null
               return (
                 <li key={n}>
