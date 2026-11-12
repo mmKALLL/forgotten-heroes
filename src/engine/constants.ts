@@ -144,6 +144,32 @@ export const OVERLOAD_RATIO = 1.5
 /** An encumbered party walks at this share of its speed (and can't force a march). */
 export const ENCUMBERED_SPEED = 2 / 3
 
+// Markets (economy/market.ts)
+
+/** Each level of demand over supply multiplies a price by this (and each level under divides). */
+export const PRICE_STEP = 1.25
+/** A market's summed supply or demand level for a good stays within ±this. */
+export const MARKET_LEVEL_MAX = 3
+/** Prices drift up to ±this share around their level, in slow waves. */
+export const DRIFT = 0.15
+/** The drift's waves: a new seeded value every this many days, eased in between. */
+export const DRIFT_PERIOD_DAYS = 10
+/** A market recovers half of the party's bulk trading in this many days. */
+export const RECOVERY_HALF_LIFE_DAYS = 10
+/**
+ * Units of a good (at depth 1) a market absorbs, by size tier (outpost first): trading this many
+ * moves the price by a factor of e (about 63% down when selling).
+ */
+export const MARKET_DEPTH: readonly number[] = [3, 5, 8, 12, 20, 30]
+/** The gap between buying and selling at an average shop, by size tier (outpost first). */
+export const SPREAD_BY_SIZE: readonly number[] = [0.4, 0.34, 0.28, 0.22, 0.18, 0.15]
+/** Each point of shop quality above 3 narrows the spread by this much (and below widens it). */
+export const SPREAD_PER_QUALITY = 0.03
+/** No spread is narrower than this, whatever the quality or standing. */
+export const SPREAD_MIN = 0.05
+/** The market stalls every settlement has for essentials trade at this quality (the worst spread). */
+export const STALL_QUALITY = 1
+
 // Stowing away (stowaway.ts)
 
 /** The Stealth DC to stow away on a ship. */
