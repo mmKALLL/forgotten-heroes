@@ -22,13 +22,14 @@ import { encounterSettlementName, unmetStanding } from '../town/reputation'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
 import { anyUndiscovered, domainAt } from '../world/pois'
-import { boonReadyIn } from '../world/sites'
+import { boonReadyIn, siteStatus } from '../world/sites'
+import { dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, defaultXp, isHighStakes, tierOutcome } from './outcomes'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
-import { TWIST_PLACE_WEIGHT } from '../constants'
+import { POWER_DC, TWIST_PLACE_WEIGHT } from '../constants'
 
 export type EncounterAction =
   | { type: 'startEncounter'; situationId: string }
@@ -129,11 +130,20 @@ const advanceFollowUps = (state: GameState): GameState => ({
   followUps: state.followUps.map((f) => ({ ...f, wait: Math.max(0, f.wait - 1) })),
 })
 
+/** What a site's power adds to every check's DC there (POWER_DC a level); 0 away from one. */
+function sitePowerDc(state: GameState, poi: string | undefined): number {
+  if (!poi || !Object.hasOwn(state.world.pois, poi)) return 0
+  const power = siteStatus(state.world.seed, poi, state.world.pois[poi], state.day)?.power ?? 0
+  return power * POWER_DC
+}
+
 /**
  * Starts a situation. On the road, `place` weights the twist table towards kinds that fit the
  * place, and on a journey a hostile encounter meets the party on the footing its pace gives
  * (ambushPositionForPace). The encounter happens in the place's domain (or, without a place,
- * where the party is), and at `poi` when visiting one.
+ * where the party is), and at `poi` when visiting one. The snapshot is hardened once, here, by the
+ * day's danger and the site's power (world/danger.ts harden), so the previews and rolls agree and a
+ * save loaded later doesn't change an open encounter.
  */
 export function startEncounter(
   state: GameState,
@@ -163,7 +173,12 @@ export function startEncounter(
     )
     return { slots: { ...slots, ...rollSlots(d, content, own) }, twist, kind }
   })
-  const joined = kind ? attachTwistKind(compiled, kind, content) : compiled
+  const danger = dangerLevel(state.day)
+  const dcBonus = sitePowerDc(state, poi)
+  const joined = harden(kind ? attachTwistKind(compiled, kind, content) : compiled, {
+    dcBonus,
+    danger,
+  })
   // The title and the twist are filled once, here; other text is filled as it is shown.
   const situation = {
     ...joined,
@@ -190,10 +205,19 @@ export function startEncounter(
     nextCheckReason: null,
     poi: poi ?? null,
     domain: place?.domain ?? domainAt(state.world, state.location),
-    // A3 hardens the snapshot with the day's danger and records it here.
-    danger: 0,
+    danger,
     used: [],
-    log: [{ text, tone: 'info' }],
+    log: [
+      { text, tone: 'info' },
+      ...(dcBonus > 0
+        ? [
+            {
+              text: `It has grown stronger since it was taken: every check here is DC +${dcBonus}.`,
+              tone: 'bad' as const,
+            },
+          ]
+        : []),
+    ],
   }
   return appendLog(
     advanceFollowUps({ ...state, rng, encounter }),

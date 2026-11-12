@@ -444,6 +444,10 @@ The town map image is a banner and backdrop.
 
 **Reasons to hurry:**
 - **Rising danger:** a world danger level rises about 10% every 50 days. It is independent of any scaling based on party level or wealth. Until combat exists it raises encounter DCs and damage; later it raises creature CR.
+  - **As built (Plan 5a, `world/danger.ts`):** the danger share is `floor((day − 1) / 50) × 10%` (`DANGER_RAMP_DAYS`, `DANGER_RAMP_STEP`), capped at +100% (`DANGER_RAMP_MAX`, day 501): +10% from day 51, +20% from day 101. Nothing ticks; it follows from the day.
+  - **What it does:** when an encounter starts, its snapshot (every stage, the twist table's joined stages and the twist's opening hit included) is hardened once (`harden`): each check's DC becomes `dc + round(dc × danger)` (DC 13 → 14 at +10%, 16 at +20%), and each wound (a negative `hp` effect) `−ceil(|amount| × (1 + danger))` (−4 → −5 at +20%). Healing, gold and goods are unchanged. A site's power (`POWER_DC` a level) goes through the same transform as a flat DC bonus, so the two stack (DC 13 at power 2 on day 101 → 18). Because the snapshot is hardened at the start, the DCs shown are the DCs rolled, and a save loaded on a later day doesn't change an open encounter. The encounter records its `danger` for display.
+  - **Only encounters** (road, site, an exploring ambush, a rumour brawl, a follow-up): not foraging, exploring, gathering, rumours, the hostile share or gold losses.
+  - **Shown quietly** (Track U): `dangerInfo(day)` gives the share, the percent, the day of the next rise (null at the cap) and a line for the day's tooltip ("The roads grow more dangerous: +20%", or "The roads are as they have always been").
 - **The Crisis:** a villain's three-act plot, with roughly one act due every 100 days.
   - Rumours and clues lead the party to a specific location where they learn the plan.
   - Each act has a site or deed to thwart before its deadline. There is moderate leeway, with penalties for dawdling.
