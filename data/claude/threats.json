@@ -2,7 +2,7 @@
   "$schema": "../_schema/threats.schema.json",
   "kind": "threats",
   "source": "claude",
-  "notes": "Regional threats and usurpers for the political layer (design §6). Strength 1–5 is set against the owning kingdom's garrison to give a threat level of 0–3. The ranges are tuned so about 12% of regions come out Rampant (level 3) across generated worlds, against a 10–15% target (design §6; a test in src/content/world.test.ts measures it).",
+  "notes": "Local threats and usurpers for the political layer (design §6). Each land rolls one; a domain's threat strength is its land's strength (1–5) plus its uncleared hostile POIs, set against the domain's garrison to give a threat level of 0–3. With DEFENCE 9–22 about 12% of domains come out Rampant (level 3) across generated worlds, against a 10–15% target; lairs and dungeons roughly double it from 7% (docs/notes/threat-levels.md; a test in src/content/world.test.ts measures it).",
   "entries": [
     {
       "id": "orc-warband",

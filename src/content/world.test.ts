@@ -6,6 +6,7 @@ import { wander } from '../engine/travel/wander'
 import { generateWorld, startingSettlement, worldSeed } from '../engine/world/generate'
 import { routesFrom } from '../engine/world/geo'
 import { domainThreatLevel } from '../engine/world/pois'
+import { seatHops } from '../engine/world/politics'
 import { territory } from '../engine/world/territory'
 import { worldIssues } from '../engine/world/validate'
 import { BIOMES } from '../schema/constants'
@@ -106,16 +107,36 @@ describe('threats and realm names', () => {
   test('about one domain in eight is Rampant across generated worlds (design §6: 10–15%)', () => {
     let rampant = 0
     let domains = 0
+    let spread = 0
+    const seats: number[] = []
+    const borders: number[] = []
+    const { adjacent } = territory(content)
     for (let seed = 0; seed < 200; seed++) {
       const world = generateWorld(worldSeed(seed), content)
-      for (const id of Object.keys(world.domains)) {
-        domains++
-        if (domainThreatLevel(world, id) === 3) rampant++
+      const levels = Object.keys(world.domains).map((id) => domainThreatLevel(world, id))
+      const here = levels.filter((l) => l === 3).length
+      rampant += here
+      domains += levels.length
+      // 1–4 of the old 16 regions, scaled to 53 domains: a few hot-spots, never none or most.
+      if (here >= 2 && here <= 12) spread++
+      for (const k of world.kingdoms) {
+        const hops = seatHops(k, { adjacent })
+        for (const id of k.domains) {
+          const level = domainThreatLevel(world, id)
+          if (hops[id] === 0) seats.push(level)
+          else if ((adjacent[id] ?? []).some((a) => world.domains[a]?.kingdom !== k.id)) {
+            borders.push(level)
+          }
+        }
       }
     }
     const share = rampant / domains
-    expect(share).toBeGreaterThanOrEqual(0.08)
-    expect(share).toBeLessThanOrEqual(0.18)
+    expect(share).toBeGreaterThanOrEqual(0.1)
+    expect(share).toBeLessThanOrEqual(0.15)
+    expect(spread / 200).toBeGreaterThanOrEqual(0.8)
+    // Sprawling kingdoms crack at the edges: seats hold better than borders.
+    const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]
+    expect(median(seats)).toBeLessThan(median(borders))
   })
 
   test('realm names only use the {place} slot', () => {

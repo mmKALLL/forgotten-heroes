@@ -7,10 +7,11 @@ import type { Territory } from './territory'
 /** How many kingdoms a world rolls, capped by the number of capital markers. */
 export const KINGDOMS = { min: 8, max: 12 }
 /**
- * A kingdom's total defence, split across its domains by distance from the seat. Provisional:
- * about 10% of domains are Rampant on Altaeus before any lairs exist; I1 re-tunes with POIs.
+ * A kingdom's total defence, split across its domains by distance from the seat. Tuned with the
+ * POIs in place: about 12.5% of domains are Rampant on Altaeus, 7% before lairs and dungeons add
+ * their threat (docs/notes/threat-levels.md).
  */
-export const DEFENCE = { min: 8, max: 20 }
+export const DEFENCE = { min: 9, max: 22 }
 /** A domain h hops from its seat weighs 1 / (1 + SEAT_FALLOFF × h) in the garrison split. */
 export const SEAT_FALLOFF = 0.5
 /** A frontier domain in a land the kingdom already holds is this much likelier to be claimed. */
