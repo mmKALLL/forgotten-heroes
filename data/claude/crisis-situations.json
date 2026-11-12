@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "The Crisis (Plan 5b): the situations of the crisis sites in crisis-sites.json. Reveal situations (one per villain, two stages): a check or a price decides what getting in costs (a trap, a survivor to tend, a guard to slip past), and every ending except 'leave' learns the plan (learnPlan); a slower or riskier reading can also give a clue to act I (crisisClue). Texts name the villain by title only (the Ashen Prophet), since situations have no {villain} slot. Written by Claude.",
+  "notes": "The Crisis (Plan 5b): the situations of the crisis sites in crisis-sites.json. Reveal situations (one per villain, two stages): a check or a price decides what getting in costs (a trap, a survivor to tend, a guard to slip past), and every ending except 'leave' learns the plan (learnPlan); a slower or riskier reading can also give a clue to act I (crisisClue). Act situations (one per act, like the dungeon delves): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more: the villain grows desperate); and a high-stakes finale where a success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. Base DCs stay at 11–14: lateness and the danger ramp add the rest. Texts name the villain by title only (the Ashen Prophet), since situations have no {villain} slot. Written by Claude.",
   "entries": [
     {
       "id": "burned-chapel-search",
@@ -19,16 +19,31 @@
               "kind": "check",
               "label": "Find out what the warning means",
               "description": "Look for the trap before you touch the strongbox. A miss costs blood, not the ledger.",
-              "check": { "skill": "investigation", "dc": 12 },
+              "check": {
+                "skill": "investigation",
+                "dc": 12
+              },
               "outcomes": {
                 "fail": {
                   "text": "{actor} misses the wire under the ash. The beam comes down across {actor}'s back, and the strongbox rolls out from under it.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
                   "goto": "ledger"
                 },
                 "partial": {
                   "text": "{actor} finds the wire, and trips a second one stepping round it. A loose stone catches {actor} on the shoulder.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
                   "goto": "ledger"
                 },
                 "success": {
@@ -44,7 +59,12 @@
               "description": "Slow and safe: whatever is rigged to it can fall on nobody. It takes the rest of the day.",
               "outcome": {
                 "text": "You rope the beam and haul from the doorway. Half the vestry wall comes down with it, and a sharpened stake swings through the space where someone would have stood. By dusk the strongbox is yours.",
-                "effects": [{ "effect": "days", "amount": 1 }],
+                "effects": [
+                  {
+                    "effect": "days",
+                    "amount": 1
+                  }
+                ],
                 "goto": "ledger"
               }
             },
@@ -67,7 +87,15 @@
               "label": "Read it through and go",
               "outcome": {
                 "text": "You read it standing in the ashes, then pocket the silver. The plan is plain enough without the margins.",
-                "effects": [{ "effect": "gold", "amount": 8 }, { "effect": "learnPlan" }]
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": 8
+                  },
+                  {
+                    "effect": "learnPlan"
+                  }
+                ]
               }
             },
             {
@@ -75,31 +103,60 @@
               "kind": "check",
               "label": "Work out the cipher in the margins",
               "description": "It takes a day. The margins may say where the diggers went.",
-              "check": { "skill": "religion", "dc": 13 },
+              "check": {
+                "skill": "religion",
+                "dc": 13
+              },
               "outcomes": {
                 "fail": {
                   "text": "{actor} spends the day on the margins and gets nowhere. The main text is plain enough.",
                   "effects": [
-                    { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 8 },
-                    { "effect": "learnPlan" }
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 8
+                    },
+                    {
+                      "effect": "learnPlan"
+                    }
                   ]
                 },
                 "partial": {
                   "text": "{actor} cracks the cipher: prayers for the dead, said backwards. Nothing useful, but the main text is plain enough.",
                   "effects": [
-                    { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 8 },
-                    { "effect": "learnPlan" }
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 8
+                    },
+                    {
+                      "effect": "learnPlan"
+                    }
                   ]
                 },
                 "success": {
                   "text": "{actor} cracks the cipher by evening. Among the prayers is a list of payments to diggers, and where to find them.",
                   "effects": [
-                    { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 8 },
-                    { "effect": "learnPlan" },
-                    { "effect": "crisisClue" }
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 8
+                    },
+                    {
+                      "effect": "learnPlan"
+                    },
+                    {
+                      "effect": "crisisClue"
+                    }
                   ]
                 }
               }
@@ -123,16 +180,31 @@
               "kind": "check",
               "label": "Creep in and take the case",
               "description": "Quiet, if it works. If it doesn't, you are within knife's reach of two cutthroats.",
-              "check": { "skill": "stealth", "dc": 13 },
+              "check": {
+                "skill": "stealth",
+                "dc": 13
+              },
               "outcomes": {
                 "fail": {
                   "text": "A twig cracks under {actor}'s boot. The robbers come up with knives out, and {actor} takes one in the arm before they run off with the boots.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
                   "goto": "case"
                 },
                 "partial": {
                   "text": "{actor} gets a hand on the case as the robbers turn round. A knife opens {actor}'s sleeve, and then they are gone into the trees.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
                   "goto": "case"
                 },
                 "success": {
@@ -146,16 +218,32 @@
               "kind": "check",
               "label": "Drive them off",
               "description": "Two of them, and you. They are robbers, not soldiers.",
-              "check": { "skill": "athletics", "dc": 12, "combat": true },
+              "check": {
+                "skill": "athletics",
+                "dc": 12,
+                "combat": true
+              },
               "outcomes": {
                 "fail": {
                   "text": "They fight dirtier than you expected. You hold the camp in the end, but everyone is cut.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ],
                   "goto": "case"
                 },
                 "partial": {
                   "text": "{actor} sends one sprawling and the other runs, but not before a knife finds {actor}'s ribs.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
                   "goto": "case"
                 },
                 "success": {
@@ -169,10 +257,20 @@
               "kind": "fixed",
               "label": "Offer them silver for his papers (5 gp)",
               "description": "They can't read. They would rather have coin than paper.",
-              "requires": [{ "req": "gold", "min": 5 }],
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 5
+                }
+              ],
               "outcome": {
                 "text": "They bite the coins, shrug and hand over the case. One of them wishes you luck with it.",
-                "effects": [{ "effect": "gold", "amount": -5 }],
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -5
+                  }
+                ],
                 "goto": "case"
               }
             },
@@ -195,7 +293,15 @@
               "label": "Read what you can and go",
               "outcome": {
                 "text": "The cipher is a child's one, a letter shifted three places. You read the plan by the dead fire and take the purse; the courier has no more use for it.",
-                "effects": [{ "effect": "gold", "amount": 6 }, { "effect": "learnPlan" }]
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": 6
+                  },
+                  {
+                    "effect": "learnPlan"
+                  }
+                ]
               }
             },
             {
@@ -203,31 +309,60 @@
               "kind": "check",
               "label": "Trace the seal ring to its maker",
               "description": "Spend a day on the ring's marks and the letters' routes. It may tell you where the forger works.",
-              "check": { "skill": "investigation", "dc": 13 },
+              "check": {
+                "skill": "investigation",
+                "dc": 13
+              },
               "outcomes": {
                 "fail": {
                   "text": "The ring's marks have been filed off. {actor} gives up on it at dusk and reads the letters instead.",
                   "effects": [
-                    { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 6 },
-                    { "effect": "learnPlan" }
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 6
+                    },
+                    {
+                      "effect": "learnPlan"
+                    }
                   ]
                 },
                 "partial": {
                   "text": "{actor} finds a maker's mark under the bezel, but not a name. The letters, at least, are plain.",
                   "effects": [
-                    { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 6 },
-                    { "effect": "learnPlan" }
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 6
+                    },
+                    {
+                      "effect": "learnPlan"
+                    }
                   ]
                 },
                 "success": {
                   "text": "{actor} matches the ring's maker's mark to a route in the letters. The forger who cut this seal is not hard to find now.",
                   "effects": [
-                    { "effect": "days", "amount": 1 },
-                    { "effect": "gold", "amount": 6 },
-                    { "effect": "learnPlan" },
-                    { "effect": "crisisClue" }
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 6
+                    },
+                    {
+                      "effect": "learnPlan"
+                    },
+                    {
+                      "effect": "crisisClue"
+                    }
                   ]
                 }
               }
@@ -251,21 +386,41 @@
               "kind": "check",
               "label": "Read the tracks before you go in",
               "description": "Make sure the drake is gone. Read them wrong and you meet it at the door.",
-              "check": { "skill": "survival", "dc": 12 },
+              "check": {
+                "skill": "survival",
+                "dc": 12
+              },
               "outcomes": {
                 "fail": {
                   "text": "{actor} reads the tracks as old. They aren't. The drake comes over the hill as you reach the door, and {actor} is caught in the open.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ],
                   "goto": "shepherd"
                 },
                 "partial": {
                   "text": "{actor} reads them well enough. The drake makes one pass over the hill and leaves, and {actor} is scorched diving for the door.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
                   "goto": "shepherd"
                 },
                 "success": {
                   "text": "{actor} reads it all: one drake, gone east a day ago, with a man on foot beside it. You go in calm.",
-                  "effects": [{ "effect": "position", "position": "edge" }],
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
                   "goto": "shepherd"
                 }
               }
@@ -297,19 +452,41 @@
               "kind": "check",
               "label": "Tend his burns while he talks",
               "description": "Treat him properly, and he may remember more than the man's words.",
-              "check": { "skill": "medicine", "dc": 13 },
+              "check": {
+                "skill": "medicine",
+                "dc": 13
+              },
               "outcomes": {
                 "fail": {
                   "text": "{actor} does what can be done, which is not much. He tells you everything before the fever takes him.",
-                  "effects": [{ "effect": "learnPlan" }]
+                  "effects": [
+                    {
+                      "effect": "learnPlan"
+                    }
+                  ]
                 },
                 "partial": {
                   "text": "{actor} keeps him alive, but he makes no sense until the next morning. Then he tells you all of it.",
-                  "effects": [{ "effect": "days", "amount": 1 }, { "effect": "learnPlan" }]
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "learnPlan"
+                    }
+                  ]
                 },
                 "success": {
                   "text": "Clean dressings and a little sense from {actor}, and the shepherd sits up. He tells you all of it, and which way the drake flew.",
-                  "effects": [{ "effect": "learnPlan" }, { "effect": "crisisClue" }]
+                  "effects": [
+                    {
+                      "effect": "learnPlan"
+                    },
+                    {
+                      "effect": "crisisClue"
+                    }
+                  ]
                 }
               }
             },
@@ -318,13 +495,27 @@
               "kind": "fixed",
               "label": "Give him a healing draught (1 healing)",
               "description": "No roll: he will be on his feet, and clear-headed.",
-              "requires": [{ "req": "goods", "good": "healing", "min": 1 }],
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "healing",
+                  "min": 1
+                }
+              ],
               "outcome": {
                 "text": "The draught takes the fire out of his burns. He walks you to the door and points out the way the drake went home.",
                 "effects": [
-                  { "effect": "goods", "good": "healing", "amount": -1 },
-                  { "effect": "learnPlan" },
-                  { "effect": "crisisClue" }
+                  {
+                    "effect": "goods",
+                    "good": "healing",
+                    "amount": -1
+                  },
+                  {
+                    "effect": "learnPlan"
+                  },
+                  {
+                    "effect": "crisisClue"
+                  }
                 ]
               }
             },
@@ -335,7 +526,3773 @@
               "description": "Quick, and hard on him. Not everyone in the party will like it.",
               "outcome": {
                 "text": "You get what you came for and leave him to it. Nobody says much on the way down the hill.",
-                "effects": [{ "effect": "learnPlan" }, { "effect": "camaraderie", "amount": -1 }]
+                "effects": [
+                  {
+                    "effect": "learnPlan"
+                  },
+                  {
+                    "effect": "camaraderie",
+                    "amount": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "opened-graves-act",
+      "title": "The opened graves",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "dark-cult", "restless-dead"],
+      "stages": {
+        "start": {
+          "text": "The barrow-field lies under a low sky: nine long mounds, and every one of them cut open. Lanterns move between them. The diggers work in silence, in ash-grey smocks, and a cart with chains in it waits by the biggest mound.",
+          "options": [
+            {
+              "id": "wait-dark",
+              "kind": "check",
+              "label": "Wait for the night shift and creep in",
+              "description": "Lose a day watching their rounds. Get it right and you reach the great mound unseen.",
+              "check": {
+                "skill": "stealth",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} is seen against the skyline. The diggers come at you with mattocks before you reach the mounds.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "mound"
+                },
+                "partial": {
+                  "text": "You get in among the mounds, but a lantern swings your way and stays on you.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "mound"
+                },
+                "success": {
+                  "text": "{actor} leads you in between the lantern rounds, right to the mouth of the great mound.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "mound"
+                }
+              }
+            },
+            {
+              "id": "charge",
+              "kind": "fixed",
+              "label": "Go straight at the diggers",
+              "description": "No waiting. It costs blood, not time.",
+              "outcome": {
+                "text": "You come out of the dark at a run. The diggers fight with mattocks and shovels, and they are not afraid of blood.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "all"
+                  }
+                ],
+                "goto": "mound"
+              }
+            },
+            {
+              "id": "bribe",
+              "kind": "fixed",
+              "label": "Pay a frightened digger for the back way in (8 gp)",
+              "description": "One of them keeps looking over his shoulder. Silver buys his silence and a quiet way in.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 8
+                }
+              ],
+              "outcome": {
+                "text": "He takes the silver without looking at you and shows you a robbers' tunnel into the great mound. Nobody sees you go in.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -8
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "mound"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the barrow-field",
+              "outcome": {
+                "text": "You watch the lanterns for a while, then go. The digging goes on behind you."
+              }
+            }
+          ]
+        },
+        "mound": {
+          "text": "Inside the great mound the diggers have broken through to the burial chamber. Dead men in rusted mail are sitting up in their niches, one by one, while a woman in grey reads to them from a book.",
+          "options": [
+            {
+              "id": "rush-reader",
+              "kind": "check",
+              "label": "Rush the reader",
+              "description": "Stop the reading before more of them wake.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The dead get between you and her. {actor} is dragged down under rusted mail and has to fight free.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "rite"
+                },
+                "partial": {
+                  "text": "{actor} knocks the book out of her hands, and takes a blade from the nearest dead man for it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "rite"
+                },
+                "success": {
+                  "text": "{actor} reaches her before she can turn the page. The book goes into the dirt, and the dead stop halfway up.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "rite"
+                }
+              }
+            },
+            {
+              "id": "rites",
+              "kind": "check",
+              "label": "Speak the burial rites over the niches",
+              "description": "Put them back to sleep with the words they were buried with.",
+              "check": {
+                "skill": "religion",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The dead don't listen to {actor}. They listen to her, and they come for {actor} first.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "rite"
+                },
+                "partial": {
+                  "text": "Some of the dead lie back down. Not all of them.",
+                  "goto": "rite"
+                },
+                "success": {
+                  "text": "{actor}'s rites put the dead back in their niches one after another, while the reader screams at them to get up.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "rite"
+                }
+              }
+            },
+            {
+              "id": "burn",
+              "kind": "fixed",
+              "label": "Burn the niches with alchemist's fire (1 alchemicals)",
+              "description": "No roll, and the fire is spent.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "alchemicals",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "The fire takes the old shrouds and the dead in them. The reader runs deeper into the mound, coughing.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "alchemicals",
+                    "amount": -1
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "rite"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Back out of the mound",
+              "outcome": {
+                "text": "You back out into the rain with the dead at your heels.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "rite": {
+          "text": "At the back of the chamber the barrow-king sits on his bier with the diggers' chains on his wrists, and his eyes are opening. What is left of the cult stands between you and him.",
+          "options": [
+            {
+              "id": "cut-through",
+              "kind": "check",
+              "label": "Cut through to the bier",
+              "description": "Put him down and break the chains. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The cult holds the bier and the dead hold the passage. You are driven out of the mound, bleeding, and the digging goes on.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You break through and hack the king back onto his bier, and it costs you. The barrow-field is shut, but you carry its cold away with you.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} takes the king's head off before his eyes are fully open. The chains fall slack, the cult runs, and the barrow-field is quiet. The diggers' pay chest is still by the door.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} takes the king's head off before his eyes are fully open. The cult runs, leaving its pay chest and the best of what it took from the barrows.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "unbind",
+              "kind": "check",
+              "label": "Turn the rite back on the cult",
+              "description": "Undo the binding instead of fighting through it. Fail and he is awake.",
+              "once": true,
+              "check": {
+                "skill": "arcana",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} gets the words wrong. The king turns his head and looks at {actor}, and the cold of it goes to the bone.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} unpicks the rite, and the king lies back down, and something goes out of {actor} with him.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} reads the cult's own words backwards. The king sinks onto his bier, the lanterns go out one by one, and the cult flees, leaving its pay chest.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} reads the cult's own words backwards, and the king crumbles to dust on his bier. The cult flees, leaving its pay chest and its plunder.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Fall back and come again",
+              "outcome": {
+                "text": "You get out of the mound before the king is fully awake. The work goes on behind you.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bone-choir-act",
+      "title": "The bone choir",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "dark-cult", "restless-dead"],
+      "stages": {
+        "start": {
+          "text": "The ossuary is a church that sank into the bog: only its bell-tower shows above the reeds, and the way in is down the tower stair. From below comes singing, slow and in step, and under the singing the shuffle of a great many feet.",
+          "options": [
+            {
+              "id": "rope-down",
+              "kind": "check",
+              "label": "Go down the outside of the tower on a rope",
+              "description": "Avoid the stair and whatever guards it. A slip is a long fall.",
+              "check": {
+                "skill": "athletics",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The rope slips on the wet stone and {actor} drops the last stretch into the nave, loudly.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "nave"
+                },
+                "partial": {
+                  "text": "{actor} gets down with skinned hands and a wrenched shoulder.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "nave"
+                },
+                "success": {
+                  "text": "{actor} finds a broken window halfway down, and you climb in above the nave without a sound.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "nave"
+                }
+              }
+            },
+            {
+              "id": "stair",
+              "kind": "fixed",
+              "label": "Take the stair and fight past the door-wardens",
+              "outcome": {
+                "text": "Two dead men in sexton's black hold the stair foot. They take some putting down.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "all"
+                  }
+                ],
+                "goto": "nave"
+              }
+            },
+            {
+              "id": "chalk",
+              "kind": "fixed",
+              "label": "Mark yourselves with grave-chalk (1 arcana)",
+              "description": "The dead take you for their own. The chalk is spent.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "arcana",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "With the chalk on your brows the wardens take you for their own and let you pass.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "arcana",
+                    "amount": -1
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "nave"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the tower",
+              "outcome": {
+                "text": "You leave the bell-tower to the reeds. The singing follows you a long way."
+              }
+            }
+          ]
+        },
+        "nave": {
+          "text": "The nave is stacked to the roof with bones, sorted: skulls with skulls, thighbones with thighbones. In the middle of the floor fifty of the dead stand in rows, practising turning on a word. The choir-master's bells hang in the chancel beyond them.",
+          "options": [
+            {
+              "id": "creep",
+              "kind": "check",
+              "label": "Slip along the bone-stacks while they drill",
+              "description": "Quiet and quick, if nobody knocks anything over.",
+              "check": {
+                "skill": "stealth",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} brings down a stack of skulls. Fifty heads turn at once, and the ranks come for you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "choir"
+                },
+                "partial": {
+                  "text": "You get past, but the ranks turn to watch you go.",
+                  "goto": "choir"
+                },
+                "success": {
+                  "text": "You reach the chancel steps with the drill still going on behind you.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "choir"
+                }
+              }
+            },
+            {
+              "id": "topple",
+              "kind": "check",
+              "label": "Bring the bone-stacks down on the ranks",
+              "description": "Fewer dead to follow you. A miss brings them down on you instead.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The stacks hold and the ranks don't. {actor} is caught in the press.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "choir"
+                },
+                "partial": {
+                  "text": "Half the ranks go under the bones. The other half catch {actor}.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "choir"
+                },
+                "success": {
+                  "text": "The bone-stacks come down like a landslide and bury the drill. Nothing follows you into the chancel.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "choir"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Get out while they drill",
+              "outcome": {
+                "text": "You climb back up the tower with the singing behind you."
+              }
+            }
+          ]
+        },
+        "choir": {
+          "text": "In the chancel the choir-master stands among his bells: an old priest with milky eyes, ringing a slow beat that the whole ossuary keeps step to. When he sees you he rings faster, and out in the nave the dead begin to turn.",
+          "options": [
+            {
+              "id": "silence",
+              "kind": "check",
+              "label": "Silence the choir-master",
+              "description": "End the song at its source. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The bells ring and the dead come. You fight your way back up the tower and out, and leave blood on every step.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You drag the old priest from his bells, but the dead get their hands on you before the last peal dies.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} cuts the bell-ropes, and the old priest with them. Out in the nave the dead fall where they stand. In the vestry is the choir's offering-chest.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} cuts the bell-ropes, and the old priest with them. Out in the nave the dead fall where they stand, and among the offerings in the vestry is something worth keeping.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "break-beat",
+              "kind": "check",
+              "label": "Ring the bells out of time",
+              "description": "Break the beat the dead march to. Fail and it holds you too.",
+              "once": true,
+              "check": {
+                "skill": "performance",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor}'s rhythm falls into his. For a moment {actor} is marching too, and the dead close in.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} breaks the beat, and has to keep ringing until the last of the dead falls, long after both arms give out.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} rings a wrong, broken peal. The dead stumble, lose the step and fall in heaps, and the old priest weeps over his bells. The offering-chest is yours.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} rings a wrong, broken peal that cracks every bell in the tower. The dead fall in heaps, and the offering-chest is yours.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Run for the stair",
+              "outcome": {
+                "text": "You run for the stair with the bells behind you.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ashen-crowning-act",
+      "title": "The ashen crowning",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "dark-cult", "restless-dead"],
+      "stages": {
+        "start": {
+          "text": "The royal crypt lies under the oldest chapel of the seat, and the cult is already inside. Ash is smeared on the chapel doors, the priests are gone, and the sacristan sits on the steps with his hands over his ears. Below, someone is singing a king's name.",
+          "options": [
+            {
+              "id": "sacristan",
+              "kind": "check",
+              "label": "Get the sacristan to show you the old ways down",
+              "description": "He knows the crypt. He is also terrified.",
+              "check": {
+                "skill": "persuasion",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He panics and runs into the street, shouting. Whoever is below knows you are coming.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "stair"
+                },
+                "partial": {
+                  "text": "He points the way with a shaking hand, and will not go a step further.",
+                  "goto": "stair"
+                },
+                "success": {
+                  "text": "He takes you down the sexton's stair, a narrow way behind the ossuary wall that the cult doesn't know about.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "stair"
+                }
+              }
+            },
+            {
+              "id": "watch",
+              "kind": "fixed",
+              "label": "Pay the watch to hold the doors behind you (15 gp)",
+              "description": "Nobody comes down behind you, and nobody slips away.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 15
+                }
+              ],
+              "outcome": {
+                "text": "The watch-captain counts the coin and posts his men on the doors. Nobody else comes down after you, and nobody gets out.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -15
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "stair"
+              }
+            },
+            {
+              "id": "straight-down",
+              "kind": "fixed",
+              "label": "Go down the main stair",
+              "outcome": {
+                "text": "You go down the main stair with your weapons out.",
+                "goto": "stair"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the chapel",
+              "outcome": {
+                "text": "You leave the sacristan on his steps. The singing goes on under the floor."
+              }
+            }
+          ]
+        },
+        "stair": {
+          "text": "The crypt stair is long and lit by grave-candles. Halfway down the cult has posted its dead: barrow-wights in rusted crowns of their own, set to hold the stair.",
+          "options": [
+            {
+              "id": "fight-down",
+              "kind": "check",
+              "label": "Fight down the stair",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The wights hold the stair and give ground only a step at a time. {actor} pays for every step.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "tombs"
+                },
+                "partial": {
+                  "text": "You break through, cut and frozen.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ],
+                  "goto": "tombs"
+                },
+                "success": {
+                  "text": "{actor} goes through the wights like a door, and you are at the bottom before the singing knows it.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "tombs"
+                }
+              }
+            },
+            {
+              "id": "sneak",
+              "kind": "check",
+              "label": "Creep past them in the candle-shadows",
+              "description": "Fail and they turn on you, here on the stair.",
+              "once": true,
+              "check": {
+                "skill": "stealth",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A wight turns its crowned head and reaches for {actor}.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "You slip past, all but the last of you, and run the rest of the way down.",
+                  "goto": "tombs"
+                },
+                "success": {
+                  "text": "You pass close enough to smell the grave-dirt on them, and they never turn.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "tombs"
+                }
+              }
+            },
+            {
+              "id": "fire",
+              "kind": "fixed",
+              "label": "Roll alchemist's fire down the stair (1 alchemicals)",
+              "description": "No roll, and the fire is spent.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "alchemicals",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "The fire runs down the steps and the wights burn where they stand. You go down through the smoke.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "alchemicals",
+                    "amount": -1
+                  }
+                ],
+                "goto": "tombs"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Back up the stair",
+              "outcome": {
+                "text": "You back up the stair into the daylight. The wights do not follow."
+              }
+            }
+          ]
+        },
+        "tombs": {
+          "text": "The tombs of the old kings stand open, and between them the cult's faithful kneel with candles in their hands, a hundred of them. They are not armed. They do not need to be: every one of them is a voice in the rite, and the rite is nearly done.",
+          "options": [
+            {
+              "id": "scatter",
+              "kind": "check",
+              "label": "Scatter the faithful",
+              "description": "Fewer voices, a weaker rite.",
+              "check": {
+                "skill": "intimidation",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "They don't scatter. They sing louder, and the cold comes up through {actor}'s boots.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "crowning"
+                },
+                "partial": {
+                  "text": "Half of them run. The rest sing on.",
+                  "goto": "crowning"
+                },
+                "success": {
+                  "text": "{actor} roars them out of the tombs. The rite falters with half its voices gone.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "crowning"
+                }
+              }
+            },
+            {
+              "id": "douse",
+              "kind": "fixed",
+              "label": "Put out every candle you pass",
+              "description": "Slow and sure. It costs you a day.",
+              "outcome": {
+                "text": "It takes all night. Each candle out is a voice gone quiet, and by dawn the rite is a whisper.",
+                "effects": [
+                  {
+                    "effect": "days",
+                    "amount": 1
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "crowning"
+              }
+            },
+            {
+              "id": "push-on",
+              "kind": "fixed",
+              "label": "Ignore them and push on",
+              "outcome": {
+                "text": "You walk through them to the inner crypt with the rite at full strength around you.",
+                "effects": [
+                  {
+                    "effect": "position",
+                    "position": "exposed"
+                  }
+                ],
+                "goto": "crowning"
+              }
+            }
+          ]
+        },
+        "crowning": {
+          "text": "At the heart of the crypt the Ashen Prophet stands over the oldest of the kings with a crown in both hands, ash to the elbows. The dead king's fingers are already moving. The Prophet sees you, and does not stop.",
+          "options": [
+            {
+              "id": "strike",
+              "kind": "check",
+              "label": "Strike down the Prophet",
+              "description": "End it with steel. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The Prophet's dead close round you. You are driven back up the stair, and the singing follows you out.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You reach the Prophet as the crown comes down, and strike it aside. The Prophet's last curse lands on all of you, and what it says about each of you stays with the others.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "camaraderie",
+                      "amount": -1
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} strikes the Prophet down at the foot of the bier, and the crown rolls away into the dark. The kings sleep. The Prophet's strongbox is behind the bier.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} strikes the Prophet down at the foot of the bier. The kings sleep, and the Prophet's strongbox holds a dead king's treasure.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "snatch",
+              "kind": "check",
+              "label": "Snatch the crown",
+              "description": "No crown, no king. Fail and you stand within reach of the Prophet.",
+              "once": true,
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor}'s hand closes on air. The Prophet smiles.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} gets the crown and runs with it, and the cold of it is in {actor}'s hands for days.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} takes the crown out of the Prophet's hands. The dead king falls still, the rite falls apart, and the Prophet falls with it. The strongbox is behind the bier.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} takes the crown out of the Prophet's hands. The rite falls apart, and the Prophet's strongbox holds a dead king's treasure.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Retreat up the stair",
+              "outcome": {
+                "text": "You retreat up the stair with the rite still sung behind you.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "stolen-seal-act",
+      "title": "The stolen seal",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "pretender", "bandit-lord"],
+      "stages": {
+        "start": {
+          "text": "The forger works out of a tannery cellar, where the stink keeps visitors away. Two hired blades sit on the cellar hatch playing knucklebones. From below comes the smell of hot wax.",
+          "options": [
+            {
+              "id": "bluff",
+              "kind": "check",
+              "label": "Pass yourselves off as the Hand's messengers",
+              "description": "Talk your way past. Get it wrong and they draw.",
+              "check": {
+                "skill": "deception",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "They know the password and you don't. {actor} takes a cut before you get past them.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "workshop"
+                },
+                "partial": {
+                  "text": "They let you down, then one of them follows.",
+                  "goto": "workshop"
+                },
+                "success": {
+                  "text": "They wave you down without looking up from their game.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "workshop"
+                }
+              }
+            },
+            {
+              "id": "bribe",
+              "kind": "fixed",
+              "label": "Buy their game a better ending (10 gp)",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 10
+                }
+              ],
+              "outcome": {
+                "text": "The blades pocket the coin and find something to look at across the yard.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -10
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "workshop"
+              }
+            },
+            {
+              "id": "force",
+              "kind": "fixed",
+              "label": "Put them down hard",
+              "description": "No talk, no coin. It costs blood.",
+              "outcome": {
+                "text": "They are quicker off the hatch than they looked. You put them down, and it costs you.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "all"
+                  }
+                ],
+                "goto": "workshop"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the tannery",
+              "outcome": {
+                "text": "You leave the blades to their knucklebones."
+              }
+            }
+          ]
+        },
+        "workshop": {
+          "text": "The cellar is a scriptorium: copied charters pinned up to dry, a press, a brazier of wax and a thin old man with ink to the wrists who does not stop working. On his bench lies a seal-die, freshly cut, and beside it a will waiting for its wax.",
+          "options": [
+            {
+              "id": "grab",
+              "kind": "check",
+              "label": "Snatch the die off the bench",
+              "description": "Without the die the will is only paper.",
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The old man is quicker than he looks. The die goes into his sleeve and he shouts for the blades.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "steward"
+                },
+                "partial": {
+                  "text": "{actor} gets the die, and the old man starts shouting.",
+                  "goto": "steward"
+                },
+                "success": {
+                  "text": "{actor} has the die before the old man looks up. He sees it in {actor}'s hand and puts down his pen.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "steward"
+                }
+              }
+            },
+            {
+              "id": "talk",
+              "kind": "check",
+              "label": "Talk to the forger",
+              "description": "He is old, and paid, and frightened. He may not be loyal.",
+              "check": {
+                "skill": "persuasion",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He listens, nods, and screams for the blades.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "steward"
+                },
+                "partial": {
+                  "text": "He shrugs and keeps working. He has been threatened before.",
+                  "goto": "steward"
+                },
+                "success": {
+                  "text": "He sets down his pen. 'They'll kill me either way.' He tells you who comes for the will, and when.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "steward"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Back out of the cellar",
+              "outcome": {
+                "text": "You back up the steps and leave him to his work."
+              }
+            }
+          ]
+        },
+        "steward": {
+          "text": "The Hand's steward comes down the steps with four more blades: a lean woman in good gloves, here to collect the finished will. She sees the bench, and you, and draws.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight for the will",
+              "description": "Win and the forgery dies here. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The steward's blades drive you out through the tannery yard. She leaves with the will under her arm.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You get the will into the brazier and the die under a hammer, and take cuts doing it. The steward runs.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} puts the steward on the floor. The will goes into the brazier, the die under a hammer, and her purse into your pack.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} puts the steward on the floor. The will burns, the die breaks, and her purse holds more than coin.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "brazier",
+              "kind": "check",
+              "label": "Throw the will on the brazier",
+              "description": "Ruin the will before she can take it. Miss and she is between you and it.",
+              "once": true,
+              "check": {
+                "skill": "acrobatics",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The steward cuts {actor} off from the brazier and the will stays on the bench.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "The will burns and the die melts in the coals, and {actor}'s hands burn with them.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} vaults the bench and drops the will in the coals. The steward stares at it burning, then runs, and drops her purse on the steps.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} vaults the bench and drops the will in the coals. The steward runs, and leaves her purse and her gloves.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Get out through the yard",
+              "outcome": {
+                "text": "You get out through the tannery yard with blades behind you.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "bought-garrison-act",
+      "title": "The bought garrison",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "pretender", "bandit-lord"],
+      "stages": {
+        "start": {
+          "text": "The muster has taken over a drovers' field: two hundred hired swords under canvas, cookfires, a farrier, and a queue at the paymaster's tent that never gets shorter. Nobody asks who you are. Everybody asks if you are buying or selling.",
+          "options": [
+            {
+              "id": "sign-on",
+              "kind": "check",
+              "label": "Sign on as sellswords",
+              "description": "Lying to a muster clerk is easy. Lying to a muster sergeant isn't.",
+              "check": {
+                "skill": "deception",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The sergeant has seen your faces on a notice somewhere. You get a beating and a place in the stocks before you get loose.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "strongroom"
+                },
+                "partial": {
+                  "text": "The clerk signs you on. The sergeant keeps an eye on you.",
+                  "goto": "strongroom"
+                },
+                "success": {
+                  "text": "You get a tent, a ration and the run of the camp, and nobody looks twice.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "strongroom"
+                }
+              }
+            },
+            {
+              "id": "night",
+              "kind": "check",
+              "label": "Wait for night and cross the lines",
+              "description": "Lose a day watching the camp. Get it right and nobody knows you are there.",
+              "check": {
+                "skill": "stealth",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A sentry trips over {actor} in the dark and shouts.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "strongroom"
+                },
+                "partial": {
+                  "text": "You get in after a long day of watching, and a long wait in a ditch.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "strongroom"
+                },
+                "success": {
+                  "text": "You cross the lines between watch-fires and reach the paymaster's wagon unseen.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "strongroom"
+                }
+              }
+            },
+            {
+              "id": "drinks",
+              "kind": "fixed",
+              "label": "Stand the camp a barrel or three (12 gp)",
+              "description": "Drunk sellswords watch nothing.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 12
+                }
+              ],
+              "outcome": {
+                "text": "By midnight half the camp is singing and the other half is asleep. Nobody watches anything.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -12
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "strongroom"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the muster",
+              "outcome": {
+                "text": "You walk out past the queue at the paymaster's tent. It is longer than when you came."
+              }
+            }
+          ]
+        },
+        "strongroom": {
+          "text": "Behind the paymaster's tent stands a wagon with an iron chest chained to its bed: the silver that buys the border garrison, due to roll out at dawn under guard.",
+          "options": [
+            {
+              "id": "steal-wagon",
+              "kind": "check",
+              "label": "Steal the wagon, oxen and all",
+              "description": "No silver, no garrison. Oxen are not quiet.",
+              "check": {
+                "skill": "animalHandling",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The oxen bolt the wrong way, through the cookfires. {actor} is dragged half across the camp.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "captains"
+                },
+                "partial": {
+                  "text": "You get the wagon out of the lines, slowly, with the whole camp waking behind you.",
+                  "goto": "captains"
+                },
+                "success": {
+                  "text": "{actor} talks the oxen into a walk and you are out past the pickets before anyone looks.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "captains"
+                }
+              }
+            },
+            {
+              "id": "scatter-silver",
+              "kind": "check",
+              "label": "Break the chest and scatter the silver",
+              "description": "Two hundred sellswords will fight over it, and not for the Hand.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The chest holds. The guards don't like {actor} trying.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "captains"
+                },
+                "partial": {
+                  "text": "The lid gives, and the silver goes everywhere, and so does the camp.",
+                  "goto": "captains"
+                },
+                "success": {
+                  "text": "The lid gives, and two hundred sellswords riot over the silver. Nobody is guarding anything now.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "captains"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Slip back out of the camp",
+              "outcome": {
+                "text": "You slip back out past the pickets. The wagon rolls at dawn."
+              }
+            }
+          ]
+        },
+        "captains": {
+          "text": "The Hand's captain-general has the camp up and armed: a big man with a broken nose and a contract in his belt. Beside him is the border garrison's commander, come to be paid. You have one chance to make this deal go bad.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Cut down the captain-general",
+              "description": "Kill the deal with its broker. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The muster closes round you and throws you out of the camp, beaten. The wagon rolls at dawn.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The captain-general goes down, and so, nearly, do you. Getting out of the camp afterwards takes everything you have.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} puts the captain-general in the mud, and the muster breaks up around his body. His war-chest leaves with you.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} puts the captain-general in the mud, and the muster breaks up around his body. His war-chest holds more than silver.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "turn",
+              "kind": "check",
+              "label": "Show the commander what the Hand's promises are worth",
+              "description": "Turn the man being bought. Fail and the guard comes for you.",
+              "once": true,
+              "check": {
+                "skill": "persuasion",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "He's already counted his share. He calls the guard.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "You promise him pardons you have no power to give. He takes his men home, and some of you will not look each other in the eye.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "camaraderie",
+                      "amount": -1
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} shows him the Hand's letters: his garrison is to be paid, then hanged. He takes his men home, and pays you for the warning.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} shows him the Hand's letters. He takes his men home, and pays you for the warning with a gift from his own belt.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Run for the pickets",
+              "outcome": {
+                "text": "You run for the pickets with the camp behind you.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "false-coronation-act",
+      "title": "The false coronation",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "pretender", "bandit-lord"],
+      "stages": {
+        "start": {
+          "text": "The seat is full of strangers: hired swords drinking on credit, and heralds nailing up a proclamation nobody has read aloud yet. The chapel bells are ringing for a crowning. The townsfolk keep their shutters closed and their heads down.",
+          "options": [
+            {
+              "id": "rouse",
+              "kind": "check",
+              "label": "Rouse the townsfolk",
+              "description": "Read the proclamation aloud in the square and tell them what it means.",
+              "check": {
+                "skill": "persuasion",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The crowd turns on {actor}, or the Hand's men do it for them.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "door"
+                },
+                "partial": {
+                  "text": "A few follow you. Most keep their shutters closed.",
+                  "goto": "door"
+                },
+                "success": {
+                  "text": "The square fills up behind you, angry. The Hand's men at the chapel door look at the crowd, and at each other.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "door"
+                }
+              }
+            },
+            {
+              "id": "heralds",
+              "kind": "fixed",
+              "label": "Pay the heralds to cry it false (15 gp)",
+              "description": "Heralds cry whatever they are paid to.",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 15
+                }
+              ],
+              "outcome": {
+                "text": "The heralds take your silver and cry the proclamation a forgery from every corner. The Hand's men start counting the crowd.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -15
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "door"
+              }
+            },
+            {
+              "id": "guests",
+              "kind": "fixed",
+              "label": "Go in with the guests",
+              "outcome": {
+                "text": "You fall in with the lords' retinues on their way to the chapel.",
+                "goto": "door"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the square",
+              "outcome": {
+                "text": "You leave the bells ringing behind you."
+              }
+            }
+          ]
+        },
+        "door": {
+          "text": "A dozen bought swords hold the chapel door, with the Hand's colours on new tabards. Inside, the choir has started.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight through the door",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "They are paid well enough to fight. {actor} is badly cut in the doorway.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "nave"
+                },
+                "partial": {
+                  "text": "You get through the door, and everyone bleeds for it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ],
+                  "goto": "nave"
+                },
+                "success": {
+                  "text": "{actor} breaks their line in the doorway, and the rest of them think better of it.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "nave"
+                }
+              }
+            },
+            {
+              "id": "outbid",
+              "kind": "fixed",
+              "label": "Outbid the Hand (20 gp)",
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 20
+                }
+              ],
+              "outcome": {
+                "text": "Sellswords are loyal to the last purse. They step aside and take off their tabards.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -20
+                  }
+                ],
+                "goto": "nave"
+              }
+            },
+            {
+              "id": "sacristy",
+              "kind": "check",
+              "label": "Go in through the sacristy",
+              "description": "Fail and you are back at the front door, with them watching.",
+              "once": true,
+              "check": {
+                "skill": "stealth",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A swordsman is relieving himself against the sacristy wall. He shouts.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "You get in, and out into the nave, and somebody sees you.",
+                  "goto": "nave"
+                },
+                "success": {
+                  "text": "You come out of the sacristy behind the choir, and nobody looks round.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "nave"
+                }
+              }
+            }
+          ]
+        },
+        "nave": {
+          "text": "The nave is full of lords who came to see which way the wind blows. At the altar the bishop is reading the will aloud, and the forged seal hangs from it on a red cord.",
+          "options": [
+            {
+              "id": "denounce",
+              "kind": "check",
+              "label": "Denounce the will before the lords",
+              "description": "Shame them in front of their peers. A failure brings the guards.",
+              "check": {
+                "skill": "persuasion",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The lords look away. The bishop reads on, and the guards come down the aisle.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "altar"
+                },
+                "partial": {
+                  "text": "Some of the lords murmur. The bishop reads faster.",
+                  "goto": "altar"
+                },
+                "success": {
+                  "text": "Half the lords are on their feet, shouting. The Hand will have to finish this with steel, in front of everyone.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "altar"
+                }
+              }
+            },
+            {
+              "id": "rush",
+              "kind": "fixed",
+              "label": "Rush the altar",
+              "outcome": {
+                "text": "The Hand's guards meet you in the aisle, and you go through them.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "all"
+                  },
+                  {
+                    "effect": "position",
+                    "position": "exposed"
+                  }
+                ],
+                "goto": "altar"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Slip out of the chapel",
+              "outcome": {
+                "text": "You slip out of the chapel while the bishop reads."
+              }
+            }
+          ]
+        },
+        "altar": {
+          "text": "The Pretender's Hand stands at the altar in borrowed ermine with the crown a hand's breadth above. Their face, when they see you, is pure hatred: you are all that stands between them and a throne.",
+          "options": [
+            {
+              "id": "strike",
+              "kind": "check",
+              "label": "Take the Hand at the altar",
+              "description": "End it at the altar. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The guards drag you out of the chapel and throw you in the square. Behind you the choir is still singing.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You get the Hand down on the altar steps under a heap of guards, and the crown goes rolling. It is a long fight, and nobody walks out of it whole.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} has the Hand down on the altar steps with a blade at their throat, and the lords stop pretending they came for a crowning. The Hand's purse pays for your trouble.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} has the Hand down on the altar steps, and the lords fall over each other to thank you. One of them presses a gift into your hands.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "crown",
+              "kind": "check",
+              "label": "Snatch the crown",
+              "description": "No crown, no crowning. Fail and you stand among the guards.",
+              "once": true,
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "A guard catches {actor}'s wrist an inch from the crown.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} gets the crown and runs the length of the nave with half the guards behind. It is a long run.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} lifts the crown off its cushion and holds it up for the lords to see. Without it the Hand is only a liar in ermine, and the lords pay to have it back.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} lifts the crown off its cushion and holds it up for the lords to see. The lords pay well to have it back, and better to keep your story straight.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Fight your way out",
+              "outcome": {
+                "text": "You fight your way out of the chapel and into the square.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "stolen-clutch-act",
+      "title": "The stolen clutch",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "drake-brood", "giant-clan"],
+      "stages": {
+        "start": {
+          "text": "The brood cave smokes like a chimney. Goat bones litter the scree below it, and so do two of the Drake-Speaker's people, burned where they stood. The rest are inside: you can hear them, and you can hear the mother.",
+          "options": [
+            {
+              "id": "watch",
+              "kind": "check",
+              "label": "Wait for the mother to go hunting",
+              "description": "Know when she hunts and go in then. It costs a day.",
+              "check": {
+                "skill": "nature",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "She doesn't hunt. She comes out to look, and finds you.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "nest"
+                },
+                "partial": {
+                  "text": "She goes out at dusk, for an hour. You go in after a day of waiting on the cold scree.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "nest"
+                },
+                "success": {
+                  "text": "{actor} knows her habits: she hunts at dawn. You are inside before her shadow is off the hill.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "nest"
+                }
+              }
+            },
+            {
+              "id": "climb",
+              "kind": "check",
+              "label": "Climb to the upper vent",
+              "description": "Go in from above. The rock is hot.",
+              "check": {
+                "skill": "athletics",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The rock is hot and loose. {actor} falls the last of it and lands in the smoke.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "nest"
+                },
+                "partial": {
+                  "text": "{actor} gets in through the vent, coughing and burned.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "nest"
+                },
+                "success": {
+                  "text": "You come down through the vent above the nest, unseen.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "nest"
+                }
+              }
+            },
+            {
+              "id": "front",
+              "kind": "fixed",
+              "label": "Walk in the front with shields up",
+              "outcome": {
+                "text": "The heat from the cave mouth singes your eyebrows off before you are ten steps in.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "all"
+                  }
+                ],
+                "goto": "nest"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the cave",
+              "outcome": {
+                "text": "You leave the cave to its smoke."
+              }
+            }
+          ]
+        },
+        "nest": {
+          "text": "Deeper in, the cave opens into a hot, round chamber. Three of the Speaker's people are lifting eggs the size of a man's head into straw-packed baskets, while a fourth sings to the mother drake to keep her still. It is working.",
+          "options": [
+            {
+              "id": "counter-song",
+              "kind": "check",
+              "label": "Sing against the singer",
+              "description": "Wake the mother, and let her deal with the thieves.",
+              "check": {
+                "skill": "performance",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The mother wakes, angry at everyone, you most of all.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "clutch"
+                },
+                "partial": {
+                  "text": "The song breaks and the mother stirs. Everyone runs.",
+                  "goto": "clutch"
+                },
+                "success": {
+                  "text": "The song breaks. The mother wakes and takes the egg-thieves first.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "clutch"
+                }
+              }
+            },
+            {
+              "id": "rush",
+              "kind": "check",
+              "label": "Rush the egg-thieves",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The thieves drop the baskets and fight. {actor} is driven into the hot rock.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "clutch"
+                },
+                "partial": {
+                  "text": "{actor} drops two of them, and takes a knife for it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "clutch"
+                },
+                "success": {
+                  "text": "{actor} is among them before they can drop the baskets.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "clutch"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Back out of the cave",
+              "outcome": {
+                "text": "You back out while the singer sings."
+              }
+            }
+          ]
+        },
+        "clutch": {
+          "text": "The last thief runs for the cave mouth with a basket of eggs on his back, and the mother drake is between you and him, awake and furious with everyone.",
+          "options": [
+            {
+              "id": "through",
+              "kind": "check",
+              "label": "Go through the drake to the thief",
+              "description": "Stop him at any cost. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The drake drives you out of the cave, burned. The thief is long gone with his basket, and there will be other clutches.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You get past the drake and catch the thief at the cave mouth, and the eggs break on the scree. The drake's fire catches you on the way out.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} catches the thief at the cave mouth. The eggs break on the scree, and the Speaker's silver is in his pouch.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} catches the thief at the cave mouth. The eggs break on the scree, and his pouch holds the Speaker's silver and a charm against fire.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "shoot",
+              "kind": "check",
+              "label": "Shoot the thief from where you stand",
+              "description": "One shot, through smoke. Miss and the drake turns on you.",
+              "once": true,
+              "check": {
+                "skill": "perception",
+                "dc": 14,
+                "ability": "dex",
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} misses, and the drake doesn't.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} drops him at the mouth of the cave, and the basket spills. Then {actor} has to hold the drake off alone while you get the eggs clear, and comes out of it spent.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} drops him at the mouth of the cave, and the eggs roll back down to their mother. You take his pouch on the way out.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} drops him at the mouth of the cave. You take his pouch on the way out, and something else he stole.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 25
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Get out of the cave",
+              "outcome": {
+                "text": "You get out of the cave with the drake's heat at your backs.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "burning-beacons-act",
+      "title": "The burning beacons",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "drake-brood", "giant-clan"],
+      "stages": {
+        "start": {
+          "text": "Seven beacon towers run along the heights, old stone with new timber stacked inside every one. A giant is hauling pitch barrels up the last slope on a sledge, and drakes circle the highest tower like gulls round a boat.",
+          "options": [
+            {
+              "id": "talk-giant",
+              "kind": "check",
+              "label": "Talk to the giant",
+              "description": "He is hired, not sworn. He might be talked out of it.",
+              "check": {
+                "skill": "persuasion",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He doesn't like your faces, and shows you with the sledge.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "ridge"
+                },
+                "partial": {
+                  "text": "He listens, shrugs and goes on hauling. At least he doesn't raise a shout.",
+                  "goto": "ridge"
+                },
+                "success": {
+                  "text": "He was promised mutton and got a sledge. He leaves it at the bottom of the hill and goes home.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "ridge"
+                }
+              }
+            },
+            {
+              "id": "night",
+              "kind": "check",
+              "label": "Wait for dark and climb",
+              "description": "Lose a day waiting. The drakes see poorly at night.",
+              "check": {
+                "skill": "stealth",
+                "dc": 12
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A drake sees you on the slope in the last light.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "ridge"
+                },
+                "partial": {
+                  "text": "You climb in the dark after a day hidden in the heather.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "ridge"
+                },
+                "success": {
+                  "text": "You reach the ridge in the dark, among the beacon towers, unseen.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "ridge"
+                }
+              }
+            },
+            {
+              "id": "fight",
+              "kind": "fixed",
+              "label": "Fight past the giant",
+              "outcome": {
+                "text": "He swings a barrel of pitch at you. You get past him, sticky and bruised.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "all"
+                  }
+                ],
+                "goto": "ridge"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the heights",
+              "outcome": {
+                "text": "You leave the heights to the drakes."
+              }
+            }
+          ]
+        },
+        "ridge": {
+          "text": "The Speaker's people are lighting the beacons one at a time from the east, with torches, and three are already burning. The wind is carrying the smoke towards the mountains.",
+          "options": [
+            {
+              "id": "pull-down",
+              "kind": "check",
+              "label": "Pull down the burning stacks",
+              "description": "Put out what is lit, by hand.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The stack collapses on {actor}'s arm.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "pyre"
+                },
+                "partial": {
+                  "text": "Two fires down, and {actor} burned for it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ],
+                  "goto": "pyre"
+                },
+                "success": {
+                  "text": "You pull the stacks down and stamp them out, one after another.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "pyre"
+                }
+              }
+            },
+            {
+              "id": "torch-bearers",
+              "kind": "check",
+              "label": "Pick off the torch-bearers",
+              "check": {
+                "skill": "stealth",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A torch-bearer sees you coming and swings his torch.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "pyre"
+                },
+                "partial": {
+                  "text": "You drop one of them. The rest keep moving.",
+                  "goto": "pyre"
+                },
+                "success": {
+                  "text": "You take them one at a time between the towers, and no more beacons are lit.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "pyre"
+                }
+              }
+            },
+            {
+              "id": "water",
+              "kind": "fixed",
+              "label": "Douse the stacks with your water (2 water)",
+              "description": "No roll, but the water is spent.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "water",
+                  "min": 2
+                }
+              ],
+              "outcome": {
+                "text": "Your waterskins put out the nearest stack and soak the next. It will be a dry road home.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "water",
+                    "amount": -2
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "pyre"
+              }
+            }
+          ]
+        },
+        "pyre": {
+          "text": "On the highest tower the Drake-Speaker's lieutenant stands by the great beacon with a torch, and a young drake on the wall beside her. When that fire is lit, it is done.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight her for the torch",
+              "description": "Win and no beacon calls the wyrm. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The drake and its handler drive you off the heights, burned and beaten. Behind you the work goes on.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You get the torch off her and throw it from the tower, and the drake makes you pay for it.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} throws her and her torch off the tower. The drake flies away, and the Speaker's pay for the giants is in her saddlebag.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} throws her and her torch off the tower. In her saddlebag is the Speaker's pay for the giants, and a ring of drake-bone.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "kick-down",
+              "kind": "check",
+              "label": "Climb the tower and kick the beacon down",
+              "description": "No stack, no beacon. A slip is a long fall.",
+              "once": true,
+              "check": {
+                "skill": "acrobatics",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The drake knocks {actor} off the wall.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} kicks the great stack off the tower, and has to climb down through the smoke, half-blind.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} kicks the great stack off the tower before she can light it. She flees with her drake, and leaves her saddlebag.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} kicks the great stack off the tower. She flees with her drake, and leaves her saddlebag and a ring of drake-bone.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Get off the heights",
+              "outcome": {
+                "text": "You get off the heights with drakes overhead.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -2,
+                    "target": "random"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "waking-act",
+      "title": "The waking",
+      "disposition": "hostile",
+      "site": true,
+      "tags": ["crisis", "drake-brood", "giant-clan"],
+      "stages": {
+        "start": {
+          "text": "The hall under the mountain was the giants' once. Its door is three men high, and it stands open. Hot air breathes out of it, smelling of sulphur and old smoke. Giant footprints and drake claw-marks go in. None come out.",
+          "options": [
+            {
+              "id": "runes",
+              "kind": "check",
+              "label": "Read the giants' warnings on the door",
+              "description": "Know the hall's ways before you go in. It costs a day.",
+              "check": {
+                "skill": "history",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The runes are old and the cracks are new. {actor} learns nothing worth the day.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "gate"
+                },
+                "partial": {
+                  "text": "{actor} makes out the hall's plan, and some of its warnings.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ],
+                  "goto": "gate"
+                },
+                "success": {
+                  "text": "{actor} reads the giants' warnings and the hall's plan. You go in knowing where the floor is thin and the air is bad.",
+                  "effects": [
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "gate"
+                }
+              }
+            },
+            {
+              "id": "ward",
+              "kind": "fixed",
+              "label": "Ward yourselves against fire (1 arcana)",
+              "description": "No roll, and the ward is spent.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "arcana",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "The ward settles over you like cool water. For an hour the heat of the hall will not touch you.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "arcana",
+                    "amount": -1
+                  },
+                  {
+                    "effect": "position",
+                    "position": "edge"
+                  }
+                ],
+                "goto": "gate"
+              }
+            },
+            {
+              "id": "in",
+              "kind": "fixed",
+              "label": "Go straight in",
+              "outcome": {
+                "text": "You go in. The heat closes over you like a hand.",
+                "goto": "gate"
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the mountain",
+              "outcome": {
+                "text": "You leave the mountain. The ground shakes behind you."
+              }
+            }
+          ]
+        },
+        "gate": {
+          "text": "The inner gate is held by two of the Speaker's giant allies, sitting by a fire with clubs made of whole trees. They have been told to let nobody pass, and they are bored.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight the giants",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A club the size of a tree takes {actor} off their feet.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "hall"
+                },
+                "partial": {
+                  "text": "You bring them down, and every one of you is bruised black.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ],
+                  "goto": "hall"
+                },
+                "success": {
+                  "text": "{actor} hamstrings the first and the second runs. The gate is yours.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "hall"
+                }
+              }
+            },
+            {
+              "id": "bargain",
+              "kind": "check",
+              "label": "Bargain with the giants",
+              "description": "The giants were cast out with the Speaker. They may have doubts.",
+              "once": true,
+              "check": {
+                "skill": "persuasion",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "They remember why they were cast out, and it was not for being friendly. One of them swats {actor}.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "They grumble and let you through. They may tell the Speaker.",
+                  "goto": "hall"
+                },
+                "success": {
+                  "text": "They look at each other, shrug and stamp off into the dark. They were never sure about the wyrm.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "hall"
+                }
+              }
+            },
+            {
+              "id": "food",
+              "kind": "fixed",
+              "label": "Pay them in food (3 food)",
+              "description": "No roll, but the food is gone.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "food",
+                  "min": 3
+                }
+              ],
+              "outcome": {
+                "text": "Giants are always hungry. They take the food and go back to their fire, chewing.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "food",
+                    "amount": -3
+                  }
+                ],
+                "goto": "hall"
+              }
+            }
+          ]
+        },
+        "hall": {
+          "text": "The great hall is a cave of hot black stone. In the middle of it something vast lies asleep under a crust of ash, and its breath moves the air like a forge-bellows. Drakes perch on the pillars, watching. Somewhere ahead the Speaker's voice is calling a name.",
+          "options": [
+            {
+              "id": "creep",
+              "kind": "check",
+              "label": "Creep past the perched drakes",
+              "description": "Get there quietly. A shriek wakes more than drakes.",
+              "check": {
+                "skill": "stealth",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A drake shrieks, and then they all do.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "wyrm"
+                },
+                "partial": {
+                  "text": "You get past. One of the drakes follows you with its eyes.",
+                  "goto": "wyrm"
+                },
+                "success": {
+                  "text": "You cross the hall between the pillars, and not one drake stirs.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "wyrm"
+                }
+              }
+            },
+            {
+              "id": "kill-drakes",
+              "kind": "check",
+              "label": "Kill the drakes before they cry out",
+              "check": {
+                "skill": "athletics",
+                "dc": 13,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The drakes come down on {actor} all at once.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "goto": "wyrm"
+                },
+                "partial": {
+                  "text": "You kill them, and their fire leaves its mark on you all.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ],
+                  "goto": "wyrm"
+                },
+                "success": {
+                  "text": "You kill them on their perches, quick and quiet.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ],
+                  "goto": "wyrm"
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Get out while it sleeps",
+              "outcome": {
+                "text": "You go back out through the gate while the thing in the hall sleeps on."
+              }
+            }
+          ]
+        },
+        "wyrm": {
+          "text": "The Drake-Speaker stands on the wyrm's head with arms spread, singing to it in a language with no human words in it. One great eye is open. It is listening. You have a few breaths before it decides.",
+          "options": [
+            {
+              "id": "strike",
+              "kind": "check",
+              "label": "Pull the Speaker down",
+              "description": "Stop the song with steel. Fail and you are thrown out, to try again another day.",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The wyrm breathes in its sleep, and the hall fills with fire. You crawl out with your hair burned off, and the Speaker's song goes on.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You get the Speaker off the wyrm's head and the song stops, but the hall comes down around you, and not everyone gets out the way they went in.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "camaraderie",
+                      "amount": -1
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} drags the Speaker off the wyrm's head mid-song. The great eye closes. In the rubble is the giants' old treasure, and nobody left to guard it.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} drags the Speaker off the wyrm's head mid-song. The great eye closes, and the giants' old treasure is yours, the best of it older than the kingdoms.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "sing",
+              "kind": "check",
+              "label": "Sing it back to sleep",
+              "description": "Out-sing the Speaker. Fail and it looks at you.",
+              "once": true,
+              "check": {
+                "skill": "performance",
+                "dc": 14
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The wyrm turns its eye on {actor}, and {actor} forgets the words.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ],
+                  "stay": true
+                },
+                "partial": {
+                  "text": "{actor} sings it down, slowly, against the Speaker, until there is no voice left in {actor} at all.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} sings it a lullaby older than the Speaker's song. The eye closes, the Speaker falls silent, and the giants' old treasure lies in the rubble.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor} sings it a lullaby older than the Speaker's song. The eye closes, and the giants' old treasure is yours, the best of it older than the kingdoms.",
+                  "effects": [
+                    {
+                      "effect": "thwartAct"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 60
+                    },
+                    {
+                      "effect": "accessory",
+                      "tier": 2
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Flee the hall",
+              "outcome": {
+                "text": "You flee the hall with the heat of its breath on your backs.",
+                "effects": [
+                  {
+                    "effect": "hp",
+                    "amount": -3,
+                    "target": "random"
+                  }
+                ]
               }
             }
           ]
