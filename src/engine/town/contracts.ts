@@ -165,12 +165,16 @@ function shortages(
   })
 }
 
-/** The settlements or sites a template can send the party to from `here`. */
+/**
+ * The settlements or sites a template can send the party to from `here`. A bounty's site must be
+ * inhabited on `weekStart`, the board's first day, so the board stays the same all week.
+ */
 function targets(
   state: GameState,
   content: Content,
   here: string,
-  template: ContractTemplate
+  template: ContractTemplate,
+  weekStart: number
 ): Target[] {
   const inRange = (r: Reach) => r.km >= template.km.min && r.km <= template.km.max
   if (TO_SETTLEMENT.includes(template.kind)) {
@@ -183,7 +187,7 @@ function targets(
   return Object.entries(state.world.pois)
     .filter(([, poi]) => categories.includes(poi.category))
     .filter(
-      ([id, poi]) => template.kind !== 'bounty' || !siteEmpty(state.world.seed, id, poi, state.day)
+      ([id, poi]) => template.kind !== 'bounty' || !siteEmpty(state.world.seed, id, poi, weekStart)
     )
     .flatMap(([id]) => {
       const reach = poiReach(state, content, here, id)
@@ -284,7 +288,7 @@ function makeOffer(
     supplyOf(state, content, to, g).level < supplyOf(state, content, here, g).level
   const options = procure
     ? sourcing.map((x) => ({ id: here, reach: x.reach }))
-    : targets(state, content, here, template).filter(
+    : targets(state, content, here, template, weekStart).filter(
         (t) =>
           !posted.has(`${template.id}/${t.id}`) && (!goods || goods.some((g) => scarcer(t.id, g)))
       )
@@ -372,6 +376,9 @@ function makeOffer(
 /** Why an offer can't be taken now (English), or null. */
 function offerRefusal(state: GameState, content: Content, offer: Offer): string | null {
   if (offer.locked) return `needs standing ${offer.locked} in ${settlementName(state, offer.from)}`
+  if (offer.kind === 'bounty' && offer.poi && bountyEmptied(state, offer.poi)) {
+    return 'someone has cleared the site already'
+  }
   if (state.contracts.length >= MAX_CONTRACTS) return `at most ${MAX_CONTRACTS} contracts at once`
   if (HANDED_OVER.includes(offer.kind) && offer.good) {
     const goods = { ...state.goods, [offer.good]: (state.goods[offer.good] ?? 0) + offer.amount }
@@ -727,6 +734,36 @@ export function abandonContract(state: GameState, content: Content, id: string):
   const c = state.contracts.find((x) => x.id === id)
   if (!c) return appendLog(state, 'You hold no such contract.', 'bad')
   return failContract(state, content, c, 'abandoned')
+}
+
+/** A bounty's site lies empty today: the realm (or an accident) cleared it, or the party did. */
+const bountyEmptied = (state: GameState, poi: string): boolean =>
+  Object.hasOwn(state.world.pois, poi) &&
+  siteEmpty(state.world.seed, poi, state.world.pois[poi], state.day)
+
+/**
+ * A bounty whose site the site cycle emptied before the party cleared it (and before its
+ * deadline) is void: it is dropped with a line in the journal, at no cost in standing. Called
+ * after every action (state.ts step).
+ */
+export function voidBounties(state: GameState, content: Content): GameState {
+  const voided = state.contracts.filter(
+    (c) =>
+      c.kind === 'bounty' &&
+      !c.met &&
+      c.poi !== null &&
+      state.day <= c.deadline &&
+      bountyEmptied(state, c.poi)
+  )
+  return voided.reduce((next, c) => {
+    const site = own(next.world.pois, c.poi)?.name ?? c.poi
+    return appendLog(
+      { ...next, contracts: next.contracts.filter((x) => x.id !== c.id) },
+      `Someone else has cleared ${site}: "${contractTitle(next, content, c)}" is void, ` +
+        `and ${personDisplayName(next.world, content, c.patron)} holds nothing against you.`,
+      'info'
+    )
+  }, state)
 }
 
 /** Contracts not met by their deadline fail. Called after every action (state.ts step). */

@@ -16,7 +16,7 @@ import { observe, stepTrade, type TradeAction } from './economy/trade'
 import { useService, type ServiceUse } from './town/services'
 import { buyAnimal, sellAnimal } from './town/animals'
 import { listenRumours } from './town/rumours'
-import { expireContracts, stepContract, type ContractAction } from './town/contracts'
+import { expireContracts, stepContract, voidBounties, type ContractAction } from './town/contracts'
 import { provision, type ProvisionFor } from './town/provision'
 import { autoRest } from './town/arrival'
 import { startingGoods } from './travel/supplies'
@@ -105,10 +105,12 @@ export function newGame(
 /**
  * Applies one action. When days pass, the news of the sites the party knows follows: a dungeon or
  * lair cleared by the realm, or one that something has moved into again (world/sites.ts). Then
- * contracts whose deadline has passed fail (town/contracts.ts).
+ * bounties whose site the realm emptied are void, and contracts whose deadline has passed fail
+ * (town/contracts.ts).
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
-  return expireContracts(siteNews(state.day, act(state, action, content)), content)
+  const acted = siteNews(state.day, act(state, action, content))
+  return expireContracts(voidBounties(acted, content), content)
 }
 
 /** Rumour lines for the known sites whose cycle turned after day `from`. */

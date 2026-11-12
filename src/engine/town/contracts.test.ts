@@ -12,6 +12,7 @@ import { maxSell } from '../economy/trade'
 import { kingdomOf } from './reputation'
 import { marketLevels } from '../economy/market'
 import { supplyOf } from '../economy/supply'
+import { cycles, siteEmpty } from '../world/sites'
 import { cargoInfo, contractRows, noticeBoard, sellCargoPreview, type Offer } from './contracts'
 
 const content = fixtureContent()
@@ -349,6 +350,33 @@ describe('completing each kind', () => {
       { type: 'completeContract', id: 'c-test', reward: 'gold' }
     )
     expect(done.contracts).toEqual([])
+  })
+
+  test('a bounty whose site the realm empties first is void, at no cost', () => {
+    const base = at(HERE)
+    const [poi, p] = Object.entries(base.world.pois).find(([, x]) => cycles(x))!
+    let day = 1
+    while (!siteEmpty(base.world.seed, poi, p, day)) day++
+    const c = contract(base, {
+      kind: 'bounty',
+      template: 'camp-bounty',
+      to: HERE,
+      poi,
+      passengers: 0,
+      deadline: day + 5,
+    })
+    const s = { ...base, day, contracts: [c] }
+    // Any action: the void is noticed after it.
+    const after = act(s, { type: 'abandonContract', id: 'none' })
+    expect(after.contracts).toEqual([])
+    expect(after.reputation).toEqual(s.reputation)
+    expect(after.log.at(-1)!.text).toMatch(/is void/)
+    // Met before it emptied (cleared by the party): still to be claimed.
+    const met = act(
+      { ...s, contracts: [{ ...c, met: true }] },
+      { type: 'abandonContract', id: 'x' }
+    )
+    expect(met.contracts).toHaveLength(1)
   })
 
   test('an errand is met by visiting its site', () => {
