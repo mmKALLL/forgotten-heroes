@@ -249,6 +249,7 @@ describe('domain threat', () => {
     threat: 1,
     discovered: false,
     cleared: false,
+    boonDay: null,
     ...overrides,
   })
 

@@ -264,6 +264,7 @@ export const en = {
   'poi.feeds': 'Feeds the {threat}: +{n} threat here',
   'poi.cleared': 'Cleared',
   'poi.clearedReason': '{name} has been cleared.',
+  'poi.visitedReason': 'You have already visited {name}. Leave and come back another time.',
   'poi.water': 'A spring here: arriving refills the waterskins.',
   'poi.enter': 'Enter',
   'poi.visit': 'Visit',

@@ -20,6 +20,7 @@ const poi = (spot: string, overrides: Partial<PoiState> = {}): PoiState => ({
   threat: 0,
   discovered: true,
   cleared: false,
+  boonDay: null,
   ...overrides,
 })
 

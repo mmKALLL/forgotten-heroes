@@ -231,6 +231,8 @@ function arrive(state: GameState, content: Content): GameState {
     ...state,
     travel: null,
     location: travel.to,
+    // A new arrival: the site here may be visited again.
+    visited: false,
     goods: water ? refillWater(state.goods, partyWaterCapacity(state)) : state.goods,
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }

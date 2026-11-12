@@ -252,6 +252,7 @@ const withLair = (discovered: boolean, cleared = false) => {
     threat: 2,
     discovered,
     cleared,
+    boonDay: null,
   }
   return state
 }

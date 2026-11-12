@@ -137,6 +137,7 @@ export function generatePois(
         threat: type.threat ? d.int(type.threat.min, type.threat.max) : 0,
         discovered: false,
         cleared: false,
+        boonDay: null,
       }
     }
   }

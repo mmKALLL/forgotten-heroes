@@ -585,8 +585,7 @@
               "kind": "fixed",
               "label": "Watch until the last light fades",
               "outcome": {
-                "text": "For a while nobody speaks. Later, nobody can agree on how long you stood there.",
-                "effects": [{ "effect": "inspiration", "amount": 1 }]
+                "text": "For a while nobody speaks. Later, nobody can agree on how long you stood there."
               }
             }
           ]

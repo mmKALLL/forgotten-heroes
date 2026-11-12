@@ -96,6 +96,15 @@ test('a cleared site can’t be visited, and says why', () => {
   expect(screen.getByText('Redtusk camp has been cleared.')).toBeTruthy()
 })
 
+test('a site already visited since arriving can’t be visited again, and says why', () => {
+  show({ ...world('poi-1', ['poi-1']), visited: true })
+  const visit = screen.getByRole('button', { name: 'Visit' }) as HTMLButtonElement
+  expect(visit.disabled).toBe(true)
+  expect(
+    screen.getByText('You have already visited Old Wen’s hut. Leave and come back another time.')
+  ).toBeTruthy()
+})
+
 test('rest at a site is camp only, and there is nothing to buy or sell', async () => {
   const { onAction } = show(world('poi-1', ['poi-1']))
   expect(screen.queryByRole('button', { name: /at the inn/ })).toBeNull()

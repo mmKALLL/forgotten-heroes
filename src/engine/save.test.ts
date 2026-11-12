@@ -98,6 +98,7 @@ function migrated() {
     party: [{ ...ada, strain: {} }],
     world,
     location: startingSettlement(world, content),
+    visited: false,
     travel: null,
     goods: { food: 5, water: 4 },
     waterskins: 0,

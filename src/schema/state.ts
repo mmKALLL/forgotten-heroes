@@ -177,6 +177,8 @@ export const GameStateSchema = z.object({
   world: WorldStateSchema,
   /** The settlement or point of interest the party is at; null while on the road. */
   location: IdSchema.nullable(),
+  /** The party has visited the site it is at since it arrived: one visit per arrival. */
+  visited: z.boolean().default(false),
   travel: TravelStateSchema.nullable(),
   goods: GoodsSchema,
   /** Extra waterskins bought in town, on top of each member's own (travel/tuning.ts). */

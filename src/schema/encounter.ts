@@ -143,6 +143,12 @@ export const RequirementSchema = z.discriminatedUnion('req', [
   z
     .object({ req: z.literal('untrained'), skill: SkillSchema })
     .describe('Some member is not yet proficient in the skill (e.g. paying to train)'),
+  z
+    .object({ req: z.literal('siteReady') })
+    .describe(
+      "A site's boon (a blessing, healing, a find): only in site situations. Unavailable while " +
+        "the site's boon is spent; choosing the option spends it for BOON_COOLDOWN_DAYS days"
+    ),
   // Extension point: Plan 4 adds { "req": "goods", "good": "healing", "min": 1 }.
 ])
 export type Requirement = z.infer<typeof RequirementSchema>

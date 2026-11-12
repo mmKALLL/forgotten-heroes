@@ -204,6 +204,17 @@ describe('validateSituation', () => {
     expect(issues(stages)).toEqual(['start/a outcome: clearPoi only works in a site situation'])
     expect(issues(stages, { site: true })).toEqual([])
   })
+
+  test('requirements: siteReady only in a site situation', () => {
+    const stages = {
+      start: {
+        text: '',
+        options: [{ ...fixed('a'), requires: [{ req: 'siteReady' }] }, fixed('b')],
+      },
+    }
+    expect(issues(stages)).toEqual(['start/a: siteReady only works in a site situation'])
+    expect(issues(stages, { site: true })).toEqual([])
+  })
 })
 
 describe('contentIssues', () => {
@@ -257,15 +268,29 @@ describe('lintSituation', () => {
     ).toEqual([])
   })
 
-  test('wonders are one stage, one fixed option, and never cost anything', () => {
+  test('wonders are one stage, one fixed option, and flavour only', () => {
     const wonder = (options: object[]) =>
       situation({ start: { text: '', options } }, { wonder: true })
+    expect(
+      lintSituation(
+        wonder([fixed('look', { text: '', effects: [{ effect: 'log', text: 'Lovely.' }] })]),
+        content
+      )
+    ).toEqual([])
     expect(
       lintSituation(
         wonder([fixed('look', { text: '', effects: [{ effect: 'inspiration', amount: 1 }] })]),
         content
       )
-    ).toEqual([])
+    ).toEqual([
+      'start/look outcome: wonders are flavour only, with no effects but log (inspiration)',
+    ])
+    expect(
+      lintSituation(
+        wonder([fixed('look', { text: '', effects: [{ effect: 'gold', amount: 5 }] })]),
+        content
+      )
+    ).toEqual(['start/look outcome: wonders are flavour only, with no effects but log (gold)'])
     expect(lintSituation(wonder([fixed('a'), fixed('b')]), content)).toEqual([
       'a wonder is one stage with one fixed option',
     ])
@@ -274,13 +299,15 @@ describe('lintSituation', () => {
         wonder([fixed('a', { text: '', effects: [{ effect: 'days', amount: 1 }] })]),
         content
       )
-    ).toEqual(['start/a outcome: wonders never cost anything (days)'])
+    ).toEqual(['start/a outcome: wonders are flavour only, with no effects but log (days)'])
     expect(
       lintSituation(
         wonder([fixed('a', { text: '', effects: [{ effect: 'nextCheckModifier', amount: -2 }] })]),
         content
       )
-    ).toEqual(['start/a outcome: wonders never cost anything (nextCheckModifier)'])
+    ).toEqual([
+      'start/a outcome: wonders are flavour only, with no effects but log (nextCheckModifier)',
+    ])
   })
 
   test('archetype options count towards the minimum', () => {

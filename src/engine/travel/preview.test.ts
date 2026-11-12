@@ -60,6 +60,7 @@ describe('placeInfo', () => {
         threat: 2,
         discovered: false,
         cleared: false,
+        boonDay: null,
       },
     }
     const hidden = { ...base, world: { ...base.world, pois } }
@@ -95,6 +96,7 @@ describe('poiInfo', () => {
       threat: 2,
       discovered: true,
       cleared: false,
+      boonDay: null,
       ...overrides,
     }
     return state

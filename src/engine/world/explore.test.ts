@@ -19,7 +19,9 @@ import {
   PICKED_CLEAN,
   exploreOption,
 } from './explore'
+import { edgeById, pathId } from './graph'
 import { domainThreatLevel } from './pois'
+import { BOON_COOLDOWN_DAYS } from './sites'
 import { territory } from './territory'
 
 const content = fixtureContent()
@@ -34,6 +36,7 @@ const poi = (domain: string, i: number, overrides: Partial<PoiState> = {}): PoiS
   threat: 2,
   discovered: false,
   cleared: false,
+  boonDay: null,
   ...overrides,
 })
 
@@ -232,6 +235,115 @@ describe('visitPoi', () => {
       content
     )
     expect(busy.encounter?.situation.id).toBe('cliff')
+  })
+
+  test('once per arrival: a second visit is refused until the party has been away', () => {
+    const first = visit('poi-1')
+    expect(first.visited).toBe(true)
+    const closed = step(first, { type: 'closeEncounter' }, content)
+    const again = step(closed, { type: 'visitPoi' }, content)
+    expect(again.encounter).toBeNull()
+    expect(again.log.at(-1)).toMatchObject({ tone: 'bad' })
+    expect(again.log.at(-1)!.text).toMatch(/already visited/)
+    expect(availableActions(closed, content)).toContainEqual(
+      expect.objectContaining({ type: 'visitPoi', available: false, code: 'visited' })
+    )
+    // Walk to Greenvale 1 and back: each arrival allows one visit.
+    const route = edgeById(closed, content, pathId('poi-1', 'greenvale-1'))!
+    const road = (from: string, to: string) =>
+      ({
+        ...closed,
+        location: null,
+        travel: {
+          route: route.id,
+          from,
+          to,
+          km: route.km,
+          kmPerDay: 30,
+          kmDone: route.km,
+          daysDone: 1,
+          days: 1,
+          encounterDays: [],
+          pace: 'steady',
+          coverTracks: false,
+          paceLog: [],
+          forage: false,
+        },
+      }) as GameState
+    const back = step(road('greenvale-1', 'poi-1'), { type: 'continueJourney' }, content)
+    expect(back.location).toBe('poi-1')
+    expect(back.visited).toBe(false)
+    expect(step(back, { type: 'visitPoi' }, content).encounter?.poi).toBe('poi-1')
+  })
+})
+
+describe('siteReady: a site’s boon on a cooldown', () => {
+  const shrine = makeEncounter({
+    poi: 'poi-1',
+    domain: 'greenvale-1',
+    situation: {
+      ...makeEncounter().situation,
+      site: true,
+      stages: {
+        start: {
+          text: 'A shrine.',
+          options: [
+            {
+              id: 'pray',
+              kind: 'fixed',
+              label: 'Pray',
+              requires: [RequirementSchema.parse({ req: 'siteReady' })],
+              outcome: {
+                text: 'You feel blessed.',
+                effects: fx({ effect: 'inspiration', amount: 1 }),
+              },
+            },
+            {
+              id: 'leave',
+              kind: 'fixed',
+              label: 'Leave',
+              requires: [],
+              outcome: { text: 'Bye.', effects: [] },
+            },
+          ],
+        },
+      },
+    } as never,
+  })
+  const at = (boonDay: number | null, day = 40) =>
+    withPois(
+      { 'poi-1': poi('greenvale-1', 0, { discovered: true, boonDay }) },
+      { location: 'poi-1', encounter: shrine, day }
+    )
+  const ready = [RequirementSchema.parse({ req: 'siteReady' })]
+
+  test('is met until the boon is taken; taking it starts the cooldown', () => {
+    const state = at(null)
+    expect(unmetRequirements(state, ready)).toEqual([])
+    const after = step(state, { type: 'chooseOption', optionId: 'pray' }, content)
+    expect(after.inspiration).toBe(state.inspiration + 1)
+    expect(after.world.pois['poi-1'].boonDay).toBe(40)
+  })
+
+  test(`is unmet for ${BOON_COOLDOWN_DAYS} days, with the days left as the reason`, () => {
+    expect(unmetRequirements(at(30), ready)).toEqual([
+      'the blessing here is spent; it returns in 20 days',
+    ])
+    expect(unmetRequirements(at(11), ready)).toEqual([
+      'the blessing here is spent; it returns in 1 day',
+    ])
+    expect(unmetRequirements(at(10), ready)).toEqual([])
+    const [pray] = encounterOptions(at(30))
+    expect(pray.available).toBe(false)
+    const refused = step(at(30), { type: 'chooseOption', optionId: 'pray' }, content)
+    expect(refused.inspiration).toBe(0)
+  })
+
+  test('away from a site there is no boon to spend', () => {
+    const deck = { ...at(null), encounter: { ...shrine, poi: null } }
+    expect(unmetRequirements(deck, ready)).toEqual([])
+    const after = step(deck, { type: 'chooseOption', optionId: 'pray' }, content)
+    expect(after.world.pois['poi-1'].boonDay).toBeNull()
   })
 })
 

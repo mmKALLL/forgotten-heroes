@@ -96,7 +96,7 @@
                             "$ref": "#/$defs/__schema47"
                           },
                           "once": {
-                            "$ref": "#/$defs/__schema49"
+                            "$ref": "#/$defs/__schema50"
                           },
                           "kind": {
                             "type": "string",
@@ -110,22 +110,22 @@
                               },
                               "ability": {
                                 "description": "Overrides the skill's default ability, e.g. \"cha\" for Intimidation (CHA)",
-                                "$ref": "#/$defs/__schema51"
+                                "$ref": "#/$defs/__schema52"
                               },
                               "dc": {
                                 "anyOf": [
                                   {
-                                    "$ref": "#/$defs/__schema52"
+                                    "$ref": "#/$defs/__schema53"
                                   },
                                   {
-                                    "$ref": "#/$defs/__schema53"
+                                    "$ref": "#/$defs/__schema54"
                                   }
                                 ],
                                 "description": "A DC from 1 to 40, or inside an archetype \"dc\", \"dc+2\" or \"dc-1\""
                               },
                               "combat": {
                                 "description": "Combat checks never grant Inspiration on a natural 20",
-                                "$ref": "#/$defs/__schema54"
+                                "$ref": "#/$defs/__schema55"
                               }
                             },
                             "required": [
@@ -135,27 +135,27 @@
                           },
                           "highStakes": {
                             "description": "Force the slow, glowing dice roll",
-                            "$ref": "#/$defs/__schema55"
+                            "$ref": "#/$defs/__schema56"
                           },
                           "outcomes": {
                             "type": "object",
                             "properties": {
                               "critFail": {
                                 "description": "Defaults to the fail outcome",
-                                "$ref": "#/$defs/__schema56"
+                                "$ref": "#/$defs/__schema57"
                               },
                               "fail": {
-                                "$ref": "#/$defs/__schema56"
+                                "$ref": "#/$defs/__schema57"
                               },
                               "partial": {
-                                "$ref": "#/$defs/__schema56"
+                                "$ref": "#/$defs/__schema57"
                               },
                               "success": {
-                                "$ref": "#/$defs/__schema56"
+                                "$ref": "#/$defs/__schema57"
                               },
                               "critSuccess": {
                                 "description": "Defaults to the success outcome",
-                                "$ref": "#/$defs/__schema56"
+                                "$ref": "#/$defs/__schema57"
                               }
                             },
                             "required": [
@@ -189,14 +189,14 @@
                             "$ref": "#/$defs/__schema47"
                           },
                           "once": {
-                            "$ref": "#/$defs/__schema49"
+                            "$ref": "#/$defs/__schema50"
                           },
                           "kind": {
                             "type": "string",
                             "const": "fixed"
                           },
                           "outcome": {
-                            "$ref": "#/$defs/__schema56"
+                            "$ref": "#/$defs/__schema57"
                           }
                         },
                         "required": [
@@ -217,22 +217,22 @@
           },
           "disposition": {
             "description": "How it treats the party once it hits",
-            "$ref": "#/$defs/__schema64"
+            "$ref": "#/$defs/__schema65"
           },
           "biomes": {
             "default": [],
             "description": "Terrain where it is likelier on the road (see TWIST_PLACE_WEIGHT)",
-            "$ref": "#/$defs/__schema65"
+            "$ref": "#/$defs/__schema66"
           },
           "regions": {
             "default": [],
             "description": "Regions where it is likelier on the road",
-            "$ref": "#/$defs/__schema66"
+            "$ref": "#/$defs/__schema67"
           },
           "threats": {
             "default": [],
             "description": "Regional threats that make it likelier where they hold the region's roads",
-            "$ref": "#/$defs/__schema67"
+            "$ref": "#/$defs/__schema68"
           }
         },
         "required": [
@@ -911,6 +911,18 @@
               "skill"
             ],
             "description": "Some member is not yet proficient in the skill (e.g. paying to train)"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "req": {
+                "$ref": "#/$defs/__schema49"
+              }
+            },
+            "required": [
+              "req"
+            ],
+            "description": "A site's boon (a blessing, healing, a find): only in site situations. Unavailable while the site's boon is spent; choosing the option spends it for BOON_COOLDOWN_DAYS days"
           }
         ]
       }
@@ -920,13 +932,17 @@
       "const": "untrained"
     },
     "__schema49": {
-      "description": "Can only be chosen once per encounter",
-      "$ref": "#/$defs/__schema50"
+      "type": "string",
+      "const": "siteReady"
     },
     "__schema50": {
-      "type": "boolean"
+      "description": "Can only be chosen once per encounter",
+      "$ref": "#/$defs/__schema51"
     },
     "__schema51": {
+      "type": "boolean"
+    },
+    "__schema52": {
       "type": "string",
       "enum": [
         "str",
@@ -937,60 +953,60 @@
         "cha"
       ]
     },
-    "__schema52": {
+    "__schema53": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema53": {
+    "__schema54": {
       "type": "string",
       "pattern": "^dc([+-][0-9]+)?$"
-    },
-    "__schema54": {
-      "type": "boolean"
     },
     "__schema55": {
       "type": "boolean"
     },
     "__schema56": {
+      "type": "boolean"
+    },
+    "__schema57": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema57"
-        },
-        "effects": {
           "$ref": "#/$defs/__schema58"
         },
-        "goto": {
+        "effects": {
           "$ref": "#/$defs/__schema59"
         },
+        "goto": {
+          "$ref": "#/$defs/__schema60"
+        },
         "stay": {
-          "$ref": "#/$defs/__schema61"
+          "$ref": "#/$defs/__schema62"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema63"
+          "$ref": "#/$defs/__schema64"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema57": {
+    "__schema58": {
       "type": "string"
     },
-    "__schema58": {
+    "__schema59": {
       "default": [],
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema3"
       }
     },
-    "__schema59": {
-      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema60"
-    },
     "__schema60": {
+      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
+      "$ref": "#/$defs/__schema61"
+    },
+    "__schema61": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -1001,34 +1017,34 @@
         }
       ]
     },
-    "__schema61": {
-      "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema62"
-    },
     "__schema62": {
-      "type": "boolean"
+      "description": "Stay on the current stage",
+      "$ref": "#/$defs/__schema63"
     },
     "__schema63": {
+      "type": "boolean"
+    },
+    "__schema64": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema57"
-        },
-        "effects": {
           "$ref": "#/$defs/__schema58"
         },
-        "goto": {
+        "effects": {
           "$ref": "#/$defs/__schema59"
         },
+        "goto": {
+          "$ref": "#/$defs/__schema60"
+        },
         "stay": {
-          "$ref": "#/$defs/__schema61"
+          "$ref": "#/$defs/__schema62"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema64": {
+    "__schema65": {
       "type": "string",
       "enum": [
         "hostile",
@@ -1036,7 +1052,7 @@
         "pleasant"
       ]
     },
-    "__schema65": {
+    "__schema66": {
       "type": "array",
       "items": {
         "type": "string",
@@ -1052,13 +1068,13 @@
         ]
       }
     },
-    "__schema66": {
+    "__schema67": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema0"
       }
     },
-    "__schema67": {
+    "__schema68": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema0"

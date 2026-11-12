@@ -21,6 +21,7 @@ import { SKILL_USE_DAYS, useSkill } from '../rules/strain'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
 import { domainAt } from '../world/pois'
+import { boonReadyIn } from '../world/sites'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
@@ -263,8 +264,32 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
         return state.party.some((c) => !c.skillProficiencies.includes(r.skill))
           ? []
           : [`everyone already knows ${statLabel(r.skill)}`]
+      case 'siteReady': {
+        // Away from a site (e.g. played from the deck) there is no boon to spend.
+        const poi = siteOf(state)
+        const days = poi ? boonReadyIn(poi, state.day) : 0
+        return days === 0
+          ? []
+          : [`the blessing here is spent; it returns in ${days === 1 ? '1 day' : `${days} days`}`]
+      }
     }
   })
+}
+
+/** The POI the open encounter is played at, if any. */
+const siteOf = (state: GameState) => {
+  const id = state.encounter?.poi
+  return id && Object.hasOwn(state.world.pois, id) ? state.world.pois[id] : undefined
+}
+
+/** Choosing a siteReady option spends the site's boon: it returns BOON_COOLDOWN_DAYS later. */
+function spendBoon(state: GameState, option: Option): GameState {
+  const id = state.encounter?.poi
+  if (!id || !option.requires.some((r) => r.req === 'siteReady')) return state
+  const poi = siteOf(state)
+  if (!poi) return state
+  const pois = { ...state.world.pois, [id]: { ...poi, boonDay: state.day } }
+  return { ...state, world: { ...state.world, pois } }
 }
 
 /** The current stage's options that can still be chosen (used `once` options are gone). */
@@ -341,7 +366,7 @@ export function chooseOption(
 
   const used = option.once ? [...encounter.used, `${encounter.stage}/${option.id}`] : encounter.used
   if (option.kind === 'fixed') {
-    const marked = { ...state, encounter: { ...encounter, used } }
+    const marked = spendBoon({ ...state, encounter: { ...encounter, used } }, option)
     return resolve(
       marked,
       branchFor(option.outcome, encounter.twist),
@@ -370,7 +395,7 @@ export function chooseOption(
   const { party, skillUses, strained } = useSkill(state, actor.characterId, skill)
   let rolled = appendLog(
     {
-      ...state,
+      ...spendBoon(state, option),
       rng,
       party,
       lastRoll: record,

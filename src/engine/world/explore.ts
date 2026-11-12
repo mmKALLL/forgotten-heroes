@@ -218,29 +218,61 @@ export function visitPoi(state: GameState, content: Content): GameState {
   if (!id || !poi || !poi.discovered) {
     return appendLog(state, 'There is no site to visit here.', 'bad')
   }
-  if (poi.cleared) return appendLog(state, `${poi.name} has been cleared.`, 'bad')
+  const refused = visitRefusal(state, poi)
+  if (refused) return appendLog(state, refused.text, 'bad')
   const type = own(content.poiTypes, poi.type)
   const known = new Set(allSituations(content).map((s) => s.id))
   const situations = type?.situations.filter((s) => known.has(s)) ?? []
   if (situations.length === 0) return appendLog(state, `Nothing happens at ${poi.name}.`, 'bad')
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const place = placeHere(state, content) ?? undefined
-  return startEncounter({ ...state, rng }, content, situation, place, id)
+  return startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
+}
+
+/** Why a site can't be visited now: busy, cleared, or visited since the party arrived. */
+export type VisitBlock = 'busy' | 'cleared' | 'visited'
+
+/** Why the party can't visit this (discovered) POI right now, or null when it can. */
+function visitRefusal(
+  state: GameState,
+  poi: { name: string; cleared: boolean }
+): { code: VisitBlock; text: string } | null {
+  if (inProgress(state)) return { code: 'busy', text: BUSY }
+  if (poi.cleared) return { code: 'cleared', text: `${poi.name} has been cleared.` }
+  if (state.visited) {
+    return {
+      code: 'visited',
+      text: `You have already visited ${poi.name}. Leave and come back another time.`,
+    }
+  }
+  return null
 }
 
 /** The site actions open where the party is, with their previews. */
 export type SiteAction =
   | { type: 'explore'; option: ExploreOption }
-  | { type: 'visitPoi'; poiId: string; available: boolean; reason: string | null }
+  | {
+      type: 'visitPoi'
+      poiId: string
+      available: boolean
+      /** Why not (English), and the same as a code for the UI; null when available. */
+      reason: string | null
+      code: VisitBlock | null
+    }
 
 /** Exploring (with its preview), and visiting when the party is at a discovered POI. */
 export function siteActions(state: GameState, content: Content): SiteAction[] {
   const actions: SiteAction[] = []
   const poi = state.travel ? undefined : own(state.world.pois, state.location)
   if (poi?.discovered && state.location) {
-    const busy = inProgress(state)
-    const reason = busy ? BUSY : poi.cleared ? `${poi.name} has been cleared.` : null
-    actions.push({ type: 'visitPoi', poiId: state.location, available: !reason, reason })
+    const refused = visitRefusal(state, poi)
+    actions.push({
+      type: 'visitPoi',
+      poiId: state.location,
+      available: !refused,
+      reason: refused?.text ?? null,
+      code: refused?.code ?? null,
+    })
   }
   const option = exploreOption(state, content)
   if (option) actions.push({ type: 'explore', option })

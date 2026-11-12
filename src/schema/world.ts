@@ -210,6 +210,13 @@ export const PoiStateSchema = z.object({
     .describe("What it adds to its domain's threat until cleared; 0 unless hostile"),
   discovered: z.boolean(),
   cleared: z.boolean(),
+  boonDay: z
+    .number()
+    .int()
+    .min(1)
+    .nullable()
+    .default(null)
+    .describe('The day its boon was last taken (a siteReady option); null if never'),
 })
 export type PoiState = z.infer<typeof PoiStateSchema>
 

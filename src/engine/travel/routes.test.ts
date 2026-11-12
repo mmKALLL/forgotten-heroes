@@ -130,6 +130,7 @@ test('a route’s threat is the higher threat level of the domains at its two en
     threat: 2,
     discovered: false,
     cleared: false,
+    boonDay: null,
   }
   world.pois = {
     'poi-1': { ...lair, spot: 'spot-0009' },

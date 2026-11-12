@@ -63,6 +63,7 @@ export function newGame(
     skillUses: [],
     world,
     location,
+    visited: false,
     travel: null,
     goods: startingGoods(party.length),
     waterskins: 0,

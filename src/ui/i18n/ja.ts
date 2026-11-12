@@ -252,6 +252,7 @@ export const ja: Partial<Messages> = {
   'poi.feeds': '{threat}の拠点：この地の脅威+{n}',
   'poi.cleared': '制圧済み',
   'poi.clearedReason': '{name}は制圧済み。',
+  'poi.visitedReason': '{name}はもう訪れた。一度離れてから、また来よう。',
   'poi.water': '泉がある：到着すると水袋が満たされる。',
   'poi.enter': '踏み込む',
   'poi.visit': '訪れる',
