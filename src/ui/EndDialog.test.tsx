@@ -62,6 +62,23 @@ test('victory: Keep playing dispatches acknowledgeEnd, and the Hall records the 
   expect(readHall()[0]).toMatchObject({ id: '7', ending: 'won' })
 })
 
+test('focus stays in the dialog: a backdrop click keeps it, and the game behind is inert', async () => {
+  localStorage.setItem(SAVE_KEY, serialize(won()))
+  render(<App />)
+  const keep = dialog().getByRole('button', { name: 'Keep playing' })
+  const backdrop = screen.getByRole('dialog').parentElement!
+  await userEvent.click(backdrop)
+  expect(document.activeElement).toBe(keep)
+  // Clicking the dialog's text keeps focus in the dialog, where Escape still works.
+  await userEvent.click(dialog().getByText('Victory'))
+  expect(screen.getByRole('dialog').contains(document.activeElement)).toBe(true)
+  const behind = document.querySelector('header.topbar')!
+  expect(behind.closest('[inert]')).not.toBeNull()
+  expect(backdrop.closest('[inert]')).toBeNull()
+  await userEvent.click(keep)
+  expect(document.querySelector('[inert]')).toBeNull()
+})
+
 test('game over shows the failed act, and Escape keeps playing', async () => {
   const onKeepPlaying = vi.fn()
   render(
