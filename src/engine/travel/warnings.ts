@@ -38,7 +38,10 @@ export type TravelWarning =
       code: 'foodRunsOut'
       params: { day: number; shortfallDays: number; missing: number; withForaging: boolean }
     }
-  /** Every forced-march day each member rolls CON or gains exhaustion; the worst-off member. */
+  /**
+   * Every forced-march day each member rolls CON or gains exhaustion; the worst-off member. Left
+   * out when that member gets forcedMarchDeadly instead.
+   */
   | {
       code: 'forcedMarchExhaustion'
       params: {
@@ -183,7 +186,10 @@ export function forecastJourney(
       return { c, expected, death: levels[MAX_EXHAUSTION] }
     })
     const worst = [...risks].sort((a, b) => b.expected - a.expected)[0]
-    if (worst) {
+    const deadliest = [...risks].sort((a, b) => b.death - a.death)[0]
+    const deadly = deadliest && deadliest.death >= DEADLY_MARCH_CHANCE ? deadliest : null
+    // The severe warning replaces the ordinary one for the same member.
+    if (worst && worst.c.id !== deadly?.c.id) {
       warnings.push({
         code: 'forcedMarchExhaustion',
         params: {
@@ -195,16 +201,15 @@ export function forecastJourney(
         },
       })
     }
-    const deadliest = [...risks].sort((a, b) => b.death - a.death)[0]
-    if (deadliest && deadliest.death >= DEADLY_MARCH_CHANCE) {
+    if (deadly) {
       warnings.push({
         code: 'forcedMarchDeadly',
         params: {
           days,
           dc: FORCED_MARCH_DC,
-          characterId: deadliest.c.id,
-          name: deadliest.c.name,
-          chance: deadliest.death,
+          characterId: deadly.c.id,
+          name: deadly.c.name,
+          chance: deadly.death,
         },
       })
     }
