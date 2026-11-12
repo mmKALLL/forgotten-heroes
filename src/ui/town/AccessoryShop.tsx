@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
 import type { Content } from '../../content/build'
 import { accessoryOffers, accessorySales } from '../../engine/gear/accessories'
 import { describeHook } from '../../engine/gear/hooks'
@@ -48,40 +48,32 @@ export function AccessoryShop({ content, state, service, onAction, onClose }: Pr
       {offers.length === 0 ? (
         <p className="muted small">{t('shop.none')}</p>
       ) : (
-        <ul className="recruit-list">
+        <ul className="shop-list">
           {offers.map((o) => (
-            <li key={o.id} className="recruit" aria-label={o.accessory.name}>
-              <AccessoryText accessory={o.accessory} />
-              <div className="recruit-hire">
-                <button
-                  disabled={!o.available}
-                  onClick={() => onAction({ type: 'buyAccessory', offerId: o.id })}
-                >
-                  {t('shop.buy', { gp: o.price })}
-                </button>
-                {o.reason && <span className="service-why muted small">{o.reason}</span>}
-              </div>
-            </li>
+            <ShopRow key={o.id} accessory={o.accessory} reason={o.reason}>
+              <button
+                disabled={!o.available}
+                onClick={() => onAction({ type: 'buyAccessory', offerId: o.id })}
+              >
+                {t('shop.buy', { gp: o.price })}
+              </button>
+            </ShopRow>
           ))}
         </ul>
       )}
       {sales.length > 0 && (
         <>
           <h4 className="shop-sell-head">{t('shop.sellHeading')}</h4>
-          <ul className="recruit-list">
+          <ul className="shop-list">
             {sales.map((s) => (
-              <li key={s.accessory.id} className="recruit" aria-label={s.accessory.name}>
-                <AccessoryText accessory={s.accessory} />
-                <div className="recruit-hire">
-                  <button
-                    disabled={!s.available}
-                    onClick={() => onAction({ type: 'sellAccessory', id: s.accessory.id })}
-                  >
-                    {t('shop.sell', { gp: s.price })}
-                  </button>
-                  {s.reason && <span className="service-why muted small">{s.reason}</span>}
-                </div>
-              </li>
+              <ShopRow key={s.accessory.id} accessory={s.accessory} reason={s.reason}>
+                <button
+                  disabled={!s.available}
+                  onClick={() => onAction({ type: 'sellAccessory', id: s.accessory.id })}
+                >
+                  {t('shop.sell', { gp: s.price })}
+                </button>
+              </ShopRow>
             ))}
           </ul>
         </>
@@ -90,22 +82,28 @@ export function AccessoryShop({ content, state, service, onAction, onClose }: Pr
   )
 }
 
-/** Its name, tier and what each of its hooks does. */
-function AccessoryText({ accessory: a }: { accessory: Accessory }) {
+/** One line: its name, "fine" for tier 2, what its hooks do, then the button and any reason. */
+function ShopRow({
+  accessory: a,
+  reason,
+  children,
+}: {
+  accessory: Accessory
+  reason: string | null
+  children: ReactNode
+}) {
   const { t } = useI18n()
   return (
-    <>
-      <div>
+    <li className="shop-row" aria-label={a.name}>
+      <span className="shop-text">
         <strong>{a.name}</strong>
         {a.tier === 2 && <span className="muted small"> {t('shop.fine')}</span>}
-      </div>
-      {a.hooks.length > 0 && (
-        <ul className="hook-lines small">
-          {a.hooks.map((h, i) => (
-            <li key={i}>{describeHook(h)}</li>
-          ))}
-        </ul>
-      )}
-    </>
+        {a.hooks.length > 0 && (
+          <span className="small"> · {a.hooks.map(describeHook).join(' · ')}</span>
+        )}
+      </span>
+      {children}
+      {reason && <span className="service-why muted small">{reason}</span>}
+    </li>
   )
 }

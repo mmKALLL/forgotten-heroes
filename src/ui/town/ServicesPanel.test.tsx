@@ -163,7 +163,8 @@ test('the accessory shop lists offers with their hooks and the gear to sell', as
   await userEvent.click(screen.getByRole('button', { name: `Accessories (${offers.length})` }))
   const shop = within(screen.getByRole('region', { name: 'Accessories · Inn/Tavern' }))
   const offer = within(shop.getAllByRole('listitem', { name: offers[0].accessory.name })[0])
-  expect(offer.getByText(describeHook(offers[0].accessory.hooks[0]))).toBeTruthy()
+  const row = shop.getAllByRole('listitem', { name: offers[0].accessory.name })[0]
+  expect(row.textContent).toContain(describeHook(offers[0].accessory.hooks[0]))
   await userEvent.click(offer.getByRole('button', { name: `Buy · ${offers[0].price} gp` }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyAccessory', offerId: offers[0].id })
   const mine = within(shop.getByRole('listitem', { name: 'Old Ring' }))

@@ -1568,7 +1568,8 @@ h2[tabindex='-1']:focus {
   padding: 0 0.35rem;
   margin-left: 0.2rem;
 }
-.explore-line {
+.explore-line,
+.gather-line {
   margin: 0.25rem 0 0.5rem;
 }
 .ledger p {
@@ -1958,10 +1959,24 @@ h2[tabindex='-1']:focus {
   font-size: 0.85rem;
   min-width: 0;
 }
-.hook-lines {
+/* The accessory shop (Plan 5a U2): one line per accessory, the button at the end. */
+.shop-list {
   list-style: none;
   padding: 0;
-  margin: 0.1rem 0 0;
+  margin: 0;
+  font-size: 0.85rem;
+}
+.shop-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.15rem 0.5rem;
+  padding: 0.15rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.shop-text {
+  flex: 1 1 14rem;
+  min-width: 0;
 }
 .shop-sell-head {
   margin: 0.5rem 0 0.25rem;
