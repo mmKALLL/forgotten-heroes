@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { Content } from '../../content/build'
-import type { Pace } from '../../schema/constants'
+import type { Pace } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { WIDE_BERTH, drawEncounter, inProgress } from '../encounters/run'
 import { createRng } from '../rng'

@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import type { Biome, Pace, PoiCategory, Position } from '../../schema/constants'
+import type { Biome, Pace, PoiCategory, Position } from '../../schema/types'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'

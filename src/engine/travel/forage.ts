@@ -1,4 +1,4 @@
-import type { Biome, Pace, Tier } from '../../schema/constants'
+import type { Biome, Pace, Tier } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { chooseActor } from '../rules/character'
 import { rollCheck, tierOdds, TIERS } from '../rules/checks'

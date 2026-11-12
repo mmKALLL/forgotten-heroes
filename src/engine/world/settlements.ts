@@ -1,5 +1,5 @@
 import { sortedEntries, type Content } from '../../content/build'
-import { SIZE_TIERS } from '../../schema/constants'
+import { SIZE_TIERS } from '../../schema/types'
 import type { Settlement, SettlementState, Town } from '../../schema/world'
 import type { Draw } from '../rng'
 import { generatePlaceName } from './names'

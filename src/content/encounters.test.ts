@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
-import { POI_CATEGORIES } from '../schema/constants'
+import { POI_CATEGORIES } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'

@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import type { Pace } from '../../schema/constants'
+import type { Pace } from '../../schema/types'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { drawEncounter, inProgress, startEncounter, type Place } from '../encounters/run'

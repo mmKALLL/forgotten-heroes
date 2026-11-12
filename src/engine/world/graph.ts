@@ -1,5 +1,5 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
-import type { Biome } from '../../schema/constants'
+import type { Biome } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import type { MapPoint, Route } from '../../schema/world'
 import { straightKm } from './geo'

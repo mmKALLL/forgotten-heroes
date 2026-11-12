@@ -1,4 +1,4 @@
-import type { Biome, Pace } from '../../schema/constants'
+import type { Biome, Pace } from '../../schema/types'
 
 // Tuning numbers for foraging, waterskins, lodging, selling supplies and stowing away (design §7).
 // Pace numbers live in pace.ts, speeds and fares in routes.ts, rations in supplies.ts.

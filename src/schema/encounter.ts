@@ -10,7 +10,7 @@ import {
   PositionSchema,
   SkillSchema,
 } from './common'
-import { MAX_DC, MIN_DC } from './constants'
+import { MAX_DC, MIN_DC } from './types'
 
 // ---------------------------------------------------------------------------------------------
 // Effects: what an outcome does to the game. The engine interprets them in applyEffects().

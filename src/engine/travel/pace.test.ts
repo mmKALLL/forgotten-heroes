@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { PACES } from '../../schema/constants'
+import { PACES } from '../../schema/types'
 import type { TravelState } from '../../schema/state'
 import {
   DEFAULT_PACE,

@@ -12,7 +12,7 @@ import {
   POSITIONS,
   SIZE_TIERS,
   SKILLS,
-} from './constants'
+} from './types'
 
 export const SOURCES = ['original', 'imported', 'imported-private', 'procedural', 'claude'] as const
 export const SourceSchema = z.enum(SOURCES)

@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest'
 import skillsJson from '../../data/original/skills.json'
-import { SKILLS } from '../schema/constants'
+import { SKILLS } from '../schema/types'
 
 test('data/original/skills.json defines exactly the skill ids in SKILLS', () => {
   const ids = skillsJson.entries.map((e) => e.id)
@@ -9,7 +9,7 @@ test('data/original/skills.json defines exactly the skill ids in SKILLS', () => 
   const unknown = ids.filter((id) => !known.has(id))
   const missing = SKILLS.filter((id) => !ids.includes(id))
   const hint =
-    'New skill ids must also be added to SKILLS in src/schema/constants.ts, ' +
+    'New skill ids must also be added to SKILLS in src/schema/types.ts, ' +
     'and every id there needs exactly one entry in data/original/skills.json.'
   expect(duplicates, `duplicate skill ids: ${duplicates.join(', ')}. ${hint}`).toEqual([])
   expect(unknown, `skill ids not in SKILLS: ${unknown.join(', ')}. ${hint}`).toEqual([])

@@ -1,5 +1,5 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
-import type { Biome } from '../../schema/constants'
+import type { Biome } from '../../schema/types'
 import { PX_PER_KM, type MapPoint } from '../../schema/world'
 import { KM_PER_DAY } from '../travel/routes'
 import { straightKm } from './geo'

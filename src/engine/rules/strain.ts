@@ -1,4 +1,4 @@
-import { SKILLS, type Skill } from '../../schema/constants'
+import { SKILLS, type Skill } from '../../schema/types'
 import type { Character, GameState, SkillUse } from '../../schema/state'
 
 /**

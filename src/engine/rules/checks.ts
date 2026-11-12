@@ -1,4 +1,4 @@
-import { MAX_DC, MIN_DC, TIERS, type Tier } from '../../schema/constants'
+import { MAX_DC, MIN_DC, TIERS, type Tier } from '../../schema/types'
 import { withRng, type Rng } from '../rng'
 
 export { TIERS }

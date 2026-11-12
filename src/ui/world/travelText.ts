@@ -2,7 +2,7 @@ import { formatPercent } from '../../engine/format'
 import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/preview'
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
 import type { TravelWarning } from '../../engine/travel/warnings'
-import type { Biome, Pace } from '../../schema/constants'
+import type { Biome, Pace } from '../../schema/types'
 import type { MessageKey } from '../i18n/en'
 import type { I18n } from '../i18n/I18n'
 

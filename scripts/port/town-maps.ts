@@ -1,5 +1,5 @@
 // Pure helpers for scripts/port/port-town-maps.ts: town-map filenames → towns entries.
-import type { Alignment, Biome, SizeTier } from '../../src/schema/constants'
+import type { Alignment, Biome, SizeTier } from '../../src/schema/types'
 import type { Town } from '../../src/schema/world'
 
 export type TownMapFile = { name: string; description: string; alignment?: Alignment; file: string }

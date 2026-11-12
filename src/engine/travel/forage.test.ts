@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { Tier } from '../../schema/constants'
+import type { Tier } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { createRng } from '../rng'
 import { tierOdds } from '../rules/checks'

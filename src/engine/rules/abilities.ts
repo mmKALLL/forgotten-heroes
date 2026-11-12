@@ -1,5 +1,5 @@
 import skillsJson from '../../../data/original/skills.json'
-import { ABILITIES, SKILLS, type Ability, type CheckStat, type Skill } from '../../schema/constants'
+import { ABILITIES, SKILLS, type Ability, type CheckStat, type Skill } from '../../schema/types'
 import { contentFileSchema } from '../../schema/content'
 
 export { ABILITIES, SKILLS }

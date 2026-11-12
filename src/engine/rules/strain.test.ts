@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { Skill } from '../../schema/constants'
+import type { Skill } from '../../schema/types'
 import type { SkillUse } from '../../schema/state'
 import { SKILL_USE_DAYS } from '../encounters/run'
 import { brom, lyra } from '../test-fixtures'

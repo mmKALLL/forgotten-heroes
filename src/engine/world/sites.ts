@@ -1,4 +1,4 @@
-import type { PoiCategory } from '../../schema/constants'
+import type { PoiCategory } from '../../schema/types'
 import type { PoiState } from '../../schema/world'
 import { createRng, nextFloat } from '../rng'
 

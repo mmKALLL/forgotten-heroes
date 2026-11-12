@@ -1,4 +1,4 @@
-import type { Biome, Pace } from '../../schema/constants'
+import type { Biome, Pace } from '../../schema/types'
 import type { Character, GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { MAX_EXHAUSTION } from '../encounters/effects'

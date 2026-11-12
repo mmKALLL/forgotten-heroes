@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import type { Tier } from '../../schema/constants'
+import type { Tier } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { allSituations } from '../encounters/compile'

@@ -1,5 +1,5 @@
 import { byCodeUnit, type Content } from '../content/build'
-import { MAX_DC, MIN_DC } from '../schema/constants'
+import { MAX_DC, MIN_DC } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { formatModifier } from './format'
 import { TIER_TONE, appendLog } from './log'

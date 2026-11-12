@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import type { LogTone } from '../../schema/constants'
+import type { LogTone } from '../../schema/types'
 import type { Condition, Effect } from '../../schema/encounter'
 import type { Character, EncounterState, GameState } from '../../schema/state'
 import { formatModifier } from '../format'

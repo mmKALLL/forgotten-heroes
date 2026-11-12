@@ -1,6 +1,6 @@
 import type { Content } from '../../content/build'
 import type { Source } from '../../schema/common'
-import type { Biome, Pace, Position } from '../../schema/constants'
+import type { Biome, Pace, Position } from '../../schema/types'
 import {
   TWIST_STAGE,
   type Effect,

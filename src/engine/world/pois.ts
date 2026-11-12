@@ -1,5 +1,5 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
-import type { PoiCategory } from '../../schema/constants'
+import type { PoiCategory } from '../../schema/types'
 import type { DomainState, LandSpot, LandState, PoiState, PoiType } from '../../schema/world'
 import { fillText, rollTable, slotNames } from '../encounters/slots'
 import type { Draw } from '../rng'

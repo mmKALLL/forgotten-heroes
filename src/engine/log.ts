@@ -1,4 +1,4 @@
-import type { LogTone, Tier } from '../schema/constants'
+import type { LogTone, Tier } from '../schema/types'
 import type { GameState } from '../schema/state'
 
 export const LOG_LIMIT = 200

@@ -10,7 +10,7 @@ import {
   SkillSchema,
   SourceSchema,
 } from './common'
-import { ABILITIES, SKILLS, TIERS } from './constants'
+import { ABILITIES, SKILLS, TIERS } from './types'
 import { SituationSchema } from './encounter'
 import { WorldStateSchema } from './world'
 

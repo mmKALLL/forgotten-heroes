@@ -1,4 +1,4 @@
-import type { Pace, Position } from '../../schema/constants'
+import type { Pace, Position } from '../../schema/types'
 import type { TravelState } from '../../schema/state'
 
 // Travel pace (design §7). Every tuning number for pace lives here.

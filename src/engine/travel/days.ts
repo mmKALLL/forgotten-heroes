@@ -1,4 +1,4 @@
-import type { Biome, Good, LogTone, Pace } from '../../schema/constants'
+import type { Biome, Good, LogTone, Pace } from '../../schema/types'
 import type { Character, GameState, Goods } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'

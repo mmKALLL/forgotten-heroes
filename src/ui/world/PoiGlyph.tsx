@@ -1,4 +1,4 @@
-import { POI_CATEGORIES, type PoiCategory } from '../../schema/constants'
+import { POI_CATEGORIES, type PoiCategory } from '../../schema/types'
 import type { MapPoint } from '../../schema/world'
 import type { MessageKey } from '../i18n/en'
 import type { I18n } from '../i18n/I18n'

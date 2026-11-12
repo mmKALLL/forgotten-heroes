@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import type { Biome } from '../../schema/constants'
+import type { Biome } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import type { PoiState } from '../../schema/world'
 import { revealPois } from '../encounters/effects'
