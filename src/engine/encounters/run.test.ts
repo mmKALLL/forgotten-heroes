@@ -207,6 +207,45 @@ describe('check options', () => {
     expect(choose(after, 'read')).toEqual(after)
   })
 
+  test('a once group: choosing any of its options uses up all of them on that stage', () => {
+    const fail = { text: 'No.', stay: true }
+    const check = (id: string) => ({
+      id,
+      kind: 'check',
+      label: id,
+      once: 'get-past',
+      check: { skill: 'stealth', dc: 40 },
+      outcomes: { fail, partial: fail, success: fail },
+    })
+    const standoff = SituationSchema.parse({
+      id: 'standoff',
+      title: 'Standoff',
+      start: 'start',
+      stages: {
+        start: {
+          text: '',
+          options: [
+            check('sneak'),
+            check('parley'),
+            { id: 'fight', kind: 'fixed', label: 'Fight', outcome: { text: 'Fought.' } },
+          ],
+        },
+      },
+    })
+    const withStandoff: Content = {
+      ...content,
+      situations: { ...content.situations, standoff: { ...standoff, source: 'claude', file: 'x' } },
+    }
+    const begun = step(
+      makeState(),
+      { type: 'startEncounter', situationId: 'standoff' },
+      withStandoff
+    )
+    const after = step(begun, { type: 'chooseOption', optionId: 'sneak' }, withStandoff)
+    expect(after.encounter?.used).toEqual(['start/@get-past'])
+    expect(currentOptions(after.encounter!).map((o) => o.id)).toEqual(['fight'])
+  })
+
   test('Edge rolls with advantage, Exposed with disadvantage, and the roll spends the position', () => {
     const cliff = start('cliff')
     const edge = choose(

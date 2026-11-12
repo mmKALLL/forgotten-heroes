@@ -2,7 +2,7 @@
   "$schema": "../_schema/archetypes.schema.json",
   "kind": "archetypes",
   "source": "claude",
-  "notes": "Reusable option sets from the design (§7). A stage uses one with { \"archetype\": { \"id\", \"dc\", \"reward\" } }: \"dc\" in a check means the stage's DC, and every gold amount is multiplied by reward. Texts say \"they\" so any situation can use them.",
+  "notes": "Reusable option sets from the design (§7). A stage uses one with { \"archetype\": { \"id\", \"dc\", \"reward\" } }: \"dc\" in a check means the stage's DC, and every gold amount is multiplied by reward. Texts say \"they\" so any situation can use them. In hostile-group, Slip past and Parley share a once group (\"get-past\"): after either fails, both are gone, leaving fight, pay or run (designer decision: no free retry chain). A situation can put its own talk or detour option in the same group.",
   "entries": [
     {
       "id": "hostile-group",
@@ -51,8 +51,8 @@
           "id": "sneak",
           "kind": "check",
           "label": "Slip past",
-          "description": "Go around them unseen. If they spot you, you face them badly placed.",
-          "once": true,
+          "description": "Go around them unseen. If they spot you, you face them badly placed, past talking.",
+          "once": "get-past",
           "check": { "skill": "stealth", "dc": "dc+1" },
           "outcomes": {
             "critFail": {
@@ -83,8 +83,8 @@
           "id": "parley",
           "kind": "check",
           "label": "Parley",
-          "description": "Talk your way through. Failing leaves you on the back foot.",
-          "once": true,
+          "description": "Talk your way through. Failing leaves you on the back foot, watched too closely to slip past.",
+          "once": "get-past",
           "check": { "skill": "persuasion", "dc": "dc+2" },
           "outcomes": {
             "critFail": {

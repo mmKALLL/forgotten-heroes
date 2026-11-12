@@ -330,7 +330,7 @@ The town map image is a banner and backdrop.
 
 1. **Situations:** the core premise. They come from every provenance.
 2. **Archetypes:** reusable option sets, for example:
-   - *Hostile group:* fight, sneak, negotiate, bribe, flee.
+   - *Hostile group:* fight, sneak, negotiate, bribe, flee. A failed sneak or parley takes the other away too (designer decision: no free retry chain; fight, bribe and flee remain). This is a shared `once` group: `"once": "get-past"` on several options means choosing any of them uses up all of them on that stage.
    - *Someone in need:* trusting help (bigger reward, worse when betrayed), cautious help (smaller reward, protected), ignore, exploit, plus an optional Insight check. What a betrayal would do (the twist outcomes) is always shown, but how likely it is stays hidden until the party passes the Insight check. A failed Insight check keeps the chance hidden and also gives −2 to the party's next check in that encounter (they misread the situation).
 
    Archetypes make one-line imported d100 entries playable without writing options by hand.

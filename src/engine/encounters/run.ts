@@ -322,12 +322,19 @@ function spendBoon(state: GameState, option: Option): GameState {
   return { ...state, world: { ...state.world, pois } }
 }
 
+/**
+ * The `used` key of a `once` option on a stage: its own id, or its group's (`once: "name"`), so
+ * choosing any option of a group uses up all of them.
+ */
+const onceKey = (stageId: string, option: Pick<Option, 'id' | 'once'>): string =>
+  typeof option.once === 'string' ? `${stageId}/@${option.once}` : `${stageId}/${option.id}`
+
 /** The current stage's options that can still be chosen (used `once` options are gone). */
 export function currentOptions(encounter: EncounterState): Option[] {
   const stageId = encounter.stage
   if (stageId === null || !Object.hasOwn(encounter.situation.stages, stageId)) return []
   return encounter.situation.stages[stageId].options.filter(
-    (o) => !(o.once && encounter.used.includes(`${stageId}/${o.id}`))
+    (o) => !(o.once && encounter.used.includes(onceKey(stageId, o)))
   )
 }
 
@@ -395,7 +402,7 @@ export function chooseOption(
     )
   }
 
-  const used = option.once ? [...encounter.used, `${encounter.stage}/${option.id}`] : encounter.used
+  const used = option.once ? [...encounter.used, onceKey(encounter.stage, option)] : encounter.used
   if (option.kind === 'fixed') {
     const marked = spendBoon({ ...state, encounter: { ...encounter, used } }, option)
     return resolve(

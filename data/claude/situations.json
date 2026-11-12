@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it. Seven road situations (ambush-at-the-narrows, mapmakers-apprentice, hedge-witch, pilgrims-at-dusk, flooded-ferry, lizardfolk-herb, wardens-on-your-trail) leave a clue on success: a discoverPoi effect that reveals a nearby point of interest (Plan 3b B3). Plan 4 (B5): consumables unlock surer or easier options, and each one is spent by the option that needs it: a gear line across the flooded ferry, healing kits for the hedge-witch, the creeping fever and the burning barn, alchemist's fire at the narrows and on the sea, and an arcana warding against the ghoul pilgrims. Five new road situations: horse-thieves (thieves who lead off a stealable animal and take a share of precious goods), cutpurse-at-the-fair (thieves), toll-bridge and tribute-at-the-pass (tolls in gold or goods), and barn-on-fire. ambush-at-the-narrows is now tagged thieves. Reputation effects (standing with the nearby settlement) reward helping locals and punish wronging them: mapmakers-apprentice, grudge-on-the-road, wardens-on-your-trail, horse-thieves, toll-bridge, cutpurse-at-the-fair and barn-on-fire. tavern-brawl (weight 0, tagged tavern-trouble) is never drawn on the road: only a critical failure listening for rumours starts it.",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it. Seven road situations (ambush-at-the-narrows, mapmakers-apprentice, hedge-witch, pilgrims-at-dusk, flooded-ferry, lizardfolk-herb, wardens-on-your-trail) leave a clue on success: a discoverPoi effect that reveals a nearby point of interest (Plan 3b B3). Plan 4 (B5): consumables unlock surer or easier options, and each one is spent by the option that needs it: a gear line across the flooded ferry, healing kits for the hedge-witch, the creeping fever and the burning barn, alchemist's fire at the narrows and on the sea, and an arcana warding against the ghoul pilgrims. Five new road situations: horse-thieves (thieves who lead off a stealable animal and take a share of precious goods), cutpurse-at-the-fair (thieves), toll-bridge and tribute-at-the-pass (tolls in gold or goods), and barn-on-fire. ambush-at-the-narrows is now tagged thieves. Reputation effects (standing with the nearby settlement) reward helping locals and punish wronging them: mapmakers-apprentice, grudge-on-the-road, wardens-on-your-trail, horse-thieves, toll-bridge, cutpurse-at-the-fair and barn-on-fire. tavern-brawl (weight 0, tagged tavern-trouble) is never drawn on the road: only a critical failure listening for rumours starts it. After a failed talk or detour against a hostile group, the other is gone too (a shared once group, \"get-past\"): ambush-at-the-narrows's veiled threat joins the hostile-group archetype's Slip past and Parley, and tribute-at-the-pass pairs the stare-down with the goat tracks.",
   "entries": [
     {
       "id": "flooded-ferry",
@@ -437,7 +437,7 @@
               "kind": "check",
               "label": "A quiet word about the last lot",
               "description": "Intimidation (CHA): a calm, specific threat. Better from a silver tongue than a big arm.",
-              "once": true,
+              "once": "get-past",
               "check": { "skill": "intimidation", "ability": "cha", "dc": 14 },
               "outcomes": {
                 "fail": {
@@ -1714,7 +1714,7 @@
               "kind": "check",
               "label": "Stare down the chief",
               "description": "Hill clans respect nerve. Show none and the price goes up.",
-              "once": true,
+              "once": "get-past",
               "check": { "skill": "intimidation", "dc": 15 },
               "outcomes": {
                 "fail": {
@@ -1763,6 +1763,7 @@
               "id": "goat-track",
               "kind": "check",
               "label": "Find a way round by the goat tracks",
+              "once": "get-past",
               "check": { "skill": "survival", "dc": 13 },
               "outcomes": {
                 "fail": {

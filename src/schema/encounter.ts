@@ -279,7 +279,14 @@ const optionFields = {
   label: z.string(),
   description: z.string().optional(),
   requires: z.array(RequirementSchema).default([]),
-  once: z.boolean().optional().describe('Can only be chosen once per encounter'),
+  once: z
+    .union([z.boolean(), IdSchema])
+    .optional()
+    .describe(
+      'Can only be chosen once per encounter. A name instead of true makes a group: choosing ' +
+        'any option of the group on a stage uses up all of them (a failed parley also ends ' +
+        'slipping past)'
+    ),
 }
 
 export const CheckOptionSchema = z.object({
