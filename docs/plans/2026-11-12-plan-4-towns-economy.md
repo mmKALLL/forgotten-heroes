@@ -587,7 +587,15 @@ T1 → T2 (on `rebuild`) ──┬── Track A: A1 → A2 → A3 ═M1═ → 
 
 ---
 
-## Design decisions to confirm with the user
+## Decisions confirmed by the designer (override anything above)
+
+- **Weight in kilograms:** carrying capacity is **20 kg per member at STR 10** (scaled 0.8×–1.8× by STR), plus animals. Food and water count. Pick goods/food/water weights so the trade-off stays meaningful at that scale (e.g. a day's food ≈ 1 kg, a day's water ≈ 2 kg — tune with the I1 economy report and note the numbers in `src/engine/constants.ts`). Up to 1.5× capacity = encumbered (⅔ speed, no forced march); beyond that the party can't depart and the market refuses purchases that would put it there.
+- **Horses can be bought too** (in addition to hiring per journey): owned horses have a daily upkeep (fodder/stabling, in gp or food), can be stolen (thief encounters / visible wealth), and work anywhere a horse can go (not on site paths if the path is rough — follow the cart rule's spirit). Hired horses stay as proposed (per journey to a settlement, ~1 gp per member per day, returned on arrival). Speed 2× (1.25× in rough terrain) for both.
+- **Visible wealth = precious goods + a heavy purse:** gems/relics/luxuries count fully; coin above ~50 gp per member counts partly (constant). Banks (later) will let the party avoid carrying coin.
+- **Reputation scope:** people + settlements, plus "a good word" as the alternative contract reward raising standing across the patron's kingdom. Kingdom/faction tiers, favours and parley later.
+- All other proposals in the section below are accepted as written.
+
+## Design decisions to confirm with the user (original proposals)
 
 1. **Weight in pounds.** A member carries 60 lb at STR 10, scaled 0.8× to 1.8× (at most 2.25×), halved at exhaustion 3 or more. Food and water weigh too (2 lb a ration, 5 lb a day of water), so hauling water through a desert competes with cargo.
 2. **Over capacity.** Up to 1.5× capacity the party is *encumbered*: ⅔ speed and no forced march. Beyond 1.5× it can't set out, and the market refuses purchases that would put it there.
