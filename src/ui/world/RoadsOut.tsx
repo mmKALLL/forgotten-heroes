@@ -12,6 +12,8 @@ import {
 } from '../../engine/travel/preview'
 import { isSevere } from '../../engine/travel/warnings'
 import { contractDeadlines } from '../../engine/town/contracts'
+import { crisisDeadlines, type CrisisDeadline } from '../../engine/crisis/status'
+import { actNumeral } from '../../engine/crisis/text'
 import { provisionPlan } from '../../engine/town/provision'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
@@ -79,6 +81,7 @@ export function RoadsOut({
                 {t('route.contractBadge')}
               </span>
             )}{' '}
+            <CrisisBadge deadline={crisisDeadlines(state, content, state.day + r.days, r.to)} />{' '}
             <span className="muted small">
               {t('route.summary', {
                 km: r.km,
@@ -228,6 +231,8 @@ export function RouteInfo({
   const provisioned = !!supplies && supplies.ready
   const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
   const round = (n: number) => Math.ceil(n - 1e-9)
+  // Arriving at the current act's site: its due day against the arrival (crisisDeadlines).
+  const crisis = crisisDeadlines(state, content, state.day + option.days, road.to)
   return (
     <div className="route-info" role="group" aria-label={t('route.heading', { name: road.toName })}>
       <h3>{t('route.heading', { name: road.toName })}</h3>
@@ -248,18 +253,22 @@ export function RouteInfo({
           .filter((p) => normalizePace(p.pace) === p.pace)
           .map((p) => {
             const choice = p.pace
-            // A pace that arrives after a contract's deadline there is marked late.
+            // A pace that arrives after a contract's deadline, or the act's due day, is marked late.
             const late = p.deadlines.some((d) => !d.inTime)
+            const actLate =
+              crisisDeadlines(state, content, state.day + p.days, road.to)?.inTime === false
             return (
               <button
                 key={choice}
                 aria-pressed={choice === shown}
-                className={late ? 'late' : undefined}
-                title={
-                  late
-                    ? `${paceHintText(t, choice)} · ${t('route.paceLate')}`
-                    : paceHintText(t, choice)
-                }
+                className={late || actLate ? 'late' : undefined}
+                title={[
+                  paceHintText(t, choice),
+                  late && t('route.paceLate'),
+                  actLate && t('crisis.paceLate'),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
                 onClick={() => onPace(choice)}
               >
                 {paceText(t, choice)}
@@ -315,6 +324,7 @@ export function RouteInfo({
           {option.water.expectedForage > 0 &&
             t('route.perDay', { n: option.water.expectedForage.toFixed(1) })}
         </li>
+        {crisis && <CrisisDeadlineLine deadline={crisis} arrives={state.day + option.days} />}
         {option.deadlines.map((d) => (
           <li key={d.contractId} className={d.inTime ? 'wide' : 'wide tone-bad'}>
             {t(d.inTime ? 'route.deadlineOk' : 'route.deadlineLate', {
@@ -432,5 +442,37 @@ export function RouteInfo({
         </div>
       )}
     </div>
+  )
+}
+
+/** A road to the current act's site: badged like a contract's destination. */
+function CrisisBadge({ deadline }: { deadline: CrisisDeadline | null }) {
+  const { t } = useI18n()
+  if (!deadline) return null
+  return (
+    <span className="badge small crisis-badge" title={t('crisis.badgeHint')}>
+      {t('crisis.badge', { numeral: actNumeral(deadline.act - 1) })}
+    </span>
+  )
+}
+
+/** The road preview's line for the current act's site: arrival against its due day. */
+function CrisisDeadlineLine({
+  deadline: d,
+  arrives,
+}: {
+  deadline: CrisisDeadline
+  arrives: number
+}) {
+  const { t } = useI18n()
+  const numeral = actNumeral(d.act - 1)
+  return (
+    <li className={d.inTime ? 'wide' : 'wide tone-bad'}>
+      {d.tooLate
+        ? t('crisis.roadTooLate', { arrives, numeral, failsOn: d.failsOn })
+        : d.inTime
+          ? t('crisis.roadInTime', { arrives, numeral, due: d.due })
+          : t('crisis.roadLate', { arrives, numeral, due: d.due, days: d.late, dc: d.lateDc })}
+    </li>
   )
 }

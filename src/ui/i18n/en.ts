@@ -620,6 +620,42 @@ export const en = {
   'wealth.short': 'Wealth',
   'wealth.explain':
     'Visible wealth draws trouble on the road: each ◆ adds about +{pct} hostile encounters, and thieves and tolls come more often. It counts precious goods (gems, relics, luxuries) and coin above about {free} gp per member; one ◆ per {step} gp per member.',
+  // The Crisis (Plan 5b, U2): the panel, the top-bar mark, roads, the site panel and the map.
+  'crisis.heading': 'Crisis',
+  'crisis.stirs': 'Something stirs. {site} may hold answers.',
+  'crisis.act': '{numeral}. {name}',
+  'crisis.thwarted': '✓ day {day}',
+  'crisis.somewhere': 'somewhere in {land}',
+  'crisis.whereUnknown': 'whereabouts unknown',
+  'crisis.clues': 'clues {n} / {needs} · weakness at {at}',
+  'crisis.cluesWeakness': 'clues {n} · weakness known',
+  'crisis.cluesHint':
+    'Clues come from rumours in the act’s land, road omens and exploring its domains. {needs} reveal the site; {at} reveal the weakness, and the party starts there with the Edge.',
+  'crisis.due': 'due day {due} · {days}d left',
+  'crisis.dueToday': 'due day {due} · today',
+  'crisis.late': 'Late {days}d: DC +{dc} at the site · fails on day {failsOn}',
+  'crisis.lateHint':
+    'Every {step}d past the due day adds +1 DC to every check at the act’s site. {leeway}d late, the act fails, and with it the Crisis.',
+  'crisis.won': '{name} is defeated (day {day})',
+  'crisis.lost': '{name}’s plot is complete (day {day})',
+  'crisis.lostUnknown': 'Far away, something you never learned of is finished (day {day})',
+  'crisis.mark': 'Act {numeral} · {days}d',
+  'crisis.markLate': 'Act {numeral} · {days}d late',
+  'crisis.markTip': 'Act {numeral} of {name}’s plot: {act}',
+  'crisis.badge': 'act {numeral}',
+  'crisis.badgeHint': 'The site of the Crisis’s current act',
+  'crisis.roadInTime': 'Arrives day {arrives} · act {numeral} due day {due} ✓',
+  'crisis.roadLate': 'Arrives day {arrives} · act {numeral} due day {due}: {days}d late, DC +{dc}',
+  'crisis.roadTooLate': 'Arrives day {arrives} · act {numeral} fails on day {failsOn} ✗',
+  'crisis.paceLate': 'arrives after the act’s due day',
+  'crisis.siteAct': 'Act {numeral} of {name}’s plot: {act}',
+  'crisis.siteReveal': 'Something stirs here: answers may lie within.',
+  'crisis.weakness': 'You know {name}’s weakness: the party starts here with the Edge.',
+  'crisis.noWeakness': 'Weakness unknown: {at} clues to this act reveal it.',
+  'crisis.quietThwarted': 'Act {numeral} was thwarted here. Nothing more stirs.',
+  'crisis.quietReveal': 'Nothing more to learn here.',
+  'crisis.quiet': 'Nothing stirs here now.',
+  'crisis.mapSite': 'Crisis site',
 }
 
 export type MessageKey = keyof typeof en

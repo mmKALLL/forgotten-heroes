@@ -6,6 +6,7 @@ import { journeyProgress, routeOptions, type RouteOption } from '../../engine/tr
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom, nodeOf } from '../../engine/world/graph'
 import { siteEmpty } from '../../engine/world/sites'
+import { crisisInfo } from '../../engine/crisis/status'
 import { territory } from '../../engine/world/territory'
 import type { GameState } from '../../schema/state'
 import { MAP_HEIGHT, MAP_WIDTH, type Kingdom, type MapPoint } from '../../schema/world'
@@ -227,6 +228,8 @@ export function WorldMap({
     const type = Object.hasOwn(content.poiTypes, poi.type) ? content.poiTypes[poi.type] : undefined
     return [{ id, at: node.at, poi, category: type?.category ?? null, icon: iconUrl(type?.icon) }]
   })
+  // The Crisis sites the party has found: ringed, and dimmed once quiet (thwarted, or spent).
+  const crisisSites = new Map((crisisInfo(state, content)?.sites ?? []).map((s) => [s.poi, s]))
   // Everything the arrow keys move between.
   const markers: { id: string; at: MapPoint }[] = [...sites, ...pois]
   // Roving tab stops: where the party is (or is headed), where it can go, and the selection.
@@ -415,12 +418,15 @@ export function WorldMap({
           })}
           {pois.map(({ id, at: p, poi, category, icon }) => {
             const here = id === state.location && !travel
-            const label = `${poi.name} (${poiCategoryText(t, category)})`
+            const crisis = crisisSites.get(id)
+            const label = `${poi.name} (${crisis ? t('crisis.mapSite') : poiCategoryText(t, category)})`
             const r = marker * 0.85
             const classes = [
               'site',
               'poi',
+              crisis && 'crisis',
               siteEmpty(state.world.seed, id, poi, state.day) && 'cleared',
+              crisis?.quiet && 'quiet',
               here && 'here',
               id === selected && 'selected',
               reachable.has(id) && 'reachable',
@@ -438,7 +444,14 @@ export function WorldMap({
                 onKeyDown={onKey(id, p)}
               >
                 <title>{label}</title>
-                <circle cx={p.x} cy={p.y} r={r} style={{ stroke: colourOf(poi.domain) }} />
+                {crisis && <circle className="crisis-ring" cx={p.x} cy={p.y} r={r * 1.45} />}
+                <circle
+                  className="poi-disc"
+                  cx={p.x}
+                  cy={p.y}
+                  r={r}
+                  style={{ stroke: colourOf(poi.domain) }}
+                />
                 {icon ? (
                   <image
                     className="poi-icon"

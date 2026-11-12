@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadBundledContent } from '../content/bundled'
 import { inProgress } from '../engine/encounters/run'
+import { crisisInfo } from '../engine/crisis/status'
 import { camaraderieInfo } from '../engine/town/camaraderie'
 import { suppliesInfo } from '../engine/travel/preview'
 import { nodeOf } from '../engine/world/graph'
 import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
 import { ContractsPanel } from './ContractsPanel'
+import { CrisisPanel } from './CrisisPanel'
 import { EncounterDeck } from './deck/EncounterDeck'
 import { DevArea } from './DevArea'
 import { prefersReducedMotion } from './dice/DiceRoll'
@@ -71,7 +73,7 @@ function Game() {
     <div className="app">
       <header className="topbar">
         <h1>{t('app.title')}</h1>
-        <DayMark day={shown.day} />
+        <DayMark day={shown.day} crisis={crisisInfo(shown, content)} />
         <span>{t('top.gold', { gold: shown.gold })}</span>
         <span title={t('top.suppliesHint')}>
           {t('top.food', { food: supplies.food, days: supplies.foodDays })} ·{' '}
@@ -113,6 +115,7 @@ function Game() {
             onAction={inProgress(state) ? undefined : dispatch}
           />
           <ContractsPanel content={content} state={shown} onAction={dispatch} />
+          <CrisisPanel content={content} state={shown} />
           <WorldMap
             content={content}
             state={shown}

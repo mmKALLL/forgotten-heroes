@@ -2,6 +2,7 @@ import type { Content } from '../../content/build'
 import { availableActions, type Action } from '../../engine/state'
 import { poiInfo, suppliesInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
+import { CrisisSiteNote } from '../CrisisPanel'
 import { useI18n } from '../i18n/I18n'
 import { ExploreAction } from './ExploreAction'
 import { PoiSummary } from './PoiSummary'
@@ -41,6 +42,7 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
     <section className="panel place poi-panel" aria-label={t('poi.heading')}>
       <h2>{info.name}</h2>
       <PoiSummary info={info} />
+      <CrisisSiteNote content={content} state={state} />
       {visit && (
         <div className="actions">
           <button
