@@ -66,6 +66,7 @@ The old Svelte code is removed on this branch. The useful types and data are por
 - **Inspiration:** a natural 20 on a non-combat check grants Inspiration, which can be spent for a reroll and similar uses.
 - **Carrying capacity** (Plan 4, in kilograms): a member carries 20 kg at STR 10, × (1 + 0.1 × (STR − 10)) within 0.5–2.25×, so 0.8× at STR 8 and 1.8× at STR 18. From exhaustion 3 a member carries half. Owned pack animals and carts, and hired mounts, add their own capacity (a cart only with the animal that pulls it). Food and water count: a day's food is 1 kg and a day's water 2 kg, so a member with the usual 5 days of food and 4 of water has about 7 kg left for cargo.
   - **Encumbered** (above capacity, up to 1.5×): ⅔ land speed and no forced march.
+  - **The load is fixed at departure** (designer decision): the speed a journey sets out at holds for the whole road. Eating and drinking the load down, dropping goods or picking up loot on the way doesn't change it; the next departure weighs the party again.
   - **Overloaded** (above 1.5×): the party can't set out ("drop or sell N kg"), and the market refuses a purchase that would put it there. A ship carries the load, so sea passage ignores weight. Goods can be left behind anywhere ("Drop goods" in the goods bar), so loot never strands the party.
   - Magical alternatives (floating disk, unseen porters, teleport circles) come later.
 - **Endurance:** forced-march days before exhaustion scale with CON.
