@@ -1,6 +1,6 @@
 import type { Biome, Pace, Tier } from '../../schema/types'
 import type { GameState } from '../../schema/state'
-import { chooseActor } from '../rules/character'
+import { chooseLead } from '../rules/character'
 import { rollCheck, tierOdds, TIERS } from '../rules/checks'
 import { useSkill } from '../rules/strain'
 import { goodsOf, partyWaterCapacity, waterNeed } from './supplies'
@@ -30,7 +30,7 @@ export function forageCheck(
   pace: Pace
 ): ForageCheck | null {
   if (terrain === null || terrain === 'sea') return null
-  const actor = chooseActor(state.party, FORAGE_SKILL)
+  const actor = chooseLead(state.party, FORAGE_SKILL, 'forage')
   if (!actor) return null
   const dc = FORAGE_DC[terrain]
   const modifier = actor.modifier + FORAGE_PACE_MODIFIER[pace]

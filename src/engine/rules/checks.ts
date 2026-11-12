@@ -36,25 +36,33 @@ const emptyOdds = (): Record<Tier, number> => ({
   critSuccess: 0,
 })
 
-/** Exact tier probabilities by enumerating every die outcome (20 or 400 cases). */
+/**
+ * Exact tier probabilities by enumerating every die outcome (20 or 400 cases). With `rerollOnes`
+ * (a `lucky` hook, gear/hooks.ts), a kept natural 1 is rerolled once and the new die stands: each
+ * such case splits into the 20 faces of the reroll.
+ */
 export function tierOdds(
   modifier: number,
   dc: number,
-  mode: RollMode = 'normal'
+  mode: RollMode = 'normal',
+  rerollOnes = false
 ): Record<Tier, number> {
-  // Count whole outcomes, then divide once, so no float error accumulates.
+  // Count whole outcomes, then divide once, so no float error accumulates. Every kept die weighs
+  // 20; a rerolled 1 hands its weight to the 20 faces of the reroll.
   const counts = emptyOdds()
+  const count = (kept: number) => {
+    if (kept === 1 && rerollOnes) {
+      for (let r = 1; r <= 20; r++) counts[tierFor(r, r + modifier, dc)]++
+    } else counts[tierFor(kept, kept + modifier, dc)] += 20
+  }
   let cases: number
   if (mode === 'normal') {
-    cases = 20
-    for (let d = 1; d <= 20; d++) counts[tierFor(d, d + modifier, dc)]++
+    cases = 20 * 20
+    for (let d = 1; d <= 20; d++) count(d)
   } else {
-    cases = 400
+    cases = 400 * 20
     for (let a = 1; a <= 20; a++) {
-      for (let b = 1; b <= 20; b++) {
-        const kept = mode === 'advantage' ? Math.max(a, b) : Math.min(a, b)
-        counts[tierFor(kept, kept + modifier, dc)]++
-      }
+      for (let b = 1; b <= 20; b++) count(mode === 'advantage' ? Math.max(a, b) : Math.min(a, b))
     }
   }
   const odds = emptyOdds()
@@ -103,22 +111,35 @@ export type RollOutcome = {
   tier: Tier
 }
 
+/**
+ * Rolls a check. With `rerollOnes` (a `lucky` hook), a kept natural 1 is rerolled once: the new
+ * die replaces it in `dice` and stands, whatever the other die of an advantage or disadvantage
+ * roll shows. The third value says whether that happened (the caller spends the luck).
+ */
 export function rollCheck(
   rng: Rng,
   modifier: number,
   dc: number,
-  mode: RollMode = 'normal'
-): [RollOutcome, Rng] {
-  return withRng(rng, (d) => {
+  mode: RollMode = 'normal',
+  rerollOnes = false
+): [RollOutcome, Rng, boolean] {
+  const [[outcome, rerolled], next] = withRng(rng, (d): [RollOutcome, boolean] => {
     const dice = mode === 'normal' ? [d.int(1, 20)] : [d.int(1, 20), d.int(1, 20)]
-    const kept =
+    let kept =
       mode === 'advantage'
         ? Math.max(...dice)
         : mode === 'disadvantage'
           ? Math.min(...dice)
           : dice[0]
     const keptIndex = dice.indexOf(kept)
+    const rerolled = rerollOnes && kept === 1
+    if (rerolled) {
+      kept = d.int(1, 20)
+      dice[keptIndex] = kept
+    }
     const total = kept + modifier
-    return { dice, kept, keptIndex, modifier, total, dc, mode, tier: tierFor(kept, total, dc) }
+    const tier = tierFor(kept, total, dc)
+    return [{ dice, kept, keptIndex, modifier, total, dc, mode, tier }, rerolled]
   })
+  return [outcome, next, rerolled]
 }

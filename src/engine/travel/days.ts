@@ -9,6 +9,7 @@ import type { Rng } from '../rng'
 import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
 import { fadeStrainAfter } from '../rules/strain'
+import { enduranceBonus } from '../gear/hooks'
 import { rationMultiplier } from './pace'
 import { escortPassengers } from '../town/contract-hooks'
 import { DEFAULT_PACE, FORCED_MARCH_DC, HUNGER_DC, THIRST_DC } from '../constants'
@@ -36,14 +37,17 @@ export function dailyNeed(
 
 type Line = { text: string; tone: LogTone }
 
-/** A CON check against a level of exhaustion; returns the character after it, and a log line. */
+/**
+ * A CON check against a level of exhaustion (an `endurance` hook helps, gear/hooks.ts); returns
+ * the character after it, and a log line.
+ */
 function endure(
   rng: Rng,
   c: Character,
   dc: number,
   what: string
 ): { rng: Rng; character: Character; line: Line } {
-  const [roll, next] = rollCheck(rng, statModifier(c, 'con'), dc)
+  const [roll, next] = rollCheck(rng, statModifier(c, 'con') + enduranceBonus(c), dc)
   const holds = roll.tier === 'success' || roll.tier === 'critSuccess'
   const line =
     `${c.name} ${what}: CON ${roll.kept} ${formatModifier(roll.modifier)} = ` +
@@ -56,7 +60,8 @@ function endure(
  * One day passes. Members eat and drink in party order. Whoever goes without makes a CON check
  * (DC 10 without food, 15 without water) or gains a level of exhaustion. On a forced march the
  * party then eats its extra rations (what is left of them), and every member makes a CON check
- * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades, except stacks gained today.
+ * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades (faster with a `strainFade` hook),
+ * except stacks gained today.
  * With `content`, goods then spoil (spoilDay). Returns the ids of those who went without, for rest.
  */
 export function consumeDay(

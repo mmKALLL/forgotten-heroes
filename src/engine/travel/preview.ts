@@ -1,4 +1,5 @@
 import type { Content } from '../../content/build'
+import { wardShare } from '../gear/hooks'
 import { PACES, type Biome, type Pace, type PoiCategory, type Position } from '../../schema/types'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
@@ -246,6 +247,7 @@ function paceOptions(
   const drink = animalWater(state, content, hired)
   const wealth = visibleWealth(state, content).steps
   const escort = isEscorting(state)
+  const ward = wardShare(state)
   const to = otherEnd(route, state.location ?? route.from)
   const heavy: TravelWarning[] =
     !sea && laden.level !== 'light'
@@ -267,7 +269,7 @@ function paceOptions(
     const warnings = [...heavy, ...forecast.warnings]
     // As the journey would record it (depart): no foraging at sea.
     const exposure = (foraging: boolean) => ({
-      hostile: hostileShare(route.danger, threatLevel, pace, foraging, wealth, escort),
+      hostile: hostileShare(route.danger, threatLevel, pace, foraging, wealth, escort, ward),
       ambush: ambushPositionForPace(pace, 'normal', foraging),
     })
     const chosen = exposure(forage && !sea)

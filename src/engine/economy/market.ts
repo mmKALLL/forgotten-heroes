@@ -7,6 +7,7 @@ import { domainThreatLevel } from '../world/pois'
 import { siteStatus } from '../world/sites'
 import { shopKeeper, standingSpreadModifier } from '../town/reputation'
 import { goodDef } from './goods'
+import { sellBonus } from '../gear/hooks'
 import { supplyOf, type SupplySource } from './supply'
 import {
   DRIFT,
@@ -15,6 +16,7 @@ import {
   MARKET_LEVEL_MAX,
   PRICE_STEP,
   PRIVATE_ROOM_MIN_QUALITY,
+  SELL_BONUS_CAP,
   RECOVERY_HALF_LIFE_DAYS,
   SHORTAGE_GAP,
   SPREAD_BY_SIZE,
@@ -30,7 +32,9 @@ import {
 /** The pseudo-shop every settlement has: market stalls selling and buying the essentials. */
 export const MARKET_STALL = 'market-stall'
 
-type Market = Pick<GameState, 'world' | 'day' | 'markets'> & Partial<Pick<GameState, 'reputation'>>
+/** What prices read: with the party, its worn `sellBonus` hooks raise what selling pays. */
+type Market = Pick<GameState, 'world' | 'day' | 'markets'> &
+  Partial<Pick<GameState, 'reputation' | 'party'>>
 
 const own = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
@@ -423,6 +427,8 @@ export type Quote = {
  * unit by unit as the trade moves the price. Each unit is priced at the pressure halfway through
  * it, so buying and selling the same units back meet the same middle prices and the spread never
  * gains money. Every unit price is whole gold, rounded up (wholeGp). Null when no shop here trades the good that way, or the amount is below 1.
+ * Selling pays the party's `sellBonus` share more (gear/hooks.ts), before rounding, but never more
+ * than SELL_BONUS_CAP × the middle price, so buying and selling back still never gains.
  */
 export function quote(
   state: Market,
@@ -443,7 +449,11 @@ export function quote(
   const level = levelPrice(state, content, settlementId, good, state.day)
   const depth = marketDepth(content, sizeOf(state, settlementId), good)
   const p0 = pressure(tradeOf(state, settlementId, good), state.day)
-  const factor = side === 'buy' ? 1 + chosen.spread / 2 : 1 - chosen.spread / 2
+  const bonus = side === 'sell' && state.party ? sellBonus({ party: state.party }, good) : 0
+  const factor =
+    side === 'buy'
+      ? 1 + chosen.spread / 2
+      : Math.min(SELL_BONUS_CAP, (1 - chosen.spread / 2) * (1 + bonus))
   // Prices are whole gold (designer decision): each unit's price is rounded up, at least 1 gp.
   const unit = (i: number) => {
     const p = side === 'sell' ? p0 + i + 0.5 : p0 - i - 0.5

@@ -11,7 +11,7 @@ import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { statLabel } from '../rules/abilities'
-import { canAct, chooseActor } from '../rules/character'
+import { canAct, chooseLead } from '../rules/character'
 import { TIERS, TIER_LABELS, normalizeDc, rollCheck, tierOdds, type Tier } from '../rules/checks'
 import { useSkill } from '../rules/strain'
 import { forageDay } from '../travel/forage'
@@ -101,7 +101,7 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
   const terrain = domain ? domainTerrain(content, domain) : null
   if (!terrain || terrain === 'sea') return null
   const [best] = EXPLORE_SKILLS.flatMap((skill) => {
-    const actor = chooseActor(state.party, skill)
+    const actor = chooseLead(state.party, skill, 'explore')
     return actor ? [{ skill, actor }] : []
   }).sort((a, b) => b.actor.modifier - a.actor.modifier)
   if (!best) return null

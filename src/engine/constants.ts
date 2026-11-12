@@ -410,6 +410,11 @@ export const EXPLORE_FINDS: Readonly<Record<Tier, { found: number; extraDays: nu
   critSuccess: { found: 2, extraDays: 0 },
 }
 
+// Rule hooks and accessories (gear/hooks.ts, gear/accessories.ts, economy/market.ts)
+
+/** A sale with a `sellBonus` hook never pays more than this × the middle price (no arbitrage). */
+export const SELL_BONUS_CAP = 1
+
 // Strain (strain.ts)
 
 /** The use of a skill in one day that adds a Strain stack, and every later one (design §3). */

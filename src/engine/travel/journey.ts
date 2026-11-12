@@ -1,4 +1,5 @@
 import type { Content } from '../../content/build'
+import { wardShare } from '../gear/hooks'
 import type { Pace } from '../../schema/types'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
@@ -259,7 +260,8 @@ export function placeOnRoute(
       travel.pace,
       travel.forage,
       steps,
-      isEscorting(state)
+      isEscorting(state),
+      state.party ? wardShare({ party: state.party }) : 0
     ).drawn,
     wealthSteps: steps,
   }
