@@ -151,6 +151,33 @@ describe('generatePois', () => {
     expect(tagged / untagged).toBeGreaterThan(2)
   })
 
+  test('a lair keyed to threats is only drawn where one of them holds the land', () => {
+    const c = structuredClone(content)
+    const camp = c.poiTypes['orc-war-camp']
+    c.poiTypes = {
+      'orc-war-camp': { ...camp, biomes: ['hills', 'jungle', 'marsh', 'plains'], weight: 5 },
+      // other kinds of site keep threats as a mere favour
+      'orc-shrine': { ...camp, id: 'orc-shrine', category: 'shrine', hostile: false },
+      plain: { ...c.poiTypes['singing-stones'], id: 'plain', weight: 1 },
+    }
+    delete c.poiTypes['orc-shrine'].threat
+    const mixed: Record<string, LandState> = {
+      ...LANDS,
+      greenvale: { threat: 'orc-warband', threatStrength: 2 },
+    }
+    const types = new Map<string, Set<string>>()
+    for (let seed = 0; seed < 100; seed++) {
+      for (const poi of Object.values(pois(seed, c, mixed))) {
+        const land = c.settlements[poi.domain].region
+        types.set(land, (types.get(land) ?? new Set()).add(poi.type))
+      }
+    }
+    expect(types.get('greenvale')).toContain('orc-war-camp')
+    expect(types.get('ashmoor')).not.toContain('orc-war-camp')
+    expect(types.get('farisle')).not.toContain('orc-war-camp')
+    expect(types.get('ashmoor')).toContain('orc-shrine')
+  })
+
   test('a type favoured by the spot’s terrain is drawn more often', () => {
     const c = structuredClone(content)
     c.poiTypes = {

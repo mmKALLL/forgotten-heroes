@@ -2,7 +2,7 @@
   "$schema": "../_schema/partsTables.schema.json",
   "kind": "partsTables",
   "source": "procedural",
-  "notes": "Names for points of interest, drawn from the table a POI type names. Most are \"{first} {second}\" from two smaller tables; a few wonders have whole names. Original names only, nothing from published settings. Written by Claude; add rows freely. poi-name-ruin, poi-name-camp and poi-name-hermit are for the dungeons, lairs and lone experts of Plan 3b B3.",
+  "notes": "Names for points of interest, drawn from the table a POI type names. Most are \"{first} {second}\" from two smaller tables; a few wonders have whole names. Every type's table gives at least 12 different names, so a world rarely repeats one (a content test checks this). Original names only, nothing from published settings. Written by Claude; add rows freely.",
   "entries": [
     {
       "id": "poi-name-shrine",
@@ -183,7 +183,15 @@
         { "text": "the Mirror Waste" },
         { "text": "Sunglass Vale" },
         { "text": "the Shimmer" },
-        { "text": "the Glazed Hollow" }
+        { "text": "the Glazed Hollow" },
+        { "text": "the Glittering Waste" },
+        { "text": "the Fused Plain" },
+        { "text": "Wyrmfire Flats" },
+        { "text": "the Shining Pan" },
+        { "text": "the Glassmere" },
+        { "text": "the Starfall Glass" },
+        { "text": "the Kiln" },
+        { "text": "the Blinding Flats" }
       ]
     },
     {
@@ -195,7 +203,15 @@
         { "text": "the Bone Gate" },
         { "text": "the Old Ribs" },
         { "text": "the Ribcage" },
-        { "text": "Leviathan's Gate" }
+        { "text": "Leviathan's Gate" },
+        { "text": "the Titan's Spine" },
+        { "text": "the White Arch" },
+        { "text": "Dragonbone Gate" },
+        { "text": "the Ivory Ribs" },
+        { "text": "the Sky-Whale's Bones" },
+        { "text": "the Bleached Arch" },
+        { "text": "the Elder Ribs" },
+        { "text": "the Great Jaw" }
       ]
     },
     {
@@ -213,7 +229,12 @@
         { "text": "the Fallen" },
         { "text": "the Ashen" },
         { "text": "Old King's" },
-        { "text": "the Nameless" }
+        { "text": "the Nameless" },
+        { "text": "the Broken" },
+        { "text": "the Forgotten" },
+        { "text": "the Thornwrapped" },
+        { "text": "Lord Harrow's" },
+        { "text": "the Crumbling" }
       ]
     },
     {
@@ -235,7 +256,7 @@
     },
     {
       "id": "poi-camp-first",
-      "description": "What the locals call it",
+      "description": "War-camp names",
       "rows": [
         { "text": "Redtusk" },
         { "text": "Gallows" },
@@ -243,7 +264,12 @@
         { "text": "Burnt" },
         { "text": "Crowbait" },
         { "text": "Skullpike" },
-        { "text": "Blackfire" }
+        { "text": "Blackfire" },
+        { "text": "Bloodaxe" },
+        { "text": "Broken Spear" },
+        { "text": "Gutripper" },
+        { "text": "Ironjaw" },
+        { "text": "Ashbanner" }
       ]
     },
     {
@@ -270,8 +296,10 @@
         { "text": "Old Wen's" },
         { "text": "Mother Hollin's" },
         { "text": "One-Eye's" },
-        { "text": "the Herbwife's" },
-        { "text": "the Crooked" }
+        { "text": "the Stargazer's" },
+        { "text": "the Crooked" },
+        { "text": "Brother Aldo's" },
+        { "text": "the Old Sage's" }
       ]
     },
     {
@@ -284,6 +312,471 @@
         { "text": "Shack" },
         { "text": "Hollow" }
       ]
+    },
+    {
+      "id": "poi-name-warren",
+      "description": "Goblin warrens",
+      "rows": [{ "text": "{poi-warren-first} {poi-warren-second}" }]
+    },
+    {
+      "id": "poi-warren-first",
+      "description": "Who digs there",
+      "rows": [
+        { "text": "Rattooth" },
+        { "text": "Mudgut" },
+        { "text": "Nettle" },
+        { "text": "Gnawbone" },
+        { "text": "Sootfoot" },
+        { "text": "Pinch-ear" },
+        { "text": "Knucklebone" },
+        { "text": "Stinkhole" },
+        { "text": "Ratking's" }
+      ]
+    },
+    {
+      "id": "poi-warren-second",
+      "description": "What kind of hole",
+      "rows": [
+        { "text": "Warren" },
+        { "text": "Burrows" },
+        { "text": "Holes" },
+        { "text": "Tunnels" },
+        { "text": "Diggings" }
+      ]
+    },
+    {
+      "id": "poi-name-outlaw",
+      "description": "Outlaw hideouts",
+      "rows": [{ "text": "{poi-outlaw-first} {poi-outlaw-second}" }]
+    },
+    {
+      "id": "poi-outlaw-first",
+      "description": "Whose hideout",
+      "rows": [
+        { "text": "Gallows" },
+        { "text": "Cutthroat" },
+        { "text": "Hangman's" },
+        { "text": "Black Tom's" },
+        { "text": "Red Meg's" },
+        { "text": "Widowmaker's" },
+        { "text": "Dead Man's" },
+        { "text": "the Robbers'" },
+        { "text": "Crookback's" }
+      ]
+    },
+    {
+      "id": "poi-outlaw-second",
+      "description": "What kind of hideout",
+      "rows": [
+        { "text": "Farm" },
+        { "text": "Barn" },
+        { "text": "Mill" },
+        { "text": "Hollow" },
+        { "text": "Roost" },
+        { "text": "Lair" }
+      ]
+    },
+    {
+      "id": "poi-name-muster",
+      "description": "Rebel musters",
+      "rows": [{ "text": "{poi-muster-first} {poi-muster-second}" }]
+    },
+    {
+      "id": "poi-muster-first",
+      "description": "Whose cause",
+      "rows": [
+        { "text": "the Rebel" },
+        { "text": "the Exile's" },
+        { "text": "the True King's" },
+        { "text": "the Banner" },
+        { "text": "the Oathbreaker's" },
+        { "text": "the Lost Prince's" },
+        { "text": "the Rightful Queen's" },
+        { "text": "the Usurper's" }
+      ]
+    },
+    {
+      "id": "poi-muster-second",
+      "description": "What kind of camp",
+      "rows": [
+        { "text": "Muster" },
+        { "text": "Camp" },
+        { "text": "Redoubt" },
+        { "text": "Encampment" },
+        { "text": "Field" }
+      ]
+    },
+    {
+      "id": "poi-name-graves",
+      "description": "Restless graveyards",
+      "rows": [{ "text": "{poi-graves-first} {poi-graves-second}" }]
+    },
+    {
+      "id": "poi-graves-first",
+      "description": "What kind of dead",
+      "rows": [
+        { "text": "the Restless" },
+        { "text": "the Howling" },
+        { "text": "the Grey" },
+        { "text": "the Weeping" },
+        { "text": "the Soldiers'" },
+        { "text": "Old Earl's" },
+        { "text": "the Pale" },
+        { "text": "the Hungry" }
+      ]
+    },
+    {
+      "id": "poi-graves-second",
+      "description": "What kind of graveyard",
+      "rows": [
+        { "text": "Graves" },
+        { "text": "Boneyard" },
+        { "text": "Field" },
+        { "text": "Mound" },
+        { "text": "Churchyard" }
+      ]
+    },
+    {
+      "id": "poi-name-cult",
+      "description": "Cult hideaways",
+      "rows": [{ "text": "{poi-cult-first} {poi-cult-second}" }]
+    },
+    {
+      "id": "poi-cult-first",
+      "description": "What kind of house",
+      "rows": [
+        { "text": "the Shuttered" },
+        { "text": "the Black" },
+        { "text": "the Veiled" },
+        { "text": "the Whispering" },
+        { "text": "the Crimson" },
+        { "text": "Old Vane's" },
+        { "text": "the Hollow" },
+        { "text": "the Silent" }
+      ]
+    },
+    {
+      "id": "poi-cult-second",
+      "description": "What kind of hideaway",
+      "rows": [
+        { "text": "Manor" },
+        { "text": "Cellar" },
+        { "text": "Lodge" },
+        { "text": "Hall" },
+        { "text": "Grange" }
+      ]
+    },
+    {
+      "id": "poi-name-serpent",
+      "description": "Serpent temples",
+      "rows": [{ "text": "{poi-serpent-first} {poi-serpent-second}" }]
+    },
+    {
+      "id": "poi-serpent-first",
+      "description": "What kind of serpent",
+      "rows": [
+        { "text": "the Coiled" },
+        { "text": "the Jade" },
+        { "text": "the Hissing" },
+        { "text": "the Scaled" },
+        { "text": "the Venom" },
+        { "text": "the Viper's" },
+        { "text": "the Green" },
+        { "text": "the Masked" }
+      ]
+    },
+    {
+      "id": "poi-serpent-second",
+      "description": "What kind of temple",
+      "rows": [
+        { "text": "Temple" },
+        { "text": "Ziggurat" },
+        { "text": "Pit" },
+        { "text": "Steps" },
+        { "text": "Pyramid" }
+      ]
+    },
+    {
+      "id": "poi-name-coven",
+      "description": "Hag hollows",
+      "rows": [{ "text": "{poi-coven-first} {poi-coven-second}" }]
+    },
+    {
+      "id": "poi-coven-first",
+      "description": "Whose hollow",
+      "rows": [
+        { "text": "the Crooked" },
+        { "text": "Old Mother's" },
+        { "text": "the Bramble" },
+        { "text": "Three Sisters'" },
+        { "text": "the Black Kettle" },
+        { "text": "Granny Nail's" },
+        { "text": "the Bone" },
+        { "text": "the Wailing" }
+      ]
+    },
+    {
+      "id": "poi-coven-second",
+      "description": "What kind of hollow",
+      "rows": [
+        { "text": "Hollow" },
+        { "text": "Thicket" },
+        { "text": "Bog" },
+        { "text": "Bower" },
+        { "text": "Mire" }
+      ]
+    },
+    {
+      "id": "poi-name-roost",
+      "description": "Drake roosts",
+      "rows": [{ "text": "{poi-roost-first} {poi-roost-second}" }]
+    },
+    {
+      "id": "poi-roost-first",
+      "description": "What the drakes left",
+      "rows": [
+        { "text": "the Scorched" },
+        { "text": "the Ashen" },
+        { "text": "Wyrmtooth" },
+        { "text": "the Smoking" },
+        { "text": "Cinder" },
+        { "text": "Redscale" },
+        { "text": "the Burning" },
+        { "text": "Brimstone" }
+      ]
+    },
+    {
+      "id": "poi-roost-second",
+      "description": "What kind of height",
+      "rows": [
+        { "text": "Eyrie" },
+        { "text": "Crag" },
+        { "text": "Roost" },
+        { "text": "Ledge" },
+        { "text": "Peak" }
+      ]
+    },
+    {
+      "id": "poi-name-steading",
+      "description": "Giant steadings",
+      "rows": [{ "text": "{poi-steading-first} {poi-steading-second}" }]
+    },
+    {
+      "id": "poi-steading-first",
+      "description": "Whose steading",
+      "rows": [
+        { "text": "Bonecrusher" },
+        { "text": "Boulder" },
+        { "text": "Old Thunder's" },
+        { "text": "Skullcracker" },
+        { "text": "Oxroast" },
+        { "text": "Big Mother's" },
+        { "text": "Stonefist" },
+        { "text": "the Great" }
+      ]
+    },
+    {
+      "id": "poi-steading-second",
+      "description": "What kind of hall",
+      "rows": [
+        { "text": "Steading" },
+        { "text": "Hall" },
+        { "text": "Hearth" },
+        { "text": "Hold" },
+        { "text": "Longhouse" }
+      ]
+    },
+    {
+      "id": "poi-name-mine",
+      "description": "Mines",
+      "rows": [{ "text": "{poi-mine-first} {poi-mine-second}" }]
+    },
+    {
+      "id": "poi-mine-first",
+      "description": "Whose mine",
+      "rows": [
+        { "text": "Deepvein" },
+        { "text": "Old Copper" },
+        { "text": "the Silver" },
+        { "text": "Greyrock" },
+        { "text": "the Flooded" },
+        { "text": "Brannock's" },
+        { "text": "the Lost" },
+        { "text": "Tinner's" },
+        { "text": "the Iron" }
+      ]
+    },
+    {
+      "id": "poi-mine-second",
+      "description": "What kind of mine",
+      "rows": [
+        { "text": "Mine" },
+        { "text": "Diggings" },
+        { "text": "Delving" },
+        { "text": "Shaft" },
+        { "text": "Workings" }
+      ]
+    },
+    {
+      "id": "poi-name-herbwife",
+      "description": "Herbwives' springs",
+      "rows": [{ "text": "{poi-herbwife-first} {poi-herbwife-second}" }]
+    },
+    {
+      "id": "poi-herbwife-first",
+      "description": "Whose spring",
+      "rows": [
+        { "text": "the Herbwife's" },
+        { "text": "Mother Sorrel's" },
+        { "text": "Old Nettle's" },
+        { "text": "Granny Tansy's" },
+        { "text": "the Green Woman's" },
+        { "text": "Widow Yarrow's" },
+        { "text": "the Wisewoman's" },
+        { "text": "Mistress Rue's" }
+      ]
+    },
+    {
+      "id": "poi-herbwife-second",
+      "description": "What kind of spring",
+      "rows": [
+        { "text": "Spring" },
+        { "text": "Springhead" },
+        { "text": "Well" },
+        { "text": "Wellspring" }
+      ]
+    },
+    {
+      "id": "poi-name-croft",
+      "description": "Old fighters' farms",
+      "rows": [{ "text": "{poi-croft-first} {poi-croft-second}" }]
+    },
+    {
+      "id": "poi-croft-first",
+      "description": "Whose farm",
+      "rows": [
+        { "text": "the Old Captain's" },
+        { "text": "Greyhand's" },
+        { "text": "the Swordmaster's" },
+        { "text": "Haskel's" },
+        { "text": "the Duelist's" },
+        { "text": "Silver Tom's" },
+        { "text": "the Fencer's" },
+        { "text": "Old Steel's" }
+      ]
+    },
+    {
+      "id": "poi-croft-second",
+      "description": "What kind of farm",
+      "rows": [
+        { "text": "Farm" },
+        { "text": "Croft" },
+        { "text": "Homestead" },
+        { "text": "House" },
+        { "text": "Yard" }
+      ]
+    },
+    {
+      "id": "poi-name-scholar",
+      "description": "Scholars' towers",
+      "rows": [{ "text": "{poi-scholar-first} {poi-scholar-second}" }]
+    },
+    {
+      "id": "poi-scholar-first",
+      "description": "Whose tower",
+      "rows": [
+        { "text": "the Mapmaker's" },
+        { "text": "the Surveyor's" },
+        { "text": "the Star-Reader's" },
+        { "text": "Mistress Quill's" },
+        { "text": "Old Inkfinger's" },
+        { "text": "the Scholar's" },
+        { "text": "the Compass" },
+        { "text": "the Glass" }
+      ]
+    },
+    {
+      "id": "poi-scholar-second",
+      "description": "What kind of house",
+      "rows": [{ "text": "Tower" }, { "text": "House" }, { "text": "Study" }, { "text": "Retreat" }]
+    },
+    {
+      "id": "poi-name-lodge",
+      "description": "Hunters' lodges",
+      "rows": [{ "text": "{poi-lodge-first} {poi-lodge-second}" }]
+    },
+    {
+      "id": "poi-lodge-first",
+      "description": "Whose lodge",
+      "rows": [
+        { "text": "the Huntress's" },
+        { "text": "One-Eye's" },
+        { "text": "Old Greymantle's" },
+        { "text": "the Hound's" },
+        { "text": "Widow Ash's" },
+        { "text": "the Stag" },
+        { "text": "Long Tam's" },
+        { "text": "the Bowyer's" }
+      ]
+    },
+    {
+      "id": "poi-lodge-second",
+      "description": "What kind of lodge",
+      "rows": [{ "text": "Lodge" }, { "text": "Cabin" }, { "text": "Shieling" }, { "text": "Hide" }]
+    },
+    {
+      "id": "poi-name-waystation",
+      "description": "Abandoned waystations",
+      "rows": [{ "text": "{poi-waystation-first} {poi-waystation-second}" }]
+    },
+    {
+      "id": "poi-waystation-first",
+      "description": "What it was called",
+      "rows": [
+        { "text": "the Last" },
+        { "text": "Old Post" },
+        { "text": "the Burnt" },
+        { "text": "Crossroads" },
+        { "text": "the Empty" },
+        { "text": "the King's" },
+        { "text": "Milestone" },
+        { "text": "the Red Moon" }
+      ]
+    },
+    {
+      "id": "poi-waystation-second",
+      "description": "What kind of waystation",
+      "rows": [
+        { "text": "Waystation" },
+        { "text": "Post House" },
+        { "text": "Coaching Inn" },
+        { "text": "Relay" },
+        { "text": "Toll House" }
+      ]
+    },
+    {
+      "id": "poi-name-sealed",
+      "description": "Sealed doors",
+      "rows": [{ "text": "{poi-sealed-first} {poi-sealed-second}" }]
+    },
+    {
+      "id": "poi-sealed-first",
+      "description": "What the door is like",
+      "rows": [
+        { "text": "the Sealed" },
+        { "text": "the Silent" },
+        { "text": "the Graven" },
+        { "text": "the Bronze" },
+        { "text": "the Hidden" },
+        { "text": "the Nameless" },
+        { "text": "the Kings'" },
+        { "text": "the Green" }
+      ]
+    },
+    {
+      "id": "poi-sealed-second",
+      "description": "What kind of door",
+      "rows": [{ "text": "Door" }, { "text": "Gate" }, { "text": "Portal" }, { "text": "Doors" }]
     }
   ]
 }

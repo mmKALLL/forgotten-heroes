@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
-import type { FixedOption } from '../schema/encounter'
+import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
+import { POI_CATEGORIES } from '../schema/constants'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
 import { encounterOptions } from '../engine/encounters/preview'
@@ -207,6 +208,12 @@ test('every situation and twist kind says how it treats the party', () => {
   expect(hostile.length).toBeGreaterThanOrEqual(3)
 })
 
+/** Every outcome branch of an option, twist branches included. */
+const outcomesOf = (option: Option): OutcomeBranch[] =>
+  (option.kind === 'fixed' ? [option.outcome] : Object.values(option.outcomes)).flatMap((o) =>
+    o ? [o, ...(o.twist ? [o.twist] : [])] : []
+  )
+
 describe('points of interest', () => {
   const types = Object.values(content.poiTypes)
   const ofCategory = (category: string) => types.filter((t) => t.category === category)
@@ -246,6 +253,188 @@ describe('points of interest', () => {
       .filter((s) => s.site && !played.has(s.id))
       .map((s) => s.id)
     expect(unused).toEqual([])
+  })
+
+  test('every threat has a hostile lair keyed to it', () => {
+    for (const threat of Object.keys(content.threats)) {
+      const lairs = ofCategory('lair').filter((t) => t.threats.includes(threat))
+      expect(lairs.length, threat).toBeGreaterThanOrEqual(1)
+      for (const t of lairs) expect(t.hostile && t.threat).toBeTruthy()
+    }
+  })
+
+  test('lairs are hostile tugs of war that can be cleared, and can drive the party off', () => {
+    for (const t of ofCategory('lair')) {
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition, id).toBe('hostile')
+        const stages = Object.values(s.stages)
+        expect(stages.length, id).toBeGreaterThanOrEqual(2)
+        const branches = stages.flatMap((stage) => stage.options.flatMap(outcomesOf))
+        // escalation: some outcome moves on to a later stage
+        expect(
+          branches.some((b) => b.goto && b.goto !== s.start),
+          id
+        ).toBe(true)
+        // success clears it; a failure costs HP and days and leaves it standing
+        expect(
+          branches.some((b) => b.effects.some((e) => e.effect === 'clearPoi')),
+          id
+        ).toBe(true)
+        const drivenOff = branches.filter(
+          (b) =>
+            !b.goto &&
+            !b.stay &&
+            b.effects.some((e) => e.effect === 'days') &&
+            b.effects.some((e) => e.effect === 'hp' && e.amount < 0) &&
+            !b.effects.some((e) => e.effect === 'clearPoi')
+        )
+        expect(drivenOff.length, id).toBeGreaterThan(0)
+      }
+    }
+  })
+
+  test('dungeons are 3–5 stage chains to a vault: footing, a high-stakes boss, gold, cleared', () => {
+    const dungeons = ofCategory('dungeon')
+    expect(dungeons.length).toBeGreaterThanOrEqual(2)
+    expect(dungeons.some((t) => t.hostile)).toBe(true)
+    expect(dungeons.some((t) => !t.hostile)).toBe(true)
+    for (const t of dungeons) {
+      if (t.hostile) expect(t.threat).toEqual({ min: 1, max: 1 })
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition, id).toBe(t.hostile ? 'hostile' : 'neutral')
+        const stages = Object.values(s.stages)
+        expect(stages.length, id).toBeGreaterThanOrEqual(3)
+        expect(stages.length, id).toBeLessThanOrEqual(5)
+        const options = stages.flatMap((stage) => stage.options)
+        const branches = options.flatMap(outcomesOf)
+        const has = (effect: string) =>
+          branches.some((b) => b.effects.some((e) => e.effect === effect))
+        expect(has('position'), id).toBe(true)
+        expect(has('clearPoi'), id).toBe(true)
+        expect(options.some((o) => o.kind === 'check' && o.highStakes)).toBe(true)
+        for (const b of branches.filter((b) => b.effects.some((e) => e.effect === 'clearPoi')))
+          expect(
+            b.effects.some((e) => e.effect === 'gold' && e.amount > 0),
+            id
+          ).toBe(true)
+      }
+    }
+  })
+
+  test('lone experts train a skill for a price, sell what they know, and always let you talk', () => {
+    const experts = ofCategory('expert')
+    expect(experts.length).toBeGreaterThanOrEqual(4)
+    expect(experts.length).toBeLessThanOrEqual(6)
+    for (const t of experts) {
+      expect(t.hostile).toBe(false)
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition, id).toBe('neutral')
+        const options = s.stages[s.start].options
+        const effects = (o: Option) => outcomesOf(o).flatMap((b) => b.effects)
+        // pay to train: fixed, once, gated by gold and by someone lacking the skill
+        const train = options.find(
+          (o) => o.kind === 'fixed' && effects(o).some((e) => e.effect === 'trainSkill') && o.once
+        )
+        expect(train, id).toBeDefined()
+        const skill = effects(train!).find((e) => e.effect === 'trainSkill')!
+        expect(train!.requires, id).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({ req: 'gold' }),
+            { req: 'untrained', skill: skill.effect === 'trainSkill' && skill.skill },
+          ])
+        )
+        expect(effects(train!).some((e) => e.effect === 'gold' && e.amount < 0)).toBe(true)
+        // knowledge or healing, and a way that is neither gated nor once
+        const helps = options.some((o) =>
+          effects(o).some((e) => e.effect === 'discoverPoi' || (e.effect === 'hp' && e.amount > 0))
+        )
+        expect(helps, id).toBe(true)
+        expect(options.some((o) => !o.once && o.requires.length === 0)).toBe(true)
+        // a check that can earn it for free
+        expect(
+          options.some((o) => o.kind === 'check'),
+          id
+        ).toBe(true)
+      }
+    }
+    const taught = new Set(
+      experts.flatMap((t) =>
+        t.situations.flatMap((id) =>
+          Object.values(content.situations[id].stages).flatMap((st) =>
+            st.options
+              .flatMap(outcomesOf)
+              .flatMap((b) =>
+                b.effects.flatMap((e) => (e.effect === 'trainSkill' ? [e.skill] : []))
+              )
+          )
+        )
+      )
+    )
+    expect(taught.size).toBeGreaterThanOrEqual(4)
+  })
+
+  test('five to eight of Claude’s road situations leave a clue to a site', () => {
+    const clues = Object.values(content.situations).filter(
+      (s) =>
+        s.source === 'claude' &&
+        !s.site &&
+        Object.values(s.stages).some((st) =>
+          st.options
+            .flatMap(outcomesOf)
+            .some((b) => b.effects.some((e) => e.effect === 'discoverPoi'))
+        )
+    )
+    expect(clues.length).toBeGreaterThanOrEqual(5)
+    expect(clues.length).toBeLessThanOrEqual(8)
+    for (const s of clues) expect(s.biomes ?? []).not.toContain('sea')
+  })
+
+  test.each(types.map((t) => [t.id, t.names] as const))(
+    '%s can be named at least 12 ways (%s), so a world rarely repeats one',
+    (_, table) => {
+      const [names] = withRng(createRng(11), (d) =>
+        Array.from({ length: 600 }, () => rollTable(d, content, table))
+      )
+      expect(new Set(names).size).toBeGreaterThanOrEqual(12)
+    }
+  )
+
+  test('every POI category has a type with a playable situation', () => {
+    for (const category of POI_CATEGORIES) {
+      const playable = ofCategory(category).filter((t) =>
+        t.situations.some(
+          (id) =>
+            validateSituation(content.situations[id], content).length === 0 &&
+            lintSituation(content.situations[id], content).length === 0
+        )
+      )
+      expect(playable.length, category).toBeGreaterThanOrEqual(1)
+    }
+  })
+
+  test('quest sites are neutral placeholders with a clue and a hook for later quests', () => {
+    expect(ofCategory('quest').length).toBeGreaterThanOrEqual(2)
+    for (const t of ofCategory('quest')) {
+      expect(t.hostile).toBe(false)
+      for (const id of t.situations) {
+        const s = content.situations[id]
+        expect(s.disposition).toBe('neutral')
+        const effects = Object.values(s.stages)
+          .flatMap((st) => st.options.flatMap(outcomesOf))
+          .flatMap((b) => b.effects)
+        expect(
+          effects.some((e) => e.effect === 'discoverPoi'),
+          id
+        ).toBe(true)
+        expect(
+          effects.some((e) => e.effect === 'log' && /quest/i.test(e.text)),
+          id
+        ).toBe(true)
+      }
+    }
   })
 
   test.each(types.map((t) => [t.id, t.names] as const))(

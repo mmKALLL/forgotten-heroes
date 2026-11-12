@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it.",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up. Four sea situations (squall-off-the-bow, passenger-overboard, something-under-the-hull, smugglers-below-decks) are the only ones drawn at sea; smugglers-below-decks is tagged brawl, so a stowaway's critical failure starts it. Seven road situations (ambush-at-the-narrows, mapmakers-apprentice, hedge-witch, pilgrims-at-dusk, flooded-ferry, lizardfolk-herb, wardens-on-your-trail) leave a clue on success: a discoverPoi effect that reveals a nearby point of interest (Plan 3b B3).",
   "entries": [
     {
       "id": "flooded-ferry",
@@ -38,8 +38,11 @@
                   "effects": [{ "effect": "gold", "amount": -9 }]
                 },
                 "success": {
-                  "text": "Ilse laughs and takes half.",
-                  "effects": [{ "effect": "gold", "amount": -6 }]
+                  "text": "Ilse laughs and takes half. While she poles you over, she tells you what the flood turned up downriver.",
+                  "effects": [
+                    { "effect": "gold", "amount": -6 },
+                    { "effect": "discoverPoi", "count": 1, "scope": "domain" }
+                  ]
                 },
                 "critSuccess": {
                   "text": "Ilse takes you across for a song. {actor} has to sing it, all the way over."
@@ -167,10 +170,11 @@
                   "effects": [{ "effect": "hp", "amount": 3, "target": "all" }]
                 },
                 "success": {
-                  "text": "Her eyes light up. She mends you and sends you off with her blessing.",
+                  "text": "Her eyes light up. She mends you, sends you off with her blessing, and tells you of a place she'd rather you bothered than her.",
                   "effects": [
                     { "effect": "hp", "amount": 6, "target": "all" },
-                    { "effect": "inspiration", "amount": 1 }
+                    { "effect": "inspiration", "amount": 1 },
+                    { "effect": "discoverPoi", "count": 1, "scope": "domain" }
                   ]
                 }
               }
@@ -297,10 +301,11 @@
                   "twist": { "text": "{actor} sees them rise just in time.", "goto": "attack" }
                 },
                 "success": {
-                  "text": "{actor} keeps a sharp watch. At dawn the pilgrims leave rowan sprigs by the fire.",
+                  "text": "{actor} keeps a sharp watch. At dawn the pilgrims leave rowan sprigs by the fire, and directions to the shrine they are walking to.",
                   "effects": [
                     { "effect": "exhaustion", "amount": 1, "target": "actor" },
-                    { "effect": "inspiration", "amount": 1 }
+                    { "effect": "inspiration", "amount": 1 },
+                    { "effect": "discoverPoi", "count": 1, "scope": "land", "category": "shrine" }
                   ],
                   "twist": {
                     "text": "{actor} sees them rise, grey and silent, and shouts the camp awake.",
@@ -390,11 +395,17 @@
                   ]
                 },
                 "success": {
-                  "text": "{actor}'s quiet words do what swords couldn't. They melt back into the rocks."
+                  "text": "{actor}'s quiet words do what swords couldn't. They melt back into the rocks, and {actor} marks which way they go.",
+                  "effects": [
+                    { "effect": "discoverPoi", "count": 1, "scope": "domain", "category": "lair" }
+                  ]
                 },
                 "critSuccess": {
-                  "text": "They melt back into the rocks, and one of them leaves an apology in silver.",
-                  "effects": [{ "effect": "gold", "amount": 5 }]
+                  "text": "They melt back into the rocks, and one of them leaves an apology in silver. {actor} marks which way they go.",
+                  "effects": [
+                    { "effect": "gold", "amount": 5 },
+                    { "effect": "discoverPoi", "count": 1, "scope": "domain", "category": "lair" }
+                  ]
                 }
               }
             }
@@ -446,10 +457,11 @@
                   ]
                 },
                 "success": {
-                  "text": "You find the thieves' camp and take the instruments back. His master pays well.",
+                  "text": "You find the thieves' camp and take the instruments back. His master pays well, and lets you copy a page of his survey.",
                   "effects": [
                     { "effect": "gold", "amount": 15 },
-                    { "effect": "days", "amount": 1 }
+                    { "effect": "days", "amount": 1 },
+                    { "effect": "discoverPoi", "count": 2, "scope": "land" }
                   ],
                   "twist": {
                     "text": "The trail loops straight back to the 'apprentice', and you come up behind his waiting friends.",
@@ -647,13 +659,14 @@
                   ]
                 },
                 "success": {
-                  "text": "You find the herb at the foot of a drowned tree. The lizardfolk keep their word: the artifact is yours.",
+                  "text": "You find the herb at the foot of a drowned tree, and through the green beyond it, carved stones. The lizardfolk keep their word: the artifact is yours.",
                   "effects": [
                     {
                       "effect": "log",
                       "text": "Weather-calling artifact (items arrive in a later plan).",
                       "tone": "crit"
-                    }
+                    },
+                    { "effect": "discoverPoi", "count": 1, "scope": "domain" }
                   ]
                 }
               }
@@ -816,7 +829,10 @@
                   "effects": [{ "effect": "gold", "amount": -6 }]
                 },
                 "success": {
-                  "text": "{actor} convinces the captain you were fooled like everyone else."
+                  "text": "{actor} convinces the captain you were fooled like everyone else. Mollified, he tells you where the real outlaws are camped, in case you want to be useful.",
+                  "effects": [
+                    { "effect": "discoverPoi", "count": 1, "scope": "land", "category": "lair" }
+                  ]
                 }
               }
             },
