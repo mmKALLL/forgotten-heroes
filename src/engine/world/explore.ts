@@ -20,6 +20,7 @@ import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
 import { crisisHidden } from '../crisis/sites'
 import { crisisRefusal, crisisVisit } from '../crisis/progress'
+import { omenFactor } from '../crisis/clues'
 import { siteStatus } from './sites'
 import { rumourOption, type RumourOption } from '../town/rumours'
 import { siteContractsMet } from '../town/contract-hooks'
@@ -205,7 +206,8 @@ export function ambushCandidates(state: GameState, content: Content) {
       !s.followUpOnly &&
       !s.site &&
       s.weight > 0 &&
-      fitsPlace(s, place)
+      fitsPlace(s, place) &&
+      omenFactor(state, content, s, place) > 0
   )
 }
 

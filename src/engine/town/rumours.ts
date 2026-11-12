@@ -16,6 +16,12 @@ import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
 import { poisToDiscover } from '../world/pois'
 import { crisisHidden } from '../crisis/sites'
+import {
+  crisisRumour,
+  crisisRumourText,
+  hearCrisisRumour,
+  type CrisisRumour,
+} from '../crisis/clues'
 import { serviceWith } from './animals'
 import { personStanding, settlementStanding, shopKeeper, standingSteps } from './reputation'
 import {
@@ -63,6 +69,8 @@ export type RumourOption = {
   cost: number
   chances: Record<Tier, number>
   outcomes: RumourOutcome[]
+  /** What a success adds about the Crisis (crisis/clues.ts), also said in its outcome text. */
+  crisis: CrisisRumour | null
 }
 
 const BUSY = 'Finish the current encounter first.'
@@ -107,8 +115,10 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
     chances: tierOdds(best.actor.modifier, dc),
     outcomes: TIERS.map((tier) => {
       const hidden = tier === 'critFail' || tier === 'critSuccess'
-      return { tier, text: hidden ? null : RUMOUR_OUTCOMES[tier], hidden }
+      const crisis = tier === 'success' ? crisisRumourText(state, content, state.location!) : ''
+      return { tier, text: hidden ? null : RUMOUR_OUTCOMES[tier] + crisis, hidden }
     }),
+    crisis: crisisRumour(state, content, state.location!),
   }
 }
 
@@ -191,8 +201,9 @@ function trouble(state: GameState, content: Content): GameState {
 /**
  * Buys a round and listens: the best of Insight and Persuasion rolls against the rumour DC (it
  * counts toward Strain; a natural 20 grants Inspiration). No day passes; once per arrival. A
- * success brings heard prices (RUMOUR_PRICES) and a clue to an undiscovered site in this land, and
- * a critical success a lead too (a bonus offer on the board here). A partial is idle gossip, a
+ * success brings heard prices (RUMOUR_PRICES), a clue to an undiscovered site in this land (the
+ * Crisis's reveal site while its plan is unknown) and any news of the Crisis (crisis/clues.ts),
+ * and a critical success a lead too (a bonus offer on the board here). A partial is idle gossip, a
  * failure nothing worth hearing, and a critical failure trouble: a pickpocket or a fight.
  */
 export function listenRumours(state: GameState, content: Content): GameState {
@@ -253,9 +264,13 @@ export function listenRumours(state: GameState, content: Content): GameState {
     next = appendLog(next, 'The talk is all weather and old grudges.', 'info')
   }
   if (tier === 'success' || tier === 'critSuccess') {
-    const search = { count: 1, scope: 'land' } as const
-    const ids = poisToDiscover(next.world, content, here, search, crisisHidden(next))
-    if (ids.length > 0) next = revealPois(next, content, ids)
+    // While the plan is unknown, the site heard of is the Crisis's reveal site (crisis/clues.ts).
+    if (crisisRumour(next, content, here) !== 'reveal') {
+      const search = { count: 1, scope: 'land' } as const
+      const ids = poisToDiscover(next.world, content, here, search, crisisHidden(next))
+      if (ids.length > 0) next = revealPois(next, content, ids)
+    }
+    next = hearCrisisRumour(next, content, here, tier === 'critSuccess')
   }
   if (tier === 'critSuccess') {
     next = appendLog(next, 'Someone mentions work going begging: look at the board here.', 'good')

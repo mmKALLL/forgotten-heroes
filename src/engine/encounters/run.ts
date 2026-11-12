@@ -25,6 +25,7 @@ import { evadePursuit } from '../travel/pursuit'
 import { anyUndiscovered, domainAt } from '../world/pois'
 import { crisisHidden } from '../crisis/sites'
 import { crisisActNumber } from '../crisis/status'
+import { omenFactor } from '../crisis/clues'
 import { boonReadyIn, siteStatus } from '../world/sites'
 import { dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
@@ -287,7 +288,8 @@ export function drawEncounter(
       !s.site &&
       s.weight > 0 &&
       (!sources || sources.includes(s.source)) &&
-      (!place || fitsPlace(s, place))
+      (!place || fitsPlace(s, place)) &&
+      omenFactor(state, content, s, place) > 0
   )
   if (candidates.length === 0) {
     return place ? state : appendLog(state, 'No encounters match that filter.', 'bad')
@@ -304,7 +306,11 @@ export function drawEncounter(
       if (kind.length > 0) pool = kind
     }
     const steps = place?.wealthSteps ?? 0
-    const picked = d.weighted(pool, (s) => wealthWeight(s.weight, s.tags, steps))
+    // An omen weighs more on a road in the current Crisis act's land (crisis/clues.ts).
+    const picked = d.weighted(
+      pool,
+      (s) => wealthWeight(s.weight, s.tags, steps) * omenFactor(state, content, s, place)
+    )
     const avoided = picked.disposition === 'hostile' && avoidance > 0 && d.float() < avoidance
     return { picked, avoided }
   })
