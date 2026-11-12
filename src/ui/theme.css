@@ -95,6 +95,7 @@ input {
 }
 .topbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 1.25rem;
   padding: 0.6rem 1rem;
@@ -107,13 +108,14 @@ input {
   display: grid;
   grid-template-columns: minmax(250px, 1fr) minmax(360px, 2fr) minmax(240px, 1fr);
   align-items: start;
+  align-content: start;
   gap: 1rem;
   padding: 1rem;
   flex: 1;
 }
 @media (max-width: 900px) {
   .layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 .panel {
@@ -780,6 +782,7 @@ h2[tabindex='-1']:focus {
 }
 .map-head {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
