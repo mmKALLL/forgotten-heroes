@@ -88,6 +88,10 @@ export const EncounterStateSchema = z.object({
   nextCheckModifier: z.number().int().default(0),
   /** Why the next check is modified, e.g. "misread". The latest reason wins; cleared with the modifier. */
   nextCheckReason: z.string().nullable().default(null),
+  /** The point of interest being visited, or null on the road and elsewhere. */
+  poi: IdSchema.nullable().default(null),
+  /** The domain (settlement id) it happens in, for clues (discoverPoi); null when unknown. */
+  domain: IdSchema.nullable().default(null),
   /** "stage/option" keys of `once` options already chosen. */
   used: z.array(z.string()),
   log: z.array(EncounterLogEntrySchema),

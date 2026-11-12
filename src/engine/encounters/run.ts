@@ -20,6 +20,7 @@ import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '..
 import { SKILL_USE_DAYS, useSkill } from '../rules/strain'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
+import { domainAt } from '../world/pois'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
@@ -122,13 +123,15 @@ const advanceFollowUps = (state: GameState): GameState => ({
 /**
  * Starts a situation. On the road, `place` weights the twist table towards kinds that fit the
  * place, and on a journey a hostile encounter meets the party on the footing its pace gives
- * (ambushPositionForPace).
+ * (ambushPositionForPace). The encounter happens in the place's domain (or, without a place,
+ * where the party is), and at `poi` when visiting one.
  */
 export function startEncounter(
   state: GameState,
   content: Content,
   situationId: string,
-  place?: Place
+  place?: Place,
+  poi?: string
 ): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
@@ -176,6 +179,8 @@ export function startEncounter(
     twistKindRevealed: false,
     nextCheckModifier: 0,
     nextCheckReason: null,
+    poi: poi ?? null,
+    domain: place?.domain ?? domainAt(state.world, state.location),
     used: [],
     log: [{ text, tone: 'info' }],
   }
@@ -245,9 +250,21 @@ export function drawEncounter(
 
 export const closeEncounter = (state: GameState): GameState => ({ ...state, encounter: null })
 
-/** Human-readable reasons an option can't be chosen, e.g. "needs 15 gp". Empty when available. */
+/**
+ * Human-readable reasons an option can't be chosen, e.g. "needs 15 gp" or "everyone already
+ * knows Insight". Empty when available.
+ */
 export function unmetRequirements(state: GameState, requires: readonly Requirement[]): string[] {
-  return requires.flatMap((r) => (state.gold >= r.min ? [] : [`needs ${r.min} gp`]))
+  return requires.flatMap((r) => {
+    switch (r.req) {
+      case 'gold':
+        return state.gold >= r.min ? [] : [`needs ${r.min} gp`]
+      case 'untrained':
+        return state.party.some((c) => !c.skillProficiencies.includes(r.skill))
+          ? []
+          : [`everyone already knows ${statLabel(r.skill)}`]
+    }
+  })
 }
 
 /** The current stage's options that can still be chosen (used `once` options are gone). */
@@ -266,7 +283,8 @@ function resolve(
   state: GameState,
   branch: OutcomeBranch,
   actorId: string | undefined,
-  entry: Pick<EncounterLogEntry, 'tone' | 'roll' | 'highStakes'>
+  entry: Pick<EncounterLogEntry, 'tone' | 'roll' | 'highStakes'>,
+  content?: Content
 ): GameState {
   const encounter = state.encounter!
   const fromStage = encounter.stage!
@@ -282,7 +300,7 @@ function resolve(
   // The outcome text comes before any log effects it triggers.
   let next = appendLog(state, text, entry.tone)
   next = { ...next, encounter: { ...encounter, log: [...encounter.log, { ...entry, text }] } }
-  next = applyEffects(next, effects, { actorId })
+  next = applyEffects(next, effects, { actorId, content })
 
   // "@twist" goes to the twist's escalation stage; once there, which twist it was is no secret.
   const escalates = branch.goto === TWIST_STAGE
@@ -301,7 +319,13 @@ function resolve(
   return { ...next, encounter: { ...next.encounter!, stage, log } }
 }
 
-export function chooseOption(state: GameState, optionId: string, actorId?: string): GameState {
+/** `content` lets clues (discoverPoi) find their sites; without it they find nothing. */
+export function chooseOption(
+  state: GameState,
+  optionId: string,
+  actorId?: string,
+  content?: Content
+): GameState {
   const encounter = state.encounter
   if (!encounter || encounter.stage === null) return state
   const option = currentOptions(encounter).find((o) => o.id === optionId)
@@ -318,7 +342,13 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
   const used = option.once ? [...encounter.used, `${encounter.stage}/${option.id}`] : encounter.used
   if (option.kind === 'fixed') {
     const marked = { ...state, encounter: { ...encounter, used } }
-    return resolve(marked, branchFor(option.outcome, encounter.twist), undefined, { tone: 'info' })
+    return resolve(
+      marked,
+      branchFor(option.outcome, encounter.twist),
+      undefined,
+      { tone: 'info' },
+      content
+    )
   }
 
   const { skill, ability, combat } = option.check
@@ -366,11 +396,13 @@ export function chooseOption(state: GameState, optionId: string, actorId?: strin
     )
   }
   const branch = branchFor(tierOutcome(option, roll.tier), encounter.twist)
-  return resolve(rolled, branch, actor.characterId, {
-    tone: TIER_TONE[roll.tier],
-    roll: record,
-    highStakes,
-  })
+  return resolve(
+    rolled,
+    branch,
+    actor.characterId,
+    { tone: TIER_TONE[roll.tier], roll: record, highStakes },
+    content
+  )
 }
 
 export function stepEncounter(
@@ -384,7 +416,7 @@ export function stepEncounter(
     case 'drawEncounter':
       return drawEncounter(state, content, action.sources)
     case 'chooseOption':
-      return chooseOption(state, action.optionId, action.actorId)
+      return chooseOption(state, action.optionId, action.actorId, content)
     case 'closeEncounter':
       return closeEncounter(state)
   }

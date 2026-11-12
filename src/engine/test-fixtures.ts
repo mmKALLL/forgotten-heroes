@@ -927,6 +927,8 @@ export function makeEncounter(overrides: Partial<EncounterState> = {}): Encounte
     twistKindRevealed: false,
     nextCheckModifier: 0,
     nextCheckReason: null,
+    poi: null,
+    domain: null,
     used: [],
     log: [],
     ...overrides,

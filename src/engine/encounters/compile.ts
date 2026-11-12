@@ -41,7 +41,8 @@ function scaleBranch<T extends OutcomeBranch | Outcome>(branch: T, reward: numbe
 }
 
 const scaleRequirements = (requires: Requirement[], reward: number): Requirement[] =>
-  requires.flatMap((r) => {
+  requires.flatMap((r): Requirement[] => {
+    if (r.req !== 'gold') return [r]
     const min = Math.round(r.min * reward)
     return min > 0 ? [{ ...r, min }] : []
   })

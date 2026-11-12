@@ -1,10 +1,11 @@
-import { sortedEntries, type Content } from '../../content/build'
+import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
+import type { PoiCategory } from '../../schema/constants'
 import type { DomainState, LandSpot, LandState, PoiState, PoiType } from '../../schema/world'
 import { fillText, rollTable, slotNames } from '../encounters/slots'
 import type { Draw } from '../rng'
 import { straightKm } from './geo'
 import { threatLevelFor } from './politics'
-import type { Territory } from './territory'
+import { territory, type Territory } from './territory'
 
 // Points of interest (design §6): dungeons, experts, lairs, shrines, landmarks, wonders and quest
 // sites, placed on land spots per domain when the world is rolled. All start hidden.
@@ -134,4 +135,55 @@ export function domainThreatLevel(world: PoiWorld, domainId: string): number {
   const domain = own(world.domains, domainId)
   if (!domain) return 0
   return threatLevelFor(domainThreatStrength(world, domainId), domain.garrison)
+}
+
+/** What discoverPoi looks for: how many, where, and of which category. */
+export type PoiSearch = {
+  count: number
+  scope: 'domain' | 'land'
+  category?: PoiCategory
+}
+
+/**
+ * The undiscovered POIs a clue or a search in `domainId` would reveal, nearest first, at most
+ * `count`. Within the domain the nearest is by territory km from its settlement; with scope
+ * "land", POIs in the land's other domains follow, by straight-line km from the settlement.
+ * Ties go to the lower id.
+ */
+export function poisToDiscover(
+  world: Pick<PoiWorld, 'domains' | 'pois'>,
+  content: Content,
+  domainId: string | null,
+  { count, scope, category }: PoiSearch
+): string[] {
+  const domain = domainId === null ? undefined : own(world.domains, domainId)
+  const home = domainId === null ? undefined : own(content.settlements, domainId)
+  if (!domain || !home) return []
+  const land = territory(content)
+  const distance = (poi: PoiState): [number, number] => {
+    const spot = own(content.landSpots, poi.spot)
+    const straight = spot ? straightKm(spot.at, home.at) : Infinity
+    return poi.domain === domainId ? [0, land.km[poi.spot] ?? straight] : [1, straight]
+  }
+  return Object.entries(world.pois)
+    .filter(([, poi]) => {
+      if (poi.discovered) return false
+      if (category && own(content.poiTypes, poi.type)?.category !== category) return false
+      if (poi.domain === domainId) return true
+      return scope === 'land' && own(world.domains, poi.domain)?.land === domain.land
+    })
+    .map(([id, poi]) => ({ id, d: distance(poi) }))
+    .sort((a, b) => a.d[0] - b.d[0] || a.d[1] - b.d[1] || byCodeUnit(a.id, b.id))
+    .slice(0, count)
+    .map((p) => p.id)
+}
+
+/** The domain a place belongs to: a settlement is its own, a POI its owner's. Null otherwise. */
+export function domainAt(
+  world: Pick<PoiWorld, 'domains' | 'pois'>,
+  id: string | null
+): string | null {
+  if (id === null) return null
+  if (Object.hasOwn(world.domains, id)) return id
+  return own(world.pois, id)?.domain ?? null
 }

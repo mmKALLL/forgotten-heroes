@@ -14,6 +14,7 @@ import { TIER_LABELS, normalizeDc, rollCheck, type RollMode } from './rules/chec
 import { stepTravel, type TravelAction } from './travel/journey'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
+import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 
 export const STARTING_PARTY_SIZE = 2
@@ -26,6 +27,10 @@ export type Action =
   | { type: 'practiceCheck'; stat: CheckStat; dc: number; mode: RollMode; actorId?: string }
   | EncounterAction
   | TravelAction
+  /** Play one of the situations of the discovered, uncleared POI the party is at. */
+  | { type: 'visitPoi' }
+  /** Search the domain the party is in for undiscovered POIs (world/explore.ts). */
+  | { type: 'explore' }
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
@@ -91,7 +96,15 @@ export function step(state: GameState, action: Action, content: Content): GameSt
     case 'buyWaterskin':
     case 'sellSupplies':
       return stepTravel(state, action, content)
+    case 'visitPoi':
+      return visitPoi(state, content)
+    case 'explore':
+      return explore(state, content)
     default:
       return stepEncounter(state, action, content)
   }
 }
+
+/** Actions offered where the party is, beyond roads and supplies: exploring and visiting sites. */
+export const availableActions = (state: GameState, content: Content): SiteAction[] =>
+  siteActions(state, content)
