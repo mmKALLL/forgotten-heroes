@@ -7,6 +7,8 @@ import { inProgress } from '../encounters/run'
 import { fillText } from '../encounters/slots'
 import { load } from '../economy/capacity'
 import { goodName, goodPrice } from '../economy/goods'
+import { marketLevels } from '../economy/market'
+import { nearestProducer, supplyOf } from '../economy/supply'
 import { appendLog } from '../log'
 import { createRng, withRng, type Draw } from '../rng'
 import { poiReach, settlementReach, type Reach } from '../travel/reach'
@@ -36,8 +38,6 @@ import {
   GOOD_WORD_POINTS,
   MAX_CONTRACTS,
   OVERLOAD_RATIO,
-  SUPPLY_GOODS_PAY,
-  SUPPLY_SOURCING_DAYS,
   URGENT_PAY,
   URGENT_SLACK,
 } from '../constants'
@@ -53,9 +53,11 @@ const own = <T>(table: Record<string, T>, id: string | null | undefined): T | un
 
 const BUSY = 'Finish the current encounter first.'
 /** Kinds sent to a settlement; bounties and errands go to a site and report back. */
-const TO_SETTLEMENT: readonly ContractKind[] = ['courier', 'supply', 'escort']
+const TO_SETTLEMENT: readonly ContractKind[] = ['courier', 'freight', 'procurement', 'escort']
 /** Kinds that hand goods over at the destination. */
-const CARRIES_GOODS: readonly ContractKind[] = ['courier', 'supply']
+const CARRIES_GOODS: readonly ContractKind[] = ['courier', 'freight', 'procurement']
+/** Kinds whose goods the patron hands over on acceptance: the party carries them as cargo. */
+const HANDED_OVER: readonly ContractKind[] = ['courier', 'freight']
 
 /** The week a day falls in (day 1–7 is week 0): boards refresh each week. */
 export const boardWeek = (day: number): number => Math.floor((day - 1) / 7)
@@ -88,7 +90,13 @@ export type Offer = {
   good: Good | null
   amount: number
   passengers: number
-  /** By the quickest road to the destination or site. */
+  /**
+   * Procurement: the nearest settlement that makes the good (where the party might buy it), and
+   * its name; null for other kinds.
+   */
+  source: string | null
+  sourceName: string | null
+  /** By the quickest road to the destination or site; for procurement, there and back to the source. */
   km: number
   /** Days there on foot at a steady pace and on a forced march. */
   steadyDays: number
@@ -120,6 +128,40 @@ function boardServices(state: GameState, content: Content, here: string): string
 
 /** A destination or site an offer can name, with the road there. */
 type Target = { id: string; reach: Reach }
+
+/**
+ * Freight: the goods of a template that `here` makes or has close by (supply 1 or more), which the
+ * patron hands over. Procurement: those it is short of this week and that some producer within
+ * the template's km makes (its nearest producer, for the sourcing).
+ */
+function freightGoods(
+  state: GameState,
+  content: Content,
+  here: string,
+  t: ContractTemplate
+): Good[] {
+  return (t.goods ?? []).filter((g) => supplyOf(state, content, here, g).level >= 1)
+}
+
+type Sourcing = { good: Good; source: string; reach: Reach }
+
+function shortages(
+  state: GameState,
+  content: Content,
+  here: string,
+  t: ContractTemplate,
+  weekStart: number
+): Sourcing[] {
+  const levels = marketLevels(state, content, here, weekStart)
+  return (t.goods ?? []).flatMap((good) => {
+    if (!levels[good].shortage) return []
+    const near = nearestProducer(state, content, here, good)
+    if (!near || near.id === here || near.km < t.km.min || near.km > t.km.max) return []
+    // There and back: the deadline and the pay count the round trip.
+    const reach = { km: near.km * 2, days: near.days * 2, forcedDays: near.forcedDays * 2 }
+    return [{ good, source: near.id, reach }]
+  })
+}
 
 /** The settlements or sites a template can send the party to from `here`. */
 function targets(
@@ -194,6 +236,7 @@ function fill(
     poiName: string | null
     good: Good | null
     amount: number
+    sourceName?: string | null
   }
 ): string {
   return fillText(text, {
@@ -202,7 +245,18 @@ function fill(
     site: v.poiName ?? '',
     good: v.good ? goodName(content, v.good).toLowerCase() : '',
     amount: String(v.amount),
+    source: v.sourceName ?? '',
   })
+}
+
+/** A procurement's source: the nearest settlement that makes its good, from where it is due. */
+function sourceOf(
+  state: GameState,
+  content: Content,
+  c: Pick<ContractState, 'kind' | 'to' | 'good'>
+) {
+  if (c.kind !== 'procurement' || !c.good) return null
+  return nearestProducer(state, content, c.to, c.good)?.id ?? null
 }
 
 /**
@@ -219,15 +273,34 @@ function makeOffer(
   lead: boolean,
   posted: ReadonlySet<string>
 ): Offer | null {
-  const options = targets(state, content, here, template).filter(
-    (t) => !posted.has(`${template.id}/${t.id}`)
-  )
+  const weekStart = boardWeek(state.day) * 7 + 1
+  const procure = template.kind === 'procurement'
+  const sourcing = procure ? shortages(state, content, here, template, weekStart) : []
+  const goods = template.kind === 'freight' ? freightGoods(state, content, here, template) : null
+  // Freight goes where its goods are scarcer than here.
+  const scarcer = (to: string, g: Good) =>
+    supplyOf(state, content, to, g).level < supplyOf(state, content, here, g).level
+  const options = procure
+    ? sourcing.map((x) => ({ id: here, reach: x.reach }))
+    : targets(state, content, here, template).filter(
+        (t) =>
+          !posted.has(`${template.id}/${t.id}`) && (!goods || goods.some((g) => scarcer(t.id, g)))
+      )
   const patron = patronFor(state, content, here, template, d)
-  if (options.length === 0 || !patron) return null
-  const target = d.pick(options)
+  if (options.length === 0 || !patron || (procure && posted.has(`${template.id}/${here}`))) {
+    return null
+  }
+  const picked = procure ? d.pick(sourcing) : null
+  const target = picked ? { id: here, reach: picked.reach } : d.pick(options)
   const site = TO_SETTLEMENT.includes(template.kind) ? null : target.id
   const to = site ? here : target.id
-  const good = template.goods ? d.pick(template.goods) : null
+  const good: Good | null = picked
+    ? picked.good
+    : goods
+      ? d.pick(goods.filter((g) => scarcer(to, g)))
+      : template.goods
+        ? d.pick(template.goods)
+        : null
   const amount = template.amount ? d.int(template.amount.min, template.amount.max) : 0
   const passengers =
     template.kind === 'escort'
@@ -235,14 +308,11 @@ function makeOffer(
         ? d.int(template.passengers.min, template.passengers.max)
         : 1
       : 0
-  const deadline = deadlineDays(d, target.reach, template.urgentChance)
-  const { urgent } = deadline
-  // A supply run first has to find the goods: unless it is urgent, it gets days for that.
-  const days = deadline.days + (template.kind === 'supply' && !urgent ? SUPPLY_SOURCING_DAYS : 0)
-  const weekStart = boardWeek(state.day) * 7 + 1
+  const { urgent, days } = deadlineDays(d, target.reach, template.urgentChance)
   const domain = site ? state.world.pois[site].domain : to
   const threat = domainThreatLevel(state.world, domain, weekStart)
-  // Whole gold, rounded up (designer decision).
+  // Whole gold, rounded up (designer decision). A procurement's patron pays the goods' base value
+  // on top of the fee for the sourcing (the round trip to the nearest producer); no advance.
   const pay = Math.max(
     1,
     Math.ceil(
@@ -251,16 +321,15 @@ function makeOffer(
         template.pay *
         (urgent ? URGENT_PAY : 1) *
         (1 + CONTRACT_PAY_PER_THREAT * threat) +
-        // The patron of a supply run also pays for the goods, a little over their base price.
-        (template.kind === 'supply' && good
-          ? amount * goodPrice(content, good) * SUPPLY_GOODS_PAY
-          : 0)
+        (procure && good ? amount * goodPrice(content, good) : 0)
     )
   )
+  const source = picked?.source ?? null
+  const sourceName = source ? settlementName(state, source) : null
   const patronName = personDisplayName(state.world, content, patron)
   const toName = settlementName(state, to)
   const poiName = site ? state.world.pois[site].name : null
-  const values = { patronName, toName: site ? poiName! : toName, poiName, good, amount }
+  const values = { patronName, toName: site ? poiName! : toName, poiName, good, amount, sourceName }
   const locked =
     template.minStanding && !standingMet(state, here, patron, template.minStanding)
       ? template.minStanding
@@ -281,6 +350,8 @@ function makeOffer(
     good,
     amount,
     passengers,
+    source,
+    sourceName,
     km: target.reach.km,
     steadyDays: target.reach.days,
     forcedDays: target.reach.forcedDays,
@@ -300,7 +371,7 @@ function makeOffer(
 function offerRefusal(state: GameState, content: Content, offer: Offer): string | null {
   if (offer.locked) return `needs standing ${offer.locked} in ${settlementName(state, offer.from)}`
   if (state.contracts.length >= MAX_CONTRACTS) return `at most ${MAX_CONTRACTS} contracts at once`
-  if (offer.kind === 'courier' && offer.good) {
+  if (HANDED_OVER.includes(offer.kind) && offer.good) {
     const goods = { ...state.goods, [offer.good]: (state.goods[offer.good] ?? 0) + offer.amount }
     const laden = load(state, content, { goods })
     if (laden.weight > laden.capacity * OVERLOAD_RATIO + 1e-9) {
@@ -413,7 +484,7 @@ export function acceptContract(state: GameState, content: Content, offerId: stri
     contracts: [...state.contracts, contract],
     contractsTaken: [...state.contractsTaken, offer.id],
   }
-  if (offer.kind === 'courier' && offer.good) {
+  if (HANDED_OVER.includes(offer.kind) && offer.good) {
     next = {
       ...next,
       goods: { ...next.goods, [offer.good]: (next.goods[offer.good] ?? 0) + offer.amount },
@@ -425,7 +496,7 @@ export function acceptContract(state: GameState, content: Content, offerId: stri
     `You take on "${offer.title}" for ${offer.patronName}: ${where} within ` +
       `${days(offer.days)} (by day ${contract.deadline}), for ${offer.pay} gp.` +
       (offer.urgent ? ' It is urgent.' : '') +
-      (offer.kind === 'courier' && offer.good
+      (HANDED_OVER.includes(offer.kind) && offer.good
         ? ` You are handed ${offer.amount} ${goodName(content, offer.good).toLowerCase()}.`
         : ''),
     'info'
@@ -440,12 +511,14 @@ export function contractTitle(state: GameState, content: Content, c: ContractSta
   const template = own(content.contracts, c.template)
   if (!template) return c.template
   const poiName = c.poi ? (own(state.world.pois, c.poi)?.name ?? c.poi) : null
+  const source = sourceOf(state, content, c)
   return fill(content, template.title, {
     patronName: personDisplayName(state.world, content, c.patron),
     toName: poiName ?? settlementName(state, c.to),
     poiName,
     good: c.good,
     amount: c.amount,
+    sourceName: source ? settlementName(state, source) : null,
   })
 }
 
@@ -463,7 +536,7 @@ function failContract(
   let next: GameState = { ...state, contracts: state.contracts.filter((x) => x.id !== c.id) }
   let debt = 0
   let cargo = ''
-  if (c.kind === 'courier' && c.good) {
+  if (HANDED_OVER.includes(c.kind) && c.good) {
     const carried = Math.min(next.goods[c.good] ?? 0, c.amount)
     const owed = Math.ceil((c.amount - carried) * goodPrice(content, c.good))
     const paid = Math.min(Math.max(0, next.gold), owed)
@@ -525,6 +598,10 @@ export function completeRefusal(
       return c.kind === 'bounty' ? 'the site is not cleared yet' : 'the site is not visited yet'
     }
     if (state.day > c.deadline) return 'too late'
+    // Procured goods must be brought in from elsewhere: they count when the party arrives.
+    if (c.kind === 'procurement') {
+      return `bring ${c.amount} ${goodName(content, c.good!).toLowerCase()} in from elsewhere`
+    }
   }
   if (CARRIES_GOODS.includes(c.kind) && c.good && (state.goods[c.good] ?? 0) < c.amount) {
     return `needs ${c.amount} ${goodName(content, c.good).toLowerCase()}`
@@ -639,6 +716,8 @@ export type ContractRow = ContractState & {
   fromName: string
   toName: string
   poiName: string | null
+  /** Procurement: the nearest settlement that makes the good; null for other kinds. */
+  sourceName: string | null
   /** Days left until the deadline (0 on the last day); null once met. */
   daysLeft: number | null
   canComplete: boolean
@@ -658,12 +737,15 @@ export function contractRows(state: GameState, content: Content): ContractRow[] 
     const poiName = c.poi ? (own(state.world.pois, c.poi)?.name ?? c.poi) : null
     const patronName = personDisplayName(state.world, content, c.patron)
     const toName = settlementName(state, c.to)
+    const source = sourceOf(state, content, c)
+    const sourceName = source ? settlementName(state, source) : null
     const values = {
       patronName,
       toName: poiName ?? toName,
       poiName,
       good: c.good,
       amount: c.amount,
+      sourceName,
     }
     const reason = completeRefusal(state, content, c)
     const kingdom = kingdomOf(state, c.from)
@@ -675,6 +757,7 @@ export function contractRows(state: GameState, content: Content): ContractRow[] 
       fromName: settlementName(state, c.from),
       toName,
       poiName,
+      sourceName,
       daysLeft: c.met ? null : c.deadline - state.day,
       canComplete: reason === null,
       reason,

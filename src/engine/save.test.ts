@@ -8,6 +8,7 @@ import {
   v4ToV5,
   v5ToV6,
   v6ToV7,
+  v7ToV8,
 } from './save'
 import { newGame, step } from './state'
 import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
@@ -104,7 +105,7 @@ function migrated() {
   const world = generateWorld(worldSeed(5), content)
   return {
     ...V2_SAVE,
-    version: 7,
+    version: 8,
     party: [{ ...ada, strain: {} }],
     world,
     location: startingSettlement(world, content),
@@ -129,12 +130,12 @@ const PLAN_4_DEFAULTS = {
   doneHere: [],
 }
 
-test('a version 2 save loads as version 7 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(7)
+test('a version 2 save loads as version 8 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(8)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save chains through to version 7 too', () => {
+test('a version 1 save chains through to version 8 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -227,7 +228,7 @@ describe('v3 → v4', () => {
     const save = v3Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(7)
+    expect(loaded.version).toBe(8)
     expect(loaded.world).toEqual(generateWorld(worldSeed(save.seed), content))
     expect(loaded.location).toBe('greenvale-2')
     expect(loaded.gold).toBe(33)
@@ -297,7 +298,7 @@ describe('v4 → v5', () => {
   test('keeps each POI’s category, and a cleared one is cleared as of the save’s day', () => {
     const { save, first, second, state } = v4Save()
     const loaded = deserialize(JSON.stringify(save), content)!
-    expect(loaded.version).toBe(7)
+    expect(loaded.version).toBe(8)
     expect(loaded.world.pois[first]).toEqual({ ...state.world.pois[first], clearedDay: 12 })
     expect(loaded.world.pois[second]).toEqual(state.world.pois[second])
     expect(loaded.visited).toBe(false)
@@ -347,7 +348,7 @@ describe('v5 → v6', () => {
     const { save, state } = v5Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(7)
+    expect(loaded.version).toBe(8)
     expect(loaded.goods).toEqual({ food: 6, water: 3 })
     expect(loaded.waterskins).toBe(2)
     expect(loaded.gold).toBe(37)
@@ -434,7 +435,7 @@ describe('v6 → v7', () => {
 
   test('covering tracks becomes the stealthy pace, on the journey and every logged day', () => {
     const loaded = deserialize(JSON.stringify(v6Save()), content)!
-    expect(loaded.version).toBe(7)
+    expect(loaded.version).toBe(8)
     expect(loaded.travel).toMatchObject({ pace: 'stealthy', kmPerDay: 16, days: 5 })
     expect(loaded.travel).not.toHaveProperty('coverTracks')
     expect(loaded.travel!.paceLog).toEqual([
@@ -456,6 +457,38 @@ describe('v6 → v7', () => {
     const save = v6Save()
     const raw = structuredClone(save) as unknown as Record<string, unknown>
     v6ToV7(raw)
+    expect(raw).toEqual(save)
+  })
+})
+
+describe('v7 → v8: supply contracts split', () => {
+  test('a supply contract loads as a procurement; others are kept', () => {
+    const state = makeState()
+    const contract = {
+      id: 'c-greenvale-1-w0-0',
+      template: 'bring-timber',
+      kind: 'supply',
+      patron: 'p-ada',
+      from: 'greenvale-1',
+      to: 'greenvale-2',
+      good: 'timber',
+      amount: 2,
+      poi: null,
+      passengers: 0,
+      accepted: 1,
+      deadline: 9,
+      pay: 30,
+      urgent: false,
+      reputation: { patron: 2, settlement: 1 },
+      met: false,
+    }
+    const courier = { ...contract, id: 'c-x', kind: 'courier' }
+    const save = { ...state, version: 7, contracts: [contract, courier] }
+    const raw = structuredClone(save) as unknown as Record<string, unknown>
+    const loaded = deserialize(JSON.stringify(save), content)!
+    expect(loaded.version).toBe(8)
+    expect(loaded.contracts.map((c) => c.kind)).toEqual(['procurement', 'courier'])
+    v7ToV8(raw)
     expect(raw).toEqual(save)
   })
 })

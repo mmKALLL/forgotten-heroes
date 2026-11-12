@@ -177,7 +177,7 @@ const range = (what: string) =>
     .refine((r) => r.min <= r.max, 'min must not exceed max')
     .describe(what)
 
-const NEEDS_GOODS = ['courier', 'supply']
+const NEEDS_GOODS = ['courier', 'freight', 'procurement']
 const NEEDS_SITES = ['bounty', 'errand']
 
 /** A contract a notice board (or a service) can post (design §8). */
@@ -189,15 +189,23 @@ export const ContractTemplateSchema = z
     text: z
       .string()
       .describe(
-        'May use {patron}; courier and supply add {dest} {good} {amount}, escort {dest}, bounty and errand {site}'
+        'May use {patron}; courier and freight add {dest} {good} {amount}, procurement {good} {amount} {source}, escort {dest}, bounty and errand {site}'
       ),
     weight: z.number().min(0).default(1).describe('Relative chance of being posted'),
     minSize: z.number().int().min(0).max(5).default(0).describe('Smallest size tier posting it'),
     service: IdSchema.optional().describe('Posted only at this service; otherwise on the board'),
     minStanding: StandingSchema.optional().describe('Offered only at this standing or better'),
-    km: range('How far away the destination or site is'),
-    goods: z.array(GoodSchema).min(1).optional().describe('courier and supply: what is carried'),
-    amount: range('courier and supply: how many units').optional(),
+    km: range(
+      'How far away the destination or site is; for procurement, the nearest producer of the good'
+    ),
+    goods: z
+      .array(GoodSchema)
+      .min(1)
+      .optional()
+      .describe(
+        'courier: what is carried; freight: what is carried, if made here; procurement: what is wanted, if short here'
+      ),
+    amount: range('courier, freight and procurement: how many units').optional(),
     passengers: range('escort: how many travel with the party (default 1)').optional(),
     poiCategories: z
       .array(PoiCategorySchema)
@@ -211,7 +219,7 @@ export const ContractTemplateSchema = z
       .describe('Reputation points on completion'),
   })
   .refine((t) => !NEEDS_GOODS.includes(t.kind) || (t.goods && t.amount), {
-    message: 'courier and supply contracts need goods and an amount',
+    message: 'courier, freight and procurement contracts need goods and an amount',
     path: ['goods'],
   })
   .refine((t) => !NEEDS_SITES.includes(t.kind) || t.poiCategories, {

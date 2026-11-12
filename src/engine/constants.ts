@@ -337,10 +337,6 @@ export const DEADLINE_SLACK: readonly [number, number] = [1.25, 1.6]
 export const DEADLINE_GRACE_DAYS = 1
 /** ...or in this one for an urgent offer (never less than a forced march, always less than steady). */
 export const URGENT_SLACK: readonly [number, number] = [0.75, 0.9]
-/** A supply run's patron also pays for the goods: their base price × this, on top of the pay. */
-export const SUPPLY_GOODS_PAY = 1.2
-/** Days a supply run's deadline allows (unless urgent) for finding the goods. */
-export const SUPPLY_SOURCING_DAYS = 2
 /** "A good word": standing gained with every settlement of the patron's kingdom, instead of the gold. */
 export const GOOD_WORD_POINTS = 3
 /** A failed or abandoned contract costs this much standing with the patron and their settlement. */

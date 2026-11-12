@@ -3,6 +3,7 @@ import { midPrice } from '../engine/economy/market'
 import { production, producersOf, supplyOf } from '../engine/economy/supply'
 import { economyIssues } from '../engine/economy/validate'
 import { newGame } from '../engine/state'
+import { noticeBoard } from '../engine/town/contracts'
 import { generateWorld, worldSeed } from '../engine/world/generate'
 import { domainThreatLevel } from '../engine/world/pois'
 import { siteEmpty } from '../engine/world/sites'
@@ -179,10 +180,10 @@ describe('the economy data', () => {
     expect(unused).toEqual([])
   })
 
-  test('contract templates cover all five kinds', () => {
+  test('contract templates cover every kind', () => {
     const templates = Object.values(content.contracts)
     expect(templates.length).toBeGreaterThanOrEqual(15)
-    expect(templates.length).toBeLessThanOrEqual(25)
+    expect(templates.length).toBeLessThanOrEqual(30)
     expect(new Set(templates.map((t) => t.kind))).toEqual(new Set(CONTRACT_KINDS))
   })
 
@@ -216,6 +217,24 @@ describe('the economy data', () => {
     const never = Object.values(content.contracts)
       .filter((template) => !worlds.some((world) => offered(template, world)))
       .map((template) => template.id)
+    expect(never).toEqual([])
+  })
+
+  test('every freight and procurement template is posted somewhere in seeds 1–5', () => {
+    const seen = new Set<string>()
+    for (const seed of SEEDS) {
+      const state = newGame(seed, content)
+      for (let week = 0; week < 9; week++) {
+        for (const id of Object.keys(state.world.settlements)) {
+          for (const o of noticeBoard({ ...state, day: week * 7 + 1 }, content, id)) {
+            seen.add(o.template)
+          }
+        }
+      }
+    }
+    const never = Object.values(content.contracts)
+      .filter((t) => (t.kind === 'freight' || t.kind === 'procurement') && !seen.has(t.id))
+      .map((t) => t.id)
     expect(never).toEqual([])
   })
 

@@ -4,6 +4,7 @@ import type { GameState, KnownPrice, PriceBookEntry } from '../../schema/state'
 import { formatGp } from '../format'
 import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
+import { contractCargo } from '../town/contract-hooks'
 import { tradeReputation } from '../town/reputation'
 import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
@@ -127,7 +128,10 @@ export function buyGoods(
   return observe(tradeReputation(logged, q.total), content, here)
 }
 
-/** Sells up to `amount` units (what is carried, at most) at the best shop buying it here. */
+/**
+ * Sells up to `amount` units (what is carried, less a contract's cargo, at most) at the best shop
+ * buying it here.
+ */
 export function sellGoods(
   state: GameState,
   content: Content,
@@ -139,7 +143,13 @@ export function sellGoods(
   if (!inSettlement(state) || here === null) {
     return appendLog(state, notHere(state, 'Goods can only be sold in a settlement.'), 'bad')
   }
-  const n = Math.min(Math.max(0, Math.floor(amount)), units(state, good))
+  // A contract's cargo is the patron's, not the party's to sell.
+  const cargo = contractCargo(state, good)
+  const free = Math.max(0, units(state, good) - cargo)
+  const n = Math.min(Math.max(0, Math.floor(amount)), free)
+  if (n === 0 && cargo > 0 && units(state, good) > 0) {
+    return appendLog(state, `The ${lower(content, good)} you carry is a contract's cargo.`, 'bad')
+  }
   if (n === 0) return appendLog(state, `There is no ${lower(content, good)} to sell.`, 'bad')
   const q = quote(state, content, here, good, 'sell', n, shop)
   if (!q) return appendLog(state, `No one here buys ${lower(content, good)}.`, 'bad')
@@ -254,6 +264,8 @@ export type MarketRow = {
   /** kg per unit. */
   weight: number
   carried: number
+  /** Of what is carried, the units that are a courier's or freight contract's cargo (not for sale). */
+  cargo: number
   /** Buying or selling one unit here now, at the best shop; null when no shop does. */
   buy: Quote | null
   sell: Quote | null
@@ -357,6 +369,7 @@ export function marketView(state: GameState, content: Content): MarketRow[] {
       category: GOOD_CATEGORY[good],
       weight: def.weight,
       carried: units(state, good),
+      cargo: Math.min(units(state, good), contractCargo(state, good)),
       buy,
       sell,
       supply: levels[good].supply,

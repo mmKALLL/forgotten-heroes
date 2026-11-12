@@ -4,6 +4,15 @@ import { appendLog } from '../log'
 // The small parts of contracts (town/contracts.ts) that encounters and days passing need, kept
 // apart so those modules don't import the whole notice board.
 
+/**
+ * Units of a good the party carries as cargo for courier and freight contracts: the patron's goods,
+ * handed over on acceptance, which can't be sold (losing them costs their base value).
+ */
+export const contractCargo = (state: Pick<GameState, 'contracts'>, good: string): number =>
+  state.contracts
+    .filter((c) => (c.kind === 'courier' || c.kind === 'freight') && c.good === good)
+    .reduce((sum, c) => sum + c.amount, 0)
+
 /** An escort contract still on the road: its passengers travel with the party. */
 const escorting = (c: ContractState) => c.kind === 'escort' && !c.met
 

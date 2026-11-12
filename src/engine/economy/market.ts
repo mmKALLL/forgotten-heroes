@@ -146,9 +146,11 @@ export function marketLevels(
         -MARKET_LEVEL_MAX,
         MARKET_LEVEL_MAX
       )
-      const supply = Object.hasOwn(state.world.settlements, settlementId)
-        ? supplyOf(state, content, settlementId, g).level
-        : 0
+      // Free goods (water) are never made or traded: no supply level.
+      const supply =
+        Object.hasOwn(state.world.settlements, settlementId) && tradable(content, g)
+          ? supplyOf(state, content, settlementId, g).level
+          : 0
       return [g, { supply, demand, shortage: isShortage({ supply, demand }) }]
     })
   ) as Record<Good, MarketLevel>

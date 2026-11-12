@@ -74,9 +74,9 @@ describe('service roles', () => {
 
 describe('market rules', () => {
   test('fill in defaults', () => {
-    expect(MarketRuleSchema.parse({ id: 'coast', label: 'Coast', when: { coastal: true } })).toEqual(
-      { id: 'coast', label: 'Coast', when: { coastal: true }, demand: {} }
-    )
+    expect(
+      MarketRuleSchema.parse({ id: 'coast', label: 'Coast', when: { coastal: true } })
+    ).toEqual({ id: 'coast', label: 'Coast', when: { coastal: true }, demand: {} })
   })
 
   test('levels stay within −2..2, and threat within 0..3', () => {

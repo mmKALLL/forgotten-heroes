@@ -192,7 +192,8 @@ function MarketLine({
 }) {
   const { t } = useI18n()
   const buyN = amount === 'max' ? row.maxBuy : amount
-  const sellN = amount === 'max' ? row.carried : Math.min(amount, row.carried)
+  const forSale = row.carried - row.cargo
+  const sellN = amount === 'max' ? forSale : Math.min(amount, forSale)
   const buyQuote = row.buy && buyN > 0 ? quoteFor('buy', buyN) : null
   const sellQuote = row.sell && sellN > 0 ? quoteFor('sell', sellN) : null
   // Why the buy can't go ahead: too heavy, or not enough gold.
@@ -214,7 +215,11 @@ function MarketLine({
   return (
     <tr className={row.carried > 0 ? 'carried' : undefined}>
       {head}
-      <th scope="row" className="market-good" title={row.uses}>
+      <th
+        scope="row"
+        className="market-good"
+        title={row.cargo > 0 ? `${row.uses}\n${t('market.cargo', { n: row.cargo })}` : row.uses}
+      >
         {goodName} <span className="muted">{water ?? (row.carried > 0 ? row.carried : '')}</span>
       </th>
       <td

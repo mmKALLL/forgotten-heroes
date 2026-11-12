@@ -8,6 +8,7 @@ import { load } from '../economy/capacity'
 import { goodPrice, goodWeight } from '../economy/goods'
 import { marketDepth, quote } from '../economy/market'
 import { serviceWith } from '../town/animals'
+import { nearestProducer } from '../economy/supply'
 import { completeRefusal, escortPassengers, noticeBoard, type Offer } from '../town/contracts'
 import { provisionPlan } from '../town/provision'
 import { rumourOption } from '../town/rumours'
@@ -99,10 +100,14 @@ const healthy = (state: GameState) =>
 /** Cargo is everything but food and water, which the road eats. */
 const isCargo = (good: Good) => good !== 'food' && good !== 'water'
 
-/** Units of a good held for contracts (a courier's cargo, a supply run's delivery). */
+/** Units of a good held for contracts (a courier's or freight's cargo, a procurement's goods). */
 const reserved = (state: GameState, good: Good) =>
   state.contracts
-    .filter((c) => (c.kind === 'courier' || c.kind === 'supply') && c.good === good)
+    .filter(
+      (c) =>
+        (c.kind === 'courier' || c.kind === 'freight' || c.kind === 'procurement') &&
+        c.good === good
+    )
     .reduce((sum, c) => sum + c.amount, 0)
 
 const sizeOf = (state: GameState, id: string) => state.world.settlements[id]?.sizeTier ?? 0
@@ -192,8 +197,19 @@ function bestKnownSell(state: GameState, content: Content, good: Good): number {
   return best
 }
 
-/** Where a contract sends the party next: its site until met, then where it is completed. */
-const contractTarget = (c: ContractState): string => (c.poi && !c.met ? c.poi : c.to)
+/**
+ * Where a contract sends the party next: its site until met, then where it is completed. A
+ * procurement first goes to its source (the nearest producer) until the goods are carried.
+ */
+function contractTarget(state: GameState, content: Content, c: ContractState): string {
+  if (c.poi && !c.met) return c.poi
+  if (c.kind === 'procurement' && !c.met && c.good && (state.goods[c.good] ?? 0) < c.amount) {
+    const source = nearestProducer(state, content, c.to, c.good)?.id
+    // At the source and still short (nothing sold there): any other road will do for now.
+    if (source && source !== state.location) return source
+  }
+  return c.to
+}
 
 /** Steady days from a settlement to a settlement or a site (by road, then its path). */
 function daysTo(state: GameState, content: Content, from: string, target: string): number | null {
@@ -232,7 +248,7 @@ function paceFor(state: GameState, content: Content, road: RouteOption): Pace {
   let need: Pace = 'steady'
   for (const c of state.contracts) {
     if (c.met) continue
-    const target = contractTarget(c)
+    const target = contractTarget(state, content, c)
     const rest = daysTo(state, content, road.to, target)
     if (rest === null) continue
     const left = c.deadline - state.day
@@ -365,7 +381,11 @@ export function trader(
     const roads = routeOptions(state, content).filter((r) => r.available)
     for (const offer of noticeBoard(state, content, here)) {
       if (!offer.available) continue
-      if (going && (offer.poi ?? offer.to) !== contractTarget(going)) continue
+      if (
+        going &&
+        (offer.source ?? offer.poi ?? offer.to) !== contractTarget(state, content, going)
+      )
+        continue
       // A day in hand for the road's delays: met at a steady pace, or at a brisk one (forced
       // only when fresh) on a short urgent run.
       const brisk = Math.ceil(offer.steadyDays / 1.25) + 1
@@ -384,25 +404,27 @@ export function trader(
       let kg = mouths * offer.steadyDays * goodWeight(content, 'food')
       if (offer.good) {
         kg += goodWeight(content, offer.good) * offer.amount
-        if (offer.kind === 'supply') {
-          const q = quote(state, content, here, offer.good, 'buy', offer.amount)
-          if (!q) continue
-          cost = q.total
+        if (offer.kind === 'procurement') {
+          // Bought at the source: at its price-book price if known, else the base price.
+          const known = offer.source ? state.priceBook[offer.source]?.prices[offer.good]?.buy : null
+          cost = Math.ceil((known ?? goodPrice(content, offer.good)) * offer.amount)
           if (cost > state.gold - RESERVE_PER_MEMBER * state.party.length) continue
         }
       }
       if (kg > room()) continue
       // A road the party can't carry the food and water for is no road (a desert crossing).
-      const first = roads && !offer.poi ? roadToward(state, content, roads, offer.to) : null
+      const goal = offer.source ?? offer.to
+      const first = roads && !offer.poi ? roadToward(state, content, roads, goal) : null
       if (first) {
         const p = provisionPlan(state, content, { routeId: first.routeId, pace: 'steady' })
         if (p?.limit === 'weight') continue
       }
+      // A site is there and back; a procurement's days are already the round trip.
       const trip = offer.poi ? offer.steadyDays * 2 : offer.steadyDays
       // Cargo the price book says would sell at the destination rides along.
       const spare = state.gold - cost - BROKE_GOLD - Math.max(0, short) * ration
       const cargo =
-        o.trade && !offer.poi ? bestTrade(state, content, spare, room() - kg, offer.to) : null
+        o.trade && !offer.poi ? bestTrade(state, content, spare, room() - kg, goal) : null
       const perDay =
         (offer.pay - cost + (cargo ? cargo.revenue - cargo.cost : 0)) / Math.max(1, trip)
       if (perDay > 0 && (!best || perDay > best.perDay)) best = { offer, perDay }
@@ -410,11 +432,11 @@ export function trader(
     return best?.offer ?? null
   }
 
-  /** Buys what supply contracts still need, where it is sold. */
+  /** Buys what procurement contracts still need, where it is sold (never at the board's town). */
   const buySupplies = () => {
     const here = state.location!
     for (const c of state.contracts) {
-      if (c.kind !== 'supply' || !c.good || c.met) continue
+      if (c.kind !== 'procurement' || !c.good || c.met || c.to === here) continue
       const missing = reserved(state, c.good) - (state.goods[c.good] ?? 0)
       if (missing > 0 && quote(state, content, here, c.good, 'buy', missing)) {
         act({ type: 'buyGoods', good: c.good, amount: missing }, 'supply')
@@ -574,7 +596,7 @@ export function trader(
     }
     // Where to: a contract, the cargo run, a site now and then, or a market not yet known.
     const contract = [...state.contracts].sort((a, b) => a.deadline - b.deadline)[0]
-    let target: string | null = contract ? contractTarget(contract) : null
+    let target: string | null = contract ? contractTarget(state, content, contract) : null
     const spare = () =>
       Math.max(0, state.gold - RESERVE_PER_MEMBER * state.party.length - BROKE_GOLD)
     if (!target && o.trade) {
@@ -667,7 +689,7 @@ export function trader(
       return
     }
     const contract = state.contracts.find((c) => c.met || c.poi !== here)
-    const target = contract ? contractTarget(contract) : (plan?.to ?? null)
+    const target = contract ? contractTarget(state, content, contract) : (plan?.to ?? null)
     const road =
       (target ? roadToward(state, content, roads, target) : null) ??
       roads[o.pick(leg, roads.length)]

@@ -3,6 +3,7 @@ import { describe, expect, test } from 'vitest'
 import { load } from '../engine/economy/capacity'
 import { goodPrice } from '../engine/economy/goods'
 import { midPrice, shopsFor } from '../engine/economy/market'
+import { noticeBoard } from '../engine/town/contracts'
 import { newGame, type Action } from '../engine/state'
 import { trader, type TraderOptions, type TraderWhy } from '../engine/travel/trader'
 import { wander } from '../engine/travel/wander'
@@ -10,7 +11,7 @@ import { settlementName } from '../engine/world/geo'
 import { MAX_EXHAUSTION } from '../engine/rules/character'
 import { STARTING_GOLD } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
-import { GOODS, type ContractKind, type Good } from '../schema/types'
+import { CONTRACT_KINDS, GOODS, type ContractKind, type Good } from '../schema/types'
 import { loadBundledContent } from './bundled'
 
 // The economy simulation (design §10, Plan 4 I1). The guard tests below run a few seeds with
@@ -84,7 +85,7 @@ const worth = (state: GameState) =>
   state.gold +
   GOODS.filter(isCargo).reduce((sum, g) => {
     const held = state.contracts
-      .filter((c) => c.kind === 'courier' && c.good === g)
+      .filter((c) => (c.kind === 'courier' || c.kind === 'freight') && c.good === g)
       .reduce((n, c) => n + c.amount, 0)
     return sum + Math.max(0, (state.goods[g] ?? 0) - held) * goodPrice(content, g)
   }, 0)
@@ -103,10 +104,7 @@ const broke = (state: GameState) =>
 
 const emptyKinds = () =>
   Object.fromEntries(
-    (['courier', 'supply', 'escort', 'bounty', 'errand'] as const).map((k) => [
-      k,
-      { taken: 0, done: 0, failed: 0 },
-    ])
+    CONTRACT_KINDS.map((k) => [k, { taken: 0, done: 0, failed: 0 }])
   ) as Run['contracts']
 
 /** Runs one seed under one policy until `days`, keeping the books. */
@@ -413,7 +411,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
       lines.push('', 'Contracts (taken / done / failed, all runs):', '')
       row(['Kind', 'Taken', 'Done', 'Failed'])
       row(['---', '---', '---', '---'])
-      for (const kind of ['courier', 'supply', 'escort', 'bounty', 'errand'] as const) {
+      for (const kind of CONTRACT_KINDS) {
         const t = runs.reduce(
           (a, r) => ({
             taken: a.taken + r.contracts[kind].taken,
@@ -484,6 +482,68 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         ).join(', ') +
         '.'
     )
+
+    // How often each kind of contract is posted: every board in every world, weeks 1–9.
+    const posted = Object.fromEntries(CONTRACT_KINDS.map((k) => [k, 0])) as Record<
+      ContractKind,
+      number
+    >
+    let boards = 0
+    let withProcurement = 0
+    for (const seed of SEEDS) {
+      const state = newGame(seed, content)
+      for (let week = 0; week < 9; week++) {
+        for (const id of Object.keys(state.world.settlements)) {
+          const offers = noticeBoard({ ...state, day: week * 7 + 1 }, content, id)
+          if (offers.length === 0) continue
+          boards++
+          for (const o of offers) posted[o.kind]++
+          if (offers.some((o) => o.kind === 'procurement')) withProcurement++
+        }
+      }
+    }
+    const offered = CONTRACT_KINDS.reduce((n, k) => n + posted[k], 0)
+    lines.push('', '## Contracts posted (seeds 1–30, every board, weeks 1–9)', '')
+    row(['Kind', 'Offers', 'Share'])
+    row(['---', '---', '---'])
+    for (const kind of CONTRACT_KINDS) row([kind, posted[kind], pct(posted[kind] / offered)])
+    lines.push(
+      '',
+      `${boards} boards with offers; ${pct(withProcurement / boards)} of them post a procurement.`
+    )
+
+    lines.push('', '## Prices against the base price (seeds 1–30, days 1, 50 and 100)', '')
+    row(['Good', 'Base gp', 'Cheapest', 'Median', 'Dearest'])
+    row(['---', '---', '---', '---', '---'])
+    {
+      const mult = Object.fromEntries(GOODS.map((g) => [g, [] as number[]])) as Record<
+        Good,
+        number[]
+      >
+      for (const seed of SEEDS) {
+        const state = newGame(seed, content)
+        for (const day of [1, 50, 100]) {
+          for (const good of GOODS) {
+            const base = goodPrice(content, good)
+            if (base <= 0) continue
+            for (const id of Object.keys(state.world.settlements)) {
+              mult[good].push(midPrice(state, content, id, good, day) / base)
+            }
+          }
+        }
+      }
+      for (const good of GOODS) {
+        const xs = mult[good]
+        if (xs.length === 0) continue
+        row([
+          good,
+          goodPrice(content, good),
+          `${Math.min(...xs).toFixed(2)}×`,
+          `${median(xs).toFixed(2)}×`,
+          `${Math.max(...xs).toFixed(2)}×`,
+        ])
+      }
+    }
 
     lines.push('', '## Price spreads: dearest ÷ cheapest mid price per world', '')
     lines.push('Seeds 1–30, days 1, 50 and 100, where some shop trades the good.', '')

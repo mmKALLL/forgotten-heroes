@@ -51,3 +51,37 @@ test('offers show their route, deadline and pay; Take dispatches, a locked one s
   expect(take.disabled).toBe(true)
   expect(take.title).toBe(`needs standing ${locked.locked}`)
 })
+
+test('a procurement names the shortage and the nearest maker', () => {
+  // A building boom in the capitals, and no workshops: Greenvale is short of timber.
+  const base = fixtureContent()
+  const { workshops: _, ...producers } = base.producers
+  const boom = {
+    ...base,
+    producers,
+    marketRules: {
+      ...base.marketRules,
+      boom: {
+        ...base.marketRules.coast,
+        id: 'boom',
+        when: { types: ['capital'] },
+        demand: { timber: 2, stone: 2 },
+      },
+    },
+  }
+  const start = makeState({ location: 'greenvale-1', gold: 50 })
+  const state = Array.from({ length: 30 }, (_, w) => ({ ...start, day: w * 7 + 1 })).find((s) =>
+    noticeBoard(s, boom, 'greenvale-1').some((o) => o.kind === 'procurement')
+  )!
+  const offer = noticeBoard(state, boom, 'greenvale-1').find((o) => o.kind === 'procurement')!
+  render(
+    <I18nProvider content={boom}>
+      <NoticeBoard content={boom} state={state} onAction={vi.fn()} />
+    </I18nProvider>
+  )
+  const row = within(screen.getByRole('button', { name: `Take “${offer.title}”` }).closest('li')!)
+  expect(row.getByText('Procurement')).toBeTruthy()
+  expect(
+    row.getByText(new RegExp(`^Short here · nearest maker ${offer.sourceName} · `))
+  ).toBeTruthy()
+})

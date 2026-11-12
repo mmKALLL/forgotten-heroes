@@ -773,8 +773,8 @@ const good = (id: string, unit: string, weight: number, price: number, spoilPerD
 
 /**
  * Plan 4 content with round numbers (weights in kg): the 15 goods, four service roles, three
- * market rules, four producer rules, a mule, a cart and a riding horse, three person roles and one contract template
- * per kind.
+ * market rules, four producer rules, a mule, a cart and a riding horse, three person roles and one contract
+ * template per kind.
  */
 export const testEconomy: Record<string, unknown> = {
   'data/claude/goods.json': {
@@ -920,15 +920,25 @@ export const testEconomy: Record<string, unknown> = {
       },
       {
         id: 'bring-timber',
-        kind: 'supply',
-        title: 'Timber wanted',
-        text: '{patron} will pay for {amount} {good}.',
-        minSize: 1,
-        km: { min: 0, max: 150 },
-        goods: ['timber'],
+        kind: 'procurement',
+        title: '{good} wanted',
+        text: '{patron} will pay for {amount} {good}; {source} makes it.',
+        km: { min: 0, max: 400 },
+        goods: ['timber', 'stone'],
         amount: { min: 2, max: 5 },
         urgentChance: 0,
         reputation: { patron: 4, settlement: 2 },
+      },
+      {
+        id: 'haul-fish',
+        kind: 'freight',
+        title: 'Salt fish for {dest}',
+        text: '{patron} hands over {amount} {good} for the market in {dest}.',
+        km: { min: 0, max: 200 },
+        goods: ['food'],
+        amount: { min: 6, max: 10 },
+        urgentChance: 0,
+        reputation: { patron: 3, settlement: 1 },
       },
       {
         id: 'see-pilgrim',

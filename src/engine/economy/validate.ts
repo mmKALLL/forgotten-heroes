@@ -8,7 +8,8 @@ const FREE: Good = 'water'
 /** The placeholders a contract's title and text may use, by kind ({Patron} capitalises). */
 export const CONTRACT_PLACEHOLDERS: Readonly<Record<ContractKind, readonly string[]>> = {
   courier: ['patron', 'dest', 'good', 'amount'],
-  supply: ['patron', 'dest', 'good', 'amount'],
+  freight: ['patron', 'dest', 'good', 'amount'],
+  procurement: ['patron', 'good', 'amount', 'source'],
   escort: ['patron', 'dest'],
   bounty: ['patron', 'site'],
   errand: ['patron', 'site'],

@@ -161,7 +161,14 @@ export const SERVICE_ACTIONS = [
 export type ServiceAction = (typeof SERVICE_ACTIONS)[number]
 
 /** Kinds of contract on a notice board (design §8). */
-export const CONTRACT_KINDS = ['courier', 'supply', 'escort', 'bounty', 'errand'] as const
+export const CONTRACT_KINDS = [
+  'courier',
+  'freight',
+  'procurement',
+  'escort',
+  'bounty',
+  'errand',
+] as const
 export type ContractKind = (typeof CONTRACT_KINDS)[number]
 
 /** Reputation tiers with a person or a settlement, worst first. Points map to tiers (B2). */

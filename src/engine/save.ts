@@ -9,7 +9,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 7
+export const CURRENT_SAVE_VERSION = 8
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -161,6 +161,19 @@ export function v6ToV7(raw: Record<string, unknown>): Record<string, unknown> {
 }
 
 /**
+ * v7 → v8 (Plan 4, supply contracts split): a supply contract becomes a procurement: bring the
+ * goods to where it is due. (Freight is new: no old contract is one.)
+ */
+export function v7ToV8(raw: Record<string, unknown>): Record<string, unknown> {
+  const contracts = Array.isArray(raw.contracts)
+    ? raw.contracts.map((c: Record<string, unknown>) =>
+        c && c.kind === 'supply' ? { ...c, kind: 'procurement' } : c
+      )
+    : raw.contracts
+  return { ...raw, version: 8, contracts }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -183,6 +196,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v5ToV6(raw as Record<string, unknown>, content), content)
     case 6:
       return migrate(v6ToV7(raw as Record<string, unknown>), content)
+    case 7:
+      return migrate(v7ToV8(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:
