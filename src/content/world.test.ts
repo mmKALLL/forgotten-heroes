@@ -73,6 +73,20 @@ describe('threats and realm names', () => {
     for (const t of threats) expect(t.strength.min).toBeLessThanOrEqual(t.strength.max)
   })
 
+  test('about one region in eight is Rampant across generated worlds (design §6: 10–15%)', () => {
+    let rampant = 0
+    let regions = 0
+    for (let seed = 0; seed < 200; seed++) {
+      for (const region of Object.values(generateWorld(worldSeed(seed), content).regions)) {
+        regions++
+        if (region.threatLevel === 3) rampant++
+      }
+    }
+    const share = rampant / regions
+    expect(share).toBeGreaterThanOrEqual(0.08)
+    expect(share).toBeLessThanOrEqual(0.18)
+  })
+
   test('realm names only use the {place} slot', () => {
     const rows = content.partsTables['realm-name'].rows
     expect(rows.length).toBeGreaterThanOrEqual(5)

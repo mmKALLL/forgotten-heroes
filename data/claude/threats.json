@@ -2,7 +2,7 @@
   "$schema": "../_schema/threats.schema.json",
   "kind": "threats",
   "source": "claude",
-  "notes": "Regional threats and usurpers for the political layer (design §6). Strength 1–6 is set against the owning kingdom's garrison to give a threat level of 0–3.",
+  "notes": "Regional threats and usurpers for the political layer (design §6). Strength 1–5 is set against the owning kingdom's garrison to give a threat level of 0–3. The ranges are tuned so about 12% of regions come out Rampant (level 3) across generated worlds, against a 10–15% target (design §6; a test in src/content/world.test.ts measures it).",
   "entries": [
     {
       "id": "orc-warband",
@@ -10,7 +10,7 @@
       "description": "Clans united under one war-chief, raiding the valleys below their holds.",
       "creatureTypes": ["humanoid"],
       "biomes": ["hills", "mountains"],
-      "strength": { "min": 2, "max": 5 }
+      "strength": { "min": 2, "max": 4 }
     },
     {
       "id": "goblin-raiders",
@@ -18,7 +18,7 @@
       "description": "Many small bands that strike at night and vanish into the trees.",
       "creatureTypes": ["humanoid"],
       "biomes": ["forest", "hills"],
-      "strength": { "min": 1, "max": 4 }
+      "strength": { "min": 1, "max": 3 }
     },
     {
       "id": "restless-dead",
@@ -26,7 +26,7 @@
       "description": "Old graves and battlefields that no longer stay quiet.",
       "creatureTypes": ["undead"],
       "biomes": ["marsh", "desert"],
-      "strength": { "min": 2, "max": 5 }
+      "strength": { "min": 2, "max": 4 }
     },
     {
       "id": "dark-cult",
@@ -34,7 +34,7 @@
       "description": "A secret faith in the towns, with friends in the council and something in the cellar.",
       "creatureTypes": ["humanoid", "fiend"],
       "biomes": [],
-      "strength": { "min": 1, "max": 4 }
+      "strength": { "min": 1, "max": 3 }
     },
     {
       "id": "bandit-lord",
@@ -42,7 +42,7 @@
       "description": "An outlaw who taxes the roads and calls it protection.",
       "creatureTypes": ["humanoid"],
       "biomes": ["plains", "forest"],
-      "strength": { "min": 1, "max": 4 }
+      "strength": { "min": 1, "max": 3 }
     },
     {
       "id": "pretender",
@@ -50,7 +50,7 @@
       "description": "A rival claimant with a banner, a grievance and a growing host.",
       "creatureTypes": ["humanoid"],
       "biomes": [],
-      "strength": { "min": 2, "max": 5 }
+      "strength": { "min": 2, "max": 4 }
     },
     {
       "id": "hag-coven",
@@ -58,7 +58,7 @@
       "description": "Three old women whose bargains always cost more than they say.",
       "creatureTypes": ["fey"],
       "biomes": ["marsh", "forest"],
-      "strength": { "min": 2, "max": 4 }
+      "strength": { "min": 2, "max": 3 }
     },
     {
       "id": "drake-brood",
@@ -66,7 +66,7 @@
       "description": "Young drakes that have claimed the high places and the herds below them.",
       "creatureTypes": ["dragon"],
       "biomes": ["mountains", "desert"],
-      "strength": { "min": 3, "max": 6 }
+      "strength": { "min": 3, "max": 5 }
     },
     {
       "id": "giant-clan",
@@ -74,7 +74,7 @@
       "description": "A family of giants who treat the lowlands as a larder.",
       "creatureTypes": ["giant"],
       "biomes": ["mountains", "hills"],
-      "strength": { "min": 3, "max": 6 }
+      "strength": { "min": 3, "max": 5 }
     },
     {
       "id": "serpent-cult",
@@ -82,7 +82,7 @@
       "description": "Masked worshippers who trade in venom, secrets and people.",
       "creatureTypes": ["humanoid", "monstrosity"],
       "biomes": ["jungle", "marsh"],
-      "strength": { "min": 2, "max": 5 }
+      "strength": { "min": 2, "max": 4 }
     }
   ]
 }
