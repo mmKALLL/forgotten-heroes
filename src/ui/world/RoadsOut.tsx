@@ -393,7 +393,12 @@ export function RouteInfo({
                   what: [
                     supplies.food > 0 && t('route.provisionFood', { n: supplies.food }),
                     supplies.waterskins > 0 &&
-                      t('route.provisionSkins', { n: supplies.waterskins }),
+                      t(
+                        supplies.waterskins === 1 ? 'route.provisionSkin' : 'route.provisionSkins',
+                        {
+                          n: supplies.waterskins,
+                        }
+                      ),
                     supplies.food === 0 && supplies.waterskins === 0 && t('route.provisionWater'),
                   ]
                     .filter(Boolean)

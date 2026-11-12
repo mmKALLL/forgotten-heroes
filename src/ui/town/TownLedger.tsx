@@ -20,7 +20,7 @@ type Props = {
   prefs: TravelPrefs
   onPrefs: (p: TravelPrefs) => void
   onAction: (a: Action) => void
-  /** The Services zone (ServicesPanel). */
+  /** The Services zone (ServicesPanel, which heads it). */
   services: ReactNode
 }
 
@@ -29,7 +29,7 @@ type Props = {
  * (town · domain · kingdom · threat); the Market; the Services; the roads out with the pace
  * chooser, and Explore after them; and the People, collapsed. In the DOM the zones run market,
  * services, roads, people (the order a visit goes in, for the keyboard and narrow screens); on
- * wide screens the roads sit beside the market.
+ * wide screens they make two columns: market and services, then roads and people.
  */
 export function TownLedger({
   content,
@@ -62,47 +62,51 @@ export function TownLedger({
         <span className="small" title={t('place.size', { size: sizeText(t, here.sizeTier) })}>
           {t('place.summary', { type: here.typeName, population: here.population })}
         </span>
-        <span className="muted small">{realmText(t, here)}</span>
+        <span className="muted small realm" title={realmText(t, here)}>
+          {realmText(t, here)}
+        </span>
         <span className="small">{threatLine(t, here)}</span>
       </header>
-      <section className="zone zone-market" aria-label={t('ledger.market')}>
-        <h3>{t('ledger.market')}</h3>
-        <MarketPanel content={content} state={state} onAction={onAction} />
-      </section>
-      <section className="zone zone-services" aria-label={t('ledger.services')}>
-        <h3>{t('ledger.services')}</h3>
-        {services}
-      </section>
-      <section className="zone zone-roads" aria-label={t('ledger.roads')}>
-        <RoadsOut
-          content={content}
-          state={state}
-          selected={selected}
-          onSelect={onSelect}
-          prefs={prefs}
-          onPrefs={onPrefs}
-          onAction={onAction}
-        />
-        <ExploreAction content={content} state={state} onAction={onAction} compact />
-      </section>
-      <details className="zone zone-people">
-        <summary>{t('ledger.people', { n: people.length })}</summary>
-        {people.length === 0 ? (
-          <p className="muted small">{t('ledger.noPeople')}</p>
-        ) : (
-          <ul className="people small">
-            {people.map((p) => (
-              <li key={p.id}>
-                {p.name} <span className="muted">· {p.role}</span>{' '}
-                <span className={`standing standing-${p.standing}`}>
-                  {t(`standing.${p.standing}`)}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {/* C4: the full People panel (rumours, the notice board) takes this place. */}
-      </details>
+      <div className="ledger-main">
+        <section className="zone zone-market" aria-label={t('ledger.market')}>
+          <MarketPanel content={content} state={state} onAction={onAction} />
+        </section>
+        <section className="zone zone-services" aria-label={t('ledger.services')}>
+          {services}
+        </section>
+      </div>
+      <div className="ledger-side">
+        <section className="zone zone-roads" aria-label={t('ledger.roads')}>
+          <RoadsOut
+            content={content}
+            state={state}
+            selected={selected}
+            onSelect={onSelect}
+            prefs={prefs}
+            onPrefs={onPrefs}
+            onAction={onAction}
+          />
+          <ExploreAction content={content} state={state} onAction={onAction} compact />
+        </section>
+        <details className="zone zone-people">
+          <summary>{t('ledger.people', { n: people.length })}</summary>
+          {people.length === 0 ? (
+            <p className="muted small">{t('ledger.noPeople')}</p>
+          ) : (
+            <ul className="people small">
+              {people.map((p) => (
+                <li key={p.id}>
+                  {p.name} <span className="muted">· {p.role}</span>{' '}
+                  <span className={`standing standing-${p.standing}`}>
+                    {t(`standing.${p.standing}`)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+          {/* C4: the full People panel (rumours, the notice board) takes this place. */}
+        </details>
+      </div>
     </section>
   )
 }

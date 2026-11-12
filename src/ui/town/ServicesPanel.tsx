@@ -15,7 +15,7 @@ import { SERVICE_FUNCTIONS, type Good } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
 import { daysText } from '../world/travelText'
-import { PRIVATE_ROOM_FADE } from '../../engine/constants'
+import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
@@ -25,13 +25,22 @@ const pips = (quality: number) => '●'.repeat(quality) + '○'.repeat(Math.max(
  * The services here as compact tiles in four columns (design §5), grouped by function: each with
  * its quality and one or two inline actions (lodging, the healer, a blessing, a courier's news,
  * animals); what only trades says what it trades, and what isn't built yet is muted as "coming
- * later". A day's rest on carried food follows the tiles.
+ * later". It heads its zone, with a day's rest on carried food beside the heading.
  */
 export function ServicesPanel({ content, state, onAction }: Props) {
   const { t } = useI18n()
   const rows = serviceRows(state, content)
   return (
     <>
+      <div className="zone-head">
+        <h3>{t('ledger.services')}</h3>
+        <button
+          title={t('place.restHint')}
+          onClick={() => onAction({ type: 'rest', lodging: false })}
+        >
+          {t('services.restOwn')}
+        </button>
+      </div>
       {rows.length === 0 ? (
         <p className="muted small">{t('services.none')}</p>
       ) : (
@@ -54,14 +63,6 @@ export function ServicesPanel({ content, state, onAction }: Props) {
           })}
         </div>
       )}
-      <div className="actions">
-        <button
-          title={t('place.restHint')}
-          onClick={() => onAction({ type: 'rest', lodging: false })}
-        >
-          {t('services.restOwn')}
-        </button>
-      </div>
     </>
   )
 }
@@ -69,7 +70,9 @@ export function ServicesPanel({ content, state, onAction }: Props) {
 function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRow }) {
   const { t, name } = useI18n()
   const title = name('services', row.service, row.name)
-  const hint = [t(`services.function.${row.function}`), row.specialty].filter(Boolean).join(' · ')
+  const hint = [title, t(`services.function.${row.function}`), row.specialty]
+    .filter(Boolean)
+    .join(' · ')
   const shown = row.actions.filter((a) => a.action !== 'market' && a.action !== 'passage')
   const working = shown.filter((a) => a.reason !== 'coming later')
   const later = shown.filter((a) => a.reason === 'coming later')
@@ -163,7 +166,9 @@ function ServiceAction({
           }
           onClick={() => onAction({ type: 'useService', service: row.service, action: 'heal' })}
         >
-          {t('services.heal', { n: treated.length, gp: view.cost ?? 0 })}
+          {treated.length === 0
+            ? t('services.healEach', { gp: HEALER_PRICE })
+            : t('services.heal', { n: treated.length, gp: view.cost ?? 0 })}
         </button>
       )
     }

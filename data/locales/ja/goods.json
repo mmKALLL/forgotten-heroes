@@ -1,0 +1,25 @@
+{
+  "$schema": "../../_schema/translations.schema.json",
+  "kind": "translations",
+  "source": "claude",
+  "locale": "ja",
+  "target": "goods",
+  "notes": "Rough Japanese names for the 15 goods (Plan 4, C1–C3); the uses text stays English for now.",
+  "entries": [
+    { "id": "food", "fields": { "name": "食料" } },
+    { "id": "water", "fields": { "name": "水" } },
+    { "id": "fuel", "fields": { "name": "燃料" } },
+    { "id": "healing", "fields": { "name": "治療品" } },
+    { "id": "alchemicals", "fields": { "name": "錬金薬" } },
+    { "id": "arcana", "fields": { "name": "秘術品" } },
+    { "id": "arms", "fields": { "name": "武器" } },
+    { "id": "armour", "fields": { "name": "防具" } },
+    { "id": "gear", "fields": { "name": "道具" } },
+    { "id": "timber", "fields": { "name": "木材" } },
+    { "id": "stone", "fields": { "name": "石材" } },
+    { "id": "metal", "fields": { "name": "金属" } },
+    { "id": "gems", "fields": { "name": "宝石" } },
+    { "id": "relics", "fields": { "name": "遺物" } },
+    { "id": "luxuries", "fields": { "name": "贅沢品" } }
+  ]
+}

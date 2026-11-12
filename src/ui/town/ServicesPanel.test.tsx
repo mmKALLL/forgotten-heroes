@@ -108,7 +108,10 @@ test('rooms, the healer, a blessing, news and animals dispatch their actions', a
 
 test('the healer is disabled when no one needs healing, and resting on carried food dispatches', async () => {
   const onAction = panel(town())
-  expect((screen.getByRole('button', { name: /^Heal 0/ }) as HTMLButtonElement).disabled).toBe(true)
+  expect(
+    (screen.getByRole('button', { name: `Heal · ${HEALER_PRICE} gp each` }) as HTMLButtonElement)
+      .disabled
+  ).toBe(true)
   await userEvent.click(screen.getByRole('button', { name: 'Rest a day, eating carried food' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: false })
 })

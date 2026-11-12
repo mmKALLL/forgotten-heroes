@@ -540,9 +540,13 @@ function TravelPopover({
 }) {
   const { t } = useI18n()
   const [x, y, w, h] = viewBox.split(' ').map(Number)
-  const left = Math.min(85, Math.max(15, ((at.x - x) / w) * 100))
+  // Centred on the marker, but kept inside the map (theme.css sets its width).
+  const left = ((at.x - x) / w) * 100
   const top = ((at.y - y) / h) * 100
   const below = top < 40
+  const side = {
+    left: `clamp(0px, calc(${left}% - min(7.5rem, 50%)), calc(100% - min(15rem, 100%)))`,
+  }
   const option = shownPace(road, prefs)
   const riding = ridden(road, prefs)
   const reason = riding ? (option.reason ?? null) : road.reason
@@ -551,7 +555,7 @@ function TravelPopover({
   return (
     <div
       className={`map-pop${below ? ' below' : ''}`}
-      style={{ left: `${left}%`, top: `${top}%` }}
+      style={{ ...side, top: `${top}%` }}
       role="group"
       aria-label={t('mapTravel.label', { name: road.toName })}
     >

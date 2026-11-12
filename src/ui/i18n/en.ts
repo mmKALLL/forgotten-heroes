@@ -234,6 +234,7 @@ export const en = {
   'standing.honoured': 'honoured',
   'route.provision': 'Provision: {what} · {gp} gp',
   'route.provisionFood': '{n} food',
+  'route.provisionSkin': '1 waterskin',
   'route.provisionSkins': '{n} waterskins',
   'route.provisionWater': 'fill the water',
   'route.provisionReady': 'Provisioned',
@@ -266,6 +267,7 @@ export const en = {
   'services.roomHint.private':
     'A day’s rest in a private room: all HP back, meals included, {n} Strain stacks fade',
   'services.heal': 'Heal {n} · {gp} gp',
+  'services.healEach': 'Heal · {gp} gp each',
   'services.healHint': 'All HP back and a level of exhaustion off for {names}, no day lost',
   'services.healNone': 'No one needs healing',
   'services.bless': 'Blessing · {gp} gp',

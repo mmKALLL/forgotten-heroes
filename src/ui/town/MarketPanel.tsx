@@ -44,7 +44,7 @@ function knownText(t: T, side: 'sell' | 'buy', k: KnownElsewhere): string {
  * The market of the settlement the party is in (design §5): every good by category, with its
  * supply and demand, the price to buy and sell one here, the best shop, and the best price the
  * price book knows elsewhere; an amount stepper, and buy and sell buttons showing the live quote
- * for that amount. Waterskins are a row under Essentials.
+ * for that amount. Waterskins are a row under Essentials. It heads its zone of the ledger.
  */
 export function MarketPanel({
   content,
@@ -63,7 +63,8 @@ export function MarketPanel({
   const amountText = (a: Amount) => (a === 'max' ? t('market.max') : String(a))
   return (
     <>
-      <div className="market-tools">
+      <div className="zone-head">
+        <h3>{t('ledger.market')}</h3>
         <div className="seg-toggle" role="group" aria-label={t('market.amount')}>
           {AMOUNTS.map((a) => (
             <button key={a} aria-pressed={a === amount} onClick={() => setAmount(a)}>
@@ -73,60 +74,62 @@ export function MarketPanel({
         </div>
         <span className="muted small">{t('market.legend')}</span>
       </div>
-      <table className="market-table">
-        <thead>
-          <tr>
-            <th scope="col">
-              <span className="sr-only">{t('market.category')}</span>
-            </th>
-            <th scope="col">{t('market.good')}</th>
-            <th scope="col" title={t('market.levelsHint')}>
-              {t('market.levels')}
-            </th>
-            <th scope="col" className="num">
-              {t('market.buy')}
-            </th>
-            <th scope="col" className="num">
-              {t('market.sell')}
-            </th>
-            <th scope="col">{t('market.shop')}</th>
-            <th scope="col">{t('market.elsewhere')}</th>
-            <th scope="col">
-              <span className="sr-only">{t('market.trade')}</span>
-            </th>
-          </tr>
-        </thead>
-        {GOOD_CATEGORIES.map((category) => {
-          const group = rows.filter((r) => r.category === category)
-          const skins = category === 'essentials'
-          const span = group.length + (skins ? 1 : 0)
-          return (
-            <tbody key={category}>
-              {group.map((row, i) => (
-                <MarketLine
-                  key={row.good}
-                  row={row}
-                  goodName={name('goods', row.good, row.name)}
-                  head={
-                    i === 0 ? (
-                      <th scope="rowgroup" rowSpan={span} className="market-cat">
-                        <span>{t(`goodCategory.${category}`)}</span>
-                      </th>
-                    ) : null
-                  }
-                  amount={amount}
-                  quoteFor={(side, n) => quote(state, content, here, row.good, side, n)}
-                  water={
-                    row.good === 'water' ? `${row.carried}/${partyWaterCapacity(state)}` : null
-                  }
-                  onAction={onAction}
-                />
-              ))}
-              {skins && <WaterskinLine state={state} amount={amount} onAction={onAction} />}
-            </tbody>
-          )
-        })}
-      </table>
+      <div className="market-scroll">
+        <table className="market-table">
+          <thead>
+            <tr>
+              <th scope="col">
+                <span className="sr-only">{t('market.category')}</span>
+              </th>
+              <th scope="col">{t('market.good')}</th>
+              <th scope="col" title={t('market.levelsHint')}>
+                {t('market.levels')}
+              </th>
+              <th scope="col" className="num">
+                {t('market.buy')}
+              </th>
+              <th scope="col" className="num">
+                {t('market.sell')}
+              </th>
+              <th scope="col">{t('market.shop')}</th>
+              <th scope="col">{t('market.elsewhere')}</th>
+              <th scope="col">
+                <span className="sr-only">{t('market.trade')}</span>
+              </th>
+            </tr>
+          </thead>
+          {GOOD_CATEGORIES.map((category) => {
+            const group = rows.filter((r) => r.category === category)
+            const skins = category === 'essentials'
+            const span = group.length + (skins ? 1 : 0)
+            return (
+              <tbody key={category}>
+                {group.map((row, i) => (
+                  <MarketLine
+                    key={row.good}
+                    row={row}
+                    goodName={name('goods', row.good, row.name)}
+                    head={
+                      i === 0 ? (
+                        <th scope="rowgroup" rowSpan={span} className="market-cat">
+                          <span>{t(`goodCategory.${category}`)}</span>
+                        </th>
+                      ) : null
+                    }
+                    amount={amount}
+                    quoteFor={(side, n) => quote(state, content, here, row.good, side, n)}
+                    water={
+                      row.good === 'water' ? `${row.carried}/${partyWaterCapacity(state)}` : null
+                    }
+                    onAction={onAction}
+                  />
+                ))}
+                {skins && <WaterskinLine state={state} amount={amount} onAction={onAction} />}
+              </tbody>
+            )
+          })}
+        </table>
+      </div>
     </>
   )
 }
