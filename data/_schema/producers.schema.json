@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "producers"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "label": {
+            "type": "string",
+            "description": "What is made there, shown with the producer, e.g. \"Sawmills\""
+          },
+          "when": {
+            "type": "object",
+            "properties": {
+              "types": {
+                "$ref": "#/$defs/__schema1"
+              },
+              "biomes": {
+                "$ref": "#/$defs/__schema3"
+              },
+              "coastal": {
+                "$ref": "#/$defs/__schema5"
+              },
+              "minSize": {
+                "$ref": "#/$defs/__schema6"
+              },
+              "maxSize": {
+                "$ref": "#/$defs/__schema8"
+              },
+              "minWealth": {
+                "$ref": "#/$defs/__schema9"
+              },
+              "nearPoi": {
+                "$ref": "#/$defs/__schema10"
+              }
+            },
+            "description": "Every listed condition must hold"
+          },
+          "output": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/__schema12"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema13"
+            },
+            "description": "Good → output level, 1 (a little) to 3 (a great centre of it)"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "when",
+          "output"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "description": "Settlement type ids",
+      "$ref": "#/$defs/__schema2"
+    },
+    "__schema2": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
+      }
+    },
+    "__schema3": {
+      "description": "The land's biome",
+      "$ref": "#/$defs/__schema4"
+    },
+    "__schema4": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plains",
+          "forest",
+          "hills",
+          "mountains",
+          "marsh",
+          "desert",
+          "jungle",
+          "sea"
+        ]
+      }
+    },
+    "__schema5": {
+      "type": "boolean"
+    },
+    "__schema6": {
+      "description": "Size tier, 0 outpost",
+      "$ref": "#/$defs/__schema7"
+    },
+    "__schema7": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "__schema8": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "__schema9": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "__schema10": {
+      "description": "A site of one of these categories in the domain (inhabited or not)",
+      "$ref": "#/$defs/__schema11"
+    },
+    "__schema11": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "dungeon",
+          "expert",
+          "lair",
+          "shrine",
+          "landmark",
+          "wonder",
+          "quest"
+        ]
+      }
+    },
+    "__schema12": {
+      "type": "string",
+      "enum": [
+        "food",
+        "water",
+        "fuel",
+        "healing",
+        "alchemicals",
+        "arcana",
+        "arms",
+        "armour",
+        "gear",
+        "timber",
+        "stone",
+        "metal",
+        "gems",
+        "relics",
+        "luxuries"
+      ]
+    },
+    "__schema13": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3
+    }
+  }
+}

@@ -57,21 +57,28 @@ const level = z.number().int().min(-2).max(2)
 const levels = z
   .partialRecord(GoodSchema, level)
   .default({})
-  .describe('Good → −2 (scarce or unwanted) to +2 (plentiful or sought after)')
+  .describe('Good → −2 (unwanted) to +2 (sought after)')
+
+/** The conditions on a settlement that market and producer rules share. */
+const placeConditions = {
+  types: z.array(IdSchema).optional().describe('Settlement type ids'),
+  biomes: z.array(BiomeSchema).optional().describe("The land's biome"),
+  coastal: z.boolean().optional(),
+  minSize: z.number().int().min(0).max(5).optional().describe('Size tier, 0 outpost'),
+  maxSize: z.number().int().min(0).max(5).optional(),
+  minWealth: z.number().int().optional(),
+}
 
 /**
- * A rule of supply and demand. It applies to a settlement when every listed condition holds,
- * and a market sums the levels of every rule that applies (A2).
+ * A rule of local demand (design §4). It applies to a settlement when every listed condition
+ * holds, and a market sums the demand of every rule that applies. Supply comes from producers.
  */
 export const MarketRuleSchema = z.object({
   id: IdSchema,
+  label: z.string().describe('A short reason shown when the price is explained, e.g. "Garrison"'),
   when: z
     .object({
-      types: z.array(IdSchema).optional().describe('Settlement type ids'),
-      biomes: z.array(BiomeSchema).optional().describe("The land's biome"),
-      coastal: z.boolean().optional(),
-      minSize: z.number().int().min(0).max(5).optional().describe('Size tier, 0 outpost'),
-      maxSize: z.number().int().min(0).max(5).optional(),
+      ...placeConditions,
       threatAtLeast: z
         .number()
         .int()
@@ -83,14 +90,36 @@ export const MarketRuleSchema = z.object({
         .array(PoiCategorySchema)
         .optional()
         .describe('An inhabited site of one of these categories in the domain'),
-      minWealth: z.number().int().optional(),
     })
     .describe('Every listed condition must hold'),
-  supply: levels,
   demand: levels,
   notes: z.string().optional(),
 })
 export type MarketRule = z.infer<typeof MarketRuleSchema>
+
+/**
+ * Where goods are made (design §4, geographic supply): every settlement whose conditions all hold
+ * produces the listed goods at an output level (summed over its rules, at most 3). A market's
+ * supply of a good comes from the best producer within reach, less a level per few days of road.
+ */
+export const ProducerRuleSchema = z.object({
+  id: IdSchema,
+  label: z.string().describe('What is made there, shown with the producer, e.g. "Sawmills"'),
+  when: z
+    .object({
+      ...placeConditions,
+      nearPoi: z
+        .array(PoiCategorySchema)
+        .optional()
+        .describe('A site of one of these categories in the domain (inhabited or not)'),
+    })
+    .describe('Every listed condition must hold'),
+  output: z
+    .partialRecord(GoodSchema, z.number().int().min(1).max(3))
+    .describe('Good → output level, 1 (a little) to 3 (a great centre of it)'),
+  notes: z.string().optional(),
+})
+export type ProducerRule = z.infer<typeof ProducerRuleSchema>
 
 /** A pack or riding animal, or a vehicle, that can be bought (and sometimes hired). */
 export const AnimalDefSchema = z.object({
@@ -148,7 +177,7 @@ const range = (what: string) =>
     .refine((r) => r.min <= r.max, 'min must not exceed max')
     .describe(what)
 
-const NEEDS_GOODS = ['courier', 'supply']
+const NEEDS_GOODS = ['courier', 'freight', 'procurement']
 const NEEDS_SITES = ['bounty', 'errand']
 
 /** A contract a notice board (or a service) can post (design §8). */
@@ -160,15 +189,23 @@ export const ContractTemplateSchema = z
     text: z
       .string()
       .describe(
-        'May use {patron}; courier and supply add {dest} {good} {amount}, escort {dest}, bounty and errand {site}'
+        'May use {patron}; courier and freight add {dest} {good} {amount}, procurement {good} {amount} {source}, escort {dest}, bounty and errand {site}'
       ),
     weight: z.number().min(0).default(1).describe('Relative chance of being posted'),
     minSize: z.number().int().min(0).max(5).default(0).describe('Smallest size tier posting it'),
     service: IdSchema.optional().describe('Posted only at this service; otherwise on the board'),
     minStanding: StandingSchema.optional().describe('Offered only at this standing or better'),
-    km: range('How far away the destination or site is'),
-    goods: z.array(GoodSchema).min(1).optional().describe('courier and supply: what is carried'),
-    amount: range('courier and supply: how many units').optional(),
+    km: range(
+      'How far away the destination or site is; for procurement, the nearest producer of the good'
+    ),
+    goods: z
+      .array(GoodSchema)
+      .min(1)
+      .optional()
+      .describe(
+        'courier: what is carried; freight: what is carried, if made here; procurement: what is wanted, if short here'
+      ),
+    amount: range('courier, freight and procurement: how many units').optional(),
     passengers: range('escort: how many travel with the party (default 1)').optional(),
     poiCategories: z
       .array(PoiCategorySchema)
@@ -182,7 +219,7 @@ export const ContractTemplateSchema = z
       .describe('Reputation points on completion'),
   })
   .refine((t) => !NEEDS_GOODS.includes(t.kind) || (t.goods && t.amount), {
-    message: 'courier and supply contracts need goods and an amount',
+    message: 'courier, freight and procurement contracts need goods and an amount',
     path: ['goods'],
   })
   .refine((t) => !NEEDS_SITES.includes(t.kind) || t.poiCategories, {

@@ -773,8 +773,8 @@ const good = (id: string, unit: string, weight: number, price: number, spoilPerD
 
 /**
  * Plan 4 content with round numbers (weights in kg): the 15 goods, four service roles, three
- * market rules, a mule, a cart and a riding horse, three person roles and one contract template
- * per kind.
+ * market rules, four producer rules, a mule, a cart and a riding horse, three person roles and one contract
+ * template per kind.
  */
 export const testEconomy: Record<string, unknown> = {
   'data/claude/goods.json': {
@@ -825,13 +825,44 @@ export const testEconomy: Record<string, unknown> = {
     kind: 'marketRules',
     source: 'claude',
     entries: [
-      { id: 'coast', when: { coastal: true }, supply: { food: 1 }, demand: { timber: 1 } },
-      { id: 'under-threat', when: { threatAtLeast: 2 }, demand: { arms: 2, armour: 1 } },
+      { id: 'coast', label: 'Shipwrights', when: { coastal: true }, demand: { timber: 1 } },
       {
-        id: 'marsh',
+        id: 'under-threat',
+        label: 'Raids',
+        when: { threatAtLeast: 2 },
+        demand: { arms: 2, armour: 1 },
+      },
+      { id: 'marsh', label: 'Soft ground', when: { biomes: ['marsh'] }, demand: { stone: 1 } },
+    ],
+  },
+  'data/claude/producers.json': {
+    kind: 'producers',
+    source: 'claude',
+    entries: [
+      { id: 'fishing', label: 'Fishing boats', when: { coastal: true }, output: { food: 1 } },
+      {
+        id: 'herbs',
+        label: 'Herb-gatherers',
         when: { biomes: ['marsh'] },
-        supply: { alchemicals: 1 },
-        demand: { stone: 1 },
+        output: { alchemicals: 2, healing: 1 },
+      },
+      { id: 'woods', label: 'Sawmills', when: { biomes: ['forest'] }, output: { timber: 3 } },
+      {
+        id: 'workshops',
+        label: 'Workshops',
+        when: { minSize: 4 },
+        output: {
+          fuel: 1,
+          arcana: 1,
+          arms: 1,
+          armour: 1,
+          gear: 1,
+          stone: 1,
+          metal: 1,
+          gems: 1,
+          relics: 1,
+          luxuries: 1,
+        },
       },
     ],
   },
@@ -889,15 +920,25 @@ export const testEconomy: Record<string, unknown> = {
       },
       {
         id: 'bring-timber',
-        kind: 'supply',
-        title: 'Timber wanted',
-        text: '{patron} will pay for {amount} {good}.',
-        minSize: 1,
-        km: { min: 0, max: 150 },
-        goods: ['timber'],
+        kind: 'procurement',
+        title: '{good} wanted',
+        text: '{patron} will pay for {amount} {good}; {source} makes it.',
+        km: { min: 0, max: 400 },
+        goods: ['timber', 'stone'],
         amount: { min: 2, max: 5 },
         urgentChance: 0,
         reputation: { patron: 4, settlement: 2 },
+      },
+      {
+        id: 'haul-fish',
+        kind: 'freight',
+        title: 'Salt fish for {dest}',
+        text: '{patron} hands over {amount} {good} for the market in {dest}.',
+        km: { min: 0, max: 200 },
+        goods: ['food'],
+        amount: { min: 6, max: 10 },
+        urgentChance: 0,
+        reputation: { patron: 3, settlement: 1 },
       },
       {
         id: 'see-pilgrim',

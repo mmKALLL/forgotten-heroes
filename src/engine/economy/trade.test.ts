@@ -3,8 +3,8 @@ import type { GameState } from '../../schema/state'
 import { newGame, step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { load } from './capacity'
-import { quote } from './market'
-import { marketView, maxBuy, priceAge } from './trade'
+import { marketLevels, quote } from './market'
+import { marketTalk, marketView, maxBuy, priceAge } from './trade'
 
 const content = fixtureContent()
 const shops = ['inn-tavern', 'adventuring-supplies', 'jewelry-trader']
@@ -126,5 +126,18 @@ describe('dropping goods', () => {
     const none = step(dropped, { type: 'dropGoods', good: 'gems', amount: 1 }, content)
     expect(none.log.at(-1)!.text).toBe('There is no gems to leave.')
     expect(none.goods).toEqual(dropped.goods)
+  })
+})
+
+describe('marketTalk', () => {
+  test('names a shortage and a glut, matching the market levels', () => {
+    const s = inTown()
+    // Without producers, the marsh's demand for stone meets no supply: a shortage.
+    const bare = { ...content, producers: {} }
+    expect(marketLevels(s, bare, 'ashmoor-1').stone.shortage).toBe(true)
+    expect(marketTalk(s, bare, 'ashmoor-1')).toMatch(/^Talk has it that .+ is short of .*stone/)
+    // Far Isle's woods make timber at 3; with no demand rules nobody wants it: a glut.
+    const idle = { ...content, marketRules: {} }
+    expect(marketTalk(s, idle, 'farisle-1')).toMatch(/awash with timber/)
   })
 })

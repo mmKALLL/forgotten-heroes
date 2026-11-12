@@ -8,7 +8,8 @@ const FREE: Good = 'water'
 /** The placeholders a contract's title and text may use, by kind ({Patron} capitalises). */
 export const CONTRACT_PLACEHOLDERS: Readonly<Record<ContractKind, readonly string[]>> = {
   courier: ['patron', 'dest', 'good', 'amount'],
-  supply: ['patron', 'dest', 'good', 'amount'],
+  freight: ['patron', 'dest', 'good', 'amount'],
+  procurement: ['patron', 'good', 'amount', 'source'],
   escort: ['patron', 'dest'],
   bounty: ['patron', 'site'],
   errand: ['patron', 'site'],
@@ -21,7 +22,8 @@ export const CONTRACT_PLACEHOLDERS: Readonly<Record<ContractKind, readonly strin
  */
 export function economyIssues(content: Content): string[] {
   const issues: string[] = []
-  const { goods, services, serviceRoles, marketRules, animals, personRoles, contracts } = content
+  const { goods, services, serviceRoles, marketRules, producers, animals, personRoles, contracts } =
+    content
   const { settlementTypes } = content
 
   for (const good of GOODS) {
@@ -55,24 +57,38 @@ export function economyIssues(content: Content): string[] {
     }
   }
 
-  for (const rule of sortedEntries(marketRules)) {
-    const at = `marketRules ${rule.id}`
-    for (const type of rule.when.types ?? []) {
+  const placeIssues = (
+    at: string,
+    when: { types?: string[]; minSize?: number; maxSize?: number }
+  ) => {
+    for (const type of when.types ?? []) {
       if (!Object.hasOwn(settlementTypes, type)) {
         issues.push(`${at}: unknown settlement type "${type}"`)
       }
     }
-    const { minSize, maxSize } = rule.when
-    if (minSize !== undefined && maxSize !== undefined && minSize > maxSize) {
+    if (when.minSize !== undefined && when.maxSize !== undefined && when.minSize > when.maxSize) {
       issues.push(`${at}: minSize is above maxSize`)
     }
-    const levels = { ...rule.supply, ...rule.demand }
-    if (Object.values(levels).every((level) => !level)) {
-      issues.push(`${at}: changes no supply or demand`)
+  }
+  for (const rule of sortedEntries(marketRules)) {
+    const at = `marketRules ${rule.id}`
+    placeIssues(at, rule.when)
+    if (Object.values(rule.demand).every((level) => !level)) {
+      issues.push(`${at}: changes no demand`)
     }
-    if (FREE in rule.supply || FREE in rule.demand) {
-      issues.push(`${at}: water is free and never traded`)
-    }
+    if (FREE in rule.demand) issues.push(`${at}: water is free and never traded`)
+  }
+  const made = new Set<Good>()
+  for (const rule of sortedEntries(producers)) {
+    const at = `producers ${rule.id}`
+    placeIssues(at, rule.when)
+    const goods = Object.keys(rule.output) as Good[]
+    if (goods.length === 0) issues.push(`${at}: makes nothing`)
+    if (FREE in rule.output) issues.push(`${at}: water is free and never traded`)
+    for (const good of goods) made.add(good)
+  }
+  for (const good of GOODS) {
+    if (good !== FREE && !made.has(good)) issues.push(`goods: no producer makes "${good}"`)
   }
 
   for (const animal of sortedEntries(animals)) {

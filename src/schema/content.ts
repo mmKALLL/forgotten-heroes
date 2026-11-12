@@ -5,6 +5,7 @@ import {
   ContractTemplateSchema,
   GoodDefSchema,
   MarketRuleSchema,
+  ProducerRuleSchema,
   PersonRoleSchema,
   ServiceRoleSchema,
 } from './economy'
@@ -161,6 +162,7 @@ export const CONTENT_KINDS = {
   goods: GoodDefSchema,
   serviceRoles: ServiceRoleSchema,
   marketRules: MarketRuleSchema,
+  producers: ProducerRuleSchema,
   animals: AnimalDefSchema,
   personRoles: PersonRoleSchema,
   contracts: ContractTemplateSchema,

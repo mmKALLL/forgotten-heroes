@@ -39,7 +39,8 @@ function ContractItem({
   here: string | null
   onAction: (a: Action) => void
 }) {
-  const { t } = useI18n()
+  const { t, name } = useI18n()
+  const goodName = (g: string) => name('goods', g, g)
   const [abandoning, setAbandoning] = useState(false)
   const where = c.poiName ?? c.toName
   const left =
@@ -65,7 +66,16 @@ function ContractItem({
         )}
       </div>
       <div className="muted">
-        {t('contracts.where', { to: where, patron: c.patronName })} ·{' '}
+        {c.kind === 'procurement' && c.good
+          ? t('contracts.procure', {
+              amount: c.amount,
+              good: goodName(c.good).toLowerCase(),
+              to: c.toName,
+              source: c.sourceName ?? '?',
+              patron: c.patronName,
+            })
+          : t('contracts.where', { to: where, patron: c.patronName })}{' '}
+        ·{' '}
         <span className={c.daysLeft !== null && c.daysLeft <= 1 ? 'tone-bad' : undefined}>
           {left}
         </span>

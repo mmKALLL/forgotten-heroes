@@ -107,10 +107,11 @@ describe('listenRumours', () => {
     const ratio = (a: GameState, b: GameState) => {
       const pa = a.priceBook[id].prices
       const pb = b.priceBook[id].prices
-      return Object.keys(pa).map((g) => {
+      return Object.keys(pa).flatMap((g) => {
         const x = pa[g as keyof typeof pa]!.buy ?? pa[g as keyof typeof pa]!.sell!
         const y = pb[g as keyof typeof pb]!.buy ?? pb[g as keyof typeof pb]!.sell!
-        return x / y
+        // Prices are whole gold: a 1–2 gp price can't show the skew.
+        return y >= 10 ? [x / y] : []
       })
     }
     // Both are skewed from the same truth: ±10% against ±40% means a ratio far from 1.

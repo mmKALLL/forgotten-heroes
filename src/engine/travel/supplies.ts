@@ -10,6 +10,7 @@ import { settlementName } from '../world/geo'
 import { springAt, terrainHere } from '../world/graph'
 import { consumeDay, dailyNeed, endOfDay, goodsOf, waterNeed } from './days'
 import { inSettlement, notHere } from './where'
+import { load } from '../economy/capacity'
 import { lodgingOptions, type Room } from '../town/services'
 import { animalUpkeep } from '../town/animals'
 import { journeyDays } from './routes'
@@ -41,6 +42,23 @@ export const refillWater = (goods: Goods, capacity: number): Goods => ({
   ...goods,
   water: Math.max(goodsOf(goods, 'water'), capacity),
 })
+
+/**
+ * Refilling by itself (arriving in a settlement, resting there, a spring; designer decision):
+ * every member's own skin is filled, and the extra waterskins only as far as the party stays
+ * unencumbered. Provisioning for a road fills them as far as that road needs.
+ */
+export function autoRefill(state: GameState, content: Content): Goods {
+  const full = partyWaterCapacity(state)
+  const now = goodsOf(state.goods, 'water')
+  if (now >= full) return state.goods
+  const floor = Math.max(now, waterCapacity(state.party.length))
+  const light = (water: number) =>
+    load({ ...state, goods: { ...state.goods, water } }, content).level === 'light'
+  let water = full
+  while (water > floor && !light(water)) water -= 1
+  return { ...state.goods, water: Math.min(full, Math.max(floor, water)) }
+}
 
 /** The days a route takes and the food and water it needs at this pace, for previews. */
 export function journeySupplies(
@@ -144,7 +162,9 @@ export function rest(
     return { ...c, hp, exhaustion }
   })
   const refill = option.inTown || spring
-  const goods = refill ? refillWater(after.goods, partyWaterCapacity(state)) : after.goods
+  const goods = refill
+    ? autoRefill({ ...after, waterskins: state.waterskins }, content)
+    : after.goods
   const place = option.inTown ? settlementName(state, state.location!) : ''
   const keep = option.stabling > 0 ? ` The animals’ keep: ${option.stabling} gp.` : ''
   const text = !option.inTown

@@ -7,6 +7,7 @@ import {
   drift,
   marketLevels,
   midPrice,
+  priceFactors,
   pressure,
   quote,
   recordTrade,
@@ -17,10 +18,13 @@ import {
   DRIFT_PERIOD_DAYS,
   PRICE_STEP,
   RECOVERY_HALF_LIFE_DAYS,
+  SHORTAGE_GAP,
   SPREAD_MIN,
   STANDING_POINTS,
+  SUPPLY_MIN,
 } from '../constants'
 import { shopKeeper } from '../town/reputation'
+import { supplyOf } from './supply'
 
 const content = fixtureContent()
 const base = makeState()
@@ -83,9 +87,36 @@ describe('marketLevels and midPrice', () => {
     )
   })
 
-  test('the biome rule applies only in its land', () => {
-    expect(marketLevels(base, content, 'ashmoor-1').alchemicals.supply).toBe(1)
-    expect(marketLevels(base, content, 'greenvale-2').alchemicals.supply).toBe(0)
+  test('a producer supplies its own market best, and less further down the road', () => {
+    // Ashmoor's marsh makes alchemicals (output 2); Greenvale lies 3+ days of road away.
+    expect(supplyOf(base, content, 'ashmoor-1', 'alchemicals')).toMatchObject({
+      level: 2,
+      from: 'ashmoor-1',
+      days: 0,
+    })
+    const near = supplyOf(base, content, 'greenvale-2', 'alchemicals')
+    expect(near.from).toBe('ashmoor-1')
+    expect(near.level).toBeLessThan(2)
+    expect(levelOnly(base, 'greenvale-2', 'alchemicals')).toBeGreaterThan(
+      levelOnly(base, 'ashmoor-1', 'alchemicals')
+    )
+  })
+
+  test('a good no producer can reach is scarce, and a shortage where it is wanted', () => {
+    const bare = { ...content, producers: {} }
+    expect(supplyOf(base, bare, 'greenvale-1', 'gems').from).toBeNull()
+    const level = marketLevels(rampant(base, 'greenvale-2'), bare, 'greenvale-2').arms
+    expect(level.supply).toBe(SUPPLY_MIN)
+    expect(level.shortage).toBe(level.demand - level.supply >= SHORTAGE_GAP)
+    expect(level.shortage).toBe(true)
+  })
+
+  test('priceFactors names the producer and the demand behind a price', () => {
+    const threatened = rampant(base, 'greenvale-2')
+    const f = priceFactors(threatened, content, 'greenvale-2', 'arms')
+    expect(f.demand.map((d) => d.id)).toEqual(['under-threat'])
+    expect(f.level).toEqual(marketLevels(threatened, content, 'greenvale-2').arms)
+    expect(f.trades).toBe(1)
   })
 
   test('water is never priced', () => {
@@ -161,7 +192,7 @@ describe('pressure and bulk trades', () => {
 })
 
 describe('shops', () => {
-  test('buying is dearer than selling for every good and shop, whatever the pressure', () => {
+  test('buying is never cheaper than selling, and dearer for goods worth 10 gp or more', () => {
     for (const markets of [{}, recordTrade({}, 'greenvale-1', 'food', 40, base.day)]) {
       for (const p of [-30, 0, 30]) {
         const s = {
@@ -173,7 +204,9 @@ describe('shops', () => {
             if (!shop.sells || !shop.buys) continue
             const buy = quote(s, content, 'greenvale-1', good, 'buy', 1, shop.service)!
             const sell = quote(s, content, 'greenvale-1', good, 'sell', 1, shop.service)!
-            expect(buy.unitFirst).toBeGreaterThan(sell.unitFirst)
+            // Whole gold rounded up: a 1 gp good may buy and sell at the same price.
+            if (buy.unitFirst >= 10) expect(buy.unitFirst).toBeGreaterThan(sell.unitFirst)
+            else expect(buy.unitFirst).toBeGreaterThanOrEqual(sell.unitFirst)
             expect(buy.total).toBeGreaterThanOrEqual(sell.total)
           }
         }
@@ -181,7 +214,7 @@ describe('shops', () => {
     }
   })
 
-  test('buying some and selling them straight back always loses money', () => {
+  test('buying some and selling them straight back never gains, and loses on dear goods', () => {
     for (const good of ['gems', 'food', 'luxuries'] as const) {
       for (const n of [1, 5, 20]) {
         const buy = quote(shopping, content, 'greenvale-1', good, 'buy', n)!
@@ -190,7 +223,8 @@ describe('shops', () => {
           markets: recordTrade({}, 'greenvale-1', good, -n, shopping.day),
         }
         const sell = quote(after, content, 'greenvale-1', good, 'sell', n, buy.shop.service)!
-        expect(sell.total).toBeLessThan(buy.total)
+        if (good === 'food') expect(sell.total).toBeLessThanOrEqual(buy.total)
+        else expect(sell.total).toBeLessThan(buy.total)
       }
     }
   })
@@ -228,20 +262,28 @@ describe('shops', () => {
       ...shopping,
       reputation: { settlements, people },
     })
+    // Whole-gold prices hide a 2-point spread on cheap goods: compare on gems.
     const unit = (s: GameState, side: 'buy' | 'sell', shop?: string) =>
-      quote(s, content, id, 'food', side, 1, shop)!.unitFirst
+      quote(s, content, id, 'gems', side, 1, shop)!.unitFirst
     const liked = withRep({ [id]: STANDING_POINTS.liked })
     const disliked = withRep({ [id]: STANDING_POINTS.disliked })
-    expect(unit(liked, 'buy')).toBeLessThan(unit(shopping, 'buy'))
-    expect(unit(liked, 'sell')).toBeGreaterThan(unit(shopping, 'sell'))
+    // A good shop may already be at SPREAD_MIN, so liked can only match a stranger's price there.
+    expect(unit(liked, 'buy')).toBeLessThanOrEqual(unit(shopping, 'buy'))
+    expect(unit(liked, 'sell')).toBeGreaterThanOrEqual(unit(shopping, 'sell'))
     expect(unit(disliked, 'buy')).toBeGreaterThan(unit(shopping, 'buy'))
+    expect(unit(disliked, 'sell')).toBeLessThan(unit(liked, 'sell'))
     // An outfitter keeping the supplies shop and liking the party narrows that shop's spread only.
     const outfitter = {
       ...content.personRoles.innkeeper,
       id: 'outfitter',
       service: 'adventuring-supplies',
     }
-    const kept = { ...content, personRoles: { ...content.personRoles, outfitter } }
+    const gear = { ...content.goods.gear, price: 100 }
+    const kept = {
+      ...content,
+      personRoles: { ...content.personRoles, outfitter },
+      goods: { ...content.goods, gear },
+    }
     const world = {
       ...shopping.world,
       people: {
@@ -251,17 +293,23 @@ describe('shops', () => {
     }
     expect(shopKeeper({ world }, kept, id, 'adventuring-supplies')).toBe('p-ada')
     const friend = { ...withRep({}, { 'p-ada': STANDING_POINTS.liked }), world }
-    const at = (s: GameState, shop: string) => quote(s, kept, id, 'food', 'buy', 1, shop)!.unitFirst
+    const at = (s: GameState, shop: string) => quote(s, kept, id, 'gear', 'buy', 1, shop)!.unitFirst
     const stranger = { ...shopping, world }
     expect(at(friend, 'adventuring-supplies')).toBeLessThan(at(stranger, 'adventuring-supplies'))
-    expect(at(friend, MARKET_STALL)).toBe(at(stranger, MARKET_STALL))
+    // The stalls have no keeper, so the outfitter's liking doesn't reach them.
+    const stall = (s: GameState) => quote(s, kept, id, 'food', 'buy', 1, MARKET_STALL)!.unitFirst
+    expect(stall(friend)).toBe(stall(stranger))
   })
 
-  test('quotes round buys up and sales down to whole gold', () => {
+  test('quotes are whole gold: every unit rounded up, at least 1 gp', () => {
     const buy = quote(shopping, content, 'greenvale-1', 'food', 'buy', 3)!
     const sell = quote(shopping, content, 'greenvale-1', 'food', 'sell', 3)!
     expect(Number.isInteger(buy.total)).toBe(true)
     expect(Number.isInteger(sell.total)).toBe(true)
+    for (const q of [buy, sell]) {
+      expect(Number.isInteger(q.unitFirst) && q.unitFirst >= 1).toBe(true)
+      expect(Number.isInteger(q.unitLast) && q.unitLast >= 1).toBe(true)
+    }
     expect(quote(shopping, content, 'greenvale-1', 'food', 'buy', 0)).toBeNull()
   })
 })

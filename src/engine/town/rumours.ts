@@ -3,7 +3,8 @@ import { GOODS } from '../../schema/types'
 import type { GameState, PriceBookEntry } from '../../schema/state'
 import { revealPois } from '../encounters/effects'
 import { inProgress } from '../encounters/run'
-import { marketPrices } from '../economy/trade'
+import { wholeGp } from '../economy/market'
+import { marketPrices, marketTalk } from '../economy/trade'
 import { formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
 import { withRng, type Draw } from '../rng'
@@ -107,11 +108,11 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
   }
 }
 
-/** A heard price, off by up to ±`skew` (seeded), rounded like the price book's. */
+/** A heard price, off by up to ±`skew` (seeded), in whole gold like the price book's. */
 const skewed = (d: Draw, price: number | null, skew: number, sign?: 1 | -1): number | null => {
   if (price === null) return null
   const factor = sign === undefined ? 1 + (d.float() * 2 - 1) * skew : 1 + sign * skew
-  return Math.max(0, Math.round(price * factor * 100) / 100)
+  return wholeGp(price * factor)
 }
 
 /**
@@ -215,6 +216,11 @@ export function listenRumours(state: GameState, content: Content): GameState {
   if (heard.heard.length > 0) {
     // A false rumour reads like any other.
     next = appendLog(next, `You hear talk of prices in ${listNames(next, heard.heard)}.`, 'info')
+    // ...and of what each is short of or awash with, as it was when the news left.
+    for (const id of heard.heard) {
+      const talk = marketTalk(next, content, id, next.priceBook[id]?.day ?? next.day)
+      if (talk) next = appendLog(next, talk, 'info')
+    }
   } else if (tier === 'fail' || tier === 'critFail') {
     next = appendLog(next, 'The talk is all weather and old grudges.', 'info')
   }

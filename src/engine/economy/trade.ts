@@ -4,12 +4,22 @@ import type { GameState, KnownPrice, PriceBookEntry } from '../../schema/state'
 import { formatGp } from '../format'
 import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
+import { contractCargo } from '../town/contract-hooks'
 import { tradeReputation } from '../town/reputation'
 import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
 import { load } from './capacity'
 import { goodDef, goodName, goodWeight } from './goods'
-import { marketLevels, quote, recordTrade, type Quote, type Shop } from './market'
+import {
+  isGlut,
+  marketLevels,
+  priceFactors,
+  quote,
+  recordTrade,
+  type Quote,
+  type Shop,
+} from './market'
+import { production } from './supply'
 import { OVERLOAD_RATIO, STALE_DAYS } from '../constants'
 
 // Buying and selling the 15 goods, and the price book: what the party knows of other markets.
@@ -24,7 +34,6 @@ export type TradeAction =
 const MAX_UNITS = 9999
 
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
-const roundGp = (n: number) => Math.round(n * 100) / 100
 const lower = (content: Content, good: Good) => goodName(content, good).toLowerCase()
 
 /** What stops the party buying more of a good: gold, weight, or nothing (null). */
@@ -119,7 +128,10 @@ export function buyGoods(
   return observe(tradeReputation(logged, q.total), content, here)
 }
 
-/** Sells up to `amount` units (what is carried, at most) at the best shop buying it here. */
+/**
+ * Sells up to `amount` units (what is carried, less a contract's cargo, at most) at the best shop
+ * buying it here.
+ */
 export function sellGoods(
   state: GameState,
   content: Content,
@@ -131,7 +143,13 @@ export function sellGoods(
   if (!inSettlement(state) || here === null) {
     return appendLog(state, notHere(state, 'Goods can only be sold in a settlement.'), 'bad')
   }
-  const n = Math.min(Math.max(0, Math.floor(amount)), units(state, good))
+  // A contract's cargo is the patron's, not the party's to sell.
+  const cargo = contractCargo(state, good)
+  const free = Math.max(0, units(state, good) - cargo)
+  const n = Math.min(Math.max(0, Math.floor(amount)), free)
+  if (n === 0 && cargo > 0 && units(state, good) > 0) {
+    return appendLog(state, `The ${lower(content, good)} you carry is a contract's cargo.`, 'bad')
+  }
   if (n === 0) return appendLog(state, `There is no ${lower(content, good)} to sell.`, 'bad')
   const q = quote(state, content, here, good, 'sell', n, shop)
   if (!q) return appendLog(state, `No one here buys ${lower(content, good)}.`, 'bad')
@@ -153,7 +171,7 @@ export function sellGoods(
 function knownPrice(state: GameState, content: Content, id: string, good: Good): KnownPrice {
   const buy = quote(state, content, id, good, 'buy', 1)
   const sell = quote(state, content, id, good, 'sell', 1)
-  return { buy: buy && roundGp(buy.unitFirst), sell: sell && roundGp(sell.unitFirst) }
+  return { buy: buy && buy.unitFirst, sell: sell && sell.unitFirst }
 }
 
 /**
@@ -246,12 +264,18 @@ export type MarketRow = {
   /** kg per unit. */
   weight: number
   carried: number
+  /** Of what is carried, the units that are a courier's or freight contract's cargo (not for sale). */
+  cargo: number
   /** Buying or selling one unit here now, at the best shop; null when no shop does. */
   buy: Quote | null
   sell: Quote | null
   /** Supply and demand here, −3..3 (shown as arrows). */
   supply: number
   demand: number
+  /** Wanted here and made nowhere near: demand at least SHORTAGE_GAP over supply. */
+  shortage: boolean
+  /** Why it costs what it does here, for the tooltip (design §4): the few factors behind it. */
+  why: PriceWhy
   /** The most the party can buy now, and what stops it buying more. */
   maxBuy: number
   buyLimit: BuyLimit
@@ -259,6 +283,72 @@ export type MarketRow = {
   shop: Shop | null
   /** The best prices known elsewhere, from the price book. */
   known: { sell: KnownElsewhere | null; buy: KnownElsewhere | null }
+}
+
+/** The factors behind a price, named for the tooltip. */
+export type PriceWhy = {
+  /** The producer the supply comes from (here or elsewhere), or null when none is in reach. */
+  producer: { id: string; name: string; days: number; labels: string[] } | null
+  /** The market rules adding demand here today: their labels and levels. */
+  demand: { label: string; level: number }[]
+  /** Today's drift and what is left of the party's own trades, as shares (+0.08 is 8% dearer). */
+  swing: number
+  trades: number
+}
+
+/** Why a good costs what it does in a settlement today (economy/market.ts priceFactors). */
+export function priceWhy(
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  good: Good
+): PriceWhy {
+  const f = priceFactors(state, content, settlementId, good)
+  const from = f.supply.from
+  const labels = from
+    ? (production(state, content, from).find((p) => p.good === good)?.rules ?? []).map(
+        (id) => content.producers[id]?.label ?? id
+      )
+    : []
+  return {
+    producer: from
+      ? { id: from, name: settlementName(state, from), days: f.supply.days ?? 0, labels }
+      : null,
+    demand: f.demand.map((d) => ({ label: d.label, level: d.level })),
+    swing: f.drift - 1,
+    trades: f.trades - 1,
+  }
+}
+
+/** "arms", "arms and gems", "arms, gems and luxuries". */
+const goodList = (content: Content, goods: Good[]) => {
+  const names = goods.map((g) => lower(content, g))
+  return names.length <= 1
+    ? (names[0] ?? '')
+    : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
+}
+
+/**
+ * What talk of a market says beyond its prices (rumours and couriers, design §4): the traded goods
+ * it is short of and those it is awash with on a day, as a journal line; null when neither.
+ */
+export function marketTalk(
+  state: GameState,
+  content: Content,
+  settlementId: string,
+  day = state.day
+): string | null {
+  const levels = marketLevels(state, content, settlementId, day)
+  const traded = GOODS.filter((g) => (goodDef(content, g)?.price ?? 0) > 0)
+  const short = traded.filter((g) => levels[g].shortage)
+  const glut = traded.filter((g) => isGlut(levels[g]))
+  if (short.length === 0 && glut.length === 0) return null
+  const name = settlementName(state, settlementId)
+  const parts = [
+    short.length > 0 && `short of ${goodList(content, short)}`,
+    glut.length > 0 && `awash with ${goodList(content, glut)}`,
+  ].filter(Boolean)
+  return `Talk has it that ${name} is ${parts.join(', and ')}.`
 }
 
 /** The market of the settlement the party is in, one row per defined good in design order. */
@@ -279,10 +369,13 @@ export function marketView(state: GameState, content: Content): MarketRow[] {
       category: GOOD_CATEGORY[good],
       weight: def.weight,
       carried: units(state, good),
+      cargo: Math.min(units(state, good), contractCargo(state, good)),
       buy,
       sell,
       supply: levels[good].supply,
       demand: levels[good].demand,
+      shortage: levels[good].shortage,
+      why: priceWhy(state, content, here, good),
       maxBuy: most.units,
       buyLimit: buy ? most.limit : null,
       shop: buy?.shop ?? sell?.shop ?? null,

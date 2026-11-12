@@ -28,6 +28,45 @@ function eachText(t: T, q: Quote): string {
   return first === last ? t('market.each', { gp: first }) : t('market.eachRange', { first, last })
 }
 
+const percent = (share: number) => {
+  const n = Math.round(share * 100)
+  return n > 0 ? `+${n}%` : n < 0 ? `−${-n}%` : '0%'
+}
+
+/**
+ * Why a good costs what it does here (designer decision: only on hover or focus, never as text in
+ * the table): supply and demand, the producer it comes from, the demand here, a shortage, and
+ * the week's swing and the party's own trades when they matter.
+ */
+export function whyText(t: T, row: MarketRow): string {
+  const lines = [
+    t('market.levelsValue', { supply: signed(row.supply), demand: signed(row.demand) }),
+  ]
+  if (row.good === 'water') return lines[0]
+  const p = row.why.producer
+  lines.push(
+    !p
+      ? t('market.why.noMaker')
+      : p.days === 0
+        ? t('market.why.madeHere', { labels: p.labels.join(', ') })
+        : t('market.why.madeIn', {
+            name: p.name,
+            days: t('market.why.days', { n: p.days }),
+            labels: p.labels.join(', '),
+          })
+  )
+  const wanted = row.why.demand.filter((d) => d.level > 0).map((d) => d.label)
+  if (wanted.length > 0) lines.push(t('market.why.wanted', { reasons: wanted.join(', ') }))
+  if (row.shortage) lines.push(t('market.why.shortage'))
+  if (Math.abs(row.why.trades) >= 0.01) {
+    lines.push(t('market.why.trades', { pct: percent(row.why.trades) }))
+  }
+  if (Math.abs(row.why.swing) >= 0.05) {
+    lines.push(t('market.why.swing', { pct: percent(row.why.swing) }))
+  }
+  return lines.join('\n')
+}
+
 /** The best price known elsewhere, e.g. "pays 31 gp in Avarus · 12 days ago (heard)". */
 function knownText(t: T, side: 'sell' | 'buy', k: KnownElsewhere): string {
   const line = t(side === 'sell' ? 'market.paysElsewhere' : 'market.asksElsewhere', {
@@ -153,7 +192,8 @@ function MarketLine({
 }) {
   const { t } = useI18n()
   const buyN = amount === 'max' ? row.maxBuy : amount
-  const sellN = amount === 'max' ? row.carried : Math.min(amount, row.carried)
+  const forSale = row.carried - row.cargo
+  const sellN = amount === 'max' ? forSale : Math.min(amount, forSale)
   const buyQuote = row.buy && buyN > 0 ? quoteFor('buy', buyN) : null
   const sellQuote = row.sell && sellN > 0 ? quoteFor('sell', sellN) : null
   // Why the buy can't go ahead: too heavy, or not enough gold.
@@ -175,16 +215,26 @@ function MarketLine({
   return (
     <tr className={row.carried > 0 ? 'carried' : undefined}>
       {head}
-      <th scope="row" className="market-good" title={row.uses}>
+      <th
+        scope="row"
+        className="market-good"
+        title={row.cargo > 0 ? `${row.uses}\n${t('market.cargo', { n: row.cargo })}` : row.uses}
+      >
         {goodName} <span className="muted">{water ?? (row.carried > 0 ? row.carried : '')}</span>
       </th>
       <td
         className="levels"
-        title={t('market.levelsValue', { supply: signed(row.supply), demand: signed(row.demand) })}
+        title={whyText(t, row)}
+        tabIndex={row.good === 'water' ? undefined : 0}
       >
         <span className="supply">{arrows(row.supply)}</span>
         <span className="sep">/</span>
         <span className="demand">{arrows(row.demand)}</span>
+        {row.shortage && (
+          <span className="shortage" aria-label={t('market.shortage')}>
+            !
+          </span>
+        )}
       </td>
       <td className="num">{unit(row.buy)}</td>
       <td className="num">{unit(row.sell)}</td>

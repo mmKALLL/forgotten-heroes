@@ -156,10 +156,22 @@ export const ENCUMBERED_SPEED = 2 / 3
 
 /** Each level of demand over supply multiplies a price by this (and each level under divides). */
 export const PRICE_STEP = 1.25
-/** A market's summed supply or demand level for a good stays within ±this. */
+/**
+ * A market's supply or demand level for a good stays within ±this, and so does demand − supply:
+ * a price is at most PRICE_STEP^3 ≈ 2× its base, or half of it, before drift.
+ */
 export const MARKET_LEVEL_MAX = 3
 /** Prices drift up to ±this share around their level, in slow waves. */
-export const DRIFT = 0.15
+export const DRIFT = 0.1
+
+// Geographic supply (economy/supply.ts)
+
+/** A producer's supply falls a level for every this many steady days of road to the market. */
+export const SUPPLY_DAYS_PER_LEVEL = 3
+/** The supply level of a good with no producer near enough: scarce. */
+export const SUPPLY_MIN = -2
+/** A shortage: demand is at least this many levels over supply (marked, and wanted on boards). */
+export const SHORTAGE_GAP = 3
 /** The drift's waves: a new seeded value every this many days, eased in between. */
 export const DRIFT_PERIOD_DAYS = 10
 /** A market recovers half of the party's bulk trading in this many days. */
@@ -325,10 +337,6 @@ export const DEADLINE_SLACK: readonly [number, number] = [1.25, 1.6]
 export const DEADLINE_GRACE_DAYS = 1
 /** ...or in this one for an urgent offer (never less than a forced march, always less than steady). */
 export const URGENT_SLACK: readonly [number, number] = [0.75, 0.9]
-/** A supply run's patron also pays for the goods: their base price × this, on top of the pay. */
-export const SUPPLY_GOODS_PAY = 1.2
-/** Days a supply run's deadline allows (unless urgent) for finding the goods. */
-export const SUPPLY_SOURCING_DAYS = 2
 /** "A good word": standing gained with every settlement of the patron's kingdom, instead of the gold. */
 export const GOOD_WORD_POINTS = 3
 /** A failed or abandoned contract costs this much standing with the patron and their settlement. */

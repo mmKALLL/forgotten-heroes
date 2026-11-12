@@ -2,193 +2,226 @@
   "$schema": "../_schema/marketRules.schema.json",
   "kind": "marketRules",
   "source": "claude",
-  "notes": "Supply and demand (Plan 4, B1). A settlement sums the levels of every rule whose conditions all hold, clamps supply and demand to −3..3, and prices a good at base × 1.25^(demand − supply), before drift and bulk pressure (A2). Land, coast, settlement type and size, wealth, the domain's threat level and the sites in the domain each push a few goods, so most goods vary 1.5–4× across a world (a test in src/content/economy.test.ts checks the spread on seeds 1–5). No rule uses negative levels, so the spread can't pass 1.25^6 ≈ 3.8×. Water is free and never traded. Starting numbers, to be tuned with the I1 economy report.",
+  "notes": "Local demand (design §4; geographic supply, designer decision). A settlement sums the demand of every rule whose conditions all hold (−3..3). Supply comes from the producers (producers.json), not from these rules. A price is base × 1.25^(demand − supply), with demand − supply kept within ±3 (about ½× to 2× the base price), before drift (±10%) and bulk pressure. Each rule's label is shown when the market explains a price, so rules are few, big and legible. Water is free and never traded.",
   "entries": [
     {
-      "id": "plains-farmland",
-      "when": { "biomes": ["plains"] },
-      "supply": { "food": 1 },
-      "demand": { "timber": 1, "stone": 1 },
-      "notes": "Grain country: cheap bread, little wood or stone."
+      "id": "coastal-shipwrights",
+      "label": "Shipwrights",
+      "when": {
+        "coastal": true
+      },
+      "demand": {
+        "timber": 1
+      },
+      "notes": "Boats always need wood."
     },
     {
-      "id": "forest-timber",
-      "when": { "biomes": ["forest"] },
-      "supply": { "timber": 2, "fuel": 1 },
-      "demand": { "stone": 1 }
+      "id": "desert-crossings",
+      "label": "Desert crossings",
+      "when": {
+        "biomes": ["desert"]
+      },
+      "demand": {
+        "gear": 1
+      },
+      "notes": "Waterskins, tents and pack frames for the caravans."
     },
     {
-      "id": "forest-furs",
-      "when": { "biomes": ["forest", "hills", "mountains"], "maxSize": 2 },
-      "supply": { "luxuries": 1 },
-      "notes": "Trappers sell furs and pelts in the small places of the wild country."
+      "id": "jungle-fevers",
+      "label": "Fevers and rust",
+      "when": {
+        "biomes": ["jungle"]
+      },
+      "demand": {
+        "gear": 1,
+        "healing": 1
+      }
     },
     {
-      "id": "mining-country",
-      "when": { "biomes": ["hills", "mountains"] },
-      "supply": { "metal": 1, "stone": 1, "gems": 1 }
-    },
-    {
-      "id": "mountain-mines",
-      "when": { "biomes": ["mountains"] },
-      "supply": { "metal": 1 },
-      "demand": { "food": 1, "fuel": 1, "timber": 1 },
-      "notes": "Deep mines, thin soil and cold nights."
-    },
-    {
-      "id": "hill-quarries",
-      "when": { "biomes": ["hills"] },
-      "supply": { "stone": 1 }
-    },
-    {
-      "id": "marsh-herbs",
-      "when": { "biomes": ["marsh"] },
-      "supply": { "alchemicals": 1, "healing": 1 },
-      "demand": { "stone": 1, "timber": 1, "food": 1 },
-      "notes": "Reeds, leeches and bitter herbs; nothing to build with, poor fields."
-    },
-    {
-      "id": "desert-spice",
-      "when": { "biomes": ["desert"] },
-      "supply": { "luxuries": 1 },
-      "demand": { "food": 1, "gear": 1, "timber": 1, "fuel": 1 },
-      "notes": "Spice and dyes from the caravans; waterskins, tents and wood are dear."
-    },
-    {
-      "id": "jungle-spice",
-      "when": { "biomes": ["jungle"] },
-      "supply": { "luxuries": 1, "alchemicals": 1, "timber": 1 },
-      "demand": { "gear": 1, "healing": 1, "metal": 1 },
-      "notes": "Spice, venoms and hardwoods; fevers and rust."
-    },
-    {
-      "id": "coastal-fishing",
-      "when": { "coastal": true },
-      "supply": { "food": 1 },
-      "demand": { "timber": 1 },
-      "notes": "Fish on every table; boats always need wood."
-    },
-    {
-      "id": "coastal-imports",
-      "when": { "coastal": true, "minSize": 3 },
-      "supply": { "luxuries": 1, "metal": 1 },
-      "notes": "Ships bring silk, wine and foreign iron to the bigger harbours."
-    },
-    {
-      "id": "inland",
-      "when": { "coastal": false },
-      "demand": { "luxuries": 1 },
-      "notes": "Far from the ships, imported finery is scarce."
-    },
-    {
-      "id": "fort-garrison",
-      "when": { "types": ["fort"] },
-      "demand": { "arms": 2, "armour": 2, "food": 1 }
+      "id": "garrison",
+      "label": "Garrison",
+      "when": {
+        "types": ["fort", "stationed-garrison", "large-encampment", "encamped-army"]
+      },
+      "demand": {
+        "arms": 2,
+        "armour": 2,
+        "food": 1
+      },
+      "notes": "Soldiers to arm and feed."
     },
     {
       "id": "capital-court",
-      "when": { "types": ["capital"] },
-      "supply": { "arcana": 1 },
-      "demand": { "luxuries": 1, "gems": 1, "relics": 1 },
-      "notes": "Courtiers, collectors and the colleges of the realm."
+      "label": "Court and collectors",
+      "when": {
+        "types": ["capital"]
+      },
+      "demand": {
+        "luxuries": 1,
+        "gems": 1,
+        "relics": 1
+      }
     },
     {
-      "id": "city-workshops",
-      "when": { "types": ["city", "capital"] },
-      "supply": { "gear": 1, "arms": 1, "armour": 1, "alchemicals": 1 },
-      "demand": { "timber": 1, "stone": 1, "metal": 1, "fuel": 1 },
-      "notes": "Workshops turn raw materials into finished goods."
+      "id": "city-building",
+      "label": "Builders and workshops",
+      "when": {
+        "types": ["city", "capital"]
+      },
+      "demand": {
+        "timber": 1,
+        "stone": 1,
+        "metal": 1,
+        "fuel": 1
+      },
+      "notes": "Workshops turn raw materials into finished goods, and the city keeps growing."
     },
     {
-      "id": "town-crafts",
-      "when": { "types": ["town"] },
-      "supply": { "gear": 1 },
-      "demand": { "metal": 1 }
+      "id": "town-smithies",
+      "label": "Smithies",
+      "when": {
+        "types": ["town"]
+      },
+      "demand": {
+        "metal": 1
+      }
     },
     {
-      "id": "village-fields",
-      "when": { "types": ["village", "hamlet"] },
-      "supply": { "fuel": 1 },
-      "demand": { "gear": 1 },
-      "notes": "Woodlots, and tools that wear out. (Their farms feed themselves: cheap bread comes from the plains and the coast, which keeps food's spread under 4.5×.)"
+      "id": "village-tools",
+      "label": "Worn tools",
+      "when": {
+        "types": ["village", "hamlet"]
+      },
+      "demand": {
+        "gear": 1
+      }
     },
     {
       "id": "remote-outposts",
-      "when": { "maxSize": 1 },
-      "demand": { "healing": 1, "gear": 1, "alchemicals": 1 },
+      "label": "Few pedlars",
+      "when": {
+        "maxSize": 1
+      },
+      "demand": {
+        "healing": 1,
+        "gear": 1,
+        "alchemicals": 1
+      },
       "notes": "Few pedlars come this far."
     },
     {
       "id": "great-cities",
-      "when": { "minSize": 5 },
-      "supply": { "arcana": 1, "luxuries": 1 },
-      "demand": { "food": 1 },
-      "notes": "Everything is for sale, but the city must be fed."
+      "label": "Many mouths",
+      "when": {
+        "minSize": 5
+      },
+      "demand": {
+        "food": 1
+      },
+      "notes": "The city must be fed."
     },
     {
       "id": "wealthy",
-      "when": { "minWealth": 2 },
-      "demand": { "luxuries": 1, "gems": 1, "arcana": 1 }
+      "label": "Wealthy buyers",
+      "when": {
+        "minWealth": 2
+      },
+      "demand": {
+        "luxuries": 1,
+        "gems": 1,
+        "arcana": 1
+      }
     },
     {
       "id": "very-rich",
-      "when": { "minWealth": 3 },
-      "demand": { "gems": 1, "relics": 1 }
+      "label": "Collectors",
+      "when": {
+        "minWealth": 3
+      },
+      "demand": {
+        "gems": 1,
+        "relics": 1
+      }
     },
     {
       "id": "threat-stirring",
-      "when": { "threatAtLeast": 1 },
-      "demand": { "arms": 1 }
+      "label": "Unrest",
+      "when": {
+        "threatAtLeast": 1
+      },
+      "demand": {
+        "arms": 1
+      }
     },
     {
       "id": "threat-rising",
-      "when": { "threatAtLeast": 2 },
-      "demand": { "arms": 1, "armour": 1, "healing": 1 }
+      "label": "Raids",
+      "when": {
+        "threatAtLeast": 2
+      },
+      "demand": {
+        "arms": 1,
+        "armour": 1,
+        "healing": 1
+      }
     },
     {
       "id": "threat-rampant",
-      "when": { "threatAtLeast": 3 },
-      "supply": { "relics": 1, "luxuries": 1 },
-      "demand": { "timber": 1, "stone": 1, "food": 1, "healing": 1 },
-      "notes": "Rebuilding after raids, and families selling heirlooms to leave."
+      "label": "Rebuilding after raids",
+      "when": {
+        "threatAtLeast": 3
+      },
+      "demand": {
+        "timber": 1,
+        "stone": 1,
+        "food": 1,
+        "healing": 1
+      }
     },
     {
       "id": "near-dungeon",
-      "when": { "nearPoi": ["dungeon"] },
-      "demand": { "gear": 1, "healing": 1 },
+      "label": "Delvers",
+      "when": {
+        "nearPoi": ["dungeon"]
+      },
+      "demand": {
+        "gear": 1,
+        "healing": 1
+      },
       "notes": "Delvers outfit themselves here."
     },
     {
-      "id": "near-ruins",
-      "when": { "nearPoi": ["dungeon", "landmark"] },
-      "supply": { "relics": 1 },
-      "notes": "Old things turn up in the market."
-    },
-    {
       "id": "near-lair",
-      "when": { "nearPoi": ["lair"] },
-      "supply": { "alchemicals": 1 },
-      "demand": { "arms": 1 },
-      "notes": "Hunters sell what they cut from the beasts, and everyone wants a spear."
+      "label": "Beasts nearby",
+      "when": {
+        "nearPoi": ["lair"]
+      },
+      "demand": {
+        "arms": 1
+      },
+      "notes": "Everyone wants a spear."
     },
     {
       "id": "near-shrine",
-      "when": { "nearPoi": ["shrine"] },
-      "supply": { "healing": 1 },
-      "demand": { "relics": 1 },
-      "notes": "Pilgrims buy holy things; the hospice sells remedies."
-    },
-    {
-      "id": "near-expert",
-      "when": { "nearPoi": ["expert"] },
-      "supply": { "arcana": 1 },
-      "notes": "A sage or herbwife nearby trades what they make."
+      "label": "Pilgrims",
+      "when": {
+        "nearPoi": ["shrine"]
+      },
+      "demand": {
+        "relics": 1
+      },
+      "notes": "Pilgrims buy holy things."
     },
     {
       "id": "near-wonder",
-      "when": { "nearPoi": ["wonder"] },
-      "demand": { "food": 1 },
-      "notes": "Sightseers come to stare, and need feeding. (No arcana demand: stacked with wealth it made arcana the one outlier trade in the I1 report.)"
+      "label": "Sightseers",
+      "when": {
+        "nearPoi": ["wonder"]
+      },
+      "demand": {
+        "food": 1
+      },
+      "notes": "Sightseers come to stare, and need feeding."
     }
   ]
 }

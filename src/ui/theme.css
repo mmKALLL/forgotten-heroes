@@ -1414,6 +1414,11 @@ h2[tabindex='-1']:focus {
   color: var(--muted);
   margin: 0 0.15rem;
 }
+.levels .shortage {
+  color: var(--bad);
+  font-weight: 700;
+  margin-left: 0.15rem;
+}
 .pips {
   font-size: 0.55rem;
   letter-spacing: -0.05em;

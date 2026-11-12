@@ -51,12 +51,20 @@ function OfferRow({
     ? t('board.locked', { standing: t(`standing.${o.locked}`) })
     : (o.reason ?? null)
   const rep = o.reputation.patron + o.reputation.settlement
-  const route = t('board.route', {
-    to: o.poiName ?? o.toName,
-    km: o.km,
-    day: state.day + o.days,
-    steady: daysText(t, o.steadyDays),
-  })
+  const route =
+    o.kind === 'procurement'
+      ? t('board.procure', {
+          source: o.sourceName ?? '',
+          km: o.km,
+          day: state.day + o.days,
+          steady: daysText(t, o.steadyDays),
+        })
+      : t('board.route', {
+          to: o.poiName ?? o.toName,
+          km: o.km,
+          day: state.day + o.days,
+          steady: daysText(t, o.steadyDays),
+        })
   // Two lines each; the whole offer is in the tooltip.
   return (
     <li

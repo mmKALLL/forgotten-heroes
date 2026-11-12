@@ -4,6 +4,7 @@ import {
   ContractTemplateSchema,
   GoodDefSchema,
   MarketRuleSchema,
+  ProducerRuleSchema,
   PersonRoleSchema,
   ServiceRoleSchema,
 } from './economy'
@@ -73,23 +74,31 @@ describe('service roles', () => {
 
 describe('market rules', () => {
   test('fill in defaults', () => {
-    expect(MarketRuleSchema.parse({ id: 'coast', when: { coastal: true } })).toEqual({
-      id: 'coast',
-      when: { coastal: true },
-      supply: {},
-      demand: {},
-    })
+    expect(
+      MarketRuleSchema.parse({ id: 'coast', label: 'Coast', when: { coastal: true } })
+    ).toEqual({ id: 'coast', label: 'Coast', when: { coastal: true }, demand: {} })
   })
 
   test('levels stay within −2..2, and threat within 0..3', () => {
     const rule = (over: Record<string, unknown>) =>
-      MarketRuleSchema.safeParse({ id: 'r', when: {}, ...over }).success
-    expect(rule({ supply: { food: 2 }, demand: { arms: -2 } })).toBe(true)
-    expect(rule({ supply: { food: 3 } })).toBe(false)
+      MarketRuleSchema.safeParse({ id: 'r', label: 'R', when: {}, ...over }).success
+    expect(rule({ demand: { arms: -2, food: 2 } })).toBe(true)
+    expect(rule({ demand: { food: 3 } })).toBe(false)
     expect(rule({ demand: { arms: -3 } })).toBe(false)
     expect(rule({ demand: { arms: 1.5 } })).toBe(false)
-    expect(rule({ supply: { spices: 1 } })).toBe(false)
+    expect(rule({ demand: { spices: 1 } })).toBe(false)
     expect(rule({ when: { threatAtLeast: 4 } })).toBe(false)
+  })
+})
+
+describe('producer rules', () => {
+  test('output levels are 1–3 for known goods', () => {
+    const rule = (output: Record<string, unknown>) =>
+      ProducerRuleSchema.safeParse({ id: 'p', label: 'P', when: {}, output }).success
+    expect(rule({ timber: 3, fuel: 1 })).toBe(true)
+    expect(rule({ timber: 4 })).toBe(false)
+    expect(rule({ timber: 0 })).toBe(false)
+    expect(rule({ spices: 1 })).toBe(false)
   })
 })
 

@@ -9,6 +9,8 @@ import { passDay } from '../travel/days'
 import { routeOptions } from '../travel/preview'
 import { FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS } from '../constants'
 import { kingdomOf } from './reputation'
+import { marketLevels } from '../economy/market'
+import { supplyOf } from '../economy/supply'
 import { contractRows, noticeBoard, type Offer } from './contracts'
 
 const content = fixtureContent()
@@ -60,16 +62,36 @@ function journey(s: GameState, routeId: string, pace: 'steady' | 'forced'): Game
 }
 
 /** The first week whose board here has an offer of this kind. */
-function boardWith(kind: ContractKind, base = at(HERE)): { state: GameState; offer: Offer } {
+function boardWith(
+  kind: ContractKind,
+  base = at(HERE),
+  using = content
+): { state: GameState; offer: Offer } {
   for (let week = 0; week < 60; week++) {
     const state = { ...base, day: week * 7 + 1 }
-    const offer = noticeBoard(state, content, HERE).find((o) => o.kind === kind)
+    const offer = noticeBoard(state, using, HERE).find((o) => o.kind === kind)
     if (offer) return { state, offer }
   }
   throw new Error(`no ${kind} offer`)
 }
 
 const signature = (offers: Offer[]) => JSON.stringify(offers.map(({ id: _, ...o }) => o))
+
+/**
+ * The fixture with a building boom in the capitals (timber and stone wanted) and no workshops:
+ * Greenvale is short of timber, which Far Isle's woods make across the sea.
+ */
+const boom = (() => {
+  const { workshops: _, ...producers } = content.producers
+  const rule = {
+    ...content.marketRules.coast,
+    id: 'boom',
+    label: 'Boom',
+    when: { types: ['capital'] },
+    demand: { timber: 2, stone: 2 },
+  }
+  return { ...content, producers, marketRules: { ...content.marketRules, boom: rule } }
+})()
 
 describe('noticeBoard', () => {
   test('is the same all week and changes from week to week', () => {
@@ -90,8 +112,10 @@ describe('noticeBoard', () => {
     for (let w = 0; w < 30; w++) {
       for (const o of noticeBoard({ ...s, day: w * 7 + 1 }, content, HERE)) {
         const t = content.contracts[o.template]
-        expect(o.km).toBeGreaterThanOrEqual(t.km.min)
-        expect(o.km).toBeLessThanOrEqual(t.km.max)
+        // A procurement's km is there and back to its source; the template bounds the way there.
+        const km = o.kind === 'procurement' ? o.km / 2 : o.km
+        expect(km).toBeGreaterThanOrEqual(t.km.min)
+        expect(km).toBeLessThanOrEqual(t.km.max)
         if (o.urgent) {
           expect(o.days).toBeLessThan(o.steadyDays)
           expect(o.days).toBeGreaterThanOrEqual(o.forcedDays)
@@ -108,6 +132,54 @@ describe('noticeBoard', () => {
     expect(taken.contracts[0]).toMatchObject({ deadline: state.day + offer.days, pay: offer.pay })
     expect(taken.goods[offer.good!]).toBe((state.goods[offer.good!] ?? 0) + offer.amount)
     expect(noticeBoard(taken, content, HERE).map((o) => o.id)).not.toContain(offer.id)
+  })
+
+  test('procurement is posted only for a shortage here, sourced at the nearest producer', () => {
+    const s = at(HERE)
+    const offers = (c: typeof content) =>
+      Array.from({ length: 30 }, (_, w) =>
+        noticeBoard({ ...s, day: w * 7 + 1 }, c, HERE).filter((o) => o.kind === 'procurement')
+      ).flat()
+    // The plain fixture has no shortage in Greenvale: no procurement there.
+    expect(offers(content)).toEqual([])
+    const found = offers(boom)
+    expect(found.length).toBeGreaterThan(0)
+    for (const o of found) {
+      const week = Number(/-w(\d+)-/.exec(o.id)![1])
+      expect(marketLevels(s, boom, HERE, week * 7 + 1).timber.shortage).toBe(true)
+      expect(o).toMatchObject({ good: 'timber', to: HERE, source: 'farisle-1' })
+      // There and back to Far Isle (265 km, 9 steady days each way).
+      expect(o.km).toBe(530)
+      expect(o.steadyDays).toBe(18)
+      expect(o.days).toBeGreaterThanOrEqual(o.steadyDays)
+      // The goods at their base price, plus the sourcing.
+      expect(o.pay).toBeGreaterThan(o.amount * boom.goods.timber.price)
+    }
+    // What the board shows is what the contract holds.
+    const { state, offer } = boardWith('procurement', s, boom)
+    const taken = step(state, { type: 'acceptContract', offerId: offer.id }, boom)
+    expect(taken.contracts[0]).toMatchObject({
+      kind: 'procurement',
+      deadline: state.day + offer.days,
+      pay: offer.pay,
+      good: 'timber',
+      amount: offer.amount,
+    })
+    expect(taken.goods).toEqual(state.goods)
+    expect(contractRows(taken, boom)[0].sourceName).toBe(offer.sourceName)
+  })
+
+  test('freight carries goods made here to where they are scarcer', () => {
+    const s = at(HERE)
+    for (let w = 0; w < 30; w++) {
+      for (const o of noticeBoard({ ...s, day: w * 7 + 1 }, content, HERE)) {
+        if (o.kind !== 'freight') continue
+        expect(supplyOf(s, content, HERE, o.good!).level).toBeGreaterThanOrEqual(1)
+        expect(supplyOf(s, content, o.to, o.good!).level).toBeLessThan(
+          supplyOf(s, content, HERE, o.good!).level
+        )
+      }
+    }
   })
 
   test('a courier with no room is refused', () => {
@@ -189,24 +261,47 @@ describe('completing each kind', () => {
     expect(done.gold).toBe(there.gold + 30)
   })
 
-  test('a supply run completes where the goods are wanted, and not without them', () => {
+  test('a procurement completes only when the party brings the goods in', () => {
     const c = contract(at(HERE), {
-      kind: 'supply',
+      kind: 'procurement',
       template: 'bring-timber',
+      to: HERE,
       good: 'timber',
-      amount: 3,
+      amount: 1,
       passengers: 0,
     })
-    const without = at('greenvale-2', { contracts: [c] })
-    expect(
-      act(without, { type: 'completeContract', id: 'c-test', reward: 'gold' }).contracts
-    ).toEqual([c])
-    const s = at('greenvale-2', { contracts: [c], goods: { food: 20, water: 8, timber: 3 } })
-    const done = act(s, { type: 'completeContract', id: 'c-test', reward: 'gold' })
+    // Carrying the goods at the board isn't enough: they must be brought in from elsewhere.
+    const s = at(HERE, { contracts: [c], goods: { food: 6, water: 4, timber: 1 } })
+    expect(contractRows(s, content)[0].reason).toMatch(/bring 1 timber in from elsewhere/)
+    expect(act(s, { type: 'completeContract', id: 'c-test', reward: 'gold' }).contracts).toEqual([
+      c,
+    ])
+    // Away and back with the timber: met on arrival, then handed over.
+    const away = { ...s, location: 'greenvale-2' }
+    const back = journey(away, ROAD, 'steady')
+    expect(back.location).toBe(HERE)
+    expect(back.contracts[0].met).toBe(true)
+    const done = act(back, { type: 'completeContract', id: 'c-test', reward: 'gold' })
     expect(done.goods.timber).toBe(0)
-    expect(done.contracts).toEqual([])
+    expect(done.gold).toBe(back.gold + c.pay)
   })
 
+  test('a freight’s goods are cargo: handed over, never sold, and paid for if lost', () => {
+    const { state, offer } = boardWith('freight')
+    expect(offer.good).toBe('food')
+    const taken = act(state, { type: 'acceptContract', offerId: offer.id })
+    expect(taken.goods.food).toBe((state.goods.food ?? 0) + offer.amount)
+    expect(taken.contracts[0]).toMatchObject({ kind: 'freight', pay: offer.pay })
+    // Only the party's own food sells; the cargo stays, and goes back if the job is given up.
+    const sold = act(taken, { type: 'sellGoods', good: 'food', amount: 999 })
+    expect(sold.goods.food).toBe(offer.amount)
+    const again = act(sold, { type: 'sellGoods', good: 'food', amount: 1 })
+    expect(again.goods.food).toBe(offer.amount)
+    expect(again.log.at(-1)!.text).toMatch(/cargo/)
+    const quit = act(sold, { type: 'abandonContract', id: offer.id })
+    expect(quit.goods.food).toBe(0)
+    expect(quit.gold).toBe(sold.gold)
+  })
   test('a bounty is met by clearing its site, then claimed back home', () => {
     const base = at(HERE)
     const poi = Object.keys(base.world.pois)[0]

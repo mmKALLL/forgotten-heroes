@@ -13,11 +13,11 @@ import { MarketPanel } from './MarketPanel'
 const content = fixtureContent()
 afterEach(cleanup)
 
-const market = (state: GameState) => {
+const market = (state: GameState, using = content) => {
   const onAction = vi.fn()
   render(
-    <I18nProvider content={content}>
-      <MarketPanel content={content} state={state} onAction={onAction} />
+    <I18nProvider content={using}>
+      <MarketPanel content={using} state={state} onAction={onAction} />
     </I18nProvider>
   )
   return onAction
@@ -80,4 +80,34 @@ test('a buy that would overload is disabled with the reason', () => {
   const buy = screen.getByRole('button', { name: /^Buy 1 Food/ }) as HTMLButtonElement
   expect(buy.disabled).toBe(true)
   expect(buy.getAttribute('title')).toBe('Too heavy: the party can carry 0 more')
+})
+
+test('the supply and demand cell explains the price on hover only', () => {
+  market(town())
+  // Ashmoor's marsh makes alchemicals (output 2) for its own market.
+  const row = screen.getByRole('rowheader', { name: /^Alchemicals/ }).closest('tr')!
+  const cell = row.querySelector('td.levels')!
+  expect(cell.getAttribute('title')).toMatch(/^Supply \+2 · demand 0\nMade here: Herb-gatherers/)
+  expect(cell.textContent).toBe('▲▲/·')
+})
+
+test('a shortage is marked in the supply and demand cell', () => {
+  // Threatened Greenvale wants arms, and (without producers) nothing makes them.
+  const state = town({ location: 'greenvale-2' })
+  const domain = state.world.domains['greenvale-2']
+  const threatened: GameState = {
+    ...state,
+    world: {
+      ...state.world,
+      domains: { ...state.world.domains, 'greenvale-2': { ...domain, garrison: 0 } },
+      lands: {
+        ...state.world.lands,
+        [domain.land]: { ...state.world.lands[domain.land], threatStrength: 6 },
+      },
+    },
+  }
+  market(threatened, { ...content, producers: {} })
+  const row = screen.getByRole('rowheader', { name: /^Arms/ }).closest('tr')!
+  expect(within(row).getByLabelText('Shortage')).toBeTruthy()
+  expect(row.querySelector('td.levels')!.getAttribute('title')).toMatch(/Wanted here: Raids/)
 })
