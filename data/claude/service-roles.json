@@ -79,8 +79,8 @@
       "id": "church",
       "function": "temple",
       "buysOnly": ["relics"],
-      "actions": ["bless", "market"],
-      "specialty": "A blessing for the road; a quiet price for holy remains."
+      "actions": ["bless", "market", "board"],
+      "specialty": "A blessing for the road; a quiet price for holy remains; a parish notice board."
     },
     {
       "id": "food-drink",

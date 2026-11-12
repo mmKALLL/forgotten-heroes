@@ -3,12 +3,15 @@ import type { Character, ContractState, GameState } from '../../schema/state'
 import { GOODS, type Good, type Pace } from '../../schema/types'
 import { MAX_EXHAUSTION } from '../encounters/effects'
 import { encounterOptions } from '../encounters/preview'
+import { currentOptions } from '../encounters/run'
 import { load } from '../economy/capacity'
 import { goodPrice, goodWeight } from '../economy/goods'
 import { marketDepth, quote } from '../economy/market'
 import { serviceWith } from '../town/animals'
-import { completeRefusal, noticeBoard, type Offer } from '../town/contracts'
+import { completeRefusal, escortPassengers, noticeBoard, type Offer } from '../town/contracts'
+import { provisionPlan } from '../town/provision'
 import { rumourOption } from '../town/rumours'
+import { newsTargets } from '../town/services'
 import { exploreOption } from '../world/explore'
 import { siteStatus } from '../world/sites'
 import { step, type Action } from '../state'
@@ -16,7 +19,7 @@ import { routeOptions, type RouteOption } from './preview'
 import { poiReach, settlementReach } from './reach'
 import { goodsOf, restOption } from './supplies'
 import type { Pick } from './wander'
-import { MAX_CONTRACTS, STALE_DAYS } from '../constants'
+import { MAX_CONTRACTS, NEWS_PRICE, STALE_DAYS } from '../constants'
 
 // The trader: a smoke policy for the economy report (design §10, Plan 4 I1). It plays like a
 // sensible, cautious merchant-adventurer, using only what the player could see: the price book,
@@ -74,6 +77,16 @@ const MULE_AT_GOLD = 40
 const PACK_ANIMAL = 'mule'
 /** Every this many legs (when healthy and free) the trader explores or visits a known site. */
 const EXPLORE_EVERY = 5
+/** The trader buys a courier's news of a contract's destination while it keeps this much gold. */
+const NEWS_AT_GOLD = 60
+/** Urgent work is only taken for runs of at most this many steady days. */
+const URGENT_MAX_DAYS = 5
+/** Contracts further than this many steady days away are left for bigger outfits. */
+const MAX_HAUL_DAYS = 8
+/** Sites are only visited this many days' walk from town. */
+const MAX_SITE_DAYS = 2
+/** Notice boards refresh weekly. */
+const BOARD_WEEK = 7
 /** A visited site is left alone this many days. */
 const REVISIT_DAYS = 30
 
@@ -260,6 +273,8 @@ export function trader(
   /** What each carried unit of cargo cost on average (loot and couriers' goods cost nothing). */
   const basis: Partial<Record<Good, number>> = {}
   const visitedAt: Record<string, number> = {}
+  /** The day the trader last read each settlement's notice board. */
+  const boardSeen: Record<string, number> = {}
   let plan: TradePlan | null = null
 
   const act = (action: Action, why: TraderWhy) => {
@@ -283,9 +298,21 @@ export function trader(
       const checks = options
         .filter((x) => x.check !== null)
         .sort((a, b) => b.check!.successChance - a.check!.successChance)
-      const fixed = options.find((x) => x.kind === 'fixed')
+      // A fixed option that costs coin (a toll, a healer's fee) is the last resort.
+      const raw = state.encounter ? currentOptions(state.encounter) : []
+      const costs = (id: string) => {
+        const o = raw.find((x) => x.id === id)
+        return (
+          o?.kind === 'fixed' && o.outcome.effects.some((e) => e.effect === 'gold' && e.amount < 0)
+        )
+      }
+      const fixed = options.filter((x) => x.kind === 'fixed')
+      const free = fixed.find((x) => !costs(x.id))
+      const best = checks[0]
       const choice =
-        checks[0] && (checks[0].check!.successChance >= 0.5 || !fixed) ? checks[0] : fixed
+        best && best.check!.successChance >= 0.5
+          ? best
+          : (free ?? (best && best.check!.successChance >= 0.25 ? best : (fixed[0] ?? best)))
       if (!choice) {
         act({ type: 'closeEncounter' }, 'encounter')
         break
@@ -335,17 +362,28 @@ export function trader(
     if (state.contracts.length >= MAX_CONTRACTS) return null
     const going = state.contracts.find((c) => !c.met)
     let best: { offer: Offer; perDay: number } | null = null
+    const roads = routeOptions(state, content).filter((r) => r.available)
     for (const offer of noticeBoard(state, content, here)) {
       if (!offer.available) continue
       if (going && (offer.poi ?? offer.to) !== contractTarget(going)) continue
-      // A day in hand for the road's delays: met at a brisk pace, or forced only when fresh.
+      // A day in hand for the road's delays: met at a steady pace, or at a brisk one (forced
+      // only when fresh) on a short urgent run.
       const brisk = Math.ceil(offer.steadyDays / 1.25) + 1
-      if (brisk > offer.days && !(healthy(state) && offer.forcedDays + 1 <= offer.days)) continue
+      const quick = brisk <= offer.days || (healthy(state) && offer.forcedDays + 1 <= offer.days)
+      if (offer.steadyDays > offer.days && !(quick && offer.steadyDays <= URGENT_MAX_DAYS)) continue
       if (offer.kind === 'bounty' && !healthy(state)) continue
+      // Long hauls through wild country outlast what two people can carry.
+      if (offer.steadyDays > MAX_HAUL_DAYS) continue
+      // Food for the road (the passengers' too): what is carried, and coin for the rest.
+      const mouths = state.party.length + offer.passengers
+      const short = mouths * (offer.steadyDays + 1) - goodsOf(state.goods, 'food')
+      const ration = quote(state, content, here, 'food', 'buy', 1)?.unitFirst ?? 1
+      if (short > 0 && state.gold < short * ration * 1.2) continue
       let cost = 0
-      let kg = 0
+      // The road's food weighs too.
+      let kg = mouths * offer.steadyDays * goodWeight(content, 'food')
       if (offer.good) {
-        kg = goodWeight(content, offer.good) * offer.amount
+        kg += goodWeight(content, offer.good) * offer.amount
         if (offer.kind === 'supply') {
           const q = quote(state, content, here, offer.good, 'buy', offer.amount)
           if (!q) continue
@@ -354,8 +392,19 @@ export function trader(
         }
       }
       if (kg > room()) continue
+      // A road the party can't carry the food and water for is no road (a desert crossing).
+      const first = roads && !offer.poi ? roadToward(state, content, roads, offer.to) : null
+      if (first) {
+        const p = provisionPlan(state, content, { routeId: first.routeId, pace: 'steady' })
+        if (p?.limit === 'weight') continue
+      }
       const trip = offer.poi ? offer.steadyDays * 2 : offer.steadyDays
-      const perDay = (offer.pay - cost) / Math.max(1, trip)
+      // Cargo the price book says would sell at the destination rides along.
+      const spare = state.gold - cost - BROKE_GOLD - Math.max(0, short) * ration
+      const cargo =
+        o.trade && !offer.poi ? bestTrade(state, content, spare, room() - kg, offer.to) : null
+      const perDay =
+        (offer.pay - cost + (cargo ? cargo.revenue - cargo.cost : 0)) / Math.max(1, trip)
       if (perDay > 0 && (!best || perDay > best.perDay)) best = { offer, perDay }
     }
     return best?.offer ?? null
@@ -375,7 +424,9 @@ export function trader(
 
   /** A known, inhabited site with a path from here that hasn't been visited lately. */
   const siteToVisit = (roads: RouteOption[], leg: number): string | null => {
+    // Near enough that the water lasts there and back (there is seldom a spring).
     const sites = roads
+      .filter((r) => r.days <= MAX_SITE_DAYS)
       .map((r) => r.to)
       .filter((id) => Object.hasOwn(state.world.pois, id))
       .filter((id) => {
@@ -384,6 +435,17 @@ export function trader(
         return status?.phase !== 'empty' && state.day - (visitedAt[id] ?? -Infinity) > REVISIT_DAYS
       })
     return sites.length > 0 ? sites[o.pick(leg, sites.length)] : null
+  }
+
+  /** The nearest settlement by land whose notice board the trader hasn't read this week. */
+  const freshBoard = (here: string): string | null => {
+    const near = [...settlementReach(content, here)].sort((a, b) => a[1].days - b[1].days)
+    const fresh = near.find(
+      ([id]) =>
+        Object.hasOwn(state.world.settlements, id) &&
+        state.day - (boardSeen[id] ?? -Infinity) > BOARD_WEEK
+    )
+    return fresh?.[0] ?? null
   }
 
   /** The nearest reachable market the price book doesn't know, or knows only stale. */
@@ -422,6 +484,7 @@ export function trader(
   /** One leg's business in a settlement, ending on the road (or resting when there is none). */
   const inTown = (leg: number) => {
     const here = state.location!
+    boardSeen[here] = state.day
     for (const c of [...state.contracts]) {
       if (completeRefusal(state, content, c) === null) {
         act({ type: 'completeContract', id: c.id, reward: 'gold' }, 'contract')
@@ -429,11 +492,23 @@ export function trader(
     }
     // Sell first: the coin may pay for the inn.
     sellCargo()
+    // Spare waterskins are refilled on arrival and weigh a lot: sell them back when laden
+    // (provisioning buys them again for a dry road).
+    if (state.waterskins > 0 && load(state, content).ratio > 0.8) {
+      act({ type: 'sellWaterskin', count: state.waterskins }, 'sell')
+    }
     for (let day = 0; day < MAX_REST_DAYS && state.party.some(needsRest); day++) {
       const inn = restOption(state, content)
       const lodging = inn.lodging && state.gold - inn.lodgingCost >= RESERVE_PER_MEMBER
       const short = state.party.length - goodsOf(state.goods, 'food')
       if (short > 0 && !lodging) {
+        // Water is free in town: pour some out if the food won't fit.
+        const kg = short * goodWeight(content, 'food') - room()
+        const water = goodsOf(state.goods, 'water')
+        if (kg > 0 && water > 0) {
+          const pour = Math.min(water, Math.ceil(kg / goodWeight(content, 'water')))
+          act({ type: 'dropGoods', good: 'water', amount: pour }, 'drop')
+        }
         act({ type: 'buyGoods', good: 'food', amount: short }, 'provision')
       }
       // Resting hungry only makes things worse.
@@ -458,7 +533,7 @@ export function trader(
       const gain =
         profit(bestTrade(state, content, budget, room() + mule.capacity)) -
         profit(bestTrade(state, content, budget, room()))
-      if (gain >= mule.price * 2) act({ type: 'buyAnimal', animal: PACK_ANIMAL }, 'animal')
+      if (gain >= mule.price) act({ type: 'buyAnimal', animal: PACK_ANIMAL }, 'animal')
     }
     // Broke: spare waterskins and pack animals go back for coin.
     if (state.gold < BROKE_GOLD) {
@@ -477,6 +552,15 @@ export function trader(
         if (!state.contracts.some((c) => c.id === offer.id)) break
       }
       buySupplies()
+    }
+    // A courier's news of a contract's destination, so cargo can ride along.
+    const courier = o.trade ? serviceWith(state, content, 'news') : null
+    for (const c of state.contracts) {
+      const known = state.priceBook[c.to]
+      if (!courier || c.met || c.to === here || state.gold < NEWS_PRICE + NEWS_AT_GOLD) continue
+      if (known && state.day - known.day <= STALE_DAYS) continue
+      if (!newsTargets(state, content).some((t) => t.id === c.to)) continue
+      act({ type: 'useService', service: courier, action: 'news', settlement: c.to }, 'rumours')
     }
     lighten()
 
@@ -497,15 +581,6 @@ export function trader(
       plan = plan && plan.to !== here ? plan : bestTrade(state, content, spare(), room())
       target = plan?.to ?? null
     }
-    // Broke and hungry with nothing to deliver: search the land, foraging as it goes.
-    const starving =
-      state.gold < BROKE_GOLD && goodsOf(state.goods, 'food') < state.party.length * 2
-    const search = exploreOption(state, content)
-    if (!target && starving && search && state.party.every((c) => c.exhaustion <= 4)) {
-      act({ type: 'explore' }, 'explore')
-      resolveEncounter()
-      return
-    }
     if (!target && o.explore && leg % EXPLORE_EVERY === 0 && healthy(state)) {
       const site = siteToVisit(roads, leg)
       if (site) target = site
@@ -515,12 +590,46 @@ export function trader(
         return
       }
     }
+    // Poor, or with nothing better to do: look for work at a board not read this week.
+    if (!target && o.contracts && (state.gold < BROKE_GOLD * 3 || !o.trade)) {
+      target = freshBoard(here)
+    }
     if (!target && o.trade) target = scoutTarget(here)
-    const road =
-      (target ? roadToward(state, content, roads, target) : null) ??
-      roads[o.pick(leg, roads.length)]
+    // Without a contract or a cargo run, passage money is better kept: walk where a road goes.
+    const free = roads.filter((r) => r.fare === 0)
+    const errand = contract !== undefined || plan !== null
+    const toward = target ? roadToward(state, content, errand ? roads : free, target) : null
+    let road =
+      toward ??
+      (free.length > 0 ? free[o.pick(leg, free.length)] : roads[o.pick(leg, roads.length)])
+    // A road the purse or the packs can't supply is no road for a poor party: take the
+    // shortest one that can be supplied instead, unless a contract insists.
+    const supplied = (r: RouteOption) =>
+      provisionPlan(state, content, { routeId: r.routeId, pace: paceFor(state, content, r) })
+        ?.limit === null
+    if (!supplied(road) && contract === undefined) {
+      road =
+        [...(free.length > 0 ? free : roads)].sort((a, b) => a.days - b.days).find(supplied) ?? road
+    }
     const pace = paceFor(state, content, road)
     act({ type: 'provision', routeId: road.routeId, pace }, 'provision')
+    const mouths = state.party.length + escortPassengers(state)
+    // Provisioning fills waterskins first; if that leaves no room for the food, trade skins
+    // for rations (foraging may find water, it seldom finds a meal).
+    const paced = () =>
+      routeOptions(state, content, false)
+        .find((r) => r.routeId === road.routeId)
+        ?.paces.find((p) => p.pace === pace)
+    const hungry = () => paced()?.warnings.some((w) => w.code === 'foodRunsOut') ?? false
+    if (hungry() && state.waterskins > 0 && load(state, content).level !== 'light') {
+      act({ type: 'sellWaterskin', count: state.waterskins }, 'sell')
+      const missing = (paced()?.food.needed ?? 0) - goodsOf(state.goods, 'food')
+      if (missing > 0) act({ type: 'buyGoods', good: 'food', amount: missing }, 'provision')
+    }
+    // There is no market at a site: food for the way back too.
+    if (Object.hasOwn(state.world.pois, road.to)) {
+      act({ type: 'buyGoods', good: 'food', amount: mouths * (road.days + 1) }, 'provision')
+    }
     // Cargo for wherever the road leads: the plan, or what pays at the contract's destination.
     if (o.trade) {
       const goal = plan?.to ?? target

@@ -62,7 +62,8 @@ test('a seeded journey replays identically, and another seed differs', () => {
 })
 
 test('the wandering party varies its pace from leg to leg', () => {
-  const departures = wander(newGame(2024, content), content, 6)
+  // A seed whose party stays fed: one that starves camps for months and fills the capped log.
+  const departures = wander(newGame(2027, content), content, 6)
     .log.map((e) =>
       /^The party sets out for .+?( at a \w+ pace| on a forced march)?(, covering its tracks)?: /.exec(
         e.text

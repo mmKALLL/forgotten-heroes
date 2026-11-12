@@ -26,7 +26,10 @@ const REPORT = process.env.ECONOMY_REPORT
 /** Goods the road eats; everything else is cargo. */
 const isCargo = (good: Good) => good !== 'food' && good !== 'water'
 
-/** Gold under this with no cargo worth as much is broke (the plan's definition). */
+/** The days the report's gold curve looks at. */
+const CURVE_DAYS = [5, 10, 15, 20, 25, 30]
+
+/** Gold under this with no cargo worth as much (and no contract in hand) is broke. */
 const BROKE_GP = 5
 
 type Policy = 'trader' | 'contracts only' | 'trade only' | 'wander'
@@ -46,6 +49,10 @@ type Run = {
   days: number
   /** Net worth (gold + cargo at base price) per day, by day 30 and by the end. */
   perDay30: number
+  /** Gold on days 5, 10, … 30 (CURVE_DAYS), as first seen on or after each. */
+  curve: (number | null)[]
+  /** The day the first contract was completed, if any. */
+  firstPay: number | null
   perDay: number
   brokeDay: number | null
   deaths: number
@@ -74,12 +81,17 @@ const worth = (state: GameState) =>
     return sum + Math.max(0, (state.goods[g] ?? 0) - held) * goodPrice(content, g)
   }, 0)
 
+/**
+ * Broke: in a settlement with under BROKE_GP gold, no cargo worth as much, and no contract in
+ * hand to be paid for (a party on its first job with 3 gp left is poor, not broke).
+ */
 const broke = (state: GameState) =>
   !state.travel &&
   state.location !== null &&
   Object.hasOwn(state.world.settlements, state.location) &&
   state.gold < BROKE_GP &&
-  worth(state) - state.gold < BROKE_GP
+  worth(state) - state.gold < BROKE_GP &&
+  state.contracts.length === 0
 
 const emptyKinds = () =>
   Object.fromEntries(
@@ -90,13 +102,21 @@ const emptyKinds = () =>
   ) as Run['contracts']
 
 /** Runs one seed under one policy until `days`, keeping the books. */
-function simulate(seed: number, policy: Policy, days: number): { run: Run; state: GameState } {
-  const start = newGame(seed, content)
+function simulate(
+  seed: number,
+  policy: Policy,
+  days: number,
+  gold?: number
+): { run: Run; state: GameState } {
+  const fresh = newGame(seed, content)
+  const start = gold === undefined ? fresh : { ...fresh, gold }
   const run: Run = {
     seed,
     policy,
     days: 0,
     perDay30: 0,
+    curve: CURVE_DAYS.map(() => null),
+    firstPay: null,
     perDay: 0,
     brokeDay: null,
     deaths: 0,
@@ -114,6 +134,9 @@ function simulate(seed: number, policy: Policy, days: number): { run: Run; state
 
   const watch = (before: GameState, after: GameState) => {
     if (worth30 === null && after.day >= 30) worth30 = worth(after)
+    CURVE_DAYS.forEach((d, i) => {
+      if (run.curve[i] === null && after.day >= d) run.curve[i] = after.gold
+    })
     if (run.brokeDay === null && broke(after)) run.brokeDay = after.day
     for (const c of before.contracts) {
       if (!after.contracts.some((x) => x.id === c.id) && !(after.gold > before.gold && c.met)) {
@@ -167,6 +190,7 @@ function simulate(seed: number, policy: Policy, days: number): { run: Run; state
           const c = before.contracts.find((x) => x.id === action.id)
           if (c && !after.contracts.some((x) => x.id === c.id)) run.contracts[c.kind].done++
           run.income.contracts += gold
+          if (gold > 0) run.firstPay ??= after.day
         }
         break
       case 'cargo': {
@@ -270,7 +294,27 @@ describe('the economy (guards with generous bounds)', () => {
   const runs = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => simulate(seed, 'trader', 30))
 
   test('the trader runs seeds 1–8 for 30 days and keeps a valid state', () => {
-    for (const { state } of runs) expect(GameStateSchema.parse(state)).toEqual(state)
+    for (const { state } of runs) {
+      expect(GameStateSchema.parse(state)).toEqual(state)
+      expect(state.day).toBeGreaterThanOrEqual(30)
+    }
+  })
+
+  test('seeds 1–3 have no deaths', () => {
+    expect(runs.slice(0, 3).map((r) => r.run.deaths)).toEqual([0, 0, 0])
+  })
+
+  test('the trader earns: median net worth a day is above 0', () => {
+    expect(median(runs.map((r) => r.run.perDay30))).toBeGreaterThan(0)
+  })
+
+  test('fewer than a quarter of traders go broke by day 30', () => {
+    expect(runs.filter((r) => r.run.brokeDay !== null).length / runs.length).toBeLessThan(0.25)
+  })
+
+  test('food’s dearest mid price is at most 4.5× its cheapest (seeds 1–5, days 1 and 100)', () => {
+    const food = priceSpreads([1, 2, 3, 4, 5], [1, 100]).food
+    expect(Math.max(...food)).toBeLessThanOrEqual(4.5)
   })
 })
 
@@ -310,6 +354,22 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         pct(brokeBy(30)),
         pct(brokeBy(60)),
         runs.reduce((n, r) => n + r.deaths, 0),
+      ])
+    }
+
+    lines.push('', '## The first 30 days: gold in hand (P10 / median / P90)', '')
+    row(['Policy', ...CURVE_DAYS.map((d) => `Day ${d}`), 'First contract paid (median day)'])
+    row(['---', ...CURVE_DAYS.map(() => '---'), '---'])
+    for (const { policy, runs } of all) {
+      const at = (i: number) => runs.map((r) => r.curve[i] ?? 0)
+      const paid = runs.map((r) => r.firstPay).filter((d): d is number => d !== null)
+      row([
+        policy,
+        ...CURVE_DAYS.map(
+          (_, i) =>
+            `${Math.round(quantile(at(i), 0.1))} / ${Math.round(median(at(i)))} / ${Math.round(quantile(at(i), 0.9))}`
+        ),
+        paid.length > 0 ? `${Math.round(median(paid))} (${paid.length}/${runs.length} runs)` : '–',
       ])
     }
 
@@ -398,6 +458,25 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         }
       }
     }
+
+    // For the designer's reference: the same trader with a 10 gp start (STARTING_GOLD is theirs).
+    const poor = SEEDS.map((seed) => simulate(seed, 'trader', DAYS, 10).run)
+    const poorBroke = (day: number) =>
+      poor.filter((r) => r.brokeDay !== null && r.brokeDay <= day).length / poor.length
+    const poorAt = (i: number) => poor.map((r) => r.curve[i] ?? 0)
+    lines.push(
+      '',
+      '## Reference: the trader with a 10 gp start',
+      '',
+      `gp/day by 30: median ${f1(median(poor.map((r) => r.perDay30)))}; ` +
+        `broke by 30: ${pct(poorBroke(30))}, by 60: ${pct(poorBroke(60))}; ` +
+        `deaths: ${poor.reduce((n, r) => n + r.deaths, 0)}. Gold in hand (P10 / median / P90): ` +
+        CURVE_DAYS.map(
+          (d, i) =>
+            `day ${d} ${Math.round(quantile(poorAt(i), 0.1))} / ${Math.round(median(poorAt(i)))} / ${Math.round(quantile(poorAt(i), 0.9))}`
+        ).join(', ') +
+        '.'
+    )
 
     lines.push('', '## Price spreads: dearest ÷ cheapest mid price per world', '')
     lines.push('Seeds 1–30, days 1, 50 and 100, where some shop trades the good.', '')

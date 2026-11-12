@@ -158,13 +158,13 @@ export const RECOVERY_HALF_LIFE_DAYS = 10
  * Units of a good (at depth 1) a market absorbs, by size tier (outpost first): trading this many
  * moves the price by a factor of e (about 63% down when selling).
  */
-export const MARKET_DEPTH: readonly number[] = [3, 5, 8, 12, 20, 30]
+export const MARKET_DEPTH: readonly number[] = [6, 10, 16, 24, 40, 60]
 /** The gap between buying and selling at an average shop, by size tier (outpost first). */
-export const SPREAD_BY_SIZE: readonly number[] = [0.4, 0.34, 0.28, 0.22, 0.18, 0.15]
+export const SPREAD_BY_SIZE: readonly number[] = [0.24, 0.2, 0.17, 0.14, 0.12, 0.1]
 /** Each point of shop quality above 3 narrows the spread by this much (and below widens it). */
 export const SPREAD_PER_QUALITY = 0.03
 /** No spread is narrower than this, whatever the quality or standing. */
-export const SPREAD_MIN = 0.05
+export const SPREAD_MIN = 0.02
 /** The market stalls every settlement has for essentials trade at this quality (the worst spread). */
 export const STALL_QUALITY = 1
 
@@ -304,15 +304,21 @@ export const BOARD_SIZE: readonly number[] = [1, 2, 2, 3, 3, 4]
 /** Contracts the party may hold at once. */
 export const MAX_CONTRACTS = 3
 /** gp per steady day to the destination, before the template's pay and urgency. */
-export const CONTRACT_PAY_PER_DAY = 6
+export const CONTRACT_PAY_PER_DAY = 10
 /** Each threat level at the destination adds this share to the pay. */
 export const CONTRACT_PAY_PER_THREAT = 0.1
 /** An urgent offer pays this many times as much. */
 export const URGENT_PAY = 1.5
 /** A deadline is the steady days to the destination × a seeded slack in this range... */
-export const DEADLINE_SLACK: readonly [number, number] = [1.1, 1.4]
+export const DEADLINE_SLACK: readonly [number, number] = [1.25, 1.6]
+/** ...plus this many days' grace (not for urgent offers): encounters on the road cost days. */
+export const DEADLINE_GRACE_DAYS = 1
 /** ...or in this one for an urgent offer (never less than a forced march, always less than steady). */
 export const URGENT_SLACK: readonly [number, number] = [0.75, 0.9]
+/** A supply run's patron also pays for the goods: their base price × this, on top of the pay. */
+export const SUPPLY_GOODS_PAY = 1.2
+/** Days a supply run's deadline allows (unless urgent) for finding the goods. */
+export const SUPPLY_SOURCING_DAYS = 2
 /** "A good word": standing gained with every settlement of the patron's kingdom, instead of the gold. */
 export const GOOD_WORD_POINTS = 3
 /** A failed or abandoned contract costs this much standing with the patron and their settlement. */
