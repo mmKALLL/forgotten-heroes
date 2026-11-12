@@ -296,6 +296,7 @@ The town map image is a banner and backdrop.
   - At sea the ship sets the pace: always steady, no covered tracks.
 - **Timing:** Plan 3 builds Cautious, Steady, Brisk, Forced march and pursuit; Plan 4 makes covering tracks the Stealthy pace, and its fixes remove Cautious (old saves load a cautious journey, and the days logged for pursuit, as stealthy).
 - **Pace is a commitment:** it is chosen at departure only and cannot be changed mid-journey.
+- **Hurrying always pays on a longer road** (designer rule): on land, where Steady takes 3 days or more, Brisk takes at least a day less than Steady and a forced march never longer than Brisk, after the speed, load and exhaustion maths (`HURRY_SAVES_FROM`, in the one journey-days function, so previews, deadlines and the journey agree).
 - **Long journeys and water:**
   - **Foraging:** each travel day the best-suited member may roll Survival to find water or food. The DC depends on terrain: easy by forests and rivers, hard in desert and mountains. Foraging rolls count toward Strain, so rotating foragers matters. Foraging draws attention: on a journey that forages, more encounters are hostile, and a stealthy party loses its Edge against ambushes.
   - **More capacity:** extra waterskins can be bought in town, and pack animals and carts carry more (Plan 4, §5). Animals drink from the carried water too, in whole units a day (the herd's total rounded up: a camel's half unit still costs one).

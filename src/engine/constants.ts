@@ -70,6 +70,11 @@ export const PACE_HOSTILE_AVOIDANCE: Readonly<Record<Pace, number>> = {
   brisk: 0,
   forced: 0,
 }
+/**
+ * On land, a road this many steady days long or more is always at least a day shorter at a brisk
+ * pace, and a forced march never slower than brisk (designer rule, travel/routes.ts journeyDays).
+ */
+export const HURRY_SAVES_FROM = 3
 /** A forced march eats and drinks this share more per day on top of the daily ration. */
 export const FORCED_MARCH_EXTRA_RATIONS = 0.5
 /** Each forced-march day, every member makes a CON check against this DC or gains exhaustion. */

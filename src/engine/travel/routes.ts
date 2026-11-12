@@ -22,6 +22,7 @@ import {
   HOSTILE_PER_DANGER,
   HOSTILE_PER_THREAT,
   HOSTILE_SHARE_RANGE,
+  HURRY_SAVES_FROM,
   KM_PER_DAY,
   LONG_JOURNEY_DAYS,
   PACE_HOSTILE_BONUS,
@@ -70,11 +71,39 @@ export function landSpeed(
   )
 }
 
-export const journeyDays = (
+/** Days on the road at this pace and speed, before the brisk and forced clamp (journeyDays). */
+const rawDays = (route: Pick<Route, 'km' | 'terrain'>, pace: Pace, speed: number): number =>
+  Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, speed)))
+
+/**
+ * Days on the road at this pace and speed (load, exhaustion and mounts). On land, hurrying always
+ * pays on a longer road (designer rule): where the steady pace takes HURRY_SAVES_FROM days or
+ * more, Brisk takes at least a day less than Steady, and Forced never more than Brisk. The one
+ * journey-days function: previews, deadlines and the journey itself (journeyKmPerDay) agree.
+ */
+export function journeyDays(
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace = DEFAULT_PACE,
   speed = 1
-): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, speed)))
+): number {
+  const days = rawDays(route, pace, speed)
+  if (route.terrain === 'sea' || (pace !== 'brisk' && pace !== 'forced')) return days
+  const steady = rawDays(route, 'steady', speed)
+  if (steady < HURRY_SAVES_FROM) return days
+  const brisk = Math.min(rawDays(route, 'brisk', speed), steady - 1)
+  return pace === 'brisk' ? brisk : Math.min(days, brisk)
+}
+
+/**
+ * km a journey covers each day: kmPerDay, or more where journeyDays' clamp shortens the road, so
+ * the journey ends on the day the preview says.
+ */
+export const journeyKmPerDay = (
+  route: Pick<Route, 'km' | 'terrain'>,
+  pace: Pace = DEFAULT_PACE,
+  speed = 1
+): number =>
+  Math.max(kmPerDay(route.terrain, pace, speed), route.km / journeyDays(route, pace, speed))
 
 /**
  * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one

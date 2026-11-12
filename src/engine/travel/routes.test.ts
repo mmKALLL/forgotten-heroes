@@ -4,6 +4,8 @@ import { createRng, withRng } from '../rng'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { domainThreatLevel } from '../world/pois'
 import { paceHostileAvoidance } from './pace'
+import { routeOptions } from './preview'
+import { step } from '../state'
 import {
   canMeetEncounters,
   encounterRange,
@@ -47,6 +49,43 @@ describe('pace', () => {
     expect(journeyDays(plains, 'steady')).toBe(3)
     expect(journeyDays(plains, 'brisk')).toBe(2)
     expect(journeyDays(plains, 'forced')).toBe(2)
+  })
+
+  test('on a road of 3+ steady days, brisk saves at least a day and forced is never slower', () => {
+    for (const terrain of ['plains', 'forest', 'marsh', 'mountains'] as const) {
+      for (let km = 10; km <= 400; km += 7) {
+        for (const speed of [0.4, 2 / 3, 0.8, 1, 2]) {
+          const road = { km, terrain }
+          const [steady, brisk, forced] = (['steady', 'brisk', 'forced'] as const).map((p) =>
+            journeyDays(road, p, speed)
+          )
+          if (steady >= 3) expect(brisk, `${terrain} ${km} ${speed}`).toBeLessThan(steady)
+          if (steady >= 3) expect(forced).toBeLessThanOrEqual(brisk)
+        }
+      }
+    }
+    // 90 km of plains: 3 days steady and (unclamped) 3 brisk, so brisk takes 2.
+    expect(journeyDays({ km: 90, terrain: 'plains' }, 'brisk')).toBe(2)
+  })
+
+  test('the clamp is the journey’s: a brisk 90 km takes the 2 days the preview shows', () => {
+    const short = structuredClone(content)
+    short.routes['greenvale-1-greenvale-2'].km = 90
+    const home = makeState({ location: 'greenvale-1', goods: { food: 20, water: 8 } })
+    const preview = routeOptions(home, short)
+      .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+      .paces.find((p) => p.pace === 'brisk')!
+    expect(preview.days).toBe(2)
+    let s = step(
+      home,
+      { type: 'travel', routeId: 'greenvale-1-greenvale-2', pace: 'brisk', forage: false },
+      short
+    )
+    expect(s.travel!.days).toBe(2)
+    s = { ...s, travel: { ...s.travel!, encounterDays: [] } }
+    for (let i = 0; i < 5 && s.travel; i++) s = step(s, { type: 'continueJourney' }, short)
+    expect(s.location).toBe('greenvale-2')
+    expect(s.day).toBe(home.day + 2)
   })
 
   test('a ship sails at its own speed, whatever the pace', () => {
