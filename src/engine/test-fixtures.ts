@@ -803,7 +803,14 @@ export const testEconomy: Record<string, unknown> = {
     kind: 'serviceRoles',
     source: 'claude',
     entries: [
-      { id: 'inn-tavern', function: 'rest', actions: ['lodging', 'rumours', 'board'] },
+      {
+        id: 'inn-tavern',
+        function: 'rest',
+        actions: ['lodging', 'rumours', 'board', 'recruit', 'accessories'],
+        // Plan 5a: an inn that also hires out and sells trinkets, so one service covers both.
+        recruits: { offers: [1, 2], levels: [1, 3] },
+        accessories: { offers: [1, 2], maxTier: 2 },
+      },
       {
         id: 'adventuring-supplies',
         function: 'trade',
@@ -978,6 +985,100 @@ export const testEconomy: Record<string, unknown> = {
   },
 }
 
+/**
+ * Plan 5a content: two accessory bases and six affixes (a skill, carry, strainFade, lucky,
+ * sellBonus and ward hook), and three gather rules (timber in forest, stone in hills, healing
+ * herbs in marsh).
+ */
+export const testProgression: Record<string, unknown> = {
+  'data/procedural/accessories.json': {
+    kind: 'accessoryParts',
+    source: 'procedural',
+    entries: [
+      { id: 'ring', part: 'base', name: 'Ring', value: 10 },
+      { id: 'cloak', part: 'base', name: 'Cloak', value: 20 },
+      {
+        id: 'fox-eyed',
+        part: 'prefix',
+        name: 'Fox-eyed',
+        value: 30,
+        hook: { hook: 'skill', skill: 'perception', amount: 1 },
+      },
+      {
+        id: 'of-the-mule',
+        part: 'suffix',
+        name: 'of the Mule',
+        value: 30,
+        hook: { hook: 'carry', kg: 5 },
+        bases: ['cloak'],
+      },
+      {
+        id: 'tireless',
+        part: 'prefix',
+        name: 'Tireless',
+        minTier: 2,
+        value: 100,
+        hook: { hook: 'strainFade' },
+      },
+      {
+        id: 'of-fortune',
+        part: 'suffix',
+        name: 'of Fortune',
+        minTier: 2,
+        value: 120,
+        hook: { hook: 'lucky' },
+      },
+      {
+        id: 'haggler',
+        part: 'prefix',
+        name: "Haggler's",
+        value: 40,
+        hook: { hook: 'sellBonus', category: 'precious', share: 0.1 },
+      },
+      {
+        id: 'of-warding',
+        part: 'suffix',
+        name: 'of Warding',
+        value: 40,
+        hook: { hook: 'ward', share: 0.03 },
+      },
+    ],
+  },
+  'data/claude/gathering.json': {
+    kind: 'gatherRules',
+    source: 'claude',
+    entries: [
+      {
+        id: 'cut-timber',
+        good: 'timber',
+        label: 'Cut timber',
+        biomes: ['forest'],
+        skill: 'athletics',
+        dc: 10,
+        yield: { critFail: 0, fail: 0, partial: 1, success: 2, critSuccess: 3 },
+      },
+      {
+        id: 'quarry-stone',
+        good: 'stone',
+        label: 'Quarry stone',
+        biomes: ['hills'],
+        skill: 'athletics',
+        dc: 12,
+        yield: { critFail: 0, fail: 0, partial: 1, success: 2, critSuccess: 3 },
+      },
+      {
+        id: 'healing-herbs',
+        good: 'healing',
+        label: 'Gather healing herbs',
+        biomes: ['marsh'],
+        skill: 'medicine',
+        dc: 14,
+        yield: { critFail: 0, fail: 0, partial: 1, success: 2, critSuccess: 4 },
+      },
+    ],
+  },
+}
+
 export function fixtureContent(): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
@@ -1085,6 +1186,7 @@ export function fixtureContent(): Content {
     },
     ...testWorld,
     ...testEconomy,
+    ...testProgression,
   })
   if (errors.length > 0) throw new Error(JSON.stringify(errors, null, 2))
   return content

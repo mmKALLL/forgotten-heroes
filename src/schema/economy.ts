@@ -9,6 +9,15 @@ import {
   ServiceFunctionSchema,
   StandingSchema,
 } from './common'
+import { AccessoryTierSchema } from './gear'
+import { MAX_LEVEL } from './types'
+
+/** A whole-number range written as [min, max]. */
+const span = (min: number, max: number, what: string) =>
+  z
+    .tuple([z.number().int().min(min).max(max), z.number().int().min(min).max(max)])
+    .refine(([lo, hi]) => lo <= hi, 'min must not exceed max')
+    .describe(what)
 
 // ---------------------------------------------------------------------------------------------
 // Goods, markets and services (Plan 4). Weights are in kilograms, prices in gold pieces.
@@ -40,18 +49,46 @@ export type GoodDef = z.infer<typeof GoodDefSchema>
  * What a service (a `services` id) does in the engine: its design §5 group, the goods it trades
  * and the actions it offers. A service with no role, or none of the actions, is "coming later".
  */
-export const ServiceRoleSchema = z.object({
-  id: IdSchema.describe('The services entry it describes'),
-  function: ServiceFunctionSchema,
-  trades: z.array(GoodSchema).default([]).describe('Goods it buys and sells'),
-  buysOnly: z
-    .array(GoodSchema)
-    .default([])
-    .describe('Goods it buys but never sells, e.g. a necromancer buys relics'),
-  actions: z.array(ServiceActionSchema).default([]),
-  specialty: z.string().optional().describe('A line of flavour shown with the service'),
-})
+export const ServiceRoleSchema = z
+  .object({
+    id: IdSchema.describe('The services entry it describes'),
+    function: ServiceFunctionSchema,
+    trades: z.array(GoodSchema).default([]).describe('Goods it buys and sells'),
+    buysOnly: z
+      .array(GoodSchema)
+      .default([])
+      .describe('Goods it buys but never sells, e.g. a necromancer buys relics'),
+    actions: z.array(ServiceActionSchema).default([]),
+    specialty: z.string().optional().describe('A line of flavour shown with the service'),
+    recruits: z
+      .object({
+        offers: span(0, 10, 'How many recruits it offers a week, [min, max]'),
+        levels: span(1, MAX_LEVEL, "Their levels, [min, max] (never above the party's best + 1)"),
+        classes: z.array(IdSchema).min(1).optional().describe('Class ids it offers (default any)'),
+        fee: z.number().gt(0).default(1).describe('Multiplies the hiring fee'),
+        wage: z.number().gt(0).default(1).describe('Multiplies the daily wage'),
+      })
+      .optional()
+      .describe('Who hires out here (Plan 5a); needs the "recruit" action'),
+    accessories: z
+      .object({
+        offers: span(0, 10, 'How many accessories it offers a week, [min, max]'),
+        maxTier: AccessoryTierSchema.describe('The best tier it sells'),
+      })
+      .optional()
+      .describe('Accessories sold here (Plan 5a); needs the "accessories" action'),
+  })
+  .refine((r) => r.recruits === undefined || r.actions.includes('recruit'), {
+    message: 'a role with recruits needs the "recruit" action',
+    path: ['actions'],
+  })
+  .refine((r) => r.accessories === undefined || r.actions.includes('accessories'), {
+    message: 'a role with accessories needs the "accessories" action',
+    path: ['actions'],
+  })
 export type ServiceRole = z.infer<typeof ServiceRoleSchema>
+export type RecruitsBlock = NonNullable<ServiceRole['recruits']>
+export type AccessoriesBlock = NonNullable<ServiceRole['accessories']>
 
 const level = z.number().int().min(-2).max(2)
 const levels = z

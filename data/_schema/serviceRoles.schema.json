@@ -28,51 +28,28 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
-            "description": "The services entry it describes"
-          },
-          "function": {
-            "type": "string",
-            "enum": [
-              "trade",
-              "rest",
-              "hire",
-              "temple",
-              "underworld"
-            ]
-          },
-          "trades": {
-            "default": [],
-            "description": "Goods it buys and sells",
             "$ref": "#/$defs/__schema0"
           },
-          "buysOnly": {
-            "default": [],
-            "description": "Goods it buys but never sells, e.g. a necromancer buys relics",
+          "function": {
             "$ref": "#/$defs/__schema2"
           },
+          "trades": {
+            "$ref": "#/$defs/__schema3"
+          },
+          "buysOnly": {
+            "$ref": "#/$defs/__schema6"
+          },
           "actions": {
-            "default": [],
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "market",
-                "lodging",
-                "heal",
-                "bless",
-                "animals",
-                "rumours",
-                "board",
-                "passage",
-                "news"
-              ]
-            }
+            "$ref": "#/$defs/__schema8"
           },
           "specialty": {
-            "description": "A line of flavour shown with the service",
-            "$ref": "#/$defs/__schema3"
+            "$ref": "#/$defs/__schema9"
+          },
+          "recruits": {
+            "$ref": "#/$defs/__schema11"
+          },
+          "accessories": {
+            "$ref": "#/$defs/__schema20"
           }
         },
         "required": [
@@ -89,12 +66,35 @@
   ],
   "$defs": {
     "__schema0": {
-      "type": "array",
-      "items": {
-        "$ref": "#/$defs/__schema1"
-      }
+      "description": "The services entry it describes",
+      "$ref": "#/$defs/__schema1"
     },
     "__schema1": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema2": {
+      "type": "string",
+      "enum": [
+        "trade",
+        "rest",
+        "hire",
+        "temple",
+        "underworld"
+      ]
+    },
+    "__schema3": {
+      "default": [],
+      "description": "Goods it buys and sells",
+      "$ref": "#/$defs/__schema4"
+    },
+    "__schema4": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema5"
+      }
+    },
+    "__schema5": {
       "type": "string",
       "enum": [
         "food",
@@ -114,14 +114,192 @@
         "luxuries"
       ]
     },
-    "__schema2": {
+    "__schema6": {
+      "default": [],
+      "description": "Goods it buys but never sells, e.g. a necromancer buys relics",
+      "$ref": "#/$defs/__schema7"
+    },
+    "__schema7": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema5"
+      }
+    },
+    "__schema8": {
+      "default": [],
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "market",
+          "lodging",
+          "heal",
+          "bless",
+          "animals",
+          "rumours",
+          "board",
+          "passage",
+          "news",
+          "recruit",
+          "accessories"
+        ]
+      }
+    },
+    "__schema9": {
+      "description": "A line of flavour shown with the service",
+      "$ref": "#/$defs/__schema10"
+    },
+    "__schema10": {
+      "type": "string"
+    },
+    "__schema11": {
+      "description": "Who hires out here (Plan 5a); needs the \"recruit\" action",
+      "$ref": "#/$defs/__schema12"
+    },
+    "__schema12": {
+      "type": "object",
+      "properties": {
+        "offers": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/__schema13"
+            },
+            {
+              "$ref": "#/$defs/__schema14"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "How many recruits it offers a week, [min, max]"
+        },
+        "levels": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/__schema15"
+            },
+            {
+              "$ref": "#/$defs/__schema16"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "Their levels, [min, max] (never above the party's best + 1)"
+        },
+        "classes": {
+          "description": "Class ids it offers (default any)",
+          "$ref": "#/$defs/__schema17"
+        },
+        "fee": {
+          "default": 1,
+          "description": "Multiplies the hiring fee",
+          "$ref": "#/$defs/__schema18"
+        },
+        "wage": {
+          "default": 1,
+          "description": "Multiplies the daily wage",
+          "$ref": "#/$defs/__schema19"
+        }
+      },
+      "required": [
+        "offers",
+        "levels"
+      ]
+    },
+    "__schema13": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema14": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema15": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "__schema16": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
+    },
+    "__schema17": {
+      "minItems": 1,
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema1"
       }
     },
-    "__schema3": {
-      "type": "string"
+    "__schema18": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "__schema19": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "__schema20": {
+      "description": "Accessories sold here (Plan 5a); needs the \"accessories\" action",
+      "$ref": "#/$defs/__schema21"
+    },
+    "__schema21": {
+      "type": "object",
+      "properties": {
+        "offers": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/__schema22"
+            },
+            {
+              "$ref": "#/$defs/__schema23"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
+          "description": "How many accessories it offers a week, [min, max]"
+        },
+        "maxTier": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/__schema24"
+            },
+            {
+              "$ref": "#/$defs/__schema25"
+            }
+          ],
+          "description": "The best tier it sells"
+        }
+      },
+      "required": [
+        "offers",
+        "maxTier"
+      ]
+    },
+    "__schema22": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema23": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema24": {
+      "type": "number",
+      "const": 1
+    },
+    "__schema25": {
+      "type": "number",
+      "const": 2
     }
   }
 }

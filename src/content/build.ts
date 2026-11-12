@@ -48,6 +48,8 @@ export const emptyContent = (): Content => ({
   animals: {},
   personRoles: {},
   contracts: {},
+  accessoryParts: {},
+  gatherRules: {},
   translations: {},
 })
 

@@ -36,6 +36,15 @@ describe('effects', () => {
     )
     expect(EffectSchema.safeParse({ effect: 'days', amount: 0 }).success).toBe(false)
   })
+
+  test('xp, camaraderie and accessory loot (Plan 5a)', () => {
+    const ok = (effect: Record<string, unknown>) => EffectSchema.safeParse(effect).success
+    expect(ok({ effect: 'xp', amount: 50 })).toBe(true)
+    expect(ok({ effect: 'xp', amount: -10 })).toBe(false)
+    expect(ok({ effect: 'camaraderie', amount: -2 })).toBe(true)
+    expect(ok({ effect: 'accessory', tier: 1 })).toBe(true)
+    expect(ok({ effect: 'accessory', tier: 3 })).toBe(false)
+  })
 })
 
 describe('trade effects and requirements (Plan 4)', () => {

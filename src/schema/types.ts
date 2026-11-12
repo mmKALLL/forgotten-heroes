@@ -157,6 +157,8 @@ export const SERVICE_ACTIONS = [
   'board',
   'passage',
   'news',
+  'recruit',
+  'accessories',
 ] as const
 export type ServiceAction = (typeof SERVICE_ACTIONS)[number]
 
@@ -218,3 +220,53 @@ export const POI_CATEGORIES = [
   'quest',
 ] as const
 export type PoiCategory = (typeof POI_CATEGORIES)[number]
+
+// ---------------------------------------------------------------------------------------------
+// Progression and gear (Plan 5a)
+// ---------------------------------------------------------------------------------------------
+
+/** The highest level a character reaches for now (the character schema still allows up to 20). */
+export const MAX_LEVEL = 10
+
+/**
+ * Kinds of rule hook (design §8): small declarative rule changes the engine interprets. Worn
+ * accessories carry them now; per-party modifiers will reuse them.
+ */
+export const HOOK_KINDS = [
+  'skill',
+  'activity',
+  'endurance',
+  'carry',
+  'maxHp',
+  'strainFade',
+  'strainGrace',
+  'lucky',
+  'sellBonus',
+  'ward',
+] as const
+export type HookKind = (typeof HOOK_KINDS)[number]
+
+/** The town and travel checks an `activity` hook can boost when the wearer leads them. */
+export const HOOK_ACTIVITIES = ['forage', 'gather', 'explore', 'rumours', 'stowaway'] as const
+export type HookActivity = (typeof HOOK_ACTIVITIES)[number]
+
+/** Accessory tiers: low-end only for now (1 and 2). */
+export const ACCESSORY_TIERS = [1, 2] as const
+export type AccessoryTier = (typeof ACCESSORY_TIERS)[number]
+
+/** The parts an accessory is rolled from: a base ("Ring") and affixes ("Fox-eyed", "of the Long Road"). */
+export const ACCESSORY_PARTS = ['base', 'prefix', 'suffix'] as const
+export type AccessoryPart = (typeof ACCESSORY_PARTS)[number]
+
+/** The top of the party's camaraderie scale (0–8: fewer than 10 steps, design §3). */
+export const CAMARADERIE_MAX = 8
+
+/** Camaraderie tiers, worst first: a tier holds from its `min` up to the next tier's. */
+export const CAMARADERIE_TIERS = [
+  { id: 'fractured', min: 0 },
+  { id: 'strained', min: 2 },
+  { id: 'steady', min: 4 },
+  { id: 'close', min: 6 },
+  { id: 'sworn', min: 8 },
+] as const
+export type CamaraderieTier = (typeof CAMARADERIE_TIERS)[number]['id']

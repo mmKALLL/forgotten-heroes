@@ -220,6 +220,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         { settlement: encounterSettlement(state), amount: effect.amount },
         ctx.content
       )
+    // Plan 5a: the schema exists so content can use them; each track wires its own case.
+    case 'xp': // A2: grantXp
+    case 'camaraderie': // B2
+    case 'accessory': // C2: rollAccessory into gear
+      return state
   }
 }
 
@@ -315,5 +320,11 @@ export function describeEffect(
       return `${formatModifier(effect.amount)} reputation${place ? ` in ${place}` : ''}`
     case 'animals':
       return `${formatModifier(effect.amount)} ${effect.animal ?? 'animal'}`
+    case 'xp':
+      return `+${effect.amount} XP`
+    case 'camaraderie':
+      return `${formatModifier(effect.amount)} camaraderie`
+    case 'accessory':
+      return effect.tier === 1 ? 'an accessory' : 'a fine accessory'
   }
 }

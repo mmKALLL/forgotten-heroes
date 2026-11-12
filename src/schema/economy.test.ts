@@ -70,6 +70,24 @@ describe('service roles', () => {
     ).toBe(false)
     expect(ServiceRoleSchema.safeParse({ id: 'arena', function: 'sport' }).success).toBe(false)
   })
+
+  test('recruits and accessories need their actions (Plan 5a)', () => {
+    const ok = (role: Record<string, unknown>) =>
+      ServiceRoleSchema.safeParse({ id: 'guild', function: 'hire', ...role }).success
+    const recruits = { offers: [1, 3], levels: [1, 3] }
+    expect(ok({ actions: ['recruit'], recruits })).toBe(true)
+    expect(ok({ actions: [], recruits })).toBe(false)
+    expect(ok({ actions: ['recruit'], recruits: { ...recruits, offers: [3, 1] } })).toBe(false)
+    expect(ok({ actions: ['accessories'], accessories: { offers: [2, 4], maxTier: 2 } })).toBe(true)
+    expect(ok({ accessories: { offers: [2, 4], maxTier: 2 } })).toBe(false)
+    expect(ok({ actions: ['accessories'], accessories: { offers: [2, 4], maxTier: 3 } })).toBe(
+      false
+    )
+    expect(
+      ServiceRoleSchema.parse({ id: 'guild', function: 'hire', actions: ['recruit'], recruits })
+        .recruits
+    ).toEqual({ ...recruits, fee: 1, wage: 1 })
+  })
 })
 
 describe('market rules', () => {

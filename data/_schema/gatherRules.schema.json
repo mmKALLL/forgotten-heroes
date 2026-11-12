@@ -1,0 +1,183 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "gatherRules"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "good": {
+            "type": "string",
+            "enum": [
+              "food",
+              "water",
+              "fuel",
+              "healing",
+              "alchemicals",
+              "arcana",
+              "arms",
+              "armour",
+              "gear",
+              "timber",
+              "stone",
+              "metal",
+              "gems",
+              "relics",
+              "luxuries"
+            ]
+          },
+          "label": {
+            "type": "string",
+            "description": "The action, e.g. \"Cut timber\""
+          },
+          "text": {
+            "description": "A line of flavour",
+            "$ref": "#/$defs/__schema0"
+          },
+          "biomes": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/__schema1"
+            },
+            "description": "The lands it is found in (never at sea)"
+          },
+          "skill": {
+            "type": "string",
+            "enum": [
+              "acrobatics",
+              "animalHandling",
+              "arcana",
+              "athletics",
+              "deception",
+              "history",
+              "insight",
+              "intimidation",
+              "investigation",
+              "medicine",
+              "nature",
+              "perception",
+              "performance",
+              "persuasion",
+              "religion",
+              "sleightOfHand",
+              "stealth",
+              "survival"
+            ]
+          },
+          "ability": {
+            "description": "Overrides the skill's default ability",
+            "$ref": "#/$defs/__schema2"
+          },
+          "dc": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 30
+          },
+          "yield": {
+            "type": "object",
+            "propertyNames": {
+              "$ref": "#/$defs/__schema3"
+            },
+            "additionalProperties": {
+              "$ref": "#/$defs/__schema4"
+            },
+            "required": [
+              "critFail",
+              "fail",
+              "partial",
+              "success",
+              "critSuccess"
+            ],
+            "description": "Units per tier for two workers (more workers gather more)"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "good",
+          "label",
+          "biomes",
+          "skill",
+          "dc",
+          "yield"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string"
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "plains",
+        "forest",
+        "hills",
+        "mountains",
+        "marsh",
+        "desert",
+        "jungle"
+      ]
+    },
+    "__schema2": {
+      "type": "string",
+      "enum": [
+        "str",
+        "dex",
+        "con",
+        "int",
+        "wis",
+        "cha"
+      ]
+    },
+    "__schema3": {
+      "type": "string",
+      "enum": [
+        "critFail",
+        "fail",
+        "partial",
+        "success",
+        "critSuccess"
+      ]
+    },
+    "__schema4": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    }
+  }
+}

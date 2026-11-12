@@ -17,6 +17,8 @@ import {
   SituationTemplateSchema,
   TwistKindSchema,
 } from './encounter'
+import { AccessoryPartSchema } from './gear'
+import { GatherRuleSchema } from './gather'
 import {
   LandSpotSchema,
   PlaceNameTableSchema,
@@ -166,6 +168,8 @@ export const CONTENT_KINDS = {
   animals: AnimalDefSchema,
   personRoles: PersonRoleSchema,
   contracts: ContractTemplateSchema,
+  accessoryParts: AccessoryPartSchema,
+  gatherRules: GatherRuleSchema,
   translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS

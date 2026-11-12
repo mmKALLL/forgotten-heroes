@@ -13,6 +13,7 @@ import {
   SkillSchema,
   StandingSchema,
 } from './common'
+import { AccessoryTierSchema } from './gear'
 import { MAX_DC, MIN_DC } from './types'
 
 // ---------------------------------------------------------------------------------------------
@@ -187,6 +188,18 @@ export const EffectSchema = z.discriminatedUnion('effect', [
       'Gain (+) or lose (−) owned animals. A loss without an animal takes stealable ones, ' +
         'most valuable first (horse thieves)'
     ),
+  z
+    .object({ effect: z.literal('xp'), amount: z.number().int().min(0), ...when })
+    .describe(
+      "Every living member gains this much XP. In a check's outcome it replaces the roll's " +
+        'default XP'
+    ),
+  z
+    .object({ effect: z.literal('camaraderie'), amount, ...when })
+    .describe("Raise (+) or lower (−) the party's camaraderie (0–8)"),
+  z
+    .object({ effect: z.literal('accessory'), tier: AccessoryTierSchema, ...when })
+    .describe("Loot: roll one accessory of this tier into the party's gear"),
 ])
 export type Effect = z.infer<typeof EffectSchema>
 
