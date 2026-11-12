@@ -445,9 +445,16 @@ label.inline {
   font-weight: normal;
   font-variant-numeric: tabular-nums;
 }
-.card-choose:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+/*
+ * One focus style: the card's own accent outline (as when hovered, a little stronger), never
+ * the browser's ring on the choose target inside it.
+ */
+.card-choose:focus {
+  outline: none;
+}
+.option-card:has(.card-choose:focus-visible) {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
 }
 .card-side {
   display: flex;

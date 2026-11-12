@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import { encounterOptions, twistInfo } from '../../engine/encounters/preview'
 import { currentOptions, encounterOver } from '../../engine/encounters/run'
 import type { Action } from '../../engine/state'
@@ -39,6 +39,8 @@ export function EncounterView({
   const [actorIds, setActorIds] = useState<Record<string, string>>({})
   // The option (stage/id) whose outcomes the shared panel shows: the last one hovered or focused.
   const [previewKey, setPreviewKey] = useState<string | null>(null)
+  // The card focused last (stage/id), which keeps the tab stop among the cards.
+  const [activeKey, setActiveKey] = useState<string | null>(null)
   const outcomesId = useId()
   if (seen.first !== first) {
     const baseline = lastRollIndex(encounter)
@@ -46,6 +48,7 @@ export function EncounterView({
     setShownRoll(baseline)
     setActorIds({})
     setPreviewKey(null)
+    setActiveKey(null)
   }
 
   const rollIndex = lastRollIndex(encounter)
@@ -67,8 +70,9 @@ export function EncounterView({
   // Ended, or nothing can be chosen any more (e.g. the party is down): it can only close.
   const over = encounterOver(state)
 
-  // A new encounter focuses its title; after each choice (once any dice settle), focus moves to
-  // the first option card that can be chosen, or to Close. The dice take focus while they roll.
+  // When a stage shows (a new encounter, or after each choice once any dice settle), focus moves
+  // to the first option card that can be chosen, or to Close; the title only when neither is
+  // there. The dice take focus while they roll.
   const headingRef = useRef<HTMLHeadingElement>(null)
   const nextRef = useRef<HTMLDivElement>(null)
   const focusedAt = useRef<{ first: typeof first; length: number } | null>(null)
@@ -80,11 +84,45 @@ export function EncounterView({
     // `before` is null on mount; an empty log has no first entry, so compare against null too.
     const sameEncounter = before !== null && before.first === first
     if (sameEncounter && before.length === length) return
-    const target = sameEncounter
-      ? nextRef.current?.querySelector<HTMLElement>('.next:not(:disabled):not([aria-disabled])')
-      : null
+    const target = nextRef.current?.querySelector<HTMLElement>(
+      '.next:not(:disabled):not([aria-disabled])'
+    )
     ;(target ?? headingRef.current)?.focus()
   }, [first, length, animating])
+
+  // Roving tabindex over the cards: one tab stop (the last card focused, else the first that can
+  // be chosen); the arrow keys move to the next or previous card that can be chosen, wrapping, and
+  // Home and End to the first and last. The actor pickers keep their own arrow keys.
+  const current = options.find((o) => keyOf(o.id) === activeKey) ?? null
+  const active = (current?.available ? current : null) ?? options.find((o) => o.available) ?? null
+  const onOptionsKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const n = options.length
+    // From the card focused last, even one that can't be chosen (it was clicked).
+    const base = current ?? active
+    const from = base ? options.indexOf(base) : -1
+    const step = (dir: 1 | -1) => {
+      for (let i = 1; i <= n; i++) {
+        const j = (((from + dir * i) % n) + n) % n
+        if (options[j].available) return j
+      }
+      return -1
+    }
+    const to =
+      e.key === 'ArrowDown' || e.key === 'ArrowRight'
+        ? step(1)
+        : e.key === 'ArrowUp' || e.key === 'ArrowLeft'
+          ? step(-1)
+          : e.key === 'Home'
+            ? options.findIndex((o) => o.available)
+            : e.key === 'End'
+              ? options.findLastIndex((o) => o.available)
+              : null
+    if (to === null) return
+    e.preventDefault()
+    if (to < 0) return
+    setActiveKey(keyOf(options[to].id))
+    nextRef.current?.querySelectorAll<HTMLElement>('.card-choose')[to]?.focus()
+  }
 
   return (
     <section className="panel encounter" aria-label={t('encounter.heading')}>
@@ -129,7 +167,7 @@ export function EncounterView({
         </div>
       ) : (
         <>
-          <div className="options" ref={nextRef}>
+          <div className="options" ref={nextRef} onKeyDown={onOptionsKey}>
             {options.map((option) => {
               const check = checks.get(option.id)
               return (
@@ -140,6 +178,8 @@ export function EncounterView({
                   onActor={(id) => setActorIds({ ...actorIds, [keyOf(option.id)]: id })}
                   onPreview={() => setPreviewKey(keyOf(option.id))}
                   previewed={previewed === option}
+                  tabStop={active === option}
+                  onFocused={() => setActiveKey(keyOf(option.id))}
                   outcomesId={outcomesId}
                   onChoose={() =>
                     onAction({

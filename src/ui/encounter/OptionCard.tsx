@@ -12,6 +12,10 @@ type Props = {
   onPreview: () => void
   /** True while the shared outcomes panel shows this option (only the border colour changes). */
   previewed: boolean
+  /** The one card that is a tab stop (roving tabindex); the arrow keys move between the cards. */
+  tabStop: boolean
+  /** Focus entered the card (its choose target or its actor picker). */
+  onFocused: () => void
   /** The shared outcomes panel's id, which describes the card's choose target. */
   outcomesId: string
   /** d20 faces by default, like the practice check; '%' stays available for a future setting. */
@@ -38,7 +42,9 @@ function fixedSummary(option: OptionPreview): string | null {
  * A compact option: title and description on the left; skill, DC, any situational modifier and
  * the actor picker on the right; the odds below. Clicking anywhere but the picker chooses it.
  * The keyboard target is the title area (role="button"), which sits beside the picker rather
- * than around it. Its outcome tiers show in the shared OutcomesPanel instead, except that a fixed
+ * than around it; Enter or Space chooses (a held key doesn't repeat). Only one card is a tab stop,
+ * and the arrow keys move between cards (EncounterView), but not from inside the picker. Focus
+ * shows as the card's own outline, not the browser's ring. Its outcome tiers show in the shared OutcomesPanel instead, except that a fixed
  * option's effects also show in the card, after its description (or its label if it has none).
  */
 export function OptionCard({
@@ -47,6 +53,8 @@ export function OptionCard({
   onChoose,
   onPreview,
   previewed,
+  tabStop,
+  onFocused,
   outcomesId,
   labelMode = 'faces',
   checkLabel,
@@ -82,14 +90,17 @@ export function OptionCard({
       className={classes.filter(Boolean).join(' ')}
       aria-label={option.label}
       onMouseEnter={onPreview}
-      onFocus={onPreview}
+      onFocus={() => {
+        onPreview()
+        onFocused()
+      }}
       onClick={choose}
     >
       <div className="card-row">
         <div
           className="card-choose next"
           role="button"
-          tabIndex={0}
+          tabIndex={tabStop ? 0 : -1}
           aria-disabled={!available || undefined}
           aria-label={t('option.choose', { label: option.label })}
           aria-describedby={[
