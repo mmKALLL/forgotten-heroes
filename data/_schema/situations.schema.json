@@ -43,13 +43,25 @@
           },
           "tags": {
             "default": [],
-            "description": "Biomes and themes, for later plans",
+            "description": "Themes, e.g. \"road\"; biomes and regions filter where it happens",
             "$ref": "#/$defs/__schema2"
+          },
+          "biomes": {
+            "description": "Only drawn on the road in these terrains; omit for anywhere on land. \"sea\" for ships.",
+            "$ref": "#/$defs/__schema3"
+          },
+          "regions": {
+            "description": "Only drawn on the road in these regions; omit for anywhere",
+            "$ref": "#/$defs/__schema4"
+          },
+          "disposition": {
+            "description": "How it treats the party. A cautious party avoids some hostile encounters and meets the rest on better footing. Required (by the lint) unless followUpOnly; wonders are never hostile.",
+            "$ref": "#/$defs/__schema5"
           },
           "slots": {
             "default": {},
             "description": "Filled when the encounter starts",
-            "$ref": "#/$defs/__schema3"
+            "$ref": "#/$defs/__schema6"
           },
           "twist": {
             "type": "object",
@@ -67,11 +79,11 @@
               "table": {
                 "default": false,
                 "description": "Draw the twist kind from the twist table (data/procedural) when the encounter starts. Its stages join the situation, and \"@twist\" goes to them.",
-                "$ref": "#/$defs/__schema5"
+                "$ref": "#/$defs/__schema8"
               },
               "kinds": {
                 "description": "With the table: only these twist kinds can be drawn",
-                "$ref": "#/$defs/__schema6"
+                "$ref": "#/$defs/__schema9"
               },
               "stage": {
                 "description": "A bespoke twist's escalation stage: where \"@twist\" goes. Set by the engine for table twists.",
@@ -80,7 +92,7 @@
               "opening": {
                 "default": [],
                 "description": "A bespoke twist's opening hit, applied by { \"effect\": \"openingHit\" }. Set by the engine for table twists.",
-                "$ref": "#/$defs/__schema7"
+                "$ref": "#/$defs/__schema10"
               }
             },
             "required": [
@@ -91,12 +103,12 @@
           "wonder": {
             "default": false,
             "description": "One click, flavour only, never a cost",
-            "$ref": "#/$defs/__schema35"
+            "$ref": "#/$defs/__schema38"
           },
           "followUpOnly": {
             "default": false,
             "description": "Never drawn at random; only queued by followUp",
-            "$ref": "#/$defs/__schema36"
+            "$ref": "#/$defs/__schema39"
           },
           "start": {
             "default": "start",
@@ -115,7 +127,7 @@
                 },
                 "archetype": {
                   "description": "Its options come first, then this stage's own",
-                  "$ref": "#/$defs/__schema37"
+                  "$ref": "#/$defs/__schema40"
                 },
                 "options": {
                   "default": [],
@@ -126,19 +138,19 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema40"
-                          },
-                          "label": {
-                            "$ref": "#/$defs/__schema41"
-                          },
-                          "description": {
-                            "$ref": "#/$defs/__schema42"
-                          },
-                          "requires": {
                             "$ref": "#/$defs/__schema43"
                           },
-                          "once": {
+                          "label": {
                             "$ref": "#/$defs/__schema44"
+                          },
+                          "description": {
+                            "$ref": "#/$defs/__schema45"
+                          },
+                          "requires": {
+                            "$ref": "#/$defs/__schema46"
+                          },
+                          "once": {
+                            "$ref": "#/$defs/__schema47"
                           },
                           "kind": {
                             "type": "string",
@@ -172,22 +184,22 @@
                               },
                               "ability": {
                                 "description": "Overrides the skill's default ability, e.g. \"cha\" for Intimidation (CHA)",
-                                "$ref": "#/$defs/__schema46"
+                                "$ref": "#/$defs/__schema49"
                               },
                               "dc": {
                                 "anyOf": [
                                   {
-                                    "$ref": "#/$defs/__schema47"
+                                    "$ref": "#/$defs/__schema50"
                                   },
                                   {
-                                    "$ref": "#/$defs/__schema48"
+                                    "$ref": "#/$defs/__schema51"
                                   }
                                 ],
                                 "description": "A DC from 1 to 40, or inside an archetype \"dc\", \"dc+2\" or \"dc-1\""
                               },
                               "combat": {
                                 "description": "Combat checks never grant Inspiration on a natural 20",
-                                "$ref": "#/$defs/__schema49"
+                                "$ref": "#/$defs/__schema52"
                               }
                             },
                             "required": [
@@ -197,27 +209,27 @@
                           },
                           "highStakes": {
                             "description": "Force the slow, glowing dice roll",
-                            "$ref": "#/$defs/__schema50"
+                            "$ref": "#/$defs/__schema53"
                           },
                           "outcomes": {
                             "type": "object",
                             "properties": {
                               "critFail": {
                                 "description": "Defaults to the fail outcome",
-                                "$ref": "#/$defs/__schema51"
+                                "$ref": "#/$defs/__schema54"
                               },
                               "fail": {
-                                "$ref": "#/$defs/__schema51"
+                                "$ref": "#/$defs/__schema54"
                               },
                               "partial": {
-                                "$ref": "#/$defs/__schema51"
+                                "$ref": "#/$defs/__schema54"
                               },
                               "success": {
-                                "$ref": "#/$defs/__schema51"
+                                "$ref": "#/$defs/__schema54"
                               },
                               "critSuccess": {
                                 "description": "Defaults to the success outcome",
-                                "$ref": "#/$defs/__schema51"
+                                "$ref": "#/$defs/__schema54"
                               }
                             },
                             "required": [
@@ -239,26 +251,26 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema40"
-                          },
-                          "label": {
-                            "$ref": "#/$defs/__schema41"
-                          },
-                          "description": {
-                            "$ref": "#/$defs/__schema42"
-                          },
-                          "requires": {
                             "$ref": "#/$defs/__schema43"
                           },
-                          "once": {
+                          "label": {
                             "$ref": "#/$defs/__schema44"
+                          },
+                          "description": {
+                            "$ref": "#/$defs/__schema45"
+                          },
+                          "requires": {
+                            "$ref": "#/$defs/__schema46"
+                          },
+                          "once": {
+                            "$ref": "#/$defs/__schema47"
                           },
                           "kind": {
                             "type": "string",
                             "const": "fixed"
                           },
                           "outcome": {
-                            "$ref": "#/$defs/__schema51"
+                            "$ref": "#/$defs/__schema54"
                           }
                         },
                         "required": [
@@ -307,6 +319,36 @@
       }
     },
     "__schema3": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "plains",
+          "forest",
+          "hills",
+          "mountains",
+          "marsh",
+          "desert",
+          "jungle",
+          "sea"
+        ]
+      }
+    },
+    "__schema4": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
+      }
+    },
+    "__schema5": {
+      "type": "string",
+      "enum": [
+        "hostile",
+        "neutral",
+        "pleasant"
+      ]
+    },
+    "__schema6": {
       "type": "object",
       "propertyNames": {
         "$ref": "#/$defs/__schema0"
@@ -340,7 +382,7 @@
               "types": {
                 "default": [],
                 "description": "Empty means any type",
-                "$ref": "#/$defs/__schema4"
+                "$ref": "#/$defs/__schema7"
               },
               "maxCr": {
                 "type": "number",
@@ -362,7 +404,7 @@
         ]
       }
     },
-    "__schema4": {
+    "__schema7": {
       "type": "array",
       "items": {
         "type": "string",
@@ -384,34 +426,34 @@
         ]
       }
     },
-    "__schema5": {
+    "__schema8": {
       "type": "boolean"
     },
-    "__schema6": {
+    "__schema9": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema0"
       }
     },
-    "__schema7": {
+    "__schema10": {
       "type": "array",
       "items": {
-        "$ref": "#/$defs/__schema8"
+        "$ref": "#/$defs/__schema11"
       }
     },
-    "__schema8": {
+    "__schema11": {
       "oneOf": [
         {
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema9"
+              "$ref": "#/$defs/__schema12"
             },
             "amount": {
-              "$ref": "#/$defs/__schema10"
+              "$ref": "#/$defs/__schema13"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -424,16 +466,16 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema16"
+              "$ref": "#/$defs/__schema19"
             },
             "amount": {
-              "$ref": "#/$defs/__schema10"
+              "$ref": "#/$defs/__schema13"
             },
             "target": {
-              "$ref": "#/$defs/__schema17"
+              "$ref": "#/$defs/__schema20"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -447,16 +489,16 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema18"
+              "$ref": "#/$defs/__schema21"
             },
             "amount": {
-              "$ref": "#/$defs/__schema10"
+              "$ref": "#/$defs/__schema13"
             },
             "target": {
-              "$ref": "#/$defs/__schema19"
+              "$ref": "#/$defs/__schema22"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -470,13 +512,13 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema20"
+              "$ref": "#/$defs/__schema23"
             },
             "amount": {
-              "$ref": "#/$defs/__schema10"
+              "$ref": "#/$defs/__schema13"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -489,13 +531,13 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema21"
+              "$ref": "#/$defs/__schema24"
             },
             "amount": {
-              "$ref": "#/$defs/__schema22"
+              "$ref": "#/$defs/__schema25"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -508,13 +550,13 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema23"
+              "$ref": "#/$defs/__schema26"
             },
             "position": {
-              "$ref": "#/$defs/__schema24"
+              "$ref": "#/$defs/__schema27"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -527,16 +569,16 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema25"
+              "$ref": "#/$defs/__schema28"
             },
             "situation": {
               "$ref": "#/$defs/__schema0"
             },
             "after": {
-              "$ref": "#/$defs/__schema26"
+              "$ref": "#/$defs/__schema29"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -549,16 +591,16 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema28"
+              "$ref": "#/$defs/__schema31"
             },
             "amount": {
-              "$ref": "#/$defs/__schema10"
+              "$ref": "#/$defs/__schema13"
             },
             "reason": {
-              "$ref": "#/$defs/__schema29"
+              "$ref": "#/$defs/__schema32"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -571,13 +613,13 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema31"
+              "$ref": "#/$defs/__schema34"
             },
             "kind": {
-              "$ref": "#/$defs/__schema32"
+              "$ref": "#/$defs/__schema35"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -589,10 +631,10 @@
           "type": "object",
           "properties": {
             "effect": {
-              "$ref": "#/$defs/__schema34"
+              "$ref": "#/$defs/__schema37"
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -621,7 +663,7 @@
               ]
             },
             "if": {
-              "$ref": "#/$defs/__schema11"
+              "$ref": "#/$defs/__schema14"
             }
           },
           "required": [
@@ -631,29 +673,29 @@
         }
       ]
     },
-    "__schema9": {
+    "__schema12": {
       "type": "string",
       "const": "gold"
     },
-    "__schema10": {
+    "__schema13": {
       "type": "integer",
       "minimum": -9007199254740991,
       "maximum": 9007199254740991
     },
-    "__schema11": {
+    "__schema14": {
       "description": "Only applies when this holds",
-      "$ref": "#/$defs/__schema12"
+      "$ref": "#/$defs/__schema15"
     },
-    "__schema12": {
+    "__schema15": {
       "oneOf": [
         {
           "type": "object",
           "properties": {
             "cond": {
-              "$ref": "#/$defs/__schema13"
+              "$ref": "#/$defs/__schema16"
             },
             "not": {
-              "$ref": "#/$defs/__schema14"
+              "$ref": "#/$defs/__schema17"
             }
           },
           "required": [
@@ -663,22 +705,22 @@
         }
       ]
     },
-    "__schema13": {
+    "__schema16": {
       "type": "string",
       "const": "twistRevealed"
     },
-    "__schema14": {
+    "__schema17": {
       "description": "True: only when the odds are still hidden",
-      "$ref": "#/$defs/__schema15"
+      "$ref": "#/$defs/__schema18"
     },
-    "__schema15": {
+    "__schema18": {
       "type": "boolean"
     },
-    "__schema16": {
+    "__schema19": {
       "type": "string",
       "const": "hp"
     },
-    "__schema17": {
+    "__schema20": {
       "type": "string",
       "enum": [
         "actor",
@@ -686,35 +728,35 @@
         "random"
       ]
     },
-    "__schema18": {
+    "__schema21": {
       "type": "string",
       "const": "exhaustion"
     },
-    "__schema19": {
+    "__schema22": {
       "type": "string",
       "enum": [
         "actor",
         "all"
       ]
     },
-    "__schema20": {
+    "__schema23": {
       "type": "string",
       "const": "inspiration"
     },
-    "__schema21": {
+    "__schema24": {
       "type": "string",
       "const": "days"
     },
-    "__schema22": {
+    "__schema25": {
       "type": "integer",
       "minimum": 1,
       "maximum": 9007199254740991
     },
-    "__schema23": {
+    "__schema26": {
       "type": "string",
       "const": "position"
     },
-    "__schema24": {
+    "__schema27": {
       "type": "string",
       "enum": [
         "normal",
@@ -722,53 +764,53 @@
         "exposed"
       ]
     },
-    "__schema25": {
+    "__schema28": {
       "type": "string",
       "const": "followUp"
     },
-    "__schema26": {
+    "__schema29": {
       "default": 0,
       "description": "Other encounters that happen first",
-      "$ref": "#/$defs/__schema27"
+      "$ref": "#/$defs/__schema30"
     },
-    "__schema27": {
+    "__schema30": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991
     },
-    "__schema28": {
+    "__schema31": {
       "type": "string",
       "const": "nextCheckModifier"
     },
-    "__schema29": {
-      "description": "Shown next to the modifier, e.g. \"misread\"",
-      "$ref": "#/$defs/__schema30"
-    },
-    "__schema30": {
-      "type": "string"
-    },
-    "__schema31": {
-      "type": "string",
-      "const": "revealTwist"
-    },
     "__schema32": {
-      "description": "Also reveal which kind of twist it would be (twist-table twists)",
+      "description": "Shown next to the modifier, e.g. \"misread\"",
       "$ref": "#/$defs/__schema33"
     },
     "__schema33": {
-      "type": "boolean"
+      "type": "string"
     },
     "__schema34": {
       "type": "string",
-      "const": "openingHit"
+      "const": "revealTwist"
     },
     "__schema35": {
-      "type": "boolean"
+      "description": "Also reveal which kind of twist it would be (twist-table twists)",
+      "$ref": "#/$defs/__schema36"
     },
     "__schema36": {
       "type": "boolean"
     },
     "__schema37": {
+      "type": "string",
+      "const": "openingHit"
+    },
+    "__schema38": {
+      "type": "boolean"
+    },
+    "__schema39": {
+      "type": "boolean"
+    },
+    "__schema40": {
       "type": "object",
       "properties": {
         "id": {
@@ -777,39 +819,39 @@
         "dc": {
           "default": 13,
           "description": "What \"dc\" means in the archetype",
-          "$ref": "#/$defs/__schema38"
+          "$ref": "#/$defs/__schema41"
         },
         "reward": {
           "default": 1,
           "description": "Multiplies every gold amount in the archetype",
-          "$ref": "#/$defs/__schema39"
+          "$ref": "#/$defs/__schema42"
         }
       },
       "required": [
         "id"
       ]
     },
-    "__schema38": {
+    "__schema41": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema39": {
+    "__schema42": {
       "type": "number",
       "minimum": 0,
       "maximum": 10
     },
-    "__schema40": {
+    "__schema43": {
       "description": "Unique within its stage",
       "$ref": "#/$defs/__schema0"
     },
-    "__schema41": {
+    "__schema44": {
       "type": "string"
     },
-    "__schema42": {
+    "__schema45": {
       "type": "string"
     },
-    "__schema43": {
+    "__schema46": {
       "default": [],
       "type": "array",
       "items": {
@@ -835,14 +877,14 @@
         ]
       }
     },
-    "__schema44": {
+    "__schema47": {
       "description": "Can only be chosen once per encounter",
-      "$ref": "#/$defs/__schema45"
+      "$ref": "#/$defs/__schema48"
     },
-    "__schema45": {
+    "__schema48": {
       "type": "boolean"
     },
-    "__schema46": {
+    "__schema49": {
       "type": "string",
       "enum": [
         "str",
@@ -853,60 +895,60 @@
         "cha"
       ]
     },
-    "__schema47": {
+    "__schema50": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema48": {
+    "__schema51": {
       "type": "string",
       "pattern": "^dc([+-][0-9]+)?$"
     },
-    "__schema49": {
+    "__schema52": {
       "type": "boolean"
     },
-    "__schema50": {
+    "__schema53": {
       "type": "boolean"
     },
-    "__schema51": {
+    "__schema54": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema52"
+          "$ref": "#/$defs/__schema55"
         },
         "effects": {
-          "$ref": "#/$defs/__schema53"
+          "$ref": "#/$defs/__schema56"
         },
         "goto": {
-          "$ref": "#/$defs/__schema54"
+          "$ref": "#/$defs/__schema57"
         },
         "stay": {
-          "$ref": "#/$defs/__schema56"
+          "$ref": "#/$defs/__schema59"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema58"
+          "$ref": "#/$defs/__schema61"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema52": {
+    "__schema55": {
       "type": "string"
     },
-    "__schema53": {
+    "__schema56": {
       "default": [],
       "type": "array",
       "items": {
-        "$ref": "#/$defs/__schema8"
+        "$ref": "#/$defs/__schema11"
       }
     },
-    "__schema54": {
+    "__schema57": {
       "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema55"
+      "$ref": "#/$defs/__schema58"
     },
-    "__schema55": {
+    "__schema58": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -917,27 +959,27 @@
         }
       ]
     },
-    "__schema56": {
+    "__schema59": {
       "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema57"
+      "$ref": "#/$defs/__schema60"
     },
-    "__schema57": {
+    "__schema60": {
       "type": "boolean"
     },
-    "__schema58": {
+    "__schema61": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema52"
+          "$ref": "#/$defs/__schema55"
         },
         "effects": {
-          "$ref": "#/$defs/__schema53"
+          "$ref": "#/$defs/__schema56"
         },
         "goto": {
-          "$ref": "#/$defs/__schema54"
+          "$ref": "#/$defs/__schema57"
         },
         "stay": {
-          "$ref": "#/$defs/__schema56"
+          "$ref": "#/$defs/__schema59"
         }
       },
       "required": [

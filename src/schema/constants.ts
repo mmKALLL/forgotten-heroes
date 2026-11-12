@@ -99,3 +99,10 @@ export type Good = (typeof GOODS)[number]
  */
 export const PACES = ['cautious', 'steady', 'brisk', 'forced'] as const
 export type Pace = (typeof PACES)[number]
+
+/**
+ * How an encounter treats the party (design §7). A cautious party avoids some hostile ones and
+ * meets the rest on better footing; wonders are pleasant or neutral.
+ */
+export const DISPOSITIONS = ['hostile', 'neutral', 'pleasant'] as const
+export type Disposition = (typeof DISPOSITIONS)[number]

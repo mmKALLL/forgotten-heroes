@@ -2,11 +2,12 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table.",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace.",
   "entries": [
     {
       "id": "flooded-ferry",
       "title": "The flooded ferry",
+      "disposition": "neutral",
       "tags": ["river"],
       "stages": {
         "start": {
@@ -119,6 +120,7 @@
     {
       "id": "hedge-witch",
       "title": "The hedge-witch's price",
+      "disposition": "neutral",
       "tags": ["marsh", "forest"],
       "notes": "Most useful when the party is hurt. Arcana-heavy parties get a cheaper deal.",
       "stages": {
@@ -186,6 +188,7 @@
     {
       "id": "pilgrims-at-dusk",
       "title": "Pilgrims at dusk",
+      "disposition": "neutral",
       "tags": ["road"],
       "twist": {
         "chance": 0.35,
@@ -359,6 +362,7 @@
     {
       "id": "ambush-at-the-narrows",
       "title": "Ambush at the narrows",
+      "disposition": "hostile",
       "tags": ["road", "hill"],
       "slots": { "foe": { "from": "creature", "types": ["humanoid"], "maxCr": 1 } },
       "stages": {
@@ -401,6 +405,7 @@
     {
       "id": "mapmakers-apprentice",
       "title": "The mapmaker's apprentice",
+      "disposition": "neutral",
       "tags": ["road"],
       "twist": {
         "chance": 0.3,
@@ -469,6 +474,7 @@
     {
       "id": "grudge-on-the-road",
       "title": "An old grudge",
+      "disposition": "hostile",
       "followUpOnly": true,
       "tags": ["road"],
       "notes": "Queued when you exploit someone in need (the someone-in-need archetype) or leave a threat hanging.",
@@ -552,6 +558,8 @@
     {
       "id": "lantern-moths",
       "title": "Lantern moths",
+      "biomes": ["marsh"],
+      "disposition": "pleasant",
       "wonder": true,
       "weight": 0.3,
       "tags": ["marsh"],
@@ -575,6 +583,8 @@
     {
       "id": "singing-stones",
       "title": "The singing stones",
+      "biomes": ["hills", "mountains"],
+      "disposition": "pleasant",
       "wonder": true,
       "weight": 0.3,
       "tags": ["hill"],
@@ -597,6 +607,8 @@
     {
       "id": "lizardfolk-herb",
       "title": "The lizardfolk's herb",
+      "biomes": ["marsh", "jungle"],
+      "disposition": "neutral",
       "followUpOnly": true,
       "tags": ["swamp"],
       "notes": "Follow-up completing the trade in the ported 'lizardfolk-ritual' (data/original).",
@@ -660,6 +672,7 @@
     {
       "id": "sold-out-ambush",
       "title": "A route sold",
+      "disposition": "hostile",
       "followUpOnly": true,
       "tags": ["road"],
       "notes": "Queued by the informant twist (twists.json): a deadlier ambush that knows you are coming.",
@@ -700,6 +713,7 @@
     {
       "id": "creeping-fever",
       "title": "The fever comes back",
+      "disposition": "neutral",
       "followUpOnly": true,
       "tags": ["road"],
       "notes": "Queued by the contagion twist (twists.json) when the fever is ignored or badly treated.",
@@ -764,6 +778,7 @@
     {
       "id": "wardens-on-your-trail",
       "title": "Wardens on your trail",
+      "disposition": "hostile",
       "followUpOnly": true,
       "tags": ["road"],
       "notes": "Queued by the fugitive twist (twists.json) when you lied for or ran with the runaway.",

@@ -1,12 +1,13 @@
 import type { Content } from '../../content/build'
 import type { Source } from '../../schema/common'
-import type { Position } from '../../schema/constants'
+import type { Biome, Pace, Position } from '../../schema/constants'
 import {
   TWIST_STAGE,
   type Effect,
   type Option,
   type OutcomeBranch,
   type Requirement,
+  type Situation,
   type TwistKind,
 } from '../../schema/encounter'
 import type { EncounterLogEntry, EncounterState, GameState, RollRecord } from '../../schema/state'
@@ -17,6 +18,7 @@ import { checkLabel, statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
 import { addStrain, strainFrom, strainOf } from '../rules/strain'
+import { paceHostileAvoidance } from '../travel/pace'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
@@ -57,6 +59,49 @@ export const inProgress = (state: GameState): boolean => !encounterOver(state)
 
 const BUSY = 'Finish the current encounter first.'
 const UNFIT = 'No one is fit to travel on.'
+/** Logged when a cautious party steers clear of a hostile encounter. */
+export const WIDE_BERTH = 'You spot trouble ahead and give it a wide berth.'
+/** A twist kind tagged with the region, or with the threat holding it, weighs this much more. */
+export const TWIST_PLACE_WEIGHT = 2
+
+/**
+ * Where the party is when an encounter is drawn on the road, and, on a journey, how it is moving
+ * (a cautious party avoids some hostile encounters).
+ */
+export type Place = { biome: Biome; region: string; pace?: Pace; coverTracks?: boolean }
+
+/** Untagged situations happen anywhere on land; at sea only those tagged "sea" do. */
+export function fitsPlace(
+  situation: Pick<Situation, 'biomes' | 'regions'>,
+  place: Pick<Place, 'biome' | 'region'>
+): boolean {
+  const biomes = situation.biomes ?? []
+  const regions = situation.regions ?? []
+  const biomeFits = biomes.length === 0 ? place.biome !== 'sea' : biomes.includes(place.biome)
+  return biomeFits && (regions.length === 0 || regions.includes(place.region))
+}
+
+/** The threat holding a region in this world, or null. */
+const threatIn = (state: GameState, region: string | undefined): string | null =>
+  region !== undefined && Object.hasOwn(state.world.regions, region)
+    ? state.world.regions[region].threat
+    : null
+
+/**
+ * A twist kind's draw weight here: TWIST_PLACE_WEIGHT× when it fits the place, i.e. its tags name
+ * the terrain, the region, or the threat holding the region.
+ */
+export function twistKindWeight(
+  kind: Pick<TwistKind, 'weight' | 'biomes' | 'regions' | 'threats'>,
+  place: Pick<Place, 'biome' | 'region'> | undefined,
+  threat: string | null
+): number {
+  const fits =
+    (place !== undefined &&
+      (kind.biomes.includes(place.biome) || kind.regions.includes(place.region))) ||
+    (threat !== null && kind.threats.includes(threat))
+  return fits ? kind.weight * TWIST_PLACE_WEIGHT : kind.weight
+}
 
 /** Every encounter that starts moves each queued follow-up one encounter closer. */
 const advanceFollowUps = (state: GameState): GameState => ({
@@ -64,7 +109,16 @@ const advanceFollowUps = (state: GameState): GameState => ({
   followUps: state.followUps.map((f) => ({ ...f, wait: Math.max(0, f.wait - 1) })),
 })
 
-export function startEncounter(state: GameState, content: Content, situationId: string): GameState {
+/**
+ * Starts a situation. On the road, `place` weights the twist table towards kinds that fit the
+ * region and its threat.
+ */
+export function startEncounter(
+  state: GameState,
+  content: Content,
+  situationId: string,
+  place?: Place
+): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
   const found = allSituations(content).find((s) => s.id === situationId)
@@ -79,7 +133,8 @@ export function startEncounter(state: GameState, content: Content, situationId: 
     const twist = compiled.twist ? d.float() < compiled.twist.chance : false
     const kinds = compiled.twist?.table ? twistKindsFor(content, compiled.twist) : []
     if (kinds.length === 0) return { slots, twist, kind: null as TwistKind | null }
-    const kind = d.weighted(kinds, (k) => k.weight)
+    const threat = threatIn(state, place?.region)
+    const kind = d.weighted(kinds, (k) => twistKindWeight(k, place, threat))
     const own = Object.fromEntries(
       Object.entries(kind.slots).filter(([name]) => !Object.hasOwn(compiled.slots, name))
     )
@@ -118,14 +173,18 @@ export function startEncounter(state: GameState, content: Content, situationId: 
 }
 
 /**
- * A due follow-up (wait 0) comes first, whatever the source filter; one whose situation no longer
- * exists is dropped. Otherwise a weighted random pick, never a followUpOnly situation. Either way
- * the encounter that starts moves the other queued follow-ups one closer (see startEncounter).
+ * A due follow-up (wait 0) comes first, whatever the source filter or place; one whose situation
+ * no longer exists is dropped. Otherwise a weighted random pick, never a followUpOnly situation.
+ * On the road, `place` limits the pick to situations that fit its terrain and region (fitsPlace);
+ * when none fits, nothing happens. A cautious party then skips a hostile pick with chance
+ * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
+ * starts moves the other queued follow-ups one closer (see startEncounter).
  */
 export function drawEncounter(
   state: GameState,
   content: Content,
-  sources?: readonly Source[]
+  sources?: readonly Source[],
+  place?: Place
 ): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
@@ -135,14 +194,26 @@ export function drawEncounter(
   const due = followUps.findIndex((f) => f.wait === 0)
   if (due >= 0) {
     const rest = followUps.filter((_, i) => i !== due)
-    return startEncounter({ ...state, followUps: rest }, content, followUps[due].situationId)
+    return startEncounter({ ...state, followUps: rest }, content, followUps[due].situationId, place)
   }
   const candidates = situations.filter(
-    (s) => !s.followUpOnly && s.weight > 0 && (!sources || sources.includes(s.source))
+    (s) =>
+      !s.followUpOnly &&
+      s.weight > 0 &&
+      (!sources || sources.includes(s.source)) &&
+      (!place || fitsPlace(s, place))
   )
-  if (candidates.length === 0) return appendLog(state, 'No encounters match that filter.', 'bad')
-  const [picked, rng] = withRng(state.rng, (d) => d.weighted(candidates, (s) => s.weight))
-  return startEncounter({ ...state, rng, followUps }, content, picked.id)
+  if (candidates.length === 0) {
+    return place ? state : appendLog(state, 'No encounters match that filter.', 'bad')
+  }
+  const avoidance = place?.pace ? paceHostileAvoidance(place.pace) : 0
+  const [{ picked, avoided }, rng] = withRng(state.rng, (d) => {
+    const picked = d.weighted(candidates, (s) => s.weight)
+    const avoided = picked.disposition === 'hostile' && avoidance > 0 && d.float() < avoidance
+    return { picked, avoided }
+  })
+  if (avoided) return appendLog({ ...state, rng, followUps }, WIDE_BERTH, 'info')
+  return startEncounter({ ...state, rng, followUps }, content, picked.id, place)
 }
 
 export const closeEncounter = (state: GameState): GameState => ({ ...state, encounter: null })

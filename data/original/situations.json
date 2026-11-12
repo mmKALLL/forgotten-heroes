@@ -2,11 +2,12 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "original",
-  "notes": "The prototype's six events (src/lib/data.ts at tag v0.1.0-svelte-final), ported as faithfully as possible. The first two were handwritten by the designer; the last four were generated with ChatGPT for the prototype. Each entry's notes list its prototype participants and secret, how prose odds became checks, and any additions.",
+  "notes": "The prototype's six events (src/lib/data.ts at tag v0.1.0-svelte-final), ported as faithfully as possible. The first two were handwritten by the designer; the last four were generated with ChatGPT for the prototype. Each entry's notes list its prototype participants and secret, how prose odds became checks, and any additions. Plan 3 added metadata only, text unchanged: a disposition (hostile, neutral or pleasant) on each event, for travel pace.",
   "entries": [
     {
       "id": "fishermen-at-the-pond",
       "title": "Fishermen at the pond",
+      "disposition": "pleasant",
       "weight": 0.75,
       "tags": ["river", "plains", "lifeplace", "traders"],
       "notes": "Prototype event 1, handwritten. Participants: 4 human commoners (level 3). Secret: one of them carries an amulet that improves foraging. Conversions: Steal's d20 thresholds (10 / 15 / 20 / above) became Sleight of Hand DC 16, and Fight (combat) became the 'brawl' stage with a graded combat check. Additions: Approach heals 2 HP as a stand-in for food and ale until goods exist (Plan 4); 'Back off' lets you pay your way out of the brawl; the amulet is a log line until items exist.",
@@ -116,6 +117,7 @@
     {
       "id": "unburnt-grove",
       "title": "The unburnt grove",
+      "disposition": "neutral",
       "weight": 0.25,
       "tags": ["forest"],
       "notes": "Prototype event 2, handwritten. Secret: the trees are imbued with magic that protects them from fire, left by an ancient ritual at a meeting place of high elves. Conversions: the INT check became Arcana DC 12, with the prototype's two results as the partial and success tiers; a critical success reveals the secret. Changes: Investigate and Arcana can each be tried once before you decide; 'inflammable' became 'fireproof' (the prototype meant the opposite); the bark is a log line until items exist.",
@@ -199,6 +201,7 @@
     {
       "id": "abandoned-dwarven-mine",
       "title": "The abandoned dwarven mine",
+      "disposition": "neutral",
       "weight": 0.6,
       "tags": ["mountain"],
       "notes": "Prototype event 3, generated with ChatGPT for the prototype. Hidden participants: 2 dwarf fighters (level 5) and a human rogue (level 4), unused here as there. Secret: a hidden, heavily trapped passage leads to a treasure room. Conversions: Explore's two results became Investigation DC 13 (finding the map on a success); 'Search for the treasure room' needs the map, so it moved to a second stage as Perception DC 14 against the traps. Additions: a critical failure while exploring brings down rubble; trap damage on the search; the warhammer is a log line until items exist.",
@@ -294,6 +297,7 @@
     {
       "id": "lizardfolk-ritual",
       "title": "The lizardfolk ritual",
+      "disposition": "neutral",
       "weight": 0.5,
       "tags": ["swamp"],
       "notes": "Prototype event 4, generated with ChatGPT for the prototype. Participants: a half-elf bard and a human wizard (level 3), unused. Secret: the sacrifice is a powerful artifact the lizardfolk have guarded for generations, said to control the weather and bring fortune. Conversions: Steal's prose odds (30% unseen, 50% detected and fighting out, 20% an elemental) became Stealth DC 16: success unseen, fail and partial fight their way out, a critical failure summons the elemental. Additions: the trade's herb quest is the follow-up 'lizardfolk-herb' (data/claude); the artifact is a log line until items exist.",
@@ -365,6 +369,7 @@
     {
       "id": "wolves-and-goats",
       "title": "Wolves on the mountain path",
+      "disposition": "hostile",
       "weight": 0.5,
       "tags": ["mountain"],
       "notes": "Prototype event 5, generated with ChatGPT for the prototype. Participant: a half-elf ranger (level 5), unused. Secret: the alpha wolf wears an enchanted collar that only a special key removes (shown on a critical success). Conversions: Fight (50% win, 30% win with losses, 20% lose) became a combat Athletics check at DC 12; Sneak (70% / 30%) Stealth DC 10; Save the wolves (the wolves turn on you, then 70% / 30%) a combat Athletics check at DC 10 where every result costs HP. 'Lose some party members' became heavy HP loss: encounters don't kill outright until the run loop exists (Plan 5).",
@@ -449,6 +454,7 @@
     {
       "id": "pit-in-the-cave",
       "title": "The pit in the cave",
+      "disposition": "neutral",
       "weight": 0.4,
       "tags": ["hill", "mountain"],
       "notes": "Prototype event 6, generated with ChatGPT for the prototype. Participant: a dwarf fighter (level 4), unused. Secret: the pit is a trap with spikes at the bottom. Conversions: Investigate became Perception DC 10, tried once, whose success grants Edge for the jump; Jump (50% / 50%) Athletics DC 12; 'Find a way around' leads to the goblins (50% / 50%), a combat check at DC 12. Addition: you can back away from the goblins at the cost of a day.",

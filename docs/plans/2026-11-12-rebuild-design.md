@@ -175,7 +175,7 @@ The town map image is a banner and backdrop.
      - **Predator bait:** their blood or wound draws beasts (SRD creatures), then a fight-or-flee stage.
      - **Fey bargain (changeling):** they take something intangible, such as Inspiration, a skill's edge or a memory, then a bargaining stage (Arcana or Persuasion) to win it back.
      - **Recruiter:** a cultist works on one party member. A Wisdom or Insight contest follows; on a failure that member has a penalty to their next checks until talked down (a mood hit once mood exists).
-     - The target is about 10 kinds, weighted by region and threat where it makes sense.
+     - The target is about 10 kinds, weighted by region and threat where it makes sense. On the road, a kind whose `biomes`, `regions` or `threats` tags fit the route terrain, the region or the threat holding it is twice as likely (tunable).
      - The help choice sets the party's footing and exposure in every kind: trusting is worse, cautious is milder.
    - *When the twist is an ambush:* it escalates into an ambush stage (fight, flee, negotiate or bribe).
      - Trusting help: you start Exposed and take an opening hit.

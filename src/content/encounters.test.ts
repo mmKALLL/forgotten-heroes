@@ -168,3 +168,18 @@ test('a party downed mid-encounter on the wolf path can still close it', () => {
   expect(encounterOptions(downed).some((o) => o.available)).toBe(false)
   expect(encounterOver(downed)).toBe(true)
 })
+
+test('some situations are tied to terrain, and the rest happen anywhere on land', () => {
+  expect(content.situations['lantern-moths'].biomes).toEqual(['marsh'])
+  const anywhere = allSituations(content).filter((s) => !s.biomes && !s.regions && !s.followUpOnly)
+  expect(anywhere.length).toBeGreaterThan(5)
+})
+
+test('every situation and twist kind says how it treats the party', () => {
+  const untagged = [...allSituations(content), ...Object.values(content.twists)]
+    .filter((s) => !s.disposition)
+    .map((s) => s.id)
+  expect(untagged).toEqual([])
+  const hostile = allSituations(content).filter((s) => s.disposition === 'hostile')
+  expect(hostile.length).toBeGreaterThanOrEqual(3)
+})

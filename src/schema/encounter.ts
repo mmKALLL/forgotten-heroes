@@ -1,7 +1,9 @@
 import { z } from 'zod'
 import {
   AbilitySchema,
+  BiomeSchema,
   CreatureTypeSchema,
+  DispositionSchema,
   IdSchema,
   LogToneSchema,
   PositionSchema,
@@ -284,7 +286,24 @@ const situationFields = {
   title: z.string(),
   notes: z.string().optional(),
   weight: z.number().min(0).default(1).describe('Relative chance in a random draw'),
-  tags: z.array(z.string()).default([]).describe('Biomes and themes, for later plans'),
+  tags: z
+    .array(z.string())
+    .default([])
+    .describe('Themes, e.g. "road"; biomes and regions filter where it happens'),
+  biomes: z
+    .array(BiomeSchema)
+    .optional()
+    .describe(
+      'Only drawn on the road in these terrains; omit for anywhere on land. "sea" for ships.'
+    ),
+  regions: z
+    .array(IdSchema)
+    .optional()
+    .describe('Only drawn on the road in these regions; omit for anywhere'),
+  disposition: DispositionSchema.optional().describe(
+    'How it treats the party. A cautious party avoids some hostile encounters and meets the ' +
+      'rest on better footing. Required (by the lint) unless followUpOnly; wonders are never hostile.'
+  ),
   slots: z
     .record(IdSchema, SlotSourceSchema)
     .default({})
@@ -338,14 +357,16 @@ export const TwistKindSchema = z.object({
   slots: z.record(IdSchema, SlotSourceSchema).default({}).describe('Filled when it is drawn'),
   start: IdSchema.default('start').describe('The escalation stage "@twist" goes to'),
   stages: z.record(IdSchema, StageSchema),
-  regions: z
-    .array(z.string())
+  disposition: DispositionSchema.optional().describe('How it treats the party once it hits'),
+  biomes: z
+    .array(BiomeSchema)
     .default([])
-    .describe('Regions where it fits; for later weighting, unused for now'),
+    .describe('Terrain where it is likelier on the road (see TWIST_PLACE_WEIGHT)'),
+  regions: z.array(IdSchema).default([]).describe('Regions where it is likelier on the road'),
   threats: z
-    .array(z.string())
+    .array(IdSchema)
     .default([])
-    .describe('Regional threats that make it likelier; for later weighting, unused for now'),
+    .describe("Regional threats that make it likelier where they hold the region's roads"),
 })
 export type TwistKind = z.infer<typeof TwistKindSchema>
 

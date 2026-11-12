@@ -235,15 +235,24 @@
               ]
             }
           },
+          "disposition": {
+            "description": "How it treats the party once it hits",
+            "$ref": "#/$defs/__schema54"
+          },
+          "biomes": {
+            "default": [],
+            "description": "Terrain where it is likelier on the road (see TWIST_PLACE_WEIGHT)",
+            "$ref": "#/$defs/__schema55"
+          },
           "regions": {
             "default": [],
-            "description": "Regions where it fits; for later weighting, unused for now",
-            "$ref": "#/$defs/__schema54"
+            "description": "Regions where it is likelier on the road",
+            "$ref": "#/$defs/__schema56"
           },
           "threats": {
             "default": [],
-            "description": "Regional threats that make it likelier; for later weighting, unused for now",
-            "$ref": "#/$defs/__schema55"
+            "description": "Regional threats that make it likelier where they hold the region's roads",
+            "$ref": "#/$defs/__schema57"
           }
         },
         "required": [
@@ -893,15 +902,39 @@
       ]
     },
     "__schema54": {
-      "type": "array",
-      "items": {
-        "type": "string"
-      }
+      "type": "string",
+      "enum": [
+        "hostile",
+        "neutral",
+        "pleasant"
+      ]
     },
     "__schema55": {
       "type": "array",
       "items": {
-        "type": "string"
+        "type": "string",
+        "enum": [
+          "plains",
+          "forest",
+          "hills",
+          "mountains",
+          "marsh",
+          "desert",
+          "jungle",
+          "sea"
+        ]
+      }
+    },
+    "__schema56": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
+      }
+    },
+    "__schema57": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
       }
     }
   }

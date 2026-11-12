@@ -4,6 +4,7 @@ import {
   ALIGNMENTS,
   BIOMES,
   CREATURE_TYPES,
+  DISPOSITIONS,
   GOODS,
   LOG_TONES,
   PACES,
@@ -28,6 +29,7 @@ export const SizeTierSchema = z.enum(SIZE_TIERS)
 export const AlignmentSchema = z.enum(ALIGNMENTS)
 export const GoodSchema = z.enum(GOODS)
 export const PaceSchema = z.enum(PACES)
+export const DispositionSchema = z.enum(DISPOSITIONS)
 
 const score = z.number().int().min(1).max(30)
 export const AbilityScoresSchema = z.object({

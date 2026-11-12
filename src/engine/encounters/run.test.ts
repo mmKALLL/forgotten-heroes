@@ -6,7 +6,17 @@ import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import type { Content } from '../../content/build'
 import { SituationSchema } from '../../schema/encounter'
-import { currentOptions, encounterOver, inProgress } from './run'
+import {
+  TWIST_PLACE_WEIGHT,
+  WIDE_BERTH,
+  currentOptions,
+  drawEncounter,
+  encounterOver,
+  fitsPlace,
+  inProgress,
+  startEncounter,
+  twistKindWeight,
+} from './run'
 
 const content = fixtureContent()
 const start = (situationId: string, state: GameState = makeState()) =>
@@ -427,5 +437,132 @@ describe('strain', () => {
   test('the first two checks of the day do not', () => {
     const after = choose(start('cliff'), 'climb', 'brom')
     expect(after.party.find((c) => c.id === 'brom')!.strain).toEqual({})
+  })
+})
+
+describe('drawing for a place on the road', () => {
+  const tagged = structuredClone(content)
+  tagged.situations.cliff.biomes = ['hills', 'mountains']
+  tagged.situations.roadside.regions = ['ashmoor']
+  const drawnIn = (biome: 'plains' | 'hills' | 'marsh', region: string) => {
+    const seen = new Set<string>()
+    for (let seed = 0; seed < 100; seed++) {
+      const state = drawEncounter(reseed(makeState(), seed), tagged, undefined, { biome, region })
+      if (state.encounter) seen.add(state.encounter.situation.id)
+    }
+    return seen
+  }
+
+  test('untagged situations happen anywhere on land; tagged ones only where they fit', () => {
+    expect(drawnIn('plains', 'greenvale')).toEqual(new Set(['plea', 'starfall']))
+    expect(drawnIn('hills', 'greenvale')).toContain('cliff')
+    expect(drawnIn('marsh', 'ashmoor')).toContain('roadside')
+  })
+
+  test('at sea only sea situations are drawn, and with none nothing happens', () => {
+    const state = makeState()
+    expect(drawEncounter(state, tagged, undefined, { biome: 'sea', region: 'farisle' })).toBe(state)
+    expect(fitsPlace({ biomes: ['sea'] }, { biome: 'sea', region: 'farisle' })).toBe(true)
+    expect(fitsPlace({}, { biome: 'sea', region: 'farisle' })).toBe(false)
+  })
+
+  test('a due follow-up comes first wherever the party is', () => {
+    const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] })
+    const state = drawEncounter(due, tagged, undefined, { biome: 'sea', region: 'farisle' })
+    expect(state.encounter?.situation.id).toBe('grudge')
+  })
+})
+
+describe('a cautious party on the road', () => {
+  // A heavy, hostile cliff, so most draws are hostile.
+  const hostile = structuredClone(content)
+  hostile.situations.cliff.disposition = 'hostile'
+  hostile.situations.cliff.weight = 10
+  const hills = { biome: 'hills', region: 'greenvale' } as const
+  const draws = (pace: 'cautious' | 'steady') =>
+    Array.from({ length: 400 }, (_, seed) =>
+      drawEncounter(reseed(makeState(), seed), hostile, undefined, {
+        ...hills,
+        pace,
+        coverTracks: false,
+      })
+    )
+
+  test('gives some hostile encounters a wide berth, and no others', () => {
+    const cautious = draws('cautious')
+    const avoided = cautious.filter((s) => s.encounter === null)
+    const cliffs = cautious.filter((s) => s.encounter?.situation.id === 'cliff')
+    const share = avoided.length / (avoided.length + cliffs.length)
+    expect(share).toBeGreaterThan(0.3)
+    expect(share).toBeLessThan(0.5)
+    for (const state of avoided) {
+      expect(state.log.at(-1)!.text).toBe(WIDE_BERTH)
+      expect(state.followUps).toEqual([])
+    }
+    // Pleasant and neutral encounters keep their usual rate.
+    const others = (states: GameState[]) =>
+      states.filter((s) => s.encounter && s.encounter.situation.id !== 'cliff').length
+    expect(others(cautious)).toBe(others(draws('steady')))
+  })
+
+  test('at any other pace every hostile draw happens', () => {
+    expect(draws('steady').every((s) => s.encounter !== null)).toBe(true)
+  })
+
+  test('a due follow-up is never avoided this way', () => {
+    const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] })
+    for (let seed = 0; seed < 20; seed++) {
+      const state = drawEncounter(reseed(due, seed), hostile, undefined, {
+        ...hills,
+        pace: 'cautious',
+        coverTracks: false,
+      })
+      expect(state.encounter?.situation.id).toBe('grudge')
+    }
+  })
+})
+
+describe('twist kinds that fit the place', () => {
+  const regions = makeState().world.regions
+  const threat = regions.ashmoor.threat
+  const byRegion = structuredClone(content)
+  byRegion.twists.theft.regions = ['greenvale']
+  const byThreat = structuredClone(content)
+  byThreat.twists.ambush.threats = [threat]
+
+  test('kinds tagged with the region or its threat weigh more', () => {
+    const { theft } = byRegion.twists
+    const { ambush } = byThreat.twists
+    const greenvale = { biome: 'plains', region: 'greenvale' } as const
+    expect(twistKindWeight(theft, greenvale, null)).toBe(theft.weight * TWIST_PLACE_WEIGHT)
+    expect(twistKindWeight(theft, { ...greenvale, region: 'ashmoor' }, null)).toBe(theft.weight)
+    expect(twistKindWeight(ambush, greenvale, threat)).toBe(ambush.weight * TWIST_PLACE_WEIGHT)
+    expect(twistKindWeight(ambush, undefined, null)).toBe(ambush.weight)
+    // Terrain counts too, but tags never stack.
+    const both = { ...ambush, biomes: ['plains' as const] }
+    expect(twistKindWeight(both, greenvale, threat)).toBe(ambush.weight * TWIST_PLACE_WEIGHT)
+    expect(twistKindWeight(both, { ...greenvale, biome: 'hills' }, null)).toBe(ambush.weight)
+  })
+
+  const thefts = (c: Content, region: string) => {
+    let count = 0
+    for (let seed = 0; seed < 300; seed++) {
+      const state = startEncounter(reseed(makeState(), seed), c, 'stranger', {
+        biome: 'plains',
+        region,
+      })
+      if (state.encounter?.twistKind?.id === 'theft') count++
+    }
+    return count
+  }
+
+  test('so they are drawn more often there', () => {
+    // Theft weighs 1 against ambush's 3; in Greenvale it weighs 2.
+    expect(thefts(byRegion, 'greenvale')).toBeGreaterThan(thefts(byRegion, 'ashmoor') + 30)
+    // Where Ashmoor's threat holds the roads, ambush weighs 6, so theft is rarer.
+    const elsewhere = Object.keys(regions).find((r) => regions[r].threat !== threat)
+    if (elsewhere)
+      expect(thefts(byThreat, 'ashmoor')).toBeLessThan(thefts(byThreat, elsewhere) - 15)
+    expect(thefts(byThreat, 'ashmoor')).toBeLessThan(thefts(content, 'ashmoor') - 15)
   })
 })

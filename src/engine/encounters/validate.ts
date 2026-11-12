@@ -179,8 +179,12 @@ export function validateSituation(situation: Situation, content: Content): strin
   const issues = twistIssues(compiled, content)
   for (const form of playableForms(compiled, content))
     issues.push(...validateCompiled(form, content))
+  issues.push(...unknownRegions(compiled.regions ?? [], content))
   return [...new Set(issues)]
 }
+
+const unknownRegions = (regions: readonly string[], content: Content): string[] =>
+  regions.flatMap((r) => (Object.hasOwn(content.regions, r) ? [] : [`unknown region "${r}"`]))
 
 /** validateSituation for one compiled form (a table twist's kind already joined in). */
 function validateCompiled(compiled: Situation, content: Content): string[] {
@@ -295,6 +299,9 @@ export function validateTwistKind(kind: TwistKind, content: Content): string[] {
               `${stageId}/${option.id} ${name}${suffix}: a twist kind can't goto "${TWIST_STAGE}"`
             )
   issues.push(...validateSituation(asSituation, content))
+  issues.push(...unknownRegions(kind.regions, content))
+  for (const threat of kind.threats)
+    if (!Object.hasOwn(content.threats, threat)) issues.push(`unknown threat "${threat}"`)
   if (issues.length === 0) issues.push(...lintSituation(asSituation, content))
   return [...new Set(issues)]
 }
@@ -326,14 +333,25 @@ const isCost = (e: Effect) =>
   (e.effect === 'position' && e.position === 'exposed')
 
 /**
- * Design quality rules (design §7). Regular stages offer at least 2 options, and at least one of
+ * Design quality rules (design §7). Every situation that can be drawn has a disposition. Regular stages offer at least 2 options, and at least one of
  * them is neither `once` nor gated by requirements, so a stage can't become a dead end. Wonders
  * are one stage with one fixed option and never cost anything.
  */
 export function lintSituation(situation: Situation, content: Content): string[] {
   const compiled = compileSituation(situation, content)
   const forms = playableForms(compiled, content)
-  return [...new Set(forms.flatMap((form) => lintCompiled(form)))]
+  return [
+    ...new Set([...dispositionIssues(situation), ...forms.flatMap((form) => lintCompiled(form))]),
+  ]
+}
+
+/** Every situation that can be drawn says how it treats the party; a wonder is never hostile. */
+function dispositionIssues(situation: Situation): string[] {
+  if (situation.wonder && situation.disposition === 'hostile')
+    return ['a wonder is pleasant or neutral, never hostile']
+  if (!situation.followUpOnly && !situation.disposition)
+    return ['needs a disposition: hostile, neutral or pleasant']
+  return []
 }
 
 function lintCompiled(compiled: Situation): string[] {

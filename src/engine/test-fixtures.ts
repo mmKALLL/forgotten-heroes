@@ -87,6 +87,7 @@ const testSituations = [
   {
     id: 'roadside',
     title: 'Roadside',
+    disposition: 'neutral',
     slots: { who: { from: 'table', table: 'who' }, stakes: { from: 'table', table: 'stakes' } },
     twist: { chance: 0.5, what: 'it is a trap' },
     stages: {
@@ -102,6 +103,7 @@ const testSituations = [
   {
     id: 'cliff',
     title: 'Cliff',
+    disposition: 'neutral',
     stages: {
       start: {
         text: 'A cliff blocks the way.',
@@ -168,6 +170,7 @@ const testSituations = [
   {
     id: 'grudge',
     title: 'Grudge',
+    disposition: 'hostile',
     followUpOnly: true,
     stages: {
       start: {
@@ -198,6 +201,7 @@ const testSituations = [
   {
     id: 'starfall',
     title: 'Starfall',
+    disposition: 'pleasant',
     wonder: true,
     weight: 0.5,
     stages: {
@@ -325,6 +329,7 @@ const testTwists = [
 const stranger = {
   id: 'stranger',
   title: 'Stranger',
+  disposition: 'neutral',
   weight: 0,
   twist: { chance: 0.5, what: 'they are not what they seem', table: true },
   stages: {
@@ -687,6 +692,7 @@ export function fixtureContent(): Content {
         {
           id: 'plea',
           title: 'Plea',
+          disposition: 'neutral',
           text: '{Who} needs help.',
           slots: { who: { from: 'table', table: 'who' } },
           archetype: { id: 'test-need' },

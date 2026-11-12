@@ -2,17 +2,18 @@
   "$schema": "../_schema/twists.schema.json",
   "kind": "twists",
   "source": "procedural",
-  "notes": "The twist table for someone in need (design §7, escalation). A situation uses it with \"twist\": { \"chance\", \"what\", \"table\": true } (and optionally \"kinds\"); the kind is drawn by weight when the encounter starts, and \"@twist\" in a twist branch goes to its start stage. \"opening\" is the hit trusting help takes (via { \"effect\": \"openingHit\" }). Texts say \"they\" so any situation can use them. regions and threats are for later weighting and unused for now. Written by Claude; tune freely.",
+  "notes": "The twist table for someone in need (design §7, escalation). A situation uses it with \"twist\": { \"chance\", \"what\", \"table\": true } (and optionally \"kinds\"); the kind is drawn by weight when the encounter starts, and \"@twist\" in a twist branch goes to its start stage. \"opening\" is the hit trusting help takes (via { \"effect\": \"openingHit\" }). Texts say \"they\" so any situation can use them. On the road a kind is twice as likely (TWIST_PLACE_WEIGHT) where it fits: its biomes include the route terrain, its regions the region, or its threats the threat holding that region. disposition says how each kind treats the party. Written by Claude; tune freely.",
   "entries": [
     {
       "id": "ambush",
       "name": "Ambush",
+      "disposition": "hostile",
       "weight": 3,
       "what": "they were bait for an ambush",
       "opening": [{ "effect": "hp", "amount": -4, "target": "random" }],
       "slots": { "ambushers": { "from": "creature", "types": ["humanoid"], "maxCr": 1 } },
-      "regions": ["road", "forest", "hill"],
-      "threats": ["bandits"],
+      "biomes": ["forest", "hills"],
+      "threats": ["bandit-lord", "goblin-raiders", "orc-warband"],
       "stages": {
         "start": {
           "text": "{Ambushers} come out of cover on both sides of the road, and the one you helped is already backing away to join them.",
@@ -23,10 +24,11 @@
     {
       "id": "theft",
       "name": "Theft",
+      "disposition": "hostile",
       "weight": 2,
       "what": "they meant to rob you while you were busy",
       "opening": [{ "effect": "gold", "amount": -10 }],
-      "regions": ["road", "town"],
+      "threats": ["bandit-lord", "goblin-raiders"],
       "stages": {
         "start": {
           "text": "A cut strap, an open pouch, and quick footsteps going away. They are off with what they could grab, and they have a head start.",
@@ -146,10 +148,12 @@
     {
       "id": "lure",
       "name": "Lure",
+      "disposition": "hostile",
       "weight": 2,
       "what": "they meant to lead you into a trap",
       "opening": [{ "effect": "hp", "amount": -2, "target": "all" }],
-      "regions": ["forest", "hill", "marsh"],
+      "biomes": ["forest", "hills", "marsh"],
+      "threats": ["hag-coven", "restless-dead"],
       "stages": {
         "start": {
           "text": "They lead you off the road by a short cut that only they know, and then they are simply gone. The ground gives way under you: an old pit, half full of stakes and bones.",
@@ -216,11 +220,12 @@
     {
       "id": "contagion",
       "name": "Contagion or curse",
+      "disposition": "neutral",
       "weight": 1,
       "what": "they carried a sickness, or a curse",
       "opening": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "fevered" }],
-      "regions": ["marsh", "town"],
-      "threats": ["plague"],
+      "biomes": ["marsh"],
+      "threats": ["restless-dead", "serpent-cult"],
       "stages": {
         "start": {
           "text": "By evening, whoever touched them most has a grey fever and a black mark spreading across one palm.",
@@ -283,11 +288,11 @@
     {
       "id": "fugitive",
       "name": "Fugitive",
+      "disposition": "neutral",
       "weight": 1.5,
       "what": "they were running from the law, and the hunters are close",
       "opening": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "caught hiding them" }],
-      "regions": ["road", "town"],
-      "threats": ["tyranny"],
+      "threats": ["pretender"],
       "stages": {
         "start": {
           "text": "Riders in the duke's colours come up the road, asking after a runaway. The one you helped is crouched behind your packs.",
@@ -359,10 +364,11 @@
     {
       "id": "false-claim",
       "name": "False claim",
+      "disposition": "neutral",
       "weight": 1.5,
       "what": "they meant to accuse you of a crime",
       "opening": [{ "effect": "gold", "amount": -6 }],
-      "regions": ["town", "road"],
+      "threats": ["dark-cult"],
       "stages": {
         "start": {
           "text": "At the next village they point at you and wail that you robbed them. A crowd gathers, and the reeve pushes through it.",
@@ -444,11 +450,11 @@
     {
       "id": "informant",
       "name": "Informant",
+      "disposition": "neutral",
       "weight": 1.5,
       "what": "they were an informant, selling travellers' routes to raiders",
       "opening": [{ "effect": "gold", "amount": -6 }],
-      "regions": ["road"],
-      "threats": ["bandits"],
+      "threats": ["bandit-lord", "pretender"],
       "stages": {
         "start": {
           "text": "Too late, you remember how closely they watched your packs. By morning they are gone, and someone up the road will soon know your route and what you carry.",
@@ -507,14 +513,15 @@
     {
       "id": "predator-bait",
       "name": "Predator bait",
+      "disposition": "hostile",
       "weight": 1.5,
       "what": "their blood would draw predators",
       "opening": [{ "effect": "hp", "amount": -4, "target": "random" }],
       "slots": {
         "predators": { "from": "creature", "types": ["beast", "monstrosity"], "maxCr": 1 }
       },
-      "regions": ["forest", "hill", "marsh"],
-      "threats": ["beasts"],
+      "biomes": ["forest", "hills", "marsh"],
+      "threats": ["drake-brood", "giant-clan"],
       "stages": {
         "start": {
           "text": "Their wound bled all over you, and {predators} have smelled it. They come out of the dusk, circling closer.",
@@ -577,14 +584,15 @@
     {
       "id": "fey-bargain",
       "name": "Fey bargain",
+      "disposition": "neutral",
       "weight": 1,
       "what": "they were a changeling, and took something you can't see",
       "opening": [
         { "effect": "inspiration", "amount": -1 },
         { "effect": "nextCheckModifier", "amount": -1, "reason": "something missing" }
       ],
-      "regions": ["forest"],
-      "threats": ["fey"],
+      "biomes": ["forest"],
+      "threats": ["hag-coven"],
       "stages": {
         "start": {
           "text": "Their smile was too wide. When they're gone, something is missing: the end of a song, a sister's name, the reason you set out. A trail of foxglove leads off the road, as if inviting you to come and bargain.",
@@ -651,11 +659,11 @@
     {
       "id": "recruiter",
       "name": "Recruiter",
+      "disposition": "neutral",
       "weight": 1,
       "what": "they were a cult recruiter, working on one of you",
       "opening": [{ "effect": "nextCheckModifier", "amount": -2, "reason": "whispers" }],
-      "regions": ["town", "road"],
-      "threats": ["cult"],
+      "threats": ["dark-cult", "serpent-cult"],
       "stages": {
         "start": {
           "text": "Long after they've gone, their words keep working. One of you keeps glancing back down the road, humming a hymn none of you know.",

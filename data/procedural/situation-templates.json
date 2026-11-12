@@ -7,6 +7,7 @@
     {
       "id": "roadside-plea",
       "title": "A plea at the roadside",
+      "disposition": "neutral",
       "text": "{Who} waves you down at the roadside. {Motive} {Stakes}",
       "slots": {
         "who": { "from": "table", "table": "who" },
@@ -19,6 +20,7 @@
     {
       "id": "toll-gang",
       "title": "A toll that isn't",
+      "disposition": "hostile",
       "text": "{Foe} have dragged a log across the road, and want paying to move it. {Complication}",
       "slots": {
         "foe": { "from": "creature", "types": ["humanoid", "giant"], "maxCr": 2 },
@@ -29,6 +31,7 @@
     {
       "id": "night-visitor",
       "title": "A visitor in the night",
+      "disposition": "neutral",
       "text": "Late in the night, {who} limps into the light of your fire. {Motive}",
       "slots": {
         "who": { "from": "table", "table": "who" },

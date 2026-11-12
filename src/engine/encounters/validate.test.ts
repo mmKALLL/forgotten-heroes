@@ -2,11 +2,11 @@ import { describe, expect, test } from 'vitest'
 import type { Content } from '../../content/build'
 import { SituationSchema, SituationTemplateSchema } from '../../schema/encounter'
 import { fixtureContent } from '../test-fixtures'
-import { contentIssues, lintSituation, validateSituation } from './validate'
+import { contentIssues, lintSituation, validateSituation, validateTwistKind } from './validate'
 
 const content = fixtureContent()
 const situation = (stages: object, extra: object = {}) =>
-  SituationSchema.parse({ id: 'broken', title: 'Broken', ...extra, stages })
+  SituationSchema.parse({ id: 'broken', title: 'Broken', disposition: 'neutral', ...extra, stages })
 const fixed = (id: string, outcome: object = { text: 'Done.' }) => ({
   id,
   kind: 'fixed',
@@ -278,5 +278,45 @@ describe('lintSituation', () => {
       { slots: { who: { from: 'table', table: 'who' } } }
     )
     expect(lintSituation(s, content)).toEqual([])
+  })
+})
+
+test('region tags must name known regions', () => {
+  const situation = SituationSchema.parse({
+    id: 'somewhere',
+    title: 'Somewhere',
+    regions: ['ashmoor', 'atlantis'],
+    stages: { start: { text: 'Here.', options: [] } },
+  })
+  expect(validateSituation(situation, fixtureContent())).toContain('unknown region "atlantis"')
+})
+
+test('twist kinds may only name known regions and threats', () => {
+  const kind = { ...content.twists.theft, regions: ['atlantis'], threats: ['bandits', 'krakens'] }
+  expect(validateTwistKind(kind, content)).toEqual(
+    expect.arrayContaining(['unknown region "atlantis"', 'unknown threat "krakens"'])
+  )
+})
+
+describe('disposition', () => {
+  const two = { start: { text: '', options: [fixed('a'), fixed('b')] } }
+
+  test('every situation that can be drawn needs one', () => {
+    expect(lintSituation(situation(two, { disposition: undefined }), content)).toEqual([
+      'needs a disposition: hostile, neutral or pleasant',
+    ])
+    expect(
+      lintSituation(situation(two, { disposition: undefined, followUpOnly: true }), content)
+    ).toEqual([])
+  })
+
+  test('a wonder is never hostile', () => {
+    const wonder = { start: { text: '', options: [fixed('look')] } }
+    expect(
+      lintSituation(situation(wonder, { wonder: true, disposition: 'hostile' }), content)
+    ).toEqual(['a wonder is pleasant or neutral, never hostile'])
+    expect(
+      lintSituation(situation(wonder, { wonder: true, disposition: 'pleasant' }), content)
+    ).toEqual([])
   })
 })
