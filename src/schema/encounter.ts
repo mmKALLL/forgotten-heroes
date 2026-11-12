@@ -318,6 +318,13 @@ export const SituationSchema = z.object({
     .boolean()
     .default(false)
     .describe('Never drawn at random; only queued by followUp'),
+  pursuit: z
+    .boolean()
+    .optional()
+    .describe(
+      'A follow-up that hunts the party down. When it comes due, the pace since it was queued ' +
+        'decides: covered tracks lose it, a brisk or faster march outruns it, slower lets it catch up.'
+    ),
   start: IdSchema.default('start'),
   stages: z.record(IdSchema, StageSchema),
 })

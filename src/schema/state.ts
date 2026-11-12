@@ -94,10 +94,25 @@ export const EncounterStateSchema = z.object({
 })
 export type EncounterState = z.infer<typeof EncounterStateSchema>
 
+/** One day on the road and the pace it was walked at, so pursuit can judge "pace since queued". */
+export const PaceDaySchema = z.object({
+  /** The game day travelled (state.day when the day began). */
+  day: z.number().int().min(1),
+  pace: PaceSchema,
+  coverTracks: z.boolean(),
+})
+export type PaceDay = z.infer<typeof PaceDaySchema>
+
 export const FollowUpSchema = z.object({
   situationId: IdSchema,
   /** Other encounters that must happen before this one is drawn. */
   wait: z.number().int().min(0),
+  /** The game day it was queued: pursuit (design §7) judges the party's pace since then. */
+  queuedDay: z.number().int().min(1).optional(),
+  /** How many times the party has outrun this pursuit already. */
+  escapes: z.number().int().min(1).optional(),
+  /** A pursuit's view of journeys finished since it was queued (folded in on arrival). */
+  trail: z.array(PaceDaySchema).optional(),
 })
 export type FollowUp = z.infer<typeof FollowUpSchema>
 
@@ -115,15 +130,6 @@ export type SkillUse = z.infer<typeof SkillUseSchema>
  */
 export const GoodsSchema = z.partialRecord(GoodSchema, z.number().int().min(0))
 export type Goods = z.infer<typeof GoodsSchema>
-
-/** One day on the road and the pace it was walked at, so pursuit can judge "pace since queued". */
-export const PaceDaySchema = z.object({
-  /** The game day travelled (state.day when the day began). */
-  day: z.number().int().min(1),
-  pace: PaceSchema,
-  coverTracks: z.boolean(),
-})
-export type PaceDay = z.infer<typeof PaceDaySchema>
 
 /** A journey along one route, from settlement to settlement. */
 export const TravelStateSchema = z.object({

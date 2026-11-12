@@ -11,6 +11,7 @@ import { CURRENT_SAVE_VERSION } from './save'
 import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, type RollMode } from './rules/checks'
+import { stepTravel, type TravelAction } from './travel/journey'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed } from './world/generate'
 import { settlementName } from './world/geo'
@@ -24,6 +25,7 @@ export { MAX_DC, MIN_DC, normalizeDc, previewCheck, type CheckPreview }
 export type Action =
   | { type: 'practiceCheck'; stat: CheckStat; dc: number; mode: RollMode; actorId?: string }
   | EncounterAction
+  | TravelAction
 
 export function newGame(
   seed: number,
@@ -76,6 +78,11 @@ export function step(state: GameState, action: Action, content: Content): GameSt
         (crit ? ' Inspiration gained!' : '')
       return appendLog(next, text, TIER_TONE[roll.tier])
     }
+    case 'travel':
+    case 'continueJourney':
+    case 'rest':
+    case 'buyFood':
+      return stepTravel(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

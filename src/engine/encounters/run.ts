@@ -18,7 +18,8 @@ import { checkLabel, statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
 import { addStrain, strainFrom, strainOf } from '../rules/strain'
-import { paceHostileAvoidance } from '../travel/pace'
+import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
+import { evadePursuit } from '../travel/pursuit'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
@@ -111,7 +112,8 @@ const advanceFollowUps = (state: GameState): GameState => ({
 
 /**
  * Starts a situation. On the road, `place` weights the twist table towards kinds that fit the
- * region and its threat.
+ * place, and on a journey a hostile encounter meets the party on the footing its pace gives
+ * (ambushPositionForPace).
  */
 export function startEncounter(
   state: GameState,
@@ -154,7 +156,10 @@ export function startEncounter(
     situation,
     source: found.source,
     stage: situation.start,
-    position: 'normal',
+    position:
+      place?.pace && situation.disposition === 'hostile'
+        ? ambushPositionForPace(place.pace, place.coverTracks ?? false)
+        : 'normal',
     slots,
     twist,
     twistRevealed: false,
@@ -174,7 +179,7 @@ export function startEncounter(
 
 /**
  * A due follow-up (wait 0) comes first, whatever the source filter or place; one whose situation
- * no longer exists is dropped. Otherwise a weighted random pick, never a followUpOnly situation.
+ * no longer exists is dropped. A due pursuit may lose or outrun the party instead (evadePursuit). Otherwise a weighted random pick, never a followUpOnly situation.
  * On the road, `place` limits the pick to situations that fit its terrain and region (fitsPlace);
  * when none fits, nothing happens. A cautious party then skips a hostile pick with chance
  * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
@@ -194,7 +199,12 @@ export function drawEncounter(
   const due = followUps.findIndex((f) => f.wait === 0)
   if (due >= 0) {
     const rest = followUps.filter((_, i) => i !== due)
-    return startEncounter({ ...state, followUps: rest }, content, followUps[due].situationId, place)
+    const followUp = followUps[due]
+    const pursuit = situations.find((s) => s.id === followUp.situationId)?.pursuit
+    const evaded = pursuit ? evadePursuit(state, followUp, rest) : null
+    return (
+      evaded ?? startEncounter({ ...state, followUps: rest }, content, followUp.situationId, place)
+    )
   }
   const candidates = situations.filter(
     (s) =>

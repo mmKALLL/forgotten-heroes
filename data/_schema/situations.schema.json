@@ -110,6 +110,10 @@
             "description": "Never drawn at random; only queued by followUp",
             "$ref": "#/$defs/__schema39"
           },
+          "pursuit": {
+            "description": "A follow-up that hunts the party down. When it comes due, the pace since it was queued decides: covered tracks lose it, a brisk or faster march outruns it, slower lets it catch up.",
+            "$ref": "#/$defs/__schema40"
+          },
           "start": {
             "default": "start",
             "$ref": "#/$defs/__schema0"
@@ -127,7 +131,7 @@
                 },
                 "archetype": {
                   "description": "Its options come first, then this stage's own",
-                  "$ref": "#/$defs/__schema40"
+                  "$ref": "#/$defs/__schema41"
                 },
                 "options": {
                   "default": [],
@@ -138,19 +142,19 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema43"
-                          },
-                          "label": {
                             "$ref": "#/$defs/__schema44"
                           },
-                          "description": {
+                          "label": {
                             "$ref": "#/$defs/__schema45"
                           },
-                          "requires": {
+                          "description": {
                             "$ref": "#/$defs/__schema46"
                           },
-                          "once": {
+                          "requires": {
                             "$ref": "#/$defs/__schema47"
+                          },
+                          "once": {
+                            "$ref": "#/$defs/__schema48"
                           },
                           "kind": {
                             "type": "string",
@@ -184,22 +188,22 @@
                               },
                               "ability": {
                                 "description": "Overrides the skill's default ability, e.g. \"cha\" for Intimidation (CHA)",
-                                "$ref": "#/$defs/__schema49"
+                                "$ref": "#/$defs/__schema50"
                               },
                               "dc": {
                                 "anyOf": [
                                   {
-                                    "$ref": "#/$defs/__schema50"
+                                    "$ref": "#/$defs/__schema51"
                                   },
                                   {
-                                    "$ref": "#/$defs/__schema51"
+                                    "$ref": "#/$defs/__schema52"
                                   }
                                 ],
                                 "description": "A DC from 1 to 40, or inside an archetype \"dc\", \"dc+2\" or \"dc-1\""
                               },
                               "combat": {
                                 "description": "Combat checks never grant Inspiration on a natural 20",
-                                "$ref": "#/$defs/__schema52"
+                                "$ref": "#/$defs/__schema53"
                               }
                             },
                             "required": [
@@ -209,27 +213,27 @@
                           },
                           "highStakes": {
                             "description": "Force the slow, glowing dice roll",
-                            "$ref": "#/$defs/__schema53"
+                            "$ref": "#/$defs/__schema54"
                           },
                           "outcomes": {
                             "type": "object",
                             "properties": {
                               "critFail": {
                                 "description": "Defaults to the fail outcome",
-                                "$ref": "#/$defs/__schema54"
+                                "$ref": "#/$defs/__schema55"
                               },
                               "fail": {
-                                "$ref": "#/$defs/__schema54"
+                                "$ref": "#/$defs/__schema55"
                               },
                               "partial": {
-                                "$ref": "#/$defs/__schema54"
+                                "$ref": "#/$defs/__schema55"
                               },
                               "success": {
-                                "$ref": "#/$defs/__schema54"
+                                "$ref": "#/$defs/__schema55"
                               },
                               "critSuccess": {
                                 "description": "Defaults to the success outcome",
-                                "$ref": "#/$defs/__schema54"
+                                "$ref": "#/$defs/__schema55"
                               }
                             },
                             "required": [
@@ -251,26 +255,26 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema43"
-                          },
-                          "label": {
                             "$ref": "#/$defs/__schema44"
                           },
-                          "description": {
+                          "label": {
                             "$ref": "#/$defs/__schema45"
                           },
-                          "requires": {
+                          "description": {
                             "$ref": "#/$defs/__schema46"
                           },
-                          "once": {
+                          "requires": {
                             "$ref": "#/$defs/__schema47"
+                          },
+                          "once": {
+                            "$ref": "#/$defs/__schema48"
                           },
                           "kind": {
                             "type": "string",
                             "const": "fixed"
                           },
                           "outcome": {
-                            "$ref": "#/$defs/__schema54"
+                            "$ref": "#/$defs/__schema55"
                           }
                         },
                         "required": [
@@ -811,6 +815,9 @@
       "type": "boolean"
     },
     "__schema40": {
+      "type": "boolean"
+    },
+    "__schema41": {
       "type": "object",
       "properties": {
         "id": {
@@ -819,39 +826,39 @@
         "dc": {
           "default": 13,
           "description": "What \"dc\" means in the archetype",
-          "$ref": "#/$defs/__schema41"
+          "$ref": "#/$defs/__schema42"
         },
         "reward": {
           "default": 1,
           "description": "Multiplies every gold amount in the archetype",
-          "$ref": "#/$defs/__schema42"
+          "$ref": "#/$defs/__schema43"
         }
       },
       "required": [
         "id"
       ]
     },
-    "__schema41": {
+    "__schema42": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema42": {
+    "__schema43": {
       "type": "number",
       "minimum": 0,
       "maximum": 10
     },
-    "__schema43": {
+    "__schema44": {
       "description": "Unique within its stage",
       "$ref": "#/$defs/__schema0"
-    },
-    "__schema44": {
-      "type": "string"
     },
     "__schema45": {
       "type": "string"
     },
     "__schema46": {
+      "type": "string"
+    },
+    "__schema47": {
       "default": [],
       "type": "array",
       "items": {
@@ -877,14 +884,14 @@
         ]
       }
     },
-    "__schema47": {
-      "description": "Can only be chosen once per encounter",
-      "$ref": "#/$defs/__schema48"
-    },
     "__schema48": {
-      "type": "boolean"
+      "description": "Can only be chosen once per encounter",
+      "$ref": "#/$defs/__schema49"
     },
     "__schema49": {
+      "type": "boolean"
+    },
+    "__schema50": {
       "type": "string",
       "enum": [
         "str",
@@ -895,60 +902,60 @@
         "cha"
       ]
     },
-    "__schema50": {
+    "__schema51": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema51": {
+    "__schema52": {
       "type": "string",
       "pattern": "^dc([+-][0-9]+)?$"
-    },
-    "__schema52": {
-      "type": "boolean"
     },
     "__schema53": {
       "type": "boolean"
     },
     "__schema54": {
+      "type": "boolean"
+    },
+    "__schema55": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema55"
-        },
-        "effects": {
           "$ref": "#/$defs/__schema56"
         },
-        "goto": {
+        "effects": {
           "$ref": "#/$defs/__schema57"
         },
+        "goto": {
+          "$ref": "#/$defs/__schema58"
+        },
         "stay": {
-          "$ref": "#/$defs/__schema59"
+          "$ref": "#/$defs/__schema60"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema61"
+          "$ref": "#/$defs/__schema62"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema55": {
+    "__schema56": {
       "type": "string"
     },
-    "__schema56": {
+    "__schema57": {
       "default": [],
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema11"
       }
     },
-    "__schema57": {
-      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema58"
-    },
     "__schema58": {
+      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
+      "$ref": "#/$defs/__schema59"
+    },
+    "__schema59": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -959,27 +966,27 @@
         }
       ]
     },
-    "__schema59": {
-      "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema60"
-    },
     "__schema60": {
-      "type": "boolean"
+      "description": "Stay on the current stage",
+      "$ref": "#/$defs/__schema61"
     },
     "__schema61": {
+      "type": "boolean"
+    },
+    "__schema62": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema55"
-        },
-        "effects": {
           "$ref": "#/$defs/__schema56"
         },
-        "goto": {
+        "effects": {
           "$ref": "#/$defs/__schema57"
         },
+        "goto": {
+          "$ref": "#/$defs/__schema58"
+        },
         "stay": {
-          "$ref": "#/$defs/__schema59"
+          "$ref": "#/$defs/__schema60"
         }
       },
       "required": [

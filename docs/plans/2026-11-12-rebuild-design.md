@@ -148,6 +148,8 @@ The town map image is a banner and backdrop.
   - Cautious with covered tracks loses it.
   - Brisk or faster usually outruns it.
   - Steady lets it catch up.
+  - In numbers (tunable, `src/engine/travel/pursuit.ts`): any cautious day with covered tracks since it was queued loses it; otherwise the average speed (days resting in town or camp count as 0) of 1.2 or more outruns it, and it comes back after 2 more encounters, at most twice before it gives up.
+  - At sea the ship sets the pace: always steady, no covered tracks.
 - **Timing:** Plan 3 builds Cautious, Steady, Brisk, Forced march and pursuit.
 - **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4. The chance scales with route danger, regional threat and visible wealth.
 - **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.

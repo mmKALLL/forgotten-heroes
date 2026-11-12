@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace.",
+  "notes": "Situations written by Claude for this game: at least two options per stage that trade different resources (gold, HP, time, skill), asymmetric options that favour particular builds, and two wonders. Three follow-ups (sold-out-ambush, creeping-fever, wardens-on-your-trail) serve the twist table. biomes (Plan 3) limit where three situations are drawn on the road. Every situation has a disposition (hostile, neutral or pleasant) for travel pace. Three follow-ups that hunt the party (sold-out-ambush, wardens-on-your-trail, grudge-on-the-road) are flagged pursuit: the pace since they were queued decides whether they catch up.",
   "entries": [
     {
       "id": "flooded-ferry",
@@ -474,6 +474,7 @@
     {
       "id": "grudge-on-the-road",
       "title": "An old grudge",
+      "pursuit": true,
       "disposition": "hostile",
       "followUpOnly": true,
       "tags": ["road"],
@@ -672,6 +673,7 @@
     {
       "id": "sold-out-ambush",
       "title": "A route sold",
+      "pursuit": true,
       "disposition": "hostile",
       "followUpOnly": true,
       "tags": ["road"],
@@ -778,6 +780,7 @@
     {
       "id": "wardens-on-your-trail",
       "title": "Wardens on your trail",
+      "pursuit": true,
       "disposition": "hostile",
       "followUpOnly": true,
       "tags": ["road"],

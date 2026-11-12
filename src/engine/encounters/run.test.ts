@@ -412,7 +412,7 @@ describe('drawing encounters and follow-ups', () => {
     for (let seed = 0; seed < 200; seed++) {
       const after = choose(reseed(start('roadside'), seed), 'rob', 'lyra')
       if (after.lastRoll?.tier !== 'success') continue
-      expect(after.followUps).toEqual([{ situationId: 'grudge', wait: 1 }])
+      expect(after.followUps).toEqual([{ situationId: 'grudge', wait: 1, queuedDay: after.day }])
       return
     }
     throw new Error('no successful robbery in 200 seeds')

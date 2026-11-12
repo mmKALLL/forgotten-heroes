@@ -183,3 +183,11 @@ test('every situation and twist kind says how it treats the party', () => {
   const hostile = allSituations(content).filter((s) => s.disposition === 'hostile')
   expect(hostile.length).toBeGreaterThanOrEqual(3)
 })
+
+test('the follow-ups that hunt the party down are pursuits', () => {
+  const pursuits = Object.values(content.situations).filter((s) => s.pursuit)
+  expect(pursuits.map((s) => s.id)).toEqual(
+    expect.arrayContaining(['grudge-on-the-road', 'sold-out-ambush', 'wardens-on-your-trail'])
+  )
+  expect(pursuits.every((s) => s.followUpOnly && s.disposition === 'hostile')).toBe(true)
+})

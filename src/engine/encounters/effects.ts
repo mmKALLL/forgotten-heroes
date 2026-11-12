@@ -91,7 +91,10 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     case 'followUp':
       return {
         ...state,
-        followUps: [...state.followUps, { situationId: effect.situation, wait: effect.after }],
+        followUps: [
+          ...state.followUps,
+          { situationId: effect.situation, wait: effect.after, queuedDay: state.day },
+        ],
       }
     case 'nextCheckModifier':
       if (!state.encounter) return state

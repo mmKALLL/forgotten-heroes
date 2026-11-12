@@ -124,7 +124,7 @@ describe('applyEffects', () => {
 
   test('followUp queues a situation', () => {
     const after = applyEffects(state, fx({ effect: 'followUp', situation: 'revenge', after: 2 }))
-    expect(after.followUps).toEqual([{ situationId: 'revenge', wait: 2 }])
+    expect(after.followUps).toEqual([{ situationId: 'revenge', wait: 2, queuedDay: state.day }])
   })
 
   test('log writes to the journal and the encounter log', () => {
