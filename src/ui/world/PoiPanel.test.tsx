@@ -5,6 +5,7 @@ import { useState, type ComponentProps } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { formatPercent } from '../../engine/format'
 import { exploreOption } from '../../engine/world/explore'
+import { POWER_STEP_DAYS, REINHABIT_DAYS } from '../../engine/world/sites'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom } from '../../engine/world/graph'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
@@ -20,7 +21,7 @@ afterEach(cleanup)
 function world(location: string, discovered: string[], cleared: string[] = []): GameState {
   const state = makeState({ location, gold: 50 })
   for (const id of discovered) state.world.pois[id].discovered = true
-  for (const id of cleared) state.world.pois[id].cleared = true
+  for (const id of cleared) state.world.pois[id].clearedDay = state.day
   return state
 }
 
@@ -79,7 +80,10 @@ test('a site shows its type, owner and water; Visit plays it', async () => {
 test('a lair says what it feeds, is entered, and has no spring', () => {
   // Redtusk camp (poi-2): a war camp adding 2 to Ashstone’s domain (farisle-1), held by bandits.
   const state = world('poi-2', ['poi-2'])
+  // Taken again today, so it is inhabited whatever its cycle.
+  state.world.pois['poi-2'].clearedDay = state.day - REINHABIT_DAYS
   show(state)
+  expect(screen.getByText('Re-inhabited: something has moved in again.')).toBeTruthy()
   expect(screen.getByText('Lair · War camp')).toBeTruthy()
   const threat = content.threats[state.world.lands.farisle.threat].name
   expect(screen.getByText(`Feeds the ${threat}: +2 threat here`)).toBeTruthy()
@@ -87,13 +91,13 @@ test('a lair says what it feeds, is entered, and has no spring', () => {
   expect(screen.queryByText(/A spring here/)).toBeNull()
 })
 
-test('a cleared site can’t be visited, and says why', () => {
+test('a cleared site lies empty, can’t be visited, and says why', () => {
   show(world('poi-2', ['poi-2'], ['poi-2']))
-  expect(screen.getByText('Cleared')).toBeTruthy()
+  expect(screen.getByText('Cleared today: it lies empty for now.')).toBeTruthy()
   expect(screen.queryByText(/Feeds the/)).toBeNull()
   const enter = screen.getByRole('button', { name: 'Enter' }) as HTMLButtonElement
   expect(enter.disabled).toBe(true)
-  expect(screen.getByText('Redtusk camp has been cleared.')).toBeTruthy()
+  expect(screen.getByText('Redtusk camp lies empty for now.')).toBeTruthy()
 })
 
 test('a site already visited since arriving can’t be visited again, and says why', () => {
@@ -103,6 +107,13 @@ test('a site already visited since arriving can’t be visited again, and says w
   expect(
     screen.getByText('You have already visited Old Wen’s hut. Leave and come back another time.')
   ).toBeTruthy()
+})
+
+test('a lair grown strong says so', () => {
+  const state = world('poi-2', ['poi-2'])
+  state.world.pois['poi-2'].clearedDay = state.day - REINHABIT_DAYS
+  show({ ...state, day: state.day + POWER_STEP_DAYS })
+  expect(screen.getByText('Growing stronger: every check here is DC +1.')).toBeTruthy()
 })
 
 test('rest at a site is camp only, and there is nothing to buy or sell', async () => {

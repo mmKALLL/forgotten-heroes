@@ -116,8 +116,8 @@ describe('generateWorld', () => {
       const a = generateWorld(seed, calm)
       const b = generateWorld(seed, wild)
       for (const id of Object.keys(a.settlements)) {
-        expect(domainThreatLevel(a, id)).toBeLessThan(3)
-        const poorer = domainThreatLevel(b, id) === 3
+        expect(domainThreatLevel(a, id, 1)).toBeLessThan(3)
+        const poorer = domainThreatLevel(b, id, 1) === 3
         if (poorer) rampant++
         expect(b.settlements[id].wealth).toBe(
           Math.max(-4, a.settlements[id].wealth + (poorer ? RAMPANT_WEALTH : 0))
@@ -159,7 +159,7 @@ describe('startingSettlement', () => {
           !['capital', 'city'].includes(world.settlements[id].type)
       )
       if (small.length > 0) expect(small).toContain(start)
-      const level = (id: string) => domainThreatLevel(world, id)
+      const level = (id: string) => domainThreatLevel(world, id, 1)
       const mainland = Object.keys(world.settlements).filter(
         (id) => content.settlements[id].island === 'mainland'
       )

@@ -1,4 +1,4 @@
-import type { Content } from '../content/build'
+import { byCodeUnit, type Content } from '../content/build'
 import { MAX_DC, MIN_DC } from '../schema/constants'
 import type { GameState } from '../schema/state'
 import { formatModifier } from './format'
@@ -16,6 +16,7 @@ import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
+import { siteEvents } from './world/sites'
 
 export const STARTING_PARTY_SIZE = 2
 export const STARTING_GOLD = 50
@@ -70,7 +71,39 @@ export function newGame(
   }
 }
 
+/**
+ * Applies one action. When days pass, the news of the sites the party knows follows: a dungeon or
+ * lair cleared by the realm, or one that something has moved into again (world/sites.ts).
+ */
 export function step(state: GameState, action: Action, content: Content): GameState {
+  return siteNews(state.day, act(state, action, content))
+}
+
+/** Rumour lines for the known sites whose cycle turned after day `from`. */
+function siteNews(from: number, state: GameState): GameState {
+  if (state.day <= from) return state
+  const lines = Object.entries(state.world.pois)
+    .filter(([, poi]) => poi.discovered)
+    .flatMap(([id, poi]) =>
+      siteEvents(state.world.seed, id, poi, from, state.day).map((e) => ({ ...e, id, poi }))
+    )
+    .sort((a, b) => a.day - b.day || byCodeUnit(a.id, b.id))
+  return lines.reduce((next, { day, kind, poi }) => {
+    const kingdom = next.world.kingdoms.find((k) => k.domains.includes(poi.domain))
+    // About one in three is an accident: a fire, a flood, a collapse.
+    const how =
+      kingdom && day % 3 !== 0
+        ? `has been cleared out by soldiers of ${kingdom.name}`
+        : 'lies empty after a fire and a collapse'
+    const text =
+      kind === 'inhabited'
+        ? `Word reaches you: something has moved into ${poi.name} again.`
+        : `Word reaches you: ${poi.name} ${how}.`
+    return appendLog(next, text, kind === 'inhabited' ? 'bad' : 'info')
+  }, state)
+}
+
+function act(state: GameState, action: Action, content: Content): GameState {
   switch (action.type) {
     case 'practiceCheck': {
       const actor = chooseActor(state.party, action.stat, action.actorId)

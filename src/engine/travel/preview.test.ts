@@ -19,6 +19,7 @@ import { FORCED_MARCH_DC } from './pace'
 import { isSevere, warningText } from './warnings'
 import { encounterChance } from './routes'
 import { domainThreatLevel } from '../world/pois'
+import { POWER_DC, POWER_STEP_DAYS, REINHABIT_DAYS } from '../world/sites'
 
 const content = fixtureContent()
 
@@ -41,7 +42,7 @@ describe('placeInfo', () => {
       kingdomName: kingdom.name,
       seat: kingdom.seat === 'ashmoor-1',
       threatName: content.threats[state.world.lands.ashmoor.threat].name,
-      threatLevel: domainThreatLevel(state.world, 'ashmoor-1'),
+      threatLevel: domainThreatLevel(state.world, 'ashmoor-1', state.day),
       coastal: true,
     })
     expect(info.services.map((x) => x.id)).toEqual(s.services)
@@ -54,12 +55,13 @@ describe('placeInfo', () => {
       ...base.world.pois,
       'poi-9': {
         type: 'orc-war-camp',
+        category: 'lair' as const,
         spot: 'spot-0009',
         domain: 'ashmoor-1',
         name: 'Bonepile camp',
         threat: 2,
         discovered: false,
-        cleared: false,
+        clearedDay: 1 - REINHABIT_DAYS,
         boonDay: null,
       },
     }
@@ -88,14 +90,16 @@ describe('placeInfo', () => {
 describe('poiInfo', () => {
   const withPoi = (overrides: Partial<PoiState>) => {
     const state = makeState()
+    // Taken again on day 1, the first day.
     state.world.pois['poi-9'] = {
       type: 'orc-war-camp',
+      category: 'lair',
       spot: 'spot-0009',
       domain: 'ashmoor-1',
       name: 'Bonepile camp',
       threat: 2,
       discovered: true,
-      cleared: false,
+      clearedDay: 1 - REINHABIT_DAYS,
       boonDay: null,
       ...overrides,
     }
@@ -117,23 +121,42 @@ describe('poiInfo', () => {
       hostile: true,
       threat: 2,
       threatName: content.threats[state.world.lands.ashmoor.threat].name,
-      cleared: false,
+      status: {
+        phase: 'inhabited',
+        since: 1,
+        until: expect.any(Number),
+        days: 0,
+        power: 0,
+        clearedBy: null,
+        reinhabited: true,
+      },
+      dcBonus: 0,
       water: false,
     })
-    const hut = withPoi({ type: 'herbalist-hut', threat: 0 })
+    const hut = withPoi({ type: 'herbalist-hut', category: 'expert', threat: 0, clearedDay: null })
     expect(poiInfo(hut, content, 'poi-9')).toMatchObject({
       category: 'expert',
       hostile: false,
       threat: 0,
+      status: null,
       water: true,
     })
   })
 
-  test('a cleared lair adds nothing; an undiscovered or unknown site is not described', () => {
-    expect(poiInfo(withPoi({ cleared: true }), content, 'poi-9')).toMatchObject({
-      cleared: true,
+  test('an empty lair adds nothing; one grown strong adds more and raises DCs', () => {
+    expect(poiInfo(withPoi({ clearedDay: 1 }), content, 'poi-9')).toMatchObject({
+      status: { phase: 'empty', clearedBy: 'party', days: 0 },
       threat: 0,
     })
+    const strong = { ...withPoi({}), day: 1 + 2 * POWER_STEP_DAYS }
+    expect(poiInfo(strong, content, 'poi-9')).toMatchObject({
+      status: { phase: 'inhabited', power: 2, days: 2 * POWER_STEP_DAYS },
+      threat: 3,
+      dcBonus: 2 * POWER_DC,
+    })
+  })
+
+  test('an undiscovered or unknown site is not described', () => {
     expect(poiInfo(withPoi({ discovered: false }), content, 'poi-9')).toBeNull()
     expect(poiInfo(makeState(), content, 'ashmoor-1')).toBeNull()
     expect(poiInfo(makeState(), content, 'poi-404')).toBeNull()

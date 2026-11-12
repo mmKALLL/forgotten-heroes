@@ -10,6 +10,7 @@ import { settlementName } from '../../engine/world/geo'
 import { I18nProvider, LANGUAGE_KEY } from '../i18n/I18n'
 import { PlacePanel } from './PlacePanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
+import { REINHABIT_DAYS } from '../../engine/world/sites'
 
 const content = fixtureContent()
 afterEach(cleanup)
@@ -241,17 +242,21 @@ test('a forced march that could kill someone gets a severe warning, listed first
   }
 })
 
-/** The fixture world with one extra lair in Mirefold's domain (ashmoor-1), found or not. */
+/**
+ * The fixture world with one extra lair in Mirefold's domain (ashmoor-1), found or not, and
+ * inhabited since day 1 or cleared today.
+ */
 const withLair = (discovered: boolean, cleared = false) => {
   const state = makeState({ location: 'ashmoor-1', gold: 50 })
   state.world.pois['poi-9'] = {
     type: 'orc-war-camp',
+    category: 'lair',
     spot: 'spot-0009',
     domain: 'ashmoor-1',
     name: 'Bonepile camp',
     threat: 2,
     discovered,
-    cleared,
+    clearedDay: cleared ? state.day : state.day - REINHABIT_DAYS,
     boonDay: null,
   }
   return state
@@ -271,7 +276,7 @@ test('shows the land, the domain and the kingdom, with the domain’s threat', (
   ).toBeTruthy()
 })
 
-test('the lair note appears only for a discovered, uncleared lair in the domain', () => {
+test('the lair note appears only for a discovered, inhabited lair in the domain', () => {
   const { unmount } = panel(withLair(false), null)
   expect(screen.queryByText(/from lairs/)).toBeNull()
   unmount()

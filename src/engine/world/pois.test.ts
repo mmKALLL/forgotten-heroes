@@ -14,6 +14,7 @@ import {
   poisPerDomain,
   type PoiWorld,
 } from './pois'
+import { POWER_STEP_DAYS, REINHABIT_DAYS } from './sites'
 import { territory } from './territory'
 
 const content = fixtureContent()
@@ -49,8 +50,9 @@ describe('generatePois', () => {
     for (let seed = 0; seed < 20; seed++) {
       for (const poi of Object.values(pois(seed))) {
         expect(poi.discovered).toBe(false)
-        expect(poi.cleared).toBe(false)
+        expect(poi.clearedDay).toBeNull()
         const type = content.poiTypes[poi.type]
+        expect(poi.category).toBe(type.category)
         if (type.hostile) {
           expect(poi.threat).toBeGreaterThanOrEqual(type.threat!.min)
           expect(poi.threat).toBeLessThanOrEqual(type.threat!.max)
@@ -237,55 +239,64 @@ describe('poisPerDomain', () => {
 
 describe('domain threat', () => {
   const world = (pois: Record<string, PoiState>): PoiWorld => ({
+    seed: 1,
     lands: { ashmoor: { threat: 'bog-cult', threatStrength: 3 } },
     domains: { 'ashmoor-1': { kingdom: 'kingdom-1', land: 'ashmoor', garrison: 1 } },
     pois,
   })
+  // On DAY, a lair the party cleared REINHABIT_DAYS ago has just been taken again (power 0).
+  const DAY = 40
   const poi = (overrides: Partial<PoiState>): PoiState => ({
     type: 'orc-war-camp',
+    category: 'lair',
     spot: 'spot-0009',
     domain: 'ashmoor-1',
     name: 'Redtusk camp',
     threat: 1,
     discovered: false,
-    cleared: false,
+    clearedDay: DAY - REINHABIT_DAYS,
     boonDay: null,
     ...overrides,
   })
 
-  test('is the land’s strength plus its uncleared lairs, against the garrison', () => {
+  test('is the land’s strength plus its inhabited lairs, against the garrison', () => {
     const calm = world({})
-    expect(domainThreatStrength(calm, 'ashmoor-1')).toBe(3)
-    expect(domainThreatLevel(calm, 'ashmoor-1')).toBe(2)
+    expect(domainThreatStrength(calm, 'ashmoor-1', DAY)).toBe(3)
+    expect(domainThreatLevel(calm, 'ashmoor-1', DAY)).toBe(2)
     const lair = world({ 'poi-1': poi({}) })
-    expect(domainThreatStrength(lair, 'ashmoor-1')).toBe(4)
-    expect(domainThreatLevel(lair, 'ashmoor-1')).toBe(3)
+    expect(domainThreatStrength(lair, 'ashmoor-1', DAY)).toBe(4)
+    expect(domainThreatLevel(lair, 'ashmoor-1', DAY)).toBe(3)
   })
 
-  test('drops once a hostile POI is cleared, and ignores non-hostile ones', () => {
-    const cleared = world({ 'poi-1': poi({ cleared: true }) })
-    expect(domainThreatLevel(cleared, 'ashmoor-1')).toBe(2)
-    const hut = world({ 'poi-1': poi({ type: 'herbalist-hut', threat: 0 }) })
-    expect(domainThreatLevel(hut, 'ashmoor-1')).toBe(2)
+  test('drops while a hostile POI lies empty, rises as it grows strong, ignores the rest', () => {
+    const cleared = world({ 'poi-1': poi({ clearedDay: DAY }) })
+    expect(domainThreatLevel(cleared, 'ashmoor-1', DAY)).toBe(2)
+    const hut = world({
+      'poi-1': poi({ type: 'herbalist-hut', category: 'expert', threat: 0, clearedDay: null }),
+    })
+    expect(domainThreatLevel(hut, 'ashmoor-1', DAY)).toBe(2)
     // A lair elsewhere doesn't count here.
     const away = world({ 'poi-1': poi({ domain: 'greenvale-1' }) })
-    expect(domainThreatLevel(away, 'ashmoor-1')).toBe(2)
+    expect(domainThreatLevel(away, 'ashmoor-1', DAY)).toBe(2)
+    // Grown strong (POWER_THREAT_AT), the lair adds one more.
+    const strong = world({ 'poi-1': poi({}) })
+    expect(domainThreatStrength(strong, 'ashmoor-1', DAY + 2 * POWER_STEP_DAYS)).toBe(5)
   })
 
-  test('the known lair threat counts only discovered, uncleared hostile POIs in the domain', () => {
-    expect(knownLairThreat(world({ 'poi-1': poi({ threat: 2 }) }), 'ashmoor-1')).toBe(0)
+  test('the known lair threat counts only discovered, inhabited hostile POIs in the domain', () => {
+    expect(knownLairThreat(world({ 'poi-1': poi({ threat: 2 }) }), 'ashmoor-1', DAY)).toBe(0)
     const found = world({
       'poi-1': poi({ threat: 2, discovered: true }),
-      'poi-2': poi({ threat: 1, discovered: true, cleared: true }),
+      'poi-2': poi({ threat: 1, discovered: true, clearedDay: DAY }),
       'poi-3': poi({ threat: 1, discovered: true, domain: 'greenvale-1' }),
       'poi-4': poi({ threat: 1 }),
     })
-    expect(knownLairThreat(found, 'ashmoor-1')).toBe(2)
-    expect(knownLairThreat(found, 'atlantis')).toBe(0)
+    expect(knownLairThreat(found, 'ashmoor-1', DAY)).toBe(2)
+    expect(knownLairThreat(found, 'atlantis', DAY)).toBe(0)
   })
 
   test('an unknown domain has no threat', () => {
-    expect(domainThreatLevel(world({}), 'atlantis')).toBe(0)
-    expect(domainThreatStrength(world({}), 'atlantis')).toBe(0)
+    expect(domainThreatLevel(world({}), 'atlantis', DAY)).toBe(0)
+    expect(domainThreatStrength(world({}), 'atlantis', DAY)).toBe(0)
   })
 })

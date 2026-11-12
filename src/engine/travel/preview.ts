@@ -7,6 +7,7 @@ import { canAct } from '../rules/character'
 import { otherEnd, settlementName } from '../world/geo'
 import { edgeById, edgesFrom } from '../world/graph'
 import { domainThreatLevel, knownLairThreat } from '../world/pois'
+import { POWER_DC, siteStatus, siteThreat, type SiteStatus } from '../world/sites'
 import { ambushPositionForPace, paceHostileAvoidance } from './pace'
 import {
   canMeetEncounters,
@@ -95,8 +96,8 @@ export function placeInfo(state: GameState, content: Content, id: string): Place
     ancestryName: ancestry(info.ancestry),
     seat: kingdom?.seat === id,
     threatName: own(content.threats, landState?.threat)?.name ?? 'None',
-    threatLevel: domainThreatLevel(state.world, id),
-    lairThreat: knownLairThreat(state.world, id),
+    threatLevel: domainThreatLevel(state.world, id, state.day),
+    lairThreat: knownLairThreat(state.world, id, state.day),
     services: info.services.map((s) => ({ id: s, name: own(content.services, s)?.name ?? s })),
     banner: own(content.towns, info.town)?.banner ?? null,
     coastal: site.coastal,
@@ -117,13 +118,19 @@ export type PoiInfo = {
   kingdomName: string
   /** The land the domain lies in. */
   landName: string
-  /** A lair or active dungeon, feeding its domain's threat until cleared. */
+  /** A lair or active dungeon, feeding its domain's threat while inhabited. */
   hostile: boolean
-  /** What it adds to its domain's threat now: 0 unless hostile and not cleared. */
+  /** What it adds to its domain's threat now (siteThreat): 0 unless hostile and inhabited. */
   threat: number
   /** The threat roaming the land, which a hostile site feeds. */
   threatName: string
-  cleared: boolean
+  /**
+   * Where a dungeon or lair is in its cycle (siteStatus), with the days since the phase began;
+   * null for other sites.
+   */
+  status: (SiteStatus & { days: number }) | null
+  /** What its power adds to every check's DC on a visit (POWER_DC per level). */
+  dcBonus: number
   /** A spring or well: arriving refills the waterskins. */
   water: boolean
 }
@@ -138,6 +145,7 @@ export function poiInfo(state: GameState, content: Content, id: string): PoiInfo
   const kingdom = state.world.kingdoms.find((k) => k.id === domain?.kingdom)
   const land = domain?.land ?? home?.region
   const hostile = type?.hostile ?? poi.threat > 0
+  const status = siteStatus(state.world.seed, id, poi, state.day)
   return {
     id,
     name: poi.name,
@@ -148,9 +156,10 @@ export function poiInfo(state: GameState, content: Content, id: string): PoiInfo
     kingdomName: kingdom?.name ?? 'No kingdom',
     landName: own(content.regions, land)?.name ?? land ?? '?',
     hostile,
-    threat: hostile && !poi.cleared ? poi.threat : 0,
+    threat: siteThreat(state.world.seed, id, poi, state.day),
     threatName: own(content.threats, own(state.world.lands, land)?.threat)?.name ?? 'None',
-    cleared: poi.cleared,
+    status: status && { ...status, days: Math.max(0, state.day - status.since) },
+    dcBonus: (status?.power ?? 0) * POWER_DC,
     water: type?.water ?? false,
   }
 }

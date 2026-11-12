@@ -3,6 +3,7 @@ import { sortedEntries, type Content } from '../../content/build'
 import { routeOptions } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom, nodeOf } from '../../engine/world/graph'
+import { siteEmpty } from '../../engine/world/sites'
 import { SPOT_SPACING_PX, territory } from '../../engine/world/territory'
 import type { GameState } from '../../schema/state'
 import { MAP_HEIGHT, MAP_WIDTH, type Kingdom, type MapPoint } from '../../schema/world'
@@ -364,7 +365,7 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
           const classes = [
             'site',
             'poi',
-            poi.cleared && 'cleared',
+            siteEmpty(state.world.seed, id, poi, state.day) && 'cleared',
             here && 'here',
             id === selected && 'selected',
             reachable.has(id) && 'reachable',

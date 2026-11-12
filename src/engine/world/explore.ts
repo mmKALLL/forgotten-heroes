@@ -1,6 +1,7 @@
 import type { Content } from '../../content/build'
 import type { Biome } from '../../schema/constants'
 import type { GameState } from '../../schema/state'
+import type { PoiState } from '../../schema/world'
 import { revealPois } from '../encounters/effects'
 
 export { NOTHING_TO_LEARN } from '../encounters/effects'
@@ -11,7 +12,7 @@ import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
-import { TIERS, TIER_LABELS, rollCheck, tierOdds, type Tier } from '../rules/checks'
+import { TIERS, TIER_LABELS, normalizeDc, rollCheck, tierOdds, type Tier } from '../rules/checks'
 import { useSkill } from '../rules/strain'
 import { DEFAULT_PACE } from '../travel/pace'
 import { forageDay } from '../travel/forage'
@@ -19,6 +20,7 @@ import { passDay } from '../travel/supplies'
 import { FORAGE_DC } from '../travel/tuning'
 import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
+import { POWER_DC, siteStatus } from './sites'
 
 // Visiting and exploring points of interest (design §6). A visit plays one of the site's
 // situations; exploring spends days searching the domain for sites not yet found.
@@ -208,8 +210,9 @@ function ambush(state: GameState, content: Content): GameState {
 }
 
 /**
- * Plays one of the POI's situations, picked by the seeded RNG, when the party is at a
- * discovered POI that isn't cleared.
+ * Plays one of the POI's situations, picked by the seeded RNG, when the party is at a discovered
+ * POI it hasn't visited since arriving, and that isn't a dungeon or lair lying empty. A site that
+ * has grown stronger (siteStatus power) raises every check's DC by POWER_DC per level.
  */
 export function visitPoi(state: GameState, content: Content): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
@@ -218,7 +221,7 @@ export function visitPoi(state: GameState, content: Content): GameState {
   if (!id || !poi || !poi.discovered) {
     return appendLog(state, 'There is no site to visit here.', 'bad')
   }
-  const refused = visitRefusal(state, poi)
+  const refused = visitRefusal(state, id, poi)
   if (refused) return appendLog(state, refused.text, 'bad')
   const type = own(content.poiTypes, poi.type)
   const known = new Set(allSituations(content).map((s) => s.id))
@@ -226,19 +229,52 @@ export function visitPoi(state: GameState, content: Content): GameState {
   if (situations.length === 0) return appendLog(state, `Nothing happens at ${poi.name}.`, 'bad')
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const place = placeHere(state, content) ?? undefined
-  return startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
+  const started = startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
+  const power = siteStatus(state.world.seed, id, poi, state.day)?.power ?? 0
+  return power > 0 && started.encounter ? strengthen(started, power * POWER_DC) : started
 }
 
-/** Why a site can't be visited now: busy, cleared, or visited since the party arrived. */
+/** Raises every check of the open encounter by `dc`, with a line saying so. */
+function strengthen(state: GameState, dc: number): GameState {
+  const encounter = state.encounter!
+  const stages = Object.fromEntries(
+    Object.entries(encounter.situation.stages).map(([id, stage]) => [
+      id,
+      {
+        ...stage,
+        options: stage.options.map((o) =>
+          o.kind === 'check'
+            ? { ...o, check: { ...o.check, dc: normalizeDc(Number(o.check.dc) + dc) } }
+            : o
+        ),
+      },
+    ])
+  )
+  const text = `It has grown stronger since it was taken: every check here is DC +${dc}.`
+  return {
+    ...state,
+    encounter: {
+      ...encounter,
+      situation: { ...encounter.situation, stages },
+      log: [...encounter.log, { text, tone: 'bad' }],
+    },
+  }
+}
+
+/** Why a site can't be visited now: busy, lying empty (cleared), or visited since the party arrived. */
 export type VisitBlock = 'busy' | 'cleared' | 'visited'
 
 /** Why the party can't visit this (discovered) POI right now, or null when it can. */
 function visitRefusal(
   state: GameState,
-  poi: { name: string; cleared: boolean }
+  id: string,
+  poi: PoiState
 ): { code: VisitBlock; text: string } | null {
   if (inProgress(state)) return { code: 'busy', text: BUSY }
-  if (poi.cleared) return { code: 'cleared', text: `${poi.name} has been cleared.` }
+  const status = siteStatus(state.world.seed, id, poi, state.day)
+  if (status?.phase === 'empty') {
+    return { code: 'cleared', text: `${poi.name} lies empty for now.` }
+  }
   if (state.visited) {
     return {
       code: 'visited',
@@ -265,7 +301,7 @@ export function siteActions(state: GameState, content: Content): SiteAction[] {
   const actions: SiteAction[] = []
   const poi = state.travel ? undefined : own(state.world.pois, state.location)
   if (poi?.discovered && state.location) {
-    const refused = visitRefusal(state, poi)
+    const refused = visitRefusal(state, state.location, poi)
     actions.push({
       type: 'visitPoi',
       poiId: state.location,

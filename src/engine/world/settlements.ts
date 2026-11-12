@@ -128,7 +128,8 @@ export function generateSettlements(
     usedNames.add(name)
     named.add(name)
 
-    const rampant = domainThreatLevel(world, site.id) >= 3 ? RAMPANT_WEALTH : 0
+    // As the world begins, on day 1.
+    const rampant = domainThreatLevel(world, site.id, 1) >= 3 ? RAMPANT_WEALTH : 0
     const wealth = Math.max(-4, Math.min(6, d.int(-2, 2) + (town?.wealth ?? 0) + rampant))
     const ancestry =
       town?.ancestry ??

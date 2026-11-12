@@ -14,12 +14,13 @@ const t = territory(content)
 
 const poi = (spot: string, overrides: Partial<PoiState> = {}): PoiState => ({
   type: 'herbalist-hut',
+  category: 'expert',
   spot,
   domain: t.domainOf[spot],
   name: 'Old Wen’s hut',
   threat: 0,
   discovered: true,
-  cleared: false,
+  clearedDay: null,
   boonDay: null,
   ...overrides,
 })

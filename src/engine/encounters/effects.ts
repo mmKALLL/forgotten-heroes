@@ -167,11 +167,9 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       const id = state.encounter?.poi
       if (!id || !Object.hasOwn(state.world.pois, id)) return state
       const poi = state.world.pois[id]
-      const cleared = {
-        ...state,
-        world: { ...state.world, pois: { ...state.world.pois, [id]: { ...poi, cleared: true } } },
-      }
-      return note(cleared, `${poi.name} is cleared.`, 'good')
+      const pois = { ...state.world.pois, [id]: { ...poi, clearedDay: state.day } }
+      const cleared = { ...state, world: { ...state.world, pois } }
+      return note(cleared, `${poi.name} is cleared. It will lie empty for a while.`, 'good')
     }
     case 'trainSkill': {
       const untrained = state.party

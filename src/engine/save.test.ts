@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize, v3ToV4 } from './save'
+import { CURRENT_SAVE_VERSION, deserialize, migrate, serialize, v3ToV4, v4ToV5 } from './save'
 import { newGame, step } from './state'
 import { fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
 import type { RollMode } from './rules/checks'
@@ -94,7 +94,7 @@ function migrated() {
   const world = generateWorld(worldSeed(5), content)
   return {
     ...V2_SAVE,
-    version: 4,
+    version: 5,
     party: [{ ...ada, strain: {} }],
     world,
     location: startingSettlement(world, content),
@@ -105,12 +105,12 @@ function migrated() {
   }
 }
 
-test('a version 2 save loads as version 4 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(4)
+test('a version 2 save loads as version 5 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(5)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save chains through to version 4 too', () => {
+test('a version 1 save chains through to version 5 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -197,7 +197,7 @@ describe('v3 → v4', () => {
     const save = v3Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(4)
+    expect(loaded.version).toBe(5)
     expect(loaded.world).toEqual(generateWorld(worldSeed(save.seed), content))
     expect(loaded.location).toBe('greenvale-2')
     expect(loaded.gold).toBe(33)
@@ -247,5 +247,40 @@ describe('v3 → v4', () => {
     const stranded = deserialize(JSON.stringify(v3Save({ location: null, travel: lost })), content)!
     expect(stranded.travel).toBeNull()
     expect(stranded.location).toBe(startingSettlement(stranded.world, content))
+  })
+})
+
+describe('v4 → v5', () => {
+  /** A v4 save: POIs without a category, and `cleared` instead of the day it happened. */
+  function v4Save() {
+    const state = makeState({ day: 12 })
+    const [first, second] = Object.keys(state.world.pois)
+    const pois = Object.fromEntries(
+      Object.entries(state.world.pois).map(([id, p]) => {
+        const { category: _category, clearedDay: _day, boonDay: _boon, ...rest } = p
+        return [id, { ...rest, cleared: id === first }]
+      })
+    )
+    const { visited: _visited, ...older } = state
+    return { save: { ...older, version: 4, world: { ...state.world, pois } }, first, second, state }
+  }
+
+  test('keeps each POI’s category, and a cleared one is cleared as of the save’s day', () => {
+    const { save, first, second, state } = v4Save()
+    const loaded = deserialize(JSON.stringify(save), content)!
+    expect(loaded.version).toBe(5)
+    expect(loaded.world.pois[first]).toEqual({ ...state.world.pois[first], clearedDay: 12 })
+    expect(loaded.world.pois[second]).toEqual(state.world.pois[second])
+    expect(loaded.visited).toBe(false)
+  })
+
+  test('an unknown POI type falls back on its threat for a category', () => {
+    const { save, first } = v4Save()
+    const raw = structuredClone(save) as unknown as Record<string, unknown>
+    const world = raw.world as { pois: Record<string, Record<string, unknown>> }
+    world.pois[first].type = 'gone'
+    world.pois[first].threat = 2
+    const migrated = v4ToV5(raw, content) as { world: typeof world }
+    expect(migrated.world.pois[first].category).toBe('lair')
   })
 })

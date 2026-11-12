@@ -104,7 +104,8 @@ describe('threats and realm names', () => {
     for (const t of threats) expect(t.strength.min).toBeLessThanOrEqual(t.strength.max)
   })
 
-  test('about one domain in eight is Rampant across generated worlds (design §6: 10–15%)', () => {
+  // The target is 10–15% (design §6); the guard allows 8–18%, as the sites' cycles move it.
+  test.each([1, 120, 365])('about one domain in eight is Rampant on day %i', (day) => {
     let rampant = 0
     let domains = 0
     let spread = 0
@@ -113,7 +114,7 @@ describe('threats and realm names', () => {
     const { adjacent } = territory(content)
     for (let seed = 0; seed < 200; seed++) {
       const world = generateWorld(worldSeed(seed), content)
-      const levels = Object.keys(world.domains).map((id) => domainThreatLevel(world, id))
+      const levels = Object.keys(world.domains).map((id) => domainThreatLevel(world, id, day))
       const here = levels.filter((l) => l === 3).length
       rampant += here
       domains += levels.length
@@ -122,7 +123,7 @@ describe('threats and realm names', () => {
       for (const k of world.kingdoms) {
         const hops = seatHops(k, { adjacent })
         for (const id of k.domains) {
-          const level = domainThreatLevel(world, id)
+          const level = domainThreatLevel(world, id, day)
           if (hops[id] === 0) seats.push(level)
           else if ((adjacent[id] ?? []).some((a) => world.domains[a]?.kingdom !== k.id)) {
             borders.push(level)
@@ -131,8 +132,8 @@ describe('threats and realm names', () => {
       }
     }
     const share = rampant / domains
-    expect(share).toBeGreaterThanOrEqual(0.1)
-    expect(share).toBeLessThanOrEqual(0.15)
+    expect(share).toBeGreaterThanOrEqual(0.08)
+    expect(share).toBeLessThanOrEqual(0.18)
     expect(spread / 200).toBeGreaterThanOrEqual(0.8)
     // Sprawling kingdoms crack at the edges: seats hold better than borders.
     const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]

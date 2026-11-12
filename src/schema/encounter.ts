@@ -123,7 +123,8 @@ export const EffectSchema = z.discriminatedUnion('effect', [
   z
     .object({ effect: z.literal('clearPoi'), ...when })
     .describe(
-      "Clear the point of interest being visited, so it no longer feeds its domain's threat"
+      'Clear the dungeon or lair being visited: it lies empty (and feeds no threat) until ' +
+        'something moves in again (REINHABIT_DAYS)'
     ),
   z
     .object({ effect: z.literal('trainSkill'), skill: SkillSchema, ...when })

@@ -21,21 +21,25 @@ import {
 } from './explore'
 import { edgeById, pathId } from './graph'
 import { domainThreatLevel } from './pois'
-import { BOON_COOLDOWN_DAYS } from './sites'
+import { BOON_COOLDOWN_DAYS, POWER_DC, POWER_STEP_DAYS, REINHABIT_DAYS } from './sites'
 import { territory } from './territory'
 
 const content = fixtureContent()
 const spots = territory(content).spots
 
-/** A POI on the i-th spot of a domain's territory (sorted by id). */
+/** Taken again on day 1, the first day: a lair cleared REINHABIT_DAYS before is inhabited. */
+const TAKEN_ON_DAY_1 = 1 - REINHABIT_DAYS
+
+/** A POI on the i-th spot of a domain's territory (sorted by id): a lair, inhabited from day 1. */
 const poi = (domain: string, i: number, overrides: Partial<PoiState> = {}): PoiState => ({
   type: 'orc-war-camp',
+  category: 'lair',
   spot: spots[domain][i],
   domain,
   name: `Camp ${domain} ${i}`,
   threat: 2,
   discovered: false,
-  cleared: false,
+  clearedDay: TAKEN_ON_DAY_1,
   boonDay: null,
   ...overrides,
 })
@@ -113,17 +117,19 @@ describe('discoverPoi', () => {
 })
 
 describe('clearPoi', () => {
-  test('clears the POI being visited, lowering its domain’s threat', () => {
+  test('clears the POI being visited for a while, lowering its domain’s threat', () => {
     const state = withPois(
       { 'poi-1': poi('ashmoor-1', 0, { discovered: true }) },
       { encounter: makeEncounter({ poi: 'poi-1', domain: 'ashmoor-1' }) }
     )
     state.world.lands.ashmoor.threatStrength = 3
     state.world.domains['ashmoor-1'].garrison = 2
-    expect(domainThreatLevel(state.world, 'ashmoor-1')).toBe(3)
+    expect(domainThreatLevel(state.world, 'ashmoor-1', state.day)).toBe(3)
     const after = applyEffects(state, fx({ effect: 'clearPoi' }), { content })
-    expect(after.world.pois['poi-1'].cleared).toBe(true)
-    expect(domainThreatLevel(after.world, 'ashmoor-1')).toBe(1)
+    expect(after.world.pois['poi-1'].clearedDay).toBe(state.day)
+    expect(domainThreatLevel(after.world, 'ashmoor-1', state.day)).toBe(1)
+    // Something moves in again REINHABIT_DAYS later.
+    expect(domainThreatLevel(after.world, 'ashmoor-1', state.day + REINHABIT_DAYS)).toBe(3)
     expect(describeEffect(fx({ effect: 'clearPoi' })[0], 'Lyra')).toBe('clears the site')
   })
 
@@ -207,7 +213,7 @@ describe('visitPoi', () => {
   const pois = {
     'poi-1': poi('greenvale-1', 0, { discovered: true }),
     'poi-2': poi('greenvale-1', 1),
-    'poi-3': poi('greenvale-2', 0, { discovered: true, cleared: true }),
+    'poi-3': poi('greenvale-2', 0, { discovered: true, clearedDay: 1 }),
   }
   const visit = (location: string | null, extra: Partial<GameState> = {}) =>
     step(withPois(pois, { location, ...extra }), { type: 'visitPoi' }, content)
@@ -219,7 +225,7 @@ describe('visitPoi', () => {
     expect(state.encounter?.domain).toBe('greenvale-1')
   })
 
-  test('is refused away from a POI, at an undiscovered or cleared one, and in an encounter', () => {
+  test('is refused away from a POI, at an undiscovered or empty one, and in an encounter', () => {
     for (const where of ['greenvale-1', 'poi-2', 'poi-3', null]) {
       const state = visit(where)
       expect(state.encounter).toBeNull()
@@ -274,6 +280,49 @@ describe('visitPoi', () => {
     expect(back.location).toBe('poi-1')
     expect(back.visited).toBe(false)
     expect(step(back, { type: 'visitPoi' }, content).encounter?.poi).toBe('poi-1')
+  })
+})
+
+describe('dungeons and lairs over time', () => {
+  test('one grown strong raises every check’s DC, and says so', () => {
+    const day = 1 + 2 * POWER_STEP_DAYS
+    const state = withPois(
+      { 'poi-1': poi('greenvale-1', 0, { discovered: true }) },
+      { location: 'poi-1', day }
+    )
+    const plain = withPois(
+      { 'poi-1': poi('greenvale-1', 0, { discovered: true, clearedDay: day - REINHABIT_DAYS }) },
+      { location: 'poi-1', day }
+    )
+    const dcOf = (s: GameState) => {
+      const option = s.encounter!.situation.stages.start.options.find((o) => o.kind === 'check')!
+      return option.kind === 'check' ? Number(option.check.dc) : 0
+    }
+    const strong = step(state, { type: 'visitPoi' }, content)
+    const fresh = step(plain, { type: 'visitPoi' }, content)
+    expect(dcOf(strong)).toBe(dcOf(fresh) + 2 * POWER_DC)
+    expect(strong.encounter!.log.at(-1)!.text).toBe(
+      `It has grown stronger since it was taken: every check here is DC +${2 * POWER_DC}.`
+    )
+  })
+
+  test('word of a known site cleared by the realm, or taken again, reaches the party', () => {
+    // Cleared by the party on day 1: something moves in on day 1 + REINHABIT_DAYS.
+    const state = withPois(
+      {
+        'poi-1': poi('greenvale-1', 0, { discovered: true, clearedDay: 1 }),
+        'poi-2': poi('greenvale-1', 1, { clearedDay: 1 }),
+      },
+      { location: 'greenvale-1', day: REINHABIT_DAYS }
+    )
+    const rested = step(state, { type: 'rest' }, content)
+    const news = rested.log.filter((e) => e.text.startsWith('Word reaches you'))
+    expect(news.map((e) => e.text)).toEqual([
+      'Word reaches you: something has moved into Camp greenvale-1 0 again.',
+    ])
+    // Nothing more the next day.
+    const again = step(rested, { type: 'rest' }, content)
+    expect(again.log.filter((e) => e.text.startsWith('Word reaches you'))).toHaveLength(1)
   })
 })
 

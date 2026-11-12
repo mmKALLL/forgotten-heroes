@@ -30,7 +30,7 @@ export function generateWorld(seed: number, content: Content): WorldState {
     const settlements = generateSettlements(
       d,
       content,
-      { kingdoms, lands, domains, pois },
+      { seed, kingdoms, lands, domains, pois },
       usedNames
     )
     return { seed, kingdoms, lands, domains, pois, settlements }
@@ -72,7 +72,7 @@ export function startingSettlement(
   const small = onMainland.filter((s) => !GRAND.includes(world.settlements[s.id].type))
   const pool = small.length > 0 ? small : onMainland
   const level = (id: string) =>
-    Object.hasOwn(world.domains, id) ? domainThreatLevel(world, id) : 3
+    Object.hasOwn(world.domains, id) ? domainThreatLevel(world, id, 1) : 3
   const calmest = Math.min(...pool.map((s) => level(s.id)))
   return pick(pool.filter((s) => level(s.id) === calmest))
 }

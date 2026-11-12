@@ -6,6 +6,7 @@ import type { Draw } from '../rng'
 import { straightKm } from './geo'
 import { NAME_TRIES } from './names'
 import { threatLevelFor } from './politics'
+import { siteThreat } from './sites'
 import { territory, type Territory } from './territory'
 
 // Points of interest (design §6): dungeons, experts, lairs, shrines, landmarks, wonders and quest
@@ -23,8 +24,9 @@ export const POI_MIN_KM = 8
 /** A type whose biome matches the spot, or whose threats name the land's threat, weighs this much more. */
 export const POI_FAVOURED = 3
 
-/** The parts of a world the threat of a domain depends on. */
+/** The parts of a world the threat of a domain depends on (the seed sets the sites' cycles). */
 export type PoiWorld = {
+  seed: number
   lands: Record<string, LandState>
   domains: Record<string, DomainState>
   pois: Record<string, PoiState>
@@ -131,12 +133,13 @@ export function generatePois(
       used.add(name)
       result[`poi-${Object.keys(result).length + 1}`] = {
         type: type.id,
+        category: type.category,
         spot: spot.id,
         domain: site.id,
         name,
         threat: type.threat ? d.int(type.threat.min, type.threat.max) : 0,
         discovered: false,
-        cleared: false,
+        clearedDay: null,
         boonDay: null,
       }
     }
@@ -144,32 +147,42 @@ export function generatePois(
   return result
 }
 
-/** The threat holding a domain: its land's strength plus every uncleared hostile POI in it. */
-export function domainThreatStrength(world: PoiWorld, domainId: string): number {
+/**
+ * The threat holding a domain on a day: its land's strength plus what each of its hostile POIs
+ * adds while inhabited (siteThreat: more once it has grown strong, nothing while it lies empty).
+ */
+export function domainThreatStrength(world: PoiWorld, domainId: string, day: number): number {
   const domain = own(world.domains, domainId)
   if (!domain) return 0
   const land = own(world.lands, domain.land)?.threatStrength ?? 0
-  const lairs = Object.values(world.pois)
-    .filter((p) => p.domain === domainId && !p.cleared)
-    .reduce((sum, p) => sum + p.threat, 0)
+  const lairs = Object.entries(world.pois)
+    .filter(([, p]) => p.domain === domainId)
+    .reduce((sum, [id, p]) => sum + siteThreat(world.seed, id, p, day), 0)
   return land + lairs
 }
 
 /**
- * What the party knows lairs add to a domain's threat: the threat of its discovered, uncleared
- * POIs. Undiscovered ones still count in the level (domainThreatLevel), silently.
+ * What the party knows lairs add to a domain's threat on a day: the threat of its discovered
+ * POIs (siteThreat). Undiscovered ones still count in the level (domainThreatLevel), silently.
  */
-export function knownLairThreat(world: Pick<PoiWorld, 'pois'>, domainId: string): number {
-  return Object.values(world.pois)
-    .filter((p) => p.domain === domainId && p.discovered && !p.cleared)
-    .reduce((sum, p) => sum + p.threat, 0)
+export function knownLairThreat(
+  world: Pick<PoiWorld, 'seed' | 'pois'>,
+  domainId: string,
+  day: number
+): number {
+  return Object.entries(world.pois)
+    .filter(([, p]) => p.domain === domainId && p.discovered)
+    .reduce((sum, [id, p]) => sum + siteThreat(world.seed, id, p, day), 0)
 }
 
-/** How far the threat outweighs the domain's garrison, 0 (held) to 3 (rampant); derived, never stored. */
-export function domainThreatLevel(world: PoiWorld, domainId: string): number {
+/**
+ * How far the threat outweighs the domain's garrison on a day, 0 (held) to 3 (rampant); derived,
+ * never stored.
+ */
+export function domainThreatLevel(world: PoiWorld, domainId: string, day: number): number {
   const domain = own(world.domains, domainId)
   if (!domain) return 0
-  return threatLevelFor(domainThreatStrength(world, domainId), domain.garrison)
+  return threatLevelFor(domainThreatStrength(world, domainId, day), domain.garrison)
 }
 
 /** What discoverPoi looks for: how many, where, and of which category. */
