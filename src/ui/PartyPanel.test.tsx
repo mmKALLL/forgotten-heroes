@@ -166,6 +166,8 @@ test('the camaraderie line: tier, value, wages and owed, explained on hover', ()
     wagesPerDay: 2,
     wagesOwed: 3,
     desertRisk: 0.25,
+    desertChance: 0.25,
+    fracturedMax: 1,
   }
   render(<PartyPanel party={[brom]} camaraderie={info} />)
   const line = document.querySelector('.camaraderie')!

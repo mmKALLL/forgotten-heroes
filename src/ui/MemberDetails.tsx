@@ -7,8 +7,6 @@ import { isAlive, isHired, type CamaraderieInfo } from '../engine/town/camarader
 import type { Action } from '../engine/state'
 import type { Accessory } from '../schema/gear'
 import type { Character } from '../schema/state'
-import { CAMARADERIE_TIERS } from '../schema/types'
-import { DESERT_CHANCE } from '../engine/constants'
 import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
 
@@ -163,11 +161,13 @@ function AccessorySlot({
 /** "Camaraderie: Steady (5/8) · wages 3 gp a day · 2 gp owed", explained on hover or tap. */
 export function CamaraderieLine({ info }: { info: CamaraderieInfo }) {
   const { t } = useI18n()
-  const fractured = CAMARADERIE_TIERS[1].min - 1
   const tip = [
     t('camaraderie.tipValue', { label: info.label, value: info.value, max: info.max }),
     t('camaraderie.tipRules'),
-    t('camaraderie.tipEffect', { max: fractured, n: Math.round(DESERT_CHANCE * 100) }),
+    t('camaraderie.tipEffect', {
+      max: info.fracturedMax,
+      n: Math.round(info.desertChance * 100),
+    }),
     info.causes.length > 0
       ? t('camaraderie.tipNow', { causes: info.causes.join('; ') })
       : t('camaraderie.tipFine'),

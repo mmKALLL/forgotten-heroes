@@ -167,6 +167,10 @@ export type CamaraderieInfo = {
   wagesOwed: number
   /** The chance each hired member deserts on the next arrival (0 unless Fractured). */
   desertRisk: number
+  /** The rule, for the tooltip: the chance each hired member deserts while Fractured. */
+  desertChance: number
+  /** The highest value that is still Fractured. */
+  fracturedMax: number
 }
 
 export function camaraderieInfo(state: GameState): CamaraderieInfo {
@@ -194,5 +198,7 @@ export function camaraderieInfo(state: GameState): CamaraderieInfo {
     wagesPerDay: wages,
     wagesOwed: state.wagesOwed,
     desertRisk,
+    desertChance: DESERT_CHANCE,
+    fracturedMax: CAMARADERIE_TIERS[1].min - 1,
   }
 }
