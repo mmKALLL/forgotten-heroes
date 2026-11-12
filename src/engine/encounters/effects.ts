@@ -11,6 +11,7 @@ import { passDay } from '../travel/days'
 import { addReputation, encounterSettlement } from '../town/reputation'
 import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
+import { crisisHidden } from '../crisis/sites'
 import { changeGoods } from '../economy/goods'
 import { changeAnimals } from '../town/animals'
 import { siteContractsMet } from '../town/contract-hooks'
@@ -192,7 +193,10 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       return note(state, effect.text, effect.tone)
     case 'discoverPoi': {
       const domain = state.encounter?.domain ?? domainAt(state.world, state.location)
-      const ids = ctx.content ? poisToDiscover(state.world, ctx.content, domain, effect) : []
+      const hidden = crisisHidden(state)
+      const ids = ctx.content
+        ? poisToDiscover(state.world, ctx.content, domain, effect, hidden)
+        : []
       if (ids.length === 0) return note(state, NOTHING_TO_LEARN, 'info')
       return revealPois(state, ctx.content!, ids)
     }

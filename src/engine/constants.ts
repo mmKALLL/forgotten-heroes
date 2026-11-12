@@ -525,3 +525,21 @@ export const DANGER_RAMP_DAYS = 50
 export const DANGER_RAMP_STEP = 0.1
 /** The danger share never rises above this (+100%, from day 501). */
 export const DANGER_RAMP_MAX = 1
+
+// The Crisis: rolling it (crisis/generate.ts)
+
+/** A villain one of whose threats holds a land, and a domain that suits a site, weigh this much more. */
+export const CRISIS_THREAT_FAVOUR = 3
+/**
+ * The reveal site lies this many steady days from the start (inclusive), by road and path. On
+ * Altaeus domain hops vary too much in days (two hops are 7–19 days), so the near sites use days.
+ */
+export const CRISIS_REVEAL_DAYS: readonly [number, number] = [2, 8]
+/** Act I's site lies this many steady days from the start (inclusive), by road and path. */
+export const CRISIS_ACT1_DAYS: readonly [number, number] = [4, 12]
+/** Acts II and III lie at least this many domain hops from the act before. */
+export const CRISIS_ACT_SPREAD = 3
+/** Act n is due about n × this many days after the Crisis starts (the designer's number). */
+export const CRISIS_ACT_DAYS = 100
+/** Each due day is moved by up to ± this many days (seeded). */
+export const CRISIS_DUE_JITTER = 10

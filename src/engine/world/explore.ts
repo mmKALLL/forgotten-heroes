@@ -18,6 +18,7 @@ import { forageDay } from '../travel/forage'
 import { passDay } from '../travel/supplies'
 import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
+import { crisisHidden } from '../crisis/sites'
 import { siteStatus } from './sites'
 import { rumourOption, type RumourOption } from '../town/rumours'
 import { siteContractsMet } from '../town/contract-hooks'
@@ -180,10 +181,8 @@ export function explore(state: GameState, content: Content): GameState {
     next = passDay(next, terrain, DEFAULT_PACE, content)
   }
   if (finds.found > 0) {
-    const ids = poisToDiscover(next.world, content, domain, {
-      count: finds.found,
-      scope: 'domain',
-    })
+    const search = { count: finds.found, scope: 'domain' } as const
+    const ids = poisToDiscover(next.world, content, domain, search, crisisHidden(next))
     return ids.length > 0 ? revealPois(next, content, ids) : appendLog(next, PICKED_CLEAN, 'info')
   }
   if (roll.tier !== 'critFail') return appendLog(next, 'The search turns up nothing.', 'info')

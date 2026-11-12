@@ -29,6 +29,7 @@ import { applyLevelUps } from './rules/progression'
 import { mournTheDead } from './town/camaraderie'
 import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { gather } from './world/gather'
+import { generateCrisis } from './crisis/generate'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
@@ -76,8 +77,11 @@ export function newGame(
 ): GameState {
   const [party, rng] = generateParty(createRng(seed), content, partySize)
   // The world draws from its own stream, so it doesn't change the party or later rolls.
-  const world = generateWorld(worldSeed(seed), content)
-  const location = startingSettlement(world, content, start)
+  const rolled = generateWorld(worldSeed(seed), content)
+  const location = startingSettlement(rolled, content, start)
+  // The world's Crisis (crisis/generate.ts): its own stream, so the rest of the world is unchanged.
+  const crisis = generateCrisis(rolled, content, { startDay: 1, start: location })
+  const world = crisis?.world ?? rolled
   const names = party.map((c) => c.name).join(' and ')
   const from = location ? ` from ${settlementName({ world }, location)}` : ''
   const state: GameState = {
@@ -115,7 +119,7 @@ export function newGame(
     recruitsTaken: [],
     gearTaken: [],
     luckUsed: {},
-    crisis: null,
+    crisis: crisis?.crisis ?? null,
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state

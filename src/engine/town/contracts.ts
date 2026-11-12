@@ -18,6 +18,7 @@ import { inSettlement } from '../travel/where'
 import { changeCamaraderie } from './camaraderie'
 import { settlementName } from '../world/geo'
 import { domainThreatLevel } from '../world/pois'
+import { crisisSites } from '../crisis/sites'
 import { siteEmpty } from '../world/sites'
 import { personDisplayName } from './people'
 import {
@@ -190,8 +191,10 @@ function targets(
       .sort((a, b) => byCodeUnit(a.id, b.id))
   }
   const categories = template.poiCategories ?? []
+  // The Crisis's sites are never anyone's errand: they are found their own way (crisis/).
+  const crisis = new Set(crisisSites(state.crisis))
   return Object.entries(state.world.pois)
-    .filter(([, poi]) => categories.includes(poi.category))
+    .filter(([id, poi]) => categories.includes(poi.category) && !crisis.has(id))
     .filter(
       ([id, poi]) => template.kind !== 'bounty' || !siteEmpty(state.world.seed, id, poi, weekStart)
     )
