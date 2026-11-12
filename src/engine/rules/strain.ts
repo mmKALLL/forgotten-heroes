@@ -1,15 +1,6 @@
 import { SKILLS, type Skill } from '../../schema/types'
 import type { Character, GameState, SkillUse } from '../../schema/state'
-
-/**
- * Design §3: thresholds are inclusive, so the third use of a skill in a day, or the tenth within
- * seven days, adds a stack, and so does every later use.
- */
-export const STRAIN_PER_DAY = 3
-export const STRAIN_PER_WEEK = 10
-export const STRAIN_WEEK_DAYS = 7
-/** Skill uses older than this many days are dropped; Strain looks back at most a week. */
-export const SKILL_USE_DAYS = 7
+import { SKILL_USE_DAYS, STRAIN_PER_DAY, STRAIN_PER_WEEK, STRAIN_WEEK_DAYS } from '../constants'
 
 /** True when this character's latest use of `skill` (already in `uses`) adds a Strain stack. */
 export function strainFrom(

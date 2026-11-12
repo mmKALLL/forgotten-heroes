@@ -5,9 +5,9 @@ import { MAX_EXHAUSTION } from '../encounters/effects'
 import { canAct, statModifier } from '../rules/character'
 import { tierOdds } from '../rules/checks'
 import { expectedForage } from './forage'
-import { FORCED_MARCH_DC } from './pace'
 import { journeyDays } from './routes'
 import { dailyNeed, goodsOf, partyWaterCapacity, waterNeed } from './supplies'
+import { DEADLY_MARCH_CHANCE, FORCED_MARCH_DC } from '../constants'
 
 // Supply forecasts and warnings for a road at a pace (design §7): the preview warns clearly when a
 // route at the chosen pace exceeds the party's water or food. Warnings are codes with params; the
@@ -60,9 +60,6 @@ export type TravelWarning =
       code: 'forcedMarchDeadly'
       params: { days: number; dc: number; characterId: string; name: string; chance: number }
     }
-
-/** A forced march this likely to kill someone (exhaustion level 6) gets a severe warning. */
-export const DEADLY_MARCH_CHANCE = 0.1
 
 /** Warnings the UI should show as severe. */
 export const isSevere = (w: TravelWarning): boolean => w.code === 'forcedMarchDeadly'

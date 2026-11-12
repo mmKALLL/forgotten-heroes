@@ -5,21 +5,18 @@ import type { Draw } from '../rng'
 import { generatePlaceName } from './names'
 import { domainThreatLevel, type PoiWorld } from './pois'
 import type { Politics } from './politics'
+import {
+  MIN_TOWN_MATCH,
+  POPULATION_TIERS,
+  RAMPANT_WEALTH,
+  RULING_ANCESTRY_SHARE,
+  SERVICE_CHANCE,
+} from '../constants'
 
 /** Settlement types a plain map marker can be; kingdom seats are "capital", other framed markers "city". */
 export const MARKER_TYPES = ['hamlet', 'village', 'town', 'city', 'fort'] as const
-/** The prototype's population thresholds: above each, the next size tier. */
-export const POPULATION_TIERS = [76, 400, 1000, 4000, 10000]
-/** A service that passes its d20 roll still only appears this often (prototype). */
-export const SERVICE_CHANCE = 0.9
 /** Services that need the sea. */
 export const COASTAL_SERVICES: readonly string[] = ['port']
-/** A named town needs at least this score to be placed (see townScore). */
-export const MIN_TOWN_MATCH = 2
-/** Settlements are this much poorer where their domain's threat is rampant (level 3). */
-export const RAMPANT_WEALTH = -1
-/** How often a settlement's ancestry is the ruling one, when its town doesn't name one. */
-export const RULING_ANCESTRY_SHARE = 0.75
 
 export const sizeTierOf = (population: number): number =>
   POPULATION_TIERS.filter((t) => population > t).length

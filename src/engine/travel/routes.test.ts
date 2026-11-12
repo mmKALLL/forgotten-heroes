@@ -3,10 +3,8 @@ import type { TravelState } from '../../schema/state'
 import { createRng, withRng } from '../rng'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { domainThreatLevel } from '../world/pois'
-import { REINHABIT_DAYS } from '../world/sites'
 import {
   canMeetEncounters,
-  ENCOUNTER_SLOT_CHANCE,
   encounterRange,
   fareFor,
   hostileShare,
@@ -16,6 +14,7 @@ import {
   routeTerrain,
   routeThreat,
 } from './routes'
+import { ENCOUNTER_SLOT_CHANCE, REINHABIT_DAYS } from '../constants'
 
 const content = fixtureContent()
 

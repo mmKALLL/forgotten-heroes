@@ -1,5 +1,6 @@
 import { MAX_DC, MIN_DC, TIERS, type Tier } from '../../schema/types'
 import { withRng, type Rng } from '../rng'
+import { PARTIAL_MARGIN } from '../constants'
 
 export { TIERS }
 export type { Tier }
@@ -18,9 +19,6 @@ export const normalizeDc = (dc: number): number =>
 
 /** Edge = advantage, Exposed = disadvantage. Advantage is earned, never free (see design §3). */
 export type RollMode = 'normal' | 'advantage' | 'disadvantage'
-
-/** Totals this far below the DC still count as a partial success. */
-export const PARTIAL_MARGIN = 3
 
 export function tierFor(d20: number, total: number, dc: number): Tier {
   if (d20 === 20) return 'critSuccess'

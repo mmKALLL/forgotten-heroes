@@ -10,7 +10,7 @@ import { settlementName } from '../../engine/world/geo'
 import { I18nProvider, LANGUAGE_KEY } from '../i18n/I18n'
 import { PlacePanel } from './PlacePanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
-import { REINHABIT_DAYS } from '../../engine/world/sites'
+import { REINHABIT_DAYS } from '../../engine/constants'
 
 const content = fixtureContent()
 afterEach(cleanup)

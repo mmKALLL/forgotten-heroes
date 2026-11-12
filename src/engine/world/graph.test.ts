@@ -6,8 +6,9 @@ import { fixtureContent, makeState } from '../test-fixtures'
 import { placeOnRoute } from '../travel/journey'
 import { routeOptions } from '../travel/preview'
 import { goodsOf, partyWaterCapacity } from '../travel/supplies'
-import { PATH_DETOUR, edgeById, edgesFrom, nodeOf, pathId, poiPaths } from './graph'
+import { edgeById, edgesFrom, nodeOf, pathId, poiPaths } from './graph'
 import { offRoadKm, territory } from './territory'
+import { PATH_DETOUR } from '../constants'
 
 const content = fixtureContent()
 const t = territory(content)

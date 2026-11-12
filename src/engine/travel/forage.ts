@@ -4,7 +4,7 @@ import { chooseActor } from '../rules/character'
 import { rollCheck, tierOdds, TIERS } from '../rules/checks'
 import { useSkill } from '../rules/strain'
 import { goodsOf, partyWaterCapacity, waterNeed } from './supplies'
-import { FORAGE_DC, FORAGE_PACE_MODIFIER } from './tuning'
+import { FORAGE_DC, FORAGE_PACE_MODIFIER } from '../constants'
 
 export const FORAGE_SKILL = 'survival' as const
 

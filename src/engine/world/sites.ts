@@ -1,12 +1,18 @@
 import type { PoiCategory } from '../../schema/types'
 import type { PoiState } from '../../schema/world'
 import { createRng, nextFloat } from '../rng'
+import {
+  BOON_COOLDOWN_DAYS,
+  INHABITED_DAYS,
+  INHABITED_JITTER,
+  MAX_POWER,
+  POWER_STEP_DAYS,
+  POWER_THREAT_AT,
+  REINHABIT_DAYS,
+} from '../constants'
 
 // How points of interest change over time (design §6, "Points of interest over time"). Nothing
 // ticks: every status is derived from the day, the world seed and what is stored on the POI.
-
-/** A site's boon (a siteReady option: a blessing, healing, a find) returns this many days after it was taken. */
-export const BOON_COOLDOWN_DAYS = 30
 
 /** Days until the site's boon returns: 0 when it is ready. */
 export function boonReadyIn(poi: Pick<PoiState, 'boonDay'>, day: number): number {
@@ -19,20 +25,6 @@ export function boonReadyIn(poi: Pick<PoiState, 'boonDay'>, day: number): number
 // (drawn per site and per cycle), growing stronger, until the realm or an accident clears it and
 // the cycle begins again. About four in five are inhabited at any time.
 
-/** Days a cleared site lies empty before something moves in again. */
-export const REINHABIT_DAYS = 30
-/** Days a site stays inhabited, on average, before the realm or an accident clears it. */
-export const INHABITED_DAYS = 120
-/** Each inhabited spell is INHABITED_DAYS plus or minus up to this many days (seeded). */
-export const INHABITED_JITTER = 20
-/** An inhabited site gains a level of power every this many days... */
-export const POWER_STEP_DAYS = 40
-/** ...up to this many. */
-export const MAX_POWER = 2
-/** Each level of power adds this to the DC of every check at the site. */
-export const POWER_DC = 1
-/** From this power on, a hostile site adds 1 more threat (at most 3). */
-export const POWER_THREAT_AT = 2
 /** The categories that are cleared and fill up again. */
 export const CYCLING_CATEGORIES: readonly PoiCategory[] = ['dungeon', 'lair']
 

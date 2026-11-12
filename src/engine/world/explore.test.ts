@@ -11,18 +11,19 @@ import { createRng } from '../rng'
 import { rollCheck, TIERS, type Tier } from '../rules/checks'
 import { availableActions, step } from '../state'
 import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../test-fixtures'
-import { FORAGE_DC } from '../travel/tuning'
-import {
-  EXPLORE_DAYS,
-  EXPLORE_DC_BONUS,
-  NOTHING_TO_LEARN,
-  PICKED_CLEAN,
-  exploreOption,
-} from './explore'
+import { NOTHING_TO_LEARN, PICKED_CLEAN, exploreOption } from './explore'
 import { edgeById, pathId } from './graph'
 import { domainThreatLevel } from './pois'
-import { BOON_COOLDOWN_DAYS, POWER_DC, POWER_STEP_DAYS, REINHABIT_DAYS } from './sites'
 import { territory } from './territory'
+import {
+  BOON_COOLDOWN_DAYS,
+  EXPLORE_DAYS,
+  EXPLORE_DC_BONUS,
+  FORAGE_DC,
+  POWER_DC,
+  POWER_STEP_DAYS,
+  REINHABIT_DAYS,
+} from '../constants'
 
 const content = fixtureContent()
 const spots = territory(content).spots

@@ -5,8 +5,9 @@ import { createRng, withRng } from '../rng'
 import { fixtureContent } from '../test-fixtures'
 import { START_SALT, generateWorld, startingSettlement, worldSeed } from './generate'
 import { domainThreatLevel } from './pois'
-import { RAMPANT_WEALTH, rollServices, sizeTierOf } from './settlements'
+import { rollServices, sizeTierOf } from './settlements'
 import { territory } from './territory'
+import { RAMPANT_WEALTH } from '../constants'
 
 const content = fixtureContent()
 const edit = (change: (c: Content) => void): Content => {

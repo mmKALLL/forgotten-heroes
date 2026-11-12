@@ -3,15 +3,9 @@ import type { Content } from '../../content/build'
 import { DomainStateSchema, KingdomSchema, LandStateSchema } from '../../schema/world'
 import { createRng, withRng } from '../rng'
 import { fixtureContent } from '../test-fixtures'
-import {
-  DEFENCE,
-  KINGDOMS,
-  SEAT_FALLOFF,
-  generatePolitics,
-  seatHops,
-  threatLevelFor,
-} from './politics'
+import { generatePolitics, seatHops, threatLevelFor } from './politics'
 import { territory } from './territory'
+import { DEFENCE, KINGDOMS, SEAT_FALLOFF } from '../constants'
 
 const content = fixtureContent()
 const politics = (seed: number, kingdoms?: number, c: Content = content) =>

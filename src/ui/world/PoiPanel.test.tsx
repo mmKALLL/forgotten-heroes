@@ -5,7 +5,6 @@ import { useState, type ComponentProps } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { formatPercent } from '../../engine/format'
 import { exploreOption } from '../../engine/world/explore'
-import { POWER_STEP_DAYS, REINHABIT_DAYS } from '../../engine/world/sites'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom } from '../../engine/world/graph'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
@@ -13,6 +12,7 @@ import type { GameState } from '../../schema/state'
 import { PlacePanel } from './PlacePanel'
 import { PoiPanel } from './PoiPanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
+import { POWER_STEP_DAYS, REINHABIT_DAYS } from '../../engine/constants'
 
 const content = fixtureContent()
 afterEach(cleanup)

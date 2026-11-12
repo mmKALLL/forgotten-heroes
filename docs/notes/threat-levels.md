@@ -67,7 +67,9 @@ A content test (`src/content/world.test.ts`) measures seeds 0–199 on days 1, 1
 
 ### Tuning knobs, in the order to reach for them
 
-1. `DEFENCE` in `politics.ts`. Raising both ends by one or two moves Rampant by about 1–2 points. For example, 10–22 gives 11.5% and 10–24 gives 10.6%.
-2. `SEAT_FALLOFF` in `politics.ts`. This sets how much weaker borders are than seats.
-3. The lair `threat` ranges and `weight`s in `data/procedural/poi-types.json`, the POI density (`POI_SPOTS_EACH`, `POI_MAX_PER_DOMAIN` in `pois.ts`), and the sites' cycles (`REINHABIT_DAYS`, `INHABITED_DAYS`, `POWER_STEP_DAYS`, `POWER_THREAT_AT` in `sites.ts`).
+The constants below live in `src/engine/constants.ts` (see [constants.md](constants.md)).
+
+1. `DEFENCE`. Raising both ends by one or two moves Rampant by about 1–2 points. For example, 10–22 gives 11.5% and 10–24 gives 10.6%.
+2. `SEAT_FALLOFF`. This sets how much weaker borders are than seats.
+3. The lair `threat` ranges and `weight`s in `data/procedural/poi-types.json`, the POI density (`POI_SPOTS_EACH`, `POI_MAX_PER_DOMAIN`), and the sites' cycles (`REINHABIT_DAYS`, `INHABITED_DAYS`, `POWER_STEP_DAYS`, `POWER_THREAT_AT`).
 4. The threat `strength` ranges in `data/claude/threats.json`, only as a last resort.

@@ -1,9 +1,10 @@
 import { useEffect, useReducer } from 'react'
 import type { Content } from '../content/build'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize, serialize } from '../engine/save'
-import { STARTING_PARTY_SIZE, newGame, step, type Action } from '../engine/state'
+import { newGame, step, type Action } from '../engine/state'
 import type { StartMode } from '../engine/world/generate'
 import type { GameState } from '../schema/state'
+import { STARTING_PARTY_SIZE } from '../engine/constants'
 
 type UiAction = Action | { type: 'replace'; state: GameState }
 

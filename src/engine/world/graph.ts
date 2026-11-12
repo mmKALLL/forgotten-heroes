@@ -3,14 +3,12 @@ import type { Biome } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import type { MapPoint, Route } from '../../schema/world'
 import { straightKm } from './geo'
-import { OFF_ROAD_WINDING, offRoadKm, territory } from './territory'
+import { offRoadKm, territory } from './territory'
+import { OFF_ROAD_WINDING, PATH_DETOUR } from '../constants'
 
 // The travel graph (design §6–7): settlements and discovered points of interest are its nodes;
 // content routes and the paths to discovered POIs are its edges. Travel, previews and the map read
 // it instead of content.routes.
-
-/** A POI also gets a path to another settlement on its island this much farther than its own. */
-export const PATH_DETOUR = 1.25
 
 export type MapNode = {
   id: string

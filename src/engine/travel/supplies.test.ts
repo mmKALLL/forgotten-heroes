@@ -11,7 +11,6 @@ import {
   makeState,
 } from '../test-fixtures'
 import { settlementName } from '../world/geo'
-import { FORCED_MARCH_DC } from './pace'
 import {
   buyFood,
   buyWaterskin,
@@ -26,7 +25,13 @@ import {
   sellSupplies,
   waterCapacity,
 } from './supplies'
-import { LODGING_PRICE, WATERSKIN_PRICE, WATERSKIN_WATER, WATER_DAYS } from './tuning'
+import {
+  FORCED_MARCH_DC,
+  LODGING_PRICE,
+  WATERSKIN_PRICE,
+  WATERSKIN_WATER,
+  WATER_DAYS,
+} from '../constants'
 
 const content = fixtureContent()
 const base = (overrides: Partial<GameState> = {}): GameState =>

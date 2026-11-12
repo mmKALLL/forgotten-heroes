@@ -6,14 +6,12 @@ import type { Rng } from '../rng'
 import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
 import { fadeStrainAfter } from '../rules/strain'
-import { DEFAULT_PACE, FORCED_MARCH_DC, rationMultiplier } from './pace'
+import { rationMultiplier } from './pace'
+import { DEFAULT_PACE, FORCED_MARCH_DC, HUNGER_DC, THIRST_DC } from '../constants'
 
 // A day passing: eating, drinking and going without (design §7). Kept apart from supplies.ts so
 // encounter effects (a `days` effect) can pass days without importing the travel actions.
 
-/** CON check DCs for a day without food, and a day without water. */
-export const HUNGER_DC = 10
-export const THIRST_DC = 15
 export const goodsOf = (goods: Goods, good: Good): number => goods[good] ?? 0
 /** Water per member per day: the desert takes twice as much. */
 export const waterNeed = (terrain: Biome | null): number => (terrain === 'desert' ? 2 : 1)

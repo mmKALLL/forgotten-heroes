@@ -4,8 +4,8 @@ import { MAX_EXHAUSTION } from '../encounters/effects'
 import { encounterOptions } from '../encounters/preview'
 import { step } from '../state'
 import { routeOptions, type PaceOption } from './preview'
-import { FOOD_PRICE, goodsOf, restOption } from './supplies'
-import { WATERSKIN_PRICE } from './tuning'
+import { goodsOf, restOption } from './supplies'
+import { FOOD_PRICE, WATERSKIN_PRICE } from '../constants'
 
 /** Exhausted or badly hurt, but alive (a member at MAX_EXHAUSTION is beyond resting). */
 const needsRest = (c: Character) =>

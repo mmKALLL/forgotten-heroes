@@ -3,7 +3,8 @@ import type { Content } from '../../content/build'
 import { PX_PER_KM } from '../../schema/world'
 import { fixtureContent } from '../test-fixtures'
 import { straightKm } from './geo'
-import { SPOT_LINK_KM, territory } from './territory'
+import { territory } from './territory'
+import { SPOT_LINK_KM } from '../constants'
 
 const content = fixtureContent()
 

@@ -29,6 +29,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - **No functions in data.** Conditions, checks, effects and rule hooks are small typed objects that the engine interprets. This keeps odds computable and content editable.
 - **The UI only renders state** and dispatches actions. Game rules belong in the engine, never in components.
 - **Schemas live in `src/schema/`** as zod schemas. Constants are named `FooSchema`, inferred types `Foo`.
+- **Balance numbers live in `src/engine/constants.ts`**, grouped by topic with a one-line comment each (see `docs/notes/constants.md`). It imports only vocabulary (`src/schema/types.ts`), never other engine modules. Labels, enums and text stay in their modules.
 
 ## Content rules
 
@@ -76,6 +77,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 
 ## Working conventions
 
+- **Tuning:** change balance numbers in `src/engine/constants.ts` (data-file knobs are listed in `docs/notes/constants.md`); some tests pin exact values.
 - **Testing:** test-driven with Vitest. Engine tests use `src/engine/test-fixtures.ts`, not the bundled data, so they don't break when the user hand-edits content. A separate test validates every data file.
 - **Style:** Prettier config in `.prettierrc.cjs` (no semicolons, single quotes, width 100).
 - **Git:** commit after each task. **Never push.** The user pushes branches and tags themselves.

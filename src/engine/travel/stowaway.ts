@@ -14,16 +14,17 @@ import { fadeStrainAfter, useSkill } from '../rules/strain'
 import { fareFor } from './routes'
 import {
   STOWAWAY_BRAWL_DAMAGE,
-  STOWAWAY_BRAWL_TAG,
   STOWAWAY_DC,
   STOWAWAY_WORK_DAYS,
   STOWAWAY_WORK_EXHAUSTION,
-} from './tuning'
+} from '../constants'
 
 // Stowing away (design §7, desperate measures): a party that can't pay a ship's fare may sneak
 // aboard. depart() calls stowAway, then sets out with no fare.
 
 export const STOWAWAY_SKILL = 'stealth' as const
+/** A critical failure starts a brawl: a hostile sea situation with this tag, if one exists. */
+export const STOWAWAY_BRAWL_TAG = 'brawl'
 
 /**
  * What a stowaway roll's tier leads to (stowAway): slipping aboard unseen, being put to work for

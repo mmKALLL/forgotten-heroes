@@ -1,43 +1,8 @@
 import type { Pace, Position } from '../../schema/types'
 import type { TravelState } from '../../schema/state'
+import { CAUTIOUS_HOSTILE_AVOIDANCE, FORCED_MARCH_EXTRA_RATIONS } from '../constants'
 
 // Travel pace (design §7). Every tuning number for pace lives here.
-
-export const DEFAULT_PACE: Pace = 'steady'
-
-/** Speed multiplier on land. Ships sail at their own speed, whatever the pace. */
-export const PACE_SPEED: Readonly<Record<Pace, number>> = {
-  cautious: 2 / 3,
-  steady: 1,
-  brisk: 1.25,
-  forced: 1.5,
-}
-
-/**
- * Added to the share of a journey's encounters that are hostile (hostileShare in routes.ts): a
- * hurried party is noticed. Cautious keeps the usual mix and skips some hostile encounters instead
- * (paceHostileAvoidance).
- */
-export const PACE_HOSTILE_BONUS: Readonly<Record<Pace, number>> = {
-  cautious: 0,
-  steady: 0,
-  brisk: 0.1,
-  forced: 0.1,
-}
-
-/** The share of hostile encounters a cautious party avoids (applied when encounters are drawn). */
-export const CAUTIOUS_HOSTILE_AVOIDANCE = 0.4
-
-/**
- * A forced march eats and drinks this share more per day on top of the daily ration, so it costs
- * more supplies per km despite the speed.
- */
-export const FORCED_MARCH_EXTRA_RATIONS = 0.5
-/** Each forced-march day, every member makes a CON check against this DC or gains exhaustion. */
-export const FORCED_MARCH_DC = 12
-
-/** Covering tracks (cautious only) costs this many extra days per day travelled. */
-export const COVER_TRACKS_EXTRA_DAYS = 0.25
 
 /** The chance a hostile encounter is skipped at this pace (0 except when cautious). */
 export const paceHostileAvoidance = (pace: Pace): number =>

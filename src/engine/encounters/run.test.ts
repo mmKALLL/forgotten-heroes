@@ -4,12 +4,11 @@ import { createRng } from '../rng'
 import { applyEffects } from './effects'
 import { step } from '../state'
 import { brawlCandidates } from '../travel/stowaway'
-import { STOWAWAY_BRAWL_TAG } from '../travel/tuning'
+import { STOWAWAY_BRAWL_TAG } from '../travel/stowaway'
 import { fixtureContent, makeState } from '../test-fixtures'
 import type { Content } from '../../content/build'
 import { SituationSchema } from '../../schema/encounter'
 import {
-  TWIST_PLACE_WEIGHT,
   WIDE_BERTH,
   currentOptions,
   drawEncounter,
@@ -19,6 +18,7 @@ import {
   startEncounter,
   twistKindWeight,
 } from './run'
+import { TWIST_PLACE_WEIGHT } from '../constants'
 
 const content = fixtureContent()
 const start = (situationId: string, state: GameState = makeState()) =>

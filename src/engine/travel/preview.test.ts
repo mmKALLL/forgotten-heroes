@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { newGame, step } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
-import { CAUTIOUS_HOSTILE_AVOIDANCE } from './pace'
 import {
   SEA_PACE_NOTE,
   journeyInfo,
@@ -15,13 +14,20 @@ import {
 import { tierOdds } from '../rules/checks'
 import type { GameState } from '../../schema/state'
 import type { PoiState } from '../../schema/world'
-import { FORAGE_DC, WATERSKIN_WATER } from './tuning'
-import { FORCED_MARCH_DC } from './pace'
 import { isSevere, warningText } from './warnings'
-import { ENCOUNTER_SLOT_CHANCE, hostileShare } from './routes'
+import { hostileShare } from './routes'
 import { placeOnRoute } from './journey'
 import { domainThreatLevel } from '../world/pois'
-import { POWER_DC, POWER_STEP_DAYS, REINHABIT_DAYS } from '../world/sites'
+import {
+  CAUTIOUS_HOSTILE_AVOIDANCE,
+  ENCOUNTER_SLOT_CHANCE,
+  FORAGE_DC,
+  FORCED_MARCH_DC,
+  POWER_DC,
+  POWER_STEP_DAYS,
+  REINHABIT_DAYS,
+  WATERSKIN_WATER,
+} from '../constants'
 
 const content = fixtureContent()
 

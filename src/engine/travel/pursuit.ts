@@ -1,16 +1,15 @@
 import type { FollowUp, GameState, PaceDay } from '../../schema/state'
 import { appendLog } from '../log'
-import { PACE_SPEED, coversTracks } from './pace'
+import { coversTracks } from './pace'
+import {
+  PACE_SPEED,
+  PURSUIT_ESCAPE_DELAY,
+  PURSUIT_ESCAPE_SPEED,
+  PURSUIT_MAX_ESCAPES,
+} from '../constants'
 
 // Pursuit (design §7): a follow-up flagged `pursuit` hunts the party down. When it comes due, the
 // party's pace since it was queued decides whether it catches up. Every tuning number is here.
-
-/** Average speed (PACE_SPEED, 0 for a day standing still) at or above which the party outruns it. */
-export const PURSUIT_ESCAPE_SPEED = 1.2
-/** Outrun pursuers come back after this many more encounters... */
-export const PURSUIT_ESCAPE_DELAY = 2
-/** ...at most this many times; outrun once more, they give up. */
-export const PURSUIT_MAX_ESCAPES = 2
 
 export const PURSUIT_LOST = 'Your covered tracks pay off: whoever was following has lost the trail.'
 export const PURSUIT_ESCAPED =

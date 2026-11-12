@@ -2,13 +2,13 @@ import { expect, test } from 'vitest'
 import { PACES } from '../../schema/types'
 import type { TravelState } from '../../schema/state'
 import {
-  DEFAULT_PACE,
   ambushPositionForPace,
   canCoverTracks,
   coversTracks,
   logPaceDay,
   paceHostileAvoidance,
 } from './pace'
+import { DEFAULT_PACE } from '../constants'
 
 test('the default pace is steady', () => {
   expect(DEFAULT_PACE).toBe('steady')

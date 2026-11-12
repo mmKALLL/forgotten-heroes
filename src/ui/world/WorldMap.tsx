@@ -4,13 +4,14 @@ import { journeyProgress, routeOptions } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom, nodeOf } from '../../engine/world/graph'
 import { siteEmpty } from '../../engine/world/sites'
-import { SPOT_SPACING_PX, territory } from '../../engine/world/territory'
+import { territory } from '../../engine/world/territory'
 import type { GameState } from '../../schema/state'
 import { MAP_HEIGHT, MAP_WIDTH, type Kingdom, type MapPoint } from '../../schema/world'
 import { iconUrl } from '../assets'
 import { useI18n } from '../i18n/I18n'
 import { PoiGlyph, poiCategoryText } from './PoiGlyph'
 import { dangerText } from './travelText'
+import { SPOT_SPACING_PX } from '../../engine/constants'
 
 /**
  * Marker outlines and overlay fills by kingdom, in kingdom order (a world rolls up to 12). They

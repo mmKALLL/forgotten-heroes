@@ -3,8 +3,8 @@ import type { Content } from '../../content/build'
 import { fixtureContent } from '../test-fixtures'
 import { components, otherEnd, routesFrom, straightKm } from './geo'
 import { PX_PER_KM } from '../../schema/world'
-import { SPOT_LINK_KM, SPOT_SPACING_PX } from './territory'
 import { poiTypeIssues, worldIssues } from './validate'
+import { SPOT_LINK_KM, SPOT_SPACING_PX } from '../constants'
 
 const content = fixtureContent()
 const edit = (change: (c: Content) => void): Content => {

@@ -7,7 +7,7 @@ import { canAct } from '../rules/character'
 import { otherEnd, settlementName } from '../world/geo'
 import { edgeById, edgesFrom } from '../world/graph'
 import { domainThreatLevel, knownLairThreat } from '../world/pois'
-import { POWER_DC, siteStatus, siteThreat, type SiteStatus } from '../world/sites'
+import { siteStatus, siteThreat, type SiteStatus } from '../world/sites'
 import { ambushPositionForPace, paceHostileAvoidance } from './pace'
 import {
   canMeetEncounters,
@@ -28,6 +28,7 @@ import {
   type TravelWarning,
   type WaterForecast,
 } from './warnings'
+import { POWER_DC } from '../constants'
 
 export const DANGER_LABELS = ['Safe', 'Watchful', 'Dangerous', 'Deadly'] as const
 export const THREAT_LABELS = ['Held', 'Stirring', 'Rising', 'Rampant'] as const

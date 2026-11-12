@@ -1,8 +1,7 @@
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { placeInfo, suppliesInfo } from '../../engine/travel/preview'
-import { FOOD_PRICE, goodsOf, restOption, saleValue } from '../../engine/travel/supplies'
-import { WATERSKIN_PRICE, WATERSKIN_WATER } from '../../engine/travel/tuning'
+import { goodsOf, restOption, saleValue } from '../../engine/travel/supplies'
 import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
 import { useI18n } from '../i18n/I18n'
@@ -10,6 +9,7 @@ import { ExploreAction } from './ExploreAction'
 import { RoadsOut } from './RoadsOut'
 import { realmText, sizeText, threatLine } from './travelText'
 import type { TravelPrefs } from './travelPrefs'
+import { FOOD_PRICE, WATERSKIN_PRICE, WATERSKIN_WATER } from '../../engine/constants'
 
 /** Rations bought or sold per click. */
 export const RATION_BUNDLE = 5

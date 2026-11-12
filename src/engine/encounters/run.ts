@@ -17,7 +17,7 @@ import { withRng } from '../rng'
 import { checkLabel, statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, tierOdds, type RollMode } from '../rules/checks'
-import { SKILL_USE_DAYS, useSkill } from '../rules/strain'
+import { useSkill } from '../rules/strain'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
 import { anyUndiscovered, domainAt } from '../world/pois'
@@ -26,6 +26,7 @@ import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from 
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, isHighStakes, tierOutcome } from './outcomes'
 import { fillText, rollSlots } from './slots'
+import { TWIST_PLACE_WEIGHT } from '../constants'
 
 export type EncounterAction =
   | { type: 'startEncounter'; situationId: string }
@@ -39,8 +40,6 @@ export const POSITION_MODE: Record<Position, RollMode> = {
   edge: 'advantage',
   exposed: 'disadvantage',
 }
-
-export { SKILL_USE_DAYS }
 
 /** An option can be chosen when its requirements are met and, for a check, someone can roll it. */
 export const optionAvailable = (state: GameState, option: Option): boolean =>
@@ -63,8 +62,6 @@ const BUSY = 'Finish the current encounter first.'
 const UNFIT = 'No one is fit to travel on.'
 /** Logged when a cautious party steers clear of a hostile encounter. */
 export const WIDE_BERTH = 'You spot trouble ahead and give it a wide berth.'
-/** A twist kind tagged with the land, or with the threat holding it, weighs this much more. */
-export const TWIST_PLACE_WEIGHT = 2
 
 /**
  * Where the party is when an encounter is drawn on the road: the terrain, the land (a `regions`

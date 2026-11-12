@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import type { PoiState } from '../../schema/world'
+import { boonReadyIn, siteEvents, siteStatus, siteThreat } from './sites'
 import {
   BOON_COOLDOWN_DAYS,
   INHABITED_DAYS,
@@ -7,11 +8,7 @@ import {
   MAX_POWER,
   POWER_STEP_DAYS,
   REINHABIT_DAYS,
-  boonReadyIn,
-  siteEvents,
-  siteStatus,
-  siteThreat,
-} from './sites'
+} from '../constants'
 
 const lair = (overrides: Partial<PoiState> = {}): PoiState => ({
   type: 'orc-war-camp',

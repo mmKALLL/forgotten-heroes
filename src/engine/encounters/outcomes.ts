@@ -1,5 +1,6 @@
 import type { CheckOption, Outcome, OutcomeBranch } from '../../schema/encounter'
 import { TIERS, successChance, type Tier } from '../rules/checks'
+import { HIGH_STAKES_BAND } from '../constants'
 
 /** The outcome for a tier; critical tiers fall back to fail and success. */
 export function tierOutcome(option: CheckOption, tier: Tier): Outcome {
@@ -12,9 +13,6 @@ export function tierOutcome(option: CheckOption, tier: Tier): Outcome {
 /** The twist branch replaces the outcome when the hidden twist is true. */
 export const branchFor = (outcome: Outcome, twist: boolean): OutcomeBranch =>
   twist && outcome.twist ? outcome.twist : outcome
-
-/** Success chances in this band are close calls (design §9: the dice slow down and glow). */
-export const HIGH_STAKES_BAND = [0.25, 0.75] as const
 
 /** Flagged by content, or a close call where some outcome (twist included) costs HP. */
 export function isHighStakes(option: CheckOption, odds: Record<Tier, number>): boolean {

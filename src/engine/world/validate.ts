@@ -1,7 +1,7 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
 import { IdSchema } from '../../schema/common'
 import { components, straightKm } from './geo'
-import { SPOT_LINK_KM, SPOT_SPACING_PX } from './territory'
+import { SPOT_LINK_KM, SPOT_SPACING_PX } from '../constants'
 
 /** A route may wind, but not to more than twice the straight line. */
 export const MAX_WINDING = 2

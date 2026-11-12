@@ -8,27 +8,16 @@ import { NAME_TRIES } from './names'
 import { threatLevelFor } from './politics'
 import { siteThreat } from './sites'
 import { territory, type Territory } from './territory'
+import {
+  POI_FAVOURED,
+  POI_MAX_PER_DOMAIN,
+  POI_MIN_KM,
+  POI_SPACING_KM,
+  POI_SPOTS_EACH,
+} from '../constants'
 
 // Points of interest (design §6): dungeons, experts, lairs, shrines, landmarks, wonders and quest
 // sites, placed on land spots per domain when the world is rolled. All start hidden.
-
-/**
- * A domain's expected POIs are its spots / POI_SPOTS_EACH. With the ~400 Altaeus land spots this
- * gives about 40–60 per world (mean ≈ 49), most domains holding 0 or 1.
- */
-export const POI_SPOTS_EACH = 8
-/** No domain gets more than this many POIs; most get 0 or 1. */
-export const POI_MAX_PER_DOMAIN = 2
-/** The closest a POI may stand to its settlement. */
-export const POI_MIN_KM = 8
-/**
- * The closest two POIs may stand: more than one grid step of land spots (SPOT_SPACING_KM, about
- * 20.7 km), so sites never sit on neighbouring spots. (A plain number: territory.ts and this
- * module import each other indirectly, so a constant from there may not be set yet.)
- */
-export const POI_SPACING_KM = 25
-/** A type whose biome matches the spot, or whose threats name the land's threat, weighs this much more. */
-export const POI_FAVOURED = 3
 
 /** The parts of a world the threat of a domain depends on (the seed sets the sites' cycles). */
 export type PoiWorld = {

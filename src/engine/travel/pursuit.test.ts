@@ -3,15 +3,14 @@ import type { FollowUp, PaceDay } from '../../schema/state'
 import { makeState } from '../test-fixtures'
 import {
   PURSUIT_ESCAPED,
-  PURSUIT_ESCAPE_DELAY,
   PURSUIT_GAVE_UP,
   PURSUIT_LOST,
-  PURSUIT_MAX_ESCAPES,
   evadePursuit,
   foldTrail,
   paceSince,
   pursuitOutcome,
 } from './pursuit'
+import { PURSUIT_ESCAPE_DELAY, PURSUIT_MAX_ESCAPES } from '../constants'
 
 const day = (d: number, pace: PaceDay['pace'], coverTracks = false): PaceDay => ({
   day: d,

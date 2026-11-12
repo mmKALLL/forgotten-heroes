@@ -9,19 +9,20 @@ import { fadeStrainAfter } from '../rules/strain'
 import { settlementName } from '../world/geo'
 import { springAt, terrainHere } from '../world/graph'
 import { consumeDay, dailyNeed, goodsOf, waterNeed } from './days'
-import { DEFAULT_PACE } from './pace'
 import { journeyDays } from './routes'
-import { LODGING_PRICE, SELL_SHARE, WATER_DAYS, WATERSKIN_PRICE, WATERSKIN_WATER } from './tuning'
+import {
+  CAMP_HEAL,
+  DEFAULT_PACE,
+  FOOD_PRICE,
+  LODGING_PRICE,
+  SELL_SHARE,
+  STARTING_FOOD_DAYS,
+  WATERSKIN_PRICE,
+  WATERSKIN_WATER,
+  WATER_DAYS,
+} from '../constants'
 
-export { HUNGER_DC, THIRST_DC, dailyNeed, goodsOf, passDay, waterNeed } from './days'
-export { WATER_DAYS }
-
-/** A new party carries this many days of food per member. */
-export const STARTING_FOOD_DAYS = 5
-/** A stop-gap price per ration until the Plan 4 market. */
-export const FOOD_PRICE = 1
-/** A day in camp restores this share of max HP; a day in a settlement restores all of it. */
-export const CAMP_HEAL = 0.25
+export { dailyNeed, goodsOf, passDay, waterNeed } from './days'
 
 /** Each member's own waterskin holds WATER_DAYS of water; each extra one adds WATERSKIN_WATER. */
 export const waterCapacity = (members: number, waterskins = 0): number =>

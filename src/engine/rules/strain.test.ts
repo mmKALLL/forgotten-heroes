@@ -1,18 +1,10 @@
 import { describe, expect, test } from 'vitest'
 import type { Skill } from '../../schema/types'
 import type { SkillUse } from '../../schema/state'
-import { SKILL_USE_DAYS } from '../encounters/run'
 import { brom, lyra } from '../test-fixtures'
 import { rankActors, statModifier } from './character'
-import {
-  STRAIN_WEEK_DAYS,
-  addStrain,
-  fadeStrain,
-  fadeStrainAfter,
-  strainFrom,
-  strainOf,
-  strainedOn,
-} from './strain'
+import { addStrain, fadeStrain, fadeStrainAfter, strainFrom, strainOf, strainedOn } from './strain'
+import { SKILL_USE_DAYS, STRAIN_WEEK_DAYS } from '../constants'
 
 const use = (day: number, skill: Skill = 'athletics', characterId = 'brom'): SkillUse => ({
   day,

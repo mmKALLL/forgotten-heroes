@@ -181,7 +181,7 @@ export const GameStateSchema = z.object({
   visited: z.boolean().default(false),
   travel: TravelStateSchema.nullable(),
   goods: GoodsSchema,
-  /** Extra waterskins bought in town, on top of each member's own (travel/tuning.ts). */
+  /** Extra waterskins bought in town, on top of each member's own (WATERSKIN_WATER in engine/constants.ts). */
   waterskins: z.number().int().min(0).default(0),
 })
 export type GameState = z.infer<typeof GameStateSchema>

@@ -17,9 +17,8 @@ import { generateWorld, startingSettlement, worldSeed, type StartMode } from './
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
+import { STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
-export const STARTING_PARTY_SIZE = 2
-export const STARTING_GOLD = 50
 // These moved out so the encounter engine can use them without importing this module.
 // Re-exported so existing imports from './state' keep working.
 export { MAX_DC, MIN_DC, normalizeDc, previewCheck, type CheckPreview }

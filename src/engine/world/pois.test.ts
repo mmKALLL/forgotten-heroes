@@ -5,9 +5,6 @@ import { createRng, withRng } from '../rng'
 import { fixtureContent } from '../test-fixtures'
 import { straightKm } from './geo'
 import {
-  POI_MAX_PER_DOMAIN,
-  POI_MIN_KM,
-  POI_SPACING_KM,
   domainThreatLevel,
   domainThreatStrength,
   generatePois,
@@ -15,8 +12,14 @@ import {
   poisPerDomain,
   type PoiWorld,
 } from './pois'
-import { POWER_STEP_DAYS, REINHABIT_DAYS } from './sites'
 import { territory } from './territory'
+import {
+  POI_MAX_PER_DOMAIN,
+  POI_MIN_KM,
+  POI_SPACING_KM,
+  POWER_STEP_DAYS,
+  REINHABIT_DAYS,
+} from '../constants'
 
 const content = fixtureContent()
 const LANDS: Record<string, LandState> = {

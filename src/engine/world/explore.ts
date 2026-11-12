@@ -14,21 +14,23 @@ import { statLabel } from '../rules/abilities'
 import { canAct, chooseActor } from '../rules/character'
 import { TIERS, TIER_LABELS, normalizeDc, rollCheck, tierOdds, type Tier } from '../rules/checks'
 import { useSkill } from '../rules/strain'
-import { DEFAULT_PACE } from '../travel/pace'
 import { forageDay } from '../travel/forage'
 import { passDay } from '../travel/supplies'
-import { FORAGE_DC } from '../travel/tuning'
 import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
-import { POWER_DC, siteStatus } from './sites'
+import { siteStatus } from './sites'
+import {
+  DEFAULT_PACE,
+  EXPLORE_DAYS,
+  EXPLORE_DC_BONUS,
+  EXPLORE_FINDS,
+  FORAGE_DC,
+  POWER_DC,
+} from '../constants'
 
 // Visiting and exploring points of interest (design §6). A visit plays one of the site's
 // situations; exploring spends days searching the domain for sites not yet found.
 
-/** Added to the domain terrain's forage DC to find a site by searching. */
-export const EXPLORE_DC_BONUS = 2
-/** Camp days a search takes; a partial success takes one more. */
-export const EXPLORE_DAYS = 2
 /** The skills a search can use; the better one rolls (Survival on a tie). */
 export const EXPLORE_SKILLS = ['survival', 'perception'] as const
 /** Logged when a successful search finds nothing: the domain has no sites left to find. */
@@ -60,15 +62,6 @@ export const EXPLORE_OUTCOMES: Readonly<Record<Tier, string>> = {
   partial: `One site found, after ${EXPLORE_DAYS + 1} days`,
   success: 'One site found',
   critSuccess: 'Two sites found',
-}
-
-/** Sites a search finds at each tier, and the extra days it takes. */
-const FINDS: Readonly<Record<Tier, { found: number; extraDays: number }>> = {
-  critFail: { found: 0, extraDays: 0 },
-  fail: { found: 0, extraDays: 0 },
-  partial: { found: 1, extraDays: 1 },
-  success: { found: 1, extraDays: 0 },
-  critSuccess: { found: 2, extraDays: 0 },
 }
 
 const own = <T>(table: Record<string, T>, id: string | null | undefined): T | undefined =>
@@ -119,12 +112,15 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
     dc,
     days: EXPLORE_DAYS,
     chances,
-    findChance: TIERS.filter((tier) => FINDS[tier].found > 0).reduce((p, t) => p + chances[t], 0),
+    findChance: TIERS.filter((tier) => EXPLORE_FINDS[tier].found > 0).reduce(
+      (p, t) => p + chances[t],
+      0
+    ),
     outcomes: TIERS.map((tier) => EXPLORE_OUTCOMES[tier]),
     finds: Object.fromEntries(
       TIERS.map((tier) => [
         tier,
-        { found: FINDS[tier].found, days: EXPLORE_DAYS + FINDS[tier].extraDays },
+        { found: EXPLORE_FINDS[tier].found, days: EXPLORE_DAYS + EXPLORE_FINDS[tier].extraDays },
       ])
     ) as Record<Tier, { found: number; days: number }>,
   }
@@ -134,7 +130,7 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
  * Searches the domain for undiscovered sites: the explorer rolls (it counts toward Strain; a
  * natural 20 grants Inspiration), then the party camps EXPLORE_DAYS days (one more on a partial),
  * foraging and eating its own food even in town. Then it finds the nearest undiscovered sites the
- * tier allows (FINDS). A critical failure draws a hostile road encounter for the place instead.
+ * tier allows (EXPLORE_FINDS). A critical failure draws a hostile road encounter for the place instead.
  */
 export function explore(state: GameState, content: Content): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
@@ -153,7 +149,7 @@ export function explore(state: GameState, content: Content): GameState {
   const [roll, rng] = rollCheck(state.rng, option.modifier, option.dc)
   const { party, skillUses, strained } = useSkill(state, option.actorId, option.skill)
   const inspired = roll.tier === 'critSuccess'
-  const finds = FINDS[roll.tier]
+  const finds = EXPLORE_FINDS[roll.tier]
   const days = option.days + finds.extraDays
   let next = appendLog(
     {

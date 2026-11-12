@@ -7,31 +7,23 @@ import { fitsPlace } from '../encounters/run'
 import { edgeById } from '../world/graph'
 import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
+import { coversTracks } from './pace'
 import {
   COVER_TRACKS_EXTRA_DAYS,
   DEFAULT_PACE,
+  ENCOUNTER_SLOT_CHANCE,
+  FORAGE_HOSTILE_BONUS,
+  HOSTILE_BASE,
+  HOSTILE_PER_DANGER,
+  HOSTILE_PER_THREAT,
+  HOSTILE_SHARE_RANGE,
+  KM_PER_DAY,
+  LONG_JOURNEY_DAYS,
   PACE_HOSTILE_BONUS,
   PACE_SPEED,
-  coversTracks,
-} from './pace'
-import { FORAGE_HOSTILE_BONUS } from './tuning'
-
-/** km per day on foot (or under sail) by terrain, at a steady pace. Morale will modify these later. */
-export const KM_PER_DAY: Readonly<Record<Biome, number>> = {
-  plains: 30,
-  forest: 24,
-  hills: 24,
-  mountains: 15,
-  marsh: 18,
-  desert: 21,
-  jungle: 18,
-  sea: 75,
-}
-/** Passage on a ship, per member per day. */
-export const SEA_FARE = 2
-/** Journeys of up to this many days are short hops; this many or more are long. */
-export const SHORT_HOP_DAYS = 2
-export const LONG_JOURNEY_DAYS = 5
+  SEA_FARE,
+  SHORT_HOP_DAYS,
+} from '../constants'
 
 /**
  * km per calendar day. Pace scales the speed on land; covering tracks (cautious only) adds
@@ -50,12 +42,6 @@ export const journeyDays = (
 ): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, coverTracks)))
 
 /**
- * The chance that each encounter slot above the minimum fills: the same on every road and at
- * every pace. Danger, threat, pace and foraging change what is met, not how often (hostileShare).
- */
-export const ENCOUNTER_SLOT_CHANCE = 0.3
-
-/**
  * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one
  * a day, so never more than the journey's days.
  */
@@ -64,14 +50,6 @@ export function encounterRange(days: number): [number, number] {
     days <= SHORT_HOP_DAYS ? [0, 2] : days >= LONG_JOURNEY_DAYS ? [2, 4] : [1, 3]
   return [Math.min(min, days), Math.min(max, days)]
 }
-
-/** The share of encounters that are hostile before danger, threat, foraging and pace. */
-export const HOSTILE_BASE = 0.1
-/** Added to the hostile share per level of route danger, and per level of the domain's threat. */
-export const HOSTILE_PER_DANGER = 0.1
-export const HOSTILE_PER_THREAT = 0.1
-/** The hostile share stays within these bounds. */
-export const HOSTILE_SHARE_RANGE: readonly [number, number] = [0.1, 0.85]
 
 /**
  * How likely each encounter on a journey is to be hostile, and what makes it so: the base share,

@@ -4,13 +4,13 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { newGame, step } from '../engine/state'
 import { edgesFrom } from '../engine/world/graph'
-import { REINHABIT_DAYS } from '../engine/world/sites'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { PlacePanel } from '../ui/world/PlacePanel'
 import { PoiPanel } from '../ui/world/PoiPanel'
 import { DEFAULT_TRAVEL_PREFS } from '../ui/world/travelPrefs'
 import { WorldMap } from '../ui/world/WorldMap'
 import { loadBundledContent } from './bundled'
+import { REINHABIT_DAYS } from '../engine/constants'
 
 /** The UI and the site rules over the bundled POI types and site situations (Plan 3b, merged). */
 const content = loadBundledContent()

@@ -5,7 +5,7 @@ import { createRng } from '../rng'
 import { tierOdds } from '../rules/checks'
 import { brom, lyra, makeState } from '../test-fixtures'
 import { expectedForage, forageCheck, forageDay, forageYield } from './forage'
-import { FORAGE_DC, FORAGE_PACE_MODIFIER } from './tuning'
+import { FORAGE_DC, FORAGE_PACE_MODIFIER } from '../constants'
 
 const base = (overrides: Partial<GameState> = {}): GameState =>
   makeState({ location: null, goods: { food: 4, water: 2 }, ...overrides })

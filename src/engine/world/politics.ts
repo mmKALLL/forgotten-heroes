@@ -3,24 +3,15 @@ import type { DomainState, Kingdom, LandState } from '../../schema/world'
 import type { Draw } from '../rng'
 import { generatePlaceName, realmName } from './names'
 import type { Territory } from './territory'
-
-/** How many kingdoms a world rolls, capped by the number of capital markers. */
-export const KINGDOMS = { min: 8, max: 12 }
-/**
- * A kingdom's total defence, split across its domains by distance from the seat. Tuned with the
- * POIs in place: about 12.5% of domains are Rampant on Altaeus, 7% before lairs and dungeons add
- * their threat (docs/notes/threat-levels.md).
- */
-export const DEFENCE = { min: 9, max: 22 }
-/** A domain h hops from its seat weighs 1 / (1 + SEAT_FALLOFF × h) in the garrison split. */
-export const SEAT_FALLOFF = 0.5
-/** A frontier domain in a land the kingdom already holds is this much likelier to be claimed. */
-export const SAME_LAND_WEIGHT = 2
-/** Ruling ancestries are picked by weight; any playable ancestry not listed weighs 1. */
-export const RULER_WEIGHTS: Readonly<Record<string, number>> = { human: 3 }
-/** A threat's weight in a region of a biome it favours, and in one it doesn't. */
-export const FAVOURED = 3
-export const UNFAVOURED = 0.5
+import {
+  DEFENCE,
+  FAVOURED,
+  KINGDOMS,
+  RULER_WEIGHTS,
+  SAME_LAND_WEIGHT,
+  SEAT_FALLOFF,
+  UNFAVOURED,
+} from '../constants'
 
 export type Politics = {
   kingdoms: Kingdom[]

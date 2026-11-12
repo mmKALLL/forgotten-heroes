@@ -9,7 +9,7 @@ import { canAct } from '../rules/character'
 import { otherEnd, settlementName } from '../world/geo'
 import { edgeById, nodeOf } from '../world/graph'
 import { domainAt } from '../world/pois'
-import { DEFAULT_PACE, coversTracks, logPaceDay } from './pace'
+import { coversTracks, logPaceDay } from './pace'
 import { forageDay, type ForageResult } from './forage'
 import { foldTrail } from './pursuit'
 import {
@@ -34,6 +34,7 @@ import {
   sellSupplies,
 } from './supplies'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
+import { DEFAULT_PACE } from '../constants'
 
 /**
  * The pace, covering tracks and foraging are chosen at departure only (design §7): no action
