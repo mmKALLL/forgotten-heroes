@@ -89,6 +89,17 @@ The old Svelte code is removed on this branch. The useful types and data are por
   - **Fee** `ceil(10 × level × fee)` gp (`RECRUIT_FEE_PER_LEVEL`); **wage** `0.5 × (level + 1) × wage` gp a day (`RECRUIT_WAGE`), rounded to the nearest ½ gp so it always shows exactly (1 gp a day at level 1).
   - **Hiring** pays the fee; the recruit joins with their wage and 5 days of their own food (`STARTING_FOOD_DAYS`, as a founder brings), and is never offered again. The party holds at most **6 living members** (`PARTY_CAP`; the dead stay listed but don't count). Refused mid-encounter, away from the settlement, when full, or when the fee is more than the purse.
   - **Dismissing:** hired members only (alive or dead); founders never. Their accessory stays in the party's gear, and owed wages stay owed. A member is "hired" when they draw a wage; founders draw none.
+- **Wages** (`town/camaraderie.ts`): at the end of every day, after the animals' upkeep, the living hired members' wages are paid, owed wages first, in whole gp as far as the gold goes; the rest is `wagesOwed` (fractions carry quietly, as with upkeep).
+- **Camaraderie** is 0–8, starting at 5 (`CAMARADERIE_START`), in tiers Fractured (0–1), Strained (2–3), Steady (4–5), Close (6–7) and Sworn (8). Only these change it (each a constant):
+  - −1 at the end of a day that leaves a whole gp of wages owed (`CAMARADERIE_UNPAID`);
+  - −1 at the end of a day on which a living member went without food or water, once a day (`CAMARADERIE_HUNGER`);
+  - −2 for each member who dies (`CAMARADERIE_DEATH`), found after every step by comparing the dead before and after, so deaths from anywhere count;
+  - +1 for each contract completed (`CAMARADERIE_CONTRACT`);
+  - +1 for a night in a private room, once per arrival (`CAMARADERIE_BOND`);
+  - the `camaraderie` encounter effect.
+  - Crossing into another tier is logged ("The party is strained: wages are owed."). Nothing else is stored: the journal carries the history.
+- **Desertion:** its only effect for now. While the party is Fractured, each living hired member deserts with 25% (`DESERT_CHANCE`, seeded) on every arrival in a settlement. Deserters take no gold or goods (a worn accessory stays in the party's gear), and their share of the owed wages (by wage) is written off. Founders never desert.
+- **For the UI:** `camaraderieInfo(state)` gives the value, tier and label, the causes pulling it down now (wages owed or a purse that won't cover a day's wages, food or water that won't last everyone a day, the risk of desertion), wages per day, wages owed and the desertion risk.
 
 ## 4. Goods and economy
 

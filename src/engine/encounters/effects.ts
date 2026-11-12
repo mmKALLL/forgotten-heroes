@@ -14,6 +14,7 @@ import { domainAt, poisToDiscover } from '../world/pois'
 import { changeGoods } from '../economy/goods'
 import { changeAnimals } from '../town/animals'
 import { siteContractsMet } from '../town/contract-hooks'
+import { shiftCamaraderie } from '../town/camaraderie'
 
 export { MAX_EXHAUSTION }
 
@@ -221,8 +222,12 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         ctx.content
       )
     // Plan 5a: the schema exists so content can use them; each track wires its own case.
+    case 'camaraderie': {
+      const { value, line } = shiftCamaraderie(state.camaraderie, effect.amount)
+      const next = { ...state, camaraderie: value }
+      return line ? note(next, line.text, line.tone) : next
+    }
     case 'xp': // A2: grantXp
-    case 'camaraderie': // B2
     case 'accessory': // C2: rollAccessory into gear
       return state
   }

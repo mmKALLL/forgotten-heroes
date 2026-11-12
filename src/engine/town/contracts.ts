@@ -14,6 +14,7 @@ import { appendLog } from '../log'
 import { createRng, withRng, type Draw } from '../rng'
 import { poiReach, settlementReach, type Reach } from '../travel/reach'
 import { inSettlement } from '../travel/where'
+import { changeCamaraderie } from './camaraderie'
 import { settlementName } from '../world/geo'
 import { domainThreatLevel } from '../world/pois'
 import { siteEmpty } from '../world/sites'
@@ -30,6 +31,7 @@ import {
 import { RUMOUR_LEAD } from './rumours'
 import {
   BOARD_SIZE,
+  CAMARADERIE_CONTRACT,
   CONTRACT_PAY_PER_DAY,
   CONTRACT_PAY_PER_THREAT,
   DEADLINE_GRACE_DAYS,
@@ -981,8 +983,13 @@ export function stepContract(
       return acceptContract(state, content, action.offerId)
     case 'abandonContract':
       return abandonContract(state, content, action.id)
-    case 'completeContract':
-      return completeContract(state, content, action.id, action.reward)
+    case 'completeContract': {
+      const done = completeContract(state, content, action.id, action.reward)
+      // A contract kept raises camaraderie (town/camaraderie.ts).
+      return done.contracts.length < state.contracts.length
+        ? changeCamaraderie(done, CAMARADERIE_CONTRACT, 'a contract kept')
+        : done
+    }
     case 'sellCargo':
       return sellCargo(state, content, action.contractId, action.shop)
   }

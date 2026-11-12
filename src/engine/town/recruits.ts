@@ -6,9 +6,9 @@ import { formatGp } from '../format'
 import { appendLog } from '../log'
 import { generateCharacter } from '../party'
 import { withRng, type Rng } from '../rng'
-import { MAX_EXHAUSTION } from '../rules/character'
 import { levelTo } from '../rules/progression'
 import { inSettlement } from '../travel/where'
+import { isAlive, isHired, livingMembers } from './camaraderie'
 import { boardWeek, keyedRng } from './contracts'
 import {
   PARTY_CAP,
@@ -25,13 +25,7 @@ import {
 const own = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
 
-/** A member who can still act or travel: not dead (exhaustion 6). */
-export const isAlive = (c: Character): boolean => c.exhaustion < MAX_EXHAUSTION
-/** A hired member draws a wage; founders draw none, and never desert or get dismissed. */
-export const isHired = (c: Character): boolean => c.wage > 0
-/** The living members: the party cap counts these. */
-export const livingMembers = (state: Pick<GameState, 'party'>): Character[] =>
-  state.party.filter(isAlive)
+export { isAlive, isHired, livingMembers }
 
 /** Someone looking for work at a service here this week. */
 export type RecruitOffer = {
