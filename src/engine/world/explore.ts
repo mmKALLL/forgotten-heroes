@@ -19,6 +19,7 @@ import { passDay } from '../travel/supplies'
 import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
 import { siteStatus } from './sites'
+import { rumourOption, type RumourOption } from '../town/rumours'
 import {
   DEFAULT_PACE,
   EXPLORE_DAYS,
@@ -287,6 +288,8 @@ function visitRefusal(
 /** The site actions open where the party is, with their previews. */
 export type SiteAction =
   | { type: 'explore'; option: ExploreOption }
+  /** Listening for rumours at the tavern here (town/rumours.ts), once per arrival. */
+  | { type: 'listenRumours'; option: RumourOption }
   | {
       type: 'visitPoi'
       poiId: string
@@ -296,7 +299,10 @@ export type SiteAction =
       code: VisitBlock | null
     }
 
-/** Exploring (with its preview), and visiting when the party is at a discovered POI. */
+/**
+ * Exploring (with its preview), visiting when the party is at a discovered POI, and listening for
+ * rumours when there is a tavern here that hasn't been heard this arrival.
+ */
 export function siteActions(state: GameState, content: Content): SiteAction[] {
   const actions: SiteAction[] = []
   const poi = state.travel ? undefined : own(state.world.pois, state.location)
@@ -312,5 +318,7 @@ export function siteActions(state: GameState, content: Content): SiteAction[] {
   }
   const option = exploreOption(state, content)
   if (option) actions.push({ type: 'explore', option })
+  const rumours = rumourOption(state, content)
+  if (rumours) actions.push({ type: 'listenRumours', option: rumours })
   return actions
 }

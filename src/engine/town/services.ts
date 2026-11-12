@@ -9,6 +9,7 @@ import { marketPrices } from '../economy/trade'
 import { settlementName, straightKm } from '../world/geo'
 import { inSettlement, notHere } from '../travel/where'
 import { serviceWith } from './animals'
+import { rumourOption, rumourRefusal } from './rumours'
 import {
   BLESSING_PRICE,
   COURIER_KM_PER_DAY,
@@ -103,7 +104,7 @@ export type ServiceRow = {
 }
 
 /** Actions other plans implement; listed, but not available yet. */
-const NOT_YET: readonly ServiceAction[] = ['rumours', 'board']
+const NOT_YET: readonly ServiceAction[] = ['board']
 
 function actionView(
   state: GameState,
@@ -131,6 +132,14 @@ function actionView(
       )
     case 'news':
       return view(NEWS_PRICE, newsTargets(state, content).length === 0 ? 'no news to bring' : null)
+    case 'rumours': {
+      // Listening is the listenRumours action, previewed by rumourOption.
+      const option = rumourOption(state, content)
+      return view(
+        option?.cost ?? null,
+        rumourRefusal(state, content) ?? (option ? null : 'no one is able to act')
+      )
+    }
     default:
       return NOT_YET.includes(action)
         ? { action, cost: null, available: false, reason: 'coming later' }

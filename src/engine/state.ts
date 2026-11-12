@@ -15,6 +15,7 @@ import { stepTravel, type TravelAction } from './travel/journey'
 import { observe, stepTrade, type TradeAction } from './economy/trade'
 import { useService, type ServiceUse } from './town/services'
 import { buyAnimal, sellAnimal } from './town/animals'
+import { listenRumours } from './town/rumours'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
@@ -40,6 +41,8 @@ export type Action =
   | { type: 'visitPoi' }
   /** Search the domain the party is in for undiscovered POIs (world/explore.ts). */
   | { type: 'explore' }
+  /** Buy a round at the tavern and listen for rumours, once per arrival (town/rumours.ts). */
+  | { type: 'listenRumours' }
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
@@ -161,6 +164,8 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return visitPoi(state, content)
     case 'explore':
       return explore(state, content)
+    case 'listenRumours':
+      return listenRumours(state, content)
     default:
       return stepEncounter(state, action, content)
   }
