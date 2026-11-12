@@ -593,6 +593,16 @@ T1 → T2 (on `rebuild`) ──┬── Track A: A1 → A2 → A3 ═M1═ → 
 - **Horses can be bought too** (in addition to hiring per journey): owned horses have a daily upkeep (fodder/stabling, in gp or food), can be stolen (thief encounters / visible wealth), and work anywhere a horse can go (not on site paths if the path is rough — follow the cart rule's spirit). Hired horses stay as proposed (per journey to a settlement, ~1 gp per member per day, returned on arrival). Speed 2× (1.25× in rough terrain) for both.
 - **Visible wealth = precious goods + a heavy purse:** gems/relics/luxuries count fully; coin above ~50 gp per member counts partly (constant). Banks (later) will let the party avoid carrying coin.
 - **Reputation scope:** people + settlements, plus "a good word" as the alternative contract reward raising standing across the patron's kingdom. Kingdom/faction tiers, favours and parley later.
+- **Town screen on one screen (Track C):** no scrolling at desktop width.
+  - **Header:** one compact line (town · domain · kingdom · threat).
+  - **Three zones:** the Market table; Services as compact tiles in 4 columns (name, quality, 1–2 inline action buttons); and Roads out with the pace chooser, with **Explore after the roads**.
+  - **People:** collapsible.
+  - **Explore:** no outcome bar, just e.g. "Survival +4 · ~45% to find a site · 2 days", with tiers on hover.
+- **Click-savers (Track C, plus small engine helpers where needed):**
+  - **Travel until something happens:** Continue runs days until an encounter, arrival or a supply warning.
+  - **Provision for this road:** one button buys the food (and fills the water) the chosen road and pace need, showing the cost.
+  - **Travel from the map:** clicking a reachable marker opens a small popover with days, encounters and hostile %, plus a Travel button that uses the last pace and forage choice.
+  - **Auto-rest on arrival:** an optional setting. When arriving hurt or strained, rest automatically (at an inn if affordable).
 - All other proposals in the section below are accepted as written.
 
 ## Design decisions to confirm with the user (original proposals)
