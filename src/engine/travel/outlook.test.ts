@@ -16,7 +16,8 @@ function onTheRoad(water: number, seed: number): GameState {
     goods: { food: 10, water },
   })
   const out = step(home, { type: 'travel', routeId: 'greenvale-1-greenvale-2' }, content)
-  return { ...out, travel: { ...out.travel!, encounterDays: [] } }
+  // Setting out tops the water up: put it back to what the test asks for.
+  return { ...out, goods: { food: 10, water }, travel: { ...out.travel!, encounterDays: [] } }
 }
 
 describe('supplyOutlook', () => {

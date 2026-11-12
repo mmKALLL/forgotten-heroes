@@ -117,6 +117,7 @@ All numbers below are in `src/engine/constants.ts` or the `data/claude/` files n
 
   - Food spoils 2% a day (deterministic: the fraction carries over, and losses are logged).
   - Water costs only weight. It is never traded, and refilling is free in every settlement. Waterskins are containers (2 gp each, 2 days of water), not one of the goods.
+  - **Water refills automatically wherever it is free and doesn't encumber** (designer rule): there is never a manual "fill water" step. Provisioning only buys food and waterskins (and pours in the water a road needs, warning when that encumbers).
   - Consumables are spent by encounter options that need them (a gear line across the flooded ferry, healing kits, alchemist's fire, an arcana ward). Thieves and tolls take precious goods or gold, and dungeon vaults and lair clearings give relics and gems that must be carried home and sold where they are wanted.
   - Fuel has no use yet beyond trade; cold country will need it later.
 - **Markets** (`economy/market.ts`). Nothing ticks: every price is derived from the world seed, the settlement, the good and the day, plus the party's own net trades there.
@@ -170,7 +171,7 @@ The town map image is a banner and backdrop.
   - The roads out badge a contract's destination and, for each pace, show "Arrives day 18 · deadline day 17 ✗".
 - **Click-savers** (designer decisions):
   - **Provision for this road:** one button buys the waterskins and food the chosen road and pace need without foraging, and pours in as much water as the road needs (never every spare skin), within the gold and the weight, showing what it buys and the cost. Water still comes first (designer decision); when the road's water would leave the party encumbered, the roads out say so before the click and the journal after it.
-  - **Refilling by itself** (arriving in a settlement or at a well, resting in town, a spring): every member's own skin is filled, and spare waterskins only as far as the party stays unencumbered.
+  - **Refilling by itself** (arriving in a settlement or at a well, resting in town or at a spring, setting out from a settlement or a well, and right after buying waterskins): every member's own skin is filled, and spare waterskins only as far as the party stays unencumbered. Setting out never makes the load heavier in kind (a party that poured water out to set out isn't loaded up again). Waterskins can't be bought when the water they hold would overload the party (`maxWaterskins`).
   - **Continue** walks on until something happens: an encounter, a supply warning, someone going short, or arrival.
   - **Travel from the map:** a reachable marker opens a popover with the days, encounters and hostile share, and a Travel button that uses the last pace, forage and hire choices.
   - **Auto-rest on arrival** (a setting, remembered per viewer): arriving hurt, exhausted or strained, the party rests a day, at an inn if it can pay.
@@ -295,7 +296,8 @@ The town map image is a banner and backdrop.
 - **Pace is a commitment:** it is chosen at departure only and cannot be changed mid-journey.
 - **Long journeys and water:**
   - **Foraging:** each travel day the best-suited member may roll Survival to find water or food. The DC depends on terrain: easy by forests and rivers, hard in desert and mountains. Foraging rolls count toward Strain, so rotating foragers matters. Foraging draws attention: on a journey that forages, more encounters are hostile, and a stealthy party loses its Edge against ambushes.
-  - **More capacity:** extra waterskins can be bought in town, and pack animals and carts carry more (Plan 4, §5). Animals drink from the carried water too.
+  - **More capacity:** extra waterskins can be bought in town, and pack animals and carts carry more (Plan 4, §5). Animals drink from the carried water too, in whole units a day (the herd's total rounded up: a camel's half unit still costs one).
+  - **Water refills automatically wherever it is free and doesn't encumber** (see §4).
   - **Warnings:** the road preview warns clearly when a route at the chosen pace exceeds the party's water or food.
 - **Resting in town** costs lodging gold and includes meals. Carried supplies are untouched. Camping eats carried food.
 - **Stranded without fare (desperate measures):**

@@ -4,7 +4,7 @@ import { quote, type Quote } from '../../engine/economy/market'
 import { marketView, type KnownElsewhere, type MarketRow } from '../../engine/economy/trade'
 import { formatGp } from '../../engine/format'
 import type { Action } from '../../engine/state'
-import { partyWaterCapacity } from '../../engine/travel/supplies'
+import { maxWaterskins, partyWaterCapacity } from '../../engine/travel/supplies'
 import { GOOD_CATEGORIES } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { useI18n, type I18n } from '../i18n/I18n'
@@ -163,7 +163,14 @@ export function MarketPanel({
                     onAction={onAction}
                   />
                 ))}
-                {skins && <WaterskinLine state={state} amount={amount} onAction={onAction} />}
+                {skins && (
+                  <WaterskinLine
+                    state={state}
+                    content={content}
+                    amount={amount}
+                    onAction={onAction}
+                  />
+                )}
               </tbody>
             )
           })}
@@ -316,15 +323,18 @@ function MarketLine({
 /** Extra waterskins: each holds WATERSKIN_WATER more water, filled free here. */
 function WaterskinLine({
   state,
+  content,
   amount,
   onAction,
 }: {
   state: GameState
+  content: Content
   amount: Amount
   onAction: (a: Action) => void
 }) {
   const { t } = useI18n()
-  const affordable = Math.floor(state.gold / WATERSKIN_PRICE)
+  // The engine's limit: the gold, and the weight of the water they would hold.
+  const affordable = maxWaterskins(state, content).units
   const buyN = amount === 'max' ? affordable : amount
   const sellN = amount === 'max' ? state.waterskins : Math.min(amount, state.waterskins)
   const label = t('market.waterskins')

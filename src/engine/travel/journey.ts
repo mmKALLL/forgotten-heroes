@@ -110,6 +110,7 @@ export function depart(
     )
   }
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
+  state = topUpWater(state, content, here)
   const blocked = animalBlock(state, content, route)
   if (blocked) return appendLog(state, animalBlockText(blocked), 'bad')
   const offer = options.hire ? hireOffer(state, content, route) : null
@@ -274,6 +275,18 @@ function watered(state: GameState, content: Content, id: string): boolean {
   if (!Object.hasOwn(state.world.pois, id)) return true
   const type = state.world.pois[id].type
   return Object.hasOwn(content.poiTypes, type) && content.poiTypes[type].water
+}
+
+/**
+ * Water is refilled wherever it is free and risk-free (designer decision): setting out from a
+ * settlement or a site with a spring tops the skins up (autoRefill), unless that would make the
+ * load heavier in kind (a party that poured water out to set out isn't loaded up again).
+ */
+function topUpWater(state: GameState, content: Content, here: string): GameState {
+  if (!watered(state, content, here)) return state
+  const goods = autoRefill(state, content)
+  const same = load({ ...state, goods }, content).level === load(state, content).level
+  return same ? { ...state, goods } : state
 }
 
 function arrive(state: GameState, content: Content): GameState {
@@ -481,7 +494,7 @@ export function stepTravel(state: GameState, action: TravelAction, content: Cont
     case 'rest':
       return rest(state, content, action.lodging)
     case 'buyWaterskin':
-      return buyWaterskin(state, action.count)
+      return buyWaterskin(state, content, action.count)
     case 'sellWaterskin':
       return sellWaterskin(state, action.count)
   }

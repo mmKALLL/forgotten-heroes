@@ -430,7 +430,9 @@ describe('foraging', () => {
     for (let seed = 0; seed < 30; seed++) {
       const dry = { party: [sage, lyra], goods: { food: 10, water: 0 }, rng: createRng(seed) }
       const run = (forage: boolean) => {
+        // Setting out tops the water up: the party sets out dry all the same.
         let state = plains(dry, forage)
+        state = { ...state, goods: { ...state.goods, water: 0 } }
         for (let i = 0; i < 5 && state.travel; i++) state = go(state)
         return state
       }

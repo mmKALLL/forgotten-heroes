@@ -153,7 +153,7 @@ export function provision(state: GameState, content: Content, plan: ProvisionFor
   const to = settlementName(state, otherEnd(route, state.location!))
   if (p.ready)
     return appendLog(state, `The party already has what the road to ${to} needs.`, 'info')
-  let next = p.waterskins > 0 ? buyWaterskin(state, p.waterskins) : state
+  let next = p.waterskins > 0 ? buyWaterskin(state, content, p.waterskins) : state
   if (p.food > 0) next = buyGoods(next, content, 'food', p.food)
   // Buying skins fills them; provisioning keeps only the water the road needs.
   next = { ...next, goods: { ...next.goods, water: goodsOf(state.goods, 'water') + p.water } }

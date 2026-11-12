@@ -11,6 +11,7 @@ import { springAt, terrainHere } from '../world/graph'
 import { consumeDay, dailyNeed, endOfDay, goodsOf, waterNeed } from './days'
 import { inSettlement, notHere } from './where'
 import { load } from '../economy/capacity'
+import type { BuyLimit } from '../economy/trade'
 import { lodgingOptions, type Room } from '../town/services'
 import { animalUpkeep } from '../town/animals'
 import { journeyDays } from './routes'
@@ -179,24 +180,64 @@ export function rest(
   return appendLog({ ...after, party, goods }, text, 'good')
 }
 
+/** A safety cap on the waterskins bought at once. */
+const MAX_SKINS = 999
+
 /**
- * Buys up to `count` extra waterskins at WATERSKIN_PRICE (as many as the gold allows). Each holds
- * WATERSKIN_WATER more water; all of them are filled.
+ * The most extra waterskins the party can buy here (up to `wanted`): as many as the gold allows,
+ * and no more than it could carry full without being overloaded (the weight check of maxBuy).
+ * 0 outside a settlement or mid-encounter.
  */
-export function buyWaterskin(state: GameState, count = 1): GameState {
+export function maxWaterskins(
+  state: GameState,
+  content: Content,
+  wanted = MAX_SKINS
+): { units: number; limit: BuyLimit } {
+  if (inProgress(state) || !inSettlement(state)) return { units: 0, limit: null }
+  const asked = Math.min(MAX_SKINS, Math.max(0, Math.floor(wanted)))
+  const affordable = Math.floor(Math.max(0, state.gold) / WATERSKIN_PRICE)
+  const carries = (n: number) => {
+    const water = waterCapacity(state.party.length, state.waterskins + n)
+    const goods = refillWater(state.goods, water)
+    return load({ ...state, goods }, content).level !== 'overloaded'
+  }
+  const cap = Math.min(asked, affordable)
+  let units = 0
+  while (units < cap && carries(units + 1)) units += 1
+  const limit: BuyLimit = units >= asked ? null : units < cap ? 'weight' : 'gold'
+  return { units, limit }
+}
+
+/**
+ * Buys up to `count` extra waterskins at WATERSKIN_PRICE (maxWaterskins: as many as the gold
+ * allows, and refused when their water would overload the party). Each holds WATERSKIN_WATER more
+ * water, filled free as far as the party stays unencumbered (autoRefill).
+ */
+export function buyWaterskin(state: GameState, content: Content, count = 1): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   if (!inSettlement(state)) {
     return appendLog(state, notHere(state, 'Waterskins can only be bought in a settlement.'), 'bad')
   }
-  const wanted = Math.max(0, Math.floor(count))
-  const bought = Math.min(wanted, Math.floor(state.gold / WATERSKIN_PRICE))
-  if (bought === 0) return appendLog(state, `Waterskins cost ${WATERSKIN_PRICE} gp each.`, 'bad')
+  const { units: bought, limit } = maxWaterskins(state, content, count)
+  if (bought === 0) {
+    return appendLog(
+      state,
+      limit === 'weight'
+        ? 'Too heavy: the party could not carry the water in another waterskin.'
+        : `Waterskins cost ${WATERSKIN_PRICE} gp each.`,
+      'bad'
+    )
+  }
   const waterskins = state.waterskins + bought
-  const goods = refillWater(state.goods, waterCapacity(state.party.length, waterskins))
+  const skinned = { ...state, gold: state.gold - bought * WATERSKIN_PRICE, waterskins }
+  const goods = autoRefill(skinned, content)
+  const full = goodsOf(goods, 'water') >= waterCapacity(state.party.length, waterskins)
   return appendLog(
-    { ...state, gold: state.gold - bought * WATERSKIN_PRICE, waterskins, goods },
+    { ...skinned, goods },
     `Bought ${bought} waterskin${bought === 1 ? '' : 's'} for ${bought * WATERSKIN_PRICE} gp ` +
-      `and filled ${bought === 1 ? 'it' : 'them'}.`,
+      (full
+        ? `and filled ${bought === 1 ? 'it' : 'them'}.`
+        : 'and filled them as far as the party stays unencumbered.'),
     'info'
   )
 }
