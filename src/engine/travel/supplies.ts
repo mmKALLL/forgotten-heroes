@@ -14,11 +14,10 @@ import { journeyDays } from './routes'
 import {
   CAMP_HEAL,
   DEFAULT_PACE,
-  FOOD_PRICE,
   LODGING_PRICE,
-  SELL_SHARE,
   STARTING_FOOD_DAYS,
   WATERSKIN_PRICE,
+  WATERSKIN_SELL_PRICE,
   WATERSKIN_WATER,
   WATER_DAYS,
 } from '../constants'
@@ -130,29 +129,10 @@ export const inSettlement = (state: Pick<GameState, 'travel' | 'location' | 'wor
   !state.travel && state.location !== null && Object.hasOwn(state.world.settlements, state.location)
 
 /** Refusals start "Not here" at a point of interest, where there is nothing to buy or sell. */
-const notHere = (state: GameState, text: string): string =>
+export const notHere = (state: GameState, text: string): string =>
   !state.travel && state.location !== null
     ? `Not here: ${text[0].toLowerCase()}${text.slice(1)}`
     : text
-
-/** Buys up to `amount` rations at FOOD_PRICE (as many as the gold allows) and refills water. */
-export function buyFood(state: GameState, amount: number): GameState {
-  if (!inSettlement(state)) {
-    return appendLog(state, notHere(state, 'Food can only be bought in a settlement.'), 'bad')
-  }
-  const wanted = Math.max(0, Math.floor(amount))
-  const bought = Math.min(wanted, Math.floor(state.gold / FOOD_PRICE))
-  if (bought === 0) return appendLog(state, `Rations cost ${FOOD_PRICE} gp each.`, 'bad')
-  const goods = refillWater(
-    { ...state.goods, food: goodsOf(state.goods, 'food') + bought },
-    partyWaterCapacity(state)
-  )
-  return appendLog(
-    { ...state, gold: state.gold - bought * FOOD_PRICE, goods },
-    `Bought ${bought} ration${bought === 1 ? '' : 's'} for ${bought * FOOD_PRICE} gp and refilled the waterskins.`,
-    'info'
-  )
-}
 
 /**
  * Buys up to `count` extra waterskins at WATERSKIN_PRICE (as many as the gold allows). Each holds
@@ -175,39 +155,26 @@ export function buyWaterskin(state: GameState, count = 1): GameState {
   )
 }
 
-/** What selling these supplies would fetch: SELL_SHARE of their price, rounded down. */
-export const saleValue = (food: number, waterskins: number): number =>
-  Math.floor((food * FOOD_PRICE + waterskins * WATERSKIN_PRICE) * SELL_SHARE)
-
 /**
- * Sells carried food and extra waterskins for coin in a settlement, at SELL_SHARE of their price
- * (desperate measures). Asks for more than the party has sell what it has. Water is free in any
- * settlement, so it fetches nothing; carried water beyond the smaller capacity is poured out.
+ * Sells up to `count` extra waterskins for WATERSKIN_SELL_PRICE each (desperate measures). Water
+ * beyond the smaller capacity is poured out. Food and other goods are sold at the market
+ * (economy/trade.ts).
  */
-export function sellSupplies(
-  state: GameState,
-  { food = 0, waterskins = 0 }: { food?: number; waterskins?: number }
-): GameState {
+export function sellWaterskin(state: GameState, count = 1): GameState {
   if (!inSettlement(state)) {
-    return appendLog(state, notHere(state, 'Supplies can only be sold in a settlement.'), 'bad')
+    return appendLog(state, notHere(state, 'Waterskins can only be sold in a settlement.'), 'bad')
   }
-  const rations = Math.min(Math.max(0, Math.floor(food)), goodsOf(state.goods, 'food'))
-  const skins = Math.min(Math.max(0, Math.floor(waterskins)), state.waterskins)
-  if (rations === 0 && skins === 0) return appendLog(state, 'There is nothing to sell.', 'bad')
-  const gold = saleValue(rations, skins)
+  const skins = Math.min(Math.max(0, Math.floor(count)), state.waterskins)
+  if (skins === 0) return appendLog(state, 'There is no waterskin to sell.', 'bad')
+  const gold = skins * WATERSKIN_SELL_PRICE
   const left = state.waterskins - skins
   const goods = {
     ...state.goods,
-    food: goodsOf(state.goods, 'food') - rations,
     water: Math.min(goodsOf(state.goods, 'water'), waterCapacity(state.party.length, left)),
   }
-  const sold = [
-    rations > 0 && `${rations} ration${rations === 1 ? '' : 's'}`,
-    skins > 0 && `${skins} waterskin${skins === 1 ? '' : 's'}`,
-  ].filter(Boolean)
   return appendLog(
     { ...state, gold: state.gold + gold, waterskins: left, goods },
-    `Sold ${sold.join(' and ')} for ${gold} gp.`,
+    `Sold ${skins} waterskin${skins === 1 ? '' : 's'} for ${gold} gp.`,
     'info'
   )
 }

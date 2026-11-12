@@ -324,6 +324,8 @@ describe('v5 → v6', () => {
       gold: 37,
       goods: { food: 6, water: 3 },
       waterskins: 2,
+      // A migrated save knows no prices until the party next arrives somewhere.
+      priceBook: {},
       ...overrides,
     })
     const { people: _people, ...world } = state.world

@@ -12,6 +12,7 @@ import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
 import { TIER_LABELS, normalizeDc, rollCheck, type RollMode } from './rules/checks'
 import { stepTravel, type TravelAction } from './travel/journey'
+import { observe, stepTrade, type TradeAction } from './economy/trade'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
@@ -27,6 +28,7 @@ export type Action =
   | { type: 'practiceCheck'; stat: CheckStat; dc: number; mode: RollMode; actorId?: string }
   | EncounterAction
   | TravelAction
+  | TradeAction
   /** Play one of the situations of the discovered, uncleared POI the party is at. */
   | { type: 'visitPoi' }
   /** Search the domain the party is in for undiscovered POIs (world/explore.ts). */
@@ -48,7 +50,7 @@ export function newGame(
   const location = startingSettlement(world, content, start)
   const names = party.map((c) => c.name).join(' and ')
   const from = location ? ` from ${settlementName({ world }, location)}` : ''
-  return {
+  const state: GameState = {
     version: CURRENT_SAVE_VERSION,
     seed,
     rng,
@@ -77,6 +79,8 @@ export function newGame(
     contractsTaken: [],
     doneHere: [],
   }
+  // The party knows the prices where it starts.
+  return location ? observe(state, content, location) : state
 }
 
 /**
@@ -134,10 +138,12 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'travel':
     case 'continueJourney':
     case 'rest':
-    case 'buyFood':
     case 'buyWaterskin':
-    case 'sellSupplies':
+    case 'sellWaterskin':
       return stepTravel(state, action, content)
+    case 'buyGoods':
+    case 'sellGoods':
+      return stepTrade(state, action, content)
     case 'visitPoi':
       return visitPoi(state, content)
     case 'explore':

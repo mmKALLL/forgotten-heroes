@@ -17,3 +17,7 @@ export const formatFaces = (r: FaceRange): string =>
 /** A tier's threshold on the d20: '12+' (its lowest face); the lone critical faces stay '1' and '20'. */
 export const formatFacesShort = (r: FaceRange): string =>
   r.min === r.max && (r.min === 1 || r.min === 20) ? `${r.min}` : `${r.min}+`
+
+/** A price in gold pieces: whole above 10, else to one decimal place ("0.8", "12"). */
+export const formatGp = (gp: number): string =>
+  gp >= 10 ? `${Math.round(gp)}` : `${Math.round(gp * 10) / 10}`

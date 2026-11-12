@@ -1,7 +1,8 @@
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { placeInfo, suppliesInfo } from '../../engine/travel/preview'
-import { goodsOf, restOption, saleValue } from '../../engine/travel/supplies'
+import { goodsOf, restOption } from '../../engine/travel/supplies'
+import { quote } from '../../engine/economy/market'
 import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
 import { useI18n } from '../i18n/I18n'
@@ -9,7 +10,7 @@ import { ExploreAction } from './ExploreAction'
 import { RoadsOut } from './RoadsOut'
 import { realmText, sizeText, threatLine } from './travelText'
 import type { TravelPrefs } from './travelPrefs'
-import { FOOD_PRICE, WATERSKIN_PRICE, WATERSKIN_WATER } from '../../engine/constants'
+import { WATERSKIN_PRICE, WATERSKIN_SELL_PRICE, WATERSKIN_WATER } from '../../engine/constants'
 
 /** Rations bought or sold per click. */
 export const RATION_BUNDLE = 5
@@ -53,6 +54,9 @@ export function PlacePanel({
   const rest = restOption(state)
   const food = goodsOf(state.goods, 'food')
   const sellFood = Math.min(RATION_BUNDLE, food)
+  // Food at the local market (until the C2 market panel): a bundle's price, and what selling fetches.
+  const buyFood = quote(state, content, here.id, 'food', 'buy', RATION_BUNDLE)
+  const foodSale = sellFood > 0 ? quote(state, content, here.id, 'food', 'sell', sellFood) : null
   return (
     <section className="panel place" aria-label={t('place.heading')}>
       {banner && (
@@ -100,26 +104,28 @@ export function PlacePanel({
         )}
       </div>
       <div className="actions">
-        <button
-          disabled={state.gold < FOOD_PRICE}
-          onClick={() => onAction({ type: 'buyFood', amount: RATION_BUNDLE })}
-        >
-          {t('place.buyFood', { n: RATION_BUNDLE, gp: RATION_BUNDLE * FOOD_PRICE })}
-        </button>
+        {buyFood && (
+          <button
+            disabled={state.gold < Math.ceil(buyFood.unitFirst)}
+            onClick={() => onAction({ type: 'buyGoods', good: 'food', amount: RATION_BUNDLE })}
+          >
+            {t('place.buyFood', { n: RATION_BUNDLE, gp: buyFood.total })}
+          </button>
+        )}
         <button
           disabled={state.gold < WATERSKIN_PRICE}
           onClick={() => onAction({ type: 'buyWaterskin', count: 1 })}
         >
           {t('place.buyWaterskin', { gp: WATERSKIN_PRICE, water: WATERSKIN_WATER })}
         </button>
-        {sellFood > 0 && (
-          <button onClick={() => onAction({ type: 'sellSupplies', food: sellFood })}>
-            {t('place.sellFood', { n: sellFood, gp: saleValue(sellFood, 0) })}
+        {foodSale && (
+          <button onClick={() => onAction({ type: 'sellGoods', good: 'food', amount: sellFood })}>
+            {t('place.sellFood', { n: sellFood, gp: foodSale.total })}
           </button>
         )}
         {state.waterskins > 0 && (
-          <button onClick={() => onAction({ type: 'sellSupplies', waterskins: 1 })}>
-            {t('place.sellWaterskin', { gp: saleValue(0, 1) })}
+          <button onClick={() => onAction({ type: 'sellWaterskin', count: 1 })}>
+            {t('place.sellWaterskin', { gp: WATERSKIN_SELL_PRICE })}
           </button>
         )}
       </div>

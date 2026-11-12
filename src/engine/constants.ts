@@ -106,8 +106,6 @@ export const FORAGE_HOSTILE_BONUS = 0.1
 
 /** A new party carries this many days of food per member. */
 export const STARTING_FOOD_DAYS = 5
-/** A stop-gap price per ration until the Plan 4 market. */
-export const FOOD_PRICE = 1
 /** A day in camp restores this share of max HP; a day in a settlement restores all of it. */
 export const CAMP_HEAL = 0.25
 /** CON check DC for a day without food. */
@@ -122,8 +120,8 @@ export const WATERSKIN_WATER = 2
 export const WATERSKIN_PRICE = 2
 /** Lodging per member per night (meals included). Plan 4 sets it by inn quality. */
 export const LODGING_PRICE = 1
-/** Supplies sell back for this share of their price (rounded down over the whole sale). */
-export const SELL_SHARE = 0.5
+/** What an extra waterskin sells back for. */
+export const WATERSKIN_SELL_PRICE = 1
 
 // Carrying capacity and encumbrance (economy/capacity.ts). Weights are in kilograms.
 
@@ -169,6 +167,11 @@ export const SPREAD_PER_QUALITY = 0.03
 export const SPREAD_MIN = 0.05
 /** The market stalls every settlement has for essentials trade at this quality (the worst spread). */
 export const STALL_QUALITY = 1
+
+// Trading and the price book (economy/trade.ts)
+
+/** Prices in the price book older than this many days are shown as stale. */
+export const STALE_DAYS = 14
 
 // Stowing away (stowaway.ts)
 

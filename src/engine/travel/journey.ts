@@ -25,15 +25,15 @@ import {
   routeThreat,
 } from './routes'
 import {
-  buyFood,
   buyWaterskin,
   partyWaterCapacity,
   passDay,
   refillWater,
   rest,
   runsShort,
-  sellSupplies,
+  sellWaterskin,
 } from './supplies'
+import { observe } from '../economy/trade'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
 import { load, overloadExcess } from '../economy/capacity'
 import { DEFAULT_PACE } from '../constants'
@@ -55,9 +55,8 @@ export type TravelAction =
     }
   | { type: 'continueJourney' }
   | { type: 'rest'; lodging?: boolean }
-  | { type: 'buyFood'; amount: number }
   | { type: 'buyWaterskin'; count?: number }
-  | { type: 'sellSupplies'; food?: number; waterskins?: number }
+  | { type: 'sellWaterskin'; count?: number }
 
 export type DepartOptions = {
   pace?: Pace
@@ -259,11 +258,16 @@ function arrive(state: GameState, content: Content): GameState {
     goods: water ? refillWater(state.goods, partyWaterCapacity(state)) : state.goods,
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }
-  return appendLog(
-    arrived,
-    `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road.` +
-      (water ? ' The waterskins are refilled.' : ''),
-    'good'
+  // The party sees the market of the settlement it arrives in (economy/trade.ts).
+  return observe(
+    appendLog(
+      arrived,
+      `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road.` +
+        (water ? ' The waterskins are refilled.' : ''),
+      'good'
+    ),
+    content,
+    travel.to
   )
 }
 
@@ -422,11 +426,9 @@ export function stepTravel(state: GameState, action: TravelAction, content: Cont
       return continueJourney(state, content)
     case 'rest':
       return rest(state, content, action.lodging)
-    case 'buyFood':
-      return buyFood(state, action.amount)
     case 'buyWaterskin':
       return buyWaterskin(state, action.count)
-    case 'sellSupplies':
-      return sellSupplies(state, action)
+    case 'sellWaterskin':
+      return sellWaterskin(state, action.count)
   }
 }
