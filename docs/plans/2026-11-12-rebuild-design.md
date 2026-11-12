@@ -254,6 +254,10 @@ The town map image is a banner and backdrop.
 - **Reputation tiers:** individuals (shopkeepers, notables), settlements, kingdoms, and threat factions.
 - **What reputation does:** affects prices, service access, rumour quality, and special encounter options, and unlocks quest types.
 - **Spending reputation:** call in a favour for a guaranteed success or a large bonus. Using one faction's favour in front of its rival costs reputation with the rival.
+- **Reputation as a reward:** quest patrons can be asked to "put in a good word" instead of paying.
+  - The good word raises the party's standing with the patron's people or faction, even far away. Example: a respected orc's word makes a hostile orc kingdom tolerate the party.
+  - **The party's welcome is separate from how dangerous a faction is to everyone else.** Hostile encounters with that faction become rarer or turn into parley for the party, while the kingdom still threatens its neighbours. Threat levels, prices and wars are unaffected.
+  - This makes reputation a currency the player can earn instead of gold.
 - **Rule hooks:** one declarative mechanism, such as `{ "on": "sellGoods", "category": "precious", "modify": {...} }`. It powers both accessory effects and per-party modifiers, which are composable, random, and allowed to bend the rules.
 
 ## 9. UI
