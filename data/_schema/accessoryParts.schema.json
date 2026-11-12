@@ -252,7 +252,7 @@
           "required": [
             "hook"
           ],
-          "description": "Wearer: once a day, a natural 1 on the wearer's check is rerolled"
+          "description": "Wearer: once a day, rerolls a natural 1 on the wearer's encounter check"
         },
         {
           "type": "object",

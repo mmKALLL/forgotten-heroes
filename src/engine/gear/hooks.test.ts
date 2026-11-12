@@ -12,7 +12,7 @@ import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { forageCheck } from '../travel/forage'
 import { placeOnRoute } from '../travel/journey'
 import { routeOptions } from '../travel/preview'
-import { describeHook, hasLuck, sellBonus, wardShare } from './hooks'
+import { describeHook, hasLuck, sellBonus, spendLuck, wardShare } from './hooks'
 
 const content = fixtureContent()
 
@@ -102,6 +102,11 @@ describe('the lucky reroll', () => {
     expect(rolled.log.some((l) => l.text.includes('turns the luck'))).toBe(true)
     expect(hasLuck(rolled, 'lyra')).toBe(false)
     expect(hasLuck({ ...rolled, day: rolled.day + 1 }, 'lyra')).toBe(true)
+  })
+
+  test("spending luck keeps only today's entries", () => {
+    const state = { day: 9, luckUsed: { brom: 3, lyra: 9, gone: 1 } }
+    expect(spendLuck(state, 'brom').luckUsed).toEqual({ brom: 9, lyra: 9 })
   })
 })
 

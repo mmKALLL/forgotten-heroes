@@ -40,7 +40,7 @@ export const RuleHookSchema = z.discriminatedUnion('hook', [
     .describe('Wearer: the daily Strain threshold is this much higher'),
   z
     .object({ hook: z.literal('lucky') })
-    .describe("Wearer: once a day, a natural 1 on the wearer's check is rerolled"),
+    .describe("Wearer: once a day, rerolls a natural 1 on the wearer's encounter check"),
   z
     .object({
       hook: z.literal('sellBonus'),

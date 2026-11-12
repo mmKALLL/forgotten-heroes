@@ -86,11 +86,14 @@ export function hasLuck(
   return c !== undefined && isLucky(c) && state.luckUsed[characterId] !== state.day
 }
 
-/** Spends a member's luck for today. */
-export const spendLuck = <S extends Pick<GameState, 'day' | 'luckUsed'>>(
+/** Spends a member's luck for today, dropping older days' entries so the save stays small. */
+export function spendLuck<S extends Pick<GameState, 'day' | 'luckUsed'>>(
   state: S,
   characterId: string
-): S => ({ ...state, luckUsed: { ...state.luckUsed, [characterId]: state.day } })
+): S {
+  const today = Object.entries(state.luckUsed).filter(([, day]) => day === state.day)
+  return { ...state, luckUsed: { ...Object.fromEntries(today), [characterId]: state.day } }
+}
 
 /** The share more that selling this good pays: every worn `sellBonus` for its category (they stack). */
 export const sellBonus = (state: Pick<GameState, 'party'>, good: Good): number =>
@@ -141,7 +144,7 @@ export function describeHook(hook: RuleHook): string {
     case 'strainGrace':
       return 'Strain sets in later'
     case 'lucky':
-      return 'Once a day, rerolls a natural 1'
+      return "Once a day, rerolls a natural 1 on the wearer's encounter check"
     case 'sellBonus':
       return `Sells ${categoryGoods(hook.category)} for ${percent(hook.share)} more`
     case 'ward':
