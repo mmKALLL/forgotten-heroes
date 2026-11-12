@@ -12,7 +12,6 @@ export const ja: Partial<Messages> = {
   'top.inspiration': '✦ インスピレーション {n}',
   'top.inspirationHint': '出目20で得られる。振り直しに使える（近日実装）',
   'top.seed': 'シード {seed}',
-  'top.newParty': '新しいパーティ',
   'top.food': '食料 {food}（{days}日分）',
   'top.water': '水 {water}／{capacity}（{days}日分）',
   'top.suppliesHint': '食料と水：1人1日に食料1と水1（砂漠では水2）。日数はパーティ全体での目安',

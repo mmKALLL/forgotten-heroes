@@ -15,8 +15,8 @@ import { GoodsBar } from './GoodsBar'
 import { addsRoll } from './encounter/rolls'
 import { I18nProvider, LanguageToggle, useI18n } from './i18n/I18n'
 import { LogPanel } from './LogPanel'
-import { NewPartyButton } from './NewPartyButton'
 import { PartyPanel } from './PartyPanel'
+import { SavesMenu } from './SavesMenu'
 import { DayMark } from './DayMark'
 import { useAutoRest } from './settings'
 import { useGame } from './useGame'
@@ -39,7 +39,7 @@ export function App() {
 
 function Game() {
   const { t } = useI18n()
-  const { state, dispatch, restart } = useGame(content)
+  const { state, slot, dispatch, restart, continueIn } = useGame(content)
   // While a new roll animates, the journal, party and top bar keep showing the last revealed
   // state, so they don't give the result away. A reload starts from the current state.
   const [revealed, setRevealed] = useState(state)
@@ -50,12 +50,16 @@ function Game() {
   const [travelPrefs, setTravelPrefs] = useTravelPrefs(state.seed)
   // Auto-rest on arrival (per viewer): the engine rests only if someone is hurt or strained.
   const [autoRest, setAutoRest] = useAutoRest()
-  const wasTravelling = useRef(state.travel !== null)
+  // Which run (slot and world) the last state belonged to: switching runs is not an arrival.
+  const run = `${slot}:${state.seed}`
+  const wasTravelling = useRef({ run, travelling: state.travel !== null })
   useEffect(() => {
-    const arrived = wasTravelling.current && state.travel === null && !state.encounter
-    wasTravelling.current = state.travel !== null
+    const before = wasTravelling.current
+    const arrived =
+      before.run === run && before.travelling && state.travel === null && !state.encounter
+    wasTravelling.current = { run, travelling: state.travel !== null }
     if (arrived && autoRest) dispatch({ type: 'autoRest' })
-  }, [state, autoRest, dispatch])
+  }, [state, run, autoRest, dispatch])
   const rolling = revealed !== state && !reducedMotion && addsRoll(revealed, state)
   if (!rolling && revealed !== state) setRevealed(state)
   const shown = rolling ? revealed : state
@@ -83,10 +87,17 @@ function Game() {
         <span className="spacer" />
         <span className="muted small">{t('top.seed', { seed: state.seed })}</span>
         <LanguageToggle />
-        <NewPartyButton
-          onStart={() => {
+        <SavesMenu
+          content={content}
+          state={state}
+          slot={slot}
+          onContinue={(n) => {
             setSelected(null)
-            restart()
+            continueIn(n)
+          }}
+          onNewParty={(n) => {
+            setSelected(null)
+            restart(n)
           }}
         />
       </header>

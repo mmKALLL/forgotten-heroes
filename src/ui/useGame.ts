@@ -1,57 +1,49 @@
 import { useEffect, useReducer } from 'react'
 import type { Content } from '../content/build'
-import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize, serialize } from '../engine/save'
 import { newGame, step, type Action } from '../engine/state'
 import type { GameState } from '../schema/state'
 import { STARTING_PARTY_SIZE } from '../engine/constants'
+import { activeSlot, backUpIfUnreadable, loadSlot, setActiveSlot, writeSlot } from './saves'
 
-type UiAction = Action | { type: 'replace'; state: GameState }
+/** The game being played and the save slot it auto-saves to, changed together. */
+type Session = { slot: number; state: GameState }
+
+type UiAction = Action | { type: 'replace'; slot: number; state: GameState }
 
 const reducer =
   (content: Content) =>
-  (state: GameState, action: UiAction): GameState =>
-    action.type === 'replace' ? action.state : step(state, action, content)
+  (session: Session, action: UiAction): Session =>
+    action.type === 'replace'
+      ? { slot: action.slot, state: action.state }
+      : { ...session, state: step(session.state, action, content) }
 
 export const randomSeed = (): number => Math.floor(Math.random() * 2 ** 32)
 
-function loadSaved(content: Content): GameState | null {
-  let text: string | null
-  try {
-    text = localStorage.getItem(SAVE_KEY)
-  } catch {
-    return null // storage blocked or unavailable
-  }
-  if (!text) return null
-  const state = deserialize(text, content)
-  if (!state) {
-    // The new game about to start would overwrite it: keep a copy for recovery or a future migration.
-    try {
-      localStorage.setItem(UNREADABLE_SAVE_KEY, text)
-    } catch {
-      // storage full or blocked: nothing more we can do
-    }
-  }
-  return state
+/** A new party in a new world, in a random mainland settlement (design §6). */
+const freshGame = (content: Content): GameState =>
+  newGame(randomSeed(), content, STARTING_PARTY_SIZE, 'random')
+
+function initial(content: Content): Session {
+  const slot = activeSlot()
+  return { slot, state: loadSlot(slot, content) ?? newGame(randomSeed(), content) }
 }
 
 export function useGame(content: Content) {
-  const [state, dispatch] = useReducer(
-    reducer(content),
-    null,
-    () => loadSaved(content) ?? newGame(randomSeed(), content)
-  )
+  const [session, send] = useReducer(reducer(content), content, initial)
+  const { slot, state } = session
+  // Auto-save after every change (ironman: no manual save, design §6).
   useEffect(() => {
-    try {
-      localStorage.setItem(SAVE_KEY, serialize(state))
-    } catch {
-      // storage blocked or unavailable: the game still works, it just won't persist
-    }
-  }, [state])
-  /** A new party in a new world, in a random mainland settlement (design §6). */
-  const restart = () =>
-    dispatch({
-      type: 'replace',
-      state: newGame(randomSeed(), content, STARTING_PARTY_SIZE, 'random'),
-    })
-  return { state, dispatch, restart }
+    writeSlot(slot, state)
+    setActiveSlot(slot)
+  }, [slot, state])
+  const dispatch: (action: Action) => void = send
+  /** Plays the game saved in `slot` (a new party there if it is empty or unreadable). */
+  const continueIn = (to: number) =>
+    send({ type: 'replace', slot: to, state: loadSlot(to, content) ?? freshGame(content) })
+  /** A new party in a new world in `slot`, replacing what it held. */
+  const restart = (to: number = slot) => {
+    backUpIfUnreadable(to, content)
+    send({ type: 'replace', slot: to, state: freshGame(content) })
+  }
+  return { state, slot, dispatch, restart, continueIn }
 }
