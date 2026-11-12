@@ -7,8 +7,10 @@ import { straightKm } from './geo'
 // Domain territory (design §6): every settlement is a domain that owns the land spots nearest to it
 // in travel days. Computed from content and memoised, never stored, so it can't go stale.
 
-/** The land-spot grid's spacing: 100 map px. */
-export const SPOT_SPACING_KM = 100 / PX_PER_KM
+/** The land-spot grid read off the map (scripts/map/sample_land_spots.py): 100 px apart. */
+export const SPOT_SPACING_PX = 100
+/** The grid's spacing in km, about 21. */
+export const SPOT_SPACING_KM = SPOT_SPACING_PX / PX_PER_KM
 /** Two spots, or a spot and a settlement, closer than this are linked (≈1.6 grid steps). */
 export const SPOT_LINK_KM = 1.6 * SPOT_SPACING_KM
 /** Off-road travel winds: km on foot are the straight line × this. */

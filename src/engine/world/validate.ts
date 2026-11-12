@@ -1,15 +1,10 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
 import { IdSchema } from '../../schema/common'
-import { PX_PER_KM } from '../../schema/world'
 import { components, straightKm } from './geo'
+import { SPOT_LINK_KM, SPOT_SPACING_PX } from './territory'
 
 /** A route may wind, but not to more than twice the straight line. */
 export const MAX_WINDING = 2
-
-/** The land-spot grid read off the map (scripts/map/sample_land_spots.py): 100 px, about 21 km. */
-export const SPOT_SPACING_PX = 100
-/** A settlement links to the spots within this many km (1.6 grid steps), as does a spot. */
-export const SPOT_LINK_KM = (1.6 * SPOT_SPACING_PX) / PX_PER_KM
 
 const groupsText = (groups: string[][]): string => groups.map((g) => g.join(', ')).join(' | ')
 

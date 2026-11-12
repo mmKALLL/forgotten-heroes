@@ -4,13 +4,13 @@ import { slotNames } from '../engine/encounters/slots'
 import { newGame } from '../engine/state'
 import { wander } from '../engine/travel/wander'
 import { generateWorld, startingSettlement, worldSeed } from '../engine/world/generate'
-import { routesFrom, straightKm } from '../engine/world/geo'
+import { routesFrom } from '../engine/world/geo'
 import { domainThreatLevel } from '../engine/world/pois'
+import { territory } from '../engine/world/territory'
 import { worldIssues } from '../engine/world/validate'
 import { BIOMES } from '../schema/constants'
 import { GameStateSchema } from '../schema/state'
-import { WorldStateSchema, type LandSpot } from '../schema/world'
-import { sortedEntries } from './build'
+import { WorldStateSchema } from '../schema/world'
 import { loadBundledContent } from './bundled'
 
 const content = loadBundledContent()
@@ -44,13 +44,6 @@ describe('the Altaeus geography', () => {
 })
 
 describe('land spots', () => {
-  // Until the territory model lands, a spot counts towards the nearest settlement on its island
-  // in a straight line (lower id on a tie), the way the map script fills in spots.
-  const nearest = (spot: LandSpot): string =>
-    sortedEntries(content.settlements)
-      .filter((s) => s.island === spot.island)
-      .reduce((best, s) => (straightKm(s.at, spot.at) < straightKm(best.at, spot.at) ? s : best)).id
-
   test('cover every island with settlements but the one-marker islets', () => {
     const islands = new Set(Object.values(content.landSpots).map((s) => s.island))
     for (const s of Object.values(content.settlements)) {
@@ -58,14 +51,16 @@ describe('land spots', () => {
     }
   })
 
-  test('every mainland domain has at least 3 spots, and none more than 15% of them', () => {
-    const owned = new Map<string, number>()
-    const spots = Object.values(content.landSpots)
-    for (const spot of spots) owned.set(nearest(spot), (owned.get(nearest(spot)) ?? 0) + 1)
+  test('every spot is in a domain; every mainland domain has 3+, none over 15% of them', () => {
+    const { domainOf, spots } = territory(content)
+    const total = Object.keys(content.landSpots).length
+    expect(Object.keys(domainOf)).toHaveLength(total)
     const mainland = Object.values(content.settlements).filter((s) => s.island === 'mainland')
-    const small = mainland.filter((s) => (owned.get(s.id) ?? 0) < 3).map((s) => s.id)
+    const small = mainland.filter((s) => spots[s.id].length < 3).map((s) => s.id)
     expect(small).toEqual([])
-    expect(Math.max(...owned.values())).toBeLessThanOrEqual(0.15 * spots.length)
+    expect(Math.max(...Object.values(spots).map((list) => list.length))).toBeLessThanOrEqual(
+      0.15 * total
+    )
   })
 })
 
@@ -141,6 +136,23 @@ describe('generated worlds on Altaeus', () => {
     expect(new Set(names).size).toBe(names.length)
     expect(startingSettlement(world, content)).not.toBeNull()
     expect(startingSettlement(world, content, 'random')).not.toBeNull()
+  })
+
+  test('hold about 40–60 points of interest, most domains holding 0 or 1', () => {
+    let total = 0
+    for (let seed = 1; seed <= 8; seed++) {
+      const world = generateWorld(worldSeed(seed), content)
+      const pois = Object.values(world.pois)
+      expect(pois.length).toBeGreaterThanOrEqual(35)
+      expect(pois.length).toBeLessThanOrEqual(65)
+      total += pois.length
+      const perDomain = new Map<string, number>()
+      for (const p of pois) perDomain.set(p.domain, (perDomain.get(p.domain) ?? 0) + 1)
+      const few = Object.keys(world.domains).filter((id) => (perDomain.get(id) ?? 0) <= 1)
+      expect(few.length).toBeGreaterThan(Object.keys(world.domains).length / 2)
+    }
+    expect(total / 8).toBeGreaterThanOrEqual(40)
+    expect(total / 8).toBeLessThanOrEqual(60)
   })
 
   test('most settlements are named after town maps', () => {

@@ -4,14 +4,18 @@ import type { DomainState, LandSpot, LandState, PoiState, PoiType } from '../../
 import { fillText, rollTable, slotNames } from '../encounters/slots'
 import type { Draw } from '../rng'
 import { straightKm } from './geo'
+import { NAME_TRIES } from './names'
 import { threatLevelFor } from './politics'
 import { territory, type Territory } from './territory'
 
 // Points of interest (design §6): dungeons, experts, lairs, shrines, landmarks, wonders and quest
 // sites, placed on land spots per domain when the world is rolled. All start hidden.
 
-/** A domain's expected POIs are its spots / POI_SPOTS_EACH (about 40–60 per world). */
-export const POI_SPOTS_EACH = 15
+/**
+ * A domain's expected POIs are its spots / POI_SPOTS_EACH. With the ~400 Altaeus land spots this
+ * gives about 40–60 per world (mean ≈ 49), most domains holding 0 or 1.
+ */
+export const POI_SPOTS_EACH = 8
 /** No domain gets more than this many POIs; most get 0 or 1. */
 export const POI_MAX_PER_DOMAIN = 2
 /** The closest a POI may stand to its settlement, and to another POI. */
@@ -58,6 +62,11 @@ function poiName(d: Draw, content: Content, type: PoiType, values: Record<string
 export type PoiOptions = {
   /** Overrides POI_SPOTS_EACH (for tests). */
   spotsEach?: number
+  /**
+   * Names already taken in the world. A POI name is redrawn (up to NAME_TRIES times) to avoid
+   * them, and each POI's name is added. Names never repeat within one call either way.
+   */
+  usedNames?: Set<string>
 }
 
 /**
@@ -65,7 +74,8 @@ export type PoiOptions = {
  * draws its count (poisPerDomain), then for each POI a free spot of its territory at least
  * POI_MIN_KM from its settlement and every POI so far (fewer when none is left), and a type by
  * weight, POI_FAVOURED× when the type's biomes match the spot's terrain (or the land's biome) or
- * its threats name the land's threat. Hostile types roll their threat.
+ * its threats name the land's threat. Hostile types roll their threat. Names avoid repeats while
+ * the type's table allows (see PoiOptions.usedNames).
  */
 export function generatePois(
   d: Draw,
@@ -78,6 +88,7 @@ export function generatePois(
   const result: Record<string, PoiState> = {}
   if (types.length === 0) return result
   const placed: LandSpot[] = []
+  const used = options.usedNames ?? new Set<string>()
   for (const site of sortedEntries(content.settlements)) {
     const spots = (territory.spots[site.id] ?? []).flatMap((id) => own(content.landSpots, id) ?? [])
     if (spots.length === 0) continue
@@ -101,10 +112,12 @@ export function generatePois(
           (land !== undefined && t.threats.includes(land.threat))
         return t.weight * (favoured ? POI_FAVOURED : 1)
       })
-      const name = poiName(d, content, type, {
-        threat: threat?.name ?? '',
-        land: region?.name ?? site.region,
-      })
+      const values = { threat: threat?.name ?? '', land: region?.name ?? site.region }
+      let name = poiName(d, content, type, values)
+      for (let tries = 1; tries < NAME_TRIES && used.has(name); tries++) {
+        name = poiName(d, content, type, values)
+      }
+      used.add(name)
       result[`poi-${Object.keys(result).length + 1}`] = {
         type: type.id,
         spot: spot.id,

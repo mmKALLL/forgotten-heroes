@@ -105,6 +105,25 @@ describe('generatePois', () => {
     }
   })
 
+  test('names avoid the world’s used names and each other while the table allows', () => {
+    const c = structuredClone(content)
+    const rows = Array.from({ length: 40 }, (_, i) => ({ text: `Site ${i}`, weight: 1 }))
+    c.partsTables['poi-name-camp'].rows = rows
+    for (const type of Object.values(c.poiTypes)) type.names = 'poi-name-camp'
+    for (let seed = 0; seed < 20; seed++) {
+      const usedNames = new Set(['Site 0', 'Site 1', 'Site 2'])
+      const placed = Object.values(
+        withRng(createRng(seed), (d) =>
+          generatePois(d, c, territory(c), LANDS, { ...DENSE, usedNames })
+        )[0]
+      )
+      const names = placed.map((p) => p.name)
+      expect(new Set(names).size).toBe(names.length)
+      for (const name of names) expect(['Site 0', 'Site 1', 'Site 2']).not.toContain(name)
+      for (const name of names) expect(usedNames).toContain(name)
+    }
+  })
+
   test('a lair tagged with the land’s threat is drawn far more often than an untagged one', () => {
     const c = structuredClone(content)
     c.poiTypes = {

@@ -26,7 +26,7 @@ export function generateWorld(seed: number, content: Content): WorldState {
     const usedNames = new Set<string>()
     const land = territory(content)
     const { kingdoms, lands, domains } = generatePolitics(d, content, land, usedNames)
-    const pois = generatePois(d, content, land, lands)
+    const pois = generatePois(d, content, land, lands, { usedNames })
     const settlements = generateSettlements(
       d,
       content,
