@@ -320,6 +320,46 @@ describe('routeOptions', () => {
     })
   })
 
+  test('a lair at the far end makes the road more hostile only while something lives in it', () => {
+    const base = makeState({ location: 'greenvale-1' })
+    const lair: PoiState = {
+      type: 'orc-war-camp',
+      category: 'lair',
+      spot: 'spot-0009',
+      domain: 'ashmoor-1',
+      name: 'Bonepile camp',
+      threat: 3,
+      discovered: false,
+      clearedDay: 10,
+      boonDay: null,
+    }
+    const on = (day: number) => {
+      const state: GameState = {
+        ...base,
+        day,
+        world: {
+          ...base.world,
+          // An unguarded domain, so the lair shows in its threat level.
+          domains: {
+            ...base.world.domains,
+            'ashmoor-1': { ...base.world.domains['ashmoor-1'], garrison: 0 },
+          },
+          pois: { ...base.world.pois, 'poi-9': lair },
+        },
+      }
+      const road = routeOptions(state, content).find((o) => o.routeId === 'ashmoor-1-greenvale-1')!
+      const steady = road.paces.find((p) => p.pace === 'steady' && !p.coverTracks)!
+      // The journey draws with the share the preview showed on that day.
+      const out = step(state, { type: 'travel', routeId: road.routeId, pace: 'steady' }, content)
+      expect(placeOnRoute(out, content, out.travel!)!.hostileShare).toBe(steady.hostile.share)
+      return { threat: road.threatLevel, share: steady.hostile.share }
+    }
+    const empty = on(11)
+    const inhabited = on(10 + REINHABIT_DAYS + 1)
+    expect(inhabited.threat).toBeGreaterThan(empty.threat)
+    expect(inhabited.share).toBeGreaterThan(empty.share)
+  })
+
   test('a road where nothing can be met promises no encounters', () => {
     const here = makeState({ location: 'ashmoor-1', gold: 20 })
     const [sea] = routeOptions(here, content)
