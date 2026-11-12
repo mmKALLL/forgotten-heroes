@@ -476,6 +476,7 @@ T1 (shared, on `rebuild`) ──┬── Track A: A1 → A2 → A3 → A4 ═M1
 - **Border domains weaker** (defence falls off with distance from the seat), **borders loosely follow lands**, **undiscovered lairs still count toward threat** — accepted as proposed.
 - **Also fix (small, any track touching warnings):** a deadly forced march shows both `forcedMarchDeadly` and the normal exhaustion warning for the same member — the severe one should replace the normal one.
 - **Docs (I2):** design §9 should also note the mobile order (settlement panel above the map ≤ 900px) and danger-coloured roads with legend.
+- **After the review (POI usage over time):** one visit per arrival; dungeons and lairs empty for 30 days after any clearing, are then inhabited ~120 days growing stronger, and are cleared by the realm or an accident; boons on a 30-day cooldown per site; paid knowledge only while something is left to learn; wonders give no rewards; days spent at a site are eaten through. Recorded in design §6 ("Over time").
 
 ## Design decisions to confirm with the user (original proposals)
 
