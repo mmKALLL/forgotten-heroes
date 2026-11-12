@@ -1,4 +1,4 @@
-import type { Content } from '../../content/build'
+import { emptyContent, type Content } from '../../content/build'
 import type { LogTone } from '../../schema/types'
 import type { Condition, Effect } from '../../schema/encounter'
 import type { Character, EncounterState, GameState } from '../../schema/state'
@@ -10,6 +10,7 @@ import { MAX_EXHAUSTION, canAct, statModifier } from '../rules/character'
 import { passDay } from '../travel/days'
 import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
+import { changeGoods } from '../economy/goods'
 
 export { MAX_EXHAUSTION }
 
@@ -131,7 +132,8 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       // Time passes as on any day: everyone eats and drinks (or goes without), strain fades.
       const terrain = ctx.content ? terrainHere(state, ctx.content) : null
       let next = state
-      for (let day = 0; day < effect.amount; day++) next = passDay(next, terrain)
+      for (let day = 0; day < effect.amount; day++)
+        next = passDay(next, terrain, undefined, ctx.content)
       return next
     }
     case 'position':
@@ -203,9 +205,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         'good'
       )
     }
-    // Plan 4: the goods effect lands with A1, reputation with B2 and animals with A4. Until then
-    // they change nothing, and no content uses them.
     case 'goods':
+      // Without content every good is worth the same, so a category is taken in design order.
+      return { ...state, goods: changeGoods(state.goods, ctx.content ?? emptyContent(), effect) }
+    // Plan 4: reputation lands with B2 and animals with A4. Until then they change nothing, and
+    // no content uses them.
     case 'reputation':
     case 'animals':
       return state
@@ -286,9 +290,14 @@ export function describeEffect(effect: Effect, actorName: string): string | null
       return `someone learns ${statLabel(effect.skill)}`
     case 'goods': {
       const what = effect.good ?? `${effect.category} goods`
-      return effect.fraction !== undefined
-        ? `lose ${Math.round(effect.fraction * 100)}% of your ${what}`
-        : `${formatModifier(effect.amount ?? 0)} ${what}`
+      if (effect.fraction === undefined) return `${formatModifier(effect.amount ?? 0)} ${what}`
+      const share =
+        effect.fraction === 1
+          ? 'all'
+          : effect.fraction === 0.5
+            ? 'half'
+            : `${Math.round(effect.fraction * 100)}% of`
+      return `lose ${share} your ${what}`
     }
     case 'reputation':
       return `${formatModifier(effect.amount)} reputation`

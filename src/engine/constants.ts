@@ -125,6 +125,25 @@ export const LODGING_PRICE = 1
 /** Supplies sell back for this share of their price (rounded down over the whole sale). */
 export const SELL_SHARE = 0.5
 
+// Carrying capacity and encumbrance (economy/capacity.ts). Weights are in kilograms.
+
+/** What a member of STR 10 carries before slowing down. */
+export const CARRY_BASE_KG = 20
+/** Each point of STR above (or below) 10 adds (or takes) this share of CARRY_BASE_KG. */
+export const CARRY_PER_STR = 0.1
+/** The STR factor never drops below this… */
+export const CARRY_MIN = 0.5
+/** …nor rises above this. */
+export const CARRY_MAX = 2.25
+/** A member at this level of exhaustion or worse carries only CARRY_EXHAUSTED_SHARE. */
+export const CARRY_EXHAUSTED_AT = 3
+/** The share of their capacity an exhausted member carries. */
+export const CARRY_EXHAUSTED_SHARE = 0.5
+/** Above capacity the party is encumbered; above this many times capacity it is overloaded. */
+export const OVERLOAD_RATIO = 1.5
+/** An encumbered party walks at this share of its speed (and can't force a march). */
+export const ENCUMBERED_SPEED = 2 / 3
+
 // Stowing away (stowaway.ts)
 
 /** The Stealth DC to stow away on a ship. */

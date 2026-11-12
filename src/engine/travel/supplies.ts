@@ -4,6 +4,7 @@ import type { GameState, Goods } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
+import { spoilDay } from '../economy/goods'
 import { MAX_EXHAUSTION } from '../rules/character'
 import { fadeStrainAfter } from '../rules/strain'
 import { settlementName } from '../world/geo'
@@ -93,15 +94,18 @@ export function rest(state: GameState, content: Content, lodging = true): GameSt
   const spring = !state.travel && springAt(state, content, state.location)
   const { state: after, unfed } = option.lodging
     ? {
-        state: {
-          ...state,
-          day: state.day + 1,
-          gold: state.gold - option.lodgingCost,
-          party: state.party.map((c) => fadeStrainAfter(c, state.skillUses, state.day)),
-        },
+        state: spoilDay(
+          {
+            ...state,
+            day: state.day + 1,
+            gold: state.gold - option.lodgingCost,
+            party: state.party.map((c) => fadeStrainAfter(c, state.skillUses, state.day)),
+          },
+          content
+        ),
         unfed: [] as string[],
       }
-    : consumeDay(state, terrain, DEFAULT_PACE)
+    : consumeDay(state, terrain, DEFAULT_PACE, content)
   const party = after.party.map((c) => {
     if (c.exhaustion >= MAX_EXHAUSTION) return c
     const hp = option.inTown ? c.maxHp : Math.min(c.maxHp, c.hp + Math.ceil(c.maxHp * CAMP_HEAL))

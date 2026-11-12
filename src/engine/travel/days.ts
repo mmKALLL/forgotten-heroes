@@ -1,7 +1,9 @@
+import type { Content } from '../../content/build'
 import type { Biome, Good, LogTone, Pace } from '../../schema/types'
 import type { Character, GameState, Goods } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
+import { spoilDay } from '../economy/goods'
 import type { Rng } from '../rng'
 import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
@@ -53,12 +55,13 @@ function endure(
  * (DC 10 without food, 15 without water) or gains a level of exhaustion. On a forced march the
  * party then eats its extra rations (what is left of them), and every member makes a CON check
  * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades, except stacks gained today.
- * Returns the ids of those who went without, for rest.
+ * With `content`, goods then spoil (spoilDay). Returns the ids of those who went without, for rest.
  */
 export function consumeDay(
   state: GameState,
   terrain: Biome | null,
-  pace: Pace
+  pace: Pace,
+  content?: Content
 ): { state: GameState; unfed: string[] } {
   let food = goodsOf(state.goods, 'food')
   let water = goodsOf(state.goods, 'water')
@@ -103,12 +106,13 @@ export function consumeDay(
     goods: { ...state.goods, food, water },
   }
   for (const line of lines) next = appendLog(next, line.text, line.tone)
-  return { state: next, unfed }
+  return { state: content ? spoilDay(next, content) : next, unfed }
 }
 
-/** A day on the road at this pace. */
+/** A day on the road at this pace (goods spoil when `content` is given). */
 export const passDay = (
   state: GameState,
   terrain: Biome | null,
-  pace: Pace = DEFAULT_PACE
-): GameState => consumeDay(state, terrain, pace).state
+  pace: Pace = DEFAULT_PACE,
+  content?: Content
+): GameState => consumeDay(state, terrain, pace, content).state

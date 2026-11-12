@@ -18,6 +18,7 @@ import {
   hostileShare,
   journeyDays,
   kmPerDay,
+  landSpeed,
   rollEncounterDays,
   routeEncounters,
   routeTerrain,
@@ -34,6 +35,7 @@ import {
   sellSupplies,
 } from './supplies'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
+import { load, overloadExcess } from '../economy/capacity'
 import { DEFAULT_PACE } from '../constants'
 
 /**
@@ -114,6 +116,18 @@ export function depart(
     )
   }
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
+  // On land the party carries everything itself; a ship carries it at sea.
+  const laden = load(state, content)
+  if (route.terrain !== 'sea' && laden.level === 'overloaded') {
+    return appendLog(
+      state,
+      `Too heavy to set out: drop or sell ${overloadExcess(laden)} kg.`,
+      'bad'
+    )
+  }
+  if (route.terrain !== 'sea' && laden.level === 'encumbered' && options.pace === 'forced') {
+    return appendLog(state, 'Too heavily laden for a forced march.', 'bad')
+  }
   if (options.stowaway) {
     const refused = stowawayRefusal(state, route)
     if (refused) return appendLog(state, refused, 'bad')
@@ -154,7 +168,8 @@ function setOut(
   const requestedCover = options.coverTracks ?? false
   const { pace, coverTracks } = paceFor(route, requestedPace, requestedCover)
   const to = otherEnd(route, here)
-  const length = journeyDays(route, pace, coverTracks)
+  const speed = landSpeed(state, content, route.terrain)
+  const length = journeyDays(route, pace, coverTracks, speed)
   const { encounters, chance } = routeEncounters(canMeetEncounters(content, route, state), length)
   const [encounterDays, rng] = withRng(state.rng, (d) =>
     rollEncounterDays(d, length, encounters, chance)
@@ -164,7 +179,7 @@ function setOut(
     from: here,
     to,
     km: route.km,
-    kmPerDay: kmPerDay(route.terrain, pace, coverTracks),
+    kmPerDay: kmPerDay(route.terrain, pace, coverTracks, speed),
     kmDone: 0,
     daysDone: 0,
     days: length,
@@ -181,10 +196,11 @@ function setOut(
       ? ' The ship sets the pace.'
       : ''
   const noForage = route.terrain !== 'sea' && options.forage === false ? ' No foraging.' : ''
+  const laden = speed < 1 ? ' Heavily laden, it walks slowly.' : ''
   return appendLog(
     { ...state, rng, location: null, travel },
     `The party sets out for ${settlementName(state, to)}${how}: ${route.km} km, ` +
-      `about ${days(length)}${passage}.${ship}${noForage}`,
+      `about ${days(length)}${passage}.${ship}${noForage}${laden}`,
     'info'
   )
 }
@@ -390,7 +406,7 @@ export function continueJourney(state: GameState, content: Content): GameState {
       },
       next.day
     )
-    next = { ...passDay(next, terrain, travel.pace), travel: walked }
+    next = { ...passDay(next, terrain, travel.pace, content), travel: walked }
     const eventful = travel.encounterDays[0] === day
     if (short && !eventful) return next
     if (!short && !eventful) quiet += 1

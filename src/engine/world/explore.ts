@@ -176,7 +176,7 @@ export function explore(state: GameState, content: Content): GameState {
   const terrain = domainTerrain(content, domain)
   for (let day = 0; day < days; day++) {
     next = forageDay(next, terrain, DEFAULT_PACE).state
-    next = passDay(next, terrain, DEFAULT_PACE)
+    next = passDay(next, terrain, DEFAULT_PACE, content)
   }
   if (finds.found > 0) {
     const ids = poisToDiscover(next.world, content, domain, {

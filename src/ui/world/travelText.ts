@@ -126,6 +126,8 @@ export function warningMessage(t: T, w: TravelWarning): string {
         name: w.params.name,
         levels: w.params.expectedLevels.toFixed(1),
       })
+    case 'encumbered':
+      return t('warning.encumbered', w.params)
     case 'forcedMarchDeadly':
       return t('warning.forcedMarchDeadly', {
         days: daysText(t, w.params.days),
@@ -144,5 +146,7 @@ export function roadReasonMessage(t: T, r: RoadReason): string {
       return t('roadReason.unfit')
     case 'fare':
       return t('roadReason.fare', { gp: r.params.gold })
+    case 'overloaded':
+      return t('roadReason.overloaded', { kg: r.params.kg })
   }
 }

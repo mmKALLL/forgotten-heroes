@@ -7,6 +7,7 @@ import { fitsPlace } from '../encounters/run'
 import { edgeById } from '../world/graph'
 import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
+import { load, loadSpeed } from '../economy/capacity'
 import { coversTracks } from './pace'
 import {
   COVER_TRACKS_EXTRA_DAYS,
@@ -27,19 +28,39 @@ import {
 
 /**
  * km per calendar day. Pace scales the speed on land; covering tracks (cautious only) adds
- * COVER_TRACKS_EXTRA_DAYS per day travelled. A ship keeps its own speed whatever the pace.
+ * COVER_TRACKS_EXTRA_DAYS per day travelled. `speed` scales land speed too: a load (capacity.ts
+ * loadSpeed) or mounts. A ship keeps its own speed whatever the pace.
  */
-export function kmPerDay(terrain: Biome, pace: Pace = DEFAULT_PACE, coverTracks = false): number {
+export function kmPerDay(
+  terrain: Biome,
+  pace: Pace = DEFAULT_PACE,
+  coverTracks = false,
+  speed = 1
+): number {
   if (terrain === 'sea') return KM_PER_DAY.sea
   const cover = coversTracks(pace, coverTracks) ? 1 + COVER_TRACKS_EXTRA_DAYS : 1
-  return (KM_PER_DAY[terrain] * PACE_SPEED[pace]) / cover
+  return (KM_PER_DAY[terrain] * PACE_SPEED[pace] * speed) / cover
+}
+
+/**
+ * The share of its land speed the party keeps on this terrain: slowed by its load (loadSpeed).
+ * Always 1 at sea, where the ship carries everything.
+ */
+export function landSpeed(
+  state: Pick<GameState, 'party' | 'animals' | 'travel' | 'goods'>,
+  content: Content,
+  terrain: Biome
+): number {
+  if (terrain === 'sea') return 1
+  return loadSpeed(load(state, content).level)
 }
 
 export const journeyDays = (
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace = DEFAULT_PACE,
-  coverTracks = false
-): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, coverTracks)))
+  coverTracks = false,
+  speed = 1
+): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, coverTracks, speed)))
 
 /**
  * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one

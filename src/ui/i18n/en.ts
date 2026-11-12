@@ -224,6 +224,7 @@ export const en = {
   'roadReason.busy': 'Finish the current encounter first.',
   'roadReason.unfit': 'No one is fit to travel.',
   'roadReason.fare': 'Passage costs {gp} gp.',
+  'roadReason.overloaded': 'Too heavy to set out: drop or sell {kg} kg.',
   'route.warnings': 'Warnings',
   'route.travel': 'Travel',
   'route.unreachable': '{name} is more than one road away.',
@@ -256,6 +257,8 @@ export const en = {
   'footing.normal': 'on normal footing',
   'footing.exposed': 'Exposed',
 
+  'warning.encumbered':
+    'Encumbered: {weight} of {capacity} kg. The party walks slower and can’t force a march.',
   'warning.waterRunsOut': 'Water runs out on day {day} ({n} without).',
   'warning.waterRunsOutForaging': 'Water runs out on day {day} even with foraging ({n} without).',
   'warning.waterReliesOnForaging':
