@@ -1239,3 +1239,272 @@ h2[tabindex='-1']:focus {
     position: static;
   }
 }
+/*
+ * The town ledger (design §5): one screen at desktop width. The centre column widens in town, and
+ * the ledger lays its zones out as header / market and roads / services / people.
+ */
+.layout.town {
+  grid-template-columns: minmax(230px, 0.8fr) minmax(0, 3fr) minmax(210px, 0.8fr);
+}
+@media (max-width: 900px) {
+  .layout.town {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.ledger {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-areas:
+    'head head'
+    'market roads'
+    'services roads'
+    'people roads';
+  grid-template-rows: auto auto auto 1fr;
+  align-items: start;
+  gap: 0.6rem 1rem;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+}
+.ledger h3 {
+  margin: 0 0 0.3rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.ledger button {
+  padding: 0.1rem 0.45rem;
+  font-size: 0.8rem;
+}
+.ledger-head {
+  grid-area: head;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+}
+.ledger-head h2 {
+  margin: 0;
+}
+.ledger-head > span + span::before {
+  content: '· ';
+  color: var(--muted);
+}
+.banner-thumb {
+  height: 2rem;
+  width: auto;
+  max-width: 6rem;
+  object-fit: cover;
+  border-radius: 3px;
+  align-self: center;
+}
+.zone-market {
+  grid-area: market;
+  min-width: 0;
+}
+.zone-services {
+  grid-area: services;
+  min-width: 0;
+}
+.zone-roads {
+  grid-area: roads;
+  min-width: 0;
+}
+.zone-people {
+  grid-area: people;
+}
+.zone-people summary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.people {
+  list-style: none;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  columns: 2;
+}
+@media (max-width: 900px) {
+  .ledger {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'head' 'market' 'services' 'roads' 'people';
+    grid-template-rows: none;
+  }
+}
+.market-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem 0.75rem;
+  margin-bottom: 0.25rem;
+}
+.market-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+.market-table th,
+.market-table td {
+  padding: 0.05rem 0.3rem;
+  text-align: left;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.market-table thead th {
+  font-weight: normal;
+  font-size: 0.7rem;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.market-table tbody + tbody {
+  border-top: 1px solid var(--line);
+}
+.market-table .num {
+  text-align: right;
+}
+.market-table .market-good {
+  font-weight: normal;
+}
+.market-table tr.carried .market-good {
+  font-weight: bold;
+}
+.market-table .market-cat {
+  width: 1.1rem;
+  padding: 0;
+  font-size: 0.6rem;
+  font-weight: normal;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.market-cat span {
+  display: block;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  margin: 0 auto;
+}
+.levels {
+  font-size: 0.6rem;
+  letter-spacing: -0.05em;
+}
+.levels .supply {
+  color: var(--good);
+}
+.levels .demand {
+  color: var(--bad);
+}
+.levels .sep {
+  color: var(--muted);
+  margin: 0 0.15rem;
+}
+.pips {
+  font-size: 0.55rem;
+  letter-spacing: -0.05em;
+  color: var(--accent);
+}
+.market-table .known {
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.known.stale {
+  opacity: 0.55;
+}
+.known .mark {
+  font-size: 0.65rem;
+  font-style: italic;
+  color: var(--muted);
+}
+.market-table .trade {
+  text-align: right;
+}
+.market-table .trade button {
+  font-size: 0.72rem;
+  padding: 0 0.35rem;
+  margin-left: 0.2rem;
+}
+.explore-line {
+  position: relative;
+  margin-top: 0.5rem;
+}
+.hover-tip {
+  display: none;
+  position: absolute;
+  z-index: 3;
+  left: 0;
+  top: 100%;
+  min-width: 16rem;
+  padding: 0.4rem 0.6rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 20%);
+}
+.explore-line:hover .hover-tip,
+.explore-line:focus-within .hover-tip {
+  display: block;
+}
+.ledger .route-facts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 0.75rem;
+}
+.ledger .route-facts li.muted {
+  grid-column: 1 / -1;
+}
+.ledger p {
+  margin: 0.1rem 0;
+}
+.ledger .route-info {
+  padding-top: 0.3rem;
+}
+.ledger .route-info h3 {
+  margin: 0 0 0.15rem;
+}
+.ledger .road-list {
+  gap: 0.15rem;
+  margin: 0 0 0.4rem;
+}
+.ledger .road-list button {
+  padding: 0 0.4rem;
+}
+.ledger .pace-choice {
+  margin: 0.2rem 0;
+}
+.ledger .route-facts {
+  list-style: none;
+  padding-left: 0;
+  margin: 0.25rem 0;
+  font-size: 0.8rem;
+}
+.ledger .route-facts li {
+  padding-left: 0.6rem;
+  text-indent: -0.6rem;
+}
+.ledger .warnings {
+  margin: 0.25rem 0;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.8rem;
+}
+.ledger .check-preview {
+  margin: 0.25rem 0;
+}
+.ledger .odds-bar {
+  height: 1.1rem;
+  margin: 0.2rem 0;
+  font-size: 0.7rem;
+}
+.ledger .check-outcomes {
+  margin: 0.15rem 0 0.3rem;
+  font-size: 0.78rem;
+}
+.ledger .actions {
+  margin: 0.3rem 0;
+  gap: 0.35rem;
+}
+.ledger .services {
+  margin: 0 0 0.3rem;
+}

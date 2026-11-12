@@ -48,6 +48,9 @@ function Game() {
   if (!rolling && revealed !== state) setRevealed(state)
   const shown = rolling ? revealed : state
   const supplies = suppliesInfo(shown)
+  const atSite = shown.location !== null && nodeOf(shown, content, shown.location)?.kind === 'poi'
+  // The town ledger takes a wider centre column (theme.css), so a settlement fits one screen.
+  const inTown = !state.encounter && !shown.travel && !atSite
   return (
     <div className="app">
       <header className="topbar">
@@ -71,7 +74,7 @@ function Game() {
           }}
         />
       </header>
-      <main className="layout">
+      <main className={inTown ? 'layout town' : 'layout'}>
         {/* On narrow screens the columns stack: party, then the centre, then the map (theme.css). */}
         <div className="left">
           <PartyPanel party={shown.party} skillUses={shown.skillUses} day={shown.day} />
@@ -92,7 +95,7 @@ function Game() {
             />
           ) : shown.travel ? (
             <JourneyPanel content={content} state={shown} onAction={dispatch} />
-          ) : shown.location && nodeOf(shown, content, shown.location)?.kind === 'poi' ? (
+          ) : atSite ? (
             <PoiPanel
               content={content}
               state={shown}
