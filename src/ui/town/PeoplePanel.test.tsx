@@ -1,0 +1,61 @@
+// @vitest-environment jsdom
+import { cleanup, render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { afterEach, expect, test, vi } from 'vitest'
+import { fixtureContent, makeState } from '../../engine/test-fixtures'
+import { peopleRows } from '../../engine/town/reputation'
+import { RUMOURS_DONE, rumourOption } from '../../engine/town/rumours'
+import type { GameState } from '../../schema/state'
+import { I18nProvider } from '../i18n/I18n'
+import { PeoplePanel, RumoursLine } from './PeoplePanel'
+
+const content = fixtureContent()
+afterEach(cleanup)
+
+const show = (state: GameState) => {
+  const onAction = vi.fn()
+  render(
+    <I18nProvider content={content}>
+      <RumoursLine content={content} state={state} onAction={onAction} />
+      <PeoplePanel content={content} state={state} />
+    </I18nProvider>
+  )
+  return onAction
+}
+
+test('the people here show with their titles, roles and standing tiers', () => {
+  const state = makeState({ location: 'greenvale-1', gold: 50 })
+  const people = peopleRows(state, content)
+  const first = people[0]
+  const liked = { ...state, reputation: { ...state.reputation, people: { [first.id]: 40 } } }
+  show(liked)
+  const list = within(screen.getByRole('list', { name: 'Notable people' }))
+  expect(list.getAllByRole('listitem')).toHaveLength(people.length)
+  const row = within(list.getByText(first.name).closest('li')!)
+  expect(row.getByText(`· ${first.role}`)).toBeTruthy()
+  const tier = peopleRows(liked, content)[0].standing
+  expect(tier).not.toBe('stranger')
+  expect(row.getByText(tier)).toBeTruthy()
+})
+
+test('the rumour line shows who listens, the DC and the chance, and dispatches', async () => {
+  const state = makeState({ location: 'greenvale-1', gold: 50 })
+  const option = rumourOption(state, content)!
+  const onAction = show(state)
+  const line = within(screen.getByRole('group', { name: 'Listen for rumours' }))
+  const pct = Math.round((1 - option.chances.fail - option.chances.critFail) * 100)
+  expect(line.getByText(new RegExp(`vs DC ${option.dc} · ${pct}% to hear something$`))).toBeTruthy()
+  // The tiers are in its tip, never the critical ones.
+  expect(line.getByText('Nothing worth hearing')).toBeTruthy()
+  expect(line.queryByText(/false rumour/i)).toBeNull()
+  const button = line.getByRole('button', { name: `Listen for rumours · ${option.cost} gp` })
+  expect(button.getAttribute('aria-describedby')).toBeTruthy()
+  await userEvent.click(button)
+  expect(onAction).toHaveBeenCalledWith({ type: 'listenRumours' })
+})
+
+test('once the talk is heard, the line says so', () => {
+  show(makeState({ location: 'greenvale-1', gold: 50, doneHere: [RUMOURS_DONE] }))
+  expect(screen.getByText('You have heard the talk here already.')).toBeTruthy()
+  expect(screen.queryByRole('button', { name: /Listen for rumours/ })).toBeNull()
+})

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
-import { peopleRows } from '../../engine/town/reputation'
+import { settlementStanding } from '../../engine/town/reputation'
 import { placeInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
@@ -11,6 +11,8 @@ import { RoadsOut } from '../world/RoadsOut'
 import { realmText, sizeText, threatLine } from '../world/travelText'
 import type { TravelPrefs } from '../world/travelPrefs'
 import { MarketPanel } from './MarketPanel'
+import { NoticeBoard } from './NoticeBoard'
+import { PeoplePanel, RumoursLine, StandingBadge } from './PeoplePanel'
 
 type Props = {
   content: Content
@@ -26,10 +28,11 @@ type Props = {
 
 /**
  * The town ledger (design §5): the settlement on one screen with no modals. A one-line header
- * (town · domain · kingdom · threat); the Market; the Services; the roads out with the pace
- * chooser, and Explore after them; and the People, collapsed. In the DOM the zones run market,
- * services, roads, people (the order a visit goes in, for the keyboard and narrow screens); on
- * wide screens they make two columns: market and services, then roads and people.
+ * (town · domain · kingdom · threat · the party's standing here); the Market; the Services; the
+ * People, collapsed, under them; the roads out with the pace chooser, and Explore after them; then
+ * talk and work: rumours and the notice board. In the DOM the zones run market, services, people,
+ * roads, talk (for the keyboard and narrow screens); on wide screens they make two columns: market,
+ * services and people, then roads and talk.
  */
 export function TownLedger({
   content,
@@ -51,7 +54,6 @@ export function TownLedger({
     )
   }
   const banner = here.banner ? assetUrl(here.banner) : null
-  const people = peopleRows(state, content)
   return (
     <section className="panel place ledger" aria-label={t('place.heading')}>
       <header className="ledger-head">
@@ -66,6 +68,9 @@ export function TownLedger({
           {realmText(t, here)}
         </span>
         <span className="small">{threatLine(t, here)}</span>
+        <span className="small">
+          {t('ledger.standing')} <StandingBadge standing={settlementStanding(state, here.id)} />
+        </span>
       </header>
       <div className="ledger-main">
         <section className="zone zone-market" aria-label={t('ledger.market')}>
@@ -74,6 +79,7 @@ export function TownLedger({
         <section className="zone zone-services" aria-label={t('ledger.services')}>
           {services}
         </section>
+        <PeoplePanel content={content} state={state} />
       </div>
       <div className="ledger-side">
         <section className="zone zone-roads" aria-label={t('ledger.roads')}>
@@ -88,24 +94,10 @@ export function TownLedger({
           />
           <ExploreAction content={content} state={state} onAction={onAction} compact />
         </section>
-        <details className="zone zone-people">
-          <summary>{t('ledger.people', { n: people.length })}</summary>
-          {people.length === 0 ? (
-            <p className="muted small">{t('ledger.noPeople')}</p>
-          ) : (
-            <ul className="people small">
-              {people.map((p) => (
-                <li key={p.id}>
-                  {p.name} <span className="muted">· {p.role}</span>{' '}
-                  <span className={`standing standing-${p.standing}`}>
-                    {t(`standing.${p.standing}`)}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          {/* C4: the full People panel (rumours, the notice board) takes this place. */}
-        </details>
+        <section className="zone zone-talk" aria-label={t('ledger.talk')}>
+          <RumoursLine content={content} state={state} onAction={onAction} />
+          <NoticeBoard content={content} state={state} onAction={onAction} />
+        </section>
       </div>
     </section>
   )

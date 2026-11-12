@@ -362,3 +362,44 @@ test('in Japanese the realm line is translated, with every placeholder filled', 
     localStorage.clear()
   }
 })
+
+test('a contract bound for a road’s end shows its deadline, and marks the paces that arrive late', async () => {
+  const base = makeState({ location: 'ashmoor-1', gold: 50 })
+  const paces = routeOptions(base, content).find((r) => r.to === 'greenvale-2')!.paces
+  const steady = paces.find((p) => p.pace === 'steady')!
+  const stealthy = paces.find((p) => p.pace === 'stealthy')!
+  expect(stealthy.days).toBeGreaterThan(steady.days)
+  const deadline = base.day + steady.days
+  const contract = {
+    id: 'c-test',
+    template: 'see-pilgrim',
+    kind: 'escort' as const,
+    patron: 'someone',
+    from: 'ashmoor-1',
+    to: 'greenvale-2',
+    good: null,
+    amount: 0,
+    poi: null,
+    passengers: 1,
+    accepted: base.day,
+    deadline,
+    pay: 30,
+    urgent: false,
+    reputation: { patron: 5, settlement: 3 },
+    met: false,
+  }
+  panel({ ...base, contracts: [contract] }, 'greenvale-2')
+  const roads = within(screen.getByRole('list', { name: 'Roads from here' }))
+  expect(roads.getByText('contract')).toBeTruthy()
+  const group = road(settlementName(base, 'greenvale-2'))
+  expect(
+    group.getByText(`Arrives day ${base.day + steady.days} · deadline day ${deadline} ✓`)
+  ).toBeTruthy()
+  const picker = within(group.getByRole('group', { name: 'Pace' }))
+  expect(picker.getByRole('button', { name: 'Stealthy' }).className).toBe('late')
+  expect(picker.getByRole('button', { name: 'Steady' }).className).not.toBe('late')
+  await userEvent.click(picker.getByRole('button', { name: 'Stealthy' }))
+  expect(
+    group.getByText(`Arrives day ${base.day + stealthy.days} · deadline day ${deadline} ✗`)
+  ).toBeTruthy()
+})

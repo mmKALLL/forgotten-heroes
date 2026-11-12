@@ -12,7 +12,7 @@ import { TownLedger } from './TownLedger'
 const content = fixtureContent()
 afterEach(cleanup)
 
-test('the ledger shows the header line, its zones, Explore after the roads, and the people', async () => {
+test('the ledger shows the header line, its zones, Explore after the roads, talk and work, and the people', async () => {
   const state = makeState({ location: 'ashmoor-1', gold: 50 })
   const onAction = vi.fn()
   render(
@@ -43,6 +43,11 @@ test('the ledger shows the header line, its zones, Explore after the roads, and 
   expect(button.getAttribute('aria-describedby')).toBeTruthy()
   await userEvent.click(button)
   expect(onAction).toHaveBeenCalledWith({ type: 'explore' })
+  // The party’s standing here is in the header; talk and work follow the roads.
+  expect(screen.getByText('Standing:').textContent).toBe('Standing: stranger')
+  const talk = within(screen.getByRole('region', { name: 'Talk and work' }))
+  expect(talk.getByRole('group', { name: 'Listen for rumours' })).toBeTruthy()
+  expect(talk.getByRole('region', { name: 'Notice board' })).toBeTruthy()
   // People are collapsed until opened.
   const people = peopleRows(state, content)
   const summary = screen.getByText(`People (${people.length})`)

@@ -11,6 +11,7 @@ import {
   type RouteOption,
 } from '../../engine/travel/preview'
 import { isSevere } from '../../engine/travel/warnings'
+import { contractDeadlines } from '../../engine/town/contracts'
 import { provisionPlan } from '../../engine/town/provision'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
@@ -72,6 +73,11 @@ export function RoadsOut({
               {r.toName}
             </button>{' '}
             {isPoi(r.to) && <span className="badge small">{t('place.siteBadge')}</span>}{' '}
+            {contractDeadlines(state, r.to, r.days).length > 0 && (
+              <span className="badge small contract-badge" title={t('route.contractHint')}>
+                {t('route.contractBadge')}
+              </span>
+            )}{' '}
             <span className="muted small">
               {t('route.summary', {
                 km: r.km,
@@ -230,11 +236,18 @@ export function RouteInfo({
       <div className="seg-toggle pace-choice" role="group" aria-label={t('route.pace')}>
         {(riding ? road.mounted!.paces : road.paces).map((p) => {
           const choice = p.pace
+          // A pace that arrives after a contract's deadline there is marked late.
+          const late = p.deadlines.some((d) => !d.inTime)
           return (
             <button
               key={choice}
               aria-pressed={choice === shown}
-              title={t(`paceHint.${choice}`)}
+              className={late ? 'late' : undefined}
+              title={
+                late
+                  ? `${t(`paceHint.${choice}`)} · ${t('route.paceLate')}`
+                  : t(`paceHint.${choice}`)
+              }
               onClick={() => onPace(choice)}
             >
               {t(`pace.${choice}`)}
@@ -310,7 +323,15 @@ export function RouteInfo({
           {option.water.expectedForage > 0 &&
             t('route.perDay', { n: option.water.expectedForage.toFixed(1) })}
         </li>
-        <li>
+        {option.deadlines.map((d) => (
+          <li key={d.contractId} className={d.inTime ? 'wide' : 'wide tone-bad'}>
+            {t(d.inTime ? 'route.deadlineOk' : 'route.deadlineLate', {
+              arrives: d.arrivesDay,
+              deadline: d.deadline,
+            })}
+          </li>
+        ))}
+        <li className="wide">
           {t('route.encounters', { min: option.encounters[0], max: option.encounters[1] })}
           {option.encounters[1] > 0 &&
             ' · ' +
@@ -319,7 +340,7 @@ export function RouteInfo({
                 parts: hostileParts(t, option),
               })}
         </li>
-        <li>
+        <li className="wide">
           {t('route.footing', { footing: t(`footing.${option.ambush}`) })}
           {/* Foraging costs a stealthy party its Edge: say so. */}
           {forage &&

@@ -114,50 +114,10 @@ test('the healer is disabled when no one needs healing, and resting on carried f
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: false })
 })
 
-test('the inn listens for rumours and takes work from its notice board', async () => {
-  const onAction = panel(town())
+test('the inn points to its rumours and its notice board, which have their own panels', () => {
+  panel(town())
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
-  const rumours = inn.getByRole('button', { name: /^Rumours · \d+ gp$/ })
-  expect(rumours.getAttribute('title')).toMatch(/ listens: .+ vs DC \d+, \d+% to hear something$/)
-  await userEvent.click(rumours)
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'listenRumours' })
-  const board = inn.getByRole('combobox', { name: 'Notice board' }) as HTMLSelectElement
-  expect(board.options.length).toBeGreaterThan(0)
-  await userEvent.click(inn.getByRole('button', { name: 'Take' }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'acceptContract', offerId: board.value })
-})
-
-test('a contract met here can be completed for its pay or a good word', async () => {
-  const kept = {
-    id: 'c-test',
-    template: 'see-pilgrim',
-    kind: 'escort' as const,
-    patron: 'someone',
-    from: 'greenvale-2',
-    to: 'greenvale-1',
-    good: null,
-    amount: 0,
-    poi: null,
-    passengers: 1,
-    accepted: 1,
-    deadline: 9,
-    pay: 30,
-    urgent: false,
-    reputation: { patron: 5, settlement: 3 },
-    met: true,
-  }
-  const onAction = panel(town({ contracts: [kept] }))
-  const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
-  await userEvent.click(inn.getByRole('button', { name: /^Done: .+ · 30 gp$/ }))
-  expect(onAction).toHaveBeenLastCalledWith({
-    type: 'completeContract',
-    id: 'c-test',
-    reward: 'gold',
-  })
-  await userEvent.click(inn.getByRole('button', { name: 'or a good word' }))
-  expect(onAction).toHaveBeenLastCalledWith({
-    type: 'completeContract',
-    id: 'c-test',
-    reward: 'goodWord',
-  })
+  expect(inn.getByText('Rumours here')).toBeTruthy()
+  expect(inn.getByText(/^Board: \d+ offers?$/)).toBeTruthy()
+  expect(inn.queryByRole('button', { name: 'Take' })).toBeNull()
 })

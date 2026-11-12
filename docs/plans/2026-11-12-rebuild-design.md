@@ -102,7 +102,9 @@ There are many establishment types (ported from the prototype's services), so to
 
 1. **Market panel:** the 15 goods grouped by category, with columns for buy, sell, local supply and demand, the best shop, and the price-book comparison (*"31 gp in Avarus, 12 days ago"*).
 2. **Services panel:** one row per establishment, grouped by function (Trade, Rest & Recovery, Hire & Contracts, Temple & Arcane, Underworld). Each row shows quality, specialty, your reputation there, and inline action buttons.
-3. **People panel:** notable NPCs and your reputation with each.
+3. **People panel:** notable NPCs (title, name, role) and your reputation with each, collapsed under the services. The settlement's own standing is in the header line.
+4. **Talk and work** (after the roads out and Explore): listening for rumours as one Explore-style line (who listens, skill, DC, chance, the round's cost; the non-critical tiers on hover or focus), and the notice board, each offer on two lines (kind, title, urgent badge, pay, reputation, Take; destination, distance, deadline and the days at a steady pace). Offers locked by standing say what they need. The service tiles that host them only point to them.
+5. **Contracts** held are listed under the party, everywhere: days left, and at the destination the choice of the pay or a good word, each saying what it gives; abandoning takes a second click. The roads out badge a contract's destination and, for the chosen pace, show "Arrives day 18 · deadline day 17 ✗"; late paces are struck through.
 
 The town map image is a banner and backdrop.
 
