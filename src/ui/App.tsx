@@ -16,6 +16,7 @@ import { PartyPanel } from './PartyPanel'
 import { useGame } from './useGame'
 import { JourneyPanel } from './world/JourneyPanel'
 import { PlacePanel } from './world/PlacePanel'
+import { useTravelPrefs } from './world/travelPrefs'
 import { WorldMap } from './world/WorldMap'
 
 const content = loadBundledContent()
@@ -38,6 +39,8 @@ function Game() {
   const [reducedMotion] = useState(prefersReducedMotion)
   // The settlement picked on the map or in the roads list (UI state only).
   const [selected, setSelected] = useState<string | null>(null)
+  // The pace and foraging chosen for the roads out: kept across journeys, reset by a new party.
+  const [travelPrefs, setTravelPrefs] = useTravelPrefs(state.seed)
   const rolling = revealed !== state && !reducedMotion && addsRoll(revealed, state)
   if (!rolling && revealed !== state) setRevealed(state)
   const shown = rolling ? revealed : state
@@ -91,6 +94,8 @@ function Game() {
                   state={shown}
                   selected={selected}
                   onSelect={setSelected}
+                  prefs={travelPrefs}
+                  onPrefs={setTravelPrefs}
                   onAction={dispatch}
                 />
               )}

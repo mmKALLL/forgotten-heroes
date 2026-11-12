@@ -1,27 +1,33 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState, type ComponentProps } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import { placeInfo, routeOptions } from '../../engine/travel/preview'
 import { restOption } from '../../engine/travel/supplies'
-import { fixtureContent, makeState } from '../../engine/test-fixtures'
+import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
 import { PlacePanel } from './PlacePanel'
+import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
 
 const content = fixtureContent()
 afterEach(cleanup)
 
-const panel = (state = makeState({ location: 'ashmoor-1', gold: 50 }), selected: string | null) => {
+/** The panel with its travel choices held as App holds them. */
+function Panel(props: Omit<ComponentProps<typeof PlacePanel>, 'prefs' | 'onPrefs'>) {
+  const [prefs, setPrefs] = useState(DEFAULT_TRAVEL_PREFS)
+  return <PlacePanel {...props} prefs={prefs} onPrefs={setPrefs} />
+}
+
+const panel = (
+  state = makeState({ location: 'ashmoor-1', gold: 50 }),
+  selected: string | null,
+  c = content
+) => {
   const onAction = vi.fn()
   const onSelect = vi.fn()
   const view = render(
-    <PlacePanel
-      content={content}
-      state={state}
-      selected={selected}
-      onSelect={onSelect}
-      onAction={onAction}
-    />
+    <Panel content={c} state={state} selected={selected} onSelect={onSelect} onAction={onAction} />
   )
   return { ...view, onAction, onSelect }
 }
@@ -41,7 +47,7 @@ test('shows the settlement and its roads; picking a road shows its odds; Travel 
   expect(onSelect).toHaveBeenCalledWith('greenvale-2')
 
   rerender(
-    <PlacePanel
+    <Panel
       content={content}
       state={state}
       selected="greenvale-2"
@@ -165,4 +171,71 @@ test('a settlement further away is described, but has no road from here', () => 
   const name = settlementName(state, 'farisle-1')
   expect(screen.getByText(`${name} is more than one road away.`)).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Travel' })).toBeNull()
+})
+
+test('the settlement has one type label, with its size in the tooltip', () => {
+  const state = makeState({ location: 'ashmoor-1', gold: 50 })
+  panel(state, null)
+  const info = placeInfo(state, content, 'ashmoor-1')!
+  const summary = screen.getByText(
+    new RegExp(`^${info.typeName}, about ${info.population} people( · seat of the realm)?$`)
+  )
+  expect(summary.getAttribute('title')).toBe(`Size: ${info.sizeLabel}`)
+})
+
+test('foraging lists what success, partial and failure find, with their d20 faces', () => {
+  const state = makeState({ location: 'ashmoor-1', gold: 50 })
+  panel(state, 'greenvale-2')
+  const steady = routeOptions(state, content)
+    .find((r) => r.to === 'greenvale-2')!
+    .paces.find((p) => p.pace === 'steady')!
+  const found = steady.forage!.outcomes
+  const list = road(settlementName(state, 'greenvale-2')).getByRole('list', {
+    name: 'What foraging finds each day',
+  })
+  const rows = within(list).getAllByRole('listitem')
+  expect(rows.map((r) => r.textContent)).toEqual([
+    expect.stringMatching(new RegExp(`^Success: \\d+–\\d+Finds ${found.success.water} water$`)),
+    expect.stringMatching(
+      new RegExp(`^Partial success: \\d+–\\d+Finds ${found.partial.water} water$`)
+    ),
+    expect.stringMatching(/^Failure: \d+–\d+Finds nothing$/),
+  ])
+  // The critical tiers (a critical success finds food too) stay a surprise.
+  expect(list.textContent).not.toMatch(/Critical|food/)
+})
+
+test('stowing away lists what success, partial and failure lead to', () => {
+  const state = makeState({ location: 'ashmoor-1', gold: 5 })
+  panel(state, 'farisle-1')
+  const list = road(settlementName(state, 'farisle-1')).getByRole('list', {
+    name: 'If the party stows away',
+  })
+  const rows = within(list).getAllByRole('listitem')
+  expect(rows).toHaveLength(3)
+  expect(rows[0].textContent).toMatch(/^Success: \d+–\d+Slips aboard unseen$/)
+  expect(rows[1].textContent).toMatch(
+    /^Partial success: \d+–\d+Caught, and put to work for the passage: \d+ days lost, and \w+ gains a level of exhaustion$/
+  )
+  expect(rows[2].textContent).toMatch(/fined all the party’s coin \(5 gp\)$/)
+  expect(list.textContent).not.toMatch(/brawl/i)
+})
+
+test('a forced march that could kill someone gets a severe warning, listed first', async () => {
+  const long = structuredClone(content)
+  long.routes['greenvale-1-greenvale-2'].km = 180
+  const frail = { ...lyra, exhaustion: 2, abilities: { ...lyra.abilities, con: 1 } }
+  const state = makeState({ location: 'greenvale-1', party: [brom, frail], gold: 50 })
+  panel(state, 'greenvale-2', long)
+  const group = road(settlementName(state, 'greenvale-2'))
+  await userEvent.click(
+    within(group.getByRole('group', { name: 'Pace' })).getByRole('button', { name: 'Forced march' })
+  )
+  const items = within(group.getByRole('list', { name: 'Warnings' })).getAllByRole('listitem')
+  expect(items[0].className).toBe('severe')
+  expect(items[0].textContent).toMatch(/^☠ A forced march of 4 days could kill Lyra/)
+  for (const other of items.slice(1)) {
+    expect(other.className).toBe('')
+    expect(other.textContent).toMatch(/^⚠ /)
+  }
 })

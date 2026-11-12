@@ -1,4 +1,5 @@
 import type { PaceOption, RoadReason } from '../../engine/travel/preview'
+import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
 import type { TravelWarning } from '../../engine/travel/warnings'
 import type { Biome, Pace } from '../../schema/constants'
 import type { MessageKey } from '../i18n/en'
@@ -29,6 +30,38 @@ export const dangerText = (t: T, danger: number): string =>
   t(`danger.${Math.max(0, Math.min(3, danger))}` as MessageKey)
 export const threatText = (t: T, level: number): string =>
   t(`threat.${Math.max(0, Math.min(3, level))}` as MessageKey)
+export const sizeText = (t: T, tier: number): string =>
+  t(`size.${Math.max(0, Math.min(5, tier))}` as MessageKey)
+
+/** What a forage roll finds (ForageCheck.outcomes), in the UI language. */
+export function findsText(t: T, found: { food: number; water: number }): string {
+  if (found.food > 0 && found.water > 0)
+    return t('forage.findsBoth', { food: found.food, water: found.water })
+  if (found.food > 0) return t('forage.findsFood', { food: found.food })
+  if (found.water > 0) return t('forage.findsWater', { water: found.water })
+  return t('forage.findsNothing')
+}
+
+/** What a stowaway roll leads to (StowawayCheck.outcomes); `name` is the one sneaking aboard. */
+export function stowawayText(t: T, o: StowawayTierOutcome, name: string): string {
+  switch (o.code) {
+    case 'unseen':
+      return t('stowaway.unseen')
+    case 'worked':
+      return t('stowaway.worked', {
+        days: daysText(t, o.params.days),
+        name,
+        levels:
+          o.params.exhaustion === 1
+            ? t('count.level')
+            : t('count.levels', { n: o.params.exhaustion }),
+      })
+    case 'fined':
+      return t('stowaway.fined', { gp: o.params.gold })
+    case 'brawl':
+      return t('stowaway.brawl')
+  }
+}
 
 /** A supply warning in the UI language (the engine's warningText is the English original). */
 export function warningMessage(t: T, w: TravelWarning): string {

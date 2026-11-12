@@ -38,6 +38,8 @@ export type PlaceInfo = {
   name: string
   typeName: string
   sizeLabel: string
+  /** 0 (outpost) to 5 (metropolis), by population; sizeLabel is its English name. */
+  sizeTier: number
   population: number
   regionName: string
   biome: Biome | null
@@ -69,6 +71,7 @@ export function placeInfo(state: GameState, content: Content, id: string): Place
     name: info.name,
     typeName: own(content.settlementTypes, info.type)?.name ?? info.type,
     sizeLabel: SIZE_LABELS[info.sizeTier],
+    sizeTier: info.sizeTier,
     population: info.population,
     regionName: region?.name ?? site.region,
     biome: region?.biome ?? null,

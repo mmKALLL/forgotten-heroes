@@ -103,6 +103,44 @@ test('the party starts in a settlement on the map and can set out along a road',
   expect(screen.getByRole('list', { name: 'Log' }).textContent).toMatch(/sets out for/)
 })
 
+test('the pace and foraging chosen outlast an encounter, but not a new party', async () => {
+  render(<App />)
+  const place = () => within(screen.getByRole('region', { name: 'Settlement' }))
+  const roads = () => place().getByRole('list', { name: 'Roads from here' })
+  // A land road (a sea crossing has no pace choice).
+  const land = async () => {
+    for (const road of within(roads()).getAllByRole('button')) {
+      await userEvent.click(road)
+      if (place().queryByRole('button', { name: 'Brisk' })) return
+    }
+    throw new Error('no land road out of the starting settlement')
+  }
+  const pressed = () =>
+    within(place().getByRole('group', { name: 'Pace' }))
+      .getAllByRole('button')
+      .find((b) => b.getAttribute('aria-pressed') === 'true')?.textContent
+  const foraging = () =>
+    (place().getByRole('checkbox', { name: 'Forage along the way' }) as HTMLInputElement).checked
+  await land()
+  await userEvent.click(place().getByRole('button', { name: 'Brisk' }))
+  await userEvent.click(place().getByRole('checkbox', { name: 'Forage along the way' }))
+
+  const deck = within(screen.getByRole('region', { name: 'Encounter Deck' }))
+  await userEvent.click(deck.getByRole('button', { name: 'Play The flooded ferry' }))
+  const encounter = within(screen.getByRole('region', { name: 'Encounter' }))
+  await userEvent.click(encounter.getByRole('button', { name: "Choose Pay Ilse's price" }))
+  await userEvent.click(encounter.getByRole('button', { name: 'Close' }))
+  await land()
+  expect(pressed()).toBe('Brisk')
+  expect(foraging()).toBe(false)
+
+  await userEvent.click(screen.getByRole('button', { name: 'New party' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Small town, calm region' }))
+  await land()
+  expect(pressed()).toBe('Steady')
+  expect(foraging()).toBe(true)
+})
+
 test('a new party starts where the player chooses', async () => {
   render(<App />)
   await userEvent.click(screen.getByRole('button', { name: 'New party' }))

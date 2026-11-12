@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import type { Content } from '../../content/build'
 import { formatModifier, formatPercent } from '../../engine/format'
-import { tierFaces } from '../../engine/rules/checks'
+import { tierFaces, type Tier } from '../../engine/rules/checks'
 import type { Action } from '../../engine/state'
 import {
   placeInfo,
@@ -10,6 +9,7 @@ import {
   type PaceOption,
   type RouteOption,
 } from '../../engine/travel/preview'
+import { isSevere } from '../../engine/travel/warnings'
 import { FOOD_PRICE, goodsOf, restOption, saleValue } from '../../engine/travel/supplies'
 import { WATERSKIN_PRICE, WATERSKIN_WATER } from '../../engine/travel/tuning'
 import type { GameState } from '../../schema/state'
@@ -20,13 +20,18 @@ import {
   biomeText,
   dangerText,
   daysText,
+  findsText,
   paceChoiceOf,
   paceFields,
   roadReasonMessage,
+  sizeText,
+  stowawayText,
   threatText,
   warningMessage,
   type PaceChoice,
 } from './travelText'
+import { TierOutcomes } from './TierOutcomes'
+import type { TravelPrefs } from './travelPrefs'
 
 /** Rations bought or sold per click. */
 export const RATION_BUNDLE = 5
@@ -36,6 +41,9 @@ type Props = {
   state: GameState
   selected: string | null
   onSelect: (settlementId: string | null) => void
+  /** The pace and foraging chosen for the roads out (kept by the caller across journeys). */
+  prefs: TravelPrefs
+  onPrefs: (p: TravelPrefs) => void
   onAction: (a: Action) => void
 }
 
@@ -44,10 +52,17 @@ type Props = {
  * services and banner; rest, food, waterskins and selling supplies; and the roads out, with the
  * pace chooser and everything the chosen road and pace cost and risk.
  */
-export function PlacePanel({ content, state, selected, onSelect, onAction }: Props) {
+export function PlacePanel({
+  content,
+  state,
+  selected,
+  onSelect,
+  prefs,
+  onPrefs,
+  onAction,
+}: Props) {
   const { t } = useI18n()
-  const [pace, setPace] = useState<PaceChoice>('steady')
-  const [forage, setForage] = useState(true)
+  const { pace, forage } = prefs
   const here = state.location ? placeInfo(state, content, state.location) : null
   if (!here) {
     return (
@@ -71,12 +86,8 @@ export function PlacePanel({ content, state, selected, onSelect, onAction }: Pro
         <img className="banner" src={banner} alt={t('place.banner', { name: here.name })} />
       )}
       <h2>{here.name}</h2>
-      <p className="small">
-        {t('place.summary', {
-          type: here.typeName,
-          size: here.sizeLabel,
-          population: here.population,
-        })}
+      <p className="small" title={t('place.size', { size: sizeText(t, here.sizeTier) })}>
+        {t('place.summary', { type: here.typeName, population: here.population })}
         {here.seat && ` · ${t('place.seat')}`}
       </p>
       <p className="muted small">
@@ -172,9 +183,9 @@ export function PlacePanel({ content, state, selected, onSelect, onAction }: Pro
           state={state}
           content={content}
           pace={pace}
-          onPace={setPace}
+          onPace={(p) => onPrefs({ ...prefs, pace: p })}
           forage={forage}
-          onForage={setForage}
+          onForage={(f) => onPrefs({ ...prefs, forage: f })}
           onTravel={(stowaway) => {
             const choice = chosen.terrain === 'sea' ? 'steady' : pace
             onAction({
@@ -277,9 +288,19 @@ function RouteInfo({
       )}
       {option.warnings.length > 0 && (
         <ul className="warnings" aria-label={t('route.warnings')}>
-          {option.warnings.map((w) => (
-            <li key={w.code}>⚠ {warningMessage(t, w)}</li>
-          ))}
+          {/* Severe warnings first, in the danger colour with their own icon. */}
+          {[
+            ...option.warnings.filter(isSevere),
+            ...option.warnings.filter((w) => !isSevere(w)),
+          ].map((w) =>
+            isSevere(w) ? (
+              <li key={w.code} className="severe">
+                <span className="warning-icon">☠</span> {warningMessage(t, w)}
+              </li>
+            ) : (
+              <li key={w.code}>⚠ {warningMessage(t, w)}</li>
+            )
+          )}
         </ul>
       )}
       <ul className="route-facts small">
@@ -326,6 +347,12 @@ function RouteInfo({
             faces={tierFaces(option.forage.modifier, option.forage.dc)}
             labelMode="faces"
           />
+          <TierOutcomes
+            label={t('route.forageOutcomes')}
+            odds={option.forage.odds}
+            faces={tierFaces(option.forage.modifier, option.forage.dc)}
+            text={(tier) => findsText(t, option.forage!.outcomes[tier])}
+          />
         </div>
       )}
       {road.reason && <p className="tone-bad small">{roadReasonMessage(t, road.reason)}</p>}
@@ -349,7 +376,14 @@ function RouteInfo({
             faces={tierFaces(road.stowaway.modifier, road.stowaway.dc)}
             labelMode="faces"
           />
-          <p className="muted small">{t('route.stowawayHint')}</p>
+          <TierOutcomes
+            label={t('route.stowawayOutcomes')}
+            odds={road.stowaway.odds}
+            faces={tierFaces(road.stowaway.modifier, road.stowaway.dc)}
+            text={(tier: Tier) =>
+              stowawayText(t, road.stowaway!.outcomes[tier], nameOf(road.stowaway!.actorId))
+            }
+          />
           <button onClick={() => onTravel(true)}>{t('route.stowaway')}</button>
         </div>
       )}

@@ -901,11 +901,33 @@ h2[tabindex='-1']:focus {
 .warnings li + li {
   margin-top: 0.25rem;
 }
+/* A severe warning (isSevere: the march could kill someone) stands out in solid danger red. */
+.warnings li.severe {
+  margin: -0.15rem -0.35rem 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 3px;
+  background: var(--bad);
+  color: var(--panel);
+  font-size: 1.05em;
+}
+.warnings li.severe .warning-icon {
+  font-size: 1.3em;
+  line-height: 1;
+}
 .check-preview {
   margin: 0.5rem 0;
 }
 .check-preview p {
   margin: 0.2rem 0;
+}
+.check-outcomes {
+  margin: 0.35rem 0 0.5rem;
+  font-size: 0.85rem;
+}
+.check-outcomes .faces {
+  display: inline-block;
+  min-width: 3.2em;
+  font-variant-numeric: tabular-nums;
 }
 .actions {
   display: flex;
