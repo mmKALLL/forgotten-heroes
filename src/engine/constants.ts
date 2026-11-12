@@ -278,6 +278,50 @@ export const TRADE_REP_GP = 50
 /** ...up to this many points per arrival. */
 export const TRADE_REP_MAX = 3
 
+// Rumours at the tavern (town/rumours.ts)
+
+/** The DC to hear something useful (Insight or Persuasion), less 1 per standing tier above stranger. */
+export const RUMOUR_DC = 12
+/** A round for the table, per member. */
+export const RUMOUR_PRICE = 1
+/** Nearby towns whose prices each tier brings (a critical failure brings one false rumour). */
+export const RUMOUR_PRICES: Readonly<Record<Tier, number>> = {
+  critFail: 1,
+  fail: 0,
+  partial: 1,
+  success: 2,
+  critSuccess: 3,
+}
+/** Heard prices are off by up to ±this share (seeded). */
+export const RUMOUR_SKEW = 0.1
+/** A false rumour's prices are off by this share, up or down, with no tell. */
+export const FALSE_RUMOUR_SKEW = 0.4
+
+// Contracts and notice boards (town/contracts.ts)
+
+/** Offers on a notice board each week, by size tier (outpost first). */
+export const BOARD_SIZE: readonly number[] = [1, 2, 2, 3, 3, 4]
+/** Contracts the party may hold at once. */
+export const MAX_CONTRACTS = 3
+/** gp per steady day to the destination, before the template's pay and urgency. */
+export const CONTRACT_PAY_PER_DAY = 6
+/** Each threat level at the destination adds this share to the pay. */
+export const CONTRACT_PAY_PER_THREAT = 0.1
+/** An urgent offer pays this many times as much. */
+export const URGENT_PAY = 1.5
+/** A deadline is the steady days to the destination × a seeded slack in this range... */
+export const DEADLINE_SLACK: readonly [number, number] = [1.1, 1.4]
+/** ...or in this one for an urgent offer (never less than a forced march, always less than steady). */
+export const URGENT_SLACK: readonly [number, number] = [0.75, 0.9]
+/** "A good word": standing gained with every settlement of the patron's kingdom, instead of the gold. */
+export const GOOD_WORD_POINTS = 3
+/** A failed or abandoned contract costs this much standing with the patron and their settlement. */
+export const FAIL_REP = 5
+/** Each this many gp of a lost cargo the party can't pay costs one more point of standing. */
+export const DEBT_REP_GP = 10
+/** Escorted passengers draw attention: added to the hostile share on the road. */
+export const ESCORT_HOSTILE = 0.1
+
 // Points of interest (pois.ts)
 
 /** A domain expects spots / this many POIs: about 40–60 per world on Altaeus (mean ≈ 49). */

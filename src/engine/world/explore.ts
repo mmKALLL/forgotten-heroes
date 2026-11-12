@@ -19,6 +19,8 @@ import { passDay } from '../travel/supplies'
 import { settlementName } from './geo'
 import { domainAt, poisToDiscover } from './pois'
 import { siteStatus } from './sites'
+import { rumourOption, type RumourOption } from '../town/rumours'
+import { siteContractsMet } from '../town/contract-hooks'
 import {
   DEFAULT_PACE,
   EXPLORE_DAYS,
@@ -231,7 +233,9 @@ export function visitPoi(state: GameState, content: Content): GameState {
   const place = placeHere(state, content) ?? undefined
   const started = startEncounter({ ...state, rng, visited: true }, content, situation, place, id)
   const power = siteStatus(state.world.seed, id, poi, state.day)?.power ?? 0
-  return power > 0 && started.encounter ? strengthen(started, power * POWER_DC) : started
+  // An errand to this site is done by going there (town/contracts.ts).
+  const done = siteContractsMet(started, 'errand', id)
+  return power > 0 && done.encounter ? strengthen(done, power * POWER_DC) : done
 }
 
 /** Raises every check of the open encounter by `dc`, with a line saying so. */
@@ -287,6 +291,8 @@ function visitRefusal(
 /** The site actions open where the party is, with their previews. */
 export type SiteAction =
   | { type: 'explore'; option: ExploreOption }
+  /** Listening for rumours at the tavern here (town/rumours.ts), once per arrival. */
+  | { type: 'listenRumours'; option: RumourOption }
   | {
       type: 'visitPoi'
       poiId: string
@@ -296,7 +302,10 @@ export type SiteAction =
       code: VisitBlock | null
     }
 
-/** Exploring (with its preview), and visiting when the party is at a discovered POI. */
+/**
+ * Exploring (with its preview), visiting when the party is at a discovered POI, and listening for
+ * rumours when there is a tavern here that hasn't been heard this arrival.
+ */
 export function siteActions(state: GameState, content: Content): SiteAction[] {
   const actions: SiteAction[] = []
   const poi = state.travel ? undefined : own(state.world.pois, state.location)
@@ -312,5 +321,7 @@ export function siteActions(state: GameState, content: Content): SiteAction[] {
   }
   const option = exploreOption(state, content)
   if (option) actions.push({ type: 'explore', option })
+  const rumours = rumourOption(state, content)
+  if (rumours) actions.push({ type: 'listenRumours', option: rumours })
   return actions
 }

@@ -10,6 +10,7 @@ import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
 import { fadeStrainAfter } from '../rules/strain'
 import { rationMultiplier } from './pace'
+import { escortPassengers } from '../town/contract-hooks'
 import { DEFAULT_PACE, FORCED_MARCH_DC, HUNGER_DC, THIRST_DC } from '../constants'
 
 // A day passing: eating, drinking and going without (design §7). Kept apart from supplies.ts so
@@ -87,9 +88,14 @@ export function consumeDay(
     }
     return character
   })
-  const extra = dailyNeed(state.party.length, terrain, pace)
-  food = Math.max(0, food - (extra.food - state.party.length))
-  water = Math.max(0, water - (extra.water - need * state.party.length))
+  // Escorted passengers eat and drink after the members, and go without quietly.
+  const guests = escortPassengers(state)
+  food = Math.max(0, food - guests)
+  water = Math.max(0, water - guests * need)
+  const eaters = state.party.length + guests
+  const extra = dailyNeed(eaters, terrain, pace)
+  food = Math.max(0, food - (extra.food - eaters))
+  water = Math.max(0, water - (extra.water - need * eaters))
   // Animals drink from the carried water too (in town the water is free).
   if (content && terrain !== null) water = Math.max(0, water - animalWater(state, content) * need)
   const marched =
