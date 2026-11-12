@@ -20,7 +20,7 @@ describe('villains', () => {
     expect(new Set(all).size).toBe(all.length)
   })
 
-  test('their threats, name tables and site types exist; the sites are weight-0 quests with situations', () => {
+  test('their threats, name tables and site types exist; the sites are weight-0 quests with situations and water', () => {
     expect(villainIssues(content)).toEqual([])
     for (const v of villains) {
       expect(v.threats.length, v.id).toBeGreaterThan(0)
@@ -30,6 +30,7 @@ describe('villains', () => {
         expect(type.weight, id).toBe(0)
         expect(type.category, id).toBe('quest')
         expect(type.hostile, id).toBe(false)
+        expect(type.water, id).toBe(true)
         expect(type.situations.length, id).toBeGreaterThan(0)
         for (const s of type.situations) expect(content.situations[s]?.site, s).toBe(true)
       }

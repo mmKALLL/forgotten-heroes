@@ -262,7 +262,8 @@ describe('points of interest', () => {
   })
 
   test('only a spring or a well refills the waterskins', () => {
-    for (const t of types.filter((t) => t.water))
+    // Every Crisis site has water (a well, spring or cistern; see crisis-sites.json).
+    for (const t of drawn.filter((t) => t.water))
       expect(`${t.id} ${t.name}`).toMatch(/spring|well/i)
   })
 
