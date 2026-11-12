@@ -9,6 +9,7 @@ import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
 import { load, loadSpeed, type Hired } from '../economy/capacity'
 import { mountSpeed } from '../town/animals'
+import { escortPassengers } from '../town/contract-hooks'
 import { paceHostileAvoidance } from './pace'
 import {
   DEFAULT_PACE,
@@ -205,10 +206,16 @@ export function routeThreat(
 export const fareFor = (route: Pick<Route, 'km' | 'terrain'>, members: number): number =>
   route.terrain === 'sea' ? SEA_FARE * members * journeyDays(route) : 0
 
-/** Who pays a ship's fare: every member, and every owned animal (and cart). */
+/**
+ * Who pays a ship's fare: every member, every escorted passenger (they pay like members), and
+ * every owned animal (and cart).
+ */
 export const passengers = (
-  state: Pick<GameState, 'party'> & Partial<Pick<GameState, 'animals'>>
-): number => state.party.length + Object.values(state.animals ?? {}).reduce((sum, n) => sum + n, 0)
+  state: Pick<GameState, 'party'> & Partial<Pick<GameState, 'animals' | 'contracts'>>
+): number =>
+  state.party.length +
+  escortPassengers({ contracts: state.contracts ?? [] }) +
+  Object.values(state.animals ?? {}).reduce((sum, n) => sum + n, 0)
 
 /** The terrain underfoot on a journey; null if its route or path has gone. */
 export const routeTerrain = (

@@ -83,6 +83,30 @@ describe('travel', () => {
     expect(lastLine(travel(at('ashmoor-1', { gold: 5 }), 'ashmoor-1-farisle-1'))).toBe(
       'Passage costs 16 gp.'
     )
+    // An escorted passenger pays like a member: 3 aboard.
+    const escort: GameState['contracts'][number] = {
+      id: 'c-escort',
+      template: 'see-pilgrim',
+      kind: 'escort',
+      patron: 'nobody',
+      from: 'ashmoor-1',
+      to: 'farisle-1',
+      good: null,
+      amount: 0,
+      poi: null,
+      passengers: 1,
+      accepted: 1,
+      deadline: 30,
+      pay: 30,
+      urgent: false,
+      reputation: { patron: 1, settlement: 1 },
+      met: false,
+    }
+    const escorted = travel(
+      at('ashmoor-1', { gold: 30, contracts: [escort] }),
+      'ashmoor-1-farisle-1'
+    )
+    expect(escorted.gold).toBe(30 - 24)
   })
 
   test('the pace sets the speed and the length; stealthy covers the tracks', () => {
