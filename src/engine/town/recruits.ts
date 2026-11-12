@@ -57,13 +57,17 @@ export const recruitFee = (level: number, block: RecruitsBlock): number =>
 export const recruitWage = (level: number, block: RecruitsBlock): number =>
   Math.max(0.5, Math.round(RECRUIT_WAGE * (1 + level) * block.wage * 2) / 2)
 
-/** One recruit, from its own keyed stream: class, ancestry, then the level within the cap. */
+/**
+ * One recruit, from its own keyed stream: class, ancestry, then a level within the block's
+ * `levels`, clamped to `cap`. The level is drawn before the clamp, so the same stream gives the
+ * same recruit whatever the cap (only the levels above it are cut).
+ */
 function makeRecruit(
   rng: Rng,
   content: Content,
   localAncestry: string,
   block: RecruitsBlock,
-  best: number
+  cap: number
 ): Character {
   const known = (block.classes ?? []).filter((id) => Object.hasOwn(content.classes, id))
   const classes = known.length > 0 ? known : sortedEntries(content.classes).map((c) => c.id)
@@ -77,9 +81,8 @@ function makeRecruit(
   })
   const [fresh, afterGen] = generateCharacter(afterPick, content, { classId, ancestryId })
   const [character] = withRng(afterGen, (d) => {
-    const hi = Math.max(1, Math.min(block.levels[1], best + 1))
-    const lo = Math.min(block.levels[0], hi)
-    return levelTo(fresh, d.int(lo, hi), d)
+    const drawn = d.int(block.levels[0], block.levels[1])
+    return levelTo(fresh, Math.max(1, Math.min(drawn, cap)), d)
   })
   return character
 }
@@ -97,7 +100,9 @@ function hireRefusal(state: GameState, settlementId: string, fee: number): strin
  * Who is looking for work in a settlement this week: each service here with a `recruits` block
  * offers a seeded number in its `offers` range, of its `classes` (or any), mostly of the
  * settlement's ancestry (RECRUIT_LOCAL_ANCESTRY). Levels are seeded within the block's `levels`,
- * but never above the party's highest living level + 1. Offers already hired are left out.
+ * but never above the founders' highest level + 1. Only founders set the cap (alive or dead), so
+ * hiring, a recruit's level-up or a death doesn't reshuffle the week's offers, and a level-1 party
+ * can't climb the ladder by hiring. Offers already hired are left out.
  */
 export function recruitOffers(
   state: GameState,
@@ -108,7 +113,7 @@ export function recruitOffers(
   if (!info) return []
   const week = boardWeek(state.day)
   const seed = state.world.seed
-  const best = Math.max(1, ...livingMembers(state).map((c) => c.level))
+  const cap = Math.max(1, ...state.party.filter((c) => !isHired(c)).map((c) => c.level)) + 1
   const offers: RecruitOffer[] = []
   for (const service of info.services) {
     const block = own(content.serviceRoles, service)?.recruits
@@ -118,7 +123,7 @@ export function recruitOffers(
     for (let n = 0; n < count; n++) {
       const id = `r-${settlementId}-w${week}-${service}-${n}`
       if (state.recruitsTaken.includes(id)) continue
-      const made = makeRecruit(keyedRng(seed, `${key}/${n}`), content, info.ancestry, block, best)
+      const made = makeRecruit(keyedRng(seed, `${key}/${n}`), content, info.ancestry, block, cap)
       const fee = recruitFee(made.level, block)
       const wage = recruitWage(made.level, block)
       const reason = hireRefusal(state, settlementId, fee)

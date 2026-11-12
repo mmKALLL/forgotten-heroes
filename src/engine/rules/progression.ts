@@ -44,7 +44,8 @@ export function xpProgress(character: Character): XpProgress {
 
 /**
  * One level: HP + hit die + CON modifier (at least 1), and on odd levels from 3rd +1 to a random
- * ability below 20 (the prototype's rules). Nothing happens at the cap.
+ * ability below 20 (the prototype's rules). A downed member's HP stays 0. Nothing happens at the
+ * cap.
  */
 export function levelUp(character: Character, d: Draw): { character: Character; lines: string[] } {
   if (character.level >= MAX_LEVEL) return { character, lines: [] }
@@ -61,7 +62,8 @@ export function levelUp(character: Character, d: Draw): { character: Character; 
       ...character,
       level,
       abilities,
-      hp: character.hp + hp,
+      // A downed member (0 HP) stays down: the level raises max HP, not the fallen.
+      hp: character.hp > 0 ? character.hp + hp : 0,
       maxHp: character.maxHp + hp,
     },
     lines: [`${character.name} reaches level ${level}: ${gains.join(', ')}.`],

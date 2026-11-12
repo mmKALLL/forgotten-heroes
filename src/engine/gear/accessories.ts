@@ -199,17 +199,22 @@ export type AccessoryAction =
   | { type: 'equipAccessory'; characterId: string; id: string }
   | { type: 'unequipAccessory'; characterId: string }
 
-/** Puts an accessory on: its `maxHp` hooks raise max HP and HP (a downed member stays down). */
+/**
+ * Puts an accessory on: its `maxHp` hooks raise max HP only. HP isn't raised, so taking it off and
+ * on again can never heal; the extra room fills by resting like any other.
+ */
 function wear(c: Character, a: Accessory): Character {
-  const bonus = maxHpBonus(a.hooks)
-  return { ...c, accessory: a, maxHp: c.maxHp + bonus, hp: c.hp > 0 ? c.hp + bonus : 0 }
+  return { ...c, accessory: a, maxHp: c.maxHp + maxHpBonus(a.hooks) }
 }
 
-/** Takes the worn accessory off: its max HP goes, but HP never drops below 1 for it. */
+/**
+ * Takes the worn accessory off: its max HP goes and HP is capped at the new max, but never drops
+ * below 1 for it. A downed member (0 HP) stays down.
+ */
 function unwear(c: Character): Character {
   const bonus = maxHpBonus(c.accessory?.hooks ?? [])
   const maxHp = Math.max(1, c.maxHp - bonus)
-  const hp = c.hp > 0 ? Math.max(1, Math.min(maxHp, c.hp - bonus)) : 0
+  const hp = c.hp > 0 ? Math.max(1, Math.min(maxHp, c.hp)) : 0
   return { ...c, accessory: null, maxHp, hp }
 }
 

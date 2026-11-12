@@ -51,6 +51,24 @@ describe('recruit offers', () => {
     }
   })
 
+  test('an offer keeps its level and fee for the week after another offer is hired', () => {
+    // Regression: hiring a level-2 recruit used to raise the other offers' cap the same week.
+    let checked = 0
+    for (let w = 0; w < 40 && checked < 3; w++) {
+      const s = at({ day: w * 7 + 1, gold: 2000 })
+      const before = offers(s)
+      const pick = before.find((o) => o.level === 2)
+      if (!pick || before.length < 2) continue
+      const after = offers(act(s, { type: 'hireRecruit', offerId: pick.id }))
+      for (const o of after) {
+        const was = before.find((b) => b.id === o.id)!
+        expect([o.level, o.fee, o.character.name]).toEqual([was.level, was.fee, was.character.name])
+      }
+      checked++
+    }
+    expect(checked).toBeGreaterThan(0)
+  })
+
   test('a higher level costs more to hire and to keep', () => {
     const all = overWeeks(at({ party: [{ ...brom, level: 5, xp: XP_BY_LEVEL[4] }, lyra] }))
     const one = all.find((o) => o.level === 1)!

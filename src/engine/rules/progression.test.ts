@@ -103,6 +103,14 @@ describe('grantXp and applyLevelUps', () => {
     expect(after.party[0].xp).toBe(XP_BY_LEVEL[MAX_LEVEL - 1] + 5000)
   })
 
+  test('a level-up raises max HP but does not revive a downed member (regression)', () => {
+    const downed = { ...brom, hp: 0, xp: XP_BY_LEVEL[1] }
+    const after = applyLevelUps(makeState({ party: [downed] })).party[0]
+    expect(after.level).toBe(2)
+    expect(after.maxHp).toBeGreaterThan(brom.maxHp)
+    expect(after.hp).toBe(0)
+  })
+
   test('no level-up leaves the state untouched', () => {
     const state = makeState()
     expect(applyLevelUps(state)).toBe(state)

@@ -104,20 +104,34 @@ describe('equipping', () => {
     const worn = step(state, { type: 'equipAccessory', characterId: brom.id, id: 'stout' }, content)
     const after = worn.party[0]
     expect(after.accessory).toEqual(stout)
-    expect([after.hp, after.maxHp]).toEqual([brom.hp + 5, brom.maxHp + 5])
+    expect([after.hp, after.maxHp]).toEqual([brom.hp, brom.maxHp + 5])
     expect(worn.gear).toEqual([])
     const off = step(worn, { type: 'unequipAccessory', characterId: brom.id }, content)
     expect(off.party[0]).toEqual(brom)
     expect(off.gear).toEqual([stout])
   })
 
-  test('removing max HP never kills: HP stays at least 1', () => {
+  test('taking it off caps HP at the new max; a downed member stays down', () => {
     const state = here({ gear: [stout] })
     const worn = step(state, { type: 'equipAccessory', characterId: 'brom', id: 'stout' }, content)
-    const hurt = { ...worn, party: worn.party.map((c, i) => (i === 0 ? { ...c, hp: 3 } : c)) }
-    expect(step(hurt, { type: 'unequipAccessory', characterId: 'brom' }, content).party[0].hp).toBe(
-      1
-    )
+    const withHp = (hp: number) => ({
+      ...worn,
+      party: worn.party.map((c, i) => (i === 0 ? { ...c, hp } : c)),
+    })
+    const off = (s: GameState) =>
+      step(s, { type: 'unequipAccessory', characterId: 'brom' }, content).party[0]
+    const full = off(withHp(worn.party[0].maxHp))
+    expect(full.hp).toBe(full.maxHp)
+    expect(off(withHp(0)).hp).toBe(0)
+  })
+
+  test('putting it on and off again never heals (regression)', () => {
+    const state = here({ gear: [stout] })
+    const worn = step(state, { type: 'equipAccessory', characterId: 'brom', id: 'stout' }, content)
+    const hurt = { ...worn, party: worn.party.map((c, i) => (i === 0 ? { ...c, hp: 2 } : c)) }
+    const off = step(hurt, { type: 'unequipAccessory', characterId: 'brom' }, content)
+    const on = step(off, { type: 'equipAccessory', characterId: 'brom', id: 'stout' }, content)
+    expect([off.party[0].hp, on.party[0].hp]).toEqual([2, 2])
   })
 
   test('equipping swaps out what was worn', () => {
