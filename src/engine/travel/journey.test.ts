@@ -5,11 +5,11 @@ import type { GameState } from '../../schema/state'
 import { WIDE_BERTH, drawEncounter, inProgress } from '../encounters/run'
 import { createRng } from '../rng'
 import { step, type Action } from '../state'
-import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
+import { brom, fixtureContent, lyra, makeCharacter, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { placeOnRoute } from './journey'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
-import { WATERSKIN_SELL_PRICE } from '../constants'
+import { STOWAWAY_WORK_DAYS, WATERSKIN_SELL_PRICE } from '../constants'
 
 const content = fixtureContent()
 const at = (location: string, overrides: Partial<GameState> = {}): GameState =>
@@ -554,6 +554,18 @@ describe('stowing away', () => {
       expect(after.travel?.to).toBe('farisle-1')
       expect(lastLine(after)).toMatch(/, working its passage\.$/)
     }
+  })
+
+  test('the days worked end like any other: wages fall due (regression)', () => {
+    const hand = makeCharacter({ id: 'hand', name: 'Hand', wage: 1 })
+    for (let seed = 0; seed < 500; seed++) {
+      const before = at('ashmoor-1', { gold: 0, rng: createRng(seed) })
+      const after = stow({ ...before, party: [...before.party, hand] })
+      if (after.lastRoll?.tier !== 'partial' && after.lastRoll?.tier !== 'fail') continue
+      expect(after.wagesOwed).toBe(STOWAWAY_WORK_DAYS)
+      return
+    }
+    throw new Error('no seed puts the party to work')
   })
 
   test('a critical failure is a brawl: a hostile sea situation tagged brawl, or a beating', () => {

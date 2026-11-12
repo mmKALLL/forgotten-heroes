@@ -11,6 +11,7 @@ import { withRng } from '../rng'
 import { chooseActor, chooseLead } from '../rules/character'
 import { TIER_LABELS, rollCheck, tierOdds } from '../rules/checks'
 import { fadeStrainAfter, useSkill } from '../rules/strain'
+import { endOfDay } from './days'
 import { fareFor, passengers } from './routes'
 import {
   STOWAWAY_BRAWL_DAMAGE,
@@ -98,20 +99,23 @@ export function stowawayCheck(
 /** What happened on the gangplank, for depart's own departure line. */
 export type StowawayOutcome = StowawayTierOutcome['code']
 
-/** The party works its passage off in port: days pass (the crew feeds it) and the caught one tires. */
-function putToWork(state: GameState, actorId: string): GameState {
-  const party = state.party.map((c) => {
-    let next = c
-    for (let d = 0; d < STOWAWAY_WORK_DAYS; d++)
-      next = fadeStrainAfter(next, state.skillUses, state.day + d)
-    return c.id === actorId
-      ? {
-          ...next,
-          exhaustion: Math.min(MAX_EXHAUSTION, next.exhaustion + STOWAWAY_WORK_EXHAUSTION),
-        }
-      : next
-  })
-  return { ...state, party, day: state.day + STOWAWAY_WORK_DAYS }
+/**
+ * The party works its passage off in port: days pass (the crew feeds it, so nothing is eaten),
+ * Strain fades, and each day ends as usual (endOfDay: spoilage, animal upkeep, wages). Then the
+ * caught one tires.
+ */
+function putToWork(state: GameState, content: Content, actorId: string): GameState {
+  let next = state
+  for (let d = 0; d < STOWAWAY_WORK_DAYS; d++) {
+    const party = next.party.map((c) => fadeStrainAfter(c, next.skillUses, next.day))
+    next = endOfDay({ ...next, party, day: next.day + 1 }, content)
+  }
+  const party = next.party.map((c) =>
+    c.id === actorId
+      ? { ...c, exhaustion: Math.min(MAX_EXHAUSTION, c.exhaustion + STOWAWAY_WORK_EXHAUSTION) }
+      : c
+  )
+  return { ...next, party }
 }
 
 /**
@@ -152,11 +156,15 @@ export function stowAway(
     next = appendLog(next, `${name} is strained: Stealth −${strained} until it fades.`, 'bad')
   }
   const work = (s: GameState, why: string): GameState =>
-    appendLog(
-      putToWork(s, actor.characterId),
-      `${why} The captain puts the party to work for its passage: ${STOWAWAY_WORK_DAYS} days ` +
-        `hauling cargo, and ${name} gains a level of exhaustion.`,
-      'bad'
+    putToWork(
+      appendLog(
+        s,
+        `${why} The captain puts the party to work for its passage: ${STOWAWAY_WORK_DAYS} days ` +
+          `hauling cargo, and ${name} gains a level of exhaustion.`,
+        'bad'
+      ),
+      content,
+      actor.characterId
     )
 
   const outcome = stowawayOutcomes(next.gold)[roll.tier]
