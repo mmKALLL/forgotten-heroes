@@ -23,17 +23,15 @@ import {
   daysText,
   findsText,
   hostileParts,
-  paceChoiceOf,
-  paceFields,
   realmText,
   roadReasonMessage,
   stowawayText,
   threatLine,
   warningMessage,
-  type PaceChoice,
 } from './travelText'
+import type { Pace } from '../../schema/types'
 import { TierOutcomes } from './TierOutcomes'
-import type { TravelPrefs } from './travelPrefs'
+import { normalizePace, type TravelPrefs } from './travelPrefs'
 
 /**
  * The roads and paths out of where the party is (a settlement or a point of interest), paths to
@@ -131,11 +129,10 @@ export const ridden = (road: RouteOption, prefs: Pick<TravelPrefs, 'mounted'>): 
 
 /** The travel action for a road with the chosen pace, foraging and mounts. */
 export function travelAction(road: RouteOption, prefs: TravelPrefs, stowaway = false): Action {
-  const choice = road.terrain === 'sea' ? 'steady' : prefs.pace
   return {
     type: 'travel',
     routeId: road.routeId,
-    ...paceFields(choice),
+    pace: road.terrain === 'sea' ? 'steady' : normalizePace(prefs.pace),
     forage: prefs.forage,
     ...(stowaway ? { stowaway: true } : {}),
     ...(ridden(road, prefs) ? { hire: true } : {}),
@@ -144,11 +141,10 @@ export function travelAction(road: RouteOption, prefs: TravelPrefs, stowaway = f
 
 /** "Provision for this road": the food and waterskins the road needs with these choices. */
 export function provisionAction(road: RouteOption, prefs: TravelPrefs): Action {
-  const choice = road.terrain === 'sea' ? 'steady' : prefs.pace
   return {
     type: 'provision',
     routeId: road.routeId,
-    ...paceFields(choice),
+    pace: road.terrain === 'sea' ? 'steady' : normalizePace(prefs.pace),
     ...(ridden(road, prefs) ? { hire: true } : {}),
   }
 }
@@ -165,7 +161,7 @@ export function shownPace(
     ? road.mounted!.paces
     : road.paces
   return (
-    paces.find((p) => paceChoiceOf(p) === prefs.pace) ??
+    paces.find((p) => p.pace === normalizePace(prefs.pace)) ??
     paces.find((p) => p.pace === 'steady') ??
     paces[0]
   )
@@ -188,8 +184,8 @@ export function RouteInfo({
   road: RouteOption
   state: GameState
   content: Content
-  pace: PaceChoice
-  onPace: (p: PaceChoice) => void
+  pace: Pace
+  onPace: (p: Pace) => void
   forage: boolean
   onForage: (f: boolean) => void
   /** Hire riding animals where the road offers them (RouteOption.mounted). */
@@ -206,14 +202,14 @@ export function RouteInfo({
   const sea = road.terrain === 'sea'
   const riding = ridden(road, { mounted })
   const option = shownPace(road, { pace, mounted })
-  const shown = paceChoiceOf(option)
+  const shown = option.pace
   const onFoot = shownPace(road, { pace, mounted: false })
   const reason = riding ? (option.reason ?? null) : road.reason
   const offer = road.mounted
   const supplies = onProvision
     ? provisionPlan(state, content, {
         routeId: road.routeId,
-        ...paceFields(sea ? 'steady' : shown),
+        pace: sea ? 'steady' : shown,
         hire: riding,
       })
     : null
@@ -235,7 +231,7 @@ export function RouteInfo({
       {site && <PoiSummary info={site} />}
       <div className="seg-toggle pace-choice" role="group" aria-label={t('route.pace')}>
         {(riding ? road.mounted!.paces : road.paces).map((p) => {
-          const choice = paceChoiceOf(p)
+          const choice = p.pace
           return (
             <button
               key={choice}
@@ -340,9 +336,6 @@ export function RouteInfo({
         </li>
         {option.encounters[1] > 0 && (
           <li className="muted">{t('route.hostileWhy', { parts: hostileParts(t, option) })}</li>
-        )}
-        {option.hostileAvoided > 0 && (
-          <li>{t('route.avoids', { pct: formatPercent(option.hostileAvoided) })}</li>
         )}
         <li>{t('route.footing', { footing: t(`footing.${option.ambush}`) })}</li>
         {road.fare > 0 && <li>{t('route.fare', { gp: road.fare })}</li>}

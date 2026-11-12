@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import type { Biome, Pace, PoiCategory, Position } from '../../schema/types'
+import { PACES, type Biome, type Pace, type PoiCategory, type Position } from '../../schema/types'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'
@@ -8,7 +8,7 @@ import { otherEnd, settlementName } from '../world/geo'
 import { edgeById, edgesFrom } from '../world/graph'
 import { domainThreatLevel, knownLairThreat } from '../world/pois'
 import { siteStatus, siteThreat, type SiteStatus } from '../world/sites'
-import { ambushPositionForPace, paceHostileAvoidance } from './pace'
+import { ambushPositionForPace } from './pace'
 import { load, overloadExcess, type Hired } from '../economy/capacity'
 import { visibleWealth } from '../economy/wealth'
 import { animalBlock, animalBlockText, animalWater, hireCost, hireOffer } from '../town/animals'
@@ -190,9 +190,8 @@ export function poiInfo(state: GameState, content: Content, id: string): PoiInfo
 
 /** One way to walk a road: what it costs and what it risks at that pace. */
 export type PaceOption = {
+  /** Stealthy covers the party's tracks: pursuers lose the trail, and ambushes give Edge. */
   pace: Pace
-  /** Covering tracks (cautious only): slower, but pursuers lose the trail and ambushes give Edge. */
-  coverTracks: boolean
   days: number
   /** Water and food over the journey: needed, carried, expected foraging, and shortfalls. */
   water: WaterForecast
@@ -205,10 +204,11 @@ export type PaceOption = {
   encounters: [number, number]
   /** The chance each slot above the fewest fills (ENCOUNTER_SLOT_CHANCE, or 0). */
   chance: number
-  /** How likely each encounter is to be hostile, and what raises it (with foraging as chosen). */
+  /**
+   * How likely each encounter is to be hostile (with foraging as chosen): `share` is after the
+   * pace's avoidance (avoided ones are quiet days), with what raises it and what avoidance takes off.
+   */
   hostile: HostileShare
-  /** The share of hostile encounters the party steers clear of. */
-  hostileAvoided: number
   /** The footing an ambush meets the party on (with foraging as chosen). */
   ambush: Position
   /**
@@ -226,15 +226,6 @@ export type PaceOption = {
   deadlines: ContractDeadline[]
 }
 
-/** The paces a land road offers, in order; a sea crossing has only steady. */
-const LAND_PACES: readonly [Pace, boolean][] = [
-  ['cautious', false],
-  ['cautious', true],
-  ['steady', false],
-  ['brisk', false],
-  ['forced', false],
-]
-
 function paceOptions(
   state: GameState,
   content: Content,
@@ -247,9 +238,10 @@ function paceOptions(
   const laden = load(state, content, { hired })
   const sea = route.terrain === 'sea'
   // An encumbered party can't force a march (and an overloaded one can't set out at all).
+  // The paces a land road offers, slowest first; a sea crossing has only steady.
   const paces = sea
-    ? LAND_PACES.filter(([p]) => p === 'steady')
-    : LAND_PACES.filter(([p]) => p !== 'forced' || laden.level === 'light')
+    ? PACES.filter((p) => p === 'steady')
+    : PACES.filter((p) => p !== 'forced' || laden.level === 'light')
   const speed = landSpeed(state, content, route.terrain, hired)
   const drink = animalWater(state, content, hired)
   const wealth = visibleWealth(state, content).steps
@@ -264,8 +256,8 @@ function paceOptions(
           },
         ]
       : []
-  return paces.map(([pace, coverTracks]) => {
-    const forecast = forecastJourney(state, route, pace, coverTracks, forage, {
+  return paces.map((pace) => {
+    const forecast = forecastJourney(state, route, pace, forage, {
       speed,
       content,
       animalWater: drink,
@@ -276,14 +268,13 @@ function paceOptions(
     // As the journey would record it (depart): no foraging at sea.
     const exposure = (foraging: boolean) => ({
       hostile: hostileShare(route.danger, threatLevel, pace, foraging, wealth, escort),
-      ambush: ambushPositionForPace(pace, coverTracks, 'normal', foraging),
+      ambush: ambushPositionForPace(pace, 'normal', foraging),
     })
     const chosen = exposure(forage && !sea)
     const on = exposure(true)
     const off = exposure(false)
     return {
       pace,
-      coverTracks,
       days,
       water,
       food,
@@ -291,7 +282,6 @@ function paceOptions(
       warnings,
       ...routeEncounters(meets, days),
       hostile: chosen.hostile,
-      hostileAvoided: paceHostileAvoidance(pace),
       ambush: chosen.ambush,
       forageTradeOff: sea
         ? null
@@ -395,7 +385,7 @@ export function routeOptions(state: GameState, content: Content, forage = true):
   const laden = load(state, content)
   return edgesFrom(state, content, here).map((route) => {
     const to = otherEnd(route, here)
-    const days = journeyDays(route, 'steady', false, landSpeed(state, content, route.terrain))
+    const days = journeyDays(route, 'steady', landSpeed(state, content, route.terrain))
     const threatLevel = routeThreat(state, content, route)
     const fare = fareFor(route, passengers(state))
     const blocked = animalBlock(state, content, route)
@@ -479,7 +469,6 @@ export type JourneyInfo = {
   terrain: Biome | null
   danger: number
   pace: Pace
-  coverTracks: boolean
   /** False during an encounter or when no one can walk on (then only camp helps). */
   canMove: boolean
 }
@@ -504,7 +493,6 @@ export function journeyInfo(state: GameState, content: Content): JourneyInfo | n
     terrain: routeTerrain(state, content, t),
     danger: edgeById(state, content, t.route)?.danger ?? 0,
     pace: t.pace,
-    coverTracks: t.coverTracks,
     canMove: !inProgress(state) && state.party.some(canAct),
   }
 }

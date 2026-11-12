@@ -1,11 +1,18 @@
 import { useState } from 'react'
-import type { PaceChoice } from './travelText'
+import { PACES, type Pace } from '../../schema/types'
 
 /**
  * The pace, foraging and hired mounts chosen in the settlement panel (UI state only, not part of
  * GameState). `mounted` hires riding animals wherever a road offers them.
  */
-export type TravelPrefs = { pace: PaceChoice; forage: boolean; mounted: boolean }
+export type TravelPrefs = { pace: Pace; forage: boolean; mounted: boolean }
+
+/**
+ * A remembered pace as one of today's: "cover" (cautious, covering tracks, before Stealthy) is
+ * Stealthy, and anything unknown is steady.
+ */
+export const normalizePace = (pace: unknown): Pace =>
+  pace === 'cover' ? 'stealthy' : PACES.includes(pace as Pace) ? (pace as Pace) : 'steady'
 
 export const DEFAULT_TRAVEL_PREFS: TravelPrefs = { pace: 'steady', forage: true, mounted: false }
 

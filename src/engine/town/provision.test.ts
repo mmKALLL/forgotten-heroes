@@ -16,7 +16,7 @@ const at = (location: string, overrides: Partial<GameState> = {}) =>
 const warns = (s: GameState, to: string, pace = 'steady') =>
   routeOptions(s, content, false)
     .find((r) => r.to === to)!
-    .paces.find((p) => p.pace === pace && !p.coverTracks)!
+    .paces.find((p) => p.pace === pace)!
     .warnings.map((w) => w.code)
     .filter((c) => c === 'foodRunsOut' || c === 'waterRunsOut')
 

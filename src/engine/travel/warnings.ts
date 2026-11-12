@@ -151,7 +151,6 @@ export function forecastJourney(
   state: Pick<GameState, 'party' | 'goods' | 'waterskins'> & Partial<Pick<GameState, 'spoilage'>>,
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace,
-  coverTracks = false,
   forage = true,
   {
     speed = 1,
@@ -162,7 +161,7 @@ export function forecastJourney(
 ): RouteForecast {
   const members = state.party.length
   const terrain: Biome = route.terrain
-  const days = journeyDays(route, pace, coverTracks, speed)
+  const days = journeyDays(route, pace, speed)
   // Escorted passengers eat and drink after the members (travel/days.ts).
   const party = dailyNeed(members + escorts, terrain, pace)
   // Animals drink from the carried water too; going short hurts no member, so only the total grows.

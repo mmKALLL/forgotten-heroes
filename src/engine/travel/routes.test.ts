@@ -3,6 +3,7 @@ import type { TravelState } from '../../schema/state'
 import { createRng, withRng } from '../rng'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { domainThreatLevel } from '../world/pois'
+import { paceHostileAvoidance } from './pace'
 import {
   canMeetEncounters,
   encounterRange,
@@ -33,8 +34,9 @@ test('journeys take whole days, at least one', () => {
 })
 
 describe('pace', () => {
-  test('cautious is ⅔ speed, brisk 1.25× and a forced march 1.5×', () => {
-    expect(kmPerDay('plains', 'cautious')).toBeCloseTo(20)
+  test('stealthy is ½ speed, cautious ¾, brisk 1.25× and a forced march 1.5×', () => {
+    expect(kmPerDay('plains', 'stealthy')).toBeCloseTo(15)
+    expect(kmPerDay('plains', 'cautious')).toBeCloseTo(22.5)
     expect(kmPerDay('plains', 'steady')).toBe(30)
     expect(kmPerDay('plains', 'brisk')).toBeCloseTo(37.5)
     expect(kmPerDay('plains', 'forced')).toBeCloseTo(45)
@@ -48,23 +50,22 @@ describe('pace', () => {
     expect(journeyDays(plains, 'forced')).toBe(2)
   })
 
-  test('covering tracks costs a quarter day more per day travelled, at cautious pace only', () => {
-    expect(kmPerDay('plains', 'cautious', true)).toBeCloseTo(16)
-    expect(journeyDays({ km: 75, terrain: 'plains' }, 'cautious', true)).toBe(5)
-    expect(kmPerDay('plains', 'steady', true)).toBe(30)
-    expect(kmPerDay('plains', 'brisk', true)).toBeCloseTo(37.5)
-  })
-
   test('a ship sails at its own speed, whatever the pace', () => {
-    for (const pace of ['cautious', 'brisk', 'forced'] as const) {
-      expect(kmPerDay('sea', pace, true)).toBe(75)
+    for (const pace of ['stealthy', 'cautious', 'brisk', 'forced'] as const) {
+      expect(kmPerDay('sea', pace)).toBe(75)
       expect(journeyDays({ km: 160, terrain: 'sea' }, pace)).toBe(3)
     }
   })
 
-  test('brisk and forced make encounters likelier to be hostile; cautious keeps the usual mix', () => {
-    expect(hostileShare(0, 0, 'cautious').share).toBeCloseTo(0.1)
-    expect(hostileShare(0, 0, 'steady').share).toBeCloseTo(0.1)
+  test('brisk and forced make encounters likelier to be hostile; stealthy and cautious avoid some', () => {
+    expect(hostileShare(0, 0, 'steady')).toMatchObject({ drawn: 0.1, share: 0.1, avoided: 0 })
+    for (const pace of ['stealthy', 'cautious'] as const) {
+      const h = hostileShare(0, 0, pace)
+      expect(h.drawn).toBeCloseTo(0.1)
+      expect(h.share).toBeCloseTo(0.1 * (1 - paceHostileAvoidance(pace)))
+      expect(h.share - h.drawn).toBeCloseTo(h.avoided)
+      expect(h.avoided).toBeLessThan(0)
+    }
     expect(hostileShare(0, 0, 'brisk').share).toBeCloseTo(0.2)
     expect(hostileShare(0, 0, 'forced')).toMatchObject({ pace: 0.1 })
   })
@@ -95,6 +96,8 @@ describe('hostileShare', () => {
   test('danger, threat, foraging and a hurried pace each make encounters likelier hostile', () => {
     expect(hostileShare(0, 0)).toEqual({
       share: 0.1,
+      drawn: 0.1,
+      avoided: 0,
       base: 0.1,
       danger: 0,
       threat: 0,
@@ -108,7 +111,8 @@ describe('hostileShare', () => {
     expect(share.share).toBeCloseTo(0.6)
   })
 
-  test('stays within 10–85%', () => {
+  test('stays within 10–85% before the pace’s avoidance', () => {
+    expect(hostileShare(-3, 0, 'stealthy').drawn).toBe(0.1)
     expect(hostileShare(3, 3, 'forced', true).share).toBe(0.85)
     expect(hostileShare(-3, 0).share).toBe(0.1)
   })
@@ -205,7 +209,6 @@ test('a journey’s terrain comes from its route', () => {
     days: 5,
     encounterDays: [],
     pace: 'steady',
-    coverTracks: false,
     paceLog: [],
     forage: true,
     hired: null,

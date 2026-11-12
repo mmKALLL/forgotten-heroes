@@ -103,8 +103,8 @@ export type EncounterState = z.infer<typeof EncounterStateSchema>
 export const PaceDaySchema = z.object({
   /** The game day travelled (state.day when the day began). */
   day: z.number().int().min(1),
+  /** Stealthy days cover the party's tracks (pursuers lose the trail). */
   pace: PaceSchema,
-  coverTracks: z.boolean(),
 })
 export type PaceDay = z.infer<typeof PaceDaySchema>
 
@@ -149,8 +149,6 @@ export const TravelStateSchema = z.object({
   encounterDays: z.array(z.number().int().min(1)),
   /** Chosen per journey (design §7). */
   pace: PaceSchema.default('steady'),
-  /** Covering tracks (cautious pace only) slows the party but makes pursuers lose the trail. */
-  coverTracks: z.boolean().default(false),
   /** Each day travelled so far, oldest first. */
   paceLog: z.array(PaceDaySchema).default([]),
   /** The best-suited member forages for water (and food) each day on land (design §7). */
@@ -224,7 +222,7 @@ export const ContractStateSchema = z.object({
 export type ContractState = z.infer<typeof ContractStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(6),
+  version: z.literal(7),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),

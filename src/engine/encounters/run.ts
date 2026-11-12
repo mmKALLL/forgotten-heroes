@@ -62,24 +62,24 @@ export const inProgress = (state: GameState): boolean => !encounterOver(state)
 
 const BUSY = 'Finish the current encounter first.'
 const UNFIT = 'No one is fit to travel on.'
-/** Logged when a cautious party steers clear of a hostile encounter. */
+/** Logged when a stealthy or cautious party steers clear of a hostile encounter. */
 export const WIDE_BERTH = 'You spot trouble ahead and give it a wide berth.'
 
 /**
  * Where the party is when an encounter is drawn on the road: the terrain, the land (a `regions`
- * id) and the domain (a settlement id), and, on a journey, how it is moving (a cautious party
- * avoids some hostile encounters).
+ * id) and the domain (a settlement id), and, on a journey, how it is moving (a stealthy or
+ * cautious party avoids some hostile encounters).
  */
 export type Place = {
   biome: Biome
   land: string
   domain: string
   pace?: Pace
-  coverTracks?: boolean
-  /** The journey forages: covering tracks then gives ambushes no Edge. */
+  /** The journey forages: a stealthy party then meets ambushes with no Edge. */
   forage?: boolean
   /**
-   * On a journey, the chance each encounter drawn is hostile (hostileShare); without it, every
+   * On a journey, the chance each encounter drawn is hostile (hostileShare's `drawn`, before the
+   * pace's avoidance, which drawEncounter applies); without it, every
    * fitting situation is drawn by weight alone.
    */
   hostileShare?: number
@@ -179,12 +179,7 @@ export function startEncounter(
     stage: situation.start,
     position:
       place?.pace && situation.disposition === 'hostile'
-        ? ambushPositionForPace(
-            place.pace,
-            place.coverTracks ?? false,
-            'normal',
-            place.forage ?? false
-          )
+        ? ambushPositionForPace(place.pace, 'normal', place.forage ?? false)
         : 'normal',
     slots,
     twist,
@@ -212,8 +207,8 @@ export function startEncounter(
  * On the road, `place` limits the pick to situations that fit its terrain and land (fitsPlace);
  * when none fits, nothing happens. On a journey, `place.hostileShare` first decides whether the
  * encounter is hostile, then the pick is among fitting situations of that kind (any fitting one
- * if none of that kind fits). A cautious party then skips a hostile pick with chance
- * CAUTIOUS_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
+ * if none of that kind fits). A stealthy or cautious party then skips a hostile pick with chance
+ * PACE_HOSTILE_AVOIDANCE, and nothing happens but a line in the journal. Whatever encounter
  * starts moves the other queued follow-ups one closer (see startEncounter).
  */
 export function drawEncounter(

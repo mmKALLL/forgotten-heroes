@@ -72,7 +72,6 @@ test('shows the settlement and its roads; picking a road shows its odds; Travel 
     type: 'travel',
     routeId: 'ashmoor-1-greenvale-2',
     pace: 'steady',
-    coverTracks: false,
     forage: true,
   })
   expect(onSelect).toHaveBeenLastCalledWith(null)
@@ -82,13 +81,12 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   const state = makeState({ location: 'ashmoor-1', gold: 50 })
   const { onAction } = panel(state, 'greenvale-2')
   const paces = routeOptions(state, content).find((r) => r.to === 'greenvale-2')!.paces
-  const at = (pace: string, cover = false) =>
-    paces.find((p) => p.pace === pace && p.coverTracks === cover)!
+  const at = (pace: string) => paces.find((p) => p.pace === pace)!
   const group = road(settlementName(state, 'greenvale-2'))
   const pacePicker = within(group.getByRole('group', { name: 'Pace' }))
   expect(pacePicker.getAllByRole('button').map((b) => b.textContent)).toEqual([
+    'Stealthy',
     'Cautious',
-    'Cautious, covering tracks',
     'Steady',
     'Brisk',
     'Forced march',
@@ -107,11 +105,11 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   expect(warnings.getByText(/A forced march of \d+ days \(CON DC \d+ each day\)/)).toBeTruthy()
   expect(group.getByText('Ambushes meet the party Exposed')).toBeTruthy()
 
-  await userEvent.click(pacePicker.getByRole('button', { name: 'Cautious, covering tracks' }))
-  expect(group.getByText(`About ${at('cautious', true).days} days on the road`)).toBeTruthy()
+  await userEvent.click(pacePicker.getByRole('button', { name: 'Stealthy' }))
+  expect(group.getByText(`About ${at('stealthy').days} days on the road`)).toBeTruthy()
   // Foraging gives covered tracks away; the toggle says so.
   expect(group.getByText('Ambushes meet the party on normal footing')).toBeTruthy()
-  const covered = at('cautious', true)
+  const covered = at('stealthy')
   const forage = group.getByRole('checkbox', { name: 'Forage along the way' })
   expect(forage.getAttribute('aria-describedby')).toBeTruthy()
   expect(
@@ -124,14 +122,13 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   ).toBeTruthy()
   await userEvent.click(forage)
   expect(group.getByText('Ambushes meet the party with Edge')).toBeTruthy()
-  expect(group.getByText(/^Steers clear of \d+% of hostile encounters$/)).toBeTruthy()
+  expect(group.getByText(/^Hostile share: 10% base, .*−\d+% stealthy$/)).toBeTruthy()
   expect(group.queryByText(/A forced march/)).toBeNull()
   await userEvent.click(screen.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'travel',
     routeId: 'ashmoor-1-greenvale-2',
-    pace: 'cautious',
-    coverTracks: true,
+    pace: 'stealthy',
     forage: false,
   })
 })
@@ -198,7 +195,6 @@ test('provision for this road shows its cost and dispatches for the shown pace',
     type: 'provision',
     routeId,
     pace: 'steady',
-    coverTracks: false,
   })
 })
 

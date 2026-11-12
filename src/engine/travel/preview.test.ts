@@ -16,10 +16,11 @@ import type { GameState } from '../../schema/state'
 import type { PoiState } from '../../schema/world'
 import { isSevere, warningText } from './warnings'
 import { hostileShare } from './routes'
+import { paceHostileAvoidance } from './pace'
 import { placeOnRoute } from './journey'
 import { domainThreatLevel } from '../world/pois'
 import {
-  CAUTIOUS_HOSTILE_AVOIDANCE,
+  FORAGE_HOSTILE_BONUS,
   ENCOUNTER_SLOT_CHANCE,
   FORAGE_DC,
   FORCED_MARCH_DC,
@@ -217,67 +218,47 @@ describe('routeOptions', () => {
     })
   })
 
-  test('each road shows every pace: days, food, water and encounters, and covering tracks', () => {
+  test('each road shows every pace: days, food, water, encounters and ambush footing', () => {
     const [road] = routeOptions(makeState({ location: 'greenvale-1' }), content).filter(
       (o) => o.routeId === 'greenvale-1-greenvale-2'
     )
-    const chance = (_pace: string) => ENCOUNTER_SLOT_CHANCE
     expect(road.paceNote).toBeNull()
     expect(
       road.paces.map((p) => [
         p.pace,
-        p.coverTracks,
         p.days,
         p.food.needed,
         p.water.needed,
         p.encounters,
         p.chance,
-        p.hostileAvoided,
         p.ambush,
       ])
     ).toEqual([
-      [
-        'cautious',
-        false,
-        4,
-        8,
-        8,
-        [1, 3],
-        chance('cautious'),
-        CAUTIOUS_HOSTILE_AVOIDANCE,
-        'normal',
-      ],
-      [
-        'cautious',
-        true,
-        5,
-        10,
-        10,
-        [2, 4],
-        chance('cautious'),
-        CAUTIOUS_HOSTILE_AVOIDANCE,
-        'normal',
-      ],
-      ['steady', false, 3, 6, 6, [1, 3], chance('steady'), 0, 'normal'],
-      ['brisk', false, 2, 4, 4, [0, 2], chance('brisk'), 0, 'exposed'],
-      ['forced', false, 2, 6, 6, [0, 2], chance('forced'), 0, 'exposed'],
+      ['stealthy', 5, 10, 10, [2, 4], ENCOUNTER_SLOT_CHANCE, 'normal'],
+      ['cautious', 4, 8, 8, [1, 3], ENCOUNTER_SLOT_CHANCE, 'normal'],
+      ['steady', 3, 6, 6, [1, 3], ENCOUNTER_SLOT_CHANCE, 'normal'],
+      ['brisk', 2, 4, 4, [0, 2], ENCOUNTER_SLOT_CHANCE, 'exposed'],
+      ['forced', 2, 6, 6, [0, 2], ENCOUNTER_SLOT_CHANCE, 'exposed'],
     ])
+    // The hostile share shown is what is met: after the pace steers clear of some.
+    for (const p of road.paces) {
+      expect(p.hostile.share).toBeCloseTo(p.hostile.drawn * (1 - paceHostileAvoidance(p.pace)))
+    }
   })
 
   describe('foraging draws attention', () => {
     const at = makeState({ location: 'greenvale-1' })
     const roadOf = (forage: boolean) =>
       routeOptions(at, content, forage).find((o) => o.routeId === 'greenvale-1-greenvale-2')!
-    const covered = (forage: boolean) =>
-      roadOf(forage).paces.find((p) => p.pace === 'cautious' && p.coverTracks)!
+    const covered = (forage: boolean) => roadOf(forage).paces.find((p) => p.pace === 'stealthy')!
 
-    test('it raises the hostile share and costs covered tracks their Edge', () => {
+    test('it raises the hostile share and costs a stealthy party its Edge', () => {
       const road = roadOf(true)
       const on = covered(true)
       const off = covered(false)
-      expect(on.hostile).toEqual(hostileShare(road.danger, road.threatLevel, 'cautious', true))
-      expect(off.hostile).toEqual(hostileShare(road.danger, road.threatLevel, 'cautious', false))
-      expect(on.hostile.share - off.hostile.share).toBeCloseTo(0.1)
+      expect(on.hostile).toEqual(hostileShare(road.danger, road.threatLevel, 'stealthy', true))
+      expect(off.hostile).toEqual(hostileShare(road.danger, road.threatLevel, 'stealthy', false))
+      expect(on.hostile.drawn - off.hostile.drawn).toBeCloseTo(FORAGE_HOSTILE_BONUS)
       expect([on.ambush, off.ambush]).toEqual(['normal', 'edge'])
       // The toggle's explanation is the same either way round.
       expect(on.forageTradeOff).toEqual(off.forageTradeOff)
@@ -298,13 +279,14 @@ describe('routeOptions', () => {
               type: 'travel',
               routeId: 'greenvale-1-greenvale-2',
               pace: option.pace,
-              coverTracks: option.coverTracks,
               forage,
             },
             content
           )
           const place = placeOnRoute(out, content, out.travel!)!
-          expect(place.hostileShare).toBe(option.hostile.share)
+          // The journey draws hostile with the share before avoidance, then steers clear.
+          expect(place.hostileShare).toBe(option.hostile.drawn)
+          expect(place.pace).toBe(option.pace)
           const footing = step(
             { ...out, travel: { ...out.travel!, encounterDays: [1] } },
             { type: 'continueJourney' },
@@ -354,10 +336,10 @@ describe('routeOptions', () => {
         },
       }
       const road = routeOptions(state, content).find((o) => o.routeId === 'ashmoor-1-greenvale-1')!
-      const steady = road.paces.find((p) => p.pace === 'steady' && !p.coverTracks)!
+      const steady = road.paces.find((p) => p.pace === 'steady')!
       // The journey draws with the share the preview showed on that day.
       const out = step(state, { type: 'travel', routeId: road.routeId, pace: 'steady' }, content)
-      expect(placeOnRoute(out, content, out.travel!)!.hostileShare).toBe(steady.hostile.share)
+      expect(placeOnRoute(out, content, out.travel!)!.hostileShare).toBe(steady.hostile.drawn)
       return { threat: road.threatLevel, share: steady.hostile.share }
     }
     const empty = on(11)
@@ -381,7 +363,7 @@ describe('routeOptions', () => {
   test('at sea the ship sets the pace, and the preview says so', () => {
     const [sea] = routeOptions(makeState({ location: 'ashmoor-1' }), content)
     expect(sea.paceNote).toBe(SEA_PACE_NOTE)
-    expect(sea.paces).toMatchObject([{ pace: 'steady', coverTracks: false, days: 3 }])
+    expect(sea.paces).toMatchObject([{ pace: 'steady', days: 3 }])
   })
 
   test('says why a road can’t be taken: an open encounter, no one fit, or the fare', () => {
@@ -427,7 +409,6 @@ describe('journeyInfo and suppliesInfo', () => {
       terrain: 'plains',
       danger: 0,
       pace: 'brisk',
-      coverTracks: false,
       canMove: true,
     })
     expect(suppliesInfo(state)).toEqual({
@@ -462,7 +443,7 @@ describe('supply forecasts and warnings', () => {
       (o) => o.routeId === 'greenvale-1-greenvale-2'
     )!
   const at = (pace: string, overrides: Partial<GameState> = {}, forage?: boolean) =>
-    road(overrides, forage).paces.find((p) => p.pace === pace && !p.coverTracks)!
+    road(overrides, forage).paces.find((p) => p.pace === pace)!
 
   test('each pace shows water and food needed, carried and expected from foraging', () => {
     const steady = at('steady')

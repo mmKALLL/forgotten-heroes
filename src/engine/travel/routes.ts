@@ -9,9 +9,8 @@ import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
 import { load, loadSpeed, type Hired } from '../economy/capacity'
 import { mountSpeed } from '../town/animals'
-import { coversTracks } from './pace'
+import { paceHostileAvoidance } from './pace'
 import {
-  COVER_TRACKS_EXTRA_DAYS,
   DEFAULT_PACE,
   ENCOUNTER_SLOT_CHANCE,
   ESCORT_HOSTILE,
@@ -30,19 +29,12 @@ import {
 } from '../constants'
 
 /**
- * km per calendar day. Pace scales the speed on land; covering tracks (cautious only) adds
- * COVER_TRACKS_EXTRA_DAYS per day travelled. `speed` scales land speed too: a load (capacity.ts
- * loadSpeed) or mounts. A ship keeps its own speed whatever the pace.
+ * km per calendar day. Pace scales the speed on land (PACE_SPEED). `speed` scales land speed too:
+ * a load (capacity.ts loadSpeed) or mounts. A ship keeps its own speed whatever the pace.
  */
-export function kmPerDay(
-  terrain: Biome,
-  pace: Pace = DEFAULT_PACE,
-  coverTracks = false,
-  speed = 1
-): number {
+export function kmPerDay(terrain: Biome, pace: Pace = DEFAULT_PACE, speed = 1): number {
   if (terrain === 'sea') return KM_PER_DAY.sea
-  const cover = coversTracks(pace, coverTracks) ? 1 + COVER_TRACKS_EXTRA_DAYS : 1
-  return (KM_PER_DAY[terrain] * PACE_SPEED[pace] * speed) / cover
+  return KM_PER_DAY[terrain] * PACE_SPEED[pace] * speed
 }
 
 /**
@@ -64,9 +56,8 @@ export function landSpeed(
 export const journeyDays = (
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace = DEFAULT_PACE,
-  coverTracks = false,
   speed = 1
-): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, coverTracks, speed)))
+): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, speed)))
 
 /**
  * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one
@@ -81,11 +72,16 @@ export function encounterRange(days: number): [number, number] {
 /**
  * How likely each encounter on a journey is to be hostile, and what makes it so: the base share,
  * then route danger, the domain's threat level, foraging (FORAGE_HOSTILE_BONUS) and a brisk or
- * forced pace (PACE_HOSTILE_BONUS), within HOSTILE_SHARE_RANGE. The rest are neutral or pleasant,
- * by their situations' weights.
+ * forced pace (PACE_HOSTILE_BONUS), within HOSTILE_SHARE_RANGE. That is the share `drawn` hostile;
+ * a stealthy or cautious party then steers clear of some of those (PACE_HOSTILE_AVOIDANCE: a quiet
+ * day instead), so the share actually met is `share` = drawn × (1 − avoidance), and `avoided` is
+ * the (negative) difference. The rest are neutral or pleasant, by their situations' weights.
  */
 export type HostileShare = {
+  /** The share of encounters that are hostile and met: after the pace's avoidance. */
   share: number
+  /** The share drawn hostile before the pace's avoidance (the clamped sum of the parts). */
+  drawn: number
   base: number
   danger: number
   threat: number
@@ -95,6 +91,8 @@ export type HostileShare = {
   wealth: number
   /** Escorting passengers (town/contracts.ts): ESCORT_HOSTILE. */
   escort: number
+  /** Hostile encounters steered clear of at this pace, as a negative share (0 if none). */
+  avoided: number
 }
 
 export function hostileShare(
@@ -123,7 +121,9 @@ export function hostileShare(
     parts.pace +
     parts.wealth +
     parts.escort
-  return { share: Math.min(hi, Math.max(lo, sum)), ...parts }
+  const drawn = Math.min(hi, Math.max(lo, sum))
+  const share = drawn * (1 - paceHostileAvoidance(pace))
+  return { share, drawn, ...parts, avoided: share - drawn }
 }
 
 /**

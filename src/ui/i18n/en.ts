@@ -346,7 +346,8 @@ export const en = {
   'route.hostilePart.forage': '+{pct} foraging',
   'route.hostilePart.pace': '+{pct} pace',
   'route.hostilePart.wealth': '+{pct} visible wealth',
-  'route.avoids': 'Steers clear of {pct} of hostile encounters',
+  'route.hostilePart.escort': '+{pct} escort',
+  'route.hostilePart.avoided': '−{pct} {pace}',
   'route.footing': 'Ambushes meet the party {footing}',
   'route.fare': 'Passage: {gp} gp',
   'roadReason.busy': 'Finish the current encounter first.',
@@ -372,14 +373,14 @@ export const en = {
   'stowaway.fined': 'Caught, and fined all the party’s coin ({gp} gp)',
   'stowaway.brawl': 'A brawl breaks out',
 
+  'pace.stealthy': 'Stealthy',
   'pace.cautious': 'Cautious',
-  'pace.cover': 'Cautious, covering tracks',
   'pace.steady': 'Steady',
   'pace.brisk': 'Brisk',
   'pace.forced': 'Forced march',
-  'paceHint.cautious': '⅔ speed; avoids some hostile encounters',
-  'paceHint.cover':
-    'Slower still; pursuers lose the trail and ambushes give Edge (unless the party forages)',
+  'paceHint.stealthy':
+    'Half speed; covers your tracks so pursuers lose the trail, avoids some hostile encounters, and ambushes give Edge (unless the party forages)',
+  'paceHint.cautious': '¾ speed; avoids some hostile encounters',
   'paceHint.steady': 'Normal speed',
   'paceHint.brisk': '1.25× speed; more hostile encounters, ambushes find you Exposed',
   'paceHint.forced': '1.5× speed; more supplies and a CON check against exhaustion each day',

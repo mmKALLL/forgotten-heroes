@@ -48,26 +48,35 @@ export const HOSTILE_SHARE_RANGE: readonly [number, number] = [0.1, 0.85]
 export const DEFAULT_PACE: Pace = 'steady'
 /** Speed multiplier on land. Ships sail at their own speed, whatever the pace. */
 export const PACE_SPEED: Readonly<Record<Pace, number>> = {
-  cautious: 2 / 3,
+  stealthy: 1 / 2,
+  cautious: 3 / 4,
   steady: 1,
   brisk: 1.25,
   forced: 1.5,
 }
-/** Added to the hostile share at this pace: a hurried party is noticed (cautious avoids instead). */
+/** Added to the hostile share at this pace: a hurried party is noticed (slow ones avoid instead). */
 export const PACE_HOSTILE_BONUS: Readonly<Record<Pace, number>> = {
+  stealthy: 0,
   cautious: 0,
   steady: 0,
   brisk: 0.1,
   forced: 0.1,
 }
-/** The share of hostile encounters a cautious party avoids (applied when encounters are drawn). */
-export const CAUTIOUS_HOSTILE_AVOIDANCE = 0.4
+/**
+ * The share of hostile encounters a party at this pace steers clear of (applied when encounters
+ * are drawn: an avoided one is a quiet day). Stealthy also covers the party's tracks.
+ */
+export const PACE_HOSTILE_AVOIDANCE: Readonly<Record<Pace, number>> = {
+  stealthy: 0.5,
+  cautious: 0.3,
+  steady: 0,
+  brisk: 0,
+  forced: 0,
+}
 /** A forced march eats and drinks this share more per day on top of the daily ration. */
 export const FORCED_MARCH_EXTRA_RATIONS = 0.5
 /** Each forced-march day, every member makes a CON check against this DC or gains exhaustion. */
 export const FORCED_MARCH_DC = 12
-/** Covering tracks (cautious only) costs this many extra days per day travelled. */
-export const COVER_TRACKS_EXTRA_DAYS = 0.25
 /** A forced march this likely to kill someone (exhaustion level 6) gets a severe warning. */
 export const DEADLY_MARCH_CHANCE = 0.1
 
@@ -94,12 +103,13 @@ export const FORAGE_DC: Readonly<Record<Exclude<Biome, 'sea'>, number>> = {
 }
 /** Added to the forager's Survival at this pace: a forced march leaves no time to look. */
 export const FORAGE_PACE_MODIFIER: Readonly<Record<Pace, number>> = {
+  stealthy: 0,
   cautious: 0,
   steady: 0,
   brisk: 0,
   forced: -2,
 }
-/** Foraging draws attention: added to the hostile share (and covered tracks give no Edge). */
+/** Foraging draws attention: added to the hostile share (and a stealthy party loses its Edge). */
 export const FORAGE_HOSTILE_BONUS = 0.1
 
 // Supplies, prices and rest (supplies.ts, days.ts)

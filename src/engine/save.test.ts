@@ -7,6 +7,7 @@ import {
   v3ToV4,
   v4ToV5,
   v5ToV6,
+  v6ToV7,
 } from './save'
 import { newGame, step } from './state'
 import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
@@ -103,7 +104,7 @@ function migrated() {
   const world = generateWorld(worldSeed(5), content)
   return {
     ...V2_SAVE,
-    version: 6,
+    version: 7,
     party: [{ ...ada, strain: {} }],
     world,
     location: startingSettlement(world, content),
@@ -128,12 +129,12 @@ const PLAN_4_DEFAULTS = {
   doneHere: [],
 }
 
-test('a version 2 save loads as version 6 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(6)
+test('a version 2 save loads as version 7 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(7)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save chains through to version 6 too', () => {
+test('a version 1 save chains through to version 7 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -168,7 +169,6 @@ test('a version 3 save from before waterskins, foraging, pace and strain loads w
     travel: {
       ...travel,
       pace: 'steady',
-      coverTracks: false,
       paceLog: [],
       forage: true,
       hired: null,
@@ -176,7 +176,7 @@ test('a version 3 save from before waterskins, foraging, pace and strain loads w
   })
 })
 
-test('a journey saves its pace, covered tracks and the pace of each day on the road', () => {
+test('a journey saves its pace and the pace of each day on the road', () => {
   const travel = {
     route: 'greenvale-1-greenvale-2',
     from: 'greenvale-1',
@@ -187,9 +187,8 @@ test('a journey saves its pace, covered tracks and the pace of each day on the r
     daysDone: 1,
     days: 4,
     encounterDays: [3],
-    pace: 'cautious' as const,
-    coverTracks: true,
-    paceLog: [{ day: 1, pace: 'cautious' as const, coverTracks: true }],
+    pace: 'stealthy' as const,
+    paceLog: [{ day: 1, pace: 'stealthy' as const }],
     forage: true,
     hired: null,
   }
@@ -228,7 +227,7 @@ describe('v3 → v4', () => {
     const save = v3Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(6)
+    expect(loaded.version).toBe(7)
     expect(loaded.world).toEqual(generateWorld(worldSeed(save.seed), content))
     expect(loaded.location).toBe('greenvale-2')
     expect(loaded.gold).toBe(33)
@@ -267,7 +266,6 @@ describe('v3 → v4', () => {
       days: 3,
       encounterDays: [2],
       pace: 'steady',
-      coverTracks: false,
       paceLog: [],
       forage: true,
     }
@@ -299,7 +297,7 @@ describe('v4 → v5', () => {
   test('keeps each POI’s category, and a cleared one is cleared as of the save’s day', () => {
     const { save, first, second, state } = v4Save()
     const loaded = deserialize(JSON.stringify(save), content)!
-    expect(loaded.version).toBe(6)
+    expect(loaded.version).toBe(7)
     expect(loaded.world.pois[first]).toEqual({ ...state.world.pois[first], clearedDay: 12 })
     expect(loaded.world.pois[second]).toEqual(state.world.pois[second])
     expect(loaded.visited).toBe(false)
@@ -349,7 +347,7 @@ describe('v5 → v6', () => {
     const { save, state } = v5Save()
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
-    expect(loaded.version).toBe(6)
+    expect(loaded.version).toBe(7)
     expect(loaded.goods).toEqual({ food: 6, water: 3 })
     expect(loaded.waterskins).toBe(2)
     expect(loaded.gold).toBe(37)
@@ -380,7 +378,6 @@ describe('v5 → v6', () => {
       days: 3,
       encounterDays: [2],
       pace: 'steady' as const,
-      coverTracks: false,
       paceLog: [],
       forage: true,
       hired: null,
@@ -393,6 +390,72 @@ describe('v5 → v6', () => {
     const { save } = v5Save()
     const raw = structuredClone(save) as unknown as Record<string, unknown>
     expect(v5ToV6(raw, content)).toEqual(v5ToV6(structuredClone(raw), content))
+    expect(raw).toEqual(save)
+  })
+})
+
+describe('v6 → v7', () => {
+  const v6Travel = {
+    route: 'greenvale-1-greenvale-2',
+    from: 'greenvale-1',
+    to: 'greenvale-2',
+    km: 75,
+    kmPerDay: 16,
+    kmDone: 16,
+    daysDone: 1,
+    days: 5,
+    encounterDays: [3],
+    pace: 'cautious',
+    coverTracks: true,
+    paceLog: [
+      { day: 1, pace: 'cautious', coverTracks: true },
+      { day: 2, pace: 'cautious', coverTracks: false },
+    ],
+    forage: false,
+    hired: null,
+  }
+  /** A v6 save on the road, cautious with covered tracks, hunted by a pursuit with a trail. */
+  const v6Save = (travel: Record<string, unknown> = v6Travel) => {
+    const state = makeState({ location: null })
+    return {
+      ...state,
+      version: 6,
+      travel,
+      followUps: [
+        {
+          situationId: 'grudge',
+          wait: 1,
+          queuedDay: 1,
+          trail: [{ day: 1, pace: 'cautious', coverTracks: true }],
+        },
+      ],
+    }
+  }
+
+  test('covering tracks becomes the stealthy pace, on the journey and every logged day', () => {
+    const loaded = deserialize(JSON.stringify(v6Save()), content)!
+    expect(loaded.version).toBe(7)
+    expect(loaded.travel).toMatchObject({ pace: 'stealthy', kmPerDay: 16, days: 5 })
+    expect(loaded.travel).not.toHaveProperty('coverTracks')
+    expect(loaded.travel!.paceLog).toEqual([
+      { day: 1, pace: 'stealthy' },
+      { day: 2, pace: 'cautious' },
+    ])
+    expect(loaded.followUps[0].trail).toEqual([{ day: 1, pace: 'stealthy' }])
+  })
+
+  test('a cautious journey without covered tracks stays cautious', () => {
+    const loaded = deserialize(
+      JSON.stringify(v6Save({ ...v6Travel, coverTracks: false, paceLog: [] })),
+      content
+    )!
+    expect(loaded.travel).toMatchObject({ pace: 'cautious', paceLog: [] })
+  })
+
+  test('the parsed save is not mutated', () => {
+    const save = v6Save()
+    const raw = structuredClone(save) as unknown as Record<string, unknown>
+    v6ToV7(raw)
     expect(raw).toEqual(save)
   })
 })
