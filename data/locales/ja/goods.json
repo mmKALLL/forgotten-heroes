@@ -4,22 +4,112 @@
   "source": "claude",
   "locale": "ja",
   "target": "goods",
-  "notes": "Rough Japanese names for the 15 goods (Plan 4, C1–C3); the uses text stays English for now.",
+  "notes": "Rough Japanese names and uses for the 15 goods (Plan 4, C1–C3).",
   "entries": [
-    { "id": "food", "fields": { "name": "食料" } },
-    { "id": "water", "fields": { "name": "水" } },
-    { "id": "fuel", "fields": { "name": "燃料" } },
-    { "id": "healing", "fields": { "name": "治療品" } },
-    { "id": "alchemicals", "fields": { "name": "錬金薬" } },
-    { "id": "arcana", "fields": { "name": "秘術品" } },
-    { "id": "arms", "fields": { "name": "武器" } },
-    { "id": "armour", "fields": { "name": "防具" } },
-    { "id": "gear", "fields": { "name": "道具" } },
-    { "id": "timber", "fields": { "name": "木材" } },
-    { "id": "stone", "fields": { "name": "石材" } },
-    { "id": "metal", "fields": { "name": "金属" } },
-    { "id": "gems", "fields": { "name": "宝石" } },
-    { "id": "relics", "fields": { "name": "遺物" } },
-    { "id": "luxuries", "fields": { "name": "贅沢品" } }
+    {
+      "id": "food",
+      "fields": {
+        "name": "食料",
+        "uses": "旅の間、毎日一人一食ずつ食べる。ゆっくりと傷んでいく。"
+      }
+    },
+    {
+      "id": "water",
+      "fields": {
+        "name": "水",
+        "uses": "旅の間、毎日飲む。砂漠では倍が要る。どの集落でも無料で補給できるので、かかるのは重さだけ。"
+      }
+    },
+    {
+      "id": "fuel",
+      "fields": {
+        "name": "燃料",
+        "uses": "薪、炭、ランプの油。鍛冶屋や木のない町が買い取る。いずれ寒い土地でも必要になる。"
+      }
+    },
+    {
+      "id": "healing",
+      "fields": {
+        "name": "治療品",
+        "uses": "包帯、軟膏、薬草。遭遇で傷の手当てや病の予防に使う。"
+      }
+    },
+    {
+      "id": "alchemicals",
+      "fields": {
+        "name": "錬金薬",
+        "uses": "酸、火炎瓶、煙玉、毒。遭遇で扉をこじ開け、戦いを崩し、あるいはこっそり逃げるのに使う。"
+      }
+    },
+    {
+      "id": "arcana",
+      "fields": {
+        "name": "秘術品",
+        "uses": "呪文の構成要素、チョーク、インク、巻物。遭遇で結界を読み、霊を縛り、儀式を行うのに使う。"
+      }
+    },
+    {
+      "id": "arms",
+      "fields": {
+        "name": "武器",
+        "uses": "剣、槍、弓矢をひと束ずつ。戦や略奪者の脅威がある所ならどこでも求められる。護衛を武装させたり、戦士団を買収したりするのに使う。"
+      }
+    },
+    {
+      "id": "armour",
+      "fields": {
+        "name": "防具",
+        "uses": "鎖帷子、革鎧、盾。守備隊や脅かされた町が高く買う。"
+      }
+    },
+    {
+      "id": "gear",
+      "fields": {
+        "name": "道具",
+        "uses": "ロープ、工具、ランタン、天幕、登攀具。険しい土地やダンジョンの周りで道の選択肢を広げる。"
+      }
+    },
+    {
+      "id": "timber",
+      "fields": {
+        "name": "木材",
+        "uses": "切り出した梁と板。森のある所では安く、船大工や木のない町、再建中の土地で求められる。"
+      }
+    },
+    {
+      "id": "stone",
+      "fields": {
+        "name": "石材",
+        "uses": "切り整えた石塊と石灰。石切り場では安く、発展する都市や再建中の土地で求められる。"
+      }
+    },
+    {
+      "id": "metal",
+      "fields": {
+        "name": "金属",
+        "uses": "鉄、銅、錫の延べ棒。丘や山で掘られ、どこでも鍛冶屋や鎧職人が加工する。"
+      }
+    },
+    {
+      "id": "gems",
+      "fields": {
+        "name": "宝石",
+        "uses": "研磨済みの石と原石。小袋ひとつで一財産。宝石商や金持ちが買い、盗賊が真っ先に狙う。"
+      }
+    },
+    {
+      "id": "relics",
+      "fields": {
+        "name": "遺物",
+        "uses": "古い硬貨、偶像、聖人の骨、深き場所から来た品々。主にダンジョンや遺跡で見つかり、神殿や学者、収集家が買い取る。"
+      }
+    },
+    {
+      "id": "luxuries",
+      "fields": {
+        "name": "贅沢品",
+        "uses": "香辛料、絹、葡萄酒、美術品。価値の割に軽く、富裕層に求められ、盗賊を惹きつける。"
+      }
+    }
   ]
 }
