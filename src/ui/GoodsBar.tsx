@@ -5,8 +5,7 @@ import { goodDef, goodsInCategory } from '../engine/economy/goods'
 import { visibleWealth, type VisibleWealth } from '../engine/economy/wealth'
 import { formatPercent } from '../engine/format'
 import type { Action } from '../engine/state'
-import { contractCargo } from '../engine/town/contract-hooks'
-import { hostileShare } from '../engine/travel/routes'
+import { cargoInfo } from '../engine/town/contracts'
 import { partyWaterCapacity } from '../engine/travel/supplies'
 import { GOODS, GOOD_CATEGORIES, type Good } from '../schema/types'
 import type { GameState } from '../schema/state'
@@ -35,8 +34,9 @@ export function GoodsBar({
   const { t, name, fields } = useI18n()
   const goodName = (g: Good) => name('goods', g, goodDef(content, g)?.name ?? g)
   const goodUses = (g: Good) => fields('goods', g)?.uses ?? goodDef(content, g)?.uses
-  // TODO(merge): the engine's `cargoInfo` replaces contractCargo here.
-  const cargo = (g: Good) => Math.min(units(state, g), contractCargo(state, g))
+  // The units of each good that are a contract's cargo (reserved, and still carried).
+  const lots = cargoInfo(state, content).lots
+  const cargo = (g: Good) => lots.filter((l) => l.good === g).reduce((n, l) => n + l.carried, 0)
   return (
     <footer className="goods-bar" aria-label={t('goods.heading')}>
       <ul className="goods-groups" aria-label={t('goods.heading')}>
@@ -112,7 +112,7 @@ export function CapacityMeter({ laden }: { laden: Load }) {
 export function WealthPips({ wealth }: { wealth: VisibleWealth }) {
   const { t } = useI18n()
   const pips = Array.from({ length: WEALTH_MAX_STEPS }, (_, i) => (i < wealth.steps ? '◆' : '◇'))
-  const pct = formatPercent(hostileShare(0, 0, undefined, false, wealth.steps).wealth)
+  const pct = formatPercent(wealth.hostile)
   const hint =
     wealth.steps === 0
       ? undefined

@@ -223,9 +223,9 @@ export function RouteInfo({
         hire: riding,
       })
     : null
-  // Water refills free in town and waterskins are bought by hand (designer rules), so Provision
-  // is only about food. TODO(merge): once the engine refills water itself, `supplies.ready` alone.
-  const provisioned = !!supplies && (supplies.ready || supplies.food === 0)
+  // Water refills by itself in town and waterskins are bought by hand (designer rules), so
+  // Provision is only about food.
+  const provisioned = !!supplies && supplies.ready
   const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
   const round = (n: number) => Math.ceil(n - 1e-9)
   return (

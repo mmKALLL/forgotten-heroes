@@ -87,4 +87,5 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
   - **Tuning values:** don't pin them (e.g. "the slot chance is 0.3"). Assert relationships instead, such as "brisk is more hostile than steady".
   - Skip exhaustive edge cases. Existing tests stay; don't prune them.
 - **Style:** Prettier config in `.prettierrc.cjs` (no semicolons, single quotes, width 100).
+- **UI text:** write day counts as 2d, no space (also in Japanese: 2日).
 - **Git:** commit after each task. **Never push.** The user pushes branches and tags themselves.

@@ -213,12 +213,8 @@ function ServiceAction({
       )
     }
     case 'news': {
-      // Only towns whose prices the party doesn't already know fresher than a courier's news.
-      // TODO(merge): move this filter into the engine's newsTargets (services.ts news() refuses them).
-      const targets = newsTargets(state, content).filter((s) => {
-        const known = Object.hasOwn(state.priceBook, s.id) ? state.priceBook[s.id] : null
-        return !known || known.day < Math.max(1, state.day - s.age)
-      })
+      // Only towns whose prices the courier's news would make fresher (the engine filters them).
+      const targets = newsTargets(state, content)
       const chosen = targets.find((s) => s.id === target) ?? targets[0]
       if (!chosen) return <Why reason={t('services.newsFresh')} />
       return (

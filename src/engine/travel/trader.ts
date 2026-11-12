@@ -683,7 +683,14 @@ export function trader(
       lighten()
       return
     }
-    act({ type: 'travel', routeId: road.routeId, pace }, 'travel')
+    // No forced march once the water and the food make the party encumbered: brisk instead,
+    // topped up for the longer road.
+    let go = pace
+    if (go === 'forced' && load(state, content).level !== 'light') {
+      go = 'brisk'
+      act({ type: 'provision', routeId: road.routeId, pace: go }, 'provision')
+    }
+    act({ type: 'travel', routeId: road.routeId, pace: go }, 'travel')
   }
 
   /** At a site: visit it once, then head back out toward the next settlement. */

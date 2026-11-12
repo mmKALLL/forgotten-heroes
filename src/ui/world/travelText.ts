@@ -1,7 +1,7 @@
 import { formatPercent } from '../../engine/format'
 import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/preview'
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
-import { warningText, type TravelWarning } from '../../engine/travel/warnings'
+import type { TravelWarning } from '../../engine/travel/warnings'
 import type { Biome } from '../../schema/types'
 import { en, type MessageKey } from '../i18n/en'
 import type { I18n } from '../i18n/I18n'
@@ -161,9 +161,25 @@ export function warningMessage(t: T, w: TravelWarning): string {
       })
     case 'encumbered':
       return t('warning.encumbered', w.params)
-    case 'departingExhausted':
-      // English until the UI localises it (the engine's text).
-      return warningText(w)
+    case 'departingExhausted': {
+      const { members, speedPenalty, checkPenalty, severe } = w.params
+      const who = members.map((m) => t('warning.exhaustedMember', { name: m.name, level: m.level }))
+      const names =
+        who.length === 1
+          ? who[0]
+          : who.slice(0, -1).join(t('warning.listSep')) + t('warning.listAnd') + who.at(-1)
+      return [
+        t(
+          members.length === 1 ? 'warning.departingExhaustedOne' : 'warning.departingExhaustedMany',
+          { names, penalty: checkPenalty }
+        ),
+        speedPenalty > 0 &&
+          t('warning.departingExhaustedSlower', { pct: Math.round(speedPenalty * 100) }),
+        severe && t('warning.departingExhaustedDeadly', { name: members[0].name }),
+      ]
+        .filter(Boolean)
+        .join(' ')
+    }
     case 'forcedMarchDeadly':
       return t('warning.forcedMarchDeadly', {
         days: daysText(t, w.params.days),

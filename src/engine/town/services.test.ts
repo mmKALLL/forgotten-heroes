@@ -113,6 +113,8 @@ describe('healers, temples and couriers', () => {
     expect(after.gold).toBeLessThan(s.gold)
     // Far Isle is across the sea: no courier news from there.
     expect(newsTargets(s, content).map((t) => t.id)).not.toContain('farisle-1')
+    // Prices known as fresh as the news would be: no longer a target.
+    expect(newsTargets(after, content).map((t) => t.id)).not.toContain(target.id)
   })
 
   test('services nothing supports yet are listed as coming later', () => {

@@ -243,3 +243,18 @@ Every good reaches the ½×–2× band at its extremes; typical prices sit near 
 - **Freight replaces most supply runs:** the trader takes about as many (16 against 24) and fails far fewer (4 against 11), since the goods are handed over and need no capital.
 - **Outliers:** gems had 2 sales at a 241% median margin (one of them 461%, Greenwall → Fort Thorn); alchemicals 1 sale at 74%. Too few sales to call a pattern; watch them.
 
+
+## After the Plan 4 review fixes
+
+Rerun (seeds 1–30, 60 days) after merging the Plan 4 review fixes and the UI pass: Provision buys food only (waterskins by hand), water refills by itself (also on setting out), contract cargo is reserved, exhaustion slows travel, Cautious is gone. The trader (a sim policy, not a rule) now buys the waterskins a road needs before provisioning, never takes a road whose water it can't buy or carry the skins for (it gives up a contract with no such road), leaves sites at a pace whose supplies last, and walks brisk instead of forcing a march while encumbered. Without those, seeds 2 and 3 died of thirst.
+
+| | Before (geographic supply) | After |
+|---|---|---|
+| Trader gp/day by day 30 / 60 (median) | 3.8 / 4.0 | 4.1 / 4.6 |
+| Trader broke by day 30 / 60; deaths | 3% / 3%; 6 | 3% / 3%; 4 |
+| Contracts-only gp/day by 30 (median); broke by 60 | 5.6; 3% | 5.2; 3% |
+| Trade-only / wander broke by 60 | 87% / 30% | 87% / 23% |
+| Trader food and waterskins per run | 125 gp | 125 gp |
+| **10 gp start:** gp/day by 30 (median); broke by 30 / 60; deaths | 3.7; 20% / 20%; 10 | 3.4; 33% / 33%; 16 |
+
+The 50 gp trader stays in the +3–10 gp/day band. **The 10 gp start got harsher** (a third broke, 16 deaths), likely because a poor party now buys its waterskins by hand and avoids roads it can't water, so it has fewer roads to take; not investigated further. That is the safety-net question above again; levers are `STARTING_GOLD`, `CONTRACT_PAY_PER_DAY` or cheaper waterskins.

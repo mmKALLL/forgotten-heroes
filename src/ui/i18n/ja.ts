@@ -414,6 +414,13 @@ export const ja: Partial<Messages> = {
     '{days}の強行軍（毎日耐久力DC {dc}）で{name}はおそらく消耗する：およそ{levels}段階。',
   'warning.forcedMarchDeadly':
     '{days}の強行軍で{name}が死ぬおそれがある（消耗6段階に達する確率{pct}%）。',
+  'warning.exhaustedMember': '{name}（消耗{level}）',
+  'warning.listSep': '、',
+  'warning.listAnd': '、',
+  'warning.departingExhaustedOne': '{names}は疲れ切っている：判定はすべて−{penalty}。',
+  'warning.departingExhaustedMany': '{names}は疲れ切っている：判定は最大−{penalty}。',
+  'warning.departingExhaustedSlower': '一行の移動は{pct}%遅くなる。',
+  'warning.departingExhaustedDeadly': 'あと1段階の消耗で{name}は死ぬ。',
 
   'poi.heading': '場所',
   'poi.kind': '{category} · {type}',
@@ -472,7 +479,8 @@ export const ja: Partial<Messages> = {
   'market.tooHeavyShort': 'あと{n}まで',
   'market.tooDearShort': '金は{n}個分',
   'market.sellCargo': '積荷{n}を売る…',
-  'market.sellCargoSure': '売ると「{titles}」の仕事を破ることになる。',
+  'market.sellCargoSure':
+    '{good}{n}を売ると「{title}」の仕事を破る：市場は{gp} gpで買うが、{patron}に品代{owed} gpを払い、{patron}と{town}での評判が{standing}下がる。',
   'market.sellCargoYes': '売って破る',
   'market.skinWater': '水 {water}／{capacity}',
   'count.daysLeft': '残り{n}日',

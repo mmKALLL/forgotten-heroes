@@ -63,8 +63,8 @@ export const needsHealer = (state: Pick<GameState, 'party'>): string[] =>
     .filter((c) => c.exhaustion < MAX_EXHAUSTION && (c.hp < c.maxHp || c.exhaustion > 0))
     .map((c) => c.id)
 
-/** The settlements on this island whose news a courier here can bring, nearest first. */
-export function newsTargets(
+/** The settlements on this island a courier here reaches, nearest first. */
+function courierTowns(
   state: GameState,
   content: Content
 ): { id: string; name: string; km: number; age: number }[] {
@@ -79,6 +79,23 @@ export function newsTargets(
       return { id: s.id, name: settlementName(state, s.id), km, age: newsAge(km) }
     })
     .sort((a, b) => a.km - b.km || (a.id < b.id ? -1 : 1))
+}
+
+/** The day a courier's news from a town `age` days away is from. */
+const newsDay = (state: Pick<GameState, 'day'>, age: number) => Math.max(1, state.day - age)
+
+/**
+ * The settlements on this island whose news a courier here can bring, nearest first: only those
+ * whose prices it would make fresher (the price book knows the others as fresh or fresher).
+ */
+export function newsTargets(
+  state: GameState,
+  content: Content
+): { id: string; name: string; km: number; age: number }[] {
+  return courierTowns(state, content).filter((t) => {
+    const known = own(state.priceBook, t.id)
+    return !known || known.day < newsDay(state, t.age)
+  })
 }
 
 /** How old news from `km` away is: the days a courier takes to bring it. */
@@ -130,7 +147,14 @@ function actionView(
         state.doneHere.includes(`bless:${service}`) ? 'already blessed this visit' : null
       )
     case 'news':
-      return view(NEWS_PRICE, newsTargets(state, content).length === 0 ? 'no news to bring' : null)
+      return view(
+        NEWS_PRICE,
+        newsTargets(state, content).length > 0
+          ? null
+          : courierTowns(state, content).length > 0
+            ? 'you know fresher prices from every town a courier reaches'
+            : 'no news to bring'
+      )
     case 'rumours': {
       // Listening is the listenRumours action, previewed by rumourOption.
       const option = rumourOption(state, content)
@@ -246,9 +270,9 @@ function bless(state: GameState, service: string): GameState {
  * already knows them as fresh.
  */
 function news(state: GameState, content: Content, settlement: string): GameState {
-  const target = newsTargets(state, content).find((t) => t.id === settlement)
+  const target = courierTowns(state, content).find((t) => t.id === settlement)
   if (!target) return appendLog(state, 'No courier here brings news from there.', 'bad')
-  const day = Math.max(1, state.day - target.age)
+  const day = newsDay(state, target.age)
   const known = own(state.priceBook, settlement)
   if (known && known.day >= day) {
     return appendLog(state, `You already know fresher prices from ${target.name}.`, 'info')

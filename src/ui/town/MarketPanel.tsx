@@ -5,7 +5,12 @@ import { MARKET_STALL, quote, type Quote } from '../../engine/economy/market'
 import { marketView, type KnownElsewhere, type MarketRow } from '../../engine/economy/trade'
 import { formatGp } from '../../engine/format'
 import type { Action } from '../../engine/state'
-import { contractRows } from '../../engine/town/contracts'
+import {
+  cargoInfo,
+  contractRows,
+  sellCargoPreview,
+  type CargoLot,
+} from '../../engine/town/contracts'
 import { maxWaterskins, partyWaterCapacity } from '../../engine/travel/supplies'
 import { GOOD_CATEGORIES } from '../../schema/types'
 import type { GameState } from '../../schema/state'
@@ -84,11 +89,10 @@ function knownText(t: T, side: 'sell' | 'buy', k: KnownElsewhere): string {
 }
 
 /**
- * Selling a contract's cargo breaks the contract: a confirmation naming it. Off until the engine
- * has an action for it. TODO(merge): the engine agent adds cargo reservation (`cargoInfo`) and a
- * way to sell cargo; wire `onConfirm` to that action and turn this on.
+ * Selling a contract's cargo breaks the contract (designer decision: allowed, never by accident):
+ * a confirmation saying what it brings and costs (the engine's sellCargoPreview), then sellCargo.
  */
-const CARGO_SALE = false
+const CARGO_SALE = true
 
 /**
  * The market of the settlement the party is in (design §5): the party's gold and load, big, over
@@ -114,13 +118,20 @@ export function MarketPanel({
   const here = state.location
   if (rows.length === 0 || here === null) return null
   const amountText = (a: Amount) => (a === 'max' ? t('market.max') : String(a))
-  // The contracts whose cargo each good is (courier and freight), by title.
-  // TODO(merge): read the engine's `cargoInfo` instead.
-  const contracts = contractRows(state, content)
-  const cargoOf = (good: string) =>
-    contracts
-      .filter((c) => (c.kind === 'courier' || c.kind === 'freight') && c.good === good)
-      .map((c) => contractText(i18n, c).title)
+  // Each good's cargo lots (courier and freight contracts), with the contract's title in the UI
+  // language and what selling it here would bring and cost.
+  const rowsById = new Map(contractRows(state, content).map((c) => [c.id, c]))
+  const cargoOf = (good: string): CargoSaleView[] =>
+    cargoInfo(state, content)
+      .lots.filter((l) => l.good === good && l.carried > 0)
+      .map((lot) => {
+        const row = rowsById.get(lot.contractId)
+        return {
+          lot,
+          title: row ? contractText(i18n, row).title : lot.title,
+          preview: sellCargoPreview(state, content, lot.contractId),
+        }
+      })
   return (
     <>
       <div className="market-purse" aria-label={t('market.purseLabel')} role="group">
@@ -210,6 +221,13 @@ export function MarketPanel({
   )
 }
 
+/** One contract's cargo of a good, and what selling it here would do (null: it can't be sold). */
+type CargoSaleView = {
+  lot: CargoLot
+  title: string
+  preview: ReturnType<typeof sellCargoPreview>
+}
+
 function MarketLine({
   row,
   goodName,
@@ -230,12 +248,13 @@ function MarketLine({
   uses: string
   /** The best shop's name in the UI language. */
   shopName: string | null
-  /** The contracts (titles) whose cargo this good is. */
-  cargoFor: string[]
+  /** The cargo lots of this good, one per contract. */
+  cargoFor: CargoSaleView[]
   onAction: (a: Action) => void
 }) {
   const { t } = useI18n()
-  const [sellingCargo, setSellingCargo] = useState(false)
+  // The contract whose cargo sale is being confirmed.
+  const [sellingCargo, setSellingCargo] = useState<string | null>(null)
   const buyN = amount === 'max' ? row.maxBuy : amount
   const forSale = row.carried - row.cargo
   const sellN = amount === 'max' ? forSale : Math.min(amount, forSale)
@@ -362,26 +381,48 @@ function MarketLine({
           </button>
         )}
         {buyWhy && <div className="trade-why tone-bad">{buyWhy}</div>}
-        {CARGO_SALE && row.sell && row.cargo > 0 && cargoFor.length > 0 && (
-          <div className="trade-why">
-            {sellingCargo ? (
-              <>
-                <span className="tone-bad">
-                  {t('market.sellCargoSure', { titles: cargoFor.join(', ') })}
-                </span>{' '}
-                {/* TODO(merge): dispatch the engine's cargo-sale action here. */}
-                <button onClick={() => setSellingCargo(false)}>
-                  {t('market.sellCargoYes')}
-                </button>{' '}
-                <button onClick={() => setSellingCargo(false)}>{t('contracts.abandonNo')}</button>
-              </>
-            ) : (
-              <button className="link" onClick={() => setSellingCargo(true)}>
-                {t('market.sellCargo', { n: row.cargo })}
-              </button>
-            )}
-          </div>
-        )}
+        {CARGO_SALE &&
+          cargoFor
+            .filter((c) => c.preview !== null)
+            .map(({ lot, title, preview }) => (
+              <div key={lot.contractId} className="trade-why">
+                {sellingCargo === lot.contractId && preview ? (
+                  <>
+                    <span className="tone-bad">
+                      {t('market.sellCargoSure', {
+                        n: preview.units,
+                        good: goodName,
+                        title,
+                        gp: preview.gold,
+                        patron: preview.patronName,
+                        owed: preview.owed,
+                        standing: preview.standing,
+                        town: preview.fromName,
+                      })}
+                    </span>{' '}
+                    <button
+                      onClick={() => {
+                        setSellingCargo(null)
+                        onAction({ type: 'sellCargo', contractId: lot.contractId })
+                      }}
+                    >
+                      {t('market.sellCargoYes')}
+                    </button>{' '}
+                    <button onClick={() => setSellingCargo(null)}>
+                      {t('contracts.abandonNo')}
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    className="link"
+                    title={title}
+                    onClick={() => setSellingCargo(lot.contractId)}
+                  >
+                    {t('market.sellCargo', { n: lot.carried })}
+                  </button>
+                )}
+              </div>
+            ))}
       </td>
     </tr>
   )

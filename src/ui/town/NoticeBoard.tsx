@@ -33,7 +33,7 @@ export function NoticeBoard({ content, state, onAction }: Props) {
       ) : (
         <ul className="offers small">
           {offers.map((o) => (
-            <OfferRow key={o.id} offer={o} onAction={onAction} />
+            <OfferRow key={o.id} offer={o} today={state.day} onAction={onAction} />
           ))}
         </ul>
       )}
@@ -41,14 +41,21 @@ export function NoticeBoard({ content, state, onAction }: Props) {
   )
 }
 
-function OfferRow({ offer: o, onAction }: { offer: Offer; onAction: (a: Action) => void }) {
+function OfferRow({
+  offer: o,
+  today,
+  onAction,
+}: {
+  offer: Offer
+  today: number
+  onAction: (a: Action) => void
+}) {
   const i18n = useI18n()
   const { t } = i18n
   const [open, setOpen] = useState(false)
   const { title, text } = contractText(i18n, o)
-  // Days from taking it to its deadline. TODO(merge): `Offer.deadline - state.day` once the
-  // engine gives offers a deadline day; until then `days` is the same count.
-  const left = leftText(t, o.days)
+  // The countdown: days from today to the deadline if taken now.
+  const left = leftText(t, o.deadline - today)
   const why = o.locked
     ? t('board.locked', { standing: t(`standing.${o.locked}`) })
     : (o.reason ?? null)

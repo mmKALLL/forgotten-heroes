@@ -74,7 +74,7 @@ test('prices known elsewhere show their age, stale and heard', () => {
   const name = settlementName(state, 'greenvale-2')
   const row = screen.getByRole('rowheader', { name: /^Food/ }).closest('tr')!
   const known = within(row).getByText(name).closest('td')!
-  expect(known.textContent).toBe(`▲7 ${name} 25 d heard stale`)
+  expect(known.textContent).toBe(`▲7 ${name} 25d heard stale`)
   expect(known.className).toMatch(/stale/)
   expect(known.getAttribute('title')).toMatch(`${name} pays 7 gp · 25 days ago heard stale`)
 })
@@ -116,4 +116,37 @@ test('a shortage is marked in the supply and demand cell', () => {
   const row = screen.getByRole('rowheader', { name: /^Arms/ }).closest('tr')!
   expect(within(row).getByLabelText('Shortage')).toBeTruthy()
   expect(row.querySelector('td.levels')!.getAttribute('title')).toMatch(/Wanted here: Raids/)
+})
+
+test('selling a contract’s cargo asks first, says what it costs, and dispatches sellCargo', async () => {
+  const s = town({ goods: { food: 3 } })
+  const patron = Object.keys(s.world.people)[0]
+  const state = town({
+    goods: { food: 3 },
+    contracts: [
+      {
+        id: 'c-cargo',
+        template: 'bring-timber',
+        kind: 'freight',
+        patron,
+        from: 'greenvale-1',
+        to: 'ashmoor-1',
+        good: 'food',
+        amount: 2,
+        poi: null,
+        passengers: 0,
+        accepted: 1,
+        deadline: 9,
+        pay: 30,
+        urgent: false,
+        reputation: { patron: 5, settlement: 3 },
+        met: false,
+      },
+    ],
+  })
+  const onAction = market(state)
+  await userEvent.click(screen.getByRole('button', { name: 'Sell 2 cargo…' }))
+  expect(screen.getByText(/^Selling the 2 Food breaks “.+”: the market pays \d+ gp/)).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: 'Sell and break it' }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellCargo', contractId: 'c-cargo' })
 })
