@@ -19,6 +19,7 @@ import {
   twistKindWeight,
 } from './run'
 import { TWIST_PLACE_WEIGHT } from '../constants'
+import { checkXp } from '../rules/progression'
 import { paceHostileAvoidance } from '../travel/pace'
 import { hostileShare } from '../travel/routes'
 import type { Pace } from '../../schema/types'
@@ -285,7 +286,9 @@ describe('check options', () => {
       const misread = choose(reseed(start('roadside'), seed), 'read', 'lyra')
       if (misread.lastRoll?.tier !== 'fail' && misread.lastRoll?.tier !== 'critFail') continue
       expect(misread.encounter?.nextCheckModifier).toBe(-2)
-      expect(misread.encounter?.log.at(-1)?.text).toBe('You cannot tell. (−2 to the next check)')
+      expect(misread.encounter?.log.at(-1)?.text).toBe(
+        `You cannot tell. (−2 to the next check, +${checkXp(12, 'fail')} XP)`
+      )
       expect(choose(misread, 'rob', 'lyra').lastRoll?.modifier).toBe(normal - 2)
       return
     }
@@ -313,7 +316,9 @@ describe('check options', () => {
     for (let seed = 0; seed < 40; seed++) {
       const after = choose(reseed(start('cliff'), seed), 'climb', 'lyra')
       if (after.lastRoll?.tier === 'fail') {
-        expect(after.encounter?.log.at(-1)?.text).toBe('Lyra slips. (Lyra −3 HP, Exposed)')
+        expect(after.encounter?.log.at(-1)?.text).toBe(
+          `Lyra slips. (Lyra −3 HP, Exposed, +${checkXp(12, 'fail')} XP)`
+        )
         return
       }
     }

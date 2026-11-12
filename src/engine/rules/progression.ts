@@ -1,6 +1,6 @@
 import type { Character, GameState } from '../../schema/state'
-import { MAX_LEVEL } from '../../schema/types'
-import { XP_BY_LEVEL } from '../constants'
+import { MAX_LEVEL, type Tier } from '../../schema/types'
+import { XP_BY_LEVEL, XP_CRIT, XP_FAIL, XP_PARTIAL, XP_PER_DC } from '../constants'
 import { appendLog } from '../log'
 import { withRng, type Draw } from '../rng'
 import { ABILITIES, abilityModifier } from './abilities'
@@ -58,13 +58,35 @@ export function levelTo(character: Character, level: number, d: Draw): Character
   return { ...next, xp: Math.max(next.xp, XP_BY_LEVEL[target - 1]) }
 }
 
-/** Every member who isn't dead gains `amount` XP, with one journal line. Levels come later. */
-export function grantXp(state: GameState, amount: number, why: string): GameState {
+/** Each tier's share of a success's XP: a failure still teaches something. */
+const XP_TIER_SHARE: Readonly<Record<Tier, number>> = {
+  critFail: XP_FAIL,
+  fail: XP_FAIL,
+  partial: XP_PARTIAL,
+  success: 1,
+  critSuccess: XP_CRIT,
+}
+
+/** The XP a check of this (final) DC pays at this tier, unless its outcome sets its own. */
+export const checkXp = (dc: number, tier: Tier): number =>
+  Math.round(XP_PER_DC * dc * XP_TIER_SHARE[tier])
+
+/** Every member who isn't dead gains `amount` XP, silently (the caller says so). */
+export function gainXp(state: GameState, amount: number): GameState {
   if (amount <= 0) return state
   const party = state.party.map((c) =>
     c.exhaustion < MAX_EXHAUSTION ? { ...c, xp: c.xp + amount } : c
   )
-  return appendLog({ ...state, party }, `+${amount} XP: ${why}`, 'good')
+  return { ...state, party }
+}
+
+/** The journal line for XP gained, e.g. "+65 XP: Bandits on the ford". */
+export const xpLine = (amount: number, why: string): string => `+${amount} XP: ${why}`
+
+/** Every member who isn't dead gains `amount` XP, with one journal line. Levels come later. */
+export function grantXp(state: GameState, amount: number, why: string): GameState {
+  if (amount <= 0) return state
+  return appendLog(gainXp(state, amount), xpLine(amount, why), 'good')
 }
 
 /** Levels up, one level at a time, every member whose XP has passed their level. */

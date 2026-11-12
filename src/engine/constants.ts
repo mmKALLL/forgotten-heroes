@@ -443,9 +443,32 @@ export const OFF_ROAD_WINDING = 1.2
 /** A POI also gets a path to another settlement on its island this much farther than its own. */
 export const PATH_DETOUR = 1.25
 
-// Progression (rules/progression.ts)
+// Progression and XP (rules/progression.ts; encounters/outcomes.ts, effects.ts; town/contracts.ts)
 
 /** Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset). Placeholders until I1. */
 export const XP_BY_LEVEL: readonly number[] = [
   0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500,
 ]
+/** XP for a successful check, per point of its final DC (site power and danger included). */
+export const XP_PER_DC = 5
+/** A critical success pays this many times a success's XP. */
+export const XP_CRIT = 1.5
+/** A partial success pays this share of a success's XP. */
+export const XP_PARTIAL = 0.5
+/** A failure (critical or not) still teaches this share of a success's XP. */
+export const XP_FAIL = 0.25
+/** A completed contract pays this much XP per gp of its pay (a good word too). */
+export const CONTRACT_XP_PER_GP = 2
+/** Clearing a dungeon or lair pays this much XP, times (1 + the site's power). */
+export const XP_CLEAR = 150
+/** Each point of interest discovered (exploring, rumours, clues, contracts) pays this much XP. */
+export const XP_DISCOVER = 25
+
+// World danger (world/danger.ts)
+
+/** The world grows more dangerous every this many days (day 51, 101, …). */
+export const DANGER_RAMP_DAYS = 50
+/** Each step adds this share to encounter DCs and damage. */
+export const DANGER_RAMP_STEP = 0.1
+/** The danger share never rises above this (+100%, from day 501). */
+export const DANGER_RAMP_MAX = 1

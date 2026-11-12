@@ -11,6 +11,7 @@ import { marketLevels, quote, recordTrade } from '../economy/market'
 import { observe } from '../economy/trade'
 import { nearestProducer, supplyOf } from '../economy/supply'
 import { appendLog } from '../log'
+import { grantXp } from '../rules/progression'
 import { createRng, withRng, type Draw } from '../rng'
 import { poiReach, settlementReach, type Reach } from '../travel/reach'
 import { inSettlement } from '../travel/where'
@@ -31,6 +32,7 @@ import { RUMOUR_LEAD } from './rumours'
 import {
   BOARD_SIZE,
   CONTRACT_PAY_PER_DAY,
+  CONTRACT_XP_PER_GP,
   CONTRACT_PAY_PER_THREAT,
   DEADLINE_GRACE_DAYS,
   DEADLINE_SLACK,
@@ -828,12 +830,15 @@ export function completeContract(
   const title = contractTitle(state, content, c)
   const patron = personDisplayName(state.world, content, c.patron)
   const reason = 'a contract kept'
+  // XP by the pay, whichever reward is taken.
+  const xp = Math.round(c.pay * CONTRACT_XP_PER_GP)
   if (reward === 'gold') {
     next = appendLog(
       { ...next, gold: next.gold + c.pay },
       `"${title}" is done. ${patron} pays ${c.pay} gp.`,
       'good'
     )
+    next = grantXp(next, xp, `"${title}"`)
     next = addReputation(next, { person: c.patron, amount: c.reputation.patron, reason }, content)
     return addReputation(
       next,
@@ -842,6 +847,7 @@ export function completeContract(
     )
   }
   next = appendLog(next, `"${title}" is done. ${patron} puts in a good word for you.`, 'good')
+  next = grantXp(next, xp, `"${title}"`)
   next = addReputation(next, { person: c.patron, amount: c.reputation.patron, reason }, content)
   const kingdom = kingdomOf(state, c.from)
   return kingdom

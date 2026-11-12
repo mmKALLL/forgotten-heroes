@@ -14,6 +14,9 @@ import { domainAt, poisToDiscover } from '../world/pois'
 import { changeGoods } from '../economy/goods'
 import { changeAnimals } from '../town/animals'
 import { siteContractsMet } from '../town/contract-hooks'
+import { siteStatus } from '../world/sites'
+import { gainXp, xpLine } from '../rules/progression'
+import { XP_CLEAR, XP_DISCOVER } from '../constants'
 
 export { MAX_EXHAUSTION }
 
@@ -33,7 +36,14 @@ function note(state: GameState, text: string, tone: LogTone): GameState {
   return { ...next, encounter: { ...next.encounter, log: [...next.encounter.log, { text, tone }] } }
 }
 
-/** Marks POIs discovered, with a journal line for each. */
+/** XP gained, with a line in the journal (and the encounter's log when one is open). */
+const xpNote = (state: GameState, amount: number, why: string): GameState =>
+  amount > 0 ? note(gainXp(state, amount), xpLine(amount, why), 'good') : state
+
+/**
+ * Marks POIs discovered, with a journal line for each, and XP_DISCOVER XP for each site (however
+ * it was found: exploring, rumours, clues or a contract).
+ */
 export function revealPois(state: GameState, content: Content, ids: readonly string[]): GameState {
   let next = state
   for (const id of ids) {
@@ -49,7 +59,9 @@ export function revealPois(state: GameState, content: Content, ids: readonly str
       'good'
     )
   }
-  return next
+  const names = ids.map((id) => next.world.pois[id].name)
+  const why = names.length === 1 ? `${names[0]} found` : `${names.length} sites found`
+  return xpNote(next, XP_DISCOVER * ids.length, why)
 }
 
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
@@ -186,10 +198,13 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       const id = state.encounter?.poi
       if (!id || !Object.hasOwn(state.world.pois, id)) return state
       const poi = state.world.pois[id]
+      // A site grown stronger pays more: XP_CLEAR × (1 + power), the power before clearing.
+      const power = siteStatus(state.world.seed, id, poi, state.day)?.power ?? 0
       const pois = { ...state.world.pois, [id]: { ...poi, clearedDay: state.day } }
       const cleared = { ...state, world: { ...state.world, pois } }
       const told = note(cleared, `${poi.name} is cleared. It will lie empty for a while.`, 'good')
-      return siteContractsMet(told, 'bounty', id)
+      const paid = xpNote(told, XP_CLEAR * (1 + power), `${poi.name} cleared`)
+      return siteContractsMet(paid, 'bounty', id)
     }
     case 'trainSkill': {
       const untrained = state.party
@@ -220,8 +235,10 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         { settlement: encounterSettlement(state), amount: effect.amount },
         ctx.content
       )
+    case 'xp':
+      // Silent: the outcome's chips already say "+N XP" (run.ts resolve).
+      return gainXp(state, effect.amount)
     // Plan 5a: the schema exists so content can use them; each track wires its own case.
-    case 'xp': // A2: grantXp
     case 'camaraderie': // B2
     case 'accessory': // C2: rollAccessory into gear
       return state

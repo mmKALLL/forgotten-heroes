@@ -1,5 +1,6 @@
-import type { CheckOption, Outcome, OutcomeBranch } from '../../schema/encounter'
+import type { CheckOption, Outcome, OutcomeBranch, Situation } from '../../schema/encounter'
 import { TIERS, successChance, type Tier } from '../rules/checks'
+import { checkXp } from '../rules/progression'
 import { HIGH_STAKES_BAND } from '../constants'
 
 /** The outcome for a tier; critical tiers fall back to fail and success. */
@@ -25,4 +26,19 @@ export function isHighStakes(option: CheckOption, odds: Record<Tier, number>): b
       b?.effects.some((e) => e.effect === 'hp' && e.amount < 0)
     )
   })
+}
+
+/**
+ * The XP a check's outcome branch grants by default (Plan 5a): checkXp by the snapshot's final DC
+ * and the tier rolled. None in a wonder, and none when the branch has its own `xp` effect (even a
+ * conditional one), which replaces the default.
+ */
+export function defaultXp(
+  situation: Pick<Situation, 'wonder'>,
+  branch: OutcomeBranch,
+  dc: number,
+  tier: Tier
+): number {
+  if (situation.wonder || branch.effects.some((e) => e.effect === 'xp')) return 0
+  return checkXp(dc, tier)
 }

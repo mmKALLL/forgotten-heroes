@@ -25,7 +25,7 @@ import { anyUndiscovered, domainAt } from '../world/pois'
 import { boonReadyIn } from '../world/sites'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
-import { branchFor, isHighStakes, tierOutcome } from './outcomes'
+import { branchFor, defaultXp, isHighStakes, tierOutcome } from './outcomes'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
 import { TWIST_PLACE_WEIGHT } from '../constants'
@@ -348,16 +348,21 @@ function resolve(
   branch: OutcomeBranch,
   actorId: string | undefined,
   entry: Pick<EncounterLogEntry, 'tone' | 'roll' | 'highStakes'>,
-  content?: Content
+  content?: Content,
+  /** The roll's default XP (defaultXp), granted as an `xp` effect so it shows as a chip. */
+  xp = 0
 ): GameState {
   const encounter = state.encounter!
   const fromStage = encounter.stage!
   const actorName = nameOf(state, actorId)
   const values = actorName ? { ...encounter.slots, actor: actorName } : encounter.slots
   const fill = (text: string) => fillText(text, values)
-  const effects: Effect[] = prepareEffects(branch.effects, encounter).map((e) =>
-    e.effect === 'log' ? { ...e, text: fill(e.text) } : e
-  )
+  const effects: Effect[] = [
+    ...prepareEffects(branch.effects, encounter).map((e) =>
+      e.effect === 'log' ? { ...e, text: fill(e.text) } : e
+    ),
+    ...(xp > 0 ? [{ effect: 'xp' as const, amount: xp }] : []),
+  ]
   const place = encounterSettlementName(state)
   const chips = effects.flatMap((e) => describeEffect(e, actorName ?? 'someone', place) ?? [])
   const text = fill(branch.text) + (chips.length > 0 ? ` (${chips.join(', ')})` : '')
@@ -466,7 +471,8 @@ export function chooseOption(
     branch,
     actor.characterId,
     { tone: TIER_TONE[roll.tier], roll: record, highStakes },
-    content
+    content,
+    defaultXp(encounter.situation, branch, dc, roll.tier)
   )
 }
 

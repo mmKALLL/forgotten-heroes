@@ -452,6 +452,14 @@ The town map image is a banner and backdrop.
 
 **Reasons to grow (Plan 5a):** XP and levels for stats; recruiting, with the party growing from 2 toward 6 and camaraderie getting harder past 7; and low-end magical gear (accessories with rule hooks). Wealth funds a bigger, better-equipped party.
 
+**XP and levels as built (Plan 5a, Track A):**
+- **Levels 1–10** follow total XP (`XP_BY_LEVEL`, cumulative, never reset; placeholders until the sim tunes them). A level-up adds the hit die + CON modifier to max HP (at least 1), proficiency follows the level, and on odd levels from 3rd a random ability below 20 rises by 1 (the prototype's rules). Level-ups are applied after every `step`, so XP can come from anywhere; each is a journal line.
+- **XP is shared, not split:** every living member (exhaustion below 6) gains the full amount.
+- **Encounter checks** pay by the final DC (site power and danger included) and the tier: 5 XP per DC point on a success (`XP_PER_DC`; DC 13 → 65), ×1.5 on a critical success, ½ on a partial, ¼ on a failure or critical failure (something is learned). Fixed options, wonders and practice rolls pay nothing. An outcome with its own `xp` effect replaces the default for that roll (even a conditional one). The XP shows as a chip ("+65 XP") on each outcome before the roll and in the outcome line after it, and the preview carries it as data (`OptionCheckPreview.xp`, `BranchPreview.xp`).
+- **Contracts** pay 2 XP per gp of their pay (`CONTRACT_XP_PER_GP`), whether the reward is gold or a good word.
+- **Sites:** clearing a dungeon or lair pays `XP_CLEAR` (150) × (1 + its power); each site discovered pays `XP_DISCOVER` (25), however it was found (exploring, rumours, clues, or a contract naming it).
+- **No XP** for foraging, gathering, rumours themselves, stowing away or Inspiration, so travel chores aren't grind.
+
 **Gathering materials (Plan 5a):** spend days in a domain gathering a local good (timber, stone, food, fuel, healing herbs) with a skill check. It is profitable at first, but selling it quickly raises local supply through the market's bulk pressure. It gives a broke party a fallback income.
 
 **Plan order:**

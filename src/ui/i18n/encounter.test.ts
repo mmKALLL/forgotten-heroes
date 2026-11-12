@@ -92,8 +92,9 @@ describe('localizeEncounterState', () => {
 
     const swum = chooseOption(started, 'swim')
     const actor = swum.party.find((c) => c.id === swum.encounter!.log.at(-1)!.roll!.actorId)!
-    expect(localizeEncounterState(swum, ja).encounter!.log.at(-1)!.text).toBe(
-      `${actor.name}は渡りきった。`
+    // The roll's default XP is a chip like any other.
+    expect(localizeEncounterState(swum, ja).encounter!.log.at(-1)!.text).toMatch(
+      new RegExp(`^${actor.name}は渡りきった。 \\(\\+\\d+ XP\\)$`)
     )
   })
 })

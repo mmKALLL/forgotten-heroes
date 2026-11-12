@@ -410,6 +410,20 @@ describe('completing each kind', () => {
   })
 })
 
+describe('XP for contracts', () => {
+  test('a completed contract pays XP by its pay, with a good word as with gold', () => {
+    const xpFor = (reward: 'gold' | 'goodWord', pay = 30) => {
+      const s = at('greenvale-2', { contracts: [contract(at(HERE), { met: true, pay })] })
+      const done = act(s, { type: 'completeContract', id: 'c-test', reward })
+      return done.party.map((c, i) => c.xp - s.party[i].xp)
+    }
+    const [gold] = xpFor('gold')
+    expect(gold).toBeGreaterThan(0)
+    expect(xpFor('goodWord')).toEqual([gold, gold])
+    expect(xpFor('gold', 60)[0]).toBeGreaterThan(gold)
+  })
+})
+
 describe('on the road', () => {
   test('escorted passengers eat and drink as members', () => {
     const s = at(HERE, { contracts: [contract(at(HERE), { passengers: 2 })] })

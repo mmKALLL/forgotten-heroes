@@ -14,6 +14,7 @@ const outcome = (tier: ShownOutcome['tier'], n: number): ShownOutcome => ({
   text: long(n),
   effects: [],
   next: 'end',
+  xp: 0,
   twist: null,
 })
 

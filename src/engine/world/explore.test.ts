@@ -23,6 +23,7 @@ import {
   POWER_DC,
   POWER_STEP_DAYS,
   REINHABIT_DAYS,
+  XP_DISCOVER,
 } from '../constants'
 
 const content = fixtureContent()
@@ -81,7 +82,9 @@ describe('discoverPoi', () => {
   test('reveals the nearest undiscovered POI of the encounter’s domain', () => {
     const after = apply(at(), { effect: 'discoverPoi' })
     expect(discovered(after)).toEqual(['poi-2'])
-    expect(after.log.at(-1)!.text).toBe('You learn of Camp greenvale-1 ' + near + ' (war camp).')
+    expect(after.log.at(-2)!.text).toBe('You learn of Camp greenvale-1 ' + near + ' (war camp).')
+    expect(after.log.at(-1)!.text).toBe(`+${XP_DISCOVER} XP: Camp greenvale-1 ${near} found`)
+    expect(after.party.map((c) => c.xp)).toEqual([XP_DISCOVER, XP_DISCOVER])
     expect(after.encounter!.log.at(-1)!.text).toBe(after.log.at(-1)!.text)
     expect(discovered(apply(after, { effect: 'discoverPoi' }))).toEqual(['poi-1', 'poi-2'])
   })
@@ -153,6 +156,20 @@ describe('clearPoi', () => {
     // Something moves in again REINHABIT_DAYS later.
     expect(domainThreatLevel(after.world, 'ashmoor-1', state.day + REINHABIT_DAYS)).toBe(3)
     expect(describeEffect(fx({ effect: 'clearPoi' })[0], 'Lyra')).toBe('clears the site')
+  })
+
+  test('pays XP, more for a site that has grown stronger', () => {
+    const day = 1 + 2 * POWER_STEP_DAYS
+    const at = (clearedDay: number) =>
+      withPois(
+        { 'poi-1': poi('ashmoor-1', 0, { discovered: true, clearedDay }) },
+        { day, encounter: makeEncounter({ poi: 'poi-1', domain: 'ashmoor-1' }) }
+      )
+    const xpFor = (s: GameState) =>
+      applyEffects(s, fx({ effect: 'clearPoi' }), { content }).party[0].xp - s.party[0].xp
+    const fresh = xpFor(at(day - REINHABIT_DAYS))
+    expect(fresh).toBeGreaterThan(0)
+    expect(xpFor(at(TAKEN_ON_DAY_1))).toBeGreaterThan(fresh)
   })
 
   test('does nothing outside a POI', () => {
