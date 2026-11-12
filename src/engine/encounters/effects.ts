@@ -362,7 +362,8 @@ export function describeEffect(
     case 'animals':
       return `${formatModifier(effect.amount)} ${effect.animal ?? 'animal'}`
     case 'xp':
-      return `+${effect.amount} XP`
+      // An xp effect of 0 only stops the roll's default XP: it has no chip.
+      return effect.amount > 0 ? `+${effect.amount} XP` : null
     case 'camaraderie':
       return `${formatModifier(effect.amount)} camaraderie`
     case 'accessory':
