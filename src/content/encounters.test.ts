@@ -376,6 +376,22 @@ describe('points of interest', () => {
     expect(taught.size).toBeGreaterThanOrEqual(4)
   })
 
+  test('five to eight of Claude’s road situations leave a clue to a site', () => {
+    const clues = Object.values(content.situations).filter(
+      (s) =>
+        s.source === 'claude' &&
+        !s.site &&
+        Object.values(s.stages).some((st) =>
+          st.options
+            .flatMap(outcomesOf)
+            .some((b) => b.effects.some((e) => e.effect === 'discoverPoi'))
+        )
+    )
+    expect(clues.length).toBeGreaterThanOrEqual(5)
+    expect(clues.length).toBeLessThanOrEqual(8)
+    for (const s of clues) expect(s.biomes ?? []).not.toContain('sea')
+  })
+
   test('every POI category has a type with a playable situation', () => {
     for (const category of POI_CATEGORIES) {
       const playable = ofCategory(category).filter((t) =>
