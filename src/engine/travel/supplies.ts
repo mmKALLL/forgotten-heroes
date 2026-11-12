@@ -175,7 +175,7 @@ export type RestOption = {
 }
 
 export function restOption(state: GameState, lodging = true): RestOption {
-  const inTown = state.travel === null && state.location !== null
+  const inTown = inSettlement(state)
   const cost = inTown ? lodgingCost(state.party.length) : 0
   return { inTown, lodgingCost: cost, lodging: inTown && lodging && state.gold >= cost }
 }
@@ -190,7 +190,7 @@ export function restOption(state: GameState, lodging = true): RestOption {
 export function rest(state: GameState, content: Content, lodging = true): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const option = restOption(state, lodging)
-  const terrain = state.travel ? routeTerrain(content, state.travel) : null
+  const terrain = state.travel ? routeTerrain(state, content, state.travel) : null
   const { state: after, unfed } = option.lodging
     ? {
         state: {
@@ -218,12 +218,20 @@ export function rest(state: GameState, content: Content, lodging = true): GameSt
   return appendLog({ ...after, party, goods }, text, 'good')
 }
 
-const inSettlement = (state: GameState): boolean => !state.travel && state.location !== null
+/** In a settlement (not on the road, and not at a point of interest). */
+export const inSettlement = (state: Pick<GameState, 'travel' | 'location' | 'world'>): boolean =>
+  !state.travel && state.location !== null && Object.hasOwn(state.world.settlements, state.location)
+
+/** Refusals start "Not here" at a point of interest, where there is nothing to buy or sell. */
+const notHere = (state: GameState, text: string): string =>
+  !state.travel && state.location !== null
+    ? `Not here: ${text[0].toLowerCase()}${text.slice(1)}`
+    : text
 
 /** Buys up to `amount` rations at FOOD_PRICE (as many as the gold allows) and refills water. */
 export function buyFood(state: GameState, amount: number): GameState {
   if (!inSettlement(state)) {
-    return appendLog(state, 'Food can only be bought in a settlement.', 'bad')
+    return appendLog(state, notHere(state, 'Food can only be bought in a settlement.'), 'bad')
   }
   const wanted = Math.max(0, Math.floor(amount))
   const bought = Math.min(wanted, Math.floor(state.gold / FOOD_PRICE))
@@ -245,7 +253,7 @@ export function buyFood(state: GameState, amount: number): GameState {
  */
 export function buyWaterskin(state: GameState, count = 1): GameState {
   if (!inSettlement(state)) {
-    return appendLog(state, 'Waterskins can only be bought in a settlement.', 'bad')
+    return appendLog(state, notHere(state, 'Waterskins can only be bought in a settlement.'), 'bad')
   }
   const wanted = Math.max(0, Math.floor(count))
   const bought = Math.min(wanted, Math.floor(state.gold / WATERSKIN_PRICE))
@@ -274,7 +282,7 @@ export function sellSupplies(
   { food = 0, waterskins = 0 }: { food?: number; waterskins?: number }
 ): GameState {
   if (!inSettlement(state)) {
-    return appendLog(state, 'Supplies can only be sold in a settlement.', 'bad')
+    return appendLog(state, notHere(state, 'Supplies can only be sold in a settlement.'), 'bad')
   }
   const rations = Math.min(Math.max(0, Math.floor(food)), goodsOf(state.goods, 'food'))
   const skins = Math.min(Math.max(0, Math.floor(waterskins)), state.waterskins)

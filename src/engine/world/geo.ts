@@ -51,6 +51,13 @@ export function components(
   return groups
 }
 
-/** A settlement's name in this world, or its id when the political layer doesn't know it. */
+/**
+ * A settlement's (or a point of interest's) name in this world, or its id when the political
+ * layer doesn't know it.
+ */
 export const settlementName = (state: Pick<GameState, 'world'>, id: string): string =>
-  Object.hasOwn(state.world.settlements, id) ? state.world.settlements[id].name : id
+  Object.hasOwn(state.world.settlements, id)
+    ? state.world.settlements[id].name
+    : Object.hasOwn(state.world.pois, id)
+      ? state.world.pois[id].name
+      : id

@@ -173,3 +173,28 @@ export function territory(content: Content): Territory {
   memo.set(content, result)
   return result
 }
+
+const fromOne = new WeakMap<Content, Map<string, Record<string, number>>>()
+
+/**
+ * Off-road km from one settlement to every spot it can reach, along its quickest way (the same
+ * walk as territory, from this settlement alone). Memoised per Content object and settlement.
+ */
+export function offRoadKm(content: Content, settlementId: string): Record<string, number> {
+  let cache = fromOne.get(content)
+  if (!cache) {
+    cache = new Map()
+    fromOne.set(content, cache)
+  }
+  const cached = cache.get(settlementId)
+  if (cached) return cached
+  const result: Record<string, number> = {}
+  if (Object.hasOwn(content.settlements, settlementId)) {
+    const graph = spotGraph(content)
+    reach(content, graph, [settlementId]).forEach((label, i) => {
+      if (label && !graph.nodes[i].settlement) result[graph.nodes[i].id] = label.km
+    })
+  }
+  cache.set(settlementId, result)
+  return result
+}

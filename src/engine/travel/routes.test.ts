@@ -176,6 +176,6 @@ test('a journey’s terrain comes from its route', () => {
     paceLog: [],
     forage: true,
   }
-  expect(routeTerrain(content, travel)).toBe('marsh')
-  expect(routeTerrain(content, { ...travel, route: 'gone' })).toBeNull()
+  expect(routeTerrain(makeState(), content, travel)).toBe('marsh')
+  expect(routeTerrain(makeState(), content, { ...travel, route: 'gone' })).toBeNull()
 })
