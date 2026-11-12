@@ -56,11 +56,13 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
   - A POI's situations are ordinary situations with `"site": true`, in `data/claude/poi-situations.json`. They are played only at a site and never drawn on the road.
   - The `discoverPoi`, `clearPoi` and `trainSkill` effects tie situations to the world.
   - `src/content/world.test.ts` keeps generated worlds in bounds: about 40–60 POIs, and 10–15% of domains Rampant (see `docs/notes/threat-levels.md`).
-- **Localization** (design §9): English is the default; Japanese is optional and rough. UI strings are in `src/ui/i18n/` (`en.ts` defines the keys; `ja.ts` is partial and falls back to English). Content translations are `translations` files in `data/locales/<locale>/` that overlay text fields of entries by id and dotted path; loading validates ids and paths. Engine-made text (roll lines, effect chips, the journal) is still English; it should become structured messages later.
+- **Localization** (design §9): English is the default; Japanese is optional and rough. **Japanese is no longer being extended:** new strings need English only (ja falls back to English); don't remove the existing ja. UI strings are in `src/ui/i18n/` (`en.ts` defines the keys; `ja.ts` is partial and falls back to English). Content translations are `translations` files in `data/locales/<locale>/` that overlay text fields of entries by id and dotted path; loading validates ids and paths. Engine-made text (roll lines, effect chips, the journal) is still English; it should become structured messages later.
 - **No AI generation at play time.** Content is written ahead of time and committed as editable data.
 - `pnpm build` bundles `data/imported-private/` and the local images in `assets/` when present — never publish a build made with private content or local assets.
 
 ## Design principles to respect
+
+- **Mobile target: Samsung Galaxy S26** (about 412 CSS px wide, tall screen; design §9). Check UI changes at 412 × 915 too: no sideways page scroll, nothing cramped or clipped.
 
 - **Input randomness.** Show the acting character, the DC, the % chance and every outcome tier before the player commits.
 - **Few hard choices beat many trivial ones.** Every regular encounter needs at least 2 options that trade off different resources. "Wonders" are rare, take one click, and are flavour only.
