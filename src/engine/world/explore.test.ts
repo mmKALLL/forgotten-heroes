@@ -46,12 +46,12 @@ const poi = (domain: string, i: number, overrides: Partial<PoiState> = {}): PoiS
   ...overrides,
 })
 
-/** A state in a world with exactly these POIs. */
+/** A state in a world with exactly these POIs (and so no Crisis, whose sites are POIs). */
 const withPois = (
   pois: Record<string, PoiState>,
   overrides: Partial<GameState> = {}
 ): GameState => {
-  const state = makeState(overrides)
+  const state = makeState({ crisis: null, ...overrides })
   return { ...state, world: { ...state.world, pois } }
 }
 

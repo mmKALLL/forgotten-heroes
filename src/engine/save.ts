@@ -1,5 +1,7 @@
 import type { Content } from '../content/build'
 import { GameStateSchema, type GameState } from '../schema/state'
+import { WorldStateSchema } from '../schema/world'
+import { generateCrisis } from './crisis/generate'
 import { CAMARADERIE_START } from './constants'
 import { generatePeople } from './town/people'
 import { startingGoods } from './travel/supplies'
@@ -226,11 +228,33 @@ export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
 }
 
 /**
- * v10 → v11 (Plan 5b): the world's Crisis. For now there is none (`crisis: null`); E1 rolls it
- * from the save's world seed, starting on the save's current day.
+ * v10 → v11 (Plan 5b): the world's Crisis, rolled from the save's world seed as a new game rolls
+ * it, but starting on the save's current day (so an old run gets the full time for act I) and from
+ * where the party is (on the road, where its journey set out from). Its sites join the world's
+ * POIs. A save that already has a Crisis keeps it; one whose world doesn't parse gets none.
  */
-export function v10ToV11(raw: Record<string, unknown>, _content: Content): Record<string, unknown> {
-  return { ...raw, version: 11, crisis: null }
+export function v10ToV11(raw: Record<string, unknown>, content: Content): Record<string, unknown> {
+  if (raw.crisis !== undefined) return { ...raw, version: 11 }
+  const world = WorldStateSchema.safeParse(raw.world)
+  const day = typeof raw.day === 'number' && raw.day >= 1 ? Math.floor(raw.day) : 1
+  const travel = raw.travel as { from?: unknown } | null | undefined
+  const where = travel ? travel.from : raw.location
+  const start = typeof where === 'string' ? where : null
+  const rolled = world.success
+    ? generateCrisis(world.data, content, { startDay: day, start })
+    : null
+  if (!rolled) return { ...raw, version: 11, crisis: null }
+  // Only the Crisis's own sites are added; the saved POIs stay exactly as they were.
+  const sites = Object.entries(rolled.world.pois).filter(
+    ([id]) => !Object.hasOwn(world.data!.pois, id)
+  )
+  const pois = { ...(raw.world as { pois: object }).pois, ...Object.fromEntries(sites) }
+  return {
+    ...raw,
+    version: 11,
+    world: { ...(raw.world as object), pois },
+    crisis: rolled.crisis,
+  }
 }
 
 /**

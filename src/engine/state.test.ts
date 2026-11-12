@@ -6,6 +6,7 @@ import { tierOdds } from './rules/checks'
 import { newGame, previewCheck, step } from './state'
 import { fixtureContent, makeCharacter } from './test-fixtures'
 import { START_MODES, generateWorld, startingSettlement, worldSeed } from './world/generate'
+import { generateCrisis } from './crisis/generate'
 
 const content = fixtureContent()
 
@@ -20,8 +21,12 @@ describe('newGame', () => {
 
   test('starts at a settlement of a freshly rolled world, with supplies and no strain', () => {
     const state = newGame(99, content)
-    expect(state.world).toEqual(generateWorld(worldSeed(99), content))
-    expect(state.location).toBe(startingSettlement(state.world, content))
+    // The world as rolled, plus the Crisis's sites placed from the start (crisis/generate.ts).
+    const world = generateWorld(worldSeed(99), content)
+    expect(state.location).toBe(startingSettlement(world, content))
+    const crisis = generateCrisis(world, content, { startDay: 1, start: state.location })!
+    expect(state.world).toEqual(crisis.world)
+    expect(state.crisis).toEqual(crisis.crisis)
     expect(state.travel).toBeNull()
     expect(state.goods).toEqual({ food: 10, water: 8 })
     expect(state.party.map((c) => c.strain)).toEqual([{}, {}])

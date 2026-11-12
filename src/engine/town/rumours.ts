@@ -15,6 +15,7 @@ import { nearestSettlements } from '../travel/reach'
 import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
 import { poisToDiscover } from '../world/pois'
+import { crisisHidden } from '../crisis/sites'
 import { serviceWith } from './animals'
 import { personStanding, settlementStanding, shopKeeper, standingSteps } from './reputation'
 import {
@@ -252,7 +253,8 @@ export function listenRumours(state: GameState, content: Content): GameState {
     next = appendLog(next, 'The talk is all weather and old grudges.', 'info')
   }
   if (tier === 'success' || tier === 'critSuccess') {
-    const ids = poisToDiscover(next.world, content, here, { count: 1, scope: 'land' })
+    const search = { count: 1, scope: 'land' } as const
+    const ids = poisToDiscover(next.world, content, here, search, crisisHidden(next))
     if (ids.length > 0) next = revealPois(next, content, ids)
   }
   if (tier === 'critSuccess') {

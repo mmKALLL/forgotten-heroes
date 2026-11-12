@@ -525,3 +525,37 @@ export const DANGER_RAMP_DAYS = 50
 export const DANGER_RAMP_STEP = 0.1
 /** The danger share never rises above this (+100%, from day 501). */
 export const DANGER_RAMP_MAX = 1
+
+// The Crisis: rolling it (crisis/generate.ts)
+
+/** A villain one of whose threats holds a land, and a domain that suits a site, weigh this much more. */
+export const CRISIS_THREAT_FAVOUR = 3
+/**
+ * The reveal site lies this many steady days from the start (inclusive), by road and path. On
+ * Altaeus domain hops vary too much in days (two hops are 7–19 days), so the near sites use days.
+ */
+export const CRISIS_REVEAL_DAYS: readonly [number, number] = [2, 8]
+/** Act I's site lies this many steady days from the start (inclusive), by road and path. */
+export const CRISIS_ACT1_DAYS: readonly [number, number] = [4, 12]
+/** Acts II and III lie at least this many domain hops from the act before. */
+export const CRISIS_ACT_SPREAD = 3
+/** Act n is due about n × this many days after the Crisis starts (the designer's number). */
+export const CRISIS_ACT_DAYS = 100
+/** Each due day is moved by up to ± this many days (seeded). */
+export const CRISIS_DUE_JITTER = 10
+
+// The Crisis: deadlines and news (crisis/status.ts)
+
+/** An act not thwarted this many days after its due day fails, and the Crisis is lost. */
+export const CRISIS_LEEWAY_DAYS = 30
+/** Each this many days late (or part of it) adds 1 to every DC at the act's site. */
+export const CRISIS_LATE_STEP_DAYS = 10
+/** The journal warns this many days before an act is due (once the plan is known). */
+export const CRISIS_WARN_DAYS = 14
+
+// The Crisis: clues and thwarting (crisis/progress.ts)
+
+/** Clues to an act that reveal its site (the first, its land, comes with the act). */
+export const CRISIS_SITE_CLUES = 2
+/** Clues to an act that reveal the villain's weakness there: the party goes in with the Edge. */
+export const CRISIS_WEAKNESS_CLUES = 3

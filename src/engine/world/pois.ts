@@ -45,7 +45,12 @@ const own = <T>(table: Record<string, T>, id: string | undefined): T | undefined
  * A name from a POI type's parts table. `{threat}` and `{land}` are the land's threat and name;
  * other slots expand as nested tables. Falls back to the type's own name without a table.
  */
-function poiName(d: Draw, content: Content, type: PoiType, values: Record<string, string>): string {
+export function poiName(
+  d: Draw,
+  content: Content,
+  type: PoiType,
+  values: Record<string, string>
+): string {
   const table = own(content.partsTables, type.names)
   if (!table) return type.name
   const row = d.weighted(table.rows, (r) => r.weight)
@@ -64,6 +69,27 @@ function poiName(d: Draw, content: Content, type: PoiType, values: Record<string
 export function lairFits(type: PoiType, land: LandState | undefined): boolean {
   if (type.category !== 'lair' || type.threats.length === 0) return true
   return land !== undefined && type.threats.includes(land.threat)
+}
+
+/**
+ * The spots of a domain a new POI may take: at least POI_MIN_KM from its settlement and
+ * POI_SPACING_KM from every spot already `placed` (and not one of them).
+ */
+export function freeSpots(
+  content: Content,
+  territory: Pick<Territory, 'spots'>,
+  domainId: string,
+  placed: readonly LandSpot[]
+): LandSpot[] {
+  const site = own(content.settlements, domainId)
+  if (!site) return []
+  return (territory.spots[domainId] ?? [])
+    .flatMap((id) => own(content.landSpots, id) ?? [])
+    .filter(
+      (s) =>
+        straightKm(s.at, site.at) >= POI_MIN_KM &&
+        placed.every((p) => p !== s && straightKm(p.at, s.at) >= POI_SPACING_KM)
+    )
 }
 
 export type PoiOptions = {
@@ -106,11 +132,7 @@ export function generatePois(
     const region = own(content.regions, site.region)
     const threat = own(content.threats, land?.threat)
     for (let i = 0; i < count; i++) {
-      const free = spots.filter(
-        (s) =>
-          straightKm(s.at, site.at) >= POI_MIN_KM &&
-          placed.every((p) => p !== s && straightKm(p.at, s.at) >= POI_SPACING_KM)
-      )
+      const free = freeSpots(content, territory, site.id, placed)
       if (free.length === 0) break
       const spot = d.pick(free)
       placed.push(spot)
@@ -192,13 +214,14 @@ export type PoiSearch = {
  * The undiscovered POIs a clue or a search in `domainId` would reveal, nearest first, at most
  * `count`. Within the domain the nearest is by territory km from its settlement; with scope
  * "land", POIs in the land's other domains follow, by straight-line km from the settlement.
- * Ties go to the lower id.
+ * Ties go to the lower id. `hidden` POIs are never found (the Crisis's sites: crisis/sites.ts).
  */
 export function poisToDiscover(
   world: Pick<PoiWorld, 'domains' | 'pois'>,
   content: Content,
   domainId: string | null,
-  { count, scope, category }: PoiSearch
+  { count, scope, category }: PoiSearch,
+  hidden: ReadonlySet<string> = new Set()
 ): string[] {
   const domain = domainId === null ? undefined : own(world.domains, domainId)
   const home = domainId === null ? undefined : own(content.settlements, domainId)
@@ -210,8 +233,8 @@ export function poisToDiscover(
     return poi.domain === domainId ? [0, land.km[poi.spot] ?? straight] : [1, straight]
   }
   return Object.entries(world.pois)
-    .filter(([, poi]) => {
-      if (poi.discovered) return false
+    .filter(([id, poi]) => {
+      if (poi.discovered || hidden.has(id)) return false
       if (category && own(content.poiTypes, poi.type)?.category !== category) return false
       if (poi.domain === domainId) return true
       return scope === 'land' && own(world.domains, poi.domain)?.land === domain.land
@@ -224,18 +247,21 @@ export function poisToDiscover(
 
 /**
  * True when a search like this (discoverPoi) would still find something: an undiscovered POI in
- * the domain, or with scope "land" in any domain of its land, of the category if one is given.
+ * the domain, or with scope "land" in any domain of its land, of the category if one is given,
+ * that isn't `hidden`.
  */
 export function anyUndiscovered(
   world: Pick<PoiWorld, 'domains' | 'pois'>,
   domainId: string | null,
-  { scope, category }: Omit<PoiSearch, 'count'>
+  { scope, category }: Omit<PoiSearch, 'count'>,
+  hidden: ReadonlySet<string> = new Set()
 ): boolean {
   const domain = domainId === null ? undefined : own(world.domains, domainId)
   if (!domain) return false
-  return Object.values(world.pois).some(
-    (poi) =>
+  return Object.entries(world.pois).some(
+    ([id, poi]) =>
       !poi.discovered &&
+      !hidden.has(id) &&
       (!category || poi.category === category) &&
       (poi.domain === domainId ||
         (scope === 'land' && own(world.domains, poi.domain)?.land === domain.land))

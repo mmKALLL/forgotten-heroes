@@ -19,6 +19,7 @@ import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from '.
 import type { GameState } from '../schema/state'
 import type { RollMode } from './rules/checks'
 import { generateWorld, startingSettlement, worldSeed } from './world/generate'
+import { generateCrisis } from './crisis/generate'
 
 const content = fixtureContent()
 
@@ -104,27 +105,41 @@ const V1_SAVE = {
 /** A save as Plan 2 wrote it. */
 const V2_SAVE = { ...V1_SAVE, version: 2, encounter: null, followUps: [], skillUses: [] }
 
-/** Both become: a world rolled from the save's seed, the party at its starting place with fresh supplies. */
+/**
+ * Both become: a world rolled from the save's seed, the party at its starting place with fresh
+ * supplies, and the world's Crisis rolled from there, starting on the save's day.
+ */
 function migrated() {
-  const world = generateWorld(worldSeed(5), content)
+  const rolled = generateWorld(worldSeed(5), content)
+  const location = startingSettlement(rolled, content)
+  const { world, crisis } = generateCrisis(rolled, content, {
+    startDay: V2_SAVE.day,
+    start: location,
+  })!
   return {
     ...V2_SAVE,
     version: 11,
     party: [{ ...ada, strain: {}, ...CHARACTER_5A_DEFAULTS }],
     world,
-    location: startingSettlement(world, content),
+    location,
     visited: false,
     travel: null,
     goods: { food: 5, water: 4 },
     waterskins: 0,
     ...PLAN_4_DEFAULTS,
     ...PLAN_5A_DEFAULTS,
-    ...PLAN_5B_DEFAULTS,
+    crisis,
   }
 }
 
-/** What a save from before Plan 5b starts with: no Crisis yet (E1 rolls one). */
-const PLAN_5B_DEFAULTS = { crisis: null }
+/** A state's world as a save from before Plan 5b had it: without the Crisis's sites. */
+function withoutCrisis(state: GameState): GameState['world'] {
+  const sites = new Set(
+    state.crisis ? [state.crisis.reveal, ...state.crisis.acts.map((a) => a.poi)] : []
+  )
+  const pois = Object.fromEntries(Object.entries(state.world.pois).filter(([id]) => !sites.has(id)))
+  return { ...state.world, pois }
+}
 
 /** What every character from before Plan 5a starts with: no XP, no wage, nothing worn. */
 const CHARACTER_5A_DEFAULTS = { xp: 0, wage: 0, accessory: null }
@@ -225,7 +240,7 @@ test('a journey saves its pace and the pace of each day on the road', () => {
 
 /** A v3 save: the same game, with its world in the old region shape. */
 function v3Save(overrides: Record<string, unknown> = {}) {
-  const state = makeState({ location: 'greenvale-2', gold: 33 })
+  const { crisis: _crisis, ...state } = makeState({ location: 'greenvale-2', gold: 33 })
   const world = {
     seed: state.world.seed,
     kingdoms: [
@@ -252,7 +267,10 @@ describe('v3 → v4', () => {
     const loaded = deserialize(JSON.stringify(save), content)!
     expect(loaded).not.toBeNull()
     expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
-    expect(loaded.world).toEqual(generateWorld(worldSeed(save.seed), content))
+    // The world as rolled, and the Crisis's sites placed from where the party is (v10 → v11).
+    const world = generateWorld(worldSeed(save.seed), content)
+    const start = { startDay: save.day, start: 'greenvale-2' }
+    expect(loaded.world).toEqual(generateCrisis(world, content, start)!.world)
     expect(loaded.location).toBe('greenvale-2')
     expect(loaded.gold).toBe(33)
     expect(loaded.party).toEqual(save.party)
@@ -261,7 +279,8 @@ describe('v3 → v4', () => {
   })
 
   test('a new game and a migrated save with the same seed share a world', () => {
-    const save = v3Save({ seed: 9 })
+    // The Crisis's sites are placed from where the party is, so it starts where a new game does.
+    const save = v3Save({ seed: 9, location: newGame(9, content).location })
     expect(deserialize(JSON.stringify(save), content)!.world).toEqual(newGame(9, content).world)
   })
 
@@ -578,7 +597,7 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     } = structuredClone(state)
     const party = rest.party.map(({ xp: _xp, wage: _wage, accessory: _accessory, ...c }) => c)
     const encounter = rest.encounter && (({ danger: _danger, ...e }) => e)(rest.encounter)
-    return { ...rest, version: 9, party, encounter }
+    return { ...rest, version: 9, party, encounter, world: withoutCrisis(state) }
   }
 
   test('a v9 save loads with the defaults; party, gold and goods are untouched', () => {
@@ -617,7 +636,7 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
   /** A current state as a v10 save wrote it: no Crisis. */
   function asV10(state: GameState): Record<string, unknown> {
     const { crisis: _crisis, ...rest } = structuredClone(state)
-    return { ...rest, version: 10 }
+    return { ...rest, version: 10, world: withoutCrisis(state) }
   }
 
   test('a v10 save loads with the party, gold, goods and world untouched', () => {
@@ -627,9 +646,19 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
     expect(loaded.party).toEqual(state.party)
     expect(loaded.gold).toBe(37)
     expect(loaded.goods).toEqual({ food: 7, water: 4, gems: 2 })
-    expect(loaded.world).toEqual(state.world)
     expect(loaded.day).toBe(150)
-    expect(loaded).toHaveProperty('crisis')
+    // The Crisis is rolled as a new game rolls it (the same sites), but from the save's day.
+    expect(loaded.world).toEqual(state.world)
+    expect(loaded.crisis).toMatchObject({ villain: state.crisis!.villain, startDay: 150 })
+    expect(loaded.crisis!.acts.map((a) => a.poi)).toEqual(state.crisis!.acts.map((a) => a.poi))
+    expect(loaded.crisis!.acts[0].due).toBeGreaterThan(150)
+  })
+
+  test('a save on the road rolls its Crisis from where the journey set out', () => {
+    const state = makeState({ day: 20 })
+    const onRoad = { ...asV10(state), location: null, travel: { from: state.location } }
+    const rolled = v10ToV11(onRoad, content)
+    expect((rolled.crisis as GameState['crisis'])!.reveal).toBe(state.crisis!.reveal)
   })
 
   test('migrating twice gives identical output, and the input is not mutated', () => {

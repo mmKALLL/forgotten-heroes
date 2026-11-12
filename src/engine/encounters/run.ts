@@ -23,6 +23,7 @@ import { encounterSettlementName, unmetStanding } from '../town/reputation'
 import { ambushPositionForPace, paceHostileAvoidance } from '../travel/pace'
 import { evadePursuit } from '../travel/pursuit'
 import { anyUndiscovered, domainAt } from '../world/pois'
+import { crisisHidden } from '../crisis/sites'
 import { boonReadyIn, siteStatus } from '../world/sites'
 import { dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
@@ -313,7 +314,7 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
           : [`everyone already knows ${statLabel(r.skill)}`]
       case 'undiscovered': {
         const domain = state.encounter?.domain ?? domainAt(state.world, state.location)
-        if (anyUndiscovered(state.world, domain, r)) return []
+        if (anyUndiscovered(state.world, domain, r, crisisHidden(state))) return []
         const what = r.category ? `no ${r.category}` : 'nothing'
         return [`${what} left to learn of ${r.scope === 'land' ? 'in this land' : 'around here'}`]
       }

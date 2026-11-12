@@ -29,6 +29,8 @@ import { applyLevelUps } from './rules/progression'
 import { mournTheDead } from './town/camaraderie'
 import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { gather } from './world/gather'
+import { generateCrisis } from './crisis/generate'
+import { acknowledgeEnd, crisisNews } from './crisis/status'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
@@ -63,6 +65,8 @@ export type Action =
   | AccessoryAction
   /** Spend a day gathering a local good with this rule (world/gather.ts gatherOptions). */
   | { type: 'gather'; rule: string }
+  /** "Keep playing" after the Crisis is won or lost: dismiss its end screen (crisis/status.ts). */
+  | { type: 'acknowledgeEnd' }
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -76,8 +80,11 @@ export function newGame(
 ): GameState {
   const [party, rng] = generateParty(createRng(seed), content, partySize)
   // The world draws from its own stream, so it doesn't change the party or later rolls.
-  const world = generateWorld(worldSeed(seed), content)
-  const location = startingSettlement(world, content, start)
+  const rolled = generateWorld(worldSeed(seed), content)
+  const location = startingSettlement(rolled, content, start)
+  // The world's Crisis (crisis/generate.ts): its own stream, so the rest of the world is unchanged.
+  const crisis = generateCrisis(rolled, content, { startDay: 1, start: location })
+  const world = crisis?.world ?? rolled
   const names = party.map((c) => c.name).join(' and ')
   const from = location ? ` from ${settlementName({ world }, location)}` : ''
   const state: GameState = {
@@ -115,7 +122,7 @@ export function newGame(
     recruitsTaken: [],
     gearTaken: [],
     luckUsed: {},
-    crisis: null,
+    crisis: crisis?.crisis ?? null,
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state
@@ -124,12 +131,13 @@ export function newGame(
 /**
  * Applies one action. When days pass, the news of the sites the party knows follows: a dungeon or
  * lair cleared by the realm, or one that something has moved into again (world/sites.ts). Then
- * bounties whose site the realm emptied are void, and contracts whose deadline has passed fail
+ * the Crisis's deadline lines (crisis/status.ts). Then bounties whose site the realm emptied are
+ * void, and contracts whose deadline has passed fail
  * (town/contracts.ts). Each member who died in the step costs camaraderie (town/camaraderie.ts).
  * Last, members whose XP passed their level level up (rules/progression.ts).
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
-  const acted = siteNews(state.day, act(state, action, content))
+  const acted = crisisNews(state, siteNews(state.day, act(state, action, content)), content)
   const settled = expireContracts(voidBounties(acted, content), content)
   return applyLevelUps(mournTheDead(state, settled))
 }
@@ -219,6 +227,8 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return stepAccessory(state, action, content)
     case 'gather':
       return gather(state, content, action.rule)
+    case 'acknowledgeEnd':
+      return acknowledgeEnd(state)
     default:
       return stepEncounter(state, action, content)
   }
