@@ -504,7 +504,7 @@
               "effect",
               "amount"
             ],
-            "description": "Time passes"
+            "description": "Time passes: each day everyone eats and drinks from the supplies, or goes without"
           },
           {
             "type": "object",

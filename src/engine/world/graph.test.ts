@@ -5,7 +5,7 @@ import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { placeOnRoute } from '../travel/journey'
 import { routeOptions } from '../travel/preview'
-import { goodsOf } from '../travel/supplies'
+import { goodsOf, partyWaterCapacity } from '../travel/supplies'
 import { PATH_DETOUR, edgeById, edgesFrom, nodeOf, pathId, poiPaths } from './graph'
 import { offRoadKm, territory } from './territory'
 
@@ -180,7 +180,7 @@ describe('travelling to and from a POI', () => {
   })
 
   test('rest at a POI is camp-only, and nothing can be bought or sold there', () => {
-    const there = start('herbalist-hut', { location: 'poi-1', gold: 50 })
+    const there = start('orc-war-camp', { location: 'poi-1', gold: 50 })
     const rested = step(there, { type: 'rest' }, content)
     expect(rested.gold).toBe(50)
     expect(rested.log.at(-1)!.text).toBe('The party makes camp and rests a day.')
@@ -193,6 +193,21 @@ describe('travelling to and from a POI', () => {
       expect(refused.gold).toBe(50)
       expect(refused.log.at(-1)!.text).toMatch(/^Not here/)
     }
+  })
+
+  test('camping at a POI drinks as its terrain asks, and a spring refills the waterskins', () => {
+    const dry = structuredClone(content)
+    dry.landSpots['spot-0010'].terrain = 'desert'
+    const goods = { food: 10, water: 6 }
+    const camp = step(start('orc-war-camp', { location: 'poi-1', goods }), { type: 'rest' }, dry)
+    // Two members, two water each in the desert.
+    expect(camp.goods).toEqual({ food: 8, water: 2 })
+    const spring = step(start('herbalist-hut', { location: 'poi-1', goods }), { type: 'rest' }, dry)
+    expect(spring.goods.food).toBe(8)
+    expect(spring.goods.water).toBe(partyWaterCapacity(spring))
+    expect(spring.log.at(-1)!.text).toBe(
+      'The party makes camp by the water and rests a day. The waterskins are refilled.'
+    )
   })
 
   test('leaving a POI lists all of its paths, and the party can set out on them', () => {

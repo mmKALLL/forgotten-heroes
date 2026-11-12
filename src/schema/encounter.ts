@@ -62,7 +62,7 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     .describe('Gain (+) or lose (−) Inspiration; it never drops below 0'),
   z
     .object({ effect: z.literal('days'), amount: z.number().int().min(1), ...when })
-    .describe('Time passes'),
+    .describe('Time passes: each day everyone eats and drinks from the supplies, or goes without'),
   z
     .object({ effect: z.literal('position'), position: PositionSchema, ...when })
     .describe('Edge or Exposed for the next check in this encounter'),
