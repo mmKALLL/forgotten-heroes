@@ -2,12 +2,15 @@ import { writeFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { load } from '../engine/economy/capacity'
 import { goodPrice } from '../engine/economy/goods'
-import { midPrice, shopsFor } from '../engine/economy/market'
+import { midPrice, quote, shopsFor } from '../engine/economy/market'
 import { noticeBoard } from '../engine/town/contracts'
-import { newGame, type Action } from '../engine/state'
+import { newGame, step, type Action } from '../engine/state'
 import { trader, type TraderOptions, type TraderWhy } from '../engine/travel/trader'
 import { wander } from '../engine/travel/wander'
 import { settlementName } from '../engine/world/geo'
+import { dangerLevel } from '../engine/world/danger'
+import { gatherOptions, type GatherOption } from '../engine/world/gather'
+import { isAlive, isHired, livingMembers, wagesPerDay } from '../engine/town/camaraderie'
 import { MAX_EXHAUSTION } from '../engine/rules/character'
 import { STARTING_GOLD } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
@@ -16,7 +19,8 @@ import { loadBundledContent } from './bundled'
 
 // The economy simulation (design §10, Plan 4 I1). The guard tests below run a few seeds with
 // generous bounds; they never pin tuning values. The full report runs seeds 1–30 for 60 days under
-// four policies and writes markdown to the path in ECONOMY_REPORT:
+// six policies (plus the game's 10 gp start, 120-day runs for levels and danger, and gathering
+// probes) and writes markdown to the path in ECONOMY_REPORT:
 //
 //   ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts
 //
@@ -30,6 +34,10 @@ const isCargo = (good: Good) => good !== 'food' && good !== 'water'
 
 /** The days the report's gold curve looks at. */
 const CURVE_DAYS = [5, 10, 15, 20, 25, 30]
+/** The days the report samples the party's level and size on. */
+const LEVEL_DAYS = [10, 15, 30, 60, 120]
+/** The danger ramp's bands (DANGER_RAMP_DAYS): encounters and deaths are counted per band. */
+const BAND_DAYS = 50
 
 /**
  * The sim's own starting gold: the guards and the policy tables start every party with this, so
@@ -41,13 +49,23 @@ const SIM_GOLD = 50
 /** Gold under this with no cargo worth as much (and no contract in hand) is broke. */
 const BROKE_GP = 5
 
-type Policy = 'trader' | 'contracts only' | 'trade only' | 'wander'
+type Policy =
+  | 'trader'
+  | 'trader, one recruit at most'
+  | 'trader, no recruits'
+  | 'contracts only'
+  | 'trade only'
+  | 'wander'
 
 const POLICY_OPTIONS: Record<Exclude<Policy, 'wander'>, TraderOptions> = {
   trader: {},
+  'trader, one recruit at most': { hireUpTo: 3 },
+  'trader, no recruits': { hire: false },
   'contracts only': { trade: false },
   'trade only': { contracts: false },
 }
+/** The policies whose books the report opens (the trader variants share the trader's). */
+const BOOKS: Policy[] = ['trader', 'contracts only', 'trade only']
 
 /** One trade: a good bought in one market and sold in another. */
 type Sale = { good: Good; route: string; units: number; cost: number; revenue: number }
@@ -72,8 +90,23 @@ type Run = {
     lootGold: number
     lootGoods: number
     lootSold: number
+    gearSold: number
   }
-  spend: Record<'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'upkeep', number>
+  spend: Record<
+    'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'upkeep' | 'hiring' | 'wages',
+    number
+  >
+  /** Gathering days and what they brought home (at the local sell price), by week of play too. */
+  gather: { days: number; gp: number; byWeek: { days: number; gp: number }[] }
+  /** The party's best level and its living members on LEVEL_DAYS (null when not reached). */
+  level: (number | null)[]
+  members: (number | null)[]
+  /** Still poor (worth under 2 × BROKE_GP, no contract) on day 30 and day 60: not recovered. */
+  poor: (boolean | null)[]
+  hires: number
+  desertions: number
+  /** Encounter checks rolled and succeeded (success or better), and deaths, per BAND_DAYS. */
+  bands: { checks: number; successes: number; deaths: number }[]
   sales: Sale[]
   cargoBuys: number
   weightBound: number
@@ -107,12 +140,26 @@ const emptyKinds = () =>
     CONTRACT_KINDS.map((k) => [k, { taken: 0, done: 0, failed: 0 }])
   ) as Run['contracts']
 
+/** What `units` of a good fetch at a settlement's market now (half the base price where none buys). */
+const gatherValue = (state: GameState, at: string, good: Good, units: number): number =>
+  quote(state, content, at, good, 'sell', units)?.total ?? units * goodPrice(content, good) * 0.5
+
+/** A gathering option's expected value: each tier's units at the local sell price. */
+const expectedGather = (state: GameState, option: GatherOption): number =>
+  option.outcomes.reduce(
+    (sum, o) =>
+      sum +
+      (o.units > 0 ? o.chance * gatherValue(state, state.location!, option.good, o.units) : 0),
+    0
+  )
+
 /** Runs one seed under one policy until `days`, keeping the books. */
 function simulate(
   seed: number,
   policy: Policy,
   days: number,
-  gold = SIM_GOLD
+  gold = SIM_GOLD,
+  extra: TraderOptions = {}
 ): { run: Run; state: GameState } {
   const start = { ...newGame(seed, content), gold }
   const run: Run = {
@@ -126,8 +173,25 @@ function simulate(
     brokeDay: null,
     deaths: 0,
     contracts: emptyKinds(),
-    income: { contracts: 0, tradeProfit: 0, lootGold: 0, lootGoods: 0, lootSold: 0 },
-    spend: { food: 0, lodging: 0, fares: 0, rumours: 0, animals: 0, losses: 0, upkeep: 0 },
+    income: { contracts: 0, tradeProfit: 0, lootGold: 0, lootGoods: 0, lootSold: 0, gearSold: 0 },
+    spend: {
+      food: 0,
+      lodging: 0,
+      fares: 0,
+      rumours: 0,
+      animals: 0,
+      losses: 0,
+      upkeep: 0,
+      hiring: 0,
+      wages: 0,
+    },
+    gather: { days: 0, gp: 0, byWeek: [] },
+    level: LEVEL_DAYS.map(() => null),
+    members: LEVEL_DAYS.map(() => null),
+    poor: [null, null],
+    hires: 0,
+    desertions: 0,
+    bands: [],
     sales: [],
     cargoBuys: 0,
     weightBound: 0,
@@ -142,6 +206,20 @@ function simulate(
     CURVE_DAYS.forEach((d, i) => {
       if (run.curve[i] === null && after.day >= d) run.curve[i] = after.gold
     })
+    ;[30, 60].forEach((d, i) => {
+      if (run.poor[i] === null && after.day >= d) {
+        run.poor[i] = worth(after) < 2 * BROKE_GP && after.contracts.length === 0
+      }
+    })
+    LEVEL_DAYS.forEach((d, i) => {
+      if (run.level[i] !== null || after.day < d) return
+      run.level[i] = Math.max(...after.party.map((c) => c.level))
+      run.members[i] = livingMembers(after).length
+    })
+    const band = (day: number) =>
+      (run.bands[Math.floor((day - 1) / BAND_DAYS)] ??= { checks: 0, successes: 0, deaths: 0 })
+    const alive = new Set(livingMembers(before).map((c) => c.id))
+    band(after.day).deaths += after.party.filter((c) => alive.has(c.id) && !isAlive(c)).length
     if (run.brokeDay === null && broke(after)) run.brokeDay = after.day
     for (const c of before.contracts) {
       if (!after.contracts.some((x) => x.id === c.id) && !(after.gold > before.gold && c.met)) {
@@ -151,9 +229,49 @@ function simulate(
   }
 
   const onStep = (before: GameState, action: Action, after: GameState, why: TraderWhy) => {
-    const gold = after.gold - before.gold
     const days = after.day - before.day
+    // Wages are paid at each day's end, whatever the action: kept apart from its other spending.
+    const wages =
+      days > 0 ? Math.max(0, wagesPerDay(before) * days + before.wagesOwed - after.wagesOwed) : 0
+    run.spend.wages += wages
+    const gold = after.gold - before.gold + wages
     const here = before.location
+    if (action.type === 'chooseOption' && after.lastRoll && after.lastRoll !== before.lastRoll) {
+      const b = (run.bands[Math.floor((before.day - 1) / BAND_DAYS)] ??= {
+        checks: 0,
+        successes: 0,
+        deaths: 0,
+      })
+      b.checks++
+      if (after.lastRoll.tier === 'success' || after.lastRoll.tier === 'critSuccess') b.successes++
+    }
+    if (action.type !== 'dismissMember') {
+      const left = new Set(after.party.map((c) => c.id))
+      run.desertions += livingMembers(before).filter((c) => isHired(c) && !left.has(c.id)).length
+    }
+    if (action.type === 'gather' && here !== null) {
+      const option = gatherOptions(before, content).find((x) => x.rule === action.rule)
+      if (option) {
+        // Food gathered is partly eaten the same day: count what the party ate too.
+        const eaten = option.good === 'food' ? livingMembers(after).length : 0
+        const units = Math.max(
+          0,
+          (after.goods[option.good] ?? 0) - (before.goods[option.good] ?? 0) + eaten
+        )
+        const gp = units > 0 ? gatherValue(after, here, option.good, units) : 0
+        run.gather.days += days
+        run.gather.gp += gp
+        const week = Math.floor((before.day - 1) / 7)
+        const w = (run.gather.byWeek[week] ??= { days: 0, gp: 0 })
+        w.days += days
+        w.gp += gp
+      }
+    }
+    if (action.type === 'hireRecruit') {
+      run.hires++
+      run.spend.hiring -= gold
+    }
+    if (action.type === 'sellAccessory') run.income.gearSold += gold
     const inTown = here !== null && !before.travel && Object.hasOwn(before.world.settlements, here)
     if (why === 'explore') run.time.explore += days
     else if (action.type === 'rest' && inTown) run.time.town += days
@@ -171,7 +289,9 @@ function simulate(
           cost: (old.cost * was + paid) / now,
           from: why === 'cargo' ? here : old.from,
         }
-        if ((why === 'encounter' || why === 'site' || why === 'explore') && isCargo(good)) {
+        if (why === 'gather') {
+          // Gathered: counted as gathering income, not loot.
+        } else if ((why === 'encounter' || why === 'site' || why === 'explore') && isCargo(good)) {
           run.income.lootGoods += (now - was) * goodPrice(content, good)
         }
       } else if (why === 'sell' && action.type === 'sellGoods') {
@@ -248,8 +368,9 @@ function simulate(
       if (!state.party.some((c) => c.exhaustion < MAX_EXHAUSTION)) break
     }
   } else {
-    state = trader(start, content, 300, {
+    state = trader(start, content, 2000, {
       ...POLICY_OPTIONS[policy],
+      ...extra,
       pick: (leg, count) => (leg * 7 + seed) % count,
       until: (s) => s.day >= days,
       onStep,
@@ -317,6 +438,13 @@ describe('the economy (guards with generous bounds)', () => {
     expect(runs.filter((r) => r.run.brokeDay !== null).length / runs.length).toBeLessThan(0.25)
   })
 
+  test('from the game’s start, seeds 1–8 run 60 days (gathering, hiring, gear) and stay valid', () => {
+    for (let seed = 1; seed <= 8; seed++) {
+      const { state } = simulate(seed, 'trader', 60, STARTING_GOLD)
+      expect(GameStateSchema.parse(state)).toEqual(state)
+    }
+  })
+
   test('food’s dearest mid price is at most 4.5× its cheapest (seeds 1–5, days 1 and 100)', () => {
     const food = priceSpreads([1, 2, 3, 4, 5], [1, 100]).food
     expect(Math.max(...food)).toBeLessThanOrEqual(4.5)
@@ -324,10 +452,17 @@ describe('the economy (guards with generous bounds)', () => {
 })
 
 describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
-  test('seeds 1–30, 60 days, four policies', { timeout: 600_000 }, () => {
+  test('seeds 1–30, 60 days, six policies', { timeout: 600_000 }, () => {
     const SEEDS = Array.from({ length: 30 }, (_, i) => i + 1)
     const DAYS = 60
-    const policies: Policy[] = ['trader', 'contracts only', 'trade only', 'wander']
+    const policies: Policy[] = [
+      'trader',
+      'trader, one recruit at most',
+      'trader, no recruits',
+      'contracts only',
+      'trade only',
+      'wander',
+    ]
     const all = policies.map((policy) => ({
       policy,
       runs: SEEDS.map((seed) => simulate(seed, policy, DAYS).run),
@@ -378,7 +513,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
       ])
     }
 
-    for (const { policy, runs } of all.filter((p) => p.policy !== 'wander')) {
+    for (const { policy, runs } of all.filter((p) => BOOKS.includes(p.policy))) {
       const n = runs.length
       const sum = (f: (r: Run) => number) => runs.reduce((s, r) => s + f(r), 0) / n
       lines.push('', `## ${policy}: where the money comes from (mean per run)`, '')
@@ -390,6 +525,8 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         ['Loot: gold', sum((r) => r.income.lootGold)],
         ['Loot: goods (base value)', sum((r) => r.income.lootGoods)],
         ['Loot: goods sold for', sum((r) => r.income.lootSold)],
+        ['Accessories sold', sum((r) => r.income.gearSold)],
+        ['Gathering (local sell value)', sum((r) => r.gather.gp)],
       ]
       const spend: [string, number][] = [
         ['Food and waterskins', sum((r) => r.spend.food)],
@@ -399,6 +536,8 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         ['Animals', sum((r) => r.spend.animals)],
         ['Animals’ upkeep', sum((r) => r.spend.upkeep)],
         ['Encounter losses', sum((r) => r.spend.losses)],
+        ['Hiring fees', sum((r) => r.spend.hiring)],
+        ['Wages', sum((r) => r.spend.wages)],
       ]
       for (let i = 0; i < Math.max(income.length, spend.length); i++) {
         row([
@@ -464,24 +603,267 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
       }
     }
 
-    // For the designer's reference: the same trader with the game's own start (STARTING_GOLD).
-    const poor = SEEDS.map((seed) => simulate(seed, 'trader', DAYS, STARTING_GOLD).run)
-    const poorBroke = (day: number) =>
-      poor.filter((r) => r.brokeDay !== null && r.brokeDay <= day).length / poor.length
-    const poorAt = (i: number) => poor.map((r) => r.curve[i] ?? 0)
+    const trader60 = all.find((p) => p.policy === 'trader')!.runs
+    const brokeShare = (runs: Run[], day: number) =>
+      runs.filter((r) => r.brokeDay !== null && r.brokeDay <= day).length / runs.length
+    const deaths = (runs: Run[]) => runs.reduce((n, r) => n + r.deaths, 0)
+    const spread = (xs: number[], digits = 0) => {
+      const f = (n: number) => (Number.isFinite(n) ? n.toFixed(digits) : '–')
+      return `${f(quantile(xs, 0.1))} / ${f(median(xs))} / ${f(quantile(xs, 0.9))}`
+    }
+    /** Every income source: contracts, trade, loot, accessories sold and gathering. */
+    const income = (r: Run) =>
+      r.income.contracts +
+      Math.max(0, r.income.tradeProfit) +
+      r.income.lootGold +
+      r.income.lootSold +
+      r.income.gearSold +
+      r.gather.gp
+
+    // The game's own start (STARTING_GOLD), with and without Plan 5a's additions to the policy.
+    const poorVariants: { label: string; options: TraderOptions }[] = [
+      { label: 'trader (gathers, hires, wears gear)', options: {} },
+      { label: 'no gathering', options: { gather: false } },
+      {
+        label: 'none of gathering, hiring, gear',
+        options: { gather: false, hire: false, gear: false },
+      },
+    ]
+    const poor = poorVariants.map((v) => ({
+      ...v,
+      runs: SEEDS.map((seed) => simulate(seed, 'trader', DAYS, STARTING_GOLD, v.options).run),
+    }))
     lines.push(
       '',
-      `## Reference: the trader with the game's ${STARTING_GOLD} gp start (STARTING_GOLD)`,
+      `## The game's ${STARTING_GOLD} gp start (STARTING_GOLD), seeds 1–${SEEDS.length}, ${DAYS} days`,
+      ''
+    )
+    row([
+      'Trader',
+      'gp/day by 30 (median)',
+      'gp/day by 60 (median)',
+      'Broke by 30',
+      'Broke by 60',
+      'Still poor on day 30 / 60',
+      'Deaths',
+    ])
+    row(['---', '---', '---', '---', '---', '---', '---'])
+    const stillPoor = (runs: Run[], i: number) =>
+      runs.filter((r) => r.poor[i] === true).length / runs.length
+    for (const { label, runs } of poor) {
+      row([
+        label,
+        f1(median(runs.map((r) => r.perDay30))),
+        f1(median(runs.map((r) => r.perDay))),
+        pct(brokeShare(runs, 30)),
+        pct(brokeShare(runs, 60)),
+        `${pct(stillPoor(runs, 0))} / ${pct(stillPoor(runs, 1))}`,
+        deaths(runs),
+      ])
+    }
+    // What other starts would do (for the designer: STARTING_GOLD is theirs to set).
+    lines.push('', 'The full trader with other starts:', '')
+    row(['Start (gp)', 'Broke by 30', 'Broke by 60', 'Still poor on day 30', 'Deaths'])
+    row(['---', '---', '---', '---', '---'])
+    for (const gp of [15, 20, 25, 30]) {
+      const runs = SEEDS.map((seed) => simulate(seed, 'trader', DAYS, gp).run)
+      row([
+        gp,
+        pct(brokeShare(runs, 30)),
+        pct(brokeShare(runs, 60)),
+        pct(stillPoor(runs, 0)),
+        deaths(runs),
+      ])
+    }
+    const poorAt = (i: number) => poor[0].runs.map((r) => r.curve[i] ?? 0)
+    lines.push(
       '',
-      `gp/day by 30: median ${f1(median(poor.map((r) => r.perDay30)))}; ` +
-        `broke by 30: ${pct(poorBroke(30))}, by 60: ${pct(poorBroke(60))}; ` +
-        `deaths: ${poor.reduce((n, r) => n + r.deaths, 0)}. Gold in hand (P10 / median / P90): ` +
-        CURVE_DAYS.map(
-          (d, i) =>
-            `day ${d} ${Math.round(quantile(poorAt(i), 0.1))} / ${Math.round(median(poorAt(i)))} / ${Math.round(quantile(poorAt(i), 0.9))}`
-        ).join(', ') +
+      'Gold in hand, the full trader (P10 / median / P90): ' +
+        CURVE_DAYS.map((d, i) => `day ${d} ${spread(poorAt(i))}`).join(', ') +
         '.'
     )
+
+    const books = [
+      { label: `${SIM_GOLD} gp trader`, runs: trader60 },
+      { label: `${STARTING_GOLD} gp trader`, runs: poor[0].runs },
+    ]
+    lines.push('', `## Gathering (the trader, seeds 1–${SEEDS.length}, ${DAYS} days)`, '')
+    row(['Start', 'Runs that gather', 'Days (mean)', 'gp (mean)', 'gp per day', 'Share of income'])
+    row(['---', '---', '---', '---', '---', '---'])
+    for (const { label, runs } of books) {
+      const daysG = runs.reduce((n, r) => n + r.gather.days, 0)
+      const gp = runs.reduce((n, r) => n + r.gather.gp, 0)
+      const all = runs.reduce((n, r) => n + income(r), 0)
+      row([
+        label,
+        `${runs.filter((r) => r.gather.days > 0).length}/${runs.length}`,
+        f1(daysG / runs.length),
+        f1(gp / runs.length),
+        f1(gp / Math.max(1, daysG)),
+        pct(gp / Math.max(1, all)),
+      ])
+    }
+    const weeks = Math.ceil(DAYS / 7)
+    lines.push('', 'gp per gathering day by week of play (gathering days in brackets):', '')
+    row(['Start', ...Array.from({ length: weeks }, (_, w) => `Wk ${w + 1}`)])
+    row(['---', ...Array.from({ length: weeks }, () => '---')])
+    for (const { label, runs } of books) {
+      row([
+        label,
+        ...Array.from({ length: weeks }, (_, w) => {
+          const d = runs.reduce((n, r) => n + (r.gather.byWeek[w]?.days ?? 0), 0)
+          const gp = runs.reduce((n, r) => n + (r.gather.byWeek[w]?.gp ?? 0), 0)
+          return d > 0 ? `${f1(gp / d)} (${d})` : '–'
+        }),
+      ])
+    }
+
+    // Probes: a fresh starting party placed in each settlement (seeds 1–10).
+    const PROBE_SEEDS = SEEDS.slice(0, 10)
+    const byRule = new Map<string, number[]>()
+    const domains: { state: GameState; id: string }[] = []
+    for (const seed of PROBE_SEEDS) {
+      const s0 = newGame(seed, content)
+      for (const id of Object.keys(s0.world.settlements).sort()) {
+        const at: GameState = { ...s0, location: id, travel: null }
+        const options = gatherOptions(at, content)
+        for (const o of options) {
+          const list = byRule.get(o.rule) ?? []
+          list.push(expectedGather(at, o))
+          byRule.set(o.rule, list)
+        }
+        if (options.length > 0) domains.push({ state: at, id })
+      }
+    }
+    const ruleMedians = [...byRule].map(([rule, xs]) => ({ rule, xs, med: median(xs) }))
+    const mid = median(ruleMedians.map((r) => r.med))
+    lines.push(
+      '',
+      `## Gathering rules: a fresh day's expected value for the starting party (seeds 1–${PROBE_SEEDS.length}, every settlement)`,
+      ''
+    )
+    row(['Rule', 'Places', 'gp (P10 / median / P90)', '× the median rule'])
+    row(['---', '---', '---', '---'])
+    for (const { rule, xs, med } of ruleMedians.sort((a, b) => b.med - a.med)) {
+      row([rule, xs.length, spread(xs, 1), `${(med / mid).toFixed(2)}×`])
+    }
+
+    // Saturation: the same party gathers the best option in one domain day after day, selling
+    // what it brings home (food topped up so no one goes hungry), in every third domain.
+    const PROBE_DAYS = 14
+    const daily: number[][] = Array.from({ length: PROBE_DAYS }, () => [])
+    const halfDay: number[] = []
+    for (const { state: s0, id } of domains.filter((_, i) => i % 3 === 0)) {
+      let st = s0
+      const gp: number[] = []
+      for (let d = 0; d < PROBE_DAYS; d++) {
+        const ration = 2 * livingMembers(st).length
+        st = { ...st, goods: { ...st.goods, food: ration } }
+        const best = gatherOptions(st, content)
+          .filter((x) => x.available)
+          .map((x) => ({ x, v: expectedGather(st, x) }))
+          .sort((a, b) => b.v - a.v)[0]
+        if (!best) break
+        daily[d].push(best.v)
+        gp.push(best.v)
+        st = step(st, { type: 'gather', rule: best.x.rule }, content)
+        if (st.encounter) st = { ...st, encounter: null }
+        const good = best.x.good
+        const have = (st.goods[good] ?? 0) - (good === 'food' ? ration : 0)
+        if (have > 0 && quote(st, content, id, good, 'sell', have)) {
+          st = step(st, { type: 'sellGoods', good, amount: have }, content)
+        }
+      }
+      const half = gp.findIndex((v) => v <= gp[0] / 2)
+      halfDay.push(half < 0 ? PROBE_DAYS + 1 : half + 1)
+    }
+    const first = median(daily[0])
+    lines.push(
+      '',
+      `## Gathering saturation: one domain, ${PROBE_DAYS} days running (${halfDay.length} domains, seeds 1–${PROBE_SEEDS.length})`,
+      '',
+      'Expected gp of the best option each day (median across domains), and its share of day 1:',
+      ''
+    )
+    row(['Day', ...daily.map((_, d) => d + 1)])
+    row(['---', ...daily.map(() => '---')])
+    row(['gp', ...daily.map((xs) => f1(median(xs)))])
+    row(['× day 1', ...daily.map((xs) => (median(xs) / first).toFixed(2))])
+    lines.push(
+      '',
+      `The best option is first worth half its day-1 value on day ${spread(halfDay)} ` +
+        `(P10 / median / P90; ${PROBE_DAYS + 1} = not within ${PROBE_DAYS} days).`
+    )
+
+    lines.push('', `## Recruiting (seeds 1–${SEEDS.length}, ${DAYS} days)`, '')
+    row([
+      'Start',
+      'Members by 30 (P10 / median / P90)',
+      'Members by 60',
+      'Hires a run',
+      'Wages a run (gp)',
+      'Desertions (all runs)',
+    ])
+    row(['---', '---', '---', '---', '---', '---'])
+    for (const { label, runs } of books) {
+      const at = (day: number) =>
+        runs.map((r) => r.members[LEVEL_DAYS.indexOf(day)]).filter((n): n is number => n !== null)
+      row([
+        label,
+        spread(at(30)),
+        spread(at(60)),
+        f1(runs.reduce((n, r) => n + r.hires, 0) / runs.length),
+        f1(runs.reduce((n, r) => n + r.spend.wages, 0) / runs.length),
+        runs.reduce((n, r) => n + r.desertions, 0),
+      ])
+    }
+
+    // 120 days on seeds 1–10, for levels and the danger ramp.
+    const LONG_DAYS = 120
+    const long = PROBE_SEEDS.map((seed) => simulate(seed, 'trader', LONG_DAYS).run)
+    lines.push('', '## Levels: the party’s best level (P10 / median / P90)', '')
+    row(['Runs', ...LEVEL_DAYS.map((d) => `Day ${d}`)])
+    row(['---', ...LEVEL_DAYS.map(() => '---')])
+    const levelRow = (label: string, runs: Run[], upTo: number) =>
+      row([
+        label,
+        ...LEVEL_DAYS.map((d, i) => {
+          // A dead party's last rest can run past the end: only days the runs were meant to reach.
+          const xs = runs.map((r) => r.level[i]).filter((n): n is number => n !== null)
+          return xs.length > 0 && d <= upTo ? spread(xs) : '–'
+        }),
+      ])
+    levelRow(`${SIM_GOLD} gp trader, seeds 1–${SEEDS.length}, ${DAYS} days`, trader60, DAYS)
+    levelRow(
+      `${STARTING_GOLD} gp trader, seeds 1–${SEEDS.length}, ${DAYS} days`,
+      poor[0].runs,
+      DAYS
+    )
+    levelRow(
+      `${SIM_GOLD} gp trader, seeds 1–${PROBE_SEEDS.length}, ${LONG_DAYS} days`,
+      long,
+      LONG_DAYS
+    )
+
+    lines.push(
+      '',
+      `## Danger: the ${SIM_GOLD} gp trader by ${BAND_DAYS}-day band (seeds 1–${PROBE_SEEDS.length}, ${LONG_DAYS} days)`,
+      ''
+    )
+    row(['Days', 'Danger', 'Encounter checks', 'Success or better', 'Deaths'])
+    row(['---', '---', '---', '---', '---'])
+    for (let b = 0; b * BAND_DAYS < LONG_DAYS; b++) {
+      const checks = long.reduce((n, r) => n + (r.bands[b]?.checks ?? 0), 0)
+      const wins = long.reduce((n, r) => n + (r.bands[b]?.successes ?? 0), 0)
+      row([
+        `${b * BAND_DAYS + 1}–${Math.min(LONG_DAYS, (b + 1) * BAND_DAYS)}`,
+        `+${Math.round(dangerLevel(b * BAND_DAYS + 1) * 100)}%`,
+        checks,
+        pct(wins / Math.max(1, checks)),
+        long.reduce((n, r) => n + (r.bands[b]?.deaths ?? 0), 0),
+      ])
+    }
+    lines.push('', `Deaths over ${LONG_DAYS} days: ${deaths(long)} in ${long.length} runs.`)
 
     // How often each kind of contract is posted: every board in every world, weeks 1–9.
     const posted = Object.fromEntries(CONTRACT_KINDS.map((k) => [k, 0])) as Record<

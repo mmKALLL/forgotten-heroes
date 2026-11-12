@@ -19,7 +19,7 @@ A gritty, magical D&D 5e–flavoured travel-and-trade game: out-of-dungeon adven
 - `pnpm format`: format the codebase with Prettier (`pnpm format:check` only checks). `docs/` and generated files are ignored (see `.prettierignore`)
 - `pnpm schemas`: regenerate `data/_schema/` after changing `src/schema/` (a test fails if stale)
 - `pnpm sync-assets`: copy the assets listed in `assets.manifest.txt` from `~/dnd5e`
-- `ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts`: the economy simulation report (seeds 1–30, 60 days, four policies); see `docs/notes/economy-report.md`. Without the variable only its guard tests run (they are part of `pnpm test`)
+- `ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts`: the economy simulation report (seeds 1–30, 60 days: six policies, the 10 gp start, gathering, recruits and levels; plus 120-day runs for levels and danger); see `docs/notes/economy-report.md`. Without the variable only its guard tests run (they are part of `pnpm test`)
 
 ## Architecture rules
 

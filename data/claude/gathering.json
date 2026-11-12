@@ -2,7 +2,7 @@
   "$schema": "../_schema/gatherRules.schema.json",
   "kind": "gatherRules",
   "source": "claude",
-  "notes": "What a party can gather for a day in a settlement's domain (Plan 5a, design §10b): one rule per good and kind of land. The lead rolls the skill against the DC, lowered by 1 per output level where the domain makes the good (GATHER_DC_PER_OUTPUT), and the whole able party works: `yield` is the units per tier for two workers, scaled by the workers and lowered as the land is picked over (GATHER_DEPTH_DAYS). Yields are set so a fresh day's work for two sells for about 3–6 gp in the domain, before depletion and bulk pressure: food and fuel sell at the 1 gp floor, timber and stone are heavy, healing herbs are the hardest and most valuable. Every land biome has at least one rule (a content test checks this). Written by Claude; tuned by the I1 economy report.",
+  "notes": "What a party can gather for a day in a settlement's domain (Plan 5a, design §10b): one rule per good and kind of land. The lead rolls the skill against the DC, lowered by 1 per output level where the domain makes the good (GATHER_DC_PER_OUTPUT), and the whole able party works: `yield` is the units per tier for two workers, scaled by the workers and lowered as the land is picked over (GATHER_DEPTH_DAYS). Yields are set (I1 economy report) so a fresh day's work for two sells for about 4–6 gp in the domain, before depletion and bulk pressure: food and fuel sell at the 1 gp floor, healing herbs are the hardest and most valuable, and timber and stone fetch less (about 2 gp): they are heavy (20–25 kg a unit, capped by what the party can carry) and cheap, and a small market sags under a few units. A partial success always brings home at least 1 unit (a content test checks this). Every land biome has at least one rule (a content test checks this). Written by Claude; tuned by the I1 economy report.",
   "entries": [
     {
       "id": "cut-timber",
@@ -12,7 +12,7 @@
       "biomes": ["forest", "jungle"],
       "skill": "athletics",
       "dc": 12,
-      "yield": { "critFail": 0, "fail": 0, "partial": 1, "success": 2, "critSuccess": 3 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 3, "critSuccess": 4 }
     },
     {
       "id": "quarry-stone",
@@ -22,7 +22,7 @@
       "biomes": ["hills", "mountains"],
       "skill": "athletics",
       "dc": 13,
-      "yield": { "critFail": 0, "fail": 0, "partial": 1, "success": 2, "critSuccess": 3 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 3, "critSuccess": 4 }
     },
     {
       "id": "gather-firewood",
@@ -32,7 +32,7 @@
       "biomes": ["forest", "plains"],
       "skill": "survival",
       "dc": 10,
-      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 4, "critSuccess": 6 }
+      "yield": { "critFail": 0, "fail": 2, "partial": 3, "success": 6, "critSuccess": 8 }
     },
     {
       "id": "cut-peat",
@@ -42,7 +42,7 @@
       "biomes": ["marsh"],
       "skill": "athletics",
       "dc": 11,
-      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 4, "critSuccess": 6 }
+      "yield": { "critFail": 0, "fail": 2, "partial": 3, "success": 6, "critSuccess": 8 }
     },
     {
       "id": "gather-scrub",
@@ -52,7 +52,7 @@
       "biomes": ["desert"],
       "skill": "survival",
       "dc": 12,
-      "yield": { "critFail": 0, "fail": 0, "partial": 2, "success": 4, "critSuccess": 5 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 3, "success": 5, "critSuccess": 7 }
     },
     {
       "id": "hunt-game",
@@ -62,7 +62,7 @@
       "biomes": ["plains", "forest", "hills"],
       "skill": "survival",
       "dc": 12,
-      "yield": { "critFail": 0, "fail": 0, "partial": 2, "success": 4, "critSuccess": 6 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 3, "success": 6, "critSuccess": 8 }
     },
     {
       "id": "fish-and-forage",
@@ -72,7 +72,7 @@
       "biomes": ["marsh", "jungle"],
       "skill": "survival",
       "dc": 11,
-      "yield": { "critFail": 0, "fail": 0, "partial": 2, "success": 4, "critSuccess": 6 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 3, "success": 6, "critSuccess": 8 }
     },
     {
       "id": "healing-herbs",
@@ -82,7 +82,7 @@
       "biomes": ["forest", "marsh", "jungle", "hills", "mountains"],
       "skill": "medicine",
       "dc": 14,
-      "yield": { "critFail": 0, "fail": 0, "partial": 0, "success": 1, "critSuccess": 2 }
+      "yield": { "critFail": 0, "fail": 0, "partial": 1, "success": 1, "critSuccess": 2 }
     }
   ]
 }
