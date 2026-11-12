@@ -14,6 +14,7 @@ import { load } from '../economy/capacity'
 import type { BuyLimit } from '../economy/trade'
 import { lodgingOptions, type Room } from '../town/services'
 import { animalUpkeep } from '../town/animals'
+import { bond } from '../town/camaraderie'
 import { journeyDays } from './routes'
 import {
   CAMP_HEAL,
@@ -177,7 +178,9 @@ export function rest(
         `${option.room === 'private' ? ', in a private room' : ''}: ` +
         `${option.lodgingCost} gp, meals included.${keep}`
       : `The party rests a day in ${place}, eating its own food.${keep}`
-  return appendLog({ ...after, party, goods }, text, 'good')
+  const rested = appendLog({ ...after, party, goods }, text, 'good')
+  // A night in a private room brings the party closer, once per arrival.
+  return option.room === 'private' ? bond(rested) : rested
 }
 
 /** A safety cap on the waterskins bought at once. */

@@ -2,14 +2,15 @@
   "$schema": "../_schema/serviceRoles.schema.json",
   "kind": "serviceRoles",
   "source": "claude",
-  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, mercenaries, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
+  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
   "entries": [
     {
       "id": "inn-tavern",
       "function": "rest",
       "trades": ["food", "fuel"],
-      "actions": ["lodging", "rumours", "board", "market"],
-      "specialty": "A bed, a hot meal and the talk of the road."
+      "actions": ["lodging", "rumours", "board", "market", "recruit"],
+      "specialty": "A bed, a hot meal and the talk of the road.",
+      "recruits": { "offers": [0, 1], "levels": [1, 1] }
     },
     {
       "id": "adventuring-supplies",
@@ -132,8 +133,9 @@
       "function": "hire",
       "trades": ["gear", "healing"],
       "buysOnly": ["relics", "arms"],
-      "actions": ["board", "market"],
-      "specialty": "Bounties and errands, kit for members, and a buyer for dungeon finds."
+      "actions": ["board", "market", "recruit"],
+      "specialty": "Bounties and errands, kit for members, and a buyer for dungeon finds.",
+      "recruits": { "offers": [1, 3], "levels": [1, 3] }
     },
     {
       "id": "magic-items",
@@ -227,7 +229,15 @@
     {
       "id": "mercenaries",
       "function": "hire",
-      "specialty": "Swords for hire."
+      "actions": ["recruit"],
+      "specialty": "Swords for hire.",
+      "recruits": {
+        "offers": [1, 2],
+        "levels": [2, 4],
+        "classes": ["fighter", "ranger", "paladin"],
+        "fee": 0.5,
+        "wage": 1.5
+      }
     },
     {
       "id": "arena",

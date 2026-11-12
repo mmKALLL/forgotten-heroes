@@ -19,12 +19,14 @@ import { listenRumours } from './town/rumours'
 import { expireContracts, stepContract, voidBounties, type ContractAction } from './town/contracts'
 import { provision, type ProvisionFor } from './town/provision'
 import { autoRest } from './town/arrival'
+import { stepRecruit, type RecruitAction } from './town/recruits'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
 import { applyLevelUps } from './rules/progression'
+import { mournTheDead } from './town/camaraderie'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
@@ -53,6 +55,8 @@ export type Action =
   | ({ type: 'provision' } & ProvisionFor)
   /** Rest a day on arrival if hurt or strained: at an inn if affordable (town/arrival.ts). */
   | { type: 'autoRest' }
+  /** Hire a recruit offered here, or dismiss a hired member (town/recruits.ts). */
+  | RecruitAction
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -114,11 +118,13 @@ export function newGame(
  * Applies one action. When days pass, the news of the sites the party knows follows: a dungeon or
  * lair cleared by the realm, or one that something has moved into again (world/sites.ts). Then
  * bounties whose site the realm emptied are void, and contracts whose deadline has passed fail
- * (town/contracts.ts). Last, members whose XP passed their level level up (rules/progression.ts).
+ * (town/contracts.ts). Each member who died in the step costs camaraderie (town/camaraderie.ts).
+ * Last, members whose XP passed their level level up (rules/progression.ts).
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
   const acted = siteNews(state.day, act(state, action, content))
-  return applyLevelUps(expireContracts(voidBounties(acted, content), content))
+  const settled = expireContracts(voidBounties(acted, content), content)
+  return applyLevelUps(mournTheDead(state, settled))
 }
 
 /** Rumour lines for the known sites whose cycle turned after day `from`. */
@@ -196,6 +202,12 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return provision(state, content, action)
     case 'autoRest':
       return autoRest(state, content)
+    case 'hireRecruit':
+    case 'dismissMember':
+      return stepRecruit(state, action, content)
+    case 'hireRecruit':
+    case 'dismissMember':
+      return stepRecruit(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

@@ -39,6 +39,9 @@ export function economyIssues(content: Content): string[] {
   for (const role of sortedEntries(serviceRoles)) {
     const at = `serviceRoles ${role.id}`
     if (!Object.hasOwn(services, role.id)) issues.push(`${at}: unknown service`)
+    for (const id of role.recruits?.classes ?? []) {
+      if (!Object.hasOwn(content.classes, id)) issues.push(`${at}: recruits unknown class "${id}"`)
+    }
     for (const good of role.trades) dealtIn.add(good)
     for (const good of role.buysOnly) dealtIn.add(good)
     const both = role.trades.filter((good) => role.buysOnly.includes(good))

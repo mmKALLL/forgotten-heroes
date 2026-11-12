@@ -34,6 +34,7 @@ import { visibleWealth } from '../economy/wealth'
 import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/animals'
 import type { Room } from '../town/services'
 import { contractsOnArrival, isEscorting } from '../town/contracts'
+import { desertOnArrival } from '../town/camaraderie'
 import { DEFAULT_PACE } from '../constants'
 
 /**
@@ -316,7 +317,8 @@ function arrive(state: GameState, content: Content): GameState {
     content,
     travel.to
   )
-  return contractsOnArrival(seen, content)
+  // A fractured party may lose hired members on arrival (town/camaraderie.ts).
+  return desertOnArrival(contractsOnArrival(seen, content))
 }
 
 /**

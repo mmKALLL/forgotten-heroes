@@ -363,6 +363,32 @@ export const SOLD_CARGO_REP = 15
 /** Escorted passengers draw attention: added to the hostile share on the road. */
 export const ESCORT_HOSTILE = 0.1
 
+// Recruits (town/recruits.ts)
+
+/** Living members a party can have: hiring stops here (the dead don't count). */
+export const PARTY_CAP = 6
+/** A recruit's hiring fee per level (gp), before the service's `fee` multiplier; rounded up. */
+export const RECRUIT_FEE_PER_LEVEL = 10
+/** A recruit's daily wage per (level + 1) (gp), before the service's `wage`; to the nearest ½ gp. */
+export const RECRUIT_WAGE = 0.5
+/** The share of recruits of the settlement's own ancestry; the rest are any playable one. */
+export const RECRUIT_LOCAL_ANCESTRY = 0.75
+
+// Wages, camaraderie and desertion (town/camaraderie.ts)
+
+/** Camaraderie lost at the end of a day on which a whole gp of wages went unpaid. */
+export const CAMARADERIE_UNPAID = 1
+/** Camaraderie lost at the end of a day on which anyone went without food or water. */
+export const CAMARADERIE_HUNGER = 1
+/** Camaraderie lost for each member who dies. */
+export const CAMARADERIE_DEATH = 2
+/** Camaraderie gained for each contract completed. */
+export const CAMARADERIE_CONTRACT = 1
+/** Camaraderie gained for a night in a private room, once per arrival. */
+export const CAMARADERIE_BOND = 1
+/** While camaraderie is Fractured, the chance each hired member deserts on arriving in a settlement. */
+export const DESERT_CHANCE = 0.25
+
 // Points of interest (pois.ts)
 
 /** A domain expects spots / this many POIs: about 40–60 per world on Altaeus (mean ≈ 49). */

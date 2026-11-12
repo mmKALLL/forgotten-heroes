@@ -17,6 +17,7 @@ import { siteContractsMet } from '../town/contract-hooks'
 import { siteStatus } from '../world/sites'
 import { gainXp, xpLine } from '../rules/progression'
 import { XP_CLEAR, XP_DISCOVER } from '../constants'
+import { shiftCamaraderie } from '../town/camaraderie'
 
 export { MAX_EXHAUSTION }
 
@@ -239,7 +240,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       // Silent: the outcome's chips already say "+N XP" (run.ts resolve).
       return gainXp(state, effect.amount)
     // Plan 5a: the schema exists so content can use them; each track wires its own case.
-    case 'camaraderie': // B2
+    case 'camaraderie': {
+      const { value, line } = shiftCamaraderie(state.camaraderie, effect.amount)
+      const next = { ...state, camaraderie: value }
+      return line ? note(next, line.text, line.tone) : next
+    }
     case 'accessory': // C2: rollAccessory into gear
       return state
   }

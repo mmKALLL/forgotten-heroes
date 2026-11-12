@@ -11,6 +11,7 @@ import { rollCheck } from '../rules/checks'
 import { fadeStrainAfter } from '../rules/strain'
 import { rationMultiplier } from './pace'
 import { escortPassengers } from '../town/contract-hooks'
+import { isAlive, payWages, wentWithout } from '../town/camaraderie'
 import { DEFAULT_PACE, FORCED_MARCH_DC, HUNGER_DC, THIRST_DC } from '../constants'
 
 // A day passing: eating, drinking and going without (design §7). Kept apart from supplies.ts so
@@ -115,12 +116,17 @@ export function consumeDay(
     goods: { ...state.goods, food, water },
   }
   for (const line of lines) next = appendLog(next, line.text, line.tone)
+  // Camaraderie suffers once for a day on which a living member went without.
+  if (state.party.some((c) => unfed.includes(c.id) && isAlive(c))) next = wentWithout(next)
   return { state: content ? endOfDay(next, content) : next, unfed }
 }
 
-/** A day ends: goods spoil (spoilDay) and the owned animals' upkeep is paid (payUpkeep). */
+/**
+ * A day ends: goods spoil (spoilDay), the owned animals' upkeep is paid (payUpkeep), then the
+ * hired members' wages (payWages).
+ */
 export const endOfDay = (state: GameState, content: Content): GameState =>
-  payUpkeep(spoilDay(state, content), content)
+  payWages(payUpkeep(spoilDay(state, content), content))
 
 /** A day on the road at this pace (goods spoil when `content` is given). */
 export const passDay = (

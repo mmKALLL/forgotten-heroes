@@ -15,6 +15,7 @@ import { grantXp } from '../rules/progression'
 import { createRng, withRng, type Draw } from '../rng'
 import { poiReach, settlementReach, type Reach } from '../travel/reach'
 import { inSettlement } from '../travel/where'
+import { changeCamaraderie } from './camaraderie'
 import { settlementName } from '../world/geo'
 import { domainThreatLevel } from '../world/pois'
 import { siteEmpty } from '../world/sites'
@@ -31,6 +32,7 @@ import {
 import { RUMOUR_LEAD } from './rumours'
 import {
   BOARD_SIZE,
+  CAMARADERIE_CONTRACT,
   CONTRACT_PAY_PER_DAY,
   CONTRACT_XP_PER_GP,
   CONTRACT_PAY_PER_THREAT,
@@ -67,7 +69,7 @@ const HANDED_OVER: readonly ContractKind[] = ['courier', 'freight']
 export const boardWeek = (day: number): number => Math.floor((day - 1) / 7)
 
 /** A seeded RNG for a key: the same draws every time it is asked (FNV-1a of the key). */
-function keyedRng(seed: number, key: string) {
+export function keyedRng(seed: number, key: string) {
   let h = 0x811c9dc5 ^ seed
   for (let i = 0; i < key.length; i++) h = Math.imul(h ^ key.charCodeAt(i), 0x01000193)
   return createRng(h >>> 0)
@@ -987,8 +989,13 @@ export function stepContract(
       return acceptContract(state, content, action.offerId)
     case 'abandonContract':
       return abandonContract(state, content, action.id)
-    case 'completeContract':
-      return completeContract(state, content, action.id, action.reward)
+    case 'completeContract': {
+      const done = completeContract(state, content, action.id, action.reward)
+      // A contract kept raises camaraderie (town/camaraderie.ts).
+      return done.contracts.length < state.contracts.length
+        ? changeCamaraderie(done, CAMARADERIE_CONTRACT, 'a contract kept')
+        : done
+    }
     case 'sellCargo':
       return sellCargo(state, content, action.contractId, action.shop)
   }
