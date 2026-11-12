@@ -1,0 +1,77 @@
+{
+  "$schema": "../_schema/animals.schema.json",
+  "kind": "animals",
+  "source": "claude",
+  "notes": "Pack and riding animals and vehicles (Plan 4, B1). capacity is the kg of cargo each carries, against 20 kg per member at STR 10; a ridden horse's capacity is what it carries besides its rider. waterPerDay is in days of a member's water (2 kg each), doubled in the desert. upkeepPerDay is fodder, stabling and care in gp while owned. Only riding animals are hired (hirePerDay, per member, for a journey to a settlement). Riding speed is 2× (1.25× in mountains, marsh and jungle, A4). maxPathDanger keeps horses and camels off rough paths to sites; carts and wagons keep to roads. Starting numbers, to be tuned with the I1 economy report.",
+  "entries": [
+    {
+      "id": "donkey",
+      "name": "Donkey",
+      "price": 5,
+      "capacity": 45,
+      "waterPerDay": 1,
+      "upkeepPerDay": 0.1,
+      "stealable": true
+    },
+    {
+      "id": "mule",
+      "name": "Mule",
+      "price": 8,
+      "capacity": 90,
+      "waterPerDay": 2,
+      "upkeepPerDay": 0.2,
+      "stealable": true
+    },
+    {
+      "id": "camel",
+      "name": "Camel",
+      "price": 50,
+      "capacity": 150,
+      "maxPathDanger": 2,
+      "waterPerDay": 0.5,
+      "upkeepPerDay": 0.3,
+      "stealable": true
+    },
+    {
+      "id": "draft-horse",
+      "name": "Draft horse",
+      "price": 50,
+      "capacity": 120,
+      "maxPathDanger": 1,
+      "waterPerDay": 2,
+      "upkeepPerDay": 0.5,
+      "stealable": true
+    },
+    {
+      "id": "riding-horse",
+      "name": "Riding horse",
+      "price": 75,
+      "hirePerDay": 1,
+      "capacity": 20,
+      "speed": 2,
+      "rider": true,
+      "maxPathDanger": 1,
+      "waterPerDay": 2,
+      "upkeepPerDay": 0.5,
+      "stealable": true
+    },
+    {
+      "id": "cart",
+      "name": "Cart",
+      "price": 15,
+      "capacity": 200,
+      "needs": "mule",
+      "roadsOnly": true,
+      "waterPerDay": 0
+    },
+    {
+      "id": "wagon",
+      "name": "Wagon",
+      "price": 35,
+      "capacity": 400,
+      "needs": "draft-horse",
+      "roadsOnly": true,
+      "waterPerDay": 0
+    }
+  ]
+}

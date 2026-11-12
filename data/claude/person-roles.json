@@ -1,0 +1,110 @@
+{
+  "$schema": "../_schema/personRoles.schema.json",
+  "kind": "personRoles",
+  "source": "claude",
+  "notes": "Kinds of notable person (Plan 4, B1), drawn by weight with the world: 1–5 per settlement by size, each in a different role whose service is present (town/people.ts). The elder needs nothing, so even an outpost with no services has someone to know. Titles are forms of address put before a name.",
+  "entries": [
+    {
+      "id": "elder",
+      "name": "elder",
+      "weight": 2,
+      "titles": ["Mother", "Father", "Old"]
+    },
+    {
+      "id": "reeve",
+      "name": "reeve",
+      "minSize": 1,
+      "weight": 1.5,
+      "titles": ["Goodman", "Goodwife"]
+    },
+    {
+      "id": "mayor",
+      "name": "mayor",
+      "minSize": 3,
+      "weight": 1.5,
+      "titles": ["Mayor", "Alder"]
+    },
+    {
+      "id": "watch-captain",
+      "name": "captain of the watch",
+      "minSize": 2,
+      "weight": 1,
+      "titles": ["Captain", "Sergeant"]
+    },
+    {
+      "id": "innkeeper",
+      "name": "innkeeper",
+      "service": "inn-tavern",
+      "weight": 3,
+      "titles": ["Old", "Goodman", "Goodwife"]
+    },
+    {
+      "id": "chandler",
+      "name": "chandler",
+      "service": "adventuring-supplies",
+      "weight": 1.5
+    },
+    {
+      "id": "smith",
+      "name": "smith",
+      "service": "blacksmith",
+      "weight": 1.5,
+      "titles": ["Master"]
+    },
+    {
+      "id": "stablemaster",
+      "name": "stablemaster",
+      "service": "animals-mounts",
+      "weight": 1
+    },
+    {
+      "id": "priest",
+      "name": "priest",
+      "service": "church",
+      "weight": 1.5,
+      "titles": ["Brother", "Sister", "Father", "Mother"]
+    },
+    {
+      "id": "high-priest",
+      "name": "high priest",
+      "service": "high-temple",
+      "minSize": 2,
+      "weight": 1,
+      "titles": ["Reverend"]
+    },
+    {
+      "id": "herbalist",
+      "name": "herbalist",
+      "service": "potions-poisons-herbs",
+      "weight": 1,
+      "titles": ["Mother", "Old"]
+    },
+    {
+      "id": "guildmaster",
+      "name": "guildmaster",
+      "service": "adventurers-guild",
+      "weight": 1.5,
+      "titles": ["Master"]
+    },
+    {
+      "id": "harbourmaster",
+      "name": "harbourmaster",
+      "service": "port",
+      "weight": 1.5,
+      "titles": ["Captain"]
+    },
+    {
+      "id": "sage",
+      "name": "sage",
+      "service": "books-maps",
+      "weight": 1,
+      "titles": ["Master", "Learned"]
+    },
+    {
+      "id": "fence",
+      "name": "fence",
+      "service": "thieving-supplies",
+      "weight": 1
+    }
+  ]
+}

@@ -1,0 +1,238 @@
+{
+  "$schema": "../_schema/serviceRoles.schema.json",
+  "kind": "serviceRoles",
+  "source": "claude",
+  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, mercenaries, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
+  "entries": [
+    {
+      "id": "inn-tavern",
+      "function": "rest",
+      "trades": ["food", "fuel"],
+      "actions": ["lodging", "rumours", "board", "market"],
+      "specialty": "A bed, a hot meal and the talk of the road."
+    },
+    {
+      "id": "adventuring-supplies",
+      "function": "trade",
+      "trades": ["food", "fuel", "gear", "healing"],
+      "actions": ["market"],
+      "specialty": "Rope, rations, lanterns and bandages for the road."
+    },
+    {
+      "id": "animals-mounts",
+      "function": "hire",
+      "actions": ["animals"],
+      "specialty": "Mules, horses and camels to buy, and horses to hire by the journey."
+    },
+    {
+      "id": "books-maps",
+      "function": "trade",
+      "trades": ["arcana"],
+      "buysOnly": ["relics"],
+      "actions": ["market"],
+      "specialty": "Maps, almanacs and inks; pays for old curios and the stories behind them."
+    },
+    {
+      "id": "jewelry-trader",
+      "function": "trade",
+      "trades": ["gems", "luxuries"],
+      "buysOnly": ["relics"],
+      "actions": ["market"],
+      "specialty": "Loupes, scales and quiet voices."
+    },
+    {
+      "id": "armourer",
+      "function": "trade",
+      "trades": ["armour"],
+      "buysOnly": ["metal"],
+      "actions": ["market"],
+      "specialty": "Mail, plate and shields, and a buyer for good iron."
+    },
+    {
+      "id": "bank",
+      "function": "trade",
+      "specialty": "Deposits, letters of credit and loans."
+    },
+    {
+      "id": "finesmith",
+      "function": "trade",
+      "trades": ["luxuries"],
+      "buysOnly": ["gems", "metal"],
+      "actions": ["market"],
+      "specialty": "Rings, brooches and fine work; buys stones and bright metal."
+    },
+    {
+      "id": "tailor",
+      "function": "trade",
+      "trades": ["gear", "luxuries"],
+      "actions": ["market"],
+      "specialty": "Travelling cloaks, oiled coats and bolts of fine cloth."
+    },
+    {
+      "id": "potions-poisons-herbs",
+      "function": "trade",
+      "trades": ["healing", "alchemicals"],
+      "actions": ["market"],
+      "specialty": "Salves, tinctures and flasks best not opened indoors."
+    },
+    {
+      "id": "church",
+      "function": "temple",
+      "buysOnly": ["relics"],
+      "actions": ["bless", "market"],
+      "specialty": "A blessing for the road; a quiet price for holy remains."
+    },
+    {
+      "id": "food-drink",
+      "function": "trade",
+      "trades": ["food", "luxuries"],
+      "actions": ["market"],
+      "specialty": "Bread, salt meat, wine and spice."
+    },
+    {
+      "id": "high-temple",
+      "function": "temple",
+      "trades": ["healing"],
+      "buysOnly": ["relics"],
+      "actions": ["heal", "bless", "market"],
+      "specialty": "Healing by the priesthood, blessings, and a reliquary that pays well."
+    },
+    {
+      "id": "spell-tomes-scrolls",
+      "function": "temple",
+      "trades": ["arcana"],
+      "buysOnly": ["relics"],
+      "actions": ["market"],
+      "specialty": "Scrolls, tomes and components, and buyers for anything that hums."
+    },
+    {
+      "id": "thieving-supplies",
+      "function": "underworld",
+      "trades": ["gear", "alchemicals"],
+      "buysOnly": ["gems", "relics", "luxuries"],
+      "actions": ["market"],
+      "specialty": "Picks, poisons and a fence who asks no questions."
+    },
+    {
+      "id": "weapons-shop",
+      "function": "trade",
+      "trades": ["arms"],
+      "buysOnly": ["metal"],
+      "actions": ["market"],
+      "specialty": "Blades, bows and spears, and a buyer for good iron."
+    },
+    {
+      "id": "vehicles-transportation",
+      "function": "hire",
+      "actions": ["animals"],
+      "specialty": "Carts, wagons and the beasts to draw them."
+    },
+    {
+      "id": "adventurers-guild",
+      "function": "hire",
+      "trades": ["gear", "healing"],
+      "buysOnly": ["relics", "arms"],
+      "actions": ["board", "market"],
+      "specialty": "Bounties and errands, kit for members, and a buyer for dungeon finds."
+    },
+    {
+      "id": "magic-items",
+      "function": "temple",
+      "trades": ["arcana", "relics"],
+      "buysOnly": ["gems"],
+      "actions": ["market"],
+      "specialty": "Curios, charms and old wonders, at a price."
+    },
+    {
+      "id": "blacksmith",
+      "function": "trade",
+      "trades": ["metal", "arms", "armour", "gear"],
+      "buysOnly": ["fuel"],
+      "actions": ["market"],
+      "specialty": "Iron, tools, plain blades and mail; always short of charcoal."
+    },
+    {
+      "id": "necromancer",
+      "function": "underworld",
+      "trades": ["alchemicals"],
+      "buysOnly": ["relics", "gems"],
+      "actions": ["market"],
+      "specialty": "Bones, grave dust and reagents; pays well for the relics of the dead."
+    },
+    {
+      "id": "couriers",
+      "function": "hire",
+      "actions": ["news"],
+      "specialty": "Letters and news from other towns, for a fee."
+    },
+    {
+      "id": "brothel",
+      "function": "rest",
+      "specialty": "Company and gossip."
+    },
+    {
+      "id": "land-sales",
+      "function": "trade",
+      "specialty": "Plots, houses and shops for sale."
+    },
+    {
+      "id": "carpenter",
+      "function": "trade",
+      "trades": ["timber"],
+      "actions": ["market"],
+      "specialty": "Seasoned beams and planks, bought and sold by the load."
+    },
+    {
+      "id": "entertainers-guild",
+      "function": "rest",
+      "specialty": "Players, minstrels and a night's distraction."
+    },
+    {
+      "id": "healer",
+      "function": "rest",
+      "trades": ["healing"],
+      "actions": ["heal", "market"],
+      "specialty": "Sets bones and draws fevers, so the party needn't rest a day to mend."
+    },
+    {
+      "id": "port",
+      "function": "hire",
+      "trades": ["food", "luxuries"],
+      "buysOnly": ["timber"],
+      "actions": ["passage", "market"],
+      "specialty": "Passage by sea, imported goods, and shipwrights buying timber."
+    },
+    {
+      "id": "workers-union",
+      "function": "hire",
+      "buysOnly": ["timber", "stone"],
+      "actions": ["market"],
+      "specialty": "Buys building stock by the load; crews for hire come later."
+    },
+    {
+      "id": "stonemason",
+      "function": "trade",
+      "trades": ["stone"],
+      "actions": ["market"],
+      "specialty": "Dressed stone and lime by the load."
+    },
+    {
+      "id": "university",
+      "function": "temple",
+      "trades": ["arcana"],
+      "buysOnly": ["relics"],
+      "actions": ["market"],
+      "specialty": "Scholars who pay for curios."
+    },
+    {
+      "id": "mercenaries",
+      "function": "hire",
+      "specialty": "Swords for hire."
+    },
+    {
+      "id": "arena",
+      "function": "hire",
+      "specialty": "Prize fights and wagers."
+    }
+  ]
+}
