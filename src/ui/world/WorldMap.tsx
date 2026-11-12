@@ -59,8 +59,11 @@ function saveOverlay(on: boolean) {
  * a dark casing under each road keeps the pale ones visible.
  */
 export const DANGER_COLOURS = ['#f4ead2', '#f0b429', '#e0662b', '#b51f18'] as const
-/** The zoomed view: this many map pixels around the party. */
-export const ZOOM = { width: 1600, height: 1200 }
+/**
+ * The zoomed view (the default): this many map pixels around the party, enough to show the
+ * neighbours most roads lead to (nine in ten land roads are under 420 px long).
+ */
+export const ZOOM = { width: 1200, height: 900 }
 /**
  * Half a marker's width, in map pixels (the map's own markers are about 20 px): larger on the
  * whole map, which is drawn at about a fifth of its size, so markers stay easy to see and hit.
@@ -134,14 +137,16 @@ export function nearestInDirection(
 /**
  * Altaeus: routes (coloured by danger, with a legend; sea crossings dashed), settlements outlined
  * in their kingdom's colour, discovered points of interest as category glyphs (dimmed once
- * cleared), and the party, in a place or partway along a road. Settlements and sites are buttons
+ * cleared), and the party (a ring with a pulsing halo), in a place or partway along a road. The
+ * view starts zoomed in on the party and follows it; "Whole map" zooms out. Settlements and sites are buttons
  * that select. Only the party's place, the roads' ends and the selection are tab stops; the arrow
  * keys move between all of them. The kingdom overlay (remembered per viewer) tints every land
  * spot in its domain's kingdom colour and crowns the seats.
  */
 export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props) {
   const { t } = useI18n()
-  const [zoomed, setZoomed] = useState(false)
+  // Zoomed in on the party by default; the view follows it as it moves.
+  const [zoomed, setZoomed] = useState(true)
   const [overlay, setOverlay] = useState(loadOverlay)
   const svg = useRef<SVGSVGElement>(null)
   const marker = zoomed ? MARKER.zoomed : MARKER.full
@@ -404,13 +409,12 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
           )
         })}
         {party && (
-          <circle
-            className="party-marker"
-            cx={party.x}
-            cy={party.y}
-            r={marker + 18}
-            aria-hidden="true"
-          />
+          <g className="party-marker" data-x={party.x} data-y={party.y} aria-hidden="true">
+            <circle className="party-halo" cx={party.x} cy={party.y} r={marker * 3.4} />
+            <circle className="party-casing" cx={party.x} cy={party.y} r={marker * 1.9} />
+            <circle className="party-ring" cx={party.x} cy={party.y} r={marker * 1.9} />
+            <circle className="party-core" cx={party.x} cy={party.y} r={marker * 0.5} />
+          </g>
         )}
       </svg>
       <ul className="map-legend small" aria-label={t('map.legend')}>

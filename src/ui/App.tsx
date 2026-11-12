@@ -70,7 +70,17 @@ function Game() {
         />
       </header>
       <main className="layout">
-        <PartyPanel party={shown.party} skillUses={shown.skillUses} day={shown.day} />
+        {/* On narrow screens the columns stack: party, then the centre, then the map (theme.css). */}
+        <div className="left">
+          <PartyPanel party={shown.party} skillUses={shown.skillUses} day={shown.day} />
+          <WorldMap
+            content={content}
+            state={shown}
+            selected={selected}
+            onSelect={(id) => setSelected(id === selected ? null : id)}
+            imageUrl={mapImage}
+          />
+        </div>
         <div className="centre">
           {state.encounter ? (
             <EncounterView
@@ -78,39 +88,28 @@ function Game() {
               onAction={dispatch}
               onRevealed={() => setRevealed(state)}
             />
+          ) : shown.travel ? (
+            <JourneyPanel content={content} state={shown} onAction={dispatch} />
+          ) : shown.location && Object.hasOwn(shown.world.pois, shown.location) ? (
+            <PoiPanel
+              content={content}
+              state={shown}
+              selected={selected}
+              onSelect={setSelected}
+              prefs={travelPrefs}
+              onPrefs={setTravelPrefs}
+              onAction={dispatch}
+            />
           ) : (
-            <>
-              <WorldMap
-                content={content}
-                state={shown}
-                selected={selected}
-                onSelect={(id) => setSelected(id === selected ? null : id)}
-                imageUrl={mapImage}
-              />
-              {shown.travel ? (
-                <JourneyPanel content={content} state={shown} onAction={dispatch} />
-              ) : shown.location && Object.hasOwn(shown.world.pois, shown.location) ? (
-                <PoiPanel
-                  content={content}
-                  state={shown}
-                  selected={selected}
-                  onSelect={setSelected}
-                  prefs={travelPrefs}
-                  onPrefs={setTravelPrefs}
-                  onAction={dispatch}
-                />
-              ) : (
-                <PlacePanel
-                  content={content}
-                  state={shown}
-                  selected={selected}
-                  onSelect={setSelected}
-                  prefs={travelPrefs}
-                  onPrefs={setTravelPrefs}
-                  onAction={dispatch}
-                />
-              )}
-            </>
+            <PlacePanel
+              content={content}
+              state={shown}
+              selected={selected}
+              onSelect={setSelected}
+              prefs={travelPrefs}
+              onPrefs={setTravelPrefs}
+              onAction={dispatch}
+            />
           )}
         </div>
         <div className="side">

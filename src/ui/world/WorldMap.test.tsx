@@ -133,7 +133,7 @@ test('only the party’s place and its roads’ ends are tab stops; arrows reach
   await userEvent.tab()
   expect(document.activeElement?.textContent).toBe('Kingdoms')
   await userEvent.tab()
-  expect(document.activeElement?.textContent).toBe('Zoom to party')
+  expect(document.activeElement?.textContent).toBe('Whole map')
   await userEvent.tab()
   expect(document.activeElement).toBe(stops[0])
   for (let i = 1; i < stops.length; i++) await userEvent.tab()
@@ -177,16 +177,56 @@ test('the road to the selected neighbour, and the journey under way, are highlig
   const out = step(state, { type: 'travel', routeId: 'greenvale-1-greenvale-2' }, content)
   rerender(<WorldMap {...props} state={out} selected={null} />)
   expect(container.querySelectorAll('line.route.active')).toHaveLength(1)
-  expect(container.querySelector('circle.party-marker')).toBeTruthy()
+  expect(container.querySelector('g.party-marker')).toBeTruthy()
   expect(map().queryByRole('button', { name: /you are here/ })).toBeNull()
 })
 
 test('zooming centres on the party without leaving the map', () => {
-  expect(viewBoxFor({ x: 100, y: 100 }, true)).toBe('0 0 1600 1200')
-  expect(viewBoxFor({ x: 2000, y: 1500 }, true)).toBe('1200 900 1600 1200')
-  expect(viewBoxFor({ x: 4000, y: 3000 }, true)).toBe('2496 1872 1600 1200')
+  expect(viewBoxFor({ x: 100, y: 100 }, true)).toBe('0 0 1200 900')
+  expect(viewBoxFor({ x: 2000, y: 1500 }, true)).toBe('1400 1050 1200 900')
+  expect(viewBoxFor({ x: 4000, y: 3000 }, true)).toBe('2896 2172 1200 900')
   expect(viewBoxFor(null, true)).toBe('0 0 4096 3072')
   expect(viewBoxFor({ x: 2000, y: 1500 }, false)).toBe('0 0 4096 3072')
+})
+
+test('the map starts zoomed in on the party, follows it, and can show the whole map', async () => {
+  const state = makeState({ location: 'greenvale-1' })
+  const props = { content, selected: null, onSelect: () => {}, imageUrl: null }
+  const { container, rerender } = render(<WorldMap {...props} state={state} />)
+  const svg = () => container.querySelector('svg.world-map')!
+  const here = content.settlements['greenvale-1'].at
+  expect(svg().getAttribute('viewBox')).toBe(viewBoxFor(here, true))
+  expect(svg().getAttribute('class')).toMatch(/\bzoomed\b/)
+  // The party moves on: the view follows.
+  const moved = { ...state, location: 'ashmoor-1' }
+  rerender(<WorldMap {...props} state={moved} />)
+  expect(svg().getAttribute('viewBox')).toBe(viewBoxFor(content.settlements['ashmoor-1'].at, true))
+  await userEvent.click(screen.getByRole('button', { name: 'Whole map' }))
+  expect(svg().getAttribute('viewBox')).toBe('0 0 4096 3072')
+  await userEvent.click(screen.getByRole('button', { name: 'Zoom to party' }))
+  expect(svg().getAttribute('viewBox')).toBe(viewBoxFor(content.settlements['ashmoor-1'].at, true))
+})
+
+test('the party marker stands out: a ring, a centre and a pulsing halo on the party', () => {
+  const state = makeState({ location: 'greenvale-1' })
+  const { container } = render(
+    <WorldMap content={content} state={state} selected={null} onSelect={() => {}} imageUrl={null} />
+  )
+  const marker = container.querySelector('g.party-marker')!
+  const here = content.settlements['greenvale-1'].at
+  for (const part of ['party-halo', 'party-casing', 'party-ring', 'party-core']) {
+    const circle = marker.querySelector(`circle.${part}`)!
+    expect([circle.getAttribute('cx'), circle.getAttribute('cy')]).toEqual([
+      String(here.x),
+      String(here.y),
+    ])
+  }
+  // Larger than any settlement marker.
+  const site = container.querySelector('[data-site="greenvale-1"] rect')!
+  const ring = Number(marker.querySelector('circle.party-ring')!.getAttribute('r'))
+  expect(ring).toBeGreaterThan(Number(site.getAttribute('width')) / 2)
+  // Drawn last, so it sits on top of the markers.
+  expect(container.querySelector('svg.world-map')!.lastElementChild).toBe(marker)
 })
 
 /** The fixture world with these POIs discovered (and cleared). */
@@ -328,6 +368,6 @@ test('the party on a path to a site is drawn along it', () => {
   const { container } = render(
     <WorldMap content={content} state={out} selected={null} onSelect={() => {}} imageUrl={null} />
   )
-  expect(container.querySelector('circle.party-marker')).toBeTruthy()
+  expect(container.querySelector('g.party-marker')).toBeTruthy()
   expect(container.querySelectorAll('line.route.path.active')).toHaveLength(1)
 })

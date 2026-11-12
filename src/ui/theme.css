@@ -743,16 +743,32 @@ label.inline {
 h2[tabindex='-1']:focus {
   outline: none;
 }
+.left,
 .centre {
   display: flex;
   flex-direction: column;
   gap: 1rem;
   min-width: 0;
 }
-/* On narrow screens the settlement comes first and the map follows; on desktop it sits below. */
+/*
+ * On narrow screens the columns stack as party, then the centre (settlement, site, journey or
+ * encounter, so the actions come early), then the map, then the journal.
+ */
 @media (max-width: 900px) {
-  .centre > .place {
-    order: -1;
+  .left {
+    display: contents;
+  }
+  .left > * {
+    order: 1;
+  }
+  .centre {
+    order: 2;
+  }
+  .left > .map-panel {
+    order: 3;
+  }
+  .side {
+    order: 4;
   }
 }
 .map-head {
@@ -934,11 +950,54 @@ h2[tabindex='-1']:focus {
 .kingdom-swatch rect {
   fill-opacity: 0.7;
 }
+/*
+ * The party: a bright ring on a dark casing around a solid centre, with a slow pulsing halo.
+ * Fixed colours, like the roads', since it sits on the same map image in both themes; no
+ * settlement or site marker uses them.
+ */
 .party-marker {
-  fill: none;
-  stroke: var(--good);
-  stroke-width: 10;
   pointer-events: none;
+}
+.party-casing {
+  fill: none;
+  stroke: #1b140e;
+  stroke-width: 30;
+}
+.party-ring {
+  fill: none;
+  stroke: #fff6d8;
+  stroke-width: 14;
+}
+.party-core {
+  fill: #fff6d8;
+  stroke: #1b140e;
+  stroke-width: 8;
+}
+.party-halo {
+  fill: #fff6d8;
+  fill-opacity: 0.35;
+  stroke: #1b140e;
+  stroke-opacity: 0.4;
+  stroke-width: 6;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: party-pulse 2.4s ease-out infinite;
+}
+@keyframes party-pulse {
+  from {
+    transform: scale(0.55);
+    opacity: 0.9;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .party-halo {
+    animation: none;
+    opacity: 0.35;
+  }
 }
 .banner {
   display: block;
