@@ -410,6 +410,18 @@ export const EXPLORE_FINDS: Readonly<Record<Tier, { found: number; extraDays: nu
   critSuccess: { found: 2, extraDays: 0 },
 }
 
+// Gathering (world/gather.ts)
+
+/** A gather rule's DC is this much lower per output level of the good made in the domain (0–3). */
+export const GATHER_DC_PER_OUTPUT = 1
+/**
+ * How much the land around a settlement yields before it is picked over, in fresh days' work (a
+ * rule's success yield): the gathered units deplete it like a market of this depth.
+ */
+export const GATHER_DEPTH_DAYS = 4
+/** HP the lead loses on a critical failure when no hostile situation fits the place. */
+export const GATHER_INJURY = 3
+
 // Rule hooks and accessories (gear/hooks.ts, gear/accessories.ts, economy/market.ts)
 
 /** A sale with a `sellBonus` hook never pays more than this × the middle price (no arbitrage). */

@@ -22,6 +22,7 @@ The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`]
 | `data/claude/service-roles.json` | `accessories.offers` and `accessories.maxTier` (Magic Items, finesmith) | How many accessories a shop offers a week and the best tier it sells |
 | `data/procedural/accessories.json` | `weight`, `minTier`, `value`, `bases` and the hook's amount per part | How often each base and affix is rolled, which tier it needs, what it adds to the price, which bases it fits and how strong its rule hook is |
 | `data/claude/poi-situations.json` | `accessory` effects (and their `tier`) in lair and dungeon clearings | Where accessories drop as loot |
+| `data/claude/gathering.json` | `biomes`, `skill`, `dc` and `yield` per tier per rule | What a party can gather for a day in each land, how hard it is (before the domain's producers lower the DC) and how many units each tier brings home for two workers |
 
 Encounter odds and rewards live in the situations themselves (`situations.json` files in every source).
 

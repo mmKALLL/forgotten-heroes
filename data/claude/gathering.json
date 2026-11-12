@@ -1,0 +1,88 @@
+{
+  "$schema": "../_schema/gatherRules.schema.json",
+  "kind": "gatherRules",
+  "source": "claude",
+  "notes": "What a party can gather for a day in a settlement's domain (Plan 5a, design §10b): one rule per good and kind of land. The lead rolls the skill against the DC, lowered by 1 per output level where the domain makes the good (GATHER_DC_PER_OUTPUT), and the whole able party works: `yield` is the units per tier for two workers, scaled by the workers and lowered as the land is picked over (GATHER_DEPTH_DAYS). Yields are set so a fresh day's work for two sells for about 3–6 gp in the domain, before depletion and bulk pressure: food and fuel sell at the 1 gp floor, timber and stone are heavy, healing herbs are the hardest and most valuable. Every land biome has at least one rule (a content test checks this). Written by Claude; tuned by the I1 economy report.",
+  "entries": [
+    {
+      "id": "cut-timber",
+      "good": "timber",
+      "label": "Cut timber",
+      "text": "Fell and trim what the woodsmen left standing, and drag it to the road.",
+      "biomes": ["forest", "jungle"],
+      "skill": "athletics",
+      "dc": 12,
+      "yield": { "critFail": 0, "fail": 0, "partial": 1, "success": 2, "critSuccess": 3 }
+    },
+    {
+      "id": "quarry-stone",
+      "good": "stone",
+      "label": "Quarry stone",
+      "text": "Break good stone out of an old cutting and lever it onto a sledge.",
+      "biomes": ["hills", "mountains"],
+      "skill": "athletics",
+      "dc": 13,
+      "yield": { "critFail": 0, "fail": 0, "partial": 1, "success": 2, "critSuccess": 3 }
+    },
+    {
+      "id": "gather-firewood",
+      "good": "fuel",
+      "label": "Gather firewood",
+      "text": "Deadfall, windblown branches and the odd stump, bundled for the town's hearths.",
+      "biomes": ["forest", "plains"],
+      "skill": "survival",
+      "dc": 10,
+      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 4, "critSuccess": 6 }
+    },
+    {
+      "id": "cut-peat",
+      "good": "fuel",
+      "label": "Cut peat",
+      "text": "Slice turves from the bog and stack them to drain.",
+      "biomes": ["marsh"],
+      "skill": "athletics",
+      "dc": 11,
+      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 4, "critSuccess": 6 }
+    },
+    {
+      "id": "gather-scrub",
+      "good": "fuel",
+      "label": "Gather scrub and dung",
+      "text": "Thornwood roots and dried dung: what burns where nothing grows.",
+      "biomes": ["desert"],
+      "skill": "survival",
+      "dc": 12,
+      "yield": { "critFail": 0, "fail": 0, "partial": 2, "success": 4, "critSuccess": 5 }
+    },
+    {
+      "id": "hunt-game",
+      "good": "food",
+      "label": "Hunt and snare game",
+      "text": "Set snares at dawn, stalk at dusk, and smoke what you catch.",
+      "biomes": ["plains", "forest", "hills"],
+      "skill": "survival",
+      "dc": 12,
+      "yield": { "critFail": 0, "fail": 0, "partial": 2, "success": 4, "critSuccess": 6 }
+    },
+    {
+      "id": "fish-and-forage",
+      "good": "food",
+      "label": "Fish and forage",
+      "text": "Weirs in the shallows, roots and fruit along the banks.",
+      "biomes": ["marsh", "jungle"],
+      "skill": "survival",
+      "dc": 11,
+      "yield": { "critFail": 0, "fail": 0, "partial": 2, "success": 4, "critSuccess": 6 }
+    },
+    {
+      "id": "healing-herbs",
+      "good": "healing",
+      "label": "Gather healing herbs",
+      "text": "Woundwort, feverfew and moss, found by those who know the leaf, and dried for kits.",
+      "biomes": ["forest", "marsh", "jungle", "hills", "mountains"],
+      "skill": "medicine",
+      "dc": 14,
+      "yield": { "critFail": 0, "fail": 0, "partial": 0, "success": 1, "critSuccess": 2 }
+    }
+  ]
+}

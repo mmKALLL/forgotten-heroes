@@ -192,7 +192,16 @@ export function explore(state: GameState, content: Content): GameState {
 }
 
 /** A critical failure: a hostile road situation that fits the place, if any, finds the party. */
-function ambush(state: GameState, content: Content): GameState {
+const ambush = (state: GameState, content: Content): GameState =>
+  drawAmbush(state, content) ??
+  appendLog(state, 'The search turns up nothing but sore feet.', 'bad')
+
+/**
+ * Trouble finds a party working the land where it is (a search or a day's gathering gone badly):
+ * a hostile road situation that fits the place starts, picked by weight. Null when none fits or
+ * no one can act.
+ */
+export function drawAmbush(state: GameState, content: Content): GameState | null {
   const place = placeHere(state, content)
   const hostile = place
     ? allSituations(content).filter(
@@ -204,9 +213,7 @@ function ambush(state: GameState, content: Content): GameState {
           fitsPlace(s, place)
       )
     : []
-  if (!place || hostile.length === 0 || !state.party.some(canAct)) {
-    return appendLog(state, 'The search turns up nothing but sore feet.', 'bad')
-  }
+  if (!place || hostile.length === 0 || !state.party.some(canAct)) return null
   const [picked, rng] = withRng(state.rng, (d) => d.weighted(hostile, (s) => s.weight).id)
   return startEncounter({ ...state, rng }, content, picked, place)
 }
