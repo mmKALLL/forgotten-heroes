@@ -5,6 +5,7 @@ import { CAUTIOUS_HOSTILE_AVOIDANCE } from './pace'
 import {
   SEA_PACE_NOTE,
   journeyInfo,
+  journeyProgress,
   placeInfo,
   poiInfo,
   roadReasonText,
@@ -351,6 +352,21 @@ describe('journeyInfo and suppliesInfo', () => {
       waterDays: 4,
     })
     expect(suppliesInfo(state, 'desert').waterDays).toBe(2)
+  })
+
+  test('progress is the share of the road travelled, from 0 to 1', () => {
+    expect(journeyProgress({ km: 75, kmDone: 0 })).toBe(0)
+    expect(journeyProgress({ km: 75, kmDone: 37.5 })).toBe(0.5)
+    expect(journeyProgress({ km: 75, kmDone: 90 })).toBe(1)
+    expect(journeyProgress({ km: 0, kmDone: 0 })).toBe(1)
+    const out = step(
+      makeState({ location: 'greenvale-1' }),
+      { type: 'travel', routeId: 'greenvale-1-greenvale-2' },
+      content
+    )
+    const walked = { ...out, travel: { ...out.travel!, kmDone: 30, daysDone: 1 } }
+    expect(journeyInfo(out, content)!.progress).toBe(0)
+    expect(journeyInfo(walked, content)!.progress).toBeCloseTo(0.4)
   })
 })
 

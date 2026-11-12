@@ -207,6 +207,32 @@ test('the map starts zoomed in on the party, follows it, and can show the whole 
   expect(svg().getAttribute('viewBox')).toBe(viewBoxFor(content.settlements['ashmoor-1'].at, true))
 })
 
+test('on the road the party moves along it by the share travelled, and the view follows', () => {
+  const state = makeState({ location: 'greenvale-1' })
+  const out = step(state, { type: 'travel', routeId: 'greenvale-1-greenvale-2' }, content)
+  const props = { content, selected: null, onSelect: () => {}, imageUrl: null }
+  const a = content.settlements['greenvale-1'].at
+  const b = content.settlements['greenvale-2'].at
+  const { container, rerender } = render(<WorldMap {...props} state={out} />)
+  const centre = () => {
+    const core = container.querySelector('circle.party-core')!
+    return { x: Number(core.getAttribute('cx')), y: Number(core.getAttribute('cy')) }
+  }
+  const viewBox = () => container.querySelector('svg.world-map')!.getAttribute('viewBox')
+  expect(centre()).toEqual(a)
+  for (const kmDone of [30, 60, 75]) {
+    const walked = { ...out, travel: { ...out.travel!, kmDone } }
+    rerender(<WorldMap {...props} state={walked} />)
+    const share = kmDone / 75
+    expect(centre().x).toBeCloseTo(a.x + (b.x - a.x) * share)
+    expect(centre().y).toBeCloseTo(a.y + (b.y - a.y) * share)
+    expect(viewBox()).toBe(viewBoxFor(centre(), true))
+    // The way travelled is drawn up to the party.
+    const line = container.querySelector('line.route.travelled')!
+    expect(Number(line.getAttribute('x2'))).toBeCloseTo(centre().x)
+  }
+})
+
 test('the party marker stands out: a ring, a centre and a pulsing halo on the party', () => {
   const state = makeState({ location: 'greenvale-1' })
   const { container } = render(

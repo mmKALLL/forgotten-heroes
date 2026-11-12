@@ -293,9 +293,7 @@ export const en = {
 
   'journey.heading': 'On the road',
   'journey.route': '{from} → {to}',
-  'journey.progress': 'Journey progress',
-  'journey.progressValue': '{done} of {km} km',
-  'journey.days': 'Day {done} of about {days} · {terrain} · {danger}',
+  'journey.days': 'Day {done} of about {days} · {kmDone} of {km} km',
   'journey.pace': 'Pace: {pace}',
   'journey.foraging': ' · foraging each day',
   'journey.supplies': 'Food for {food} days, water for {water}',

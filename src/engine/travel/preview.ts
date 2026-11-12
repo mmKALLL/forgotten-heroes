@@ -1,6 +1,6 @@
 import type { Content } from '../../content/build'
 import type { Biome, Pace, PoiCategory, Position } from '../../schema/constants'
-import type { GameState } from '../../schema/state'
+import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'
 import { canAct } from '../rules/character'
@@ -335,6 +335,8 @@ export type JourneyInfo = {
   toName: string
   km: number
   kmDone: number
+  /** The share of the road travelled, 0 to 1 (journeyProgress). */
+  progress: number
   daysDone: number
   days: number
   terrain: Biome | null
@@ -344,6 +346,10 @@ export type JourneyInfo = {
   /** False during an encounter or when no one can walk on (then only camp helps). */
   canMove: boolean
 }
+
+/** How far along its road a journey is, as a share of the km from 0 (setting out) to 1 (there). */
+export const journeyProgress = (travel: Pick<TravelState, 'km' | 'kmDone'>): number =>
+  travel.km > 0 ? Math.min(1, Math.max(0, travel.kmDone / travel.km)) : 1
 
 export function journeyInfo(state: GameState, content: Content): JourneyInfo | null {
   const t = state.travel
@@ -355,6 +361,7 @@ export function journeyInfo(state: GameState, content: Content): JourneyInfo | n
     toName: settlementName(state, t.to),
     km: t.km,
     kmDone: Math.round(t.kmDone),
+    progress: journeyProgress(t),
     daysDone: t.daysDone,
     days: t.days,
     terrain: routeTerrain(state, content, t),

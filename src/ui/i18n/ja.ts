@@ -280,9 +280,7 @@ export const ja: Partial<Messages> = {
 
   'journey.heading': '道中',
   'journey.route': '{from} → {to}',
-  'journey.progress': '旅の進み具合',
-  'journey.progressValue': '{km} km中 {done} km',
-  'journey.days': '{done}日目／およそ{days}日 · {terrain} · {danger}',
+  'journey.days': '{done}日目／およそ{days}日 · {km} km中 {kmDone} km',
   'journey.pace': '移動速度：{pace}',
   'journey.foraging': ' · 毎日採集',
   'journey.supplies': '食料{food}日分、水{water}日分',

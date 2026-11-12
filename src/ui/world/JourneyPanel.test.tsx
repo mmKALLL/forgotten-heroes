@@ -22,8 +22,9 @@ test('shows the journey’s progress and pace, and dispatches Continue and Make 
   )
   const onAction = vi.fn()
   render(<JourneyPanel content={content} state={out} onAction={onAction} />)
-  const bar = screen.getByRole('progressbar', { name: 'Journey progress' })
-  expect(bar.getAttribute('aria-valuetext')).toBe('0 of 75 km')
+  // The map shows the way travelled; the panel keeps a compact line, without a progress bar.
+  expect(screen.getByText('Day 0 of about 2 · 0 of 75 km')).toBeTruthy()
+  expect(screen.queryByRole('progressbar')).toBeNull()
   expect(screen.getByText('Pace: Brisk · foraging each day')).toBeTruthy()
   expect(screen.queryByRole('group', { name: 'Pace' })).toBeNull()
   await userEvent.click(screen.getByRole('button', { name: 'Continue' }))

@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
-import { routeOptions } from '../../engine/travel/preview'
+import { journeyProgress, routeOptions } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom, nodeOf } from '../../engine/world/graph'
 import { SPOT_SPACING_PX, territory } from '../../engine/world/territory'
@@ -154,9 +154,10 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
   const travel = state.travel
   const from = travel ? at(travel.from) : null
   const to = travel ? at(travel.to) : null
+  // On the road the party is drawn the share of the way it has travelled along its road.
   const party = travel
     ? from && to
-      ? lerp(from, to, Math.min(1, travel.kmDone / travel.km))
+      ? lerp(from, to, journeyProgress(travel))
       : null
     : state.location
       ? at(state.location)
