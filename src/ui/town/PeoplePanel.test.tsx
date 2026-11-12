@@ -45,13 +45,24 @@ test('the rumour line shows who listens, the DC and the chance, and dispatches',
   const line = within(screen.getByRole('group', { name: 'Listen for rumours' }))
   const pct = Math.round((1 - option.chances.fail - option.chances.critFail) * 100)
   expect(line.getByText(new RegExp(`vs DC ${option.dc} · ${pct}% to hear something$`))).toBeTruthy()
-  // The tiers are in its tip, never the critical ones.
+  // The tiers are listed inline, never the critical ones.
+  expect(line.getByRole('list', { name: 'What the talk brings' })).toBeTruthy()
   expect(line.getByText('Nothing worth hearing')).toBeTruthy()
   expect(line.queryByText(/false rumour/i)).toBeNull()
   const button = line.getByRole('button', { name: `Listen for rumours · ${option.cost} gp` })
-  expect(button.getAttribute('aria-describedby')).toBeTruthy()
   await userEvent.click(button)
   expect(onAction).toHaveBeenCalledWith({ type: 'listenRumours' })
+})
+
+test('a party that can’t pay still reads the rumour odds, and why', () => {
+  const state = makeState({ location: 'greenvale-1', gold: 0 })
+  const option = rumourOption(state, content)!
+  show(state)
+  const line = within(screen.getByRole('group', { name: 'Listen for rumours' }))
+  const button = line.getByRole('button', { name: /^Listen for rumours/ }) as HTMLButtonElement
+  expect(button.disabled).toBe(true)
+  expect(line.getByText(`A round costs ${option.cost} gp.`)).toBeTruthy()
+  expect(line.getByRole('list', { name: 'What the talk brings' })).toBeTruthy()
 })
 
 test('once the talk is heard, the line says so', () => {

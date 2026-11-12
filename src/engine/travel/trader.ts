@@ -634,6 +634,10 @@ export function trader(
         [...(free.length > 0 ? free : roads)].sort((a, b) => a.days - b.days).find(supplied) ?? road
     }
     const pace = paceFor(state, content, road)
+    // Provisioning buys no waterskins (designer decision): buy those the road needs first.
+    const skins =
+      provisionPlan(state, content, { routeId: road.routeId, pace })?.waterskinsShort ?? 0
+    if (skins > 0) act({ type: 'buyWaterskin', count: skins }, 'provision')
     act({ type: 'provision', routeId: road.routeId, pace }, 'provision')
     const mouths = state.party.length + escortPassengers(state)
     // Provisioning fills waterskins first; if that leaves no room for the food, trade skins

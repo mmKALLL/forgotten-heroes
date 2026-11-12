@@ -6,8 +6,9 @@ import { useI18n } from '../i18n/I18n'
 const SHOWN: readonly Tier[] = ['success', 'partial', 'fail']
 
 /**
- * What a travel check's fail, partial and success lead to, each with its d20 faces, as the
- * encounter Outcomes panel shows them. Tiers the roll can't land on are left out.
+ * What a town or travel check's success, partial and fail lead to (design §9): a vertical list,
+ * one line per tier with its d20 faces and chance, always shown inline (no odds bar, no hover).
+ * Tiers the roll can't land on are left out.
  */
 export function TierOutcomes({
   label,
@@ -28,16 +29,12 @@ export function TierOutcomes({
         const range = faces[tier]
         return (
           <li key={tier}>
-            <span
-              className={`tier-marker tier-${tier}`}
-              title={`${tierName(tier)} (${formatPercent(odds[tier])})`}
-            >
+            <span className={`tier-marker tier-${tier}`} title={tierName(tier)}>
               <span className="sr-only">{tierName(tier)}: </span>
             </span>
-            <div>
-              {range && <span className="faces muted">{formatFaces(range)}</span>}
-              {text(tier)}
-            </div>
+            <span className="faces muted">{range ? formatFaces(range) : ''}</span>
+            <span className="chance muted">{formatPercent(odds[tier])}</span>
+            <span className="tier-text">{text(tier)}</span>
           </li>
         )
       })}

@@ -29,7 +29,7 @@ describe('provision for this road', () => {
     expect(warns(s, 'greenvale-2')).toContain('foodRunsOut')
     const plan = provisionPlan(s, content, road)!
     expect(plan.food).toBeGreaterThan(0)
-    expect(plan.total).toBe(plan.foodCost + plan.waterskinCost)
+    expect(plan.total).toBe(plan.foodCost)
     const done = act(s, { type: 'provision', ...road })
     expect(done.goods.food).toBe(plan.food)
     expect(done.gold).toBe(s.gold - plan.total)
@@ -41,25 +41,28 @@ describe('provision for this road', () => {
     )
   })
 
-  test('buys waterskins when the skins can’t hold the road’s water, and fills them', () => {
+  test('never buys waterskins, but says how many more the road needs', () => {
     const solo = at('greenvale-1', { party: [brom], goods: { food: 20, water: 1 } })
     // Ashmoor is further: one member's skin holds less than the walk needs.
     const long = { routeId: 'ashmoor-1-greenvale-1' }
     const plan = provisionPlan(solo, content, long)!
-    expect(plan.waterskins).toBeGreaterThan(0)
+    expect(plan.waterskinsShort).toBeGreaterThan(0)
     const done = act(solo, { type: 'provision', ...long })
-    expect(done.waterskins).toBe(plan.waterskins)
-    // Filled as far as the road needs, never past the skins.
-    expect(done.goods.water).toBe(1 + plan.water)
-    expect(done.goods.water).toBeLessThanOrEqual(partyWaterCapacity(done))
-    expect(warns(done, 'ashmoor-1')).toEqual([])
+    expect(done.waterskins).toBe(0)
+    expect(done.log.at(-1)!.text).toMatch(/more waterskin/)
+    // With the skins bought by hand, provisioning fills them as far as the road needs.
+    const skinned = act(solo, { type: 'buyWaterskin', count: plan.waterskinsShort })
+    expect(provisionPlan(skinned, content, long)!.waterskinsShort).toBe(0)
+    const ready = act(skinned, { type: 'provision', ...long })
+    expect(ready.goods.water).toBeLessThanOrEqual(partyWaterCapacity(ready))
+    expect(warns(ready, 'ashmoor-1')).toEqual([])
   })
 
   test('fills only the water the road needs, not every spare skin', () => {
     // Four spare skins, nearly dry: the short road to Greenvale needs far less than they hold.
     const s = at('greenvale-1', { goods: { food: 20, water: 1 }, waterskins: 4 })
     const plan = provisionPlan(s, content, road)!
-    expect(plan.waterskins).toBe(0)
+    expect(plan.waterskinsShort).toBe(0)
     const done = act(s, { type: 'provision', ...road })
     expect(done.goods.water).toBe(1 + plan.water)
     expect(done.goods.water).toBeLessThan(partyWaterCapacity(done))
@@ -125,7 +128,10 @@ describe('provision for this road', () => {
     expect(provisionPlan(guarded, content, road)!.food).toBeGreaterThan(
       provisionPlan(s, content, road)!.food
     )
-    const done = act(guarded, { type: 'provision', ...road })
+    // The passengers drink too: the skins they need are bought by hand first.
+    const skins = provisionPlan(guarded, content, road)!.waterskinsShort
+    const skinned = act(guarded, { type: 'buyWaterskin', count: skins })
+    const done = act(skinned, { type: 'provision', ...road })
     expect(warns(done, 'greenvale-2')).toEqual([])
     // Set out with exactly that: the outlook (the supply-warning stop) agrees it lasts, and it
     // wouldn't for the party without the passengers' share bought.

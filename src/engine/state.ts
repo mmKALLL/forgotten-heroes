@@ -54,14 +54,14 @@ export type Action =
   | { type: 'autoRest' }
 
 /**
- * A new party in a freshly rolled world. `start` picks where it begins (design §6): a small
- * settlement in the calmest mainland domain, or any mainland settlement.
+ * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
+ * settlement (the default, designer decision), or a small one in the calmest mainland domain.
  */
 export function newGame(
   seed: number,
   content: Content,
   partySize = STARTING_PARTY_SIZE,
-  start: StartMode = 'calm'
+  start: StartMode = 'random'
 ): GameState {
   const [party, rng] = generateParty(createRng(seed), content, partySize)
   // The world draws from its own stream, so it doesn't change the party or later rolls.

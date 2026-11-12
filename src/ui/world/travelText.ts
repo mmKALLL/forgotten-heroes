@@ -3,7 +3,7 @@ import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/prev
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
 import type { TravelWarning } from '../../engine/travel/warnings'
 import type { Biome } from '../../schema/types'
-import type { MessageKey } from '../i18n/en'
+import { en, type MessageKey } from '../i18n/en'
 import type { I18n } from '../i18n/I18n'
 
 type T = I18n['t']
@@ -20,7 +20,7 @@ export function hostileParts(t: T, option: Pick<PaceOption, 'hostile' | 'pace'>)
     .map((part) =>
       t(`route.hostilePart.${part}`, {
         pct: formatPercent(h[part]),
-        pace: t(`pace.${option.pace}`).toLowerCase(),
+        pace: paceText(t, option.pace).toLowerCase(),
       })
     )
   const avoided =
@@ -28,7 +28,7 @@ export function hostileParts(t: T, option: Pick<PaceOption, 'hostile' | 'pace'>)
       ? [
           t('route.hostilePart.avoided', {
             pct: formatPercent(-h.avoided),
-            pace: t(`pace.${option.pace}`).toLowerCase(),
+            pace: paceText(t, option.pace).toLowerCase(),
           }),
         ]
       : []
@@ -37,8 +37,32 @@ export function hostileParts(t: T, option: Pick<PaceOption, 'hostile' | 'pace'>)
   )
 }
 
+/** A pace's name; a pace without a string (one the engine has since retired) by its id. */
+export const paceText = (t: T, pace: string): string =>
+  Object.hasOwn(en, `pace.${pace}`) ? t(`pace.${pace}` as MessageKey) : pace
+/** A pace's speed and effect, or nothing for a pace without a string. */
+export const paceHintText = (t: T, pace: string): string =>
+  Object.hasOwn(en, `paceHint.${pace}`) ? t(`paceHint.${pace}` as MessageKey) : ''
+
+/** The days hired mounts save: "−1 day", "−2 days", or "no faster". */
+export const savedText = (t: T, days: number): string =>
+  days <= 0
+    ? t('route.hireNoFaster')
+    : days === 1
+      ? t('route.hireSavedOne')
+      : t('route.hireSaved', { n: days })
+
 export const daysText = (t: T, n: number): string =>
   n === 1 ? t('count.day') : t('count.days', { n })
+/** A countdown to a deadline: "6 days left", "1 day left", "last day", or past it. */
+export const leftText = (t: T, n: number): string =>
+  n < 0
+    ? t('contracts.late')
+    : n === 0
+      ? t('count.lastDay')
+      : n === 1
+        ? t('count.dayLeft')
+        : t('count.daysLeft', { n })
 const rationsText = (t: T, n: number): string =>
   n === 1 ? t('count.ration') : t('count.rations', { n })
 
@@ -50,12 +74,17 @@ export const threatText = (t: T, level: number): string =>
 export const sizeText = (t: T, tier: number): string =>
   t(`size.${Math.max(0, Math.min(5, tier))}` as MessageKey)
 
-/** "{land} · domain of {settlement} · {kingdom} ({ancestry} rule)", and the seat marked. */
+/**
+ * "{land} · domain of {settlement} · {kingdom} ({ancestry} rule)", and the seat marked. A
+ * settlement is its own domain, so for one the domain is left out.
+ */
 export function realmText(
   t: T,
-  p: Pick<PlaceInfo, 'landName' | 'domainName' | 'kingdomName' | 'rulerAncestry' | 'seat'>
+  p: Pick<PlaceInfo, 'landName' | 'domainName' | 'kingdomName' | 'rulerAncestry' | 'seat'> & {
+    name?: string
+  }
 ): string {
-  const realm = t('place.realm', {
+  const realm = t(p.domainName === p.name ? 'place.realmOwn' : 'place.realm', {
     land: p.landName,
     domain: p.domainName,
     kingdom: p.kingdomName,

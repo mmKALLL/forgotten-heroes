@@ -1,12 +1,13 @@
 import { useState } from 'react'
-import { START_MODES, type StartMode } from '../engine/world/generate'
 import { useI18n } from './i18n/I18n'
 
-/** "New party", then where it begins: a small town in a calm region, or anywhere (design §6). */
-export function NewPartyButton({ onStart }: { onStart: (mode: StartMode) => void }) {
+/**
+ * "New party", then a confirmation: the party begins in a random mainland settlement (design §6;
+ * designer decision: no choice of start).
+ */
+export function NewPartyButton({ onStart }: { onStart: () => void }) {
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
-  const label: Record<StartMode, string> = { calm: t('start.calm'), random: t('start.random') }
   return (
     <div className="new-party">
       <button aria-expanded={open} onClick={() => setOpen(!open)}>
@@ -15,18 +16,15 @@ export function NewPartyButton({ onStart }: { onStart: (mode: StartMode) => void
       {open && (
         <div className="new-party-menu" role="group" aria-label={t('start.heading')}>
           <p className="small">{t('start.heading')}</p>
-          {START_MODES.map((mode) => (
-            <button
-              key={mode}
-              className={mode === 'calm' ? 'primary' : undefined}
-              onClick={() => {
-                setOpen(false)
-                onStart(mode)
-              }}
-            >
-              {label[mode]}
-            </button>
-          ))}
+          <button
+            className="primary"
+            onClick={() => {
+              setOpen(false)
+              onStart()
+            }}
+          >
+            {t('start.go')}
+          </button>
           <button onClick={() => setOpen(false)}>{t('start.cancel')}</button>
         </div>
       )}

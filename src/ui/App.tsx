@@ -69,7 +69,11 @@ function Game() {
         <span>{t('top.gold', { gold: shown.gold })}</span>
         <span title={t('top.suppliesHint')}>
           {t('top.food', { food: supplies.food, days: supplies.foodDays })} ·{' '}
-          {t('top.water', { water: supplies.water, capacity: supplies.waterCapacity })}
+          {t('top.water', {
+            water: supplies.water,
+            capacity: supplies.waterCapacity,
+            days: supplies.waterDays,
+          })}
         </span>
         <span title={t('top.inspirationHint')}>
           {t('top.inspiration', { n: shown.inspiration })}
@@ -78,9 +82,9 @@ function Game() {
         <span className="muted small">{t('top.seed', { seed: state.seed })}</span>
         <LanguageToggle />
         <NewPartyButton
-          onStart={(mode) => {
+          onStart={() => {
             setSelected(null)
-            restart(mode)
+            restart()
           }}
         />
       </header>

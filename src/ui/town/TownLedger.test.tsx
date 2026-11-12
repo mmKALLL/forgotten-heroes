@@ -12,7 +12,7 @@ import { TownLedger } from './TownLedger'
 const content = fixtureContent()
 afterEach(cleanup)
 
-test('the ledger shows the header line, its zones, Explore after the roads, talk and work, and the people', async () => {
+test('the ledger shows the header line, its zones, Explore before the roads, talk and work, and the people', async () => {
   const state = makeState({ location: 'ashmoor-1', gold: 50 })
   const onAction = vi.fn()
   render(
@@ -35,12 +35,17 @@ test('the ledger shows the header line, its zones, Explore after the roads, talk
     screen.getByRole('region', { name })
   )
   expect(within(zones[1]).getByText('services here')).toBeTruthy()
-  // Explore is one line after the roads, without an odds bar; its tiers are its description.
-  const explore = within(zones[2]).getByRole('group', { name: 'Explore the domain' })
-  expect(within(explore).queryByRole('img')).toBeNull()
-  expect(explore.textContent).toMatch(/vs DC \d+ · \d+% to find a site/)
-  const button = within(explore).getByRole('button', { name: /^Explore \(/ })
-  expect(button.getAttribute('aria-describedby')).toBeTruthy()
+  // Explore comes before the roads, without an odds bar; its tiers are a list of lines.
+  const exploreGroup = within(zones[2]).getByRole('group', { name: 'Explore the domain' })
+  const explore = within(exploreGroup)
+  expect(explore.queryByRole('img')).toBeNull()
+  expect(explore.getByRole('list', { name: 'What the search finds' })).toBeTruthy()
+  expect(exploreGroup.textContent).toMatch(/vs DC \d+ · \d+% to find a site/)
+  const roads = within(zones[2]).getByRole('list', { name: 'Roads from here' })
+  expect(
+    exploreGroup.compareDocumentPosition(roads) & Node.DOCUMENT_POSITION_FOLLOWING
+  ).toBeTruthy()
+  const button = explore.getByRole('button', { name: /^Explore \(/ })
   await userEvent.click(button)
   expect(onAction).toHaveBeenCalledWith({ type: 'explore' })
   // The party’s standing here is in the header; talk and work follow the roads.
@@ -48,9 +53,9 @@ test('the ledger shows the header line, its zones, Explore after the roads, talk
   const talk = within(screen.getByRole('region', { name: 'Talk and work' }))
   expect(talk.getByRole('group', { name: 'Listen for rumours' })).toBeTruthy()
   expect(talk.getByRole('region', { name: 'Notice board' })).toBeTruthy()
-  // People are collapsed until opened.
+  // People are always shown.
   const people = peopleRows(state, content)
-  const summary = screen.getByText(`People (${people.length})`)
-  expect(summary.closest('details')!.open).toBe(false)
-  for (const p of people) expect(screen.getByText(p.name, { exact: false })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: `People (${people.length})` })).toBeTruthy()
+  const list = within(screen.getByRole('list', { name: 'Notable people' }))
+  for (const p of people) expect(list.getByText(p.name, { exact: false })).toBeTruthy()
 })

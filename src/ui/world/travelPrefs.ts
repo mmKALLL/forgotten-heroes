@@ -7,12 +7,24 @@ import { PACES, type Pace } from '../../schema/types'
  */
 export type TravelPrefs = { pace: Pace; forage: boolean; mounted: boolean }
 
+/** Retired paces and the pace that replaces each. */
+const RETIRED: Readonly<Record<string, Pace>> = {
+  // Covering tracks, before Stealthy.
+  cover: 'stealthy',
+  // Cautious (¾ speed) is gone (designer decision): Stealthy is the careful pace.
+  cautious: 'stealthy' as Pace,
+}
+
 /**
- * A remembered pace as one of today's: "cover" (cautious, covering tracks, before Stealthy) is
- * Stealthy, and anything unknown is steady.
+ * A remembered pace as one of today's: a retired one ("cover", "cautious") is Stealthy, and
+ * anything unknown is steady.
  */
 export const normalizePace = (pace: unknown): Pace =>
-  pace === 'cover' ? 'stealthy' : PACES.includes(pace as Pace) ? (pace as Pace) : 'steady'
+  typeof pace === 'string' && Object.hasOwn(RETIRED, pace)
+    ? RETIRED[pace]
+    : PACES.includes(pace as Pace)
+      ? (pace as Pace)
+      : 'steady'
 
 export const DEFAULT_TRAVEL_PREFS: TravelPrefs = { pace: 'steady', forage: true, mounted: false }
 

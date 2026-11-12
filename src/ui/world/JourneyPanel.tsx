@@ -3,7 +3,7 @@ import type { Action } from '../../engine/state'
 import { journeyInfo, suppliesInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
-import { biomeText, dangerText } from './travelText'
+import { biomeText, paceText } from './travelText'
 
 /**
  * The journey under way: where from and to, how far, the pace (fixed at departure), the
@@ -39,13 +39,11 @@ export function JourneyPanel({
           km: j.km,
         })}
       </p>
-      <p className="muted small">
-        {biomeText(t, j.terrain)} · {dangerText(t, j.danger)}
-      </p>
+      <p className="muted small">{biomeText(t, j.terrain)}</p>
       <p className="small">
         {sea
           ? t('route.seaPace')
-          : t('journey.pace', { pace: t(`pace.${j.pace}`) }) +
+          : t('journey.pace', { pace: paceText(t, j.pace) }) +
             (state.travel?.forage ? t('journey.foraging') : '')}
       </p>
       <p className="small">

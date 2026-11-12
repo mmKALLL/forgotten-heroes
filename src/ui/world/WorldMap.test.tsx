@@ -183,9 +183,9 @@ test('the road to the selected neighbour, and the journey under way, are highlig
 })
 
 test('zooming centres on the party without leaving the map', () => {
-  expect(viewBoxFor({ x: 100, y: 100 }, true)).toBe('0 0 1200 900')
-  expect(viewBoxFor({ x: 2000, y: 1500 }, true)).toBe('1400 1050 1200 900')
-  expect(viewBoxFor({ x: 4000, y: 3000 }, true)).toBe('2896 2172 1200 900')
+  expect(viewBoxFor({ x: 100, y: 100 }, true)).toBe('0 0 840 630')
+  expect(viewBoxFor({ x: 2000, y: 1500 }, true)).toBe('1580 1185 840 630')
+  expect(viewBoxFor({ x: 4000, y: 3000 }, true)).toBe('3256 2442 840 630')
   expect(viewBoxFor(null, true)).toBe('0 0 4096 3072')
   expect(viewBoxFor({ x: 2000, y: 1500 }, false)).toBe('0 0 4096 3072')
 })
@@ -427,7 +427,7 @@ test('a road’s end picked on the map opens a popover that travels at the last 
     />
   )
   const name = settlementName(state, 'greenvale-2')
-  const pop = within(screen.getByRole('group', { name: `Travel to ${name}` }))
+  const pop = within(screen.getByRole('dialog', { name: `Travel to ${name}` }))
   const road = routeOptions(state, content, false).find((r) => r.to === 'greenvale-2')!
   const brisk = road.paces.find((p) => p.pace === 'brisk')!
   expect(
@@ -446,4 +446,32 @@ test('a road’s end picked on the map opens a popover that travels at the last 
   })
   await userEvent.click(pop.getByRole('button', { name: 'Close' }))
   expect(onClose).toHaveBeenCalled()
+})
+
+test('opened from the map, the popover takes focus, Escape closes it, and focus goes back', async () => {
+  const state = makeState({ location: 'greenvale-1', gold: 50 })
+  const onClose = vi.fn()
+  const map = (selected: string | null) => (
+    <WorldMap
+      content={content}
+      state={state}
+      selected={selected}
+      onSelect={vi.fn()}
+      imageUrl={null}
+      prefs={DEFAULT_TRAVEL_PREFS}
+      onTravel={vi.fn()}
+      onClose={onClose}
+    />
+  )
+  const { container, rerender } = render(map(null))
+  const marker = container.querySelector<SVGGElement>('[data-site="greenvale-2"]')!
+  marker.focus()
+  rerender(map('greenvale-2'))
+  const name = settlementName(state, 'greenvale-2')
+  const pop = screen.getByRole('dialog', { name: `Travel to ${name}` })
+  expect(pop.contains(document.activeElement)).toBe(true)
+  await userEvent.keyboard('{Escape}')
+  expect(onClose).toHaveBeenCalled()
+  rerender(map(null))
+  expect(document.activeElement).toBe(marker)
 })

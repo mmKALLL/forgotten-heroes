@@ -1,12 +1,16 @@
 import { useState, type ReactNode } from 'react'
 import type { Content } from '../../content/build'
-import { quote, type Quote } from '../../engine/economy/market'
+import { load } from '../../engine/economy/capacity'
+import { MARKET_STALL, quote, type Quote } from '../../engine/economy/market'
 import { marketView, type KnownElsewhere, type MarketRow } from '../../engine/economy/trade'
 import { formatGp } from '../../engine/format'
 import type { Action } from '../../engine/state'
+import { contractRows } from '../../engine/town/contracts'
 import { partyWaterCapacity } from '../../engine/travel/supplies'
 import { GOOD_CATEGORIES } from '../../schema/types'
 import type { GameState } from '../../schema/state'
+import { contractText } from '../contractText'
+import { CapacityMeter } from '../GoodsBar'
 import { useI18n, type I18n } from '../i18n/I18n'
 import { WATERSKIN_PRICE, WATERSKIN_SELL_PRICE, WATERSKIN_WATER } from '../../engine/constants'
 
@@ -80,10 +84,19 @@ function knownText(t: T, side: 'sell' | 'buy', k: KnownElsewhere): string {
 }
 
 /**
- * The market of the settlement the party is in (design §5): every good by category, with its
- * supply and demand, the price to buy and sell one here, the best shop, and the best price the
- * price book knows elsewhere; an amount stepper, and buy and sell buttons showing the live quote
- * for that amount. Waterskins are a row under Essentials. It heads its zone of the ledger.
+ * Selling a contract's cargo breaks the contract: a confirmation naming it. Off until the engine
+ * has an action for it. TODO(merge): the engine agent adds cargo reservation (`cargoInfo`) and a
+ * way to sell cargo; wire `onConfirm` to that action and turn this on.
+ */
+const CARGO_SALE = false
+
+/**
+ * The market of the settlement the party is in (design §5): the party's gold and load, big, over
+ * every good by category, with its supply and demand, the price to buy and sell one here, the best
+ * shop, and the best price the price book knows elsewhere; an amount stepper, and buy and sell
+ * buttons showing the live quote for that amount (and why a buy can't go ahead). Water is free and
+ * refills by itself, so it has no row; waterskins are a row under Essentials. It heads its zone of
+ * the ledger.
  */
 export function MarketPanel({
   content,
@@ -94,14 +107,26 @@ export function MarketPanel({
   state: GameState
   onAction: (a: Action) => void
 }) {
-  const { t, name } = useI18n()
+  const i18n = useI18n()
+  const { t, name, fields } = i18n
   const [amount, setAmount] = useState<Amount>(1)
-  const rows = marketView(state, content)
+  const rows = marketView(state, content).filter((r) => r.good !== 'water')
   const here = state.location
   if (rows.length === 0 || here === null) return null
   const amountText = (a: Amount) => (a === 'max' ? t('market.max') : String(a))
+  // The contracts whose cargo each good is (courier and freight), by title.
+  // TODO(merge): read the engine's `cargoInfo` instead.
+  const contracts = contractRows(state, content)
+  const cargoOf = (good: string) =>
+    contracts
+      .filter((c) => (c.kind === 'courier' || c.kind === 'freight') && c.good === good)
+      .map((c) => contractText(i18n, c).title)
   return (
     <>
+      <div className="market-purse" aria-label={t('market.purseLabel')} role="group">
+        <span className="purse-gold">{t('top.gold', { gold: state.gold })}</span>
+        <CapacityMeter laden={load(state, content)} />
+      </div>
       <div className="zone-head">
         <h3>{t('ledger.market')}</h3>
         <div className="seg-toggle" role="group" aria-label={t('market.amount')}>
@@ -157,9 +182,14 @@ export function MarketPanel({
                     }
                     amount={amount}
                     quoteFor={(side, n) => quote(state, content, here, row.good, side, n)}
-                    water={
-                      row.good === 'water' ? `${row.carried}/${partyWaterCapacity(state)}` : null
+                    uses={fields('goods', row.good)?.uses ?? row.uses}
+                    shopName={
+                      row.shop &&
+                      (row.shop.service === MARKET_STALL
+                        ? t('market.stalls')
+                        : name('services', row.shop.service, row.shop.name))
                     }
+                    cargoFor={cargoOf(row.good)}
                     onAction={onAction}
                   />
                 ))}
@@ -179,7 +209,9 @@ function MarketLine({
   head,
   amount,
   quoteFor,
-  water,
+  uses,
+  shopName,
+  cargoFor,
   onAction,
 }: {
   row: MarketRow
@@ -187,10 +219,16 @@ function MarketLine({
   head: ReactNode
   amount: Amount
   quoteFor: (side: 'buy' | 'sell', n: number) => Quote | null
-  water: string | null
+  /** What the good is for, in the UI language. */
+  uses: string
+  /** The best shop's name in the UI language. */
+  shopName: string | null
+  /** The contracts (titles) whose cargo this good is. */
+  cargoFor: string[]
   onAction: (a: Action) => void
 }) {
   const { t } = useI18n()
+  const [sellingCargo, setSellingCargo] = useState(false)
   const buyN = amount === 'max' ? row.maxBuy : amount
   const forSale = row.carried - row.cargo
   const sellN = amount === 'max' ? forSale : Math.min(amount, forSale)
@@ -203,6 +241,11 @@ function MarketLine({
     : row.buyLimit === 'weight'
       ? t('market.tooHeavy', { n: row.maxBuy })
       : t('market.tooDear', { n: row.maxBuy })
+  const buyWhy = !short
+    ? null
+    : t(row.buyLimit === 'weight' ? 'market.tooHeavyShort' : 'market.tooDearShort', {
+        n: row.maxBuy,
+      })
   const known = row.known.sell ?? row.known.buy
   const knownSide = row.known.sell ? 'sell' : 'buy'
   const knownTitle = [
@@ -218,9 +261,14 @@ function MarketLine({
       <th
         scope="row"
         className="market-good"
-        title={row.cargo > 0 ? `${row.uses}\n${t('market.cargo', { n: row.cargo })}` : row.uses}
+        title={row.cargo > 0 ? `${uses}\n${t('market.cargo', { n: row.cargo })}` : uses}
       >
-        {goodName} <span className="muted">{water ?? (row.carried > 0 ? row.carried : '')}</span>
+        {goodName} <span className="muted">{forSale > 0 ? forSale : ''}</span>
+        {row.cargo > 0 && (
+          <span className="badge small cargo-badge">
+            {t('market.cargoShort', { n: row.cargo })}
+          </span>
+        )}
       </th>
       <td
         className="levels"
@@ -240,17 +288,15 @@ function MarketLine({
       <td className="num">{unit(row.sell)}</td>
       <td className="shop">
         {row.shop ? (
-          <span title={t('market.shopValue', { name: row.shop.name, quality: row.shop.quality })}>
+          <span title={t('market.shopValue', { name: shopName ?? '', quality: row.shop.quality })}>
             <span className="pips" aria-hidden="true">
               {pips(row.shop.quality)}
             </span>
             <span className="sr-only">
-              {t('market.shopValue', { name: row.shop.name, quality: row.shop.quality })}
+              {t('market.shopValue', { name: shopName ?? '', quality: row.shop.quality })}
             </span>
           </span>
-        ) : (
-          row.good === 'water' && <span className="muted">{t('market.free')}</span>
-        )}
+        ) : null}
       </td>
       <td
         className={`known${known?.stale ? ' stale' : ''}${known?.heard ? ' heard' : ''}`}
@@ -308,6 +354,27 @@ function MarketLine({
             {t('market.sellButton', { n: sellN, gp: sellQuote?.total ?? '—' })}
           </button>
         )}
+        {buyWhy && <div className="trade-why tone-bad">{buyWhy}</div>}
+        {CARGO_SALE && row.sell && row.cargo > 0 && cargoFor.length > 0 && (
+          <div className="trade-why">
+            {sellingCargo ? (
+              <>
+                <span className="tone-bad">
+                  {t('market.sellCargoSure', { titles: cargoFor.join(', ') })}
+                </span>{' '}
+                {/* TODO(merge): dispatch the engine's cargo-sale action here. */}
+                <button onClick={() => setSellingCargo(false)}>
+                  {t('market.sellCargoYes')}
+                </button>{' '}
+                <button onClick={() => setSellingCargo(false)}>{t('contracts.abandonNo')}</button>
+              </>
+            ) : (
+              <button className="link" onClick={() => setSellingCargo(true)}>
+                {t('market.sellCargo', { n: row.cargo })}
+              </button>
+            )}
+          </div>
+        )}
       </td>
     </tr>
   )
@@ -328,6 +395,7 @@ function WaterskinLine({
   const buyN = amount === 'max' ? affordable : amount
   const sellN = amount === 'max' ? state.waterskins : Math.min(amount, state.waterskins)
   const label = t('market.waterskins')
+  const water = state.goods.water ?? 0
   return (
     <tr className={state.waterskins > 0 ? 'carried' : undefined}>
       <th
@@ -341,7 +409,10 @@ function WaterskinLine({
       <td className="num">{WATERSKIN_PRICE}</td>
       <td className="num">{WATERSKIN_SELL_PRICE}</td>
       <td />
-      <td />
+      {/* The water the skins hold, in the otherwise empty Elsewhere column. */}
+      <td className="muted">
+        {t('market.skinWater', { water, capacity: partyWaterCapacity(state) })}
+      </td>
       <td className="trade">
         <button
           disabled={buyN === 0 || buyN > affordable}

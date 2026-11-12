@@ -63,7 +63,7 @@ test('an actor override from a previous party falls back to Auto', async () => {
   await userEvent.selectOptions(actor, actor.options[1].value)
   expect(actor.value).not.toBe('')
   await userEvent.click(screen.getByRole('button', { name: 'New party' }))
-  await userEvent.click(screen.getByRole('button', { name: 'Small town, calm region' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Start' }))
   expect(actor.value).toBe('')
   await userEvent.click(screen.getByRole('button', { name: 'Roll' }))
   expect(screen.getByRole('list', { name: 'Log' }).querySelector('li')?.textContent).toMatch(
@@ -151,20 +151,19 @@ test('the pace and foraging chosen outlast an encounter, but not a new party', a
   expect(foraging()).toBe(false)
 
   await userEvent.click(screen.getByRole('button', { name: 'New party' }))
-  await userEvent.click(screen.getByRole('button', { name: 'Small town, calm region' }))
+  await userEvent.click(screen.getByRole('button', { name: 'Start' }))
   await land()
   expect(pressed()).toBe('Steady')
   expect(foraging()).toBe(true)
 })
 
-test('a new party starts where the player chooses', async () => {
+test('a new party starts after a confirmation, in a new world', async () => {
   render(<App />)
   await userEvent.click(screen.getByRole('button', { name: 'New party' }))
-  const choice = within(screen.getByRole('group', { name: 'Where does the new party begin?' }))
-  expect(choice.getByRole('button', { name: 'Small town, calm region' })).toBeTruthy()
+  const choice = within(screen.getByRole('group', { name: 'Start a new party in a new world?' }))
   const before = screen.getByText(/^seed \d+$/).textContent
-  await userEvent.click(choice.getByRole('button', { name: 'Random settlement' }))
-  expect(screen.queryByRole('group', { name: 'Where does the new party begin?' })).toBeNull()
+  await userEvent.click(choice.getByRole('button', { name: 'Start' }))
+  expect(screen.queryByRole('group', { name: 'Start a new party in a new world?' })).toBeNull()
   expect(screen.getByText(/^seed \d+$/).textContent).not.toBe(before)
   const place = within(screen.getByRole('region', { name: 'Settlement' }))
   expect(place.getByRole('list', { name: 'Roads from here' })).toBeTruthy()
@@ -172,7 +171,7 @@ test('a new party starts where the player chooses', async () => {
 
 test('the top bar shows the supplies', () => {
   render(<App />)
-  expect(screen.getByText(/^Food \d+ \(\d+ d\) · Water \d+\/\d+$/)).toBeTruthy()
+  expect(screen.getByText(/^Food \d+ \(\d+d\) · Water \d+\/\d+ \(\d+d\)$/)).toBeTruthy()
 })
 
 test('the roll announcer exists before the first roll, and HP bars are meters', async () => {

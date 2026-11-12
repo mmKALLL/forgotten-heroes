@@ -41,9 +41,9 @@ export function generateWorld(seed: number, content: Content): WorldState {
 }
 
 /**
- * How a new party picks where it begins (design §6), chosen when creating the party:
- * - calm: a small settlement in the calmest mainland domain;
- * - random: any mainland settlement, of any size or danger.
+ * How a new party picks where it begins (design §6):
+ * - random: any mainland settlement, of any size or danger (every new party, designer decision);
+ * - calm: a small settlement in the calmest mainland domain (kept for tests and tools).
  */
 export const START_MODES = ['calm', 'random'] as const
 export type StartMode = (typeof START_MODES)[number]
@@ -58,7 +58,7 @@ const GRAND = ['capital', 'city']
 export function startingSettlement(
   world: WorldState,
   content: Content,
-  mode: StartMode = 'calm'
+  mode: StartMode = 'random'
 ): string | null {
   const sites = sortedEntries(content.settlements).filter((s) =>
     Object.hasOwn(world.settlements, s.id)
