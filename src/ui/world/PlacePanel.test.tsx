@@ -62,10 +62,12 @@ test('shows the settlement and its roads; picking a road shows its odds; Travel 
     .paces.find((p) => p.pace === 'steady')!
   expect(
     road(greenvale2).getByText(
-      `2–4 encounters · about ${Math.round(steady.hostile.share * 100)}% of them hostile`
+      new RegExp(
+        `^2–4 encounters · ${Math.round(steady.hostile.share * 100)}% hostile ` +
+          `\\(10% base, .*10% foraging\\)$`
+      )
     )
   ).toBeTruthy()
-  expect(road(greenvale2).getByText(/^Hostile share: 10% base, .*\+10% foraging$/)).toBeTruthy()
   expect(road(greenvale2).getByText(/forages each day: Survival/)).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenCalledWith({
@@ -100,29 +102,34 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   const forced = at('forced')
   expect(forced.days).toBeLessThan(at('steady').days)
   expect(group.getByText(`About ${forced.days} days on the road`)).toBeTruthy()
-  expect(group.getByText(new RegExp(`^Food: ${Math.ceil(forced.food.needed)} needed`))).toBeTruthy()
+  expect(
+    group.getByText(
+      new RegExp(
+        `^Food: ${forced.food.carried} / ${Math.ceil(forced.food.needed)}, \\+[\\d.]+ per day$`
+      )
+    )
+  ).toBeTruthy()
   const warnings = within(group.getByRole('list', { name: 'Warnings' }))
   expect(warnings.getByText(/A forced march of \d+ days \(CON DC \d+ each day\)/)).toBeTruthy()
-  expect(group.getByText('Ambushes meet the party Exposed')).toBeTruthy()
+  expect(group.getByText('Ambushes: Exposed')).toBeTruthy()
 
   await userEvent.click(pacePicker.getByRole('button', { name: 'Stealthy' }))
   expect(group.getByText(`About ${at('stealthy').days} days on the road`)).toBeTruthy()
-  // Foraging gives covered tracks away; the toggle says so.
-  expect(group.getByText('Ambushes meet the party on normal footing')).toBeTruthy()
-  const covered = at('stealthy')
-  const forage = group.getByRole('checkbox', { name: 'Forage along the way' })
-  expect(forage.getAttribute('aria-describedby')).toBeTruthy()
+  // Foraging gives a stealthy party away; the footing line says why.
+  expect(group.getByText('Ambushes: normal footing (foraging)')).toBeTruthy()
+  expect(group.queryByText(/Foraging draws attention/)).toBeNull()
+  await userEvent.click(group.getByRole('checkbox', { name: 'Forage along the way' }))
+  expect(group.getByText('Ambushes: Edge')).toBeTruthy()
+  // The hostile share shown is after the pace's avoidance, which is one of its parts.
+  const stealthy = routeOptions(state, content, false).find((r) => r.to === 'greenvale-2')!.paces[0]
   expect(
     group.getByText(
-      `Foraging draws attention: about ${Math.round(covered.forageTradeOff!.foraging.hostile * 100)}% ` +
-        `of encounters hostile instead of ` +
-        `${Math.round(covered.forageTradeOff!.notForaging.hostile * 100)}%; ` +
-        'covered tracks give ambushes no Edge'
+      new RegExp(
+        `^\\d+–\\d+ encounters · ${Math.round(stealthy.hostile.share * 100)}% hostile ` +
+          `\\(10% base, .*−\\d+% stealthy\\)$`
+      )
     )
   ).toBeTruthy()
-  await userEvent.click(forage)
-  expect(group.getByText('Ambushes meet the party with Edge')).toBeTruthy()
-  expect(group.getByText(/^Hostile share: 10% base, .*−\d+% stealthy$/)).toBeTruthy()
   expect(group.queryByText(/A forced march/)).toBeNull()
   await userEvent.click(screen.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenLastCalledWith({

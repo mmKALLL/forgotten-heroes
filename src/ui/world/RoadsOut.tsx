@@ -1,4 +1,3 @@
-import { useId } from 'react'
 import type { Content } from '../../content/build'
 import { formatModifier, formatPercent } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
@@ -196,7 +195,6 @@ export function RouteInfo({
   onProvision?: () => void
 }) {
   const { t, stat, name } = useI18n()
-  const forageHintId = useId()
   const there = placeInfo(state, content, road.to)
   const site = poiInfo(state, content, road.to)
   const sea = road.terrain === 'sea'
@@ -250,12 +248,7 @@ export function RouteInfo({
         <>
           <p className="muted small">{t(`paceHint.${shown}`)}</p>
           <label className="inline small">
-            <input
-              type="checkbox"
-              checked={forage}
-              aria-describedby={option.forageTradeOff ? forageHintId : undefined}
-              onChange={(e) => onForage(e.target.checked)}
-            />{' '}
+            <input type="checkbox" checked={forage} onChange={(e) => onForage(e.target.checked)} />{' '}
             {t('route.forage')}
           </label>
           {offer && (
@@ -280,16 +273,6 @@ export function RouteInfo({
               </span>
             </label>
           )}
-          {option.forageTradeOff && (
-            <p id={forageHintId} className="muted small">
-              {t('route.forageHint', {
-                on: formatPercent(option.forageTradeOff.foraging.hostile),
-                off: formatPercent(option.forageTradeOff.notForaging.hostile),
-              })}
-              {option.forageTradeOff.foraging.ambush !== option.forageTradeOff.notForaging.ambush &&
-                t('route.forageHintEdge')}
-            </p>
-          )}
         </>
       )}
       {option.warnings.length > 0 && (
@@ -312,32 +295,38 @@ export function RouteInfo({
       <ul className="route-facts small">
         <li>{t('route.days', { days: daysText(t, option.days) })}</li>
         <li>
-          {t('route.food', { needed: round(option.food.needed), carried: option.food.carried })}
+          {t('route.food', { carried: option.food.carried, needed: round(option.food.needed) })}
           {option.food.expectedForage > 0 &&
-            t('route.foraging', { n: option.food.expectedForage.toFixed(1) })}
+            t('route.perDay', { n: option.food.expectedForage.toFixed(1) })}
         </li>
         <li>
           {t('route.water', {
-            needed: round(option.water.needed),
             carried: option.water.carried,
-            capacity: option.water.capacity,
+            needed: round(option.water.needed),
           })}
+          {/* The skins' capacity matters once the road needs as much as they hold. */}
+          {round(option.water.needed) >= option.water.capacity &&
+            t('route.waterMax', { capacity: option.water.capacity })}
           {option.water.expectedForage > 0 &&
-            t('route.foraging', { n: option.water.expectedForage.toFixed(1) })}
+            t('route.perDay', { n: option.water.expectedForage.toFixed(1) })}
         </li>
         <li>
           {t('route.encounters', { min: option.encounters[0], max: option.encounters[1] })}
-          {option.encounters[1] > 0 && (
-            <>
-              {' · '}
-              {t('route.hostile', { pct: formatPercent(option.hostile.share) })}
-            </>
-          )}
+          {option.encounters[1] > 0 &&
+            ' · ' +
+              t('route.hostile', {
+                pct: formatPercent(option.hostile.share),
+                parts: hostileParts(t, option),
+              })}
         </li>
-        {option.encounters[1] > 0 && (
-          <li className="muted">{t('route.hostileWhy', { parts: hostileParts(t, option) })}</li>
-        )}
-        <li>{t('route.footing', { footing: t(`footing.${option.ambush}`) })}</li>
+        <li>
+          {t('route.footing', { footing: t(`footing.${option.ambush}`) })}
+          {/* Foraging costs a stealthy party its Edge: say so. */}
+          {forage &&
+            option.forageTradeOff &&
+            option.forageTradeOff.foraging.ambush !== option.forageTradeOff.notForaging.ambush &&
+            t('route.footingForaging')}
+        </li>
         {road.fare > 0 && <li>{t('route.fare', { gp: road.fare })}</li>}
         {riding && option.cost !== undefined && <li>{t('route.hireCost', { gp: option.cost })}</li>}
       </ul>
