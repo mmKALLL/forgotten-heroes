@@ -13,6 +13,7 @@ import {
 } from './common'
 import { ABILITIES, CAMARADERIE_MAX, SKILLS, TIERS } from './types'
 import { SituationSchema } from './encounter'
+import { CrisisStateSchema } from './crisis'
 import { AccessorySchema } from './gear'
 import { WorldStateSchema } from './world'
 
@@ -231,7 +232,7 @@ export const ContractStateSchema = z.object({
 export type ContractState = z.infer<typeof ContractStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(10),
+  version: z.literal(11),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -284,5 +285,7 @@ export const GameStateSchema = z.object({
   gearTaken: z.array(z.string()).default([]),
   /** The day each wearer's `lucky` hook was last spent, by character id. */
   luckUsed: z.record(z.string(), z.number().int().min(1)).default({}),
+  /** This world's Crisis (Plan 5b): null only when no villain fits the content. */
+  crisis: CrisisStateSchema.nullable().default(null),
 })
 export type GameState = z.infer<typeof GameStateSchema>

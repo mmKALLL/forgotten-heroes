@@ -115,6 +115,7 @@ export function newGame(
     recruitsTaken: [],
     gearTaken: [],
     luckUsed: {},
+    crisis: null,
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state

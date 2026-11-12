@@ -10,7 +10,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 10
+export const CURRENT_SAVE_VERSION = 11
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -226,6 +226,14 @@ export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
 }
 
 /**
+ * v10 → v11 (Plan 5b): the world's Crisis. For now there is none (`crisis: null`); E1 rolls it
+ * from the save's world seed, starting on the save's current day.
+ */
+export function v10ToV11(raw: Record<string, unknown>, _content: Content): Record<string, unknown> {
+  return { ...raw, version: 11, crisis: null }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -254,6 +262,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v8ToV9(raw as Record<string, unknown>), content)
     case 9:
       return migrate(v9ToV10(raw as Record<string, unknown>), content)
+    case 10:
+      return migrate(v10ToV11(raw as Record<string, unknown>, content), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

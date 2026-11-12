@@ -11,6 +11,7 @@ import {
   v7ToV8,
   v8ToV9,
   v9ToV10,
+  v10ToV11,
 } from './save'
 import { newGame, step } from './state'
 import { passDay } from './travel/supplies'
@@ -108,7 +109,7 @@ function migrated() {
   const world = generateWorld(worldSeed(5), content)
   return {
     ...V2_SAVE,
-    version: 10,
+    version: 11,
     party: [{ ...ada, strain: {}, ...CHARACTER_5A_DEFAULTS }],
     world,
     location: startingSettlement(world, content),
@@ -118,8 +119,12 @@ function migrated() {
     waterskins: 0,
     ...PLAN_4_DEFAULTS,
     ...PLAN_5A_DEFAULTS,
+    ...PLAN_5B_DEFAULTS,
   }
 }
+
+/** What a save from before Plan 5b starts with: no Crisis yet (E1 rolls one). */
+const PLAN_5B_DEFAULTS = { crisis: null }
 
 /** What every character from before Plan 5a starts with: no XP, no wage, nothing worn. */
 const CHARACTER_5A_DEFAULTS = { xp: 0, wage: 0, accessory: null }
@@ -148,12 +153,12 @@ const PLAN_4_DEFAULTS = {
   doneHere: [],
 }
 
-test('a version 2 save loads as version 10 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(10)
+test('a version 2 save loads as version 11 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(11)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save chains through to version 10 too', () => {
+test('a version 1 save chains through to version 11 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -568,6 +573,7 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
       recruitsTaken: _recruitsTaken,
       gearTaken: _gearTaken,
       luckUsed: _luckUsed,
+      crisis: _crisis,
       ...rest
     } = structuredClone(state)
     const party = rest.party.map(({ xp: _xp, wage: _wage, accessory: _accessory, ...c }) => c)
@@ -579,7 +585,7 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     const state = makeState({ gold: 37, goods: { food: 7, water: 4, gems: 2 } })
     const v9 = asV9({ ...state, encounter: makeEncounter() })
     const loaded = deserialize(JSON.stringify(v9), content)!
-    expect(loaded.version).toBe(10)
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
     expect(loaded.gold).toBe(37)
     expect(loaded.goods).toEqual({ food: 7, water: 4, gems: 2 })
     expect(loaded.party).toEqual(state.party.map((c) => ({ ...c, ...CHARACTER_5A_DEFAULTS })))
@@ -599,11 +605,59 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
   test('newGame is unchanged for seeds 1–3 apart from the new fields', () => {
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
-      expect(v9ToV10(asV9(state))).toEqual(state)
+      expect(v10ToV11(v9ToV10(asV9(state)), content)).toEqual(state)
       expect(state.party.every((c) => c.xp === 0 && c.wage === 0 && c.accessory === null)).toBe(
         true
       )
     }
+  })
+})
+
+describe('v10 → v11 (Plan 5b: the Crisis)', () => {
+  /** A current state as a v10 save wrote it: no Crisis. */
+  function asV10(state: GameState): Record<string, unknown> {
+    const { crisis: _crisis, ...rest } = structuredClone(state)
+    return { ...rest, version: 10 }
+  }
+
+  test('a v10 save loads with the party, gold, goods and world untouched', () => {
+    const state = makeState({ gold: 37, goods: { food: 7, water: 4, gems: 2 }, day: 150 })
+    const loaded = deserialize(JSON.stringify(asV10(state)), content)!
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
+    expect(loaded.party).toEqual(state.party)
+    expect(loaded.gold).toBe(37)
+    expect(loaded.goods).toEqual({ food: 7, water: 4, gems: 2 })
+    expect(loaded.world).toEqual(state.world)
+    expect(loaded.day).toBe(150)
+    expect(loaded).toHaveProperty('crisis')
+  })
+
+  test('migrating twice gives identical output, and the input is not mutated', () => {
+    const v10 = asV10(makeState())
+    const raw = structuredClone(v10)
+    const once = v10ToV11(raw, content)
+    expect(v10ToV11(once, content)).toEqual(once)
+    expect(migrate(structuredClone(v10), content)).toEqual(migrate(structuredClone(v10), content))
+    expect(raw).toEqual(v10)
+  })
+
+  test('a saved Crisis survives a round trip', () => {
+    const crisis = {
+      villain: 'test-villain',
+      name: 'Morvaine, the Test Prophet',
+      startDay: 1,
+      reveal: 'poi-1',
+      acts: [1, 2, 3].map((n) => ({ id: `test-act-${n}`, poi: `poi-${n + 1}`, due: 100 * n })),
+      learned: 12,
+      clues: [3, 1, 0],
+      thwarted: [80, null, null],
+      endSeen: false,
+    }
+    const state = makeState({ crisis })
+    expect(deserialize(serialize(state), content)).toEqual(state)
+    expect(
+      deserialize(serialize({ ...state, crisis: { ...crisis, acts: [] } }), content)
+    ).toBeNull()
   })
 })
 
