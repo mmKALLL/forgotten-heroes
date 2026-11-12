@@ -43,8 +43,10 @@ export type ExploreOption = {
   days: number
   /** The odds of each tier (tierOdds). */
   chances: Record<Tier, number>
-  /** What each tier leads to, in TIERS order. */
+  /** What each tier leads to, in TIERS order (English). */
   outcomes: string[]
+  /** The sites each tier finds and the days it takes, for previews in any language. */
+  finds: Record<Tier, { found: number; days: number }>
 }
 
 /** What each tier of a search leads to (English; in TIERS order in exploreOption). */
@@ -113,6 +115,12 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
     days: EXPLORE_DAYS,
     chances: tierOdds(best.actor.modifier, dc),
     outcomes: TIERS.map((tier) => EXPLORE_OUTCOMES[tier]),
+    finds: Object.fromEntries(
+      TIERS.map((tier) => [
+        tier,
+        { found: FINDS[tier].found, days: EXPLORE_DAYS + FINDS[tier].extraDays },
+      ])
+    ) as Record<Tier, { found: number; days: number }>,
   }
 }
 

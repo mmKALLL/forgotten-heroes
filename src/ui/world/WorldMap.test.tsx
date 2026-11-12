@@ -2,6 +2,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
+import { edgesFrom } from '../../engine/world/graph'
 import { territory } from '../../engine/world/territory'
 import { step } from '../../engine/state'
 import { routeOptions } from '../../engine/travel/preview'
@@ -295,4 +296,38 @@ test('twelve kingdoms get twelve distinct colours', () => {
   const colours = kingdomColours(kingdoms)
   expect(new Set(colours.values()).size).toBe(12)
   expect(new Set(KINGDOM_COLOURS).size).toBe(KINGDOM_COLOURS.length)
+})
+
+test('paths to discovered sites are drawn like roads, and highlighted when chosen', () => {
+  const state = discover(makeState({ location: 'ashmoor-1' }), ['poi-1'])
+  const paths = edgesFrom(state, content, 'poi-1')
+  const props = { content, state, onSelect: () => {}, imageUrl: null }
+  const { container, rerender } = render(<WorldMap {...props} selected={null} />)
+  const lines = container.querySelectorAll<SVGLineElement>('line.route.path')
+  expect(lines).toHaveLength(paths.length)
+  for (const [i, line] of [...lines].entries()) {
+    expect(line.style.stroke).toBe(hexToRgb(DANGER_COLOURS[paths[i].danger]))
+  }
+  expect(container.querySelectorAll('line.route.path.active')).toHaveLength(0)
+  rerender(<WorldMap {...props} selected="poi-1" />)
+  expect(container.querySelectorAll('line.route.path.active')).toHaveLength(1)
+  // The site is a road's end now, so it is a tab stop.
+  expect(
+    map().getByRole('button', { name: 'Old Wen’s hut (expert)' }).getAttribute('tabindex')
+  ).toBe('0')
+  // Undiscovered sites have no paths.
+  rerender(<WorldMap {...props} state={makeState({ location: 'ashmoor-1' })} selected={null} />)
+  expect(container.querySelectorAll('line.route.path')).toHaveLength(0)
+})
+
+test('the party on a path to a site is drawn along it', () => {
+  const state = discover(makeState({ location: 'ashmoor-1' }), ['poi-1'])
+  const path = edgesFrom(state, content, 'ashmoor-1').find((r) => r.from === 'poi-1')!
+  const out = step(state, { type: 'travel', routeId: path.id }, content)
+  expect(out.travel).not.toBeNull()
+  const { container } = render(
+    <WorldMap content={content} state={out} selected={null} onSelect={() => {}} imageUrl={null} />
+  )
+  expect(container.querySelector('circle.party-marker')).toBeTruthy()
+  expect(container.querySelectorAll('line.route.path.active')).toHaveLength(1)
 })

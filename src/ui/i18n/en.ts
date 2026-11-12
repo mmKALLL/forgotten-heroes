@@ -194,6 +194,8 @@ export const en = {
   'place.sellFood': 'Sell {n} rations (+{gp} gp)',
   'place.sellWaterskin': 'Sell a waterskin (+{gp} gp)',
   'place.roads': 'Roads from here',
+  /** Marks a path to a point of interest in the roads list. */
+  'place.siteBadge': 'site',
   'place.elsewhere': '{name}: {type}',
 
   'route.heading': 'To {name}',
@@ -255,6 +257,29 @@ export const en = {
     'A forced march of {days} (CON DC {dc} each day) will likely exhaust {name}: about {levels} levels.',
   'warning.forcedMarchDeadly':
     'A forced march of {days} could kill {name} ({pct}% chance of reaching the sixth level of exhaustion).',
+
+  'poi.heading': 'Site',
+  'poi.kind': '{category} · {type}',
+  'poi.owner': '{land} · domain of {domain}, {kingdom}',
+  'poi.feeds': 'Feeds the {threat}: +{n} threat here',
+  'poi.cleared': 'Cleared',
+  'poi.clearedReason': '{name} has been cleared.',
+  'poi.water': 'A spring here: arriving refills the waterskins.',
+  'poi.enter': 'Enter',
+  'poi.visit': 'Visit',
+  'poi.rest': 'Make camp (rest a day)',
+  'poi.restHint':
+    'A day in camp eats carried food and heals a quarter of max HP; everyone fed loses a level of exhaustion.',
+  'poi.noTrade': 'Not here: there is no one to buy from or sell to.',
+
+  'explore.heading': 'Explore the domain',
+  'explore.check': '{name} leads the search for {days}: {skill} {modifier} vs DC {dc}',
+  'explore.chance': '{pct} chance to find a site',
+  'explore.outcomes': 'What the search finds',
+  'explore.found': 'Finds a site',
+  'explore.foundLate': 'Finds a site, after {days}',
+  'explore.nothing': 'Finds nothing',
+  'explore.button': 'Explore ({days})',
 
   'journey.heading': 'On the road',
   'journey.route': '{from} → {to}',

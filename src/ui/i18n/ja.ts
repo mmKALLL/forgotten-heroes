@@ -185,6 +185,7 @@ export const ja: Partial<Messages> = {
   'place.sellFood': '食料を{n}売る（+{gp} gp）',
   'place.sellWaterskin': '水袋を売る（+{gp} gp）',
   'place.roads': 'ここからの道',
+  'place.siteBadge': '場所',
   'place.elsewhere': '{name}：{type}',
 
   'route.heading': '{name}へ',
@@ -244,6 +245,29 @@ export const ja: Partial<Messages> = {
     '{days}の強行軍（毎日耐久力DC {dc}）で{name}はおそらく消耗する：およそ{levels}段階。',
   'warning.forcedMarchDeadly':
     '{days}の強行軍で{name}が死ぬおそれがある（消耗6段階に達する確率{pct}%）。',
+
+  'poi.heading': '場所',
+  'poi.kind': '{category} · {type}',
+  'poi.owner': '{land} · {domain}の領地、{kingdom}',
+  'poi.feeds': '{threat}の拠点：この地の脅威+{n}',
+  'poi.cleared': '制圧済み',
+  'poi.clearedReason': '{name}は制圧済み。',
+  'poi.water': '泉がある：到着すると水袋が満たされる。',
+  'poi.enter': '踏み込む',
+  'poi.visit': '訪れる',
+  'poi.rest': '野営する（1日休む）',
+  'poi.restHint':
+    '野営で1日休むと携行食を消費し、最大HPの4分の1を回復する。食事をとった者は消耗が1段階回復する。',
+  'poi.noTrade': 'ここでは売買できない。',
+
+  'explore.heading': '領地を探索する',
+  'explore.check': '{name}が{days}探索を率いる：{skill} {modifier}、DC {dc}',
+  'explore.chance': '場所を見つける確率 {pct}',
+  'explore.outcomes': '探索の結果',
+  'explore.found': '場所を1つ見つける',
+  'explore.foundLate': '{days}かけて場所を1つ見つける',
+  'explore.nothing': '何も見つからない',
+  'explore.button': '探索する（{days}）',
 
   'journey.heading': '道中',
   'journey.route': '{from} → {to}',

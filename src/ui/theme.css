@@ -802,6 +802,13 @@ h2[tabindex='-1']:focus {
   stroke-dasharray: 7 6;
   stroke-linecap: butt;
 }
+.route.path {
+  stroke-width: 2.5px;
+  stroke-dasharray: 2 5;
+}
+.route-casing.path {
+  stroke-width: 5px;
+}
 .route-casing.active {
   stroke: var(--crit);
   stroke-opacity: 1;

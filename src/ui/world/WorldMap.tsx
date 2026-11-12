@@ -2,7 +2,7 @@ import { useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
 import { routeOptions } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
-import { nodeOf } from '../../engine/world/graph'
+import { edgesFrom, nodeOf } from '../../engine/world/graph'
 import { SPOT_SPACING_PX, territory } from '../../engine/world/territory'
 import type { GameState } from '../../schema/state'
 import { MAP_HEIGHT, MAP_WIDTH, type Kingdom, type MapPoint } from '../../schema/world'
@@ -276,6 +276,27 @@ export function WorldMap({ content, state, selected, onSelect, imageUrl }: Props
             </g>
           )
         })}
+        {/* The paths to discovered sites, thinner than roads, coloured the same way. */}
+        {pois.flatMap(({ id }) =>
+          edgesFrom(state, content, id).map((r) => {
+            const a = at(r.from)
+            const b = at(r.to)
+            if (!a || !b) return null
+            const danger = Math.max(0, Math.min(3, r.danger))
+            const active = r.id === shownRoute ? 'active' : ''
+            const ends = { x1: a.x, y1: a.y, x2: b.x, y2: b.y }
+            return (
+              <g key={r.id} data-route={r.id}>
+                <line className={`route-casing path ${active}`} {...ends} />
+                <line
+                  className={`route path danger-${danger} ${active}`}
+                  style={{ stroke: DANGER_COLOURS[danger] }}
+                  {...ends}
+                />
+              </g>
+            )
+          })
+        )}
         {travel && from && party && (
           <line
             className="route travelled"

@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import type { Biome, Pace, Position } from '../../schema/constants'
+import type { Biome, Pace, PoiCategory, Position } from '../../schema/constants'
 import type { GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { inProgress } from '../encounters/run'
@@ -100,6 +100,58 @@ export function placeInfo(state: GameState, content: Content, id: string): Place
     services: info.services.map((s) => ({ id: s, name: own(content.services, s)?.name ?? s })),
     banner: own(content.towns, info.town)?.banner ?? null,
     coastal: site.coastal,
+  }
+}
+
+/** A discovered point of interest, as the panels describe it. */
+export type PoiInfo = {
+  id: string
+  name: string
+  /** Null when its type is missing from content. */
+  category: PoiCategory | null
+  typeName: string
+  /** The domain that owns it (a settlement id), and that settlement's name. */
+  domainId: string
+  domainName: string
+  /** The kingdom holding the domain. */
+  kingdomName: string
+  /** The land the domain lies in. */
+  landName: string
+  /** A lair or active dungeon, feeding its domain's threat until cleared. */
+  hostile: boolean
+  /** What it adds to its domain's threat now: 0 unless hostile and not cleared. */
+  threat: number
+  /** The threat roaming the land, which a hostile site feeds. */
+  threatName: string
+  cleared: boolean
+  /** A spring or well: arriving refills the waterskins. */
+  water: boolean
+}
+
+/** A discovered point of interest; null when it is unknown or not yet discovered. */
+export function poiInfo(state: GameState, content: Content, id: string): PoiInfo | null {
+  const poi = own(state.world.pois, id)
+  if (!poi || !poi.discovered) return null
+  const type = own(content.poiTypes, poi.type)
+  const home = own(content.settlements, poi.domain)
+  const domain = own(state.world.domains, poi.domain)
+  const kingdom = state.world.kingdoms.find((k) => k.id === domain?.kingdom)
+  const land = domain?.land ?? home?.region
+  const hostile = type?.hostile ?? poi.threat > 0
+  return {
+    id,
+    name: poi.name,
+    category: type?.category ?? null,
+    typeName: type?.name ?? poi.type,
+    domainId: poi.domain,
+    domainName: settlementName(state, poi.domain),
+    kingdomName: kingdom?.name ?? 'No kingdom',
+    landName: own(content.regions, land)?.name ?? land ?? '?',
+    hostile,
+    threat: hostile && !poi.cleared ? poi.threat : 0,
+    threatName: own(content.threats, own(state.world.lands, land)?.threat)?.name ?? 'None',
+    cleared: poi.cleared,
+    water: type?.water ?? false,
   }
 }
 
