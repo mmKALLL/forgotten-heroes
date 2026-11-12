@@ -1,0 +1,340 @@
+import type { Content } from '../../content/build'
+import type { MarketRule } from '../../schema/economy'
+import { GOODS, GOOD_CATEGORY, type Good, type PoiCategory } from '../../schema/types'
+import type { GameState, MarketTrade } from '../../schema/state'
+import { createRng, nextFloat } from '../rng'
+import { domainThreatLevel } from '../world/pois'
+import { siteStatus } from '../world/sites'
+import { goodDef } from './goods'
+import {
+  DRIFT,
+  DRIFT_PERIOD_DAYS,
+  MARKET_DEPTH,
+  MARKET_LEVEL_MAX,
+  PRICE_STEP,
+  RECOVERY_HALF_LIFE_DAYS,
+  SPREAD_BY_SIZE,
+  SPREAD_MIN,
+  SPREAD_PER_QUALITY,
+  STALL_QUALITY,
+} from '../constants'
+
+// Settlement markets (design §4, §5). Nothing ticks: supply and demand follow the settlement and
+// the market rules, prices drift by a seeded wave, and the party's bulk trades sag the price and
+// recover with a half-life. State only stores the party's net trades (GameState.markets).
+
+/** The pseudo-shop every settlement has: market stalls selling and buying the essentials. */
+export const MARKET_STALL = 'market-stall'
+
+type Market = Pick<GameState, 'world' | 'day' | 'markets'>
+
+const own = <T>(table: Record<string, T>, id: string): T | undefined =>
+  Object.hasOwn(table, id) ? table[id] : undefined
+
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n))
+
+/** A seeded float in [0, 1) for a key: the same every time it is asked. */
+function seededFloat(seed: number, key: string): number {
+  let h = 0x811c9dc5 ^ seed
+  for (const ch of key) h = Math.imul(h ^ ch.charCodeAt(0), 0x01000193)
+  return nextFloat(createRng(h >>> 0))[0]
+}
+
+/** What the market rules look at in a settlement on a day. */
+export type MarketPlace = {
+  type: string
+  sizeTier: number
+  biome: string | null
+  coastal: boolean
+  threat: number
+  wealth: number
+  /** Categories of the sites in its domain that are there now (not lying empty). */
+  nearPoi: PoiCategory[]
+}
+
+export function marketPlace(
+  state: Pick<GameState, 'world'>,
+  content: Content,
+  settlementId: string,
+  day: number
+): MarketPlace | null {
+  const info = own(state.world.settlements, settlementId)
+  if (!info) return null
+  const site = own(content.settlements, settlementId)
+  const biome = site ? (own(content.regions, site.region)?.biome ?? null) : null
+  const nearPoi = Object.entries(state.world.pois)
+    .filter(([id, p]) => {
+      if (p.domain !== settlementId) return false
+      return siteStatus(state.world.seed, id, p, day)?.phase !== 'empty'
+    })
+    .map(([, p]) => p.category)
+  return {
+    type: info.type,
+    sizeTier: info.sizeTier,
+    biome,
+    coastal: site?.coastal ?? false,
+    threat: domainThreatLevel(state.world, settlementId, day),
+    wealth: info.wealth,
+    nearPoi: [...new Set(nearPoi)],
+  }
+}
+
+/** Whether every condition of a rule holds here. */
+export function ruleApplies(rule: MarketRule, place: MarketPlace): boolean {
+  const w = rule.when
+  return (
+    (w.types === undefined || w.types.includes(place.type)) &&
+    (w.biomes === undefined || (place.biome !== null && w.biomes.some((b) => b === place.biome))) &&
+    (w.coastal === undefined || w.coastal === place.coastal) &&
+    (w.minSize === undefined || place.sizeTier >= w.minSize) &&
+    (w.maxSize === undefined || place.sizeTier <= w.maxSize) &&
+    (w.threatAtLeast === undefined || place.threat >= w.threatAtLeast) &&
+    (w.nearPoi === undefined || w.nearPoi.some((c) => place.nearPoi.includes(c))) &&
+    (w.minWealth === undefined || place.wealth >= w.minWealth)
+  )
+}
+
+export type MarketLevel = { supply: number; demand: number }
+
+/**
+ * Supply and demand for every good in a settlement: the sums of the market rules that apply,
+ * each within ±MARKET_LEVEL_MAX.
+ */
+export function marketLevels(
+  state: Pick<GameState, 'world' | 'day'>,
+  content: Content,
+  settlementId: string,
+  day = state.day
+): Record<Good, MarketLevel> {
+  const levels = Object.fromEntries(GOODS.map((g) => [g, { supply: 0, demand: 0 }])) as Record<
+    Good,
+    MarketLevel
+  >
+  const place = marketPlace(state, content, settlementId, day)
+  if (!place) return levels
+  for (const rule of Object.values(content.marketRules)) {
+    if (!ruleApplies(rule, place)) continue
+    for (const g of GOODS) {
+      levels[g].supply += rule.supply[g] ?? 0
+      levels[g].demand += rule.demand[g] ?? 0
+    }
+  }
+  for (const g of GOODS) {
+    levels[g].supply = clamp(levels[g].supply, -MARKET_LEVEL_MAX, MARKET_LEVEL_MAX)
+    levels[g].demand = clamp(levels[g].demand, -MARKET_LEVEL_MAX, MARKET_LEVEL_MAX)
+  }
+  return levels
+}
+
+/**
+ * A price's drift on a day, in [1 − DRIFT, 1 + DRIFT]: value noise, a seeded value every
+ * DRIFT_PERIOD_DAYS and a straight line between, so it moves smoothly and never ticks.
+ */
+export function drift(seed: number, settlementId: string, good: Good, day: number): number {
+  const t = (day - 1) / DRIFT_PERIOD_DAYS
+  const knot = Math.floor(t)
+  const at = (k: number) => seededFloat(seed, `drift/${settlementId}/${good}/${k}`) * 2 - 1
+  const a = at(knot)
+  const b = at(knot + 1)
+  return 1 + DRIFT * (a + (b - a) * (t - knot))
+}
+
+/**
+ * What is left of the party's net trades on a day: they recover with a half-life of
+ * RECOVERY_HALF_LIFE_DAYS. Positive after selling (prices sag), negative after buying.
+ */
+export const pressure = (entry: MarketTrade | undefined, day: number): number =>
+  entry ? entry.units * 0.5 ** (Math.max(0, day - entry.day) / RECOVERY_HALF_LIFE_DAYS) : 0
+
+/** How many units of a good this market absorbs before bulk trades move the price much. */
+export const marketDepth = (content: Content, sizeTier: number, good: Good): number =>
+  (MARKET_DEPTH[clamp(sizeTier, 0, MARKET_DEPTH.length - 1)] ?? 1) *
+  (goodDef(content, good)?.depth ?? 1)
+
+/** The price before the party's own trades: base × PRICE_STEP^(demand − supply) × drift. */
+function levelPrice(
+  state: Market,
+  content: Content,
+  settlementId: string,
+  good: Good,
+  day: number
+): number {
+  const price = goodDef(content, good)?.price ?? 0
+  if (price <= 0) return 0
+  const { supply, demand } = marketLevels(state, content, settlementId, day)[good]
+  return price * PRICE_STEP ** (demand - supply) * drift(state.world.seed, settlementId, good, day)
+}
+
+const sizeOf = (state: Pick<GameState, 'world'>, id: string) =>
+  own(state.world.settlements, id)?.sizeTier ?? 0
+
+const tradeOf = (state: Market, settlementId: string, good: Good): MarketTrade | undefined =>
+  own(state.markets, settlementId)?.[good]
+
+/**
+ * The middle price of a good in a settlement on a day (0 for goods that aren't traded): the level
+ * price, sagged or raised by what is left of the party's trades, exp(−pressure / depth).
+ */
+export function midPrice(
+  state: Market,
+  content: Content,
+  settlementId: string,
+  good: Good,
+  day = state.day
+): number {
+  const p = pressure(tradeOf(state, settlementId, good), day)
+  const depth = marketDepth(content, sizeOf(state, settlementId), good)
+  return levelPrice(state, content, settlementId, good, day) * Math.exp(-p / depth)
+}
+
+/** A shop that trades a good: a service, or the market stalls. */
+export type Shop = {
+  service: string
+  name: string
+  /** 1 to 5. */
+  quality: number
+  /** The gap between what it asks and what it pays, as a share of the middle price. */
+  spread: number
+  /** It sells the good to the party. */
+  sells: boolean
+  /** It buys the good from the party. */
+  buys: boolean
+}
+
+/** A service's quality in a settlement: 3, plus half the settlement's wealth, ±1 by seed; 1–5. */
+export function serviceQuality(
+  state: Pick<GameState, 'world'>,
+  settlementId: string,
+  service: string
+): number {
+  const wealth = own(state.world.settlements, settlementId)?.wealth ?? 0
+  const roll = Math.floor(seededFloat(state.world.seed, `quality/${settlementId}/${service}`) * 3)
+  return clamp(3 + Math.round(wealth / 2) + roll - 1, 1, 5)
+}
+
+/** The spread at a shop of this quality in a settlement of this size, at least SPREAD_MIN. */
+export const shopSpread = (sizeTier: number, quality: number, modifier = 0): number =>
+  Math.max(
+    SPREAD_MIN,
+    SPREAD_BY_SIZE[clamp(sizeTier, 0, SPREAD_BY_SIZE.length - 1)] -
+      SPREAD_PER_QUALITY * (quality - 3) +
+      modifier
+  )
+
+/**
+ * How standing in a settlement moves its spreads. Reputation (Plan 4 B2) plugs in here; until
+ * then it is 0.
+ */
+export const spreadModifier = (_state: Pick<GameState, 'world'>, _settlementId: string): number => 0
+
+/** True for goods a market trades at all: defined, and worth something (water is free). */
+export const tradable = (content: Content, good: Good): boolean =>
+  (goodDef(content, good)?.price ?? 0) > 0
+
+/**
+ * The shops in a settlement that trade a good, best (narrowest spread) first: present services
+ * whose role trades it, or buys it only (those never sell it), and the market stalls for
+ * essentials. Empty for goods that aren't traded.
+ */
+export function shopsFor(
+  state: Pick<GameState, 'world'>,
+  content: Content,
+  settlementId: string,
+  good: Good,
+  modifier = spreadModifier(state, settlementId)
+): Shop[] {
+  const info = own(state.world.settlements, settlementId)
+  if (!info || !tradable(content, good)) return []
+  const shops: Shop[] = info.services.flatMap((service) => {
+    const role = own(content.serviceRoles, service)
+    if (!role) return []
+    const sells = role.trades.includes(good)
+    const buys = sells || role.buysOnly.includes(good)
+    if (!buys) return []
+    const quality = serviceQuality(state, settlementId, service)
+    return [
+      {
+        service,
+        name: own(content.services, service)?.name ?? service,
+        quality,
+        spread: shopSpread(info.sizeTier, quality, modifier),
+        sells,
+        buys,
+      },
+    ]
+  })
+  if (GOOD_CATEGORY[good] === 'essentials') {
+    shops.push({
+      service: MARKET_STALL,
+      name: 'Market stalls',
+      quality: STALL_QUALITY,
+      spread: shopSpread(info.sizeTier, STALL_QUALITY, modifier),
+      sells: true,
+      buys: true,
+    })
+  }
+  return shops.sort((a, b) => a.spread - b.spread || (a.service < b.service ? -1 : 1))
+}
+
+export type TradeSide = 'buy' | 'sell'
+
+export type Quote = {
+  /** gp for the whole trade: rounded up when buying, down when selling. */
+  total: number
+  /** The first and the last unit's price, as the trade moves the market. */
+  unitFirst: number
+  unitLast: number
+  shop: Shop
+}
+
+/**
+ * What buying or selling `amount` units would cost or fetch at a shop (the best one by default),
+ * unit by unit as the trade moves the price. Each unit is priced at the pressure halfway through
+ * it, so buying and selling the same units back meet the same middle prices and the spread always
+ * loses money. Null when no shop here trades the good that way, or the amount is below 1.
+ */
+export function quote(
+  state: Market,
+  content: Content,
+  settlementId: string,
+  good: Good,
+  side: TradeSide,
+  amount: number,
+  shop?: string
+): Quote | null {
+  const n = Math.floor(amount)
+  if (n < 1) return null
+  const shops = shopsFor(state, content, settlementId, good).filter((s) =>
+    side === 'buy' ? s.sells : s.buys
+  )
+  const chosen = shop === undefined ? shops[0] : shops.find((s) => s.service === shop)
+  if (!chosen) return null
+  const level = levelPrice(state, content, settlementId, good, state.day)
+  const depth = marketDepth(content, sizeOf(state, settlementId), good)
+  const p0 = pressure(tradeOf(state, settlementId, good), state.day)
+  const factor = side === 'buy' ? 1 + chosen.spread / 2 : 1 - chosen.spread / 2
+  const unit = (i: number) => {
+    const p = side === 'sell' ? p0 + i + 0.5 : p0 - i - 0.5
+    return level * Math.exp(-p / depth) * factor
+  }
+  let sum = 0
+  for (let i = 0; i < n; i++) sum += unit(i)
+  const total = side === 'buy' ? Math.ceil(sum - 1e-9) : Math.floor(sum + 1e-9)
+  return { total, unitFirst: unit(0), unitLast: unit(n - 1), shop: chosen }
+}
+
+/**
+ * The party's net trades after trading `units` (sales positive) today: the old pressure is
+ * folded to today (rounded to whole units) before adding.
+ */
+export function recordTrade(
+  markets: GameState['markets'],
+  settlementId: string,
+  good: Good,
+  units: number,
+  day: number
+): GameState['markets'] {
+  const here = own(markets, settlementId) ?? {}
+  const folded = Math.round(pressure(here[good], day))
+  return { ...markets, [settlementId]: { ...here, [good]: { units: folded + units, day } } }
+}

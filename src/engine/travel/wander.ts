@@ -5,7 +5,8 @@ import { encounterOptions } from '../encounters/preview'
 import { step } from '../state'
 import { routeOptions, type PaceOption } from './preview'
 import { goodsOf, restOption } from './supplies'
-import { FOOD_PRICE, WATERSKIN_PRICE } from '../constants'
+import { quote } from '../economy/market'
+import { WATERSKIN_PRICE } from '../constants'
 
 /** Exhausted or badly hurt, but alive (a member at MAX_EXHAUSTION is beyond resting). */
 const needsRest = (c: Character) =>
@@ -27,7 +28,7 @@ const dry = (option: PaceOption) => option.warnings.some((w) => w.code === 'wate
 
 /**
  * A fixed policy for tests and the simulation smoke test (design §10). In a settlement it rests
- * (at an inn while it keeps LODGING_RESERVE gold, otherwise buying each day's rations) while anyone is exhausted or
+ * (at an inn while it keeps LODGING_RESERVE gold, otherwise buying each day's rations at the market) while anyone is exhausted or
  * badly hurt, up to MAX_REST_DAYS. Each leg then takes the available road at `pick(leg, count)`,
  * at the pace at `pickPace(leg, count)` among the road's pace options (covering tracks is one of
  * them). Before setting out it buys waterskins while the preview says the water runs out even with
@@ -46,10 +47,10 @@ export function wander(
   for (let leg = 0; leg < legs; leg++) {
     if (!state.travel) {
       for (let day = 0; day < MAX_REST_DAYS && state.party.some(needsRest); day++) {
-        const lodging = state.gold - restOption(state).lodgingCost >= LODGING_RESERVE
+        const lodging = state.gold - restOption(state, content).lodgingCost >= LODGING_RESERVE
         const short = state.party.length - goodsOf(state.goods, 'food')
         if (short > 0 && !lodging) {
-          state = step(state, { type: 'buyFood', amount: short }, content)
+          state = step(state, { type: 'buyGoods', good: 'food', amount: short }, content)
         }
         state = step(state, { type: 'rest', lodging }, content)
       }
@@ -67,7 +68,12 @@ export function wander(
         const paceOf = () =>
           routeOptions(state, content).find((o) => o.routeId === road.routeId)!.paces[index]
         let option = paceOf()
-        const foodCost = () => Math.max(0, option.food.needed - option.food.carried) * FOOD_PRICE
+        // What the food this pace needs would cost at the local market.
+        const foodCost = () => {
+          const missing = option.food.needed - option.food.carried
+          if (missing <= 0 || !state.location) return 0
+          return quote(state, content, state.location, 'food', 'buy', missing)?.total ?? 0
+        }
         for (
           let bought = 0;
           dry(option) &&
@@ -79,7 +85,9 @@ export function wander(
           option = paceOf()
         }
         const missing = option.food.needed - option.food.carried
-        if (missing > 0) state = step(state, { type: 'buyFood', amount: missing }, content)
+        if (missing > 0) {
+          state = step(state, { type: 'buyGoods', good: 'food', amount: missing }, content)
+        }
         const { pace, coverTracks } = option
         state = step(state, { type: 'travel', routeId: road.routeId, pace, coverTracks }, content)
       }

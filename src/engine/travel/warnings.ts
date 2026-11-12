@@ -1,3 +1,4 @@
+import type { Content } from '../../content/build'
 import type { Biome, Pace } from '../../schema/types'
 import type { Character, GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
@@ -7,6 +8,7 @@ import { tierOdds } from '../rules/checks'
 import { expectedForage } from './forage'
 import { journeyDays } from './routes'
 import { dailyNeed, goodsOf, partyWaterCapacity, waterNeed } from './supplies'
+import { goodDef } from '../economy/goods'
 import { DEADLY_MARCH_CHANCE, FORCED_MARCH_DC } from '../constants'
 
 // Supply forecasts and warnings for a road at a pace (design §7): the preview warns clearly when a
@@ -60,6 +62,8 @@ export type TravelWarning =
       code: 'forcedMarchDeadly'
       params: { days: number; dc: number; characterId: string; name: string; chance: number }
     }
+  /** The party carries more than its capacity (kg): slower, and no forced march. */
+  | { code: 'encumbered'; params: { weight: number; capacity: number } }
 
 /** Warnings the UI should show as severe. */
 export const isSevere = (w: TravelWarning): boolean => w.code === 'forcedMarchDeadly'
@@ -95,10 +99,13 @@ const EPSILON = 1e-9
 
 type Run = { shortfallDays: number; runsOutOnDay: number | null }
 
+/** How a stock spoils each night: a share of it, with a fractional carry (economy/goods.ts). */
+type Spoil = { rate: number; carry: number }
+
 /**
  * Walks the journey day by day: foraging first (water kept up to capacity), then the day's
- * rations. A day is short when the stock can't cover everyone's base ration (a forced march's
- * extra is eaten when it is there, like passDay).
+ * rations, then spoilage. A day is short when the stock can't cover everyone's base ration (a
+ * forced march's extra is eaten when it is there, like passDay).
  */
 function simulate(
   days: number,
@@ -106,9 +113,11 @@ function simulate(
   forage: number,
   capacity: number,
   base: number,
-  full: number
+  full: number,
+  spoil: Spoil = { rate: 0, carry: 0 }
 ): Run {
   let stock = carried
+  let carry = spoil.carry
   let shortfallDays = 0
   let runsOutOnDay: number | null = null
   for (let day = 1; day <= days; day++) {
@@ -118,6 +127,11 @@ function simulate(
       runsOutOnDay ??= day
     }
     stock = Math.max(0, stock - full)
+    if (spoil.rate > 0 && stock > 0) {
+      const due = Math.floor(stock) * spoil.rate + carry
+      stock = Math.max(0, stock - Math.floor(due))
+      carry = due - Math.floor(due)
+    }
   }
   return { shortfallDays, runsOutOnDay }
 }
@@ -129,25 +143,39 @@ export type RouteForecast = {
   warnings: TravelWarning[]
 }
 
-/** Water, food and warnings for taking this road at this pace with the party as it is now. */
+/**
+ * Water, food and warnings for taking this road at this pace with the party as it is now. `speed`
+ * is its land speed (routes.ts landSpeed); with `content`, food spoils as it will on the road.
+ */
 export function forecastJourney(
-  state: Pick<GameState, 'party' | 'goods' | 'waterskins'>,
+  state: Pick<GameState, 'party' | 'goods' | 'waterskins'> & Partial<Pick<GameState, 'spoilage'>>,
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace,
   coverTracks = false,
-  forage = true
+  forage = true,
+  {
+    speed = 1,
+    content,
+    animalWater = 0,
+  }: { speed?: number; content?: Content; animalWater?: number } = {}
 ): RouteForecast {
   const members = state.party.length
   const terrain: Biome = route.terrain
-  const days = journeyDays(route, pace, coverTracks)
-  const need = dailyNeed(members, terrain, pace)
+  const days = journeyDays(route, pace, coverTracks, speed)
+  const party = dailyNeed(members, terrain, pace)
+  // Animals drink from the carried water too; going short hurts no member, so only the total grows.
+  const need = { ...party, water: party.water + animalWater * waterNeed(terrain) }
   const base = { food: members, water: waterNeed(terrain) * members }
   const found = forage ? expectedForage(state, terrain, pace) : { food: 0, water: 0 }
   const capacity = partyWaterCapacity(state)
   const carried = { food: goodsOf(state.goods, 'food'), water: goodsOf(state.goods, 'water') }
 
   const water = simulate(days, carried.water, found.water, capacity, base.water, need.water)
-  const food = simulate(days, carried.food, found.food, Infinity, base.food, need.food)
+  const spoil = {
+    rate: content ? (goodDef(content, 'food')?.spoilPerDay ?? 0) : 0,
+    carry: state.spoilage?.food ?? 0,
+  }
+  const food = simulate(days, carried.food, found.food, Infinity, base.food, need.food, spoil)
   const warnings: TravelWarning[] = []
   const foraging = found.water > 0
   if (water.runsOutOnDay !== null) {
@@ -259,6 +287,11 @@ export function warningText(w: TravelWarning): string {
       return (
         `A forced march of ${plural(w.params.days, 'day')} could kill ${w.params.name} ` +
         `(${Math.round(w.params.chance * 100)}% chance of reaching the sixth level of exhaustion).`
+      )
+    case 'encumbered':
+      return (
+        `Encumbered: ${w.params.weight} of ${w.params.capacity} kg. ` +
+        'The party walks slower and can’t force a march.'
       )
   }
 }

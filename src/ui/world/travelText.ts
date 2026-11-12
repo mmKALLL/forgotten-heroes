@@ -27,7 +27,7 @@ type T = I18n['t']
  */
 export function hostileParts(t: T, option: Pick<PaceOption, 'hostile'>): string {
   const h = option.hostile
-  const parts = (['danger', 'threat', 'forage', 'pace'] as const)
+  const parts = (['danger', 'threat', 'forage', 'pace', 'wealth'] as const)
     .filter((part) => h[part] !== 0)
     .map((part) => t(`route.hostilePart.${part}`, { pct: formatPercent(h[part]) }))
   return [t('route.hostilePart.base', { pct: formatPercent(h.base) }), ...parts].join(', ')
@@ -126,6 +126,8 @@ export function warningMessage(t: T, w: TravelWarning): string {
         name: w.params.name,
         levels: w.params.expectedLevels.toFixed(1),
       })
+    case 'encumbered':
+      return t('warning.encumbered', w.params)
     case 'forcedMarchDeadly':
       return t('warning.forcedMarchDeadly', {
         days: daysText(t, w.params.days),
@@ -144,5 +146,11 @@ export function roadReasonMessage(t: T, r: RoadReason): string {
       return t('roadReason.unfit')
     case 'fare':
       return t('roadReason.fare', { gp: r.params.gold })
+    case 'overloaded':
+      return t('roadReason.overloaded', { kg: r.params.kg })
+    case 'animals':
+      return t(r.params.roadsOnly ? 'roadReason.cart' : 'roadReason.roughPath', {
+        name: r.params.name.toLowerCase(),
+      })
   }
 }

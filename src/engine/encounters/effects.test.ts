@@ -1,8 +1,9 @@
 import { describe, expect, test } from 'vitest'
-import { EffectSchema, type Effect } from '../../schema/encounter'
+import { EffectSchema, RequirementSchema, type Effect } from '../../schema/encounter'
 import { createRng } from '../rng'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { applyEffects, describeEffect } from './effects'
+import { unmetRequirements } from './run'
 
 const fx = (...effects: unknown[]): Effect[] => effects.map((e) => EffectSchema.parse(e))
 const hp = (state: ReturnType<typeof makeState>) => state.party.map((c) => c.hp)
@@ -206,5 +207,50 @@ describe('describeEffect', () => {
 
   test('log effects are shown as text, not as a chip', () => {
     expect(describeEffect(EffectSchema.parse({ effect: 'log', text: 'Rain.' }), 'Lyra')).toBeNull()
+  })
+})
+
+describe('the goods effect', () => {
+  const content = fixtureContent()
+  const carrying = makeState({ goods: { gems: 3, relics: 1, healing: 2, food: 4 } })
+
+  test('a fraction takes that share of a good, rounded up (theft)', () => {
+    const after = applyEffects(carrying, fx({ effect: 'goods', good: 'gems', fraction: 0.5 }), {
+      content,
+    })
+    expect(after.goods).toMatchObject({ gems: 1, relics: 1 })
+  })
+
+  test('a category amount takes the most valuable first', () => {
+    // relics and gems are both 100 gp in the fixture: design order breaks the tie.
+    const after = applyEffects(
+      carrying,
+      fx({ effect: 'goods', category: 'precious', amount: -2 }),
+      {
+        content,
+      }
+    )
+    expect(after.goods).toMatchObject({ gems: 1, relics: 1 })
+    const healed = applyEffects(carrying, fx({ effect: 'goods', good: 'healing', amount: -1 }), {
+      content,
+    })
+    expect(healed.goods.healing).toBe(1)
+  })
+
+  test('chips read as changes and losses', () => {
+    const chip = (e: unknown) => describeEffect(EffectSchema.parse(e), 'Lyra')
+    expect(chip({ effect: 'goods', good: 'healing', amount: -2 })).toBe('−2 healing')
+    expect(chip({ effect: 'goods', category: 'precious', fraction: 0.5 })).toBe(
+      'lose half your precious goods'
+    )
+    expect(chip({ effect: 'goods', good: 'gems', fraction: 0.25 })).toBe('lose 25% of your gems')
+  })
+})
+
+describe('the goods requirement', () => {
+  test('gates an option until the party carries enough', () => {
+    const requires = [RequirementSchema.parse({ req: 'goods', good: 'healing', min: 1 })]
+    expect(unmetRequirements(makeState({ goods: {} }), requires)).toEqual(['needs 1 healing'])
+    expect(unmetRequirements(makeState({ goods: { healing: 1 } }), requires)).toEqual([])
   })
 })

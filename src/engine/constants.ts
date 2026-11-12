@@ -106,8 +106,6 @@ export const FORAGE_HOSTILE_BONUS = 0.1
 
 /** A new party carries this many days of food per member. */
 export const STARTING_FOOD_DAYS = 5
-/** A stop-gap price per ration until the Plan 4 market. */
-export const FOOD_PRICE = 1
 /** A day in camp restores this share of max HP; a day in a settlement restores all of it. */
 export const CAMP_HEAL = 0.25
 /** CON check DC for a day without food. */
@@ -120,10 +118,98 @@ export const WATER_DAYS = 4
 export const WATERSKIN_WATER = 2
 /** A stop-gap price per waterskin until the Plan 4 market. */
 export const WATERSKIN_PRICE = 2
-/** Lodging per member per night (meals included). Plan 4 sets it by inn quality. */
+/** A common room per member per night (meals included), at any inn. */
 export const LODGING_PRICE = 1
-/** Supplies sell back for this share of their price (rounded down over the whole sale). */
-export const SELL_SHARE = 0.5
+/** What an extra waterskin sells back for. */
+export const WATERSKIN_SELL_PRICE = 1
+
+// Carrying capacity and encumbrance (economy/capacity.ts). Weights are in kilograms.
+
+/** What a member of STR 10 carries before slowing down. */
+export const CARRY_BASE_KG = 20
+/** Each point of STR above (or below) 10 adds (or takes) this share of CARRY_BASE_KG. */
+export const CARRY_PER_STR = 0.1
+/** The STR factor never drops below this… */
+export const CARRY_MIN = 0.5
+/** …nor rises above this. */
+export const CARRY_MAX = 2.25
+/** A member at this level of exhaustion or worse carries only CARRY_EXHAUSTED_SHARE. */
+export const CARRY_EXHAUSTED_AT = 3
+/** The share of their capacity an exhausted member carries. */
+export const CARRY_EXHAUSTED_SHARE = 0.5
+/** Above capacity the party is encumbered; above this many times capacity it is overloaded. */
+export const OVERLOAD_RATIO = 1.5
+/** An encumbered party walks at this share of its speed (and can't force a march). */
+export const ENCUMBERED_SPEED = 2 / 3
+
+// Markets (economy/market.ts)
+
+/** Each level of demand over supply multiplies a price by this (and each level under divides). */
+export const PRICE_STEP = 1.25
+/** A market's summed supply or demand level for a good stays within ±this. */
+export const MARKET_LEVEL_MAX = 3
+/** Prices drift up to ±this share around their level, in slow waves. */
+export const DRIFT = 0.15
+/** The drift's waves: a new seeded value every this many days, eased in between. */
+export const DRIFT_PERIOD_DAYS = 10
+/** A market recovers half of the party's bulk trading in this many days. */
+export const RECOVERY_HALF_LIFE_DAYS = 10
+/**
+ * Units of a good (at depth 1) a market absorbs, by size tier (outpost first): trading this many
+ * moves the price by a factor of e (about 63% down when selling).
+ */
+export const MARKET_DEPTH: readonly number[] = [3, 5, 8, 12, 20, 30]
+/** The gap between buying and selling at an average shop, by size tier (outpost first). */
+export const SPREAD_BY_SIZE: readonly number[] = [0.4, 0.34, 0.28, 0.22, 0.18, 0.15]
+/** Each point of shop quality above 3 narrows the spread by this much (and below widens it). */
+export const SPREAD_PER_QUALITY = 0.03
+/** No spread is narrower than this, whatever the quality or standing. */
+export const SPREAD_MIN = 0.05
+/** The market stalls every settlement has for essentials trade at this quality (the worst spread). */
+export const STALL_QUALITY = 1
+
+// Trading and the price book (economy/trade.ts)
+
+/** Prices in the price book older than this many days are shown as stale. */
+export const STALE_DAYS = 14
+
+// Services and animals (town/services.ts, town/animals.ts)
+
+/** A private room per member per night (meals included), at an inn of PRIVATE_ROOM_MIN_QUALITY+. */
+export const PRIVATE_ROOM_PRICE = 3
+/** Only inns of at least this quality have private rooms. */
+export const PRIVATE_ROOM_MIN_QUALITY = 3
+/** Strain stacks a night in a private room fades (a common room or camp fades 1). */
+export const PRIVATE_ROOM_FADE = 2
+/** A healer's fee per member treated: all HP back and one level of exhaustion off, no day spent. */
+export const HEALER_PRICE = 10
+/** A temple's blessing (1 Inspiration), once per arrival at each temple. */
+export const BLESSING_PRICE = 10
+/** A courier's news of one market on the same island. */
+export const NEWS_PRICE = 5
+/** How far news travels in a day: a heard price is a day older per this many km between towns. */
+export const COURIER_KM_PER_DAY = 40
+/** Animals sell back for this share of their price. */
+export const ANIMAL_RESALE = 0.5
+/** Ridden in rough terrain, mounts are only this much faster than walking. */
+export const MOUNT_ROUGH_SPEED = 1.25
+/** The terrain where mounts manage only MOUNT_ROUGH_SPEED. */
+export const ROUGH_TERRAIN: readonly Biome[] = ['mountains', 'marsh', 'jungle']
+
+// Visible wealth (economy/wealth.ts, routes.ts, run.ts)
+
+/** Each this many gp of visible wealth per member is one step. */
+export const WEALTH_STEP_GP = 100
+/** Visible wealth counts at most this many steps. */
+export const WEALTH_MAX_STEPS = 4
+/** Each step adds this to the hostile share on the road. */
+export const WEALTH_HOSTILE_PER_STEP = 0.05
+/** Each step makes thieves and tolls (WEALTH_TAGS) this much likelier when drawn: × (1 + this × steps). */
+export const WEALTH_TAG_WEIGHT = 0.5
+/** Coin up to this much per member doesn't show… */
+export const PURSE_FREE_PER_MEMBER = 50
+/** …and this share of the coin above it counts as visible wealth. */
+export const PURSE_SHARE = 0.5
 
 // Stowing away (stowaway.ts)
 

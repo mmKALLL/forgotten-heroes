@@ -167,7 +167,7 @@ test('a crossing the party can’t afford says why, and offers to stow away with
 test('rest shows the inn’s price or carried food; buying and selling dispatch', async () => {
   const state = makeState({ location: 'ashmoor-1', gold: 20, waterskins: 1 })
   const { onAction, unmount } = panel(state, null)
-  const cost = restOption(state).lodgingCost
+  const cost = restOption(state, content).lodgingCost
   await userEvent.click(
     screen.getByRole('button', { name: `Rest a day at the inn (${cost} gp, meals included)` })
   )
@@ -175,13 +175,13 @@ test('rest shows the inn’s price or carried food; buying and selling dispatch'
   await userEvent.click(screen.getByRole('button', { name: 'Rest a day, eating carried food' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: false })
   await userEvent.click(screen.getByRole('button', { name: /^Buy 5 rations/ }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'buyFood', amount: 5 })
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'buyGoods', good: 'food', amount: 5 })
   await userEvent.click(screen.getByRole('button', { name: /^Buy a waterskin/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyWaterskin', count: 1 })
   await userEvent.click(screen.getByRole('button', { name: /^Sell 5 rations/ }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellSupplies', food: 5 })
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'food', amount: 5 })
   await userEvent.click(screen.getByRole('button', { name: /^Sell a waterskin/ }))
-  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellSupplies', waterskins: 1 })
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellWaterskin', count: 1 })
   unmount()
 
   panel(makeState({ location: 'ashmoor-1', gold: 0 }), null)

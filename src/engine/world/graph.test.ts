@@ -186,9 +186,10 @@ describe('travelling to and from a POI', () => {
     expect(rested.gold).toBe(50)
     expect(rested.log.at(-1)!.text).toBe('The party makes camp and rests a day.')
     for (const action of [
-      { type: 'buyFood', amount: 2 },
+      { type: 'buyGoods', good: 'food', amount: 2 },
       { type: 'buyWaterskin' },
-      { type: 'sellSupplies', food: 1 },
+      { type: 'sellGoods', good: 'food', amount: 1 },
+      { type: 'sellWaterskin' },
     ] as const) {
       const refused = step(there, action, content)
       expect(refused.gold).toBe(50)

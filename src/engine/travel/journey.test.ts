@@ -8,6 +8,7 @@ import { step, type Action } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
+import { WATERSKIN_SELL_PRICE } from '../constants'
 
 const content = fixtureContent()
 const at = (location: string, overrides: Partial<GameState> = {}): GameState =>
@@ -248,12 +249,14 @@ describe('continueJourney', () => {
     }
   })
 
-  test('buying food and waterskins and selling supplies are actions too', () => {
-    expect(act(at('greenvale-1', { gold: 10 }), { type: 'buyFood', amount: 2 }).gold).toBe(8)
+  test('buying food and waterskins and selling them are actions too', () => {
+    const fed = act(at('greenvale-1', { gold: 10 }), { type: 'buyGoods', good: 'food', amount: 2 })
+    expect(fed.gold).toBeLessThan(10)
+    expect(fed.goods.food).toBe(12)
     const skins = act(at('greenvale-1', { gold: 10 }), { type: 'buyWaterskin', count: 2 })
     expect(skins).toMatchObject({ gold: 6, waterskins: 2 })
-    expect(act(skins, { type: 'sellSupplies', waterskins: 2 })).toMatchObject({
-      gold: 8,
+    expect(act(skins, { type: 'sellWaterskin', count: 2 })).toMatchObject({
+      gold: 6 + 2 * WATERSKIN_SELL_PRICE,
       waterskins: 0,
     })
   })

@@ -7,6 +7,8 @@ import { fitsPlace } from '../encounters/run'
 import { edgeById } from '../world/graph'
 import { domainAt, domainThreatLevel } from '../world/pois'
 import type { Draw } from '../rng'
+import { load, loadSpeed, type Hired } from '../economy/capacity'
+import { mountSpeed } from '../town/animals'
 import { coversTracks } from './pace'
 import {
   COVER_TRACKS_EXTRA_DAYS,
@@ -23,23 +25,47 @@ import {
   PACE_SPEED,
   SEA_FARE,
   SHORT_HOP_DAYS,
+  WEALTH_HOSTILE_PER_STEP,
 } from '../constants'
 
 /**
  * km per calendar day. Pace scales the speed on land; covering tracks (cautious only) adds
- * COVER_TRACKS_EXTRA_DAYS per day travelled. A ship keeps its own speed whatever the pace.
+ * COVER_TRACKS_EXTRA_DAYS per day travelled. `speed` scales land speed too: a load (capacity.ts
+ * loadSpeed) or mounts. A ship keeps its own speed whatever the pace.
  */
-export function kmPerDay(terrain: Biome, pace: Pace = DEFAULT_PACE, coverTracks = false): number {
+export function kmPerDay(
+  terrain: Biome,
+  pace: Pace = DEFAULT_PACE,
+  coverTracks = false,
+  speed = 1
+): number {
   if (terrain === 'sea') return KM_PER_DAY.sea
   const cover = coversTracks(pace, coverTracks) ? 1 + COVER_TRACKS_EXTRA_DAYS : 1
-  return (KM_PER_DAY[terrain] * PACE_SPEED[pace]) / cover
+  return (KM_PER_DAY[terrain] * PACE_SPEED[pace] * speed) / cover
+}
+
+/**
+ * The party's land speed multiplier on this terrain: slowed by its load (loadSpeed), and sped up
+ * by mounts when everyone rides (mountSpeed; `hired` previews hiring). Always 1 at sea, where the
+ * ship carries everything at its own speed.
+ */
+export function landSpeed(
+  state: Pick<GameState, 'party' | 'animals' | 'travel' | 'goods'>,
+  content: Content,
+  terrain: Biome,
+  hired: Hired | null = state.travel?.hired ?? null
+): number {
+  if (terrain === 'sea') return 1
+  const laden = load(state, content, { hired })
+  return loadSpeed(laden.level) * mountSpeed(state, content, terrain, hired)
 }
 
 export const journeyDays = (
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace = DEFAULT_PACE,
-  coverTracks = false
-): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, coverTracks)))
+  coverTracks = false,
+  speed = 1
+): number => Math.max(1, Math.ceil(route.km / kmPerDay(route.terrain, pace, coverTracks, speed)))
 
 /**
  * The encounter budget (design §7): a short hop gets 0–2, a long journey 2–4; never more than one
@@ -64,13 +90,16 @@ export type HostileShare = {
   threat: number
   forage: number
   pace: number
+  /** Visible wealth (economy/wealth.ts): WEALTH_HOSTILE_PER_STEP per step. */
+  wealth: number
 }
 
 export function hostileShare(
   danger: number,
   threatLevel: number,
   pace: Pace = DEFAULT_PACE,
-  forage = false
+  forage = false,
+  wealthSteps = 0
 ): HostileShare {
   const parts = {
     base: HOSTILE_BASE,
@@ -78,9 +107,10 @@ export function hostileShare(
     threat: HOSTILE_PER_THREAT * threatLevel,
     forage: forage ? FORAGE_HOSTILE_BONUS : 0,
     pace: PACE_HOSTILE_BONUS[pace],
+    wealth: WEALTH_HOSTILE_PER_STEP * wealthSteps,
   }
   const [lo, hi] = HOSTILE_SHARE_RANGE
-  const sum = parts.base + parts.danger + parts.threat + parts.forage + parts.pace
+  const sum = parts.base + parts.danger + parts.threat + parts.forage + parts.pace + parts.wealth
   return { share: Math.min(hi, Math.max(lo, sum)), ...parts }
 }
 
@@ -162,6 +192,11 @@ export function routeThreat(
 /** Sea passage; the ship's speed doesn't depend on pace, so neither does the fare. */
 export const fareFor = (route: Pick<Route, 'km' | 'terrain'>, members: number): number =>
   route.terrain === 'sea' ? SEA_FARE * members * journeyDays(route) : 0
+
+/** Who pays a ship's fare: every member, and every owned animal (and cart). */
+export const passengers = (
+  state: Pick<GameState, 'party'> & Partial<Pick<GameState, 'animals'>>
+): number => state.party.length + Object.values(state.animals ?? {}).reduce((sum, n) => sum + n, 0)
 
 /** The terrain underfoot on a journey; null if its route or path has gone. */
 export const routeTerrain = (

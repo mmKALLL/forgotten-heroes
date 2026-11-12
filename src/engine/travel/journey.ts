@@ -18,22 +18,28 @@ import {
   hostileShare,
   journeyDays,
   kmPerDay,
+  landSpeed,
+  passengers,
   rollEncounterDays,
   routeEncounters,
   routeTerrain,
   routeThreat,
 } from './routes'
 import {
-  buyFood,
   buyWaterskin,
   partyWaterCapacity,
   passDay,
   refillWater,
   rest,
   runsShort,
-  sellSupplies,
+  sellWaterskin,
 } from './supplies'
+import { observe } from '../economy/trade'
 import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
+import { load, overloadExcess, type Hired } from '../economy/capacity'
+import { visibleWealth } from '../economy/wealth'
+import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/animals'
+import type { Room } from '../town/services'
 import { DEFAULT_PACE } from '../constants'
 
 /**
@@ -50,18 +56,21 @@ export type TravelAction =
       forage?: boolean
       /** Sneak aboard a ship the party can't pay for (stowaway.ts). */
       stowaway?: boolean
+      /** Hire riding animals for this journey (town/animals.ts hireOffer). */
+      hire?: boolean
     }
   | { type: 'continueJourney' }
-  | { type: 'rest'; lodging?: boolean }
-  | { type: 'buyFood'; amount: number }
+  /** A day of rest: true or "common" for a common room, "private", or false for own food. */
+  | { type: 'rest'; lodging?: boolean | Room }
   | { type: 'buyWaterskin'; count?: number }
-  | { type: 'sellSupplies'; food?: number; waterskins?: number }
+  | { type: 'sellWaterskin'; count?: number }
 
 export type DepartOptions = {
   pace?: Pace
   coverTracks?: boolean
   forage?: boolean
   stowaway?: boolean
+  hire?: boolean
 }
 
 const BUSY = 'Finish the current encounter first.'
@@ -114,6 +123,24 @@ export function depart(
     )
   }
   if (!state.party.some(canAct)) return appendLog(state, UNFIT, 'bad')
+  const blocked = animalBlock(state, content, route)
+  if (blocked) return appendLog(state, animalBlockText(blocked), 'bad')
+  const offer = options.hire ? hireOffer(state, content, route) : null
+  if (options.hire && !offer)
+    return appendLog(state, 'There are no mounts for hire for that road.', 'bad')
+  const hired: Hired | null = offer && { animal: offer.animal, count: offer.count }
+  // On land the party carries everything itself (and its mounts); a ship carries it at sea.
+  const laden = load(state, content, { hired })
+  if (route.terrain !== 'sea' && laden.level === 'overloaded') {
+    return appendLog(
+      state,
+      `Too heavy to set out: drop or sell ${overloadExcess(laden)} kg.`,
+      'bad'
+    )
+  }
+  if (route.terrain !== 'sea' && laden.level === 'encumbered' && options.pace === 'forced') {
+    return appendLog(state, 'Too heavily laden for a forced march.', 'bad')
+  }
   if (options.stowaway) {
     const refused = stowawayRefusal(state, route)
     if (refused) return appendLog(state, refused, 'bad')
@@ -127,9 +154,32 @@ export function depart(
     const at = placeOnRoute(out, content, out.travel!) ?? place ?? undefined
     return startEncounter(out, content, brawl, at)
   }
-  const fare = fareFor(route, state.party.length)
+  const fare = fareFor(route, passengers(state))
   if (state.gold < fare) return appendLog(state, `Passage costs ${fare} gp.`, 'bad')
   const passage = fare > 0 ? `, ${fare} gp passage` : ''
+  if (offer && hired) {
+    const { pace, coverTracks } = paceFor(route, options.pace, options.coverTracks)
+    const length = journeyDays(
+      route,
+      pace,
+      coverTracks,
+      landSpeed(state, content, route.terrain, hired)
+    )
+    const cost = hireCost(offer, length)
+    if (state.gold < cost) {
+      return appendLog(state, `Hiring ${offer.name.toLowerCase()}s costs ${cost} gp.`, 'bad')
+    }
+    const riding = `, riding hired ${offer.name.toLowerCase()}s (${cost} gp)`
+    return setOut(
+      { ...state, gold: state.gold - cost },
+      content,
+      route,
+      here,
+      options,
+      riding,
+      hired
+    )
+  }
   return setOut({ ...state, gold: state.gold - fare }, content, route, here, options, passage)
 }
 
@@ -148,13 +198,16 @@ function setOut(
   route: Route,
   here: string,
   options: DepartOptions,
-  passage: string
+  passage: string,
+  hired: Hired | null = null
 ): GameState {
   const requestedPace = options.pace ?? DEFAULT_PACE
   const requestedCover = options.coverTracks ?? false
   const { pace, coverTracks } = paceFor(route, requestedPace, requestedCover)
   const to = otherEnd(route, here)
-  const length = journeyDays(route, pace, coverTracks)
+  const speed = landSpeed(state, content, route.terrain, hired)
+  const heavy = route.terrain !== 'sea' && load(state, content, { hired }).level !== 'light'
+  const length = journeyDays(route, pace, coverTracks, speed)
   const { encounters, chance } = routeEncounters(canMeetEncounters(content, route, state), length)
   const [encounterDays, rng] = withRng(state.rng, (d) =>
     rollEncounterDays(d, length, encounters, chance)
@@ -164,7 +217,7 @@ function setOut(
     from: here,
     to,
     km: route.km,
-    kmPerDay: kmPerDay(route.terrain, pace, coverTracks),
+    kmPerDay: kmPerDay(route.terrain, pace, coverTracks, speed),
     kmDone: 0,
     daysDone: 0,
     days: length,
@@ -173,7 +226,7 @@ function setOut(
     coverTracks,
     paceLog: [],
     forage: (options.forage ?? true) && route.terrain !== 'sea',
-    hired: null,
+    hired,
   }
   const how = PACE_PHRASE[pace] + (coverTracks ? ', covering its tracks' : '')
   const ship =
@@ -181,10 +234,11 @@ function setOut(
       ? ' The ship sets the pace.'
       : ''
   const noForage = route.terrain !== 'sea' && options.forage === false ? ' No foraging.' : ''
+  const laden = heavy ? ' Heavily laden, it goes slowly.' : ''
   return appendLog(
     { ...state, rng, location: null, travel },
     `The party sets out for ${settlementName(state, to)}${how}: ${route.km} km, ` +
-      `about ${days(length)}${passage}.${ship}${noForage}`,
+      `about ${days(length)}${passage}.${ship}${noForage}${laden}`,
     'info'
   )
 }
@@ -195,7 +249,7 @@ function setOut(
  * (hostileShare: the route's danger, the higher threat of its two ends, foraging and pace).
  */
 export function placeOnRoute(
-  state: Pick<GameState, 'world' | 'day'>,
+  state: Pick<GameState, 'world' | 'day'> & Partial<Pick<GameState, 'goods' | 'gold' | 'party'>>,
   content: Content,
   travel: TravelState
 ): Place | null {
@@ -203,6 +257,11 @@ export function placeOnRoute(
   const end = travel.kmDone < travel.km / 2 ? travel.from : travel.to
   const node = nodeOf(state, content, end)
   if (!route || !node) return null
+  // Visible wealth draws thieves (economy/wealth.ts); without the party's goods there is none.
+  const steps =
+    state.goods && state.party && state.gold !== undefined
+      ? visibleWealth({ goods: state.goods, gold: state.gold, party: state.party }, content).steps
+      : 0
   return {
     biome: route.terrain,
     land: node.land,
@@ -214,8 +273,10 @@ export function placeOnRoute(
       route.danger,
       routeThreat(state, content, route),
       travel.pace,
-      travel.forage
+      travel.forage,
+      steps
     ).share,
+    wealthSteps: steps,
   }
 }
 
@@ -233,6 +294,8 @@ function watered(state: GameState, content: Content, id: string): boolean {
 function arrive(state: GameState, content: Content): GameState {
   const travel = state.travel!
   const water = watered(state, content, travel.to)
+  // Hired mounts are returned on arrival.
+  const returned = travel.hired ? ' The hired mounts are returned.' : ''
   const arrived: GameState = {
     ...state,
     travel: null,
@@ -243,11 +306,17 @@ function arrive(state: GameState, content: Content): GameState {
     goods: water ? refillWater(state.goods, partyWaterCapacity(state)) : state.goods,
     followUps: foldTrail(state.followUps, travel.paceLog, isPursuit(content)),
   }
-  return appendLog(
-    arrived,
-    `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road.` +
-      (water ? ' The waterskins are refilled.' : ''),
-    'good'
+  // The party sees the market of the settlement it arrives in (economy/trade.ts).
+  return observe(
+    appendLog(
+      arrived,
+      `Arrived at ${settlementName(state, travel.to)} after ${days(travel.daysDone)} on the road.` +
+        (water ? ' The waterskins are refilled.' : '') +
+        returned,
+      'good'
+    ),
+    content,
+    travel.to
   )
 }
 
@@ -390,7 +459,7 @@ export function continueJourney(state: GameState, content: Content): GameState {
       },
       next.day
     )
-    next = { ...passDay(next, terrain, travel.pace), travel: walked }
+    next = { ...passDay(next, terrain, travel.pace, content), travel: walked }
     const eventful = travel.encounterDays[0] === day
     if (short && !eventful) return next
     if (!short && !eventful) quiet += 1
@@ -406,11 +475,9 @@ export function stepTravel(state: GameState, action: TravelAction, content: Cont
       return continueJourney(state, content)
     case 'rest':
       return rest(state, content, action.lodging)
-    case 'buyFood':
-      return buyFood(state, action.amount)
     case 'buyWaterskin':
       return buyWaterskin(state, action.count)
-    case 'sellSupplies':
-      return sellSupplies(state, action)
+    case 'sellWaterskin':
+      return sellWaterskin(state, action.count)
   }
 }
