@@ -150,7 +150,10 @@ test('the Hall holds one record per run, updated when the run ends again', () =>
   const hall = readHall()
   expect(hall).toHaveLength(1)
   expect(hall[0]).toMatchObject({ ending: 'fallen', acts: ['failed', null, null] })
-  // A record that no longer validates is dropped on load.
+  // A record that no longer validates is skipped on load, and kept when the Hall is written.
   localStorage.setItem(HALL_KEY, JSON.stringify([{ id: 'x' }, ...hall]))
   expect(readHall()).toHaveLength(1)
+  expect(recordRun({ ...runRecord(won(), content, at), id: 'another' })).toBe(true)
+  expect(readHall()).toHaveLength(2)
+  expect(JSON.parse(localStorage.getItem(HALL_KEY)!)).toContainEqual({ id: 'x' })
 })

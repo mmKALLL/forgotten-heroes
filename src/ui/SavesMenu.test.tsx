@@ -64,3 +64,14 @@ test('a new party over a won run (which plays on) asks first', async () => {
   expect(screen.getByRole('group', { name: 'Start a new party in a new world?' })).toBeTruthy()
   expect(deserialize(localStorage.getItem(slotKey(2))!, content)?.seed).toBe(42)
 })
+
+test('a slot shows the Crisis act under way once its plan is known', async () => {
+  const content = loadBundledContent()
+  const game = newGame(42, content)
+  const crisis = { ...game.crisis!, learned: 2 }
+  const day = crisis.acts[0].due - 34
+  localStorage.setItem(slotKey(2), serialize({ ...game, day, crisis }))
+  render(<App />)
+  await openSaves()
+  expect(slot(2).getByText(/Act I · 34d/)).toBeTruthy()
+})
