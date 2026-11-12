@@ -18,7 +18,7 @@ import { siteStatus } from '../world/sites'
 import { step, type Action } from '../state'
 import { routeOptions, type RouteOption } from './preview'
 import { poiReach, settlementReach } from './reach'
-import { goodsOf, restOption } from './supplies'
+import { goodsOf, maxWaterskins, restOption } from './supplies'
 import type { Pick } from './wander'
 import { MAX_CONTRACTS, NEWS_PRICE, STALE_DAYS } from '../constants'
 
@@ -624,16 +624,33 @@ export function trader(
     let road =
       toward ??
       (free.length > 0 ? free[o.pick(leg, free.length)] : roads[o.pick(leg, roads.length)])
+    // Provisioning buys no waterskins (designer decision): a road whose water the party can't
+    // buy or carry the skins for is never taken, not even for a contract, since thirst kills. A
+    // contract with no such road to it is given up.
+    const planFor = (r: RouteOption) =>
+      provisionPlan(state, content, { routeId: r.routeId, pace: paceFor(state, content, r) })
+    const watered = (r: RouteOption) =>
+      (planFor(r)?.waterskinsShort ?? 0) <= maxWaterskins(state, content).units
+    const supplied = (r: RouteOption) => planFor(r)?.limit === null && watered(r)
+    if (!watered(road) && contract !== undefined && target) {
+      const other = roadToward(state, content, roads.filter(watered), target)
+      if (!other) {
+        act({ type: 'abandonContract', id: contract.id }, 'contract')
+        return
+      }
+      road = other
+    }
     // A road the purse or the packs can't supply is no road for a poor party: take the
     // shortest one that can be supplied instead, unless a contract insists.
-    const supplied = (r: RouteOption) =>
-      provisionPlan(state, content, { routeId: r.routeId, pace: paceFor(state, content, r) })
-        ?.limit === null
-    if (!supplied(road) && contract === undefined) {
-      road =
-        [...(free.length > 0 ? free : roads)].sort((a, b) => a.days - b.days).find(supplied) ?? road
+    if (!watered(road) || (!supplied(road) && contract === undefined)) {
+      const shortest = [...(free.length > 0 ? free : roads)].sort((a, b) => a.days - b.days)
+      road = shortest.find(supplied) ?? shortest.find(watered) ?? road
     }
     const pace = paceFor(state, content, road)
+    // Buy the waterskins the road needs first.
+    const skins =
+      provisionPlan(state, content, { routeId: road.routeId, pace })?.waterskinsShort ?? 0
+    if (skins > 0) act({ type: 'buyWaterskin', count: skins }, 'provision')
     act({ type: 'provision', routeId: road.routeId, pace }, 'provision')
     const mouths = state.party.length + escortPassengers(state)
     // Provisioning fills waterskins first; if that leaves no room for the food, trade skins
@@ -693,7 +710,20 @@ export function trader(
     const road =
       (target ? roadToward(state, content, roads, target) : null) ??
       roads[o.pick(leg, roads.length)]
-    act({ type: 'travel', routeId: road.routeId, pace: paceFor(state, content, road) }, 'travel')
+    // No market here to restock: never a pace whose food or water runs out when another lasts,
+    // and never a forced march on short supplies.
+    const has = (p: Pace) => road.paces.some((o) => o.pace === p)
+    const lasts = (p: Pace) =>
+      road.paces
+        .find((o) => o.pace === p)
+        ?.warnings.every((w) => w.code !== 'waterRunsOut' && w.code !== 'foodRunsOut') ?? false
+    const wanted = paceFor(state, content, road)
+    const pace = lasts(wanted)
+      ? wanted
+      : ((['steady', 'brisk', 'stealthy'] as Pace[]).find(lasts) ??
+        (['brisk', 'steady'] as Pace[]).find(has) ??
+        wanted)
+    act({ type: 'travel', routeId: road.routeId, pace }, 'travel')
   }
 
   for (let leg = 0; leg < legs && !o.until?.(state); leg++) {

@@ -65,7 +65,8 @@ test('tiles are grouped by function; an unsupported service shows "coming later"
 })
 
 test('rooms, the healer, a blessing, news and animals dispatch their actions', async () => {
-  const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 } })
+  // Late enough that a courier's news is fresher than any prices the party knows.
+  const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 }, day: 20 })
   const onAction = panel(hurt)
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
   await userEvent.click(inn.getByRole('button', { name: /^Common · \d+ gp$/ }))
@@ -114,10 +115,9 @@ test('the healer is disabled when no one needs healing, and resting on carried f
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: false })
 })
 
-test('the inn points to its rumours and its notice board, which have their own panels', () => {
+test('the inn leaves its rumours and notice board to their own lines in the talk zone', () => {
   panel(town())
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
-  expect(inn.getByText('Rumours here')).toBeTruthy()
-  expect(inn.getByText(/^Board: \d+ offers?$/)).toBeTruthy()
+  expect(inn.queryByText(/Rumours here|^Board: /)).toBeNull()
   expect(inn.queryByRole('button', { name: 'Take' })).toBeNull()
 })

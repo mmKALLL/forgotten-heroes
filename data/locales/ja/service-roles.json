@@ -1,0 +1,88 @@
+{
+  "$schema": "../../_schema/translations.schema.json",
+  "kind": "translations",
+  "source": "claude",
+  "locale": "ja",
+  "target": "serviceRoles",
+  "notes": "Rough Japanese specialties for the services.",
+  "entries": [
+    { "id": "inn-tavern", "fields": { "specialty": "寝床と温かい食事、そして街道の噂話。" } },
+    {
+      "id": "adventuring-supplies",
+      "fields": { "specialty": "旅のためのロープ、携帯食、ランタン、包帯。" }
+    },
+    {
+      "id": "animals-mounts",
+      "fields": { "specialty": "ラバ、馬、ラクダの売買と、旅ごとの馬の貸し出し。" }
+    },
+    {
+      "id": "books-maps",
+      "fields": { "specialty": "地図、暦、インク。古い骨董品とその由来話も買い取る。" }
+    },
+    { "id": "jewelry-trader", "fields": { "specialty": "ルーペ、天秤、そしてひそやかな声。" } },
+    { "id": "armourer", "fields": { "specialty": "鎖帷子、板金鎧、盾。良質な鉄も買い取る。" } },
+    { "id": "bank", "fields": { "specialty": "預金、信用状、貸付。" } },
+    {
+      "id": "finesmith",
+      "fields": { "specialty": "指輪、ブローチなどの細工物。宝石と輝く金属を買い取る。" }
+    },
+    { "id": "tailor", "fields": { "specialty": "旅の外套、油引きの上着、上等な反物。" } },
+    {
+      "id": "potions-poisons-herbs",
+      "fields": { "specialty": "軟膏、薬酒、そして屋内で開けないほうがいい瓶。" }
+    },
+    {
+      "id": "church",
+      "fields": { "specialty": "旅の祝福、聖なる遺骸へのひそかな対価、教区の掲示板。" }
+    },
+    { "id": "food-drink", "fields": { "specialty": "パン、塩漬け肉、葡萄酒、香辛料。" } },
+    {
+      "id": "high-temple",
+      "fields": { "specialty": "神官による治療と祝福、そして高く買い取る聖遺物庫。" }
+    },
+    {
+      "id": "spell-tomes-scrolls",
+      "fields": { "specialty": "巻物、魔導書、構成要素。魔力を帯びたものなら何でも買い取る。" }
+    },
+    {
+      "id": "thieving-supplies",
+      "fields": { "specialty": "錠前破りの道具、毒、そして何も訊かない故買屋。" }
+    },
+    { "id": "weapons-shop", "fields": { "specialty": "剣、弓、槍。良質な鉄も買い取る。" } },
+    {
+      "id": "vehicles-transportation",
+      "fields": { "specialty": "荷車、馬車、そしてそれを引く獣。" }
+    },
+    {
+      "id": "adventurers-guild",
+      "fields": { "specialty": "賞金首と使い走り、会員向けの装備、ダンジョンの戦利品の買い取り。" }
+    },
+    { "id": "magic-items", "fields": { "specialty": "珍品、護符、古の驚異。値は張る。" } },
+    {
+      "id": "blacksmith",
+      "fields": { "specialty": "鉄、工具、簡素な剣、鎖帷子。いつも炭が足りない。" }
+    },
+    {
+      "id": "necromancer",
+      "fields": { "specialty": "骨、墓土、触媒。死者の遺物を高く買い取る。" }
+    },
+    { "id": "couriers", "fields": { "specialty": "他の町からの手紙と知らせ。手数料あり。" } },
+    { "id": "brothel", "fields": { "specialty": "一夜の連れと噂話。" } },
+    { "id": "land-sales", "fields": { "specialty": "土地、家、店の売買。" } },
+    { "id": "carpenter", "fields": { "specialty": "乾かした梁と板を荷単位で売買する。" } },
+    { "id": "entertainers-guild", "fields": { "specialty": "役者、吟遊詩人、ひと晩の気晴らし。" } },
+    {
+      "id": "healer",
+      "fields": { "specialty": "骨を接ぎ、熱を引かせる。傷を癒すために一日休む必要がなくなる。" }
+    },
+    { "id": "port", "fields": { "specialty": "船旅、輸入品、木材を買う船大工。" } },
+    {
+      "id": "workers-union",
+      "fields": { "specialty": "建築資材を荷単位で買い取る。人手の貸し出しはいずれ。" }
+    },
+    { "id": "stonemason", "fields": { "specialty": "切り整えた石と石灰を荷単位で。" } },
+    { "id": "university", "fields": { "specialty": "骨董品に金を払う学者たち。" } },
+    { "id": "mercenaries", "fields": { "specialty": "雇われの剣。" } },
+    { "id": "arena", "fields": { "specialty": "賞金試合と賭け事。" } }
+  ]
+}

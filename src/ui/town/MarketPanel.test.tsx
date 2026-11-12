@@ -37,6 +37,12 @@ test('rows are grouped by category, with waterskins under Essentials', () => {
     'Precious',
   ])
   expect(within(groups[0]).getByRole('rowheader', { name: /^Waterskins/ })).toBeTruthy()
+  // Water is free and refills by itself: no row of its own.
+  expect(within(groups[0]).queryByRole('rowheader', { name: /^Water\b(?!skins)/ })).toBeNull()
+  // The gold and the load head the market.
+  const purse = within(screen.getByRole('group', { name: 'Gold and load' }))
+  expect(purse.getByText('100 gp')).toBeTruthy()
+  expect(purse.getByRole('group', { name: 'Load' })).toBeTruthy()
 })
 
 test('the quote follows the amount, and buy and sell dispatch it', async () => {

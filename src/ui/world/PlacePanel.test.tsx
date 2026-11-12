@@ -10,6 +10,8 @@ import { provisionPlan } from '../../engine/town/provision'
 import { I18nProvider, LANGUAGE_KEY } from '../i18n/I18n'
 import { PlacePanel } from './PlacePanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
+import { provisionAction, shownPace, travelAction } from './RoadsOut'
+import { load } from '../../engine/economy/capacity'
 import { REINHABIT_DAYS } from '../../engine/constants'
 
 const content = fixtureContent()
@@ -86,6 +88,7 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
   const at = (pace: string) => paces.find((p) => p.pace === pace)!
   const group = road(settlementName(state, 'greenvale-2'))
   const pacePicker = within(group.getByRole('group', { name: 'Pace' }))
+  // The engine's paces, less retired ones (Cautious).
   expect(pacePicker.getAllByRole('button').map((b) => b.textContent)).toEqual([
     'Stealthy',
     'Steady',
@@ -160,7 +163,9 @@ test('a crossing the party can’t afford says why, and offers to stow away with
   expect(group.getByText('At sea the ship sets the pace.')).toBeTruthy()
   expect(group.queryByRole('checkbox', { name: 'Forage along the way' })).toBeNull()
   expect(group.getByText(/sneaks the party aboard: Stealth [+−]\d+ vs DC \d+/)).toBeTruthy()
-  expect(group.getByRole('img', { name: /Success: / })).toBeTruthy()
+  // Its outcomes are a list of lines, never an odds bar (design §9).
+  expect(group.getByRole('list', { name: 'If the party stows away' })).toBeTruthy()
+  expect(group.queryByRole('img', { name: /Success: / })).toBeNull()
   await userEvent.click(group.getByRole('button', { name: 'Stow away' }))
   expect(onAction).toHaveBeenCalledWith(
     expect.objectContaining({ type: 'travel', routeId: 'ashmoor-1-farisle-1', stowaway: true })
@@ -176,12 +181,12 @@ test('the hire toggle changes the days and cost shown, and travels mounted', asy
   const group = within(screen.getByRole('group', { name: /^To / }))
   expect(group.getByText(`About ${foot.days} days on the road`)).toBeTruthy()
   const hire = group.getByRole('checkbox', { name: /^Hire 2 × Riding horse/ })
+  const saved = foot.days - ridden.days
   expect(hire.closest('label')!.textContent).toMatch(
-    `${ridden.days} days instead of ${foot.days} days, ${ridden.cost} gp`
+    `(${saved === 1 ? '−1 day' : saved > 1 ? `−${saved} days` : 'no faster'}, ${ridden.cost} gp)`
   )
   await userEvent.click(hire)
   expect(group.getByText(`About ${ridden.days} days on the road`)).toBeTruthy()
-  expect(group.getByText(new RegExp(`^Hired mounts: ${ridden.cost} gp`))).toBeTruthy()
   await userEvent.click(group.getByRole('button', { name: 'Travel' }))
   expect(onAction).toHaveBeenLastCalledWith(
     expect.objectContaining({ type: 'travel', routeId: road.routeId, hire: true })
@@ -234,11 +239,13 @@ test('foraging lists what success, partial and failure find, with their d20 face
   })
   const rows = within(list).getAllByRole('listitem')
   expect(rows.map((r) => r.textContent)).toEqual([
-    expect.stringMatching(new RegExp(`^Success: \\d+–\\d+Finds ${found.success.water} water$`)),
     expect.stringMatching(
-      new RegExp(`^Partial success: \\d+–\\d+Finds ${found.partial.water} water$`)
+      new RegExp(`^Success: \\d+–\\d+\\d+%Finds ${found.success.water} water$`)
     ),
-    expect.stringMatching(/^Failure: \d+–\d+Finds nothing$/),
+    expect.stringMatching(
+      new RegExp(`^Partial success: \\d+–\\d+\\d+%Finds ${found.partial.water} water$`)
+    ),
+    expect.stringMatching(/^Failure: \d+–\d+\d+%Finds nothing$/),
   ])
   // The critical tiers (a critical success finds food too) stay a surprise.
   expect(list.textContent).not.toMatch(/Critical|food/)
@@ -252,9 +259,9 @@ test('stowing away lists what success, partial and failure lead to', () => {
   })
   const rows = within(list).getAllByRole('listitem')
   expect(rows).toHaveLength(3)
-  expect(rows[0].textContent).toMatch(/^Success: \d+–\d+Slips aboard unseen$/)
+  expect(rows[0].textContent).toMatch(/^Success: \d+–\d+\d+%Slips aboard unseen$/)
   expect(rows[1].textContent).toMatch(
-    /^Partial success: \d+–\d+Caught, and put to work for the passage: \d+ days lost, and \w+ gains a level of exhaustion$/
+    /^Partial success: \d+–\d+\d+%Caught, and put to work for the passage: \d+ days lost, and \w+ gains a level of exhaustion$/
   )
   expect(rows[2].textContent).toMatch(/fined all the party’s coin \(5 gp\)$/)
   expect(list.textContent).not.toMatch(/brawl/i)
@@ -299,12 +306,12 @@ const withLair = (discovered: boolean, cleared = false) => {
   return state
 }
 
-test('shows the land, the domain and the kingdom, with the domain’s threat', () => {
+test('shows the land and the kingdom (a settlement is its own domain), with the threat', () => {
   const state = makeState({ location: 'greenvale-1', gold: 50 })
   panel(state, null)
   const info = placeInfo(state, content, 'greenvale-1')!
   const kingdom = state.world.kingdoms.find((k) => k.domains.includes('greenvale-1'))!
-  const realm = `Greenvale · domain of ${info.name} · ${kingdom.name} (${info.rulerAncestry} rule)`
+  const realm = `Greenvale · ${kingdom.name} (${info.rulerAncestry} rule)`
   expect(screen.getByText(info.seat ? `${realm} · seat of the realm` : realm)).toBeTruthy()
   expect(
     screen.getByText(
@@ -329,12 +336,13 @@ test('a settlement elsewhere and a road’s end use the same realm and threat li
   const far = placeInfo(state, content, 'farisle-1')!
   const { unmount } = panel(state, 'farisle-1')
   expect(screen.getByText(new RegExp(`^${far.name}: ${far.typeName}$`))).toBeTruthy()
-  expect(screen.getAllByText(new RegExp(`^Far Isle · domain of ${far.name} · `))).toHaveLength(1)
+  expect(screen.getAllByText(/^Far Isle · /)).toHaveLength(1)
   unmount()
   const next = placeInfo(state, content, 'greenvale-2')!
   panel(state, 'greenvale-2')
   const group = road(next.name)
-  expect(group.getByText(new RegExp(`^Greenvale · domain of ${next.name} · `))).toBeTruthy()
+  expect(group.getByText(/^Greenvale · /)).toBeTruthy()
+  expect(group.queryByText(/domain of/)).toBeNull()
   expect(group.getByText(new RegExp(`^${next.typeName} · Threat: ${next.threatName}`))).toBeTruthy()
 })
 
@@ -354,7 +362,8 @@ test('in Japanese the realm line is translated, with every placeholder filled', 
         />
       </I18nProvider>
     )
-    expect(screen.getByText(new RegExp(`^Ashmoor · ${info.name}の領地 · `))).toBeTruthy()
+    expect(screen.getByText(/^Ashmoor · .+の支配）/)).toBeTruthy()
+    expect(screen.queryByText(new RegExp(`${info.name}の領地`))).toBeNull()
     expect(screen.getByText(/巣窟から\+2/)).toBeTruthy()
     expect(container.textContent).not.toMatch(/\{\w+\}/)
   } finally {
@@ -401,4 +410,20 @@ test('a contract bound for a road’s end shows its deadline, and marks the pace
   expect(
     group.getByText(`Arrives day ${base.day + stealthy.days} · deadline day ${deadline} ✗`)
   ).toBeTruthy()
+})
+
+test('an encumbered party with a forced march remembered travels and provisions at the shown pace', () => {
+  // Encumbered: heavy enough to lose the forced march, light enough to set out.
+  let state = makeState({ location: 'ashmoor-1', gold: 50 })
+  for (let n = 1; load(state, content).level === 'light'; n += 1) {
+    state = { ...state, goods: { ...state.goods, food: n } }
+  }
+  expect(load(state, content).level).toBe('encumbered')
+  const out = routeOptions(state, content).find((r) => r.to === 'greenvale-2')!
+  expect(out.paces.map((p) => p.pace)).not.toContain('forced')
+  const prefs = { ...DEFAULT_TRAVEL_PREFS, pace: 'forced' as const }
+  const shown = shownPace(out, prefs).pace
+  expect(shown).not.toBe('forced')
+  expect(travelAction(out, prefs)).toMatchObject({ type: 'travel', pace: shown })
+  expect(provisionAction(out, prefs)).toMatchObject({ type: 'provision', pace: shown })
 })

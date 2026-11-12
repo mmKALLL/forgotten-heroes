@@ -23,9 +23,9 @@ function Branch({ branch }: { branch: BranchPreview }) {
 }
 
 /**
- * The outcome tiers of the option last hovered or focused, shared by every option card. The box
- * keeps a fixed height (long text scrolls inside it) so changing what it shows never moves the
- * cards above it. Each card's choose target points here with aria-describedby. Critical tiers
+ * The outcome tiers of the option last hovered or focused, shared by every option card, under
+ * them. The box has a minimum height and grows to show every line (no scrolling, no clipping);
+ * being below the cards, it never moves them. Each card's choose target points here with aria-describedby. Critical tiers
  * arrive hidden from the engine and get no row: only their odds show, on the card's bar.
  */
 export function OutcomesPanel({

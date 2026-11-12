@@ -1,18 +1,16 @@
-import { useId } from 'react'
 import type { Content } from '../../content/build'
 import { formatModifier, formatPercent } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
 import { availableActions, type Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
-import { OddsBar } from '../OddsBar'
 import { TierOutcomes } from './TierOutcomes'
 import { daysText } from './travelText'
 
 /**
  * Exploring the domain the party is in: who searches, with what, against what DC, the chance to
- * find a site, the days it takes and what each non-critical tier finds, before the party commits.
- * Nothing when the engine offers no search here.
+ * find a site, the days it takes and what each non-critical tier finds (a vertical list, always
+ * shown: design §9), before the party commits. Nothing when the engine offers no search here.
  */
 export function ExploreAction({
   content,
@@ -23,14 +21,10 @@ export function ExploreAction({
   content: Content
   state: GameState
   onAction: (a: Action) => void
-  /**
-   * The town ledger's one line (designer decision): no odds bar, just who searches, the chance and
-   * the days, with the tiers in a tip on hover or focus.
-   */
+  /** The town ledger's version: the button and who searches on one line, then the outcomes. */
   compact?: boolean
 }) {
   const { t, stat } = useI18n()
-  const tipId = useId()
   const action = availableActions(state, content).find((a) => a.type === 'explore')
   if (!action) return null
   const { option } = action
@@ -43,61 +37,33 @@ export function ExploreAction({
       ? t('explore.foundLate', { days: daysText(t, days) })
       : t('explore.found')
   }
+  // Who searches, with what, and the chance to find a site; the days are on the button.
+  const line = t('explore.line', {
+    name,
+    skill: stat(option.skill),
+    modifier: formatModifier(option.modifier),
+    dc: option.dc,
+    pct: formatPercent(option.findChance),
+  })
+  const outcomes = (
+    <TierOutcomes label={t('explore.outcomes')} odds={option.chances} faces={faces} text={finds} />
+  )
   if (compact) {
     return (
       <div className="explore-line" role="group" aria-label={t('explore.heading')}>
-        <button aria-describedby={tipId} onClick={() => onAction({ type: 'explore' })}>
+        <button onClick={() => onAction({ type: 'explore' })}>
           {t('explore.button', { days: daysText(t, option.days) })}
         </button>{' '}
-        <span className="small">
-          {t('explore.line', {
-            name,
-            skill: stat(option.skill),
-            modifier: formatModifier(option.modifier),
-            dc: option.dc,
-            pct: formatPercent(option.findChance),
-          })}
-        </span>
-        <div className="hover-tip" id={tipId}>
-          <p className="small">
-            {t('explore.check', {
-              name,
-              skill: stat(option.skill),
-              modifier: formatModifier(option.modifier),
-              dc: option.dc,
-              days: daysText(t, option.days),
-            })}
-          </p>
-          <TierOutcomes
-            label={t('explore.outcomes')}
-            odds={option.chances}
-            faces={faces}
-            text={finds}
-          />
-        </div>
+        <span className="small">{line}</span>
+        {outcomes}
       </div>
     )
   }
   return (
     <div className="check-preview explore" role="group" aria-label={t('explore.heading')}>
       <h3>{t('explore.heading')}</h3>
-      <p className="small">
-        {t('explore.check', {
-          name,
-          skill: stat(option.skill),
-          modifier: formatModifier(option.modifier),
-          dc: option.dc,
-          days: daysText(t, option.days),
-        })}
-      </p>
-      <p className="small">{t('explore.chance', { pct: formatPercent(option.findChance) })}</p>
-      <OddsBar odds={option.chances} faces={faces} labelMode="faces" />
-      <TierOutcomes
-        label={t('explore.outcomes')}
-        odds={option.chances}
-        faces={faces}
-        text={finds}
-      />
+      <p className="small">{line}</p>
+      {outcomes}
       <button onClick={() => onAction({ type: 'explore' })}>
         {t('explore.button', { days: daysText(t, option.days) })}
       </button>

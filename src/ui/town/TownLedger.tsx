@@ -28,8 +28,8 @@ type Props = {
 
 /**
  * The town ledger (design §5): the settlement on one screen with no modals. A one-line header
- * (town · domain · kingdom · threat · the party's standing here); the Market; the Services; the
- * People, collapsed, under them; the roads out with the pace chooser, and Explore after them; then
+ * (town · land · kingdom · threat · the party's standing here); the Market; the Services; the
+ * People under them; Explore, then the roads out with the pace chooser; then
  * talk and work: rumours and the notice board. In the DOM the zones run market, services, people,
  * roads, talk (for the keyboard and narrow screens); on wide screens they make two columns: market,
  * services and people, then roads and talk.
@@ -83,6 +83,8 @@ export function TownLedger({
       </div>
       <div className="ledger-side">
         <section className="zone zone-roads" aria-label={t('ledger.roads')}>
+          {/* Explore sits above the roads (designer decision). */}
+          <ExploreAction content={content} state={state} onAction={onAction} compact />
           <RoadsOut
             content={content}
             state={state}
@@ -92,7 +94,6 @@ export function TownLedger({
             onPrefs={onPrefs}
             onAction={onAction}
           />
-          <ExploreAction content={content} state={state} onAction={onAction} compact />
         </section>
         <section className="zone zone-talk" aria-label={t('ledger.talk')}>
           <RumoursLine content={content} state={state} onAction={onAction} />

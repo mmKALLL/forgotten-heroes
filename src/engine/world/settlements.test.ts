@@ -150,9 +150,10 @@ describe('startingSettlement', () => {
   test('is a small mainland settlement in the calmest domain, the same for a world', () => {
     for (let seed = 0; seed < 30; seed++) {
       const world = generateWorld(seed, content)
-      const start = startingSettlement(world, content)!
-      expect(startingSettlement(world, content)).toBe(start)
+      const start = startingSettlement(world, content, 'calm')!
       expect(startingSettlement(world, content, 'calm')).toBe(start)
+      // A new party starts anywhere on the mainland by default (designer decision).
+      expect(startingSettlement(world, content)).toBe(startingSettlement(world, content, 'random'))
       expect(content.settlements[start].island).toBe('mainland')
       // A plain marker can roll "city"; when every small place is taken, any mainland one will do.
       const small = Object.keys(world.settlements).filter(

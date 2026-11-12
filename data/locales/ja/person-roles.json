@@ -1,0 +1,25 @@
+{
+  "$schema": "../../_schema/translations.schema.json",
+  "kind": "translations",
+  "source": "claude",
+  "locale": "ja",
+  "target": "personRoles",
+  "notes": "Rough Japanese role names. Personal titles stay English for now.",
+  "entries": [
+    { "id": "elder", "fields": { "name": "長老" } },
+    { "id": "reeve", "fields": { "name": "代官" } },
+    { "id": "mayor", "fields": { "name": "町長" } },
+    { "id": "watch-captain", "fields": { "name": "衛兵隊長" } },
+    { "id": "innkeeper", "fields": { "name": "宿屋の主人" } },
+    { "id": "chandler", "fields": { "name": "雑貨商" } },
+    { "id": "smith", "fields": { "name": "鍛冶屋" } },
+    { "id": "stablemaster", "fields": { "name": "厩舎長" } },
+    { "id": "priest", "fields": { "name": "司祭" } },
+    { "id": "high-priest", "fields": { "name": "大司祭" } },
+    { "id": "herbalist", "fields": { "name": "薬草師" } },
+    { "id": "guildmaster", "fields": { "name": "ギルドマスター" } },
+    { "id": "harbourmaster", "fields": { "name": "港湾長" } },
+    { "id": "sage", "fields": { "name": "賢者" } },
+    { "id": "fence", "fields": { "name": "故買屋" } }
+  ]
+}

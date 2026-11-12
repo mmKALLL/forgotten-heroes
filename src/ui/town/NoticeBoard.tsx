@@ -3,8 +3,11 @@ import type { Action } from '../../engine/state'
 import { noticeBoard, type Offer } from '../../engine/town/contracts'
 import { serviceRows } from '../../engine/town/services'
 import type { GameState } from '../../schema/state'
+import { useState } from 'react'
+import { contractText } from '../contractText'
+import { ContractBlurb } from '../ContractsPanel'
 import { useI18n } from '../i18n/I18n'
-import { daysText } from '../world/travelText'
+import { daysText, leftText } from '../world/travelText'
 
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
@@ -13,9 +16,10 @@ export const hasBoard = (state: GameState, content: Content): boolean =>
   serviceRows(state, content).some((r) => r.actions.some((a) => a.action === 'board'))
 
 /**
- * The notice board here (design §5, §8): each offer with its kind, destination, distance,
- * deadline (and the days it takes at a steady pace), pay and reputation, urgent ones badged.
- * Offers the party lacks the standing for, or can't take now, are disabled with the reason.
+ * The notice board here (design §5, §8): each offer with its kind, destination, distance, the
+ * days left to its deadline (and the days it takes at a steady pace), pay and reputation, urgent
+ * ones badged, and its text (two lines, "more" for the rest). Offers the party lacks the standing
+ * for, or can't take now, are disabled with the reason.
  */
 export function NoticeBoard({ content, state, onAction }: Props) {
   const { t } = useI18n()
@@ -29,7 +33,7 @@ export function NoticeBoard({ content, state, onAction }: Props) {
       ) : (
         <ul className="offers small">
           {offers.map((o) => (
-            <OfferRow key={o.id} offer={o} state={state} onAction={onAction} />
+            <OfferRow key={o.id} offer={o} onAction={onAction} />
           ))}
         </ul>
       )}
@@ -37,16 +41,14 @@ export function NoticeBoard({ content, state, onAction }: Props) {
   )
 }
 
-function OfferRow({
-  offer: o,
-  state,
-  onAction,
-}: {
-  offer: Offer
-  state: GameState
-  onAction: (a: Action) => void
-}) {
-  const { t } = useI18n()
+function OfferRow({ offer: o, onAction }: { offer: Offer; onAction: (a: Action) => void }) {
+  const i18n = useI18n()
+  const { t } = i18n
+  const [open, setOpen] = useState(false)
+  const { title, text } = contractText(i18n, o)
+  // Days from taking it to its deadline. TODO(merge): `Offer.deadline - state.day` once the
+  // engine gives offers a deadline day; until then `days` is the same count.
+  const left = leftText(t, o.days)
   const why = o.locked
     ? t('board.locked', { standing: t(`standing.${o.locked}`) })
     : (o.reason ?? null)
@@ -56,24 +58,20 @@ function OfferRow({
       ? t('board.procure', {
           source: o.sourceName ?? '',
           km: o.km,
-          day: state.day + o.days,
+          left,
           steady: daysText(t, o.steadyDays),
         })
       : t('board.route', {
           to: o.poiName ?? o.toName,
           km: o.km,
-          day: state.day + o.days,
+          left,
           steady: daysText(t, o.steadyDays),
         })
-  // Two lines each; the whole offer is in the tooltip.
   return (
-    <li
-      className={o.available ? 'offer' : 'offer unavailable'}
-      title={[o.title, o.text, route, why].filter(Boolean).join('\n')}
-    >
+    <li className={o.available ? 'offer' : 'offer unavailable'}>
       <div className="offer-head">
         <span className="badge kind">{t(`contractKind.${o.kind}`)}</span>
-        <strong>{o.title}</strong>
+        <strong>{title}</strong>
         {o.urgent && <span className="badge urgent">{t('board.urgent')}</span>}
         <span className="offer-pay">
           {t('board.pay', { gp: o.pay })}
@@ -82,7 +80,7 @@ function OfferRow({
         <button
           disabled={!o.available}
           title={why ?? undefined}
-          aria-label={t('board.takeLabel', { title: o.title })}
+          aria-label={t('board.takeLabel', { title })}
           onClick={() => onAction({ type: 'acceptContract', offerId: o.id })}
         >
           {t('board.take')}
@@ -92,6 +90,7 @@ function OfferRow({
         {why && <span className="tone-bad">{why} · </span>}
         {route}
       </div>
+      <ContractBlurb text={text} open={open} onToggle={() => setOpen(!open)} />
     </li>
   )
 }

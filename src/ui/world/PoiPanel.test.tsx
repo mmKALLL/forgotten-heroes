@@ -150,14 +150,16 @@ test('the explore preview shows the searcher, DC, chance, days and the non-criti
   const { onAction } = show(state)
   const box = within(screen.getByRole('group', { name: 'Explore the domain' }))
   const name = state.party.find((c) => c.id === option.actorId)!.name
+  const chance = option.chances.partial + option.chances.success + option.chances.critSuccess
   expect(
     box.getByText(
-      new RegExp(`^${name} leads the search for 2 days: \\w+ [+−]\\d+ vs DC ${option.dc}$`)
+      new RegExp(
+        `^${name}, \\w+ [+−]\\d+ vs DC ${option.dc} · ${formatPercent(chance)} to find a site$`
+      )
     )
   ).toBeTruthy()
-  const chance = option.chances.partial + option.chances.success + option.chances.critSuccess
-  expect(box.getByText(`${formatPercent(chance)} chance to find a site`)).toBeTruthy()
-  expect(box.getByRole('img', { name: /Success: / })).toBeTruthy()
+  // Outcome lines, never an odds bar (design §9).
+  expect(box.queryByRole('img', { name: /Success: / })).toBeNull()
   const rows = within(box.getByRole('list', { name: 'What the search finds' }))
     .getAllByRole('listitem')
     .map((li) => li.textContent)

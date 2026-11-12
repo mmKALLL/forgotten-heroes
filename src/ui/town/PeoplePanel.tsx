@@ -1,4 +1,3 @@
-import { useId } from 'react'
 import type { Content } from '../../content/build'
 import { formatModifier, formatPercent } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
@@ -14,15 +13,14 @@ type Props = { content: Content; state: GameState; onAction: (a: Action) => void
 
 /**
  * The notable people here (design §8): each with their title and name, their role and the
- * party's standing with them. Collapsed until opened (designer decision), so the ledger stays on
- * one screen.
+ * party's standing with them. Always open (designer decision): the list is compact.
  */
 export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
-  const { t } = useI18n()
+  const { t, name } = useI18n()
   const people = peopleRows(state, content)
   return (
-    <details className="zone zone-people">
-      <summary>{t('ledger.people', { n: people.length })}</summary>
+    <section className="zone zone-people" aria-label={t('people.list')}>
+      <h3>{t('ledger.people', { n: people.length })}</h3>
       {people.length === 0 ? (
         <p className="muted small">{t('ledger.noPeople')}</p>
       ) : (
@@ -30,13 +28,15 @@ export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
           {people.map((p) => (
             <li key={p.id}>
               <span className="person-name">{p.name}</span>{' '}
-              <span className="muted">· {p.role}</span>{' '}
+              <span className="muted">
+                · {name('personRoles', state.world.people[p.id]?.role ?? '', p.role)}
+              </span>{' '}
               <StandingBadge standing={p.standing} points={p.points} />
             </li>
           ))}
         </ul>
       )}
-    </details>
+    </section>
   )
 }
 
@@ -54,13 +54,13 @@ export function StandingBadge({ standing, points }: { standing: Standing; points
 }
 
 /**
- * Listening for rumours at the tavern, as one line in the style of Explore: who listens, with
- * what, against what DC and the chance to hear something, with the non-critical tiers in a tip on
- * hover or focus. Nothing where there is no tavern; a muted note once the talk here is heard.
+ * Listening for rumours at the tavern, in the style of Explore: who listens, with what, against
+ * what DC and the chance to hear something, then the non-critical tiers as a list (always shown,
+ * so they read without the button, which is disabled when the party can't pay). Nothing where
+ * there is no tavern; a muted note once the talk here is heard.
  */
 export function RumoursLine({ content, state, onAction }: Props) {
   const { t, stat } = useI18n()
-  const tipId = useId()
   const option = rumourOption(state, content)
   if (!option) {
     const refusal = rumourRefusal(state, content)
@@ -79,24 +79,17 @@ export function RumoursLine({ content, state, onAction }: Props) {
   }
   return (
     <div className="explore-line rumours-line" role="group" aria-label={t('rumours.heading')}>
-      <button
-        aria-describedby={tipId}
-        disabled={short}
-        title={short ? t('rumours.short', { gp: option.cost }) : undefined}
-        onClick={() => onAction({ type: 'listenRumours' })}
-      >
+      <button disabled={short} onClick={() => onAction({ type: 'listenRumours' })}>
         {t('rumours.button', { gp: option.cost })}
       </button>{' '}
       <span className="small">{t('rumours.line', { ...check, pct })}</span>
-      <div className="hover-tip" id={tipId}>
-        <p className="small">{t('rumours.check', check)}</p>
-        <TierOutcomes
-          label={t('rumours.outcomes')}
-          odds={option.chances}
-          faces={faces}
-          text={(tier: Tier) => t(`rumours.tier.${tier as 'fail' | 'partial' | 'success'}`)}
-        />
-      </div>
+      {short && <p className="tone-bad small">{t('rumours.short', { gp: option.cost })}</p>}
+      <TierOutcomes
+        label={t('rumours.outcomes')}
+        odds={option.chances}
+        faces={faces}
+        text={(tier: Tier) => t(`rumours.tier.${tier as 'fail' | 'partial' | 'success'}`)}
+      />
     </div>
   )
 }

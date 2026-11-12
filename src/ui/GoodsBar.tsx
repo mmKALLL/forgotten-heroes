@@ -5,17 +5,20 @@ import { goodDef, goodsInCategory } from '../engine/economy/goods'
 import { visibleWealth, type VisibleWealth } from '../engine/economy/wealth'
 import { formatPercent } from '../engine/format'
 import type { Action } from '../engine/state'
+import { contractCargo } from '../engine/town/contract-hooks'
+import { hostileShare } from '../engine/travel/routes'
 import { partyWaterCapacity } from '../engine/travel/supplies'
 import { GOODS, GOOD_CATEGORIES, type Good } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { useI18n } from './i18n/I18n'
-import { OVERLOAD_RATIO, WEALTH_HOSTILE_PER_STEP, WEALTH_MAX_STEPS } from '../engine/constants'
+import { OVERLOAD_RATIO, WEALTH_MAX_STEPS } from '../engine/constants'
 
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
 
 /**
  * The bottom bar (design §9): the goods carried by category (goods at 0 hidden, "—" for an empty
- * category), the capacity meter, and the visible-wealth pips. `children` adds controls at its end.
+ * category; a contract's cargo marked), the capacity meter, and the visible-wealth pips.
+ * `children` adds controls at its end.
  */
 export function GoodsBar({
   content,
@@ -29,9 +32,11 @@ export function GoodsBar({
   onAction?: (a: Action) => void
   children?: ReactNode
 }) {
-  const { t, name } = useI18n()
+  const { t, name, fields } = useI18n()
   const goodName = (g: Good) => name('goods', g, goodDef(content, g)?.name ?? g)
-  const goodUses = (g: Good) => goodDef(content, g)?.uses
+  const goodUses = (g: Good) => fields('goods', g)?.uses ?? goodDef(content, g)?.uses
+  // TODO(merge): the engine's `cargoInfo` replaces contractCargo here.
+  const cargo = (g: Good) => Math.min(units(state, g), contractCargo(state, g))
   return (
     <footer className="goods-bar" aria-label={t('goods.heading')}>
       <ul className="goods-groups" aria-label={t('goods.heading')}>
@@ -52,6 +57,11 @@ export function GoodsBar({
                         ? `${units(state, g)}/${partyWaterCapacity(state)}`
                         : units(state, g)}
                     </b>
+                    {cargo(g) > 0 && (
+                      <span className="badge small cargo-badge">
+                        {t('market.cargoShort', { n: cargo(g) })}
+                      </span>
+                    )}
                   </span>
                 ))
               )}
@@ -95,11 +105,14 @@ export function CapacityMeter({ laden }: { laden: Load }) {
   )
 }
 
-/** One pip per visible-wealth step; the tooltip says what it costs on the road. */
+/**
+ * One pip per visible-wealth step; the tooltip says what it costs on the road (the wealth part of
+ * the engine's hostile share).
+ */
 export function WealthPips({ wealth }: { wealth: VisibleWealth }) {
   const { t } = useI18n()
   const pips = Array.from({ length: WEALTH_MAX_STEPS }, (_, i) => (i < wealth.steps ? '◆' : '◇'))
-  const pct = formatPercent(WEALTH_HOSTILE_PER_STEP * wealth.steps)
+  const pct = formatPercent(hostileShare(0, 0, undefined, false, wealth.steps).wealth)
   const hint =
     wealth.steps === 0
       ? undefined

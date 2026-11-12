@@ -2,7 +2,6 @@ import { useEffect, useReducer } from 'react'
 import type { Content } from '../content/build'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize, serialize } from '../engine/save'
 import { newGame, step, type Action } from '../engine/state'
-import type { StartMode } from '../engine/world/generate'
 import type { GameState } from '../schema/state'
 import { STARTING_PARTY_SIZE } from '../engine/constants'
 
@@ -48,11 +47,11 @@ export function useGame(content: Content) {
       // storage blocked or unavailable: the game still works, it just won't persist
     }
   }, [state])
-  /** A new party in a new world, starting where `start` says (design §6). */
-  const restart = (start: StartMode = 'calm') =>
+  /** A new party in a new world, in a random mainland settlement (design §6). */
+  const restart = () =>
     dispatch({
       type: 'replace',
-      state: newGame(randomSeed(), content, STARTING_PARTY_SIZE, start),
+      state: newGame(randomSeed(), content, STARTING_PARTY_SIZE, 'random'),
     })
   return { state, dispatch, restart }
 }

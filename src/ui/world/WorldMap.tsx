@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
 import { formatPercent } from '../../engine/format'
 import type { Action } from '../../engine/state'
@@ -13,7 +13,8 @@ import { iconUrl } from '../assets'
 import { useI18n } from '../i18n/I18n'
 import { PoiGlyph, poiCategoryText } from './PoiGlyph'
 import { ridden, shownPace, travelAction } from './RoadsOut'
-import { dangerText, daysText, roadReasonMessage } from './travelText'
+import { dangerText, daysText, paceText, roadReasonMessage, warningMessage } from './travelText'
+import { isSevere } from '../../engine/travel/warnings'
 import type { TravelPrefs } from './travelPrefs'
 import { SPOT_SPACING_PX } from '../../engine/constants'
 
@@ -88,10 +89,11 @@ function saveOverlay(on: boolean) {
  */
 export const DANGER_COLOURS = ['#f4ead2', '#f0b429', '#e0662b', '#b51f18'] as const
 /**
- * The zoomed view (the default): this many map pixels around the party, enough to show the
- * neighbours most roads lead to (nine in ten land roads are under 420 px long).
+ * The zoomed view (the default): this many map pixels around the party, close in (designer
+ * decision) yet reaching the neighbours most roads lead to (nine in ten land roads are under
+ * 420 px long).
  */
-export const ZOOM = { width: 1200, height: 900 }
+export const ZOOM = { width: 840, height: 630 }
 /**
  * Half a marker's width, in map pixels (the map's own markers are about 20 px): larger on the
  * whole map, which is drawn at about a fifth of its size, so markers stay easy to see and hit.
@@ -468,6 +470,7 @@ export function WorldMap({
         </svg>
         {picked && pickedAt && prefs && onTravel && (
           <TravelPopover
+            key={picked.to}
             road={picked}
             prefs={prefs}
             at={pickedAt}
@@ -521,7 +524,9 @@ export function WorldMap({
 
 /**
  * A road picked on the map: its days, encounters and hostile share at the last pace and foraging
- * chosen (and hired mounts, if chosen and offered), why it can't be taken, and Travel.
+ * chosen (and hired mounts, if chosen and offered), the severe warnings (a deadly march, water
+ * running out), why it can't be taken, and Travel. Opened from the map, focus moves into it and
+ * back to the marker when it closes; Escape closes it.
  */
 function TravelPopover({
   road,
@@ -552,12 +557,35 @@ function TravelPopover({
   const reason = riding ? (option.reason ?? null) : road.reason
   const [min, max] = option.encounters
   const sea = road.terrain === 'sea'
+  const severe = option.warnings.filter(isSevere)
+  const box = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    // Only when opened from the map: a road picked in the roads list keeps the focus there.
+    const before = document.activeElement
+    if (!before || !box.current?.parentElement?.contains(before)) return
+    const first = box.current.querySelector<HTMLButtonElement>('button:not(:disabled)')
+    ;(first ?? box.current).focus()
+    return () => {
+      // Back to the marker (or wherever focus was) unless it has left the page.
+      if (before instanceof HTMLElement || before instanceof SVGElement) {
+        if (before.isConnected) before.focus()
+      }
+    }
+  }, [])
   return (
     <div
+      ref={box}
       className={`map-pop${below ? ' below' : ''}`}
       style={{ ...side, top: `${top}%` }}
-      role="group"
+      role="dialog"
+      tabIndex={-1}
       aria-label={t('mapTravel.label', { name: road.toName })}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && onClose) {
+          e.stopPropagation()
+          onClose()
+        }
+      }}
     >
       <strong>{road.toName}</strong>
       <p className="small">
@@ -574,11 +602,20 @@ function TravelPopover({
         {sea
           ? t('route.seaPace')
           : t('mapTravel.pace', {
-              pace: t(`pace.${option.pace}`),
+              pace: paceText(t, option.pace),
               forage: prefs.forage ? t('mapTravel.forage') : '',
               mounted: riding ? t('mapTravel.mounted') : '',
             })}
       </p>
+      {severe.length > 0 && (
+        <ul className="warnings" aria-label={t('route.warnings')}>
+          {severe.map((w) => (
+            <li key={w.code} className="severe">
+              <span className="warning-icon">☠</span> {warningMessage(t, w)}
+            </li>
+          ))}
+        </ul>
+      )}
       {reason && <p className="tone-bad small">{roadReasonMessage(t, reason)}</p>}
       <div className="actions">
         <button

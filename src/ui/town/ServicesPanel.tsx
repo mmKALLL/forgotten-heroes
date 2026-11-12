@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { animalOffers } from '../../engine/town/animals'
-import { noticeBoard } from '../../engine/town/contracts'
 import { peopleRows, shopKeeper } from '../../engine/town/reputation'
 import {
   lodgingOptions,
@@ -23,6 +22,11 @@ import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
 const pips = (quality: number) => '●'.repeat(quality) + '○'.repeat(Math.max(0, 5 - quality))
+
+/** Why a service's button is disabled, shown under it (not only in its tooltip). */
+function Why({ reason }: { reason: string | null | undefined }) {
+  return reason ? <span className="service-why muted small">{reason}</span> : null
+}
 
 /**
  * The services here as compact tiles in four columns (design §5), grouped by function: each with
@@ -71,22 +75,26 @@ export function ServicesPanel({ content, state, onAction }: Props) {
 }
 
 function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRow }) {
-  const { t, name } = useI18n()
+  const { t, name, fields } = useI18n()
   const title = name('services', row.service, row.name)
   // Who keeps it, and the party's standing with them.
   const keeperId =
     state.location === null ? null : shopKeeper(state, content, state.location, row.service)
   const keeper = keeperId ? peopleRows(state, content).find((p) => p.id === keeperId) : undefined
+  const specialty = fields('serviceRoles', row.service)?.specialty ?? row.specialty
   const hint = [
     title,
     t(`services.function.${row.function}`),
-    row.specialty,
+    specialty,
     keeper &&
       t('services.keeper', { name: keeper.name, standing: t(`standing.${keeper.standing}`) }),
   ]
     .filter(Boolean)
     .join(' · ')
-  const working = row.actions.filter((a) => a.action !== 'market' && a.action !== 'passage')
+  // Rumours and the notice board have their own lines in the talk zone (no pointer here).
+  const working = row.actions.filter(
+    (a) => !['market', 'passage', 'rumours', 'board'].includes(a.action)
+  )
   const market = row.actions.some((a) => a.action === 'market')
   const passage = row.actions.some((a) => a.action === 'passage')
   return (
@@ -115,6 +123,9 @@ function ServiceTile({ row, content, state, onAction }: Props & { row: ServiceRo
           <ServiceAction key={a.action} view={a} row={row} {...{ content, state, onAction }} />
         ))}
         {working.length === 0 && market && <TradesLine content={content} service={row.service} />}
+        {working.length === 0 && !market && !passage && !row.later && specialty && (
+          <span className="muted small trades">{specialty}</span>
+        )}
         {passage && <span className="muted small">{t('services.passage')}</span>}
         {row.later && <span className="muted small">{t('services.later')}</span>}
       </div>
@@ -160,42 +171,56 @@ function ServiceAction({
               {t(`services.room.${room.room}`, { gp: room.cost })}
             </button>
           ))}
+          <Why reason={view.reason} />
         </>
       )
     case 'heal': {
       const treated = needsHealer(state)
       const names = state.party.filter((c) => treated.includes(c.id)).map((c) => c.name)
       return (
-        <button
-          disabled={!view.available}
-          title={
-            treated.length === 0
-              ? t('services.healNone')
-              : t('services.healHint', { names: names.join(', ') })
-          }
-          onClick={() => onAction({ type: 'useService', service: row.service, action: 'heal' })}
-        >
-          {treated.length === 0
-            ? t('services.healEach', { gp: HEALER_PRICE })
-            : t('services.heal', { n: treated.length, gp: view.cost ?? 0 })}
-        </button>
+        <>
+          <button
+            disabled={!view.available}
+            title={
+              treated.length === 0
+                ? t('services.healNone')
+                : t('services.healHint', { names: names.join(', ') })
+            }
+            onClick={() => onAction({ type: 'useService', service: row.service, action: 'heal' })}
+          >
+            {treated.length === 0
+              ? t('services.healEach', { gp: HEALER_PRICE })
+              : t('services.heal', { n: treated.length, gp: view.cost ?? 0 })}
+          </button>
+          <Why reason={treated.length === 0 ? t('services.healNone') : view.reason} />
+        </>
       )
     }
     case 'bless': {
       const blessed = state.doneHere.includes(`bless:${row.service}`)
       return (
-        <button
-          disabled={!view.available}
-          title={blessed ? t('services.blessed') : t('services.blessHint')}
-          onClick={() => onAction({ type: 'useService', service: row.service, action: 'bless' })}
-        >
-          {blessed ? t('services.blessed') : t('services.bless', { gp: view.cost ?? 0 })}
-        </button>
+        <>
+          <button
+            disabled={!view.available}
+            title={blessed ? t('services.blessed') : t('services.blessHint')}
+            onClick={() => onAction({ type: 'useService', service: row.service, action: 'bless' })}
+          >
+            {blessed ? t('services.blessed') : t('services.bless', { gp: view.cost ?? 0 })}
+          </button>
+          {/* "Blessed" on the button says it already. */}
+          {!blessed && <Why reason={view.reason} />}
+        </>
       )
     }
     case 'news': {
-      const targets = newsTargets(state, content)
+      // Only towns whose prices the party doesn't already know fresher than a courier's news.
+      // TODO(merge): move this filter into the engine's newsTargets (services.ts news() refuses them).
+      const targets = newsTargets(state, content).filter((s) => {
+        const known = Object.hasOwn(state.priceBook, s.id) ? state.priceBook[s.id] : null
+        return !known || known.day < Math.max(1, state.day - s.age)
+      })
       const chosen = targets.find((s) => s.id === target) ?? targets[0]
+      if (!chosen) return <Why reason={t('services.newsFresh')} />
       return (
         <span className="inline-pick">
           <select
@@ -224,6 +249,7 @@ function ServiceAction({
           >
             {t('services.news', { gp: view.cost ?? 0 })}
           </button>
+          <Why reason={view.reason} />
         </span>
       )
     }
@@ -258,26 +284,12 @@ function ServiceAction({
           >
             {t('services.buyAnimal', { gp: chosen.price })}
           </button>
+          <Why reason={chosen.buyReason} />
           {chosen.owned > 0 && (
             <button onClick={() => onAction({ type: 'sellAnimal', animal: chosen.id })}>
               {t('services.sellAnimal', { n: chosen.owned, gp: chosen.resale })}
             </button>
           )}
-        </span>
-      )
-    }
-    case 'rumours':
-      // Listening for rumours is a check: its line, with the odds, is in the talk zone.
-      return <span className="muted small">{t('services.rumoursThere')}</span>
-    case 'board': {
-      // The notice board itself, and the contracts held, have their own panels (C4).
-      const offers = state.location === null ? [] : noticeBoard(state, content, state.location)
-      const here = offers.filter((o) => o.service === null || o.service === row.service)
-      return (
-        <span className="muted small">
-          {here.length === 1
-            ? t('services.boardThereOne')
-            : t('services.boardThere', { n: here.length })}
         </span>
       )
     }

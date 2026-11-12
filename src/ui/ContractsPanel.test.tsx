@@ -48,11 +48,16 @@ test('nothing shows without contracts', () => {
 test('a contract on its way shows the days left, and is abandoned after a second click', async () => {
   const onAction = panel(makeState({ location: 'greenvale-2', day: 3, contracts: [escort()] }))
   const list = within(screen.getByRole('region', { name: 'Contracts' }))
-  expect(list.getByText('6 days left (day 9)')).toBeTruthy()
+  expect(list.getByText('6 days left')).toBeTruthy()
   expect(list.queryByRole('button', { name: /^Take / })).toBeNull()
   await userEvent.click(list.getByRole('button', { name: 'Abandon' }))
   expect(onAction).not.toHaveBeenCalled()
   expect(list.getByText('Give it up?')).toBeTruthy()
+  // The question takes focus; "Keep it" calls it off and focus returns to the link.
+  expect(document.activeElement?.textContent).toBe('Keep it')
+  await userEvent.click(list.getByRole('button', { name: 'Keep it' }))
+  expect(document.activeElement?.textContent).toBe('Abandon')
+  await userEvent.click(list.getByRole('button', { name: 'Abandon' }))
   await userEvent.click(list.getByRole('button', { name: 'Abandon' }))
   expect(onAction).toHaveBeenCalledWith({ type: 'abandonContract', id: 'c-test' })
 })

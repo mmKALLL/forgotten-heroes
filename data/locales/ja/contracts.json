@@ -1,0 +1,206 @@
+{
+  "$schema": "../../_schema/translations.schema.json",
+  "kind": "translations",
+  "source": "claude",
+  "locale": "ja",
+  "target": "contracts",
+  "notes": "Rough Japanese titles and texts for the contract templates. Placeholders ({patron}, {dest}, {amount}, {good}, {source}, {site}) are kept as in English; {good} is filled with the Japanese goods name and {amount} with a number, so they are written as \"{good}{amount}個\".",
+  "entries": [
+    {
+      "id": "letters-and-parcels",
+      "fields": {
+        "title": "手紙と小包",
+        "text": "{patron}は{dest}宛ての手紙の束と小さな包みを抱えている。中身は蝋で封をした{good}{amount}個。報酬はわずかだが、そちらへ向かう者は他にいない。"
+      }
+    },
+    {
+      "id": "sealed-strongbox",
+      "fields": {
+        "title": "封印された金庫",
+        "text": "{patron}は鍵のかかった金庫を{dest}の代理人まで運んでほしいという。中身は数えて封をした{good}{amount}個。何も訊かず、封を破らずに届けること。"
+      }
+    },
+    {
+      "id": "wedding-silks",
+      "fields": {
+        "title": "婚礼の絹",
+        "text": "{dest}の花嫁が絹と葡萄酒を待っている。婚礼の日はもう決まっている。{good}{amount}個がその前に届けば{patron}は弾んでくれるが、後になれば一銭も払わない。"
+      }
+    },
+    {
+      "id": "fever-medicine",
+      "fields": {
+        "title": "熱病の薬",
+        "text": "{dest}で熱病が流行り、治療師の薬は尽きた。{patron}は{good}{amount}個を荷造りした。道中の一日ごとに、墓がひとつ増える。"
+      }
+    },
+    {
+      "id": "alchemists-order",
+      "fields": {
+        "title": "錬金術師の注文",
+        "text": "{patron}は{dest}からの注文を抱えている。栓をして藁に詰めた{good}{amount}個だ。冷やしておき、立てておき、焚き火には決して近づけるな。"
+      }
+    },
+    {
+      "id": "reliquary-transfer",
+      "fields": {
+        "title": "聖人の骨",
+        "text": "神殿は{dest}の信徒のもとへ、聖人の{good}{amount}個を送る。{patron}は敬意をもって運び、売り払おうとする者から守ってほしいという。"
+      }
+    },
+    {
+      "id": "scrolls-and-reagents",
+      "fields": {
+        "title": "学者への触媒",
+        "text": "{patron}は{dest}の学者に{good}{amount}個を約束した。チョーク、銀粉、そしてもっと奇妙な品々が蝋引きの布に包まれている。"
+      }
+    },
+    {
+      "id": "timber-for-the-builders",
+      "fields": {
+        "title": "木材の荷",
+        "text": "{patron}は{dest}の大工のために、挽いて乾かした{good}{amount}個を用意したが、そちらへ行く荷車がない。重労働だが、旅の日数に応じて支払われる。"
+      }
+    },
+    {
+      "id": "wall-stone",
+      "fields": {
+        "title": "城壁の石",
+        "text": "{dest}の城壁には荷車が通れるほどの裂け目がある。{patron}は石切り場で整えた{good}{amount}個を託し、何か別のものが隙間を見つける前に届けてほしいという。"
+      }
+    },
+    {
+      "id": "grain-for-the-lean-months",
+      "fields": {
+        "title": "飢えの季節の穀物",
+        "text": "{dest}の周りでは収穫が失敗したが、ここの穀倉は満杯だ。{patron}は{good}{amount}個を託す。届けてくれ、道中で腐らせるなよ。"
+      }
+    },
+    {
+      "id": "ironwork-for-the-garrison",
+      "fields": {
+        "title": "守備隊への鉄製品",
+        "text": "{patron}は{dest}の守備隊の注文を仕上げた。藁に詰めて封をした{good}{amount}個だ。補給係は届けたときに払い、{patron}も同じく払う。"
+      }
+    },
+    {
+      "id": "rebuild-timber",
+      "fields": {
+        "title": "再建のための木材",
+        "text": "去年の冬に町の半分が焼け、ここでは梁一本手に入らない。{patron}は{good}{amount}個に金を払い、見つけてきた手間にもたっぷり払う。いちばん近い産地は{source}だ。"
+      }
+    },
+    {
+      "id": "arms-for-the-militia",
+      "fields": {
+        "title": "民兵のための武器",
+        "text": "略奪者が目撃され、民兵は熊手で訓練している。{patron}は{good}{amount}個を運び込んでほしいという。近くになければ{source}から、早いほど良い。"
+      }
+    },
+    {
+      "id": "iron-for-the-forge",
+      "fields": {
+        "title": "鍛冶場の鉄",
+        "text": "鍛冶屋には注文があるのに鉄がなく、{source}の鉱山は遠い。{patron}は鍛冶場の戸口まで届けられた{good}{amount}個を引き取る。"
+      }
+    },
+    {
+      "id": "remedies-for-the-sick",
+      "fields": {
+        "title": "病人のための薬",
+        "text": "治療師の棚は空で、病人は次々とやってくる。{patron}は{good}{amount}個を必要としている。作っているのは{source}だが、どこで見つけてもかまわない。"
+      }
+    },
+    {
+      "id": "outfit-the-delvers",
+      "fields": {
+        "title": "ロープとランタン",
+        "text": "ここでは誰もが古い場所の奥へ潜ろうとしているが、装備を持つ者はいない。{patron}は{source}か、どこかで見つけてきた{good}{amount}個を買い取る。"
+      }
+    },
+    {
+      "id": "a-collectors-wants",
+      "fields": {
+        "title": "収集家の望み",
+        "text": "{patron}は収集家で、この町では手に入らない{good}{amount}個を欲しがっている。{source}で取引されているし、勇気があるなら深き場所にもある。"
+      }
+    },
+    {
+      "id": "pilgrims-to-escort",
+      "fields": {
+        "title": "巡礼者の護衛",
+        "text": "数人の巡礼者が{dest}へ向かいたいが、道を恐れている。{patron}が彼らの身元を保証し、生かして届けてくれるなら旅費を持つという。"
+      }
+    },
+    {
+      "id": "merchants-heir",
+      "fields": {
+        "title": "商人の跡取り",
+        "text": "{patron}は跡取りを{dest}へ商売の修業に出す。口は達者だが野宿などしたこともない若者だ。春の市に間に合うよう、無傷で送り届けてほしい。"
+      }
+    },
+    {
+      "id": "witness-for-the-assizes",
+      "fields": {
+        "title": "巡回裁判の証人",
+        "text": "巡回裁判が閉じる前に、ある証人が{dest}の判事たちの前に立たねばならない。その証人が着かないことを望む者がいる。{patron}は必ず着くよう、あなたたちに託す。"
+      }
+    },
+    {
+      "id": "bounty-on-the-lair",
+      "fields": {
+        "title": "賞金首：巣穴の掃討",
+        "text": "ギルドが{site}に賞金をかけた。一掃すれば、証拠と引き換えに{patron}が支払う。"
+      }
+    },
+    {
+      "id": "bounty-on-the-warlord",
+      "fields": {
+        "title": "賞金首：首領の首",
+        "text": "{site}からの襲撃で三つの村が収穫を失った。{patron}はこれを終わらせたいが、ギルドの知る者にしか任せないという。"
+      }
+    },
+    {
+      "id": "scour-the-dungeon",
+      "fields": {
+        "title": "深き場所の探索",
+        "text": "何かが{site}に棲みつき、その近くの道から人が消えつつある。{patron}は最深部まで行く一行に、ギルドの相場で支払う。"
+      }
+    },
+    {
+      "id": "offering-at-the-shrine",
+      "fields": {
+        "title": "祠への供物",
+        "text": "{patron}は誓いを立てたが、果たすには年を取りすぎた。供物を{site}へ運び、祈りの言葉を唱え、帰ってきてほしい。"
+      }
+    },
+    {
+      "id": "temple-pilgrimage",
+      "fields": {
+        "title": "神殿の巡礼",
+        "text": "大神殿は毎年{site}へ一行を送り、加護を新たにする。今年の{patron}は、自分で歩くよりあなたたちを送りたいらしい。"
+      }
+    },
+    {
+      "id": "question-for-the-sage",
+      "fields": {
+        "title": "隠者への問い",
+        "text": "{patron}には、{site}に住む者にしか答えられない問いがある。それを届け、答えを相手自身の言葉のまま持ち帰ってほしい。"
+      }
+    },
+    {
+      "id": "survey-the-landmark",
+      "fields": {
+        "title": "古き場所の測量",
+        "text": "{patron}は新しい地図を描いており、そこに{site}を載せたい。方角、状態、そして噂が本当かどうかを調べてきてほしい。"
+      }
+    },
+    {
+      "id": "guild-reconnaissance",
+      "fields": {
+        "title": "ギルドの偵察",
+        "text": "ギルドは誰かを送り込む前に、{site}の様子を知りたがっている。{patron}は偵察に金を払う。ただし、そのために死なないでくれとのことだ。"
+      }
+    }
+  ]
+}
