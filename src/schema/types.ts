@@ -87,11 +87,100 @@ export const ALIGNMENTS = ['LG', 'NG', 'CG', 'LN', 'TN', 'CN', 'LE', 'NE', 'CE']
 export type Alignment = (typeof ALIGNMENTS)[number]
 
 /**
- * The goods tracked so far: the essentials consumed every day. Plan 4 adds the other 13 goods
- * (design §4) to this list. Saves keep loading, because a good that is missing counts as 0.
+ * The 15 goods of design §4, in design order. Goods are tracked as quantities, never as items;
+ * a good that is missing from a save counts as 0. Their weight, price and spoilage are content
+ * (`goods`), but the list and its categories are fixed by the design.
  */
-export const GOODS = ['food', 'water'] as const
+export const GOODS = [
+  'food',
+  'water',
+  'fuel',
+  'healing',
+  'alchemicals',
+  'arcana',
+  'arms',
+  'armour',
+  'gear',
+  'timber',
+  'stone',
+  'metal',
+  'gems',
+  'relics',
+  'luxuries',
+] as const
 export type Good = (typeof GOODS)[number]
+
+/** The five categories of goods (design §4). */
+export const GOOD_CATEGORIES = [
+  'essentials',
+  'consumables',
+  'equipment',
+  'materials',
+  'precious',
+] as const
+export type GoodCategory = (typeof GOOD_CATEGORIES)[number]
+
+/** Each good's category, fixed by the design. Precious goods make up visible wealth. */
+export const GOOD_CATEGORY: Readonly<Record<Good, GoodCategory>> = {
+  food: 'essentials',
+  water: 'essentials',
+  fuel: 'essentials',
+  healing: 'consumables',
+  alchemicals: 'consumables',
+  arcana: 'consumables',
+  arms: 'equipment',
+  armour: 'equipment',
+  gear: 'equipment',
+  timber: 'materials',
+  stone: 'materials',
+  metal: 'materials',
+  gems: 'precious',
+  relics: 'precious',
+  luxuries: 'precious',
+}
+
+/** What a service is for: the groups of design §5. */
+export const SERVICE_FUNCTIONS = ['trade', 'rest', 'hire', 'temple', 'underworld'] as const
+export type ServiceFunction = (typeof SERVICE_FUNCTIONS)[number]
+
+/**
+ * What the engine can do at a service. A service whose role lists none of these is shown as
+ * "coming later".
+ */
+export const SERVICE_ACTIONS = [
+  'market',
+  'lodging',
+  'heal',
+  'bless',
+  'animals',
+  'rumours',
+  'board',
+  'passage',
+  'news',
+] as const
+export type ServiceAction = (typeof SERVICE_ACTIONS)[number]
+
+/** Kinds of contract on a notice board (design §8). */
+export const CONTRACT_KINDS = ['courier', 'supply', 'escort', 'bounty', 'errand'] as const
+export type ContractKind = (typeof CONTRACT_KINDS)[number]
+
+/** Reputation tiers with a person or a settlement, worst first. Points map to tiers (B2). */
+export const STANDINGS = [
+  'hated',
+  'disliked',
+  'stranger',
+  'known',
+  'liked',
+  'trusted',
+  'honoured',
+] as const
+export type Standing = (typeof STANDINGS)[number]
+
+/**
+ * Situation tags that visible wealth (precious goods and a heavy purse) makes likelier on the
+ * road: thieves and tolls follow money.
+ */
+export const WEALTH_TAGS = ['thieves', 'toll'] as const
 
 /**
  * Travel pace, chosen per journey (design §7), slowest first. Its tuning (speed, supplies,

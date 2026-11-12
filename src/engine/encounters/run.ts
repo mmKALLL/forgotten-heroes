@@ -298,6 +298,11 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
           ? []
           : [`the blessing here is spent; it returns in ${days === 1 ? '1 day' : `${days} days`}`]
       }
+      case 'goods':
+        return (state.goods[r.good] ?? 0) >= r.min ? [] : [`needs ${r.min} ${r.good}`]
+      case 'standing':
+        // Plan 4 B2 works out standing from reputation; until then no content gates on it.
+        return []
     }
   })
 }

@@ -3,6 +3,7 @@ import {
   DcSchema,
   EffectSchema,
   OptionSchema,
+  RequirementSchema,
   SituationSchema,
   SituationTemplateSchema,
   SlotSourceSchema,
@@ -34,6 +35,54 @@ describe('effects', () => {
       false
     )
     expect(EffectSchema.safeParse({ effect: 'days', amount: 0 }).success).toBe(false)
+  })
+})
+
+describe('trade effects and requirements (Plan 4)', () => {
+  const ok = (effect: Record<string, unknown>) => EffectSchema.safeParse(effect).success
+
+  test('a goods effect names one good or one category, and one amount or fraction', () => {
+    expect(ok({ effect: 'goods', good: 'food', amount: -2 })).toBe(true)
+    expect(ok({ effect: 'goods', category: 'precious', fraction: 0.5 })).toBe(true)
+    expect(ok({ effect: 'goods', good: 'food', category: 'essentials', amount: 1 })).toBe(false)
+    expect(ok({ effect: 'goods', amount: 1 })).toBe(false)
+    expect(ok({ effect: 'goods', good: 'gems' })).toBe(false)
+    expect(ok({ effect: 'goods', good: 'gems', amount: -1, fraction: 0.5 })).toBe(false)
+    expect(ok({ effect: 'goods', good: 'gems', fraction: 0 })).toBe(false)
+    expect(ok({ effect: 'goods', good: 'gems', fraction: 1.5 })).toBe(false)
+    expect(ok({ effect: 'goods', good: 'spices', amount: 1 })).toBe(false)
+    expect(ok({ effect: 'goods', category: 'trinkets', amount: 1 })).toBe(false)
+  })
+
+  test('reputation with the domain settlement', () => {
+    expect(EffectSchema.parse({ effect: 'reputation', amount: -3 })).toEqual({
+      effect: 'reputation',
+      amount: -3,
+    })
+    expect(ok({ effect: 'reputation', amount: 1.5 })).toBe(false)
+  })
+
+  test('animals are gained by name, and lost by name or to thieves', () => {
+    expect(ok({ effect: 'animals', animal: 'mule', amount: 1 })).toBe(true)
+    expect(ok({ effect: 'animals', amount: -1 })).toBe(true)
+    expect(ok({ effect: 'animals', amount: 1 })).toBe(false)
+    expect(ok({ effect: 'animals', animal: 'mule', amount: 0 })).toBe(false)
+  })
+
+  test('requirements: goods carried and standing here', () => {
+    expect(RequirementSchema.parse({ req: 'goods', good: 'healing', min: 1 })).toEqual({
+      req: 'goods',
+      good: 'healing',
+      min: 1,
+    })
+    expect(RequirementSchema.safeParse({ req: 'goods', good: 'healing', min: 0 }).success).toBe(
+      false
+    )
+    expect(RequirementSchema.parse({ req: 'standing', min: 'known' })).toEqual({
+      req: 'standing',
+      min: 'known',
+    })
+    expect(RequirementSchema.safeParse({ req: 'standing', min: 'pal' }).success).toBe(false)
   })
 })
 

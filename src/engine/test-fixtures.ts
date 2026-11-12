@@ -532,6 +532,9 @@ export const testWorld: Record<string, unknown> = {
       service('inn-tavern', 'Inn/Tavern', [10, 8, 6, 4, 2, 1]),
       service('port', 'Port', [19, 18, 16, 14, 12, 10]),
       service('magic-items', 'Magic items', [25, 22, 19, 16, 15, 14]),
+      service('adventuring-supplies', 'Adventuring supplies', [12, 10, 8, 6, 4, 2]),
+      service('animals-mounts', 'Animals & mounts', [14, 12, 10, 8, 6, 4]),
+      service('jewelry-trader', 'Jewelry trader', [22, 20, 18, 15, 12, 10]),
     ],
   },
   'data/claude/regions.json': {
@@ -758,6 +761,181 @@ export const testWorld: Record<string, unknown> = {
   },
 }
 
+const good = (id: string, unit: string, weight: number, price: number, spoilPerDay = 0) => ({
+  id,
+  name: id[0].toUpperCase() + id.slice(1),
+  unit,
+  weight,
+  price,
+  spoilPerDay,
+  uses: `Test ${id}.`,
+})
+
+/**
+ * Plan 4 content with round numbers (weights in kg): the 15 goods, four service roles, three
+ * market rules, a mule, a cart and a riding horse, three person roles and one contract template
+ * per kind.
+ */
+export const testEconomy: Record<string, unknown> = {
+  'data/claude/goods.json': {
+    kind: 'goods',
+    source: 'claude',
+    entries: [
+      good('food', 'ration', 1, 1, 0.1),
+      good('water', 'day', 2, 0),
+      good('fuel', 'bundle', 5, 1),
+      good('healing', 'kit', 1, 10),
+      good('alchemicals', 'flask', 1, 20),
+      good('arcana', 'bundle', 1, 50),
+      good('arms', 'bundle', 5, 10),
+      good('armour', 'set', 10, 20),
+      good('gear', 'pack', 5, 5),
+      good('timber', 'load', 20, 2),
+      good('stone', 'load', 50, 2),
+      good('metal', 'ingot', 20, 10),
+      good('gems', 'pouch', 1, 100),
+      good('relics', 'crate', 2, 100),
+      good('luxuries', 'bolt', 5, 50),
+    ],
+  },
+  'data/claude/service-roles.json': {
+    kind: 'serviceRoles',
+    source: 'claude',
+    entries: [
+      { id: 'inn-tavern', function: 'rest', actions: ['lodging', 'rumours', 'board'] },
+      {
+        id: 'adventuring-supplies',
+        function: 'trade',
+        trades: ['food', 'fuel', 'gear'],
+        actions: ['market'],
+      },
+      { id: 'animals-mounts', function: 'hire', actions: ['animals'] },
+      {
+        id: 'jewelry-trader',
+        function: 'trade',
+        trades: ['gems', 'luxuries'],
+        buysOnly: ['relics'],
+        actions: ['market'],
+        specialty: 'Loupes and quiet voices.',
+      },
+    ],
+  },
+  'data/claude/market-rules.json': {
+    kind: 'marketRules',
+    source: 'claude',
+    entries: [
+      { id: 'coast', when: { coastal: true }, supply: { food: 1 }, demand: { timber: 1 } },
+      { id: 'under-threat', when: { threatAtLeast: 2 }, demand: { arms: 2, armour: 1 } },
+      {
+        id: 'marsh',
+        when: { biomes: ['marsh'] },
+        supply: { alchemicals: 1 },
+        demand: { stone: 1 },
+      },
+    ],
+  },
+  'data/claude/animals.json': {
+    kind: 'animals',
+    source: 'claude',
+    entries: [
+      { id: 'mule', name: 'Mule', price: 10, capacity: 100, upkeepPerDay: 1, stealable: true },
+      {
+        id: 'cart',
+        name: 'Cart',
+        price: 20,
+        capacity: 200,
+        needs: 'mule',
+        roadsOnly: true,
+        waterPerDay: 0,
+      },
+      {
+        id: 'riding-horse',
+        name: 'Riding horse',
+        price: 80,
+        hirePerDay: 1,
+        capacity: 50,
+        speed: 2,
+        rider: true,
+        maxPathDanger: 1,
+        upkeepPerDay: 1,
+        stealable: true,
+      },
+    ],
+  },
+  'data/claude/person-roles.json': {
+    kind: 'personRoles',
+    source: 'claude',
+    entries: [
+      { id: 'innkeeper', name: 'innkeeper', service: 'inn-tavern', weight: 3, titles: ['Old'] },
+      { id: 'stablemaster', name: 'stablemaster', service: 'animals-mounts', minSize: 1 },
+      { id: 'elder', name: 'elder', weight: 2, titles: ['Mother', 'Father'] },
+    ],
+  },
+  'data/claude/contracts.json': {
+    kind: 'contracts',
+    source: 'claude',
+    entries: [
+      {
+        id: 'carry-cloth',
+        kind: 'courier',
+        title: 'Cloth for {dest}',
+        text: '{patron} needs {amount} {good} taken to {dest}.',
+        km: { min: 40, max: 200 },
+        goods: ['luxuries'],
+        amount: { min: 2, max: 4 },
+        urgentChance: 0.25,
+        reputation: { patron: 6, settlement: 3 },
+      },
+      {
+        id: 'bring-timber',
+        kind: 'supply',
+        title: 'Timber wanted',
+        text: '{patron} will pay for {amount} {good}.',
+        minSize: 1,
+        km: { min: 0, max: 150 },
+        goods: ['timber'],
+        amount: { min: 2, max: 5 },
+        urgentChance: 0,
+        reputation: { patron: 4, settlement: 2 },
+      },
+      {
+        id: 'see-pilgrim',
+        kind: 'escort',
+        title: 'A pilgrim to {dest}',
+        text: '{patron} asks you to see a pilgrim safely to {dest}.',
+        km: { min: 40, max: 150 },
+        passengers: { min: 1, max: 1 },
+        urgentChance: 0,
+        pay: 1.5,
+        reputation: { patron: 5, settlement: 3 },
+      },
+      {
+        id: 'camp-bounty',
+        kind: 'bounty',
+        title: 'Bounty on {site}',
+        text: '{patron} pays for clearing {site}.',
+        minSize: 2,
+        minStanding: 'known',
+        km: { min: 0, max: 100 },
+        poiCategories: ['lair'],
+        urgentChance: 0,
+        reputation: { patron: 8, settlement: 6 },
+      },
+      {
+        id: 'visit-stones',
+        kind: 'errand',
+        title: 'A rubbing from {site}',
+        text: '{patron} wants a rubbing of the carvings at {site}.',
+        service: 'inn-tavern',
+        km: { min: 0, max: 100 },
+        poiCategories: ['landmark'],
+        urgentChance: 0.5,
+        reputation: { patron: 3, settlement: 1 },
+      },
+    ],
+  },
+}
+
 export function fixtureContent(): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
@@ -864,6 +1042,7 @@ export function fixtureContent(): Content {
       ],
     },
     ...testWorld,
+    ...testEconomy,
   })
   if (errors.length > 0) throw new Error(JSON.stringify(errors, null, 2))
   return content

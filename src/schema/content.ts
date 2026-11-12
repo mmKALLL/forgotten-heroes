@@ -1,6 +1,14 @@
 import { z } from 'zod'
 import { AbilitySchema, AbilityScoresSchema, IdSchema, SkillSchema, SourceSchema } from './common'
 import {
+  AnimalDefSchema,
+  ContractTemplateSchema,
+  GoodDefSchema,
+  MarketRuleSchema,
+  PersonRoleSchema,
+  ServiceRoleSchema,
+} from './economy'
+import {
   ArchetypeSchema,
   CreatureSchema,
   PartsTableSchema,
@@ -107,6 +115,11 @@ export const TRANSLATABLE_KINDS = [
   'placeNames',
   'threats',
   'poiTypes',
+  'goods',
+  'serviceRoles',
+  'animals',
+  'personRoles',
+  'contracts',
 ] as const
 export type TranslatableKind = (typeof TRANSLATABLE_KINDS)[number]
 
@@ -145,6 +158,12 @@ export const CONTENT_KINDS = {
   threats: ThreatSchema,
   landSpots: LandSpotSchema,
   poiTypes: PoiTypeSchema,
+  goods: GoodDefSchema,
+  serviceRoles: ServiceRoleSchema,
+  marketRules: MarketRuleSchema,
+  animals: AnimalDefSchema,
+  personRoles: PersonRoleSchema,
+  contracts: ContractTemplateSchema,
   translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS

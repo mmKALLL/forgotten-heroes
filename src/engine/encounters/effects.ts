@@ -203,6 +203,12 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         'good'
       )
     }
+    // Plan 4: the goods effect lands with A1, reputation with B2 and animals with A4. Until then
+    // they change nothing, and no content uses them.
+    case 'goods':
+    case 'reputation':
+    case 'animals':
+      return state
   }
 }
 
@@ -278,5 +284,15 @@ export function describeEffect(effect: Effect, actorName: string): string | null
       return 'clears the site'
     case 'trainSkill':
       return `someone learns ${statLabel(effect.skill)}`
+    case 'goods': {
+      const what = effect.good ?? `${effect.category} goods`
+      return effect.fraction !== undefined
+        ? `lose ${Math.round(effect.fraction * 100)}% of your ${what}`
+        : `${formatModifier(effect.amount ?? 0)} ${what}`
+    }
+    case 'reputation':
+      return `${formatModifier(effect.amount)} reputation`
+    case 'animals':
+      return `${formatModifier(effect.amount)} ${effect.animal ?? 'animal'}`
   }
 }

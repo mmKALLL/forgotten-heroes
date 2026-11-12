@@ -3,15 +3,20 @@ import {
   ABILITIES,
   ALIGNMENTS,
   BIOMES,
+  CONTRACT_KINDS,
   CREATURE_TYPES,
   DISPOSITIONS,
+  GOOD_CATEGORIES,
   GOODS,
   LOG_TONES,
   PACES,
   POI_CATEGORIES,
   POSITIONS,
+  SERVICE_ACTIONS,
+  SERVICE_FUNCTIONS,
   SIZE_TIERS,
   SKILLS,
+  STANDINGS,
 } from './types'
 
 export const SOURCES = ['original', 'imported', 'imported-private', 'procedural', 'claude'] as const
@@ -29,6 +34,11 @@ export const BiomeSchema = z.enum(BIOMES)
 export const SizeTierSchema = z.enum(SIZE_TIERS)
 export const AlignmentSchema = z.enum(ALIGNMENTS)
 export const GoodSchema = z.enum(GOODS)
+export const GoodCategorySchema = z.enum(GOOD_CATEGORIES)
+export const ServiceFunctionSchema = z.enum(SERVICE_FUNCTIONS)
+export const ServiceActionSchema = z.enum(SERVICE_ACTIONS)
+export const ContractKindSchema = z.enum(CONTRACT_KINDS)
+export const StandingSchema = z.enum(STANDINGS)
 export const PaceSchema = z.enum(PACES)
 export const DispositionSchema = z.enum(DISPOSITIONS)
 export const PoiCategorySchema = z.enum(POI_CATEGORIES)

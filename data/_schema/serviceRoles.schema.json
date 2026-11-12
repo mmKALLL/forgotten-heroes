@@ -1,0 +1,127 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "serviceRoles"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+            "description": "The services entry it describes"
+          },
+          "function": {
+            "type": "string",
+            "enum": [
+              "trade",
+              "rest",
+              "hire",
+              "temple",
+              "underworld"
+            ]
+          },
+          "trades": {
+            "default": [],
+            "description": "Goods it buys and sells",
+            "$ref": "#/$defs/__schema0"
+          },
+          "buysOnly": {
+            "default": [],
+            "description": "Goods it buys but never sells, e.g. a necromancer buys relics",
+            "$ref": "#/$defs/__schema2"
+          },
+          "actions": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "market",
+                "lodging",
+                "heal",
+                "bless",
+                "animals",
+                "rumours",
+                "board",
+                "passage",
+                "news"
+              ]
+            }
+          },
+          "specialty": {
+            "description": "A line of flavour shown with the service",
+            "$ref": "#/$defs/__schema3"
+          }
+        },
+        "required": [
+          "id",
+          "function"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema1"
+      }
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "food",
+        "water",
+        "fuel",
+        "healing",
+        "alchemicals",
+        "arcana",
+        "arms",
+        "armour",
+        "gear",
+        "timber",
+        "stone",
+        "metal",
+        "gems",
+        "relics",
+        "luxuries"
+      ]
+    },
+    "__schema2": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema1"
+      }
+    },
+    "__schema3": {
+      "type": "string"
+    }
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "animals"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "name": {
+            "type": "string"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "description": "gp to buy one"
+          },
+          "hirePerDay": {
+            "description": "gp per day to hire one for a journey to a settlement; omit if it is not for hire",
+            "$ref": "#/$defs/__schema1"
+          },
+          "capacity": {
+            "type": "number",
+            "minimum": 0,
+            "description": "kg it carries (or hauls)"
+          },
+          "speed": {
+            "default": 1,
+            "description": "Land speed multiplier while ridden: 2 for riding animals (less in rough terrain)",
+            "$ref": "#/$defs/__schema2"
+          },
+          "rider": {
+            "default": false,
+            "description": "Carries a rider: one per member to ride",
+            "$ref": "#/$defs/__schema3"
+          },
+          "needs": {
+            "description": "Another animal it needs to move, e.g. a cart needs a mule",
+            "$ref": "#/$defs/__schema0"
+          },
+          "roadsOnly": {
+            "default": false,
+            "description": "Keeps to roads: never on paths to sites (carts)",
+            "$ref": "#/$defs/__schema4"
+          },
+          "maxPathDanger": {
+            "description": "Only takes paths to sites up to this pathDanger (horses avoid rough paths)",
+            "$ref": "#/$defs/__schema5"
+          },
+          "waterPerDay": {
+            "default": 1,
+            "description": "Units of water it drinks per day",
+            "$ref": "#/$defs/__schema6"
+          },
+          "upkeepPerDay": {
+            "default": 0,
+            "description": "gp per day while owned: fodder, stabling and care",
+            "$ref": "#/$defs/__schema7"
+          },
+          "stealable": {
+            "default": false,
+            "description": "Thieves can lead it away (an `animals` loss without a named animal)",
+            "$ref": "#/$defs/__schema8"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "price",
+          "capacity"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema2": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "__schema3": {
+      "type": "boolean"
+    },
+    "__schema4": {
+      "type": "boolean"
+    },
+    "__schema5": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "__schema6": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema7": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema8": {
+      "type": "boolean"
+    }
+  }
+}

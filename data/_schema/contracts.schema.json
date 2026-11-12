@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "contracts"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "kind": {
+            "$ref": "#/$defs/__schema1"
+          },
+          "title": {
+            "$ref": "#/$defs/__schema2"
+          },
+          "text": {
+            "$ref": "#/$defs/__schema3"
+          },
+          "weight": {
+            "$ref": "#/$defs/__schema4"
+          },
+          "minSize": {
+            "$ref": "#/$defs/__schema6"
+          },
+          "service": {
+            "$ref": "#/$defs/__schema8"
+          },
+          "minStanding": {
+            "$ref": "#/$defs/__schema9"
+          },
+          "km": {
+            "$ref": "#/$defs/__schema11"
+          },
+          "goods": {
+            "$ref": "#/$defs/__schema14"
+          },
+          "amount": {
+            "$ref": "#/$defs/__schema17"
+          },
+          "passengers": {
+            "$ref": "#/$defs/__schema20"
+          },
+          "poiCategories": {
+            "$ref": "#/$defs/__schema23"
+          },
+          "urgentChance": {
+            "$ref": "#/$defs/__schema26"
+          },
+          "pay": {
+            "$ref": "#/$defs/__schema27"
+          },
+          "reputation": {
+            "$ref": "#/$defs/__schema29"
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "text",
+          "km",
+          "urgentChance",
+          "reputation"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "courier",
+        "supply",
+        "escort",
+        "bounty",
+        "errand"
+      ]
+    },
+    "__schema2": {
+      "type": "string"
+    },
+    "__schema3": {
+      "type": "string",
+      "description": "May use {good} {amount} {dest} {patron} {site}"
+    },
+    "__schema4": {
+      "default": 1,
+      "description": "Relative chance of being posted",
+      "$ref": "#/$defs/__schema5"
+    },
+    "__schema5": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema6": {
+      "default": 0,
+      "description": "Smallest size tier posting it",
+      "$ref": "#/$defs/__schema7"
+    },
+    "__schema7": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "__schema8": {
+      "description": "Posted only at this service; otherwise on the board",
+      "$ref": "#/$defs/__schema0"
+    },
+    "__schema9": {
+      "description": "Offered only at this standing or better",
+      "$ref": "#/$defs/__schema10"
+    },
+    "__schema10": {
+      "type": "string",
+      "enum": [
+        "hated",
+        "disliked",
+        "stranger",
+        "known",
+        "liked",
+        "trusted",
+        "honoured"
+      ]
+    },
+    "__schema11": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "$ref": "#/$defs/__schema12"
+        },
+        "max": {
+          "$ref": "#/$defs/__schema13"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "description": "How far away the destination or site is"
+    },
+    "__schema12": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema13": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema14": {
+      "description": "courier and supply: what is carried",
+      "$ref": "#/$defs/__schema15"
+    },
+    "__schema15": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema16"
+      }
+    },
+    "__schema16": {
+      "type": "string",
+      "enum": [
+        "food",
+        "water",
+        "fuel",
+        "healing",
+        "alchemicals",
+        "arcana",
+        "arms",
+        "armour",
+        "gear",
+        "timber",
+        "stone",
+        "metal",
+        "gems",
+        "relics",
+        "luxuries"
+      ]
+    },
+    "__schema17": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "$ref": "#/$defs/__schema18"
+        },
+        "max": {
+          "$ref": "#/$defs/__schema19"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "description": "courier and supply: how many units"
+    },
+    "__schema18": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema19": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema20": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "$ref": "#/$defs/__schema21"
+        },
+        "max": {
+          "$ref": "#/$defs/__schema22"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "description": "escort: how many travel with the party (default 1)"
+    },
+    "__schema21": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema22": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema23": {
+      "description": "bounty and errand: the kinds of site it sends the party to",
+      "$ref": "#/$defs/__schema24"
+    },
+    "__schema24": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema25"
+      }
+    },
+    "__schema25": {
+      "type": "string",
+      "enum": [
+        "dungeon",
+        "expert",
+        "lair",
+        "shrine",
+        "landmark",
+        "wonder",
+        "quest"
+      ]
+    },
+    "__schema26": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Urgent offers have tighter deadlines"
+    },
+    "__schema27": {
+      "default": 1,
+      "description": "Multiplies the pay worked out by the engine",
+      "$ref": "#/$defs/__schema28"
+    },
+    "__schema28": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema29": {
+      "type": "object",
+      "properties": {
+        "patron": {
+          "$ref": "#/$defs/__schema30"
+        },
+        "settlement": {
+          "$ref": "#/$defs/__schema31"
+        }
+      },
+      "required": [
+        "patron",
+        "settlement"
+      ],
+      "description": "Reputation points on completion"
+    },
+    "__schema30": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema31": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    }
+  }
+}

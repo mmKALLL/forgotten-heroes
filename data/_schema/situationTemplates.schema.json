@@ -43,7 +43,7 @@
           },
           "tags": {
             "default": [],
-            "description": "Themes, e.g. \"road\"; biomes and regions filter where it happens",
+            "description": "Themes, e.g. \"road\"; biomes and regions filter where it happens. Visible wealth makes \"thieves\" and \"toll\" situations likelier",
             "$ref": "#/$defs/__schema2"
           },
           "biomes": {
@@ -112,12 +112,12 @@
               "dc": {
                 "default": 13,
                 "description": "What \"dc\" means in the archetype",
-                "$ref": "#/$defs/__schema49"
+                "$ref": "#/$defs/__schema61"
               },
               "reward": {
                 "default": 1,
                 "description": "Multiplies every gold amount in the archetype",
-                "$ref": "#/$defs/__schema50"
+                "$ref": "#/$defs/__schema62"
               }
             },
             "required": [
@@ -583,6 +583,74 @@
               "skill"
             ],
             "description": "Make the best-suited member who lacks the skill proficient in it (ties: party order)"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema49"
+              },
+              "good": {
+                "$ref": "#/$defs/__schema50"
+              },
+              "category": {
+                "$ref": "#/$defs/__schema52"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema54"
+              },
+              "fraction": {
+                "$ref": "#/$defs/__schema55"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "Gain or lose goods; goods never drop below 0"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema57"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema12"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect",
+              "amount"
+            ],
+            "description": "Raise (+) or lower (−) the party's reputation with the encounter's settlement"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema58"
+              },
+              "animal": {
+                "$ref": "#/$defs/__schema59"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema60"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect",
+              "amount"
+            ],
+            "description": "Gain (+) or lose (−) owned animals. A loss without an animal takes stealable ones, most valuable first (horse thieves)"
           }
         ]
       }
@@ -805,11 +873,81 @@
       ]
     },
     "__schema49": {
+      "type": "string",
+      "const": "goods"
+    },
+    "__schema50": {
+      "description": "One good; or name a category instead",
+      "$ref": "#/$defs/__schema51"
+    },
+    "__schema51": {
+      "type": "string",
+      "enum": [
+        "food",
+        "water",
+        "fuel",
+        "healing",
+        "alchemicals",
+        "arcana",
+        "arms",
+        "armour",
+        "gear",
+        "timber",
+        "stone",
+        "metal",
+        "gems",
+        "relics",
+        "luxuries"
+      ]
+    },
+    "__schema52": {
+      "description": "A whole category: an amount spreads over its goods, most valuable first",
+      "$ref": "#/$defs/__schema53"
+    },
+    "__schema53": {
+      "type": "string",
+      "enum": [
+        "essentials",
+        "consumables",
+        "equipment",
+        "materials",
+        "precious"
+      ]
+    },
+    "__schema54": {
+      "description": "Units gained (+) or lost (−); or give a fraction",
+      "$ref": "#/$defs/__schema12"
+    },
+    "__schema55": {
+      "description": "Lose this share of what is carried, rounded up (theft)",
+      "$ref": "#/$defs/__schema56"
+    },
+    "__schema56": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "__schema57": {
+      "type": "string",
+      "const": "reputation"
+    },
+    "__schema58": {
+      "type": "string",
+      "const": "animals"
+    },
+    "__schema59": {
+      "description": "An animals id; omit for thieves taking stealable ones",
+      "$ref": "#/$defs/__schema0"
+    },
+    "__schema60": {
+      "$ref": "#/$defs/__schema12"
+    },
+    "__schema61": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema50": {
+    "__schema62": {
       "type": "number",
       "minimum": 0,
       "maximum": 10

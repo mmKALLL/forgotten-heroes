@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "personRoles"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "name": {
+            "type": "string",
+            "description": "e.g. \"innkeeper\""
+          },
+          "service": {
+            "description": "Only where this service is present",
+            "$ref": "#/$defs/__schema0"
+          },
+          "minSize": {
+            "default": 0,
+            "description": "Smallest size tier it appears in",
+            "$ref": "#/$defs/__schema1"
+          },
+          "weight": {
+            "default": 1,
+            "description": "Relative chance of being drawn",
+            "$ref": "#/$defs/__schema2"
+          },
+          "titles": {
+            "default": [],
+            "description": "Forms of address, e.g. \"Mother\", \"Old\"",
+            "$ref": "#/$defs/__schema3"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
+    },
+    "__schema2": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema3": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  }
+}

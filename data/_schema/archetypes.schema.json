@@ -81,7 +81,7 @@
               "$ref": "#/$defs/__schema5"
             },
             "once": {
-              "$ref": "#/$defs/__schema14"
+              "$ref": "#/$defs/__schema19"
             },
             "kind": {
               "type": "string",
@@ -95,22 +95,22 @@
                 },
                 "ability": {
                   "description": "Overrides the skill's default ability, e.g. \"cha\" for Intimidation (CHA)",
-                  "$ref": "#/$defs/__schema16"
+                  "$ref": "#/$defs/__schema21"
                 },
                 "dc": {
                   "anyOf": [
                     {
-                      "$ref": "#/$defs/__schema17"
+                      "$ref": "#/$defs/__schema22"
                     },
                     {
-                      "$ref": "#/$defs/__schema18"
+                      "$ref": "#/$defs/__schema23"
                     }
                   ],
                   "description": "A DC from 1 to 40, or inside an archetype \"dc\", \"dc+2\" or \"dc-1\""
                 },
                 "combat": {
                   "description": "Combat checks never grant Inspiration on a natural 20",
-                  "$ref": "#/$defs/__schema19"
+                  "$ref": "#/$defs/__schema24"
                 }
               },
               "required": [
@@ -120,27 +120,27 @@
             },
             "highStakes": {
               "description": "Force the slow, glowing dice roll",
-              "$ref": "#/$defs/__schema20"
+              "$ref": "#/$defs/__schema25"
             },
             "outcomes": {
               "type": "object",
               "properties": {
                 "critFail": {
                   "description": "Defaults to the fail outcome",
-                  "$ref": "#/$defs/__schema21"
+                  "$ref": "#/$defs/__schema26"
                 },
                 "fail": {
-                  "$ref": "#/$defs/__schema21"
+                  "$ref": "#/$defs/__schema26"
                 },
                 "partial": {
-                  "$ref": "#/$defs/__schema21"
+                  "$ref": "#/$defs/__schema26"
                 },
                 "success": {
-                  "$ref": "#/$defs/__schema21"
+                  "$ref": "#/$defs/__schema26"
                 },
                 "critSuccess": {
                   "description": "Defaults to the success outcome",
-                  "$ref": "#/$defs/__schema21"
+                  "$ref": "#/$defs/__schema26"
                 }
               },
               "required": [
@@ -174,14 +174,14 @@
               "$ref": "#/$defs/__schema5"
             },
             "once": {
-              "$ref": "#/$defs/__schema14"
+              "$ref": "#/$defs/__schema19"
             },
             "kind": {
               "type": "string",
               "const": "fixed"
             },
             "outcome": {
-              "$ref": "#/$defs/__schema21"
+              "$ref": "#/$defs/__schema26"
             }
           },
           "required": [
@@ -271,6 +271,42 @@
               "req"
             ],
             "description": "A site's boon (a blessing, healing, a find): only in site situations. Unavailable while the site's boon is spent; choosing the option spends it for BOON_COOLDOWN_DAYS days"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "req": {
+                "$ref": "#/$defs/__schema14"
+              },
+              "good": {
+                "$ref": "#/$defs/__schema15"
+              },
+              "min": {
+                "$ref": "#/$defs/__schema16"
+              }
+            },
+            "required": [
+              "req",
+              "good",
+              "min"
+            ],
+            "description": "The party carries at least this many units of the good"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "req": {
+                "$ref": "#/$defs/__schema17"
+              },
+              "min": {
+                "$ref": "#/$defs/__schema18"
+              }
+            },
+            "required": [
+              "req",
+              "min"
+            ],
+            "description": "The party's standing with the encounter's settlement is at least this"
           }
         ]
       }
@@ -339,13 +375,58 @@
       "const": "siteReady"
     },
     "__schema14": {
-      "description": "Can only be chosen once per encounter",
-      "$ref": "#/$defs/__schema15"
+      "type": "string",
+      "const": "goods"
     },
     "__schema15": {
-      "type": "boolean"
+      "type": "string",
+      "enum": [
+        "food",
+        "water",
+        "fuel",
+        "healing",
+        "alchemicals",
+        "arcana",
+        "arms",
+        "armour",
+        "gear",
+        "timber",
+        "stone",
+        "metal",
+        "gems",
+        "relics",
+        "luxuries"
+      ]
     },
     "__schema16": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
+    },
+    "__schema17": {
+      "type": "string",
+      "const": "standing"
+    },
+    "__schema18": {
+      "type": "string",
+      "enum": [
+        "hated",
+        "disliked",
+        "stranger",
+        "known",
+        "liked",
+        "trusted",
+        "honoured"
+      ]
+    },
+    "__schema19": {
+      "description": "Can only be chosen once per encounter",
+      "$ref": "#/$defs/__schema20"
+    },
+    "__schema20": {
+      "type": "boolean"
+    },
+    "__schema21": {
       "type": "string",
       "enum": [
         "str",
@@ -356,49 +437,49 @@
         "cha"
       ]
     },
-    "__schema17": {
+    "__schema22": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema18": {
+    "__schema23": {
       "type": "string",
       "pattern": "^dc([+-][0-9]+)?$"
     },
-    "__schema19": {
+    "__schema24": {
       "type": "boolean"
     },
-    "__schema20": {
+    "__schema25": {
       "type": "boolean"
     },
-    "__schema21": {
+    "__schema26": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema22"
+          "$ref": "#/$defs/__schema27"
         },
         "effects": {
-          "$ref": "#/$defs/__schema23"
+          "$ref": "#/$defs/__schema28"
         },
         "goto": {
-          "$ref": "#/$defs/__schema60"
+          "$ref": "#/$defs/__schema76"
         },
         "stay": {
-          "$ref": "#/$defs/__schema62"
+          "$ref": "#/$defs/__schema78"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema64"
+          "$ref": "#/$defs/__schema80"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema22": {
+    "__schema27": {
       "type": "string"
     },
-    "__schema23": {
+    "__schema28": {
       "default": [],
       "type": "array",
       "items": {
@@ -407,13 +488,13 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema24"
+                "$ref": "#/$defs/__schema29"
               },
               "amount": {
-                "$ref": "#/$defs/__schema25"
+                "$ref": "#/$defs/__schema30"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -426,16 +507,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema31"
+                "$ref": "#/$defs/__schema36"
               },
               "amount": {
-                "$ref": "#/$defs/__schema25"
+                "$ref": "#/$defs/__schema30"
               },
               "target": {
-                "$ref": "#/$defs/__schema32"
+                "$ref": "#/$defs/__schema37"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -449,16 +530,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema33"
+                "$ref": "#/$defs/__schema38"
               },
               "fraction": {
-                "$ref": "#/$defs/__schema34"
+                "$ref": "#/$defs/__schema39"
               },
               "target": {
-                "$ref": "#/$defs/__schema35"
+                "$ref": "#/$defs/__schema40"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -472,16 +553,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema36"
+                "$ref": "#/$defs/__schema41"
               },
               "amount": {
-                "$ref": "#/$defs/__schema25"
+                "$ref": "#/$defs/__schema30"
               },
               "target": {
-                "$ref": "#/$defs/__schema37"
+                "$ref": "#/$defs/__schema42"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -495,13 +576,13 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema38"
+                "$ref": "#/$defs/__schema43"
               },
               "amount": {
-                "$ref": "#/$defs/__schema25"
+                "$ref": "#/$defs/__schema30"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -514,13 +595,13 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema39"
+                "$ref": "#/$defs/__schema44"
               },
               "amount": {
-                "$ref": "#/$defs/__schema40"
+                "$ref": "#/$defs/__schema45"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -533,13 +614,13 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema41"
+                "$ref": "#/$defs/__schema46"
               },
               "position": {
-                "$ref": "#/$defs/__schema42"
+                "$ref": "#/$defs/__schema47"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -552,16 +633,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema43"
+                "$ref": "#/$defs/__schema48"
               },
               "situation": {
                 "$ref": "#/$defs/__schema0"
               },
               "after": {
-                "$ref": "#/$defs/__schema44"
+                "$ref": "#/$defs/__schema49"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -574,16 +655,16 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema46"
+                "$ref": "#/$defs/__schema51"
               },
               "amount": {
-                "$ref": "#/$defs/__schema25"
+                "$ref": "#/$defs/__schema30"
               },
               "reason": {
-                "$ref": "#/$defs/__schema47"
+                "$ref": "#/$defs/__schema52"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -596,13 +677,13 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema49"
+                "$ref": "#/$defs/__schema54"
               },
               "kind": {
-                "$ref": "#/$defs/__schema50"
+                "$ref": "#/$defs/__schema55"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -614,10 +695,10 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema52"
+                "$ref": "#/$defs/__schema57"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -646,7 +727,7 @@
                 ]
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -658,19 +739,19 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema53"
+                "$ref": "#/$defs/__schema58"
               },
               "count": {
-                "$ref": "#/$defs/__schema54"
+                "$ref": "#/$defs/__schema59"
               },
               "scope": {
-                "$ref": "#/$defs/__schema55"
+                "$ref": "#/$defs/__schema60"
               },
               "category": {
-                "$ref": "#/$defs/__schema57"
+                "$ref": "#/$defs/__schema62"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -682,10 +763,10 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema58"
+                "$ref": "#/$defs/__schema63"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -697,13 +778,13 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema59"
+                "$ref": "#/$defs/__schema64"
               },
               "skill": {
                 "$ref": "#/$defs/__schema7"
               },
               "if": {
-                "$ref": "#/$defs/__schema26"
+                "$ref": "#/$defs/__schema31"
               }
             },
             "required": [
@@ -711,33 +792,101 @@
               "skill"
             ],
             "description": "Make the best-suited member who lacks the skill proficient in it (ties: party order)"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema65"
+              },
+              "good": {
+                "$ref": "#/$defs/__schema66"
+              },
+              "category": {
+                "$ref": "#/$defs/__schema67"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema69"
+              },
+              "fraction": {
+                "$ref": "#/$defs/__schema70"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema31"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "Gain or lose goods; goods never drop below 0"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema72"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema30"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema31"
+              }
+            },
+            "required": [
+              "effect",
+              "amount"
+            ],
+            "description": "Raise (+) or lower (−) the party's reputation with the encounter's settlement"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema73"
+              },
+              "animal": {
+                "$ref": "#/$defs/__schema74"
+              },
+              "amount": {
+                "$ref": "#/$defs/__schema75"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema31"
+              }
+            },
+            "required": [
+              "effect",
+              "amount"
+            ],
+            "description": "Gain (+) or lose (−) owned animals. A loss without an animal takes stealable ones, most valuable first (horse thieves)"
           }
         ]
       }
     },
-    "__schema24": {
+    "__schema29": {
       "type": "string",
       "const": "gold"
     },
-    "__schema25": {
+    "__schema30": {
       "type": "integer",
       "minimum": -9007199254740991,
       "maximum": 9007199254740991
     },
-    "__schema26": {
+    "__schema31": {
       "description": "Only applies when this holds",
-      "$ref": "#/$defs/__schema27"
+      "$ref": "#/$defs/__schema32"
     },
-    "__schema27": {
+    "__schema32": {
       "oneOf": [
         {
           "type": "object",
           "properties": {
             "cond": {
-              "$ref": "#/$defs/__schema28"
+              "$ref": "#/$defs/__schema33"
             },
             "not": {
-              "$ref": "#/$defs/__schema29"
+              "$ref": "#/$defs/__schema34"
             }
           },
           "required": [
@@ -747,22 +896,22 @@
         }
       ]
     },
-    "__schema28": {
+    "__schema33": {
       "type": "string",
       "const": "twistRevealed"
     },
-    "__schema29": {
+    "__schema34": {
       "description": "True: only when the odds are still hidden",
-      "$ref": "#/$defs/__schema30"
+      "$ref": "#/$defs/__schema35"
     },
-    "__schema30": {
+    "__schema35": {
       "type": "boolean"
     },
-    "__schema31": {
+    "__schema36": {
       "type": "string",
       "const": "hp"
     },
-    "__schema32": {
+    "__schema37": {
       "type": "string",
       "enum": [
         "actor",
@@ -770,16 +919,16 @@
         "random"
       ]
     },
-    "__schema33": {
+    "__schema38": {
       "type": "string",
       "const": "healFraction"
     },
-    "__schema34": {
+    "__schema39": {
       "type": "number",
       "exclusiveMinimum": 0,
       "maximum": 1
     },
-    "__schema35": {
+    "__schema40": {
       "type": "string",
       "enum": [
         "actor",
@@ -787,35 +936,35 @@
         "random"
       ]
     },
-    "__schema36": {
+    "__schema41": {
       "type": "string",
       "const": "exhaustion"
     },
-    "__schema37": {
+    "__schema42": {
       "type": "string",
       "enum": [
         "actor",
         "all"
       ]
     },
-    "__schema38": {
+    "__schema43": {
       "type": "string",
       "const": "inspiration"
     },
-    "__schema39": {
+    "__schema44": {
       "type": "string",
       "const": "days"
     },
-    "__schema40": {
+    "__schema45": {
       "type": "integer",
       "minimum": 1,
       "maximum": 9007199254740991
     },
-    "__schema41": {
+    "__schema46": {
       "type": "string",
       "const": "position"
     },
-    "__schema42": {
+    "__schema47": {
       "type": "string",
       "enum": [
         "normal",
@@ -823,85 +972,135 @@
         "exposed"
       ]
     },
-    "__schema43": {
+    "__schema48": {
       "type": "string",
       "const": "followUp"
     },
-    "__schema44": {
+    "__schema49": {
       "default": 0,
       "description": "Other encounters that happen first",
-      "$ref": "#/$defs/__schema45"
+      "$ref": "#/$defs/__schema50"
     },
-    "__schema45": {
+    "__schema50": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991
     },
-    "__schema46": {
+    "__schema51": {
       "type": "string",
       "const": "nextCheckModifier"
     },
-    "__schema47": {
+    "__schema52": {
       "description": "Shown next to the modifier, e.g. \"misread\"",
-      "$ref": "#/$defs/__schema48"
+      "$ref": "#/$defs/__schema53"
     },
-    "__schema48": {
+    "__schema53": {
       "type": "string"
     },
-    "__schema49": {
+    "__schema54": {
       "type": "string",
       "const": "revealTwist"
     },
-    "__schema50": {
+    "__schema55": {
       "description": "Also reveal which kind of twist it would be (twist-table twists)",
-      "$ref": "#/$defs/__schema51"
+      "$ref": "#/$defs/__schema56"
     },
-    "__schema51": {
+    "__schema56": {
       "type": "boolean"
     },
-    "__schema52": {
+    "__schema57": {
       "type": "string",
       "const": "openingHit"
     },
-    "__schema53": {
+    "__schema58": {
       "type": "string",
       "const": "discoverPoi"
     },
-    "__schema54": {
+    "__schema59": {
       "default": 1,
       "type": "integer",
       "minimum": 1,
       "maximum": 3
     },
-    "__schema55": {
+    "__schema60": {
       "default": "domain",
       "description": "Where to look: the encounter's domain, or every domain of its land",
-      "$ref": "#/$defs/__schema56"
+      "$ref": "#/$defs/__schema61"
     },
-    "__schema56": {
+    "__schema61": {
       "type": "string",
       "enum": [
         "domain",
         "land"
       ]
     },
-    "__schema57": {
+    "__schema62": {
       "description": "Only sites of this category",
       "$ref": "#/$defs/__schema12"
     },
-    "__schema58": {
+    "__schema63": {
       "type": "string",
       "const": "clearPoi"
     },
-    "__schema59": {
+    "__schema64": {
       "type": "string",
       "const": "trainSkill"
     },
-    "__schema60": {
-      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema61"
+    "__schema65": {
+      "type": "string",
+      "const": "goods"
     },
-    "__schema61": {
+    "__schema66": {
+      "description": "One good; or name a category instead",
+      "$ref": "#/$defs/__schema15"
+    },
+    "__schema67": {
+      "description": "A whole category: an amount spreads over its goods, most valuable first",
+      "$ref": "#/$defs/__schema68"
+    },
+    "__schema68": {
+      "type": "string",
+      "enum": [
+        "essentials",
+        "consumables",
+        "equipment",
+        "materials",
+        "precious"
+      ]
+    },
+    "__schema69": {
+      "description": "Units gained (+) or lost (−); or give a fraction",
+      "$ref": "#/$defs/__schema30"
+    },
+    "__schema70": {
+      "description": "Lose this share of what is carried, rounded up (theft)",
+      "$ref": "#/$defs/__schema71"
+    },
+    "__schema71": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "__schema72": {
+      "type": "string",
+      "const": "reputation"
+    },
+    "__schema73": {
+      "type": "string",
+      "const": "animals"
+    },
+    "__schema74": {
+      "description": "An animals id; omit for thieves taking stealable ones",
+      "$ref": "#/$defs/__schema0"
+    },
+    "__schema75": {
+      "$ref": "#/$defs/__schema30"
+    },
+    "__schema76": {
+      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
+      "$ref": "#/$defs/__schema77"
+    },
+    "__schema77": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -912,27 +1111,27 @@
         }
       ]
     },
-    "__schema62": {
+    "__schema78": {
       "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema63"
+      "$ref": "#/$defs/__schema79"
     },
-    "__schema63": {
+    "__schema79": {
       "type": "boolean"
     },
-    "__schema64": {
+    "__schema80": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema22"
+          "$ref": "#/$defs/__schema27"
         },
         "effects": {
-          "$ref": "#/$defs/__schema23"
+          "$ref": "#/$defs/__schema28"
         },
         "goto": {
-          "$ref": "#/$defs/__schema60"
+          "$ref": "#/$defs/__schema76"
         },
         "stay": {
-          "$ref": "#/$defs/__schema62"
+          "$ref": "#/$defs/__schema78"
         }
       },
       "required": [

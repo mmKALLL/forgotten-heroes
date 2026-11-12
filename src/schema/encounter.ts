@@ -4,11 +4,14 @@ import {
   BiomeSchema,
   CreatureTypeSchema,
   DispositionSchema,
+  GoodCategorySchema,
+  GoodSchema,
   IdSchema,
   LogToneSchema,
   PoiCategorySchema,
   PositionSchema,
   SkillSchema,
+  StandingSchema,
 } from './common'
 import { MAX_DC, MIN_DC } from './types'
 
@@ -141,7 +144,49 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     .describe(
       'Make the best-suited member who lacks the skill proficient in it (ties: party order)'
     ),
-  // Extension point: Plan 4 adds { "effect": "goods", "good": "food", "amount": -2 } here.
+  z
+    .object({
+      effect: z.literal('goods'),
+      good: GoodSchema.optional().describe('One good; or name a category instead'),
+      category: GoodCategorySchema.optional().describe(
+        'A whole category: an amount spreads over its goods, most valuable first'
+      ),
+      amount: amount.optional().describe('Units gained (+) or lost (−); or give a fraction'),
+      fraction: z
+        .number()
+        .gt(0)
+        .max(1)
+        .optional()
+        .describe('Lose this share of what is carried, rounded up (theft)'),
+      ...when,
+    })
+    .refine((e) => (e.good === undefined) !== (e.category === undefined), {
+      message: 'name exactly one of good or category',
+      path: ['good'],
+    })
+    .refine((e) => (e.amount === undefined) !== (e.fraction === undefined), {
+      message: 'give exactly one of amount or fraction',
+      path: ['amount'],
+    })
+    .describe('Gain or lose goods; goods never drop below 0'),
+  z
+    .object({ effect: z.literal('reputation'), amount, ...when })
+    .describe("Raise (+) or lower (−) the party's reputation with the encounter's settlement"),
+  z
+    .object({
+      effect: z.literal('animals'),
+      animal: IdSchema.optional().describe('An animals id; omit for thieves taking stealable ones'),
+      amount: amount.refine((n) => n !== 0, 'amount must not be 0'),
+      ...when,
+    })
+    .refine((e) => e.amount < 0 || e.animal !== undefined, {
+      message: 'gaining animals needs an animal',
+      path: ['animal'],
+    })
+    .describe(
+      'Gain (+) or lose (−) owned animals. A loss without an animal takes stealable ones, ' +
+        'most valuable first (horse thieves)'
+    ),
 ])
 export type Effect = z.infer<typeof EffectSchema>
 
@@ -173,7 +218,12 @@ export const RequirementSchema = z.discriminatedUnion('req', [
       "A site's boon (a blessing, healing, a find): only in site situations. Unavailable while " +
         "the site's boon is spent; choosing the option spends it for BOON_COOLDOWN_DAYS days"
     ),
-  // Extension point: Plan 4 adds { "req": "goods", "good": "healing", "min": 1 }.
+  z
+    .object({ req: z.literal('goods'), good: GoodSchema, min: z.number().int().min(1) })
+    .describe('The party carries at least this many units of the good'),
+  z
+    .object({ req: z.literal('standing'), min: StandingSchema })
+    .describe("The party's standing with the encounter's settlement is at least this"),
 ])
 export type Requirement = z.infer<typeof RequirementSchema>
 
@@ -347,7 +397,10 @@ const situationFields = {
   tags: z
     .array(z.string())
     .default([])
-    .describe('Themes, e.g. "road"; biomes and regions filter where it happens'),
+    .describe(
+      'Themes, e.g. "road"; biomes and regions filter where it happens. Visible wealth makes ' +
+        '"thieves" and "toll" situations likelier'
+    ),
   biomes: z
     .array(BiomeSchema)
     .optional()

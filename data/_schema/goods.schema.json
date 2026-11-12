@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "goods"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "food",
+              "water",
+              "fuel",
+              "healing",
+              "alchemicals",
+              "arcana",
+              "arms",
+              "armour",
+              "gear",
+              "timber",
+              "stone",
+              "metal",
+              "gems",
+              "relics",
+              "luxuries"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string",
+            "description": "What one unit is called, e.g. \"ration\" or \"load\""
+          },
+          "weight": {
+            "type": "number",
+            "minimum": 0,
+            "description": "kg per unit"
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Base price in gp per unit, before supply and demand"
+          },
+          "spoilPerDay": {
+            "default": 0,
+            "description": "The share of the units carried that spoils each day (food), 0 for none",
+            "$ref": "#/$defs/__schema0"
+          },
+          "depth": {
+            "default": 1,
+            "description": "Market depth: how many units a market absorbs before bulk trades move the price",
+            "$ref": "#/$defs/__schema1"
+          },
+          "uses": {
+            "type": "string",
+            "description": "What it is good for, shown in the UI"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "unit",
+          "weight",
+          "price",
+          "uses"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "__schema1": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    }
+  }
+}
