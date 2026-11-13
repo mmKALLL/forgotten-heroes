@@ -116,6 +116,7 @@
   - Summons, one per divine level, as temporary party members; good or neutral clerics get beasts or celestials, evil ones undead.
   - Forced movement: push and pull.
   - **Review:** the pools go to the designer as a list.
+  - **Draft (2026-11-14):** the pools and summons are in `data/claude/spells.json` and `summons.json`, listed with the open questions in `docs/notes/spells-review.md`. Paladins and rangers draw from the divine pool's levels 1–5, which carries a few nature spells (please review). The effect list gained `roll`, `rounds` and fourteen effects (AC, temp HP, ward, vulnerable, revive, the conditions, wall, hazard, escape).
 - **Track N (enemies, content):**
   - Role stat tables by CR (HP, AC, to-hit, damage), modelled on 5e's monster statistics by CR.
   - Every creature gets a role and a size; bosses get a signature move and a second trick.

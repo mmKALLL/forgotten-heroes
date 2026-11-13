@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { IdSchema, LogToneSchema, PositionSchema } from './common'
+import { AbilitySchema, IdSchema, LogToneSchema, PositionSchema } from './common'
 import { FightSchema } from './encounter'
 import {
   ARMOUR_GRADES,
@@ -96,10 +96,18 @@ export type EnemyRoleDef = z.infer<typeof EnemyRoleDefSchema>
 // Abilities, spells and summons (shapes for Tracks C and S; the engine reads them later)
 // ---------------------------------------------------------------------------------------------
 
-/** Who or what an ability or spell is aimed at. */
+/**
+ * Who or what an ability or spell is aimed at: itself, one member, every member still fighting,
+ * one enemy, or every unit on one tile or on two adjacent tiles (an area: allies on it too).
+ */
 export const CombatTargetSchema = z.enum(['self', 'ally', 'party', 'enemy', 'tile', 'twoTiles'])
 
-/** What an ability or spell does: small typed objects the engine interprets (no functions). */
+/**
+ * What an ability or spell does: small typed objects the engine interprets (no functions). Each
+ * applies to every target; the lasting ones (toHit, damageBonus, ac, tempHp, ward, vulnerable,
+ * the conditions, wall and hazard) last the user's `rounds`. Amounts are signed: toHit −2 on an
+ * enemy is a curse, ac +2 on a member a ward.
+ */
 export const CombatEffectSchema = z.discriminatedUnion('effect', [
   z.object({ effect: z.literal('damage'), dice: DiceSchema }),
   z.object({ effect: z.literal('heal'), dice: DiceSchema }),
@@ -111,9 +119,51 @@ export const CombatEffectSchema = z.discriminatedUnion('effect', [
   z.object({ effect: z.literal('stagger') }),
   z.object({ effect: z.literal('stun') }),
   z.object({ effect: z.literal('extraAction') }),
-  z.object({ effect: z.literal('summon'), summon: IdSchema }),
+  z.object({
+    effect: z.literal('summon'),
+    summon: IdSchema.describe('The beast or celestial a good or neutral caster calls'),
+    evil: IdSchema.optional().describe('The undead an evil caster calls instead'),
+  }),
+  // Track S (spells) added the rest; the engine plays none of them yet.
+  z.object({ effect: z.literal('ac'), amount: z.number().int() }),
+  z.object({ effect: z.literal('tempHp'), dice: DiceSchema }),
+  /** Each hit the target takes is this much lower (at least 0). */
+  z.object({ effect: z.literal('ward'), amount: z.number().int().min(1) }),
+  /** Each hit the target takes is this much higher. */
+  z.object({ effect: z.literal('vulnerable'), amount: z.number().int().min(1) }),
+  /** A downed member (0 HP, not dead) gets back up with this many HP. */
+  z.object({ effect: z.literal('revive'), dice: DiceSchema }),
+  /** Its attacks are at disadvantage and reach only the next tile. */
+  z.object({ effect: z.literal('blind') }),
+  /** It can't move: no step, charge or hit and run; an intent that needs a move breaks. */
+  z.object({ effect: z.literal('slow') }),
+  /** It won't come closer or attack: on its turn it moves a tile away from the other side. */
+  z.object({ effect: z.literal('fear') }),
+  /** Its intent turns on its own side (the nearest one it can reach), or it repositions. */
+  z.object({ effect: z.literal('discord') }),
+  /** Attacks against the target are at disadvantage. */
+  z.object({ effect: z.literal('conceal') }),
+  /** It leaves the line (it can't act or be attacked), then returns to its tile or the nearest free one. */
+  z.object({ effect: z.literal('banish') }),
+  /** A wall stands on the tile: no unit may move into or across it, and no attack passes it. */
+  z.object({ effect: z.literal('wall') }),
+  /** The tile hurts: units on it when cast, entering it or starting a turn on it take the dice. */
+  z.object({ effect: z.literal('hazard'), dice: DiceSchema }),
+  /** Every member still fighting leaves the line at once, without free swings: a retreat. */
+  z.object({ effect: z.literal('escape') }),
 ])
 export type CombatEffect = z.infer<typeof CombatEffectSchema>
+
+/**
+ * How the effects land: always (no roll), on a hit with an attack (d20 + the casting ability and
+ * proficiency against AC), or on each target that fails a save against the user's DC. A target
+ * that saves takes half the damage of a `half` spell, and nothing else.
+ */
+export const CombatRollSchema = z.discriminatedUnion('roll', [
+  z.object({ roll: z.literal('attack') }),
+  z.object({ roll: z.literal('save'), ability: AbilitySchema, half: z.boolean().default(false) }),
+])
+export type CombatRoll = z.infer<typeof CombatRollSchema>
 
 const usedFields = {
   description: z.string(),
@@ -124,6 +174,14 @@ const usedFields = {
     .enum(['action', 'free'])
     .default('action')
     .describe('Spells and abilities take an action unless free'),
+  roll: CombatRollSchema.optional().describe('An attack or a save; none: it always lands'),
+  rounds: z
+    .number()
+    .int()
+    .min(1)
+    .max(10)
+    .default(1)
+    .describe('How long the lasting effects last (1: this round; 10: the whole fight)'),
 }
 
 export const ClassAbilitySchema = z.object({
@@ -144,14 +202,20 @@ export const SpellSchema = z.object({
 })
 export type Spell = z.infer<typeof SpellSchema>
 
-/** A summon (divine): a temporary party member for one fight. */
+/**
+ * A summon (divine): a temporary party member for one fight. Its role gives its favoured range
+ * and its trick as for enemies (a brute charges, a skirmisher hits and runs, an archer volleys,
+ * a caster strikes a tile, a leader rallies).
+ */
 export const SummonSchema = z.object({
   id: IdSchema,
   name: z.string(),
+  description: z.string().default(''),
   level: z.number().int().min(1).max(9).describe('The spell level whose pool holds it'),
   kind: z
     .enum(['beast', 'celestial', 'undead'])
     .describe('Good or neutral clerics call beasts or celestials, evil ones undead'),
+  role: EnemyRoleSchema.default('brute'),
   size: CreatureSizeSchema.default('medium'),
   hp: z.number().int().min(1),
   ac: z.number().int().min(1),

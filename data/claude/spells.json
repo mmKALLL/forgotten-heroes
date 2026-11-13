@@ -2,38 +2,2296 @@
   "$schema": "../_schema/spells.schema.json",
   "kind": "spells",
   "source": "claude",
-  "notes": "Placeholder (Plan 7 Track T) — Track S fills this in: one spell per pool and a summon, to show the shape. The combat engine does not cast spells yet.",
+  "notes": "Plan 7 Track S draft (for the designer's review; docs/notes/spells-review.md). The arcane pool (wizards) and the divine pool (clerics; paladins and rangers draw from its levels 1-5), levels 1-9. Names echo SRD 5.1 spells; the descriptions and numbers are ours. Each divine level holds one Calling, whose summon depends on the caster's alignment (summons.json). The combat engine does not cast spells yet.",
   "entries": [
     {
-      "id": "arcane-bolt",
-      "name": "Arcane Bolt",
+      "id": "magic-missile",
+      "name": "Magic Missile",
       "pool": "arcane",
       "level": 1,
-      "description": "Three darts of force that never miss their mark.",
+      "description": "Three darts of pale force curl past any guard and strike home.",
+      "target": "enemy",
+      "range": [1, 6],
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 3,
+            "die": 4,
+            "bonus": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "burning-hands",
+      "name": "Burning Hands",
+      "pool": "arcane",
+      "level": 1,
+      "description": "A fan of flame from spread fingers scorches everyone on the next tile.",
+      "target": "tile",
+      "range": [1, 1],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 3,
+            "die": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "thunderwave",
+      "name": "Thunderwave",
+      "pool": "arcane",
+      "level": 1,
+      "description": "A thunderclap bruises the nearest foes and throws them back a tile.",
+      "target": "tile",
+      "range": [1, 1],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 2,
+            "die": 8
+          }
+        },
+        {
+          "effect": "push",
+          "tiles": 1
+        }
+      ]
+    },
+    {
+      "id": "chromatic-orb",
+      "name": "Chromatic Orb",
+      "pool": "arcane",
+      "level": 1,
+      "description": "A hurled sphere of raw element: a heavy blow, if it lands.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "shield",
+      "name": "Shield",
+      "pool": "arcane",
+      "level": 1,
+      "description": "A pane of force flickers up between the caster and the next blows.",
+      "target": "self",
+      "range": [0, 0],
+      "action": "free",
+      "effects": [
+        {
+          "effect": "ac",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "sleep",
+      "name": "Sleep",
+      "pool": "arcane",
+      "level": 1,
+      "description": "A drowsy hush falls on one tile; whoever gives in to it loses a turn.",
+      "target": "tile",
+      "range": [2, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "effects": [
+        {
+          "effect": "stun"
+        }
+      ]
+    },
+    {
+      "id": "grease",
+      "name": "Grease",
+      "pool": "arcane",
+      "level": 1,
+      "description": "The ground turns slick: those who fail can only scramble where they stand.",
+      "target": "tile",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "dex"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "slow"
+        }
+      ]
+    },
+    {
+      "id": "fog-cloud",
+      "name": "Fog Cloud",
+      "pool": "arcane",
+      "level": 1,
+      "description": "A bank of fog settles on one tile and hides all within it from aimed blows.",
+      "target": "tile",
+      "range": [0, 5],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "conceal"
+        }
+      ]
+    },
+    {
+      "id": "scorching-ray",
+      "name": "Scorching Ray",
+      "pool": "arcane",
+      "level": 2,
+      "description": "Lances of fire from an open palm, all poured into one foe.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 6,
+            "die": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "shatter",
+      "name": "Shatter",
+      "pool": "arcane",
+      "level": 2,
+      "description": "A ringing note splits stone and bone on one tile far down the line.",
+      "target": "tile",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "acid-arrow",
+      "name": "Acid Arrow",
+      "pool": "arcane",
+      "level": 2,
+      "description": "A green arrow that burns on impact and eats at armour for a while after.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "attack"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 4,
+            "die": 4,
+            "bonus": 2
+          }
+        },
+        {
+          "effect": "ac",
+          "amount": -2
+        }
+      ]
+    },
+    {
+      "id": "cloud-of-daggers",
+      "name": "Cloud of Daggers",
+      "pool": "arcane",
+      "level": 2,
+      "description": "A whirl of conjured blades hangs over one tile and cuts whoever stands in it.",
+      "target": "tile",
+      "range": [1, 5],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 4,
+            "die": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "hold-person",
+      "name": "Hold Person",
+      "pool": "arcane",
+      "level": 2,
+      "description": "One foe is locked rigid where it stands for two turns.",
       "target": "enemy",
       "range": [1, 4],
-      "effects": [{ "effect": "damage", "dice": { "count": 3, "die": 4, "bonus": 3 } }]
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "stun"
+        }
+      ]
     },
     {
-      "id": "mending-word",
-      "name": "Mending Word",
-      "pool": "divine",
-      "level": 1,
-      "description": "A spoken blessing closes a wound at a distance.",
+      "id": "misty-step",
+      "name": "Misty Step",
+      "pool": "arcane",
+      "level": 2,
+      "description": "A step into silver mist, and out of it three tiles away, untouched.",
+      "target": "self",
+      "range": [0, 0],
+      "action": "free",
+      "effects": [
+        {
+          "effect": "move",
+          "tiles": 3
+        }
+      ]
+    },
+    {
+      "id": "blindness",
+      "name": "Blindness",
+      "pool": "arcane",
+      "level": 2,
+      "description": "Darkness clamps over one foe's eyes: it swings wild and cannot aim past arm's reach.",
+      "target": "enemy",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "con"
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "blind"
+        }
+      ]
+    },
+    {
+      "id": "gust-of-wind",
+      "name": "Gust of Wind",
+      "pool": "arcane",
+      "level": 2,
+      "description": "A howling gale shoves everyone on one tile two tiles back.",
+      "target": "tile",
+      "range": [1, 3],
+      "roll": {
+        "roll": "save",
+        "ability": "str"
+      },
+      "effects": [
+        {
+          "effect": "push",
+          "tiles": 2
+        }
+      ]
+    },
+    {
+      "id": "fireball",
+      "name": "Fireball",
+      "pool": "arcane",
+      "level": 3,
+      "description": "A bead of fire that blooms over two tiles. Mind where your friends stand.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 6,
+            "die": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "lightning-bolt",
+      "name": "Lightning Bolt",
+      "pool": "arcane",
+      "level": 3,
+      "description": "A crack of lightning down the line, all of its force on one tile.",
+      "target": "tile",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 8,
+            "die": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "hungry-dark",
+      "name": "Hungry Dark",
+      "pool": "arcane",
+      "level": 3,
+      "description": "A starless cold spreads over two tiles: inside it nothing sees, and everything freezes.",
+      "target": "twoTiles",
+      "range": [1, 5],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 2,
+            "die": 6
+          }
+        },
+        {
+          "effect": "blind"
+        }
+      ]
+    },
+    {
+      "id": "slow",
+      "name": "Slow",
+      "pool": "arcane",
+      "level": 3,
+      "description": "Time thickens around the foes on two tiles: they plod, fumble and leave gaps.",
+      "target": "twoTiles",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "slow"
+        },
+        {
+          "effect": "toHit",
+          "amount": -2
+        },
+        {
+          "effect": "ac",
+          "amount": -2
+        }
+      ]
+    },
+    {
+      "id": "haste",
+      "name": "Haste",
+      "pool": "arcane",
+      "level": 3,
+      "description": "One ally moves in a blur: an extra action each round, and harder to hit.",
       "target": "ally",
       "range": [0, 3],
-      "action": "free",
-      "effects": [{ "effect": "heal", "dice": { "count": 1, "die": 4, "bonus": 2 } }]
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "extraAction"
+        },
+        {
+          "effect": "ac",
+          "amount": 2
+        }
+      ]
     },
     {
-      "id": "call-the-hound",
-      "name": "Call the Hound",
+      "id": "fear",
+      "name": "Fear",
+      "pool": "arcane",
+      "level": 3,
+      "description": "A glimpse of their own deaths sends the foes on one tile backing away.",
+      "target": "tile",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "fear"
+        }
+      ]
+    },
+    {
+      "id": "bestow-curse",
+      "name": "Bestow Curse",
+      "pool": "arcane",
+      "level": 3,
+      "description": "A touch and a muttered word: every blow the foe takes bites deeper.",
+      "target": "enemy",
+      "range": [1, 1],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 5,
+      "effects": [
+        {
+          "effect": "vulnerable",
+          "amount": 4
+        }
+      ]
+    },
+    {
+      "id": "ice-storm",
+      "name": "Ice Storm",
+      "pool": "arcane",
+      "level": 4,
+      "description": "Hail the size of fists batters two tiles and leaves the ground treacherous.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 4,
+            "die": 8
+          }
+        },
+        {
+          "effect": "slow"
+        }
+      ]
+    },
+    {
+      "id": "blight",
+      "name": "Blight",
+      "pool": "arcane",
+      "level": 4,
+      "description": "Life drains out of one foe like sap from a cut stalk.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 8,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "wall-of-fire",
+      "name": "Wall of Fire",
+      "pool": "arcane",
+      "level": 4,
+      "description": "A sheet of roaring flame on one tile: nothing crosses it, and whatever stands in it burns.",
+      "target": "tile",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "wall"
+        },
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "black-tentacles",
+      "name": "Black Tentacles",
+      "pool": "arcane",
+      "level": 4,
+      "description": "Black limbs rise from the ground, drag the foes on one tile two tiles nearer and hold them there.",
+      "target": "tile",
+      "range": [2, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "str"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "pull",
+          "tiles": 2
+        },
+        {
+          "effect": "slow"
+        }
+      ]
+    },
+    {
+      "id": "greater-invisibility",
+      "name": "Greater Invisibility",
+      "pool": "arcane",
+      "level": 4,
+      "description": "One ally vanishes: blows go astray, and their own come out of nowhere.",
+      "target": "ally",
+      "range": [0, 3],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "conceal"
+        },
+        {
+          "effect": "toHit",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "banishment",
+      "name": "Banishment",
+      "pool": "arcane",
+      "level": 4,
+      "description": "One foe is sent elsewhere for a while. If the fight lasts, it comes back angry.",
+      "target": "enemy",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "cha"
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "banish"
+        }
+      ]
+    },
+    {
+      "id": "stoneskin",
+      "name": "Stoneskin",
+      "pool": "arcane",
+      "level": 4,
+      "description": "Skin turns hard as granite: every blow the ally takes is blunted, all fight long.",
+      "target": "ally",
+      "range": [0, 1],
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "ward",
+          "amount": 4
+        }
+      ]
+    },
+    {
+      "id": "cone-of-cold",
+      "name": "Cone of Cold",
+      "pool": "arcane",
+      "level": 5,
+      "description": "A blast of killing frost over the two nearest tiles.",
+      "target": "twoTiles",
+      "range": [1, 2],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 8,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "cloudkill",
+      "name": "Cloudkill",
+      "pool": "arcane",
+      "level": 5,
+      "description": "A yellow-green fog of poison settles over two tiles and will not lift.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "wall-of-force",
+      "name": "Wall of Force",
+      "pool": "arcane",
+      "level": 5,
+      "description": "An unseen, unbreakable pane on one tile cuts the line in two.",
+      "target": "tile",
+      "range": [1, 5],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "wall"
+        }
+      ]
+    },
+    {
+      "id": "dominate-person",
+      "name": "Dominate Person",
+      "pool": "arcane",
+      "level": 5,
+      "description": "One foe's will bends to the caster's: for a while it turns its blows on its own.",
+      "target": "enemy",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "discord"
+        }
+      ]
+    },
+    {
+      "id": "telekinesis",
+      "name": "Telekinesis",
+      "pool": "arcane",
+      "level": 5,
+      "description": "An unseen hand plucks one foe off its feet and drags it three tiles closer.",
+      "target": "enemy",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "str"
+      },
+      "effects": [
+        {
+          "effect": "pull",
+          "tiles": 3
+        }
+      ]
+    },
+    {
+      "id": "veil-of-mirrors",
+      "name": "Veil of Mirrors",
+      "pool": "arcane",
+      "level": 5,
+      "description": "Every member doubles and shimmers; the foes' blows find only reflections.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "conceal"
+        }
+      ]
+    },
+    {
+      "id": "chain-lightning",
+      "name": "Chain Lightning",
+      "pool": "arcane",
+      "level": 6,
+      "description": "Lightning leaps from foe to foe across two tiles far down the line.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 10,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "disintegrate",
+      "name": "Disintegrate",
+      "pool": "arcane",
+      "level": 6,
+      "description": "A thin green ray: whatever it touches, and fails to dodge, falls away as dust.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "dex"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 10,
+            "die": 6,
+            "bonus": 40
+          }
+        }
+      ]
+    },
+    {
+      "id": "globe-of-invulnerability",
+      "name": "Globe of Invulnerability",
+      "pool": "arcane",
+      "level": 6,
+      "description": "A shimmering dome over one tile: those inside shrug off most of what strikes them.",
+      "target": "tile",
+      "range": [0, 2],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "ward",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "id": "flesh-to-stone",
+      "name": "Flesh to Stone",
+      "pool": "arcane",
+      "level": 6,
+      "description": "One foe greys and stiffens into a statue: still, and easy to chip.",
+      "target": "enemy",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "con"
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "stun"
+        },
+        {
+          "effect": "ac",
+          "amount": -4
+        }
+      ]
+    },
+    {
+      "id": "mass-suggestion",
+      "name": "Mass Suggestion",
+      "pool": "arcane",
+      "level": 6,
+      "description": "A single reasonable word, \"leave\", and the foes on two tiles start backing off.",
+      "target": "twoTiles",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "fear"
+        }
+      ]
+    },
+    {
+      "id": "true-seeing",
+      "name": "True Seeing",
+      "pool": "arcane",
+      "level": 6,
+      "description": "Every member sees through shadow and feint: each foe's guard lies open.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "toHit",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "delayed-blast-fireball",
+      "name": "Delayed Blast Fireball",
+      "pool": "arcane",
+      "level": 7,
+      "description": "A swelling bead of fire that bursts over two tiles with twice the fury of its lesser kin.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 12,
+            "die": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "finger-of-death",
+      "name": "Finger of Death",
+      "pool": "arcane",
+      "level": 7,
+      "description": "A pointed finger and a word of unmaking: the foe withers from within.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 7,
+            "die": 8,
+            "bonus": 30
+          }
+        }
+      ]
+    },
+    {
+      "id": "forcecage",
+      "name": "Forcecage",
+      "pool": "arcane",
+      "level": 7,
+      "description": "Bars of force shut in everyone on one tile: they can neither act nor be harmed.",
+      "target": "tile",
+      "range": [1, 5],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "banish"
+        }
+      ]
+    },
+    {
+      "id": "reverse-gravity",
+      "name": "Reverse Gravity",
+      "pool": "arcane",
+      "level": 7,
+      "description": "Over two tiles down becomes up: the foes there fall into the sky and lose a turn.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex"
+      },
+      "effects": [
+        {
+          "effect": "stun"
+        }
+      ]
+    },
+    {
+      "id": "teleport",
+      "name": "Teleport",
+      "pool": "arcane",
+      "level": 7,
+      "description": "The whole party is somewhere else, all at once. The fight is left behind.",
+      "target": "party",
+      "range": [0, 0],
+      "effects": [
+        {
+          "effect": "escape"
+        }
+      ]
+    },
+    {
+      "id": "sunburst",
+      "name": "Sunburst",
+      "pool": "arcane",
+      "level": 8,
+      "description": "Noon erupts over two tiles: it burns, and leaves the survivors seeing only white.",
+      "target": "twoTiles",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 12,
+            "die": 6
+          }
+        },
+        {
+          "effect": "blind"
+        }
+      ]
+    },
+    {
+      "id": "power-word-stun",
+      "name": "Power Word Stun",
+      "pool": "arcane",
+      "level": 8,
+      "description": "One spoken word, and one foe stands dazed for two turns. No save.",
+      "target": "enemy",
+      "range": [1, 6],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "stun"
+        }
+      ]
+    },
+    {
+      "id": "maze",
+      "name": "Maze",
+      "pool": "arcane",
+      "level": 8,
+      "description": "One foe is lost in a labyrinth between worlds and must find its own way back.",
+      "target": "enemy",
+      "range": [1, 5],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "banish"
+        }
+      ]
+    },
+    {
+      "id": "dominate-monster",
+      "name": "Dominate Monster",
+      "pool": "arcane",
+      "level": 8,
+      "description": "Any creature at all, bent to the caster's will and set against its friends.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "discord"
+        }
+      ]
+    },
+    {
+      "id": "demiplane",
+      "name": "Demiplane",
+      "pool": "arcane",
+      "level": 8,
+      "description": "A door onto a quiet grey room: one ally steps through and out of harm for a while.",
+      "target": "ally",
+      "range": [0, 4],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "banish"
+        }
+      ]
+    },
+    {
+      "id": "meteor-swarm",
+      "name": "Meteor Swarm",
+      "pool": "arcane",
+      "level": 9,
+      "description": "Burning stones fall from a clear sky onto two tiles. Little stands afterwards.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 20,
+            "die": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "time-stop",
+      "name": "Time Stop",
+      "pool": "arcane",
+      "level": 9,
+      "description": "The world holds its breath for everyone but the party: each member acts once more.",
+      "target": "party",
+      "range": [0, 0],
+      "effects": [
+        {
+          "effect": "extraAction"
+        }
+      ]
+    },
+    {
+      "id": "foresight",
+      "name": "Foresight",
+      "pool": "arcane",
+      "level": 9,
+      "description": "One ally sees each moment a heartbeat before it comes, all fight long.",
+      "target": "ally",
+      "range": [0, 4],
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "conceal"
+        },
+        {
+          "effect": "toHit",
+          "amount": 4
+        }
+      ]
+    },
+    {
+      "id": "imprisonment",
+      "name": "Imprisonment",
+      "pool": "arcane",
+      "level": 9,
+      "description": "One foe is bound away in a prison of the caster's choosing for the rest of the fight.",
+      "target": "enemy",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "banish"
+        }
+      ]
+    },
+    {
+      "id": "healing-word",
+      "name": "Healing Word",
       "pool": "divine",
       "level": 1,
-      "description": "A spirit hound answers the prayer and fights beside the party.",
+      "description": "A word of comfort carried down the line closes a wound without breaking stride.",
+      "target": "ally",
+      "range": [0, 4],
+      "action": "free",
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 2,
+            "die": 4,
+            "bonus": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "bless",
+      "name": "Bless",
+      "pool": "divine",
+      "level": 1,
+      "description": "A blessing over the whole party steadies every hand for two rounds.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "toHit",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "bane",
+      "name": "Bane",
+      "pool": "divine",
+      "level": 1,
+      "description": "A muttered curse makes the foes on one tile doubt every swing.",
+      "target": "tile",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "cha"
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "toHit",
+          "amount": -2
+        }
+      ]
+    },
+    {
+      "id": "guiding-bolt",
+      "name": "Guiding Bolt",
+      "pool": "divine",
+      "level": 1,
+      "description": "A bolt of light strikes hard and leaves the foe glowing for the next blow.",
+      "target": "enemy",
+      "range": [1, 6],
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 4,
+            "die": 6
+          }
+        },
+        {
+          "effect": "ac",
+          "amount": -2
+        }
+      ]
+    },
+    {
+      "id": "inflict-wounds",
+      "name": "Inflict Wounds",
+      "pool": "divine",
+      "level": 1,
+      "description": "A touch that tears flesh open from within.",
+      "target": "enemy",
+      "range": [1, 1],
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 3,
+            "die": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "hail-of-thorns",
+      "name": "Hail of Thorns",
+      "pool": "divine",
+      "level": 1,
+      "description": "An arrow bursts into a spray of thorns over one distant tile.",
+      "target": "tile",
+      "range": [3, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 2,
+            "die": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "briar-lash",
+      "name": "Briar Lash",
+      "pool": "divine",
+      "level": 1,
+      "description": "A thorned vine lashes out, bites in and drags one foe a tile closer.",
+      "target": "enemy",
+      "range": [1, 3],
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 2,
+            "die": 8
+          }
+        },
+        {
+          "effect": "pull",
+          "tiles": 1
+        }
+      ]
+    },
+    {
+      "id": "first-calling",
+      "name": "First Calling",
+      "pool": "divine",
+      "level": 1,
+      "description": "A spirit hound bounds in to fight beside the party; the dark-sworn raise a skeleton archer.",
       "target": "tile",
       "range": [0, 1],
-      "effects": [{ "effect": "summon", "summon": "spirit-hound" }]
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "spirit-hound",
+          "evil": "skeleton"
+        }
+      ]
+    },
+    {
+      "id": "spiritual-weapon",
+      "name": "Spiritual Weapon",
+      "pool": "divine",
+      "level": 2,
+      "description": "A floating weapon of light strikes at a word, leaving the caster free to act.",
+      "target": "enemy",
+      "range": [1, 4],
+      "action": "free",
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 1,
+            "die": 8,
+            "bonus": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "heat-metal",
+      "name": "Heat Metal",
+      "pool": "divine",
+      "level": 2,
+      "description": "One foe's arms or armour glow red-hot: it burns, and fights clumsily.",
+      "target": "enemy",
+      "range": [1, 4],
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 2,
+            "die": 8
+          }
+        },
+        {
+          "effect": "toHit",
+          "amount": -2
+        }
+      ]
+    },
+    {
+      "id": "moonbeam",
+      "name": "Moonbeam",
+      "pool": "divine",
+      "level": 2,
+      "description": "A pale column of moonlight on one tile sears whoever stands in it or steps in.",
+      "target": "tile",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 2,
+            "die": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "spike-growth",
+      "name": "Spike Growth",
+      "pool": "divine",
+      "level": 2,
+      "description": "The ground over two tiles sprouts hidden thorns: whoever stands or walks there bleeds.",
+      "target": "twoTiles",
+      "range": [1, 5],
+      "rounds": 5,
+      "effects": [
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 2,
+            "die": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "aid",
+      "name": "Aid",
+      "pool": "divine",
+      "level": 2,
+      "description": "Hope and grit: every member gains a few hit points for the fight.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "tempHp",
+          "dice": {
+            "count": 1,
+            "die": 6,
+            "bonus": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "shield-of-faith",
+      "name": "Shield of Faith",
+      "pool": "divine",
+      "level": 2,
+      "description": "A shimmer of faith around one ally turns blows aside all fight long.",
+      "target": "ally",
+      "range": [0, 4],
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "ac",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "command",
+      "name": "Command",
+      "pool": "divine",
+      "level": 2,
+      "description": "One word of command, \"Back!\", and the foe gives up two tiles.",
+      "target": "enemy",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "effects": [
+        {
+          "effect": "push",
+          "tiles": 2
+        }
+      ]
+    },
+    {
+      "id": "second-calling",
+      "name": "Second Calling",
+      "pool": "divine",
+      "level": 2,
+      "description": "A cave bear lumbers out of nowhere to fight for the party; the dark-sworn call a ghoul.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "cave-bear",
+          "evil": "ghoul"
+        }
+      ]
+    },
+    {
+      "id": "spirit-guardians",
+      "name": "Spirit Guardians",
+      "pool": "divine",
+      "level": 3,
+      "description": "Spirits wheel over the tile before the caster and tear at every foe who stands there.",
+      "target": "tile",
+      "range": [1, 1],
+      "roll": {
+        "roll": "save",
+        "ability": "wis",
+        "half": true
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "call-lightning",
+      "name": "Call Lightning",
+      "pool": "divine",
+      "level": 3,
+      "description": "A storm cloud gathers and drops its lightning on one tile far down the line.",
+      "target": "tile",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 4,
+            "die": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "lightning-arrow",
+      "name": "Lightning Arrow",
+      "pool": "divine",
+      "level": 3,
+      "description": "An arrow turns to lightning in flight and strikes one far foe.",
+      "target": "enemy",
+      "range": [3, 6],
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 4,
+            "die": 8,
+            "bonus": 4
+          }
+        }
+      ]
+    },
+    {
+      "id": "revivify",
+      "name": "Revivify",
+      "pool": "divine",
+      "level": 3,
+      "description": "A touch and a prayer bring a fallen ally back to their feet, barely.",
+      "target": "ally",
+      "range": [1, 1],
+      "effects": [
+        {
+          "effect": "revive",
+          "dice": {
+            "count": 2,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "mass-healing-word",
+      "name": "Mass Healing Word",
+      "pool": "divine",
+      "level": 3,
+      "description": "A ringing word of comfort closes a wound on every member at once.",
+      "target": "party",
+      "range": [0, 0],
+      "action": "free",
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 1,
+            "die": 4,
+            "bonus": 3
+          }
+        }
+      ]
+    },
+    {
+      "id": "crusaders-mantle",
+      "name": "Crusader's Mantle",
+      "pool": "divine",
+      "level": 3,
+      "description": "A holy fervour spreads through the party: every blow lands harder.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "damageBonus",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "third-calling",
+      "name": "Third Calling",
+      "pool": "divine",
+      "level": 3,
+      "description": "A great stag of the old woods answers and rallies the party; the dark-sworn raise an ogre zombie.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "warden-stag",
+          "evil": "ogre-zombie"
+        }
+      ]
+    },
+    {
+      "id": "guardian-of-faith",
+      "name": "Guardian of Faith",
+      "pool": "divine",
+      "level": 4,
+      "description": "A towering spectral guardian holds one tile: no foe gets past, and those beside it suffer.",
+      "target": "tile",
+      "range": [1, 3],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "wall"
+        },
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "withering-prayer",
+      "name": "Withering Prayer",
+      "pool": "divine",
+      "level": 4,
+      "description": "A prayer of unmaking dries one foe out from within.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 8,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "staggering-smite",
+      "name": "Staggering Smite",
+      "pool": "divine",
+      "level": 4,
+      "description": "A blow wreathed in holy wrath that lands hard and leaves the foe reeling.",
+      "target": "enemy",
+      "range": [1, 1],
+      "roll": {
+        "roll": "attack"
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 4,
+            "die": 6,
+            "bonus": 4
+          }
+        },
+        {
+          "effect": "stagger"
+        }
+      ]
+    },
+    {
+      "id": "rebuke-the-wicked",
+      "name": "Rebuke the Wicked",
+      "pool": "divine",
+      "level": 4,
+      "description": "A raised holy symbol blazes, and the foes on one tile shrink back from it.",
+      "target": "tile",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "fear"
+        }
+      ]
+    },
+    {
+      "id": "aura-of-purity",
+      "name": "Aura of Purity",
+      "pool": "divine",
+      "level": 4,
+      "description": "A clean, cool light around the party: every blow on them is softened.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "ward",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "grasping-vine",
+      "name": "Grasping Vine",
+      "pool": "divine",
+      "level": 4,
+      "description": "A vine bursts from the earth, coils round one foe and hauls it three tiles in.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "dex"
+      },
+      "effects": [
+        {
+          "effect": "pull",
+          "tiles": 3
+        }
+      ]
+    },
+    {
+      "id": "fourth-calling",
+      "name": "Fourth Calling",
+      "pool": "divine",
+      "level": 4,
+      "description": "A unicorn steps out of the light to fight for the party; the dark-sworn call a wight.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "unicorn",
+          "evil": "wight"
+        }
+      ]
+    },
+    {
+      "id": "flame-strike",
+      "name": "Flame Strike",
+      "pool": "divine",
+      "level": 5,
+      "description": "A column of holy fire roars down on one tile.",
+      "target": "tile",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 6,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "insect-plague",
+      "name": "Insect Plague",
+      "pool": "divine",
+      "level": 5,
+      "description": "A biting swarm of locusts settles on two tiles and stays.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "mass-cure-wounds",
+      "name": "Mass Cure Wounds",
+      "pool": "divine",
+      "level": 5,
+      "description": "A wave of healing washes over every member.",
+      "target": "party",
+      "range": [0, 0],
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 3,
+            "die": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "hallow",
+      "name": "Hallow",
+      "pool": "divine",
+      "level": 5,
+      "description": "The tile is made holy: the allies standing on it fight better and are harder to hit.",
+      "target": "tile",
+      "range": [0, 3],
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "toHit",
+          "amount": 2
+        },
+        {
+          "effect": "ac",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "swift-quiver",
+      "name": "Swift Quiver",
+      "pool": "divine",
+      "level": 5,
+      "description": "Arrows leap to hand faster than thought: an extra action each round for a while.",
+      "target": "self",
+      "range": [0, 0],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "extraAction"
+        }
+      ]
+    },
+    {
+      "id": "tree-stride",
+      "name": "Tree Stride",
+      "pool": "divine",
+      "level": 5,
+      "description": "Into one tree, out of another: the caster steps up to four tiles away, untouched.",
+      "target": "self",
+      "range": [0, 0],
+      "action": "free",
+      "effects": [
+        {
+          "effect": "move",
+          "tiles": 4
+        }
+      ]
+    },
+    {
+      "id": "fifth-calling",
+      "name": "Fifth Calling",
+      "pool": "divine",
+      "level": 5,
+      "description": "A feathered serpent of the heavens coils in to fight; the dark-sworn call a wraith.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "couatl",
+          "evil": "wraith"
+        }
+      ]
+    },
+    {
+      "id": "harm",
+      "name": "Harm",
+      "pool": "divine",
+      "level": 6,
+      "description": "A touch that fills one foe with a sudden, wasting sickness.",
+      "target": "enemy",
+      "range": [1, 1],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 14,
+            "die": 6
+          }
+        }
+      ]
+    },
+    {
+      "id": "heal",
+      "name": "Heal",
+      "pool": "divine",
+      "level": 6,
+      "description": "A surge of healing that makes one ally nearly whole.",
+      "target": "ally",
+      "range": [1, 1],
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 10,
+            "die": 8,
+            "bonus": 20
+          }
+        }
+      ]
+    },
+    {
+      "id": "blade-barrier",
+      "name": "Blade Barrier",
+      "pool": "divine",
+      "level": 6,
+      "description": "A whirling wall of blades on one tile: nothing crosses, and whatever stands in it is cut apart.",
+      "target": "tile",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "wall"
+        },
+        {
+          "effect": "hazard",
+          "dice": {
+            "count": 6,
+            "die": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "word-of-recall",
+      "name": "Word of Recall",
+      "pool": "divine",
+      "level": 6,
+      "description": "One word, and the party stands in its last safe camp. The fight is left behind.",
+      "target": "party",
+      "range": [0, 0],
+      "effects": [
+        {
+          "effect": "escape"
+        }
+      ]
+    },
+    {
+      "id": "heroes-feast",
+      "name": "Heroes' Feast",
+      "pool": "divine",
+      "level": 6,
+      "description": "A blessed meal shared in a moment: every member stands taller for the whole fight.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "tempHp",
+          "dice": {
+            "count": 2,
+            "die": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "sixth-calling",
+      "name": "Sixth Calling",
+      "pool": "divine",
+      "level": 6,
+      "description": "A deva descends to lead the party; the dark-sworn raise a mummy.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "deva",
+          "evil": "mummy"
+        }
+      ]
+    },
+    {
+      "id": "fire-storm",
+      "name": "Fire Storm",
+      "pool": "divine",
+      "level": 7,
+      "description": "Sheets of fire roll over two tiles at the caster's command.",
+      "target": "twoTiles",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 7,
+            "die": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "divine-word",
+      "name": "Divine Word",
+      "pool": "divine",
+      "level": 7,
+      "description": "A word of the gods' own tongue: the foes on one tile reel, deaf, blind and still.",
+      "target": "tile",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "cha"
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "stun"
+        },
+        {
+          "effect": "blind"
+        }
+      ]
+    },
+    {
+      "id": "regenerate",
+      "name": "Regenerate",
+      "pool": "divine",
+      "level": 7,
+      "description": "Flesh knits and keeps knitting: a deep heal, and a body that shrugs off small cuts.",
+      "target": "ally",
+      "range": [1, 1],
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 4,
+            "die": 8,
+            "bonus": 15
+          }
+        },
+        {
+          "effect": "ward",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "plane-shift",
+      "name": "Plane Shift",
+      "pool": "divine",
+      "level": 7,
+      "description": "A touch with a tuning fork, and one foe is sent to another world for the rest of the fight.",
+      "target": "enemy",
+      "range": [1, 1],
+      "roll": {
+        "roll": "save",
+        "ability": "cha"
+      },
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "banish"
+        }
+      ]
+    },
+    {
+      "id": "sunbeam",
+      "name": "Sunbeam",
+      "pool": "divine",
+      "level": 7,
+      "description": "A beam of noon light down the line: it burns one tile and dazzles all on it.",
+      "target": "tile",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "rounds": 2,
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 6,
+            "die": 8
+          }
+        },
+        {
+          "effect": "blind"
+        }
+      ]
+    },
+    {
+      "id": "seventh-calling",
+      "name": "Seventh Calling",
+      "pool": "divine",
+      "level": 7,
+      "description": "A roc stoops from the sky to fight for the party; the dark-sworn raise a bone sorcerer.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "roc",
+          "evil": "bone-sorcerer"
+        }
+      ]
+    },
+    {
+      "id": "earthquake",
+      "name": "Earthquake",
+      "pool": "divine",
+      "level": 8,
+      "description": "The ground heaves under two tiles: the foes there are battered and thrown off balance.",
+      "target": "twoTiles",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "dex",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 5,
+            "die": 10
+          }
+        },
+        {
+          "effect": "stagger"
+        }
+      ]
+    },
+    {
+      "id": "holy-aura",
+      "name": "Holy Aura",
+      "pool": "divine",
+      "level": 8,
+      "description": "A soft radiance around every member makes the foes' blows slip aside.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "conceal"
+        }
+      ]
+    },
+    {
+      "id": "hymn-of-battle",
+      "name": "Hymn of Battle",
+      "pool": "divine",
+      "level": 8,
+      "description": "A war hymn carried by unseen voices: every member strikes truer and harder.",
+      "target": "party",
+      "range": [0, 0],
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "toHit",
+          "amount": 2
+        },
+        {
+          "effect": "damageBonus",
+          "amount": 2
+        }
+      ]
+    },
+    {
+      "id": "sympathy",
+      "name": "Sympathy",
+      "pool": "divine",
+      "level": 8,
+      "description": "A deep longing draws the foes on two tiles three tiles toward the caster.",
+      "target": "twoTiles",
+      "range": [2, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "effects": [
+        {
+          "effect": "pull",
+          "tiles": 3
+        }
+      ]
+    },
+    {
+      "id": "eighth-calling",
+      "name": "Eighth Calling",
+      "pool": "divine",
+      "level": 8,
+      "description": "A planetar strides onto the line to fight for the party; the dark-sworn raise a grave knight.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "planetar",
+          "evil": "grave-knight"
+        }
+      ]
+    },
+    {
+      "id": "mass-heal",
+      "name": "Mass Heal",
+      "pool": "divine",
+      "level": 9,
+      "description": "A flood of healing light leaves every member nearly whole.",
+      "target": "party",
+      "range": [0, 0],
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 10,
+            "die": 10,
+            "bonus": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "storm-of-vengeance",
+      "name": "Storm of Vengeance",
+      "pool": "divine",
+      "level": 9,
+      "description": "A churning black storm breaks over two tiles: thunder, acid, hail and lightning.",
+      "target": "twoTiles",
+      "range": [1, 6],
+      "roll": {
+        "roll": "save",
+        "ability": "con",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 12,
+            "die": 8
+          }
+        },
+        {
+          "effect": "stagger"
+        }
+      ]
+    },
+    {
+      "id": "true-resurrection",
+      "name": "True Resurrection",
+      "pool": "divine",
+      "level": 9,
+      "description": "Every fallen member rises, whole enough to fight on.",
+      "target": "party",
+      "range": [0, 0],
+      "effects": [
+        {
+          "effect": "revive",
+          "dice": {
+            "count": 4,
+            "die": 10,
+            "bonus": 10
+          }
+        }
+      ]
+    },
+    {
+      "id": "ninth-calling",
+      "name": "Ninth Calling",
+      "pool": "divine",
+      "level": 9,
+      "description": "A solar answers, bow in hand; the dark-sworn raise a dragon of bare bone.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "summon",
+          "summon": "solar",
+          "evil": "bone-dragon"
+        }
+      ]
     }
   ]
 }

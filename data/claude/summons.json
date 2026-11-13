@@ -2,17 +2,317 @@
   "$schema": "../_schema/summons.schema.json",
   "kind": "summons",
   "source": "claude",
-  "notes": "Placeholder (Plan 7 Track T) — Track S fills this in: one summon to show the shape.",
+  "notes": "Plan 7 Track S draft: one summon per divine spell level in two flavours, beasts and celestials for good or neutral casters and undead for evil ones (the Callings in spells.json). Stats rise with the level, roughly a 5e creature of CR 1/2 at level 1 to CR 13 at level 9. Names echo SRD 5.1 creatures; the descriptions are ours.",
   "entries": [
     {
       "id": "spirit-hound",
       "name": "Spirit hound",
+      "description": "A grey hound of mist that snaps and darts back.",
       "level": 1,
       "kind": "beast",
-      "hp": 11,
+      "role": "skirmisher",
+      "size": "medium",
+      "hp": 13,
       "ac": 13,
       "toHit": 4,
-      "damage": { "count": 1, "die": 6, "bonus": 2 }
+      "damage": {
+        "count": 1,
+        "die": 6,
+        "bonus": 2
+      }
+    },
+    {
+      "id": "cave-bear",
+      "name": "Cave bear",
+      "description": "A shaggy bulk of claws that charges whatever is nearest.",
+      "level": 2,
+      "kind": "beast",
+      "role": "brute",
+      "size": "large",
+      "hp": 30,
+      "ac": 12,
+      "toHit": 5,
+      "damage": {
+        "count": 2,
+        "die": 6,
+        "bonus": 3
+      }
+    },
+    {
+      "id": "warden-stag",
+      "name": "Warden stag",
+      "description": "An antlered stag of the old woods whose bellow puts heart into the party.",
+      "level": 3,
+      "kind": "beast",
+      "role": "leader",
+      "size": "large",
+      "hp": 40,
+      "ac": 13,
+      "toHit": 5,
+      "damage": {
+        "count": 2,
+        "die": 6,
+        "bonus": 3
+      }
+    },
+    {
+      "id": "unicorn",
+      "name": "Unicorn",
+      "description": "A white horse with a spiralled horn that gores and wheels away.",
+      "level": 4,
+      "kind": "celestial",
+      "role": "skirmisher",
+      "size": "large",
+      "hp": 55,
+      "ac": 14,
+      "toHit": 6,
+      "damage": {
+        "count": 2,
+        "die": 8,
+        "bonus": 4
+      }
+    },
+    {
+      "id": "couatl",
+      "name": "Couatl",
+      "description": "A feathered serpent that spits radiance onto a tile.",
+      "level": 5,
+      "kind": "celestial",
+      "role": "caster",
+      "size": "medium",
+      "hp": 65,
+      "ac": 15,
+      "toHit": 7,
+      "damage": {
+        "count": 2,
+        "die": 8,
+        "bonus": 4
+      },
+      "reach": [1, 3]
+    },
+    {
+      "id": "deva",
+      "name": "Deva",
+      "description": "A winged messenger with a heavy mace and a voice like a bell.",
+      "level": 6,
+      "kind": "celestial",
+      "role": "leader",
+      "size": "medium",
+      "hp": 85,
+      "ac": 16,
+      "toHit": 8,
+      "damage": {
+        "count": 2,
+        "die": 10,
+        "bonus": 4
+      }
+    },
+    {
+      "id": "roc",
+      "name": "Roc",
+      "description": "A bird big enough to carry off an ox, and willing to try.",
+      "level": 7,
+      "kind": "beast",
+      "role": "brute",
+      "size": "huge",
+      "hp": 120,
+      "ac": 15,
+      "toHit": 9,
+      "damage": {
+        "count": 3,
+        "die": 10,
+        "bonus": 6
+      }
+    },
+    {
+      "id": "planetar",
+      "name": "Planetar",
+      "description": "A towering warrior of the heavens with a greatsword of light.",
+      "level": 8,
+      "kind": "celestial",
+      "role": "brute",
+      "size": "large",
+      "hp": 140,
+      "ac": 18,
+      "toHit": 10,
+      "damage": {
+        "count": 4,
+        "die": 8,
+        "bonus": 7
+      }
+    },
+    {
+      "id": "solar",
+      "name": "Solar",
+      "description": "The mightiest of the heavenly host, whose arrows do not miss often.",
+      "level": 9,
+      "kind": "celestial",
+      "role": "archer",
+      "size": "large",
+      "hp": 170,
+      "ac": 19,
+      "toHit": 11,
+      "damage": {
+        "count": 4,
+        "die": 10,
+        "bonus": 6
+      },
+      "reach": [3, 5]
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton archer",
+      "description": "Rattling bones with a bow, shooting from the back.",
+      "level": 1,
+      "kind": "undead",
+      "role": "archer",
+      "size": "medium",
+      "hp": 13,
+      "ac": 13,
+      "toHit": 4,
+      "damage": {
+        "count": 1,
+        "die": 6,
+        "bonus": 2
+      },
+      "reach": [3, 5]
+    },
+    {
+      "id": "ghoul",
+      "name": "Ghoul",
+      "description": "A grave-eater that claws and slinks back out of reach.",
+      "level": 2,
+      "kind": "undead",
+      "role": "skirmisher",
+      "size": "medium",
+      "hp": 26,
+      "ac": 12,
+      "toHit": 4,
+      "damage": {
+        "count": 2,
+        "die": 6,
+        "bonus": 2
+      }
+    },
+    {
+      "id": "ogre-zombie",
+      "name": "Ogre zombie",
+      "description": "A dead ogre that lurches forward and swings a tree trunk.",
+      "level": 3,
+      "kind": "undead",
+      "role": "brute",
+      "size": "large",
+      "hp": 50,
+      "ac": 9,
+      "toHit": 5,
+      "damage": {
+        "count": 2,
+        "die": 8,
+        "bonus": 4
+      }
+    },
+    {
+      "id": "wight",
+      "name": "Wight",
+      "description": "A cold-eyed dead captain that drives the living into the fray.",
+      "level": 4,
+      "kind": "undead",
+      "role": "leader",
+      "size": "medium",
+      "hp": 50,
+      "ac": 14,
+      "toHit": 6,
+      "damage": {
+        "count": 2,
+        "die": 8,
+        "bonus": 4
+      }
+    },
+    {
+      "id": "wraith",
+      "name": "Wraith",
+      "description": "A shadow with burning eyes whose touch drinks warmth.",
+      "level": 5,
+      "kind": "undead",
+      "role": "skirmisher",
+      "size": "medium",
+      "hp": 65,
+      "ac": 13,
+      "toHit": 7,
+      "damage": {
+        "count": 3,
+        "die": 8,
+        "bonus": 3
+      }
+    },
+    {
+      "id": "mummy",
+      "name": "Mummy",
+      "description": "A wrapped corpse of an old king, slow and terribly strong.",
+      "level": 6,
+      "kind": "undead",
+      "role": "brute",
+      "size": "medium",
+      "hp": 90,
+      "ac": 13,
+      "toHit": 7,
+      "damage": {
+        "count": 2,
+        "die": 10,
+        "bonus": 6
+      }
+    },
+    {
+      "id": "bone-sorcerer",
+      "name": "Bone sorcerer",
+      "description": "A dead mage still muttering spells that blight a whole tile.",
+      "level": 7,
+      "kind": "undead",
+      "role": "caster",
+      "size": "medium",
+      "hp": 100,
+      "ac": 15,
+      "toHit": 9,
+      "damage": {
+        "count": 3,
+        "die": 8,
+        "bonus": 5
+      },
+      "reach": [1, 3]
+    },
+    {
+      "id": "grave-knight",
+      "name": "Grave knight",
+      "description": "A dead knight on a dead horse, still keeping its old oaths in its own way.",
+      "level": 8,
+      "kind": "undead",
+      "role": "leader",
+      "size": "large",
+      "hp": 140,
+      "ac": 18,
+      "toHit": 10,
+      "damage": {
+        "count": 4,
+        "die": 8,
+        "bonus": 6
+      }
+    },
+    {
+      "id": "bone-dragon",
+      "name": "Bone dragon",
+      "description": "The bare skeleton of a dragon, raised and furious.",
+      "level": 9,
+      "kind": "undead",
+      "role": "brute",
+      "size": "huge",
+      "hp": 180,
+      "ac": 17,
+      "toHit": 11,
+      "damage": {
+        "count": 4,
+        "die": 10,
+        "bonus": 7
+      }
     }
   ]
 }

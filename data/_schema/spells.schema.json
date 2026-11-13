@@ -78,6 +78,15 @@
             "default": "action",
             "description": "Spells and abilities take an action unless free",
             "$ref": "#/$defs/__schema6"
+          },
+          "roll": {
+            "description": "An attack or a save; none: it always lands",
+            "$ref": "#/$defs/__schema7"
+          },
+          "rounds": {
+            "default": 1,
+            "description": "How long the lasting effects last (1: this round; 10: the whole fight)",
+            "$ref": "#/$defs/__schema8"
           }
         },
         "required": [
@@ -294,12 +303,215 @@
               "const": "summon"
             },
             "summon": {
+              "description": "The beast or celestial a good or neutral caster calls",
+              "$ref": "#/$defs/__schema0"
+            },
+            "evil": {
+              "description": "The undead an evil caster calls instead",
               "$ref": "#/$defs/__schema0"
             }
           },
           "required": [
             "effect",
             "summon"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "ac"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "tempHp"
+            },
+            "dice": {
+              "$ref": "#/$defs/__schema5"
+            }
+          },
+          "required": [
+            "effect",
+            "dice"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "ward"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "vulnerable"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "revive"
+            },
+            "dice": {
+              "$ref": "#/$defs/__schema5"
+            }
+          },
+          "required": [
+            "effect",
+            "dice"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "blind"
+            }
+          },
+          "required": [
+            "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "slow"
+            }
+          },
+          "required": [
+            "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "fear"
+            }
+          },
+          "required": [
+            "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "discord"
+            }
+          },
+          "required": [
+            "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "conceal"
+            }
+          },
+          "required": [
+            "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "banish"
+            }
+          },
+          "required": [
+            "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "wall"
+            }
+          },
+          "required": [
+            "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "hazard"
+            },
+            "dice": {
+              "$ref": "#/$defs/__schema5"
+            }
+          },
+          "required": [
+            "effect",
+            "dice"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "escape"
+            }
+          },
+          "required": [
+            "effect"
           ]
         }
       ]
@@ -354,6 +566,55 @@
         "action",
         "free"
       ]
+    },
+    "__schema7": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "roll": {
+              "type": "string",
+              "const": "attack"
+            }
+          },
+          "required": [
+            "roll"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "roll": {
+              "type": "string",
+              "const": "save"
+            },
+            "ability": {
+              "type": "string",
+              "enum": [
+                "str",
+                "dex",
+                "con",
+                "int",
+                "wis",
+                "cha"
+              ]
+            },
+            "half": {
+              "default": false,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "roll",
+            "ability"
+          ]
+        }
+      ]
+    },
+    "__schema8": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10
     }
   }
 }

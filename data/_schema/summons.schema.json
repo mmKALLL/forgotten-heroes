@@ -34,6 +34,10 @@
           "name": {
             "type": "string"
           },
+          "description": {
+            "default": "",
+            "type": "string"
+          },
           "level": {
             "type": "integer",
             "minimum": 1,
@@ -48,6 +52,18 @@
               "undead"
             ],
             "description": "Good or neutral clerics call beasts or celestials, evil ones undead"
+          },
+          "role": {
+            "default": "brute",
+            "type": "string",
+            "enum": [
+              "brute",
+              "skirmisher",
+              "archer",
+              "caster",
+              "swarm",
+              "leader"
+            ]
           },
           "size": {
             "default": "medium",
