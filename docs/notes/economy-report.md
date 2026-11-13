@@ -2,6 +2,19 @@
 
 The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 6 Track B) comes first; Plan 5a and the Plan 4 rounds follow.
 
+## Permanent purchases dearer, no animal upkeep (2026-11-13)
+
+Designer calls: waterskins 2 → 5 gp (resale 1 → 2); animals have no upkeep and cost more instead (donkey 5 → 12, mule 8 → 20, camel 50 → 90, draft horse 50 → 80, riding horse 75 → 120, cart 15 → 30, wagon 35 → 60). The sim's trader no longer sells its spare waterskins when laden and rebuys them for the next dry road (that churn cost about 30 gp a run at the new price); it pours out their water instead. The report's "Animals' upkeep" spend row is gone (what it also caught, other gold lost on the road, now counts as encounter losses).
+
+| Policy (50 gp start) | gp/day by 30 / 60 (median), before → after | Broke by 30 / 60 | Deaths |
+| --- | --- | --- | --- |
+| trader | 4.4 / 6.6 → 3.7 / 6.7 | 10% / 13% → 7% / 10% | 0 → 3 |
+| trader, no recruits | 6.3 / 9.3 → 6.0 / 12.1 | 3% / 7% → 3% / 3% | 0 → 0 |
+| contracts only | 6.2 / 12.0 → 5.7 / 11.3 | 10% / 10% → 3% / 7% | 1 → 1 |
+| The game's 10 gp start, trader | 4.9 / 9.6 → 4.0 / 10.6 | 7% / 10% → 13% / 17% | 0 → 1 |
+
+**The trader still works**: its day-60 earnings hold, and the guards pass. The poor start feels it most: a 5 gp waterskin is half its purse, and its gold on day 15 falls (median 41 → 23 gp). With waterskins back at 2 gp (the rest unchanged) the 10 gp start goes broke in 10% / 13% of runs, so the dearer skins cost about one run in 30, and the rest of the move is run-to-run variance (one run is 3%; deaths are 0–3 in 30 runs either way). That is the intended trade-off (a real decision for a poor party); if the designer wants the poor start safer, the lever is `WATERSKIN_PRICE`.
+
 ## Plan 6 Track B (the roguelite arc)
 
 This round tuned the run's arc (camaraderie, levels, dungeons, the Crisis); see [crisis-report.md](crisis-report.md) for its targets, what changed and why. Its effect on the economy, rerun on the committed data:

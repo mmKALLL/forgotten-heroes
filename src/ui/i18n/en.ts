@@ -390,7 +390,7 @@ export const en = {
   'services.newsHint': 'A courier brings the prices of one market, as old as the road from there',
   'services.animal': 'Animal',
   'services.animalOption': '{name} · {gp} gp',
-  'services.animalInfo': '+{kg} kg · {upkeep} gp a day',
+  'services.animalInfo': '+{kg} kg',
   'services.animalRider': 'rides at {speed}× speed',
   'services.buyAnimal': 'Buy',
   'services.sellAnimal': 'Sell ({n}) · +{gp} gp',
@@ -434,7 +434,12 @@ export const en = {
   'market.sell': 'Sell',
   'market.shop': 'Shop',
   'market.shopValue': '{name}, quality {quality} of 5',
-  'market.elsewhere': 'Elsewhere',
+  'market.buysAt': 'Buys at',
+  'market.sellsAt': 'Sells at',
+  'market.buysAtHint':
+    'The most a town is known to pay you (prices up to {days}d old). Click: where it sells',
+  'market.sellsAtHint':
+    'The least a town is known to charge (prices up to {days}d old). Click: where it buys',
   'market.trade': 'Trade',
   'market.each': '{gp} gp each',
   'market.eachRange': '{first} → {last} gp each',

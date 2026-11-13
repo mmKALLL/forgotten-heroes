@@ -131,12 +131,12 @@ export const THIRST_DC = 15
 export const WATER_DAYS = 4
 /** Each extra waterskin holds this many days of water for one member (units of water). */
 export const WATERSKIN_WATER = 2
-/** A stop-gap price per waterskin until the Plan 4 market. */
-export const WATERSKIN_PRICE = 2
+/** An extra waterskin's price: a lasting upgrade, so a real decision for a new party (designer). */
+export const WATERSKIN_PRICE = 5
 /** A common room per member per night (meals included), at any inn. */
 export const LODGING_PRICE = 1
 /** What an extra waterskin sells back for. */
-export const WATERSKIN_SELL_PRICE = 1
+export const WATERSKIN_SELL_PRICE = 2
 
 // Carrying capacity and encumbrance (economy/capacity.ts). Weights are in kilograms.
 
@@ -206,6 +206,8 @@ export const STALL_QUALITY = 1
 
 /** Prices in the price book older than this many days are shown as stale. */
 export const STALE_DAYS = 14
+/** The market's Elsewhere column ignores price-book entries older than this many days. */
+export const ELSEWHERE_MAX_AGE_DAYS = 20
 
 // Services and animals (town/services.ts, town/animals.ts)
 

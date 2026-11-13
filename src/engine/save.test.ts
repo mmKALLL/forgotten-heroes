@@ -17,6 +17,7 @@ import {
   v13ToV14,
   v14ToV15,
   v15ToV16,
+  v16ToV17,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -183,7 +184,6 @@ const PLAN_4_DEFAULTS = {
   priceBook: {},
   spoilage: {},
   animals: {},
-  upkeepOwed: 0,
   reputation: { settlements: {}, people: {} },
   contracts: [],
   contractsTaken: [],
@@ -191,7 +191,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(16)
+  expect(CURRENT_SAVE_VERSION).toBe(17)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -399,7 +399,6 @@ describe('v5 → v6', () => {
       priceBook: _priceBook,
       spoilage: _spoilage,
       animals: _animals,
-      upkeepOwed: _upkeep,
       reputation: _reputation,
       contracts: _contracts,
       contractsTaken: _taken,
@@ -650,9 +649,14 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v15ToV16(
-          v14ToV15(
-            v13ToV14(v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content), content)
+        v16ToV17(
+          v15ToV16(
+            v14ToV15(
+              v13ToV14(
+                v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
+                content
+              )
+            )
           )
         )
       ).toEqual(state)
@@ -938,6 +942,18 @@ describe('v15 → v16 (Plan 6, track P: a list of old wounds)', () => {
     const once = v15ToV16(raw)
     expect(v15ToV16({ ...once, version: 15 })).toEqual(once)
     expect(raw).toEqual(v15)
+  })
+})
+
+describe('v16 → v17 (no animal upkeep)', () => {
+  test('the upkeep owed is dropped (forgiven), and everything else is kept', () => {
+    const state = makeState({ animals: { mule: 1 }, gold: 3 })
+    const v16 = { ...structuredClone(state), version: 16, upkeepOwed: 2.5 }
+    const loaded = deserialize(JSON.stringify(v16), content)!
+    expect(loaded).toEqual(state)
+    expect('upkeepOwed' in loaded).toBe(false)
+    const once = v16ToV17(structuredClone(v16))
+    expect(v16ToV17({ ...once, version: 16 })).toEqual(once)
   })
 })
 

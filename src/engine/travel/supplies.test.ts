@@ -302,12 +302,15 @@ describe('waterskins', () => {
   })
 
   test('are bought in a settlement, as many as the gold allows, and filled', () => {
-    const after = buyWaterskin(base({ gold: 5, goods: { food: 10, water: 3 } }), content, 4)
-    expect(after).toMatchObject({ gold: 5 - 2 * WATERSKIN_PRICE, waterskins: 2 })
+    const gold = 2 * WATERSKIN_PRICE + 1
+    const after = buyWaterskin(base({ gold, goods: { food: 10, water: 3 } }), content, 4)
+    expect(after).toMatchObject({ gold: 1, waterskins: 2 })
     expect(after.goods).toEqual({ food: 10, water: 8 + 2 * WATERSKIN_WATER })
-    expect(after.log.at(-1)!.text).toBe('Bought 2 waterskins for 4 gp and filled them.')
-    expect(buyWaterskin(base({ gold: 1 }), content).log.at(-1)!.text).toBe(
-      'Waterskins cost 2 gp each.'
+    expect(after.log.at(-1)!.text).toBe(
+      `Bought 2 waterskins for ${2 * WATERSKIN_PRICE} gp and filled them.`
+    )
+    expect(buyWaterskin(base({ gold: WATERSKIN_PRICE - 1 }), content).log.at(-1)!.text).toBe(
+      `Waterskins cost ${WATERSKIN_PRICE} gp each.`
     )
     expect(
       buyWaterskin(base({ location: null, travel: onTheRoad }), content).log.at(-1)!.text
@@ -326,7 +329,10 @@ describe('waterskins', () => {
     const heavy = base({ gold: 500, goods: { food, water: 8 } })
     expect(maxWaterskins(heavy, content, 5)).toEqual({ units: 2, limit: 'weight' })
     expect(maxWaterskins(heavy, content, 1)).toEqual({ units: 1, limit: null })
-    expect(maxWaterskins(base({ gold: 3 }), content, 5)).toEqual({ units: 1, limit: 'gold' })
+    expect(maxWaterskins(base({ gold: WATERSKIN_PRICE + 1 }), content, 5)).toEqual({
+      units: 1,
+      limit: 'gold',
+    })
     const bought = buyWaterskin(heavy, content, 5)
     expect(bought.waterskins).toBe(2)
     // Already encumbered: the new skins aren't filled by themselves.

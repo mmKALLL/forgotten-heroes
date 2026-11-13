@@ -93,10 +93,7 @@ type Run = {
     lootSold: number
     gearSold: number
   }
-  spend: Record<
-    'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'upkeep' | 'hiring',
-    number
-  >
+  spend: Record<'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'hiring', number>
   /** Gathering days and what they brought home (at the local sell price), by week of play too. */
   gather: { days: number; gp: number; byWeek: { days: number; gp: number }[] }
   /** The party's best level and its living members on LEVEL_DAYS (null when not reached). */
@@ -182,7 +179,6 @@ function simulate(
       rumours: 0,
       animals: 0,
       losses: 0,
-      upkeep: 0,
       hiring: 0,
     },
     gather: { days: 0, gp: 0, byWeek: [] },
@@ -334,7 +330,7 @@ function simulate(
         break
       case 'travel':
         if (action.type === 'travel') run.spend.fares -= gold
-        else if (gold < 0) run.spend.upkeep -= gold
+        else if (gold < 0) run.spend.losses -= gold
         else run.income.lootGold += gold
         break
       case 'encounter':
@@ -536,7 +532,6 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         ['Fares', sum((r) => r.spend.fares)],
         ['Rumours', sum((r) => r.spend.rumours)],
         ['Animals', sum((r) => r.spend.animals)],
-        ['Animals’ upkeep', sum((r) => r.spend.upkeep)],
         ['Encounter losses', sum((r) => r.spend.losses)],
         ['Hiring fees', sum((r) => r.spend.hiring)],
       ]

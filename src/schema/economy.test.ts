@@ -131,7 +131,6 @@ describe('animals', () => {
       rider: false,
       roadsOnly: false,
       waterPerDay: 1,
-      upkeepPerDay: 0,
       stealable: false,
     })
   })
@@ -145,11 +144,10 @@ describe('animals', () => {
       capacity: 30,
       speed: 2,
       rider: true,
-      upkeepPerDay: 0.5,
       stealable: true,
       maxPathDanger: 1,
     })
-    expect(horse).toMatchObject({ hirePerDay: 1, upkeepPerDay: 0.5, stealable: true })
+    expect(horse).toMatchObject({ hirePerDay: 1, stealable: true })
   })
 })
 

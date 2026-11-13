@@ -118,7 +118,6 @@ export function newGame(
     priceBook: {},
     spoilage: {},
     animals: {},
-    upkeepOwed: 0,
     reputation: { settlements: {}, people: {} },
     contracts: [],
     contractsTaken: [],

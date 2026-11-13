@@ -109,7 +109,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
   })
 
   const stable = within(screen.getByRole('region', { name: 'Animals & mounts' }))
-  expect(stable.getByText('+100 kg · 1 gp a day')).toBeTruthy()
+  expect(stable.getByText('+100 kg')).toBeTruthy()
   // The price is in the picker ("Mule · 10 gp"); the button doesn't repeat it.
   await userEvent.click(stable.getByRole('button', { name: 'Buy' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyAnimal', animal: 'mule' })

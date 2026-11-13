@@ -5,8 +5,10 @@ import { newGame, step, type Action } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { load } from './capacity'
 import { createRng, withRng } from '../rng'
+import { ELSEWHERE_MAX_AGE_DAYS } from '../constants'
 import { marketLevels, midPrice, quote } from './market'
 import {
+  elsewhereCell,
   heardPrices,
   marketPrices,
   marketTalk,
@@ -142,6 +144,41 @@ describe('the price book', () => {
     // The row's quote is what buying one would really cost.
     expect(gems.buy).toEqual(quote(later, content, 'greenvale-1', 'gems', 'buy', 1))
     expect(view.map((r) => r.category)).toContain('precious')
+  })
+})
+
+describe('the Elsewhere column', () => {
+  const book = (day: number) => ({
+    'greenvale-2': { day, heard: false, prices: { gems: { buy: 120, sell: 90 } } },
+    'ashmoor-1': { day: 5, heard: true, prices: { gems: { buy: 110, sell: 95 } } },
+  })
+  const gemsRow = (s: GameState) => marketView(s, content).find((r) => r.good === 'gems')!
+
+  test('sell picks the highest price paid, buy the lowest asked, each against here', () => {
+    const s = { ...inTown(), day: 20, priceBook: book(10) }
+    const row = gemsRow(s)
+    const sell = elsewhereCell(row, 'sell')!
+    const buy = elsewhereCell(row, 'buy')!
+    expect(sell).toMatchObject({ settlement: 'ashmoor-1', price: 95, age: 15 })
+    expect(buy).toMatchObject({ settlement: 'ashmoor-1', price: 110 })
+    // Higher there is better for selling; lower there is better for buying.
+    const far = { day: 19, heard: false, prices: { gems: { buy: 1, sell: 9999 } } }
+    const rich = gemsRow({ ...s, priceBook: { ...s.priceBook, 'farisle-1': far } })
+    expect(elsewhereCell(rich, 'sell')).toMatchObject({ price: 9999, trend: 'up', better: true })
+    expect(elsewhereCell(rich, 'buy')).toMatchObject({ price: 1, trend: 'down', better: true })
+    expect(elsewhereCell(row, 'buy')!.better).toBe(elsewhereCell(row, 'buy')!.trend === 'down')
+  })
+
+  test('entries older than ELSEWHERE_MAX_AGE_DAYS are ignored', () => {
+    const day = 5 + ELSEWHERE_MAX_AGE_DAYS + 1
+    const s = { ...inTown(), day, priceBook: book(day - 3) }
+    const row = gemsRow(s)
+    // Ashmoor's better prices are too old: Greenvale's are the best still trusted.
+    expect(elsewhereCell(row, 'sell')).toMatchObject({ settlement: 'greenvale-2', price: 90 })
+    expect(elsewhereCell(row, 'buy')).toMatchObject({ settlement: 'greenvale-2', price: 120 })
+    const ancient = { ...s, priceBook: book(5) }
+    expect(elsewhereCell(gemsRow(ancient), 'sell')).toBeNull()
+    expect(elsewhereCell(gemsRow(ancient), 'buy')).toBeNull()
   })
 })
 

@@ -101,7 +101,7 @@ export type StowawayOutcome = StowawayTierOutcome['code']
 
 /**
  * The party works its passage off in port: days pass (the crew feeds it, so nothing is eaten),
- * Strain fades, and each day ends as usual (endOfDay: spoilage and animal upkeep). Then the
+ * Strain fades, and each day ends as usual (endOfDay: spoilage). Then the
  * caught one tires.
  */
 function putToWork(state: GameState, content: Content, actorId: string): GameState {

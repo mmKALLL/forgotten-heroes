@@ -9,8 +9,9 @@ import { animalDef, workingAnimals, type Hired } from '../economy/capacity'
 import { inSettlement, notHere } from '../travel/where'
 import { ANIMAL_RESALE, MOUNT_ROUGH_SPEED, ROUGH_TERRAIN } from '../constants'
 
-// Pack animals, carts and mounts (design §3, §7): bought and kept (with daily upkeep), or riding
-// animals hired for one journey to a settlement and returned on arrival.
+// Pack animals, carts and mounts (design §3, §5, §7): bought once and kept at no further cost (no
+// upkeep: designer call 2026-11-13, their price is higher instead), or riding animals hired for one
+// journey to a settlement and returned on arrival.
 
 const own = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
@@ -80,30 +81,6 @@ export function animalWater(
   return Math.ceil(owned + rented - 1e-9)
 }
 
-/** What the owned animals cost a day: fodder, stabling and care. */
-export const animalUpkeep = (state: Pick<GameState, 'animals'>, content: Content): number =>
-  Object.entries(state.animals).reduce(
-    (sum, [id, n]) => sum + n * (animalDef(content, id)?.upkeepPerDay ?? 0),
-    0
-  )
-
-/**
- * A day's upkeep for the owned animals, with anything owed from before, paid as far as the gold
- * goes; the rest stays owed (upkeepOwed).
- */
-export function payUpkeep(state: GameState, content: Content): GameState {
-  const due = animalUpkeep(state, content) + state.upkeepOwed
-  if (due <= 0) return state
-  const paid = Math.min(state.gold, Math.floor(due))
-  const owed = Math.round((due - paid) * 100) / 100
-  const next = { ...state, gold: state.gold - paid, upkeepOwed: owed }
-  // Fractions of a gp carry over quietly: only a whole gp the purse can't cover is news.
-  if (paid < Math.floor(due) && state.upkeepOwed < 1) {
-    return appendLog(next, 'There is no coin left for the animals’ fodder and stabling.', 'bad')
-  }
-  return next
-}
-
 /** Whether a route is a path to (or from) a point of interest, not a road between settlements. */
 export const isSitePath = (state: Pick<GameState, 'world'>, route: Pick<Route, 'from' | 'to'>) =>
   Object.hasOwn(state.world.pois, route.from) || Object.hasOwn(state.world.pois, route.to)
@@ -171,8 +148,6 @@ export type AnimalOffer = {
   resale: number
   /** kg it carries or hauls. */
   capacity: number
-  /** gp a day while owned. */
-  upkeep: number
   /** Land speed while ridden, or null if it carries no rider. */
   rides: number | null
   owned: number
@@ -191,7 +166,6 @@ export function animalOffers(state: GameState, content: Content): AnimalOffer[] 
       price: def.price,
       resale: resaleValue(def),
       capacity: def.capacity,
-      upkeep: def.upkeepPerDay,
       rides: def.rider ? def.speed : null,
       owned: state.animals[def.id] ?? 0,
       buyReason: state.gold < def.price ? 'not enough gold' : null,

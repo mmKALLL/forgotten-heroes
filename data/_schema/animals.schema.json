@@ -36,7 +36,7 @@
           "price": {
             "type": "number",
             "minimum": 0,
-            "description": "gp to buy one"
+            "description": "gp to buy one; owning it costs nothing more (no upkeep, designer call 2026-11-13)"
           },
           "hirePerDay": {
             "description": "gp per day to hire one for a journey to a settlement; omit if it is not for hire",
@@ -75,15 +75,10 @@
             "description": "Units of water it drinks per day (halves allowed); the total for all animals is rounded up to whole units",
             "$ref": "#/$defs/__schema6"
           },
-          "upkeepPerDay": {
-            "default": 0,
-            "description": "gp per day while owned: fodder, stabling and care",
-            "$ref": "#/$defs/__schema7"
-          },
           "stealable": {
             "default": false,
             "description": "Thieves can lead it away (an `animals` loss without a named animal)",
-            "$ref": "#/$defs/__schema8"
+            "$ref": "#/$defs/__schema7"
           }
         },
         "required": [
@@ -130,10 +125,6 @@
       "multipleOf": 0.5
     },
     "__schema7": {
-      "type": "number",
-      "minimum": 0
-    },
-    "__schema8": {
       "type": "boolean"
     }
   }

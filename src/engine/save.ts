@@ -15,7 +15,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 16
+export const CURRENT_SAVE_VERSION = 17
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -455,6 +455,15 @@ export function v15ToV16(raw: Record<string, unknown>): Record<string, unknown> 
 }
 
 /**
+ * v16 → v17 (designer call 2026-11-13): owned animals no longer cost a daily upkeep (their price
+ * is higher instead), so `upkeepOwed` goes, and anything still owed is forgiven.
+ */
+export function v16ToV17(raw: Record<string, unknown>): Record<string, unknown> {
+  const { upkeepOwed: _owed, ...rest } = raw
+  return { ...rest, version: 17 }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -495,6 +504,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v14ToV15(raw as Record<string, unknown>), content)
     case 15:
       return migrate(v15ToV16(raw as Record<string, unknown>), content)
+    case 16:
+      return migrate(v16ToV17(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

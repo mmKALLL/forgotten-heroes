@@ -9,7 +9,7 @@ import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { placeOnRoute } from './journey'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
-import { STOWAWAY_WORK_DAYS, WATERSKIN_SELL_PRICE } from '../constants'
+import { WATERSKIN_PRICE, WATERSKIN_SELL_PRICE } from '../constants'
 
 const content = fixtureContent()
 const at = (location: string, overrides: Partial<GameState> = {}): GameState =>
@@ -268,10 +268,10 @@ describe('continueJourney', () => {
     const fed = act(at('greenvale-1', { gold: 10 }), { type: 'buyGoods', good: 'food', amount: 2 })
     expect(fed.gold).toBeLessThan(10)
     expect(fed.goods.food).toBe(12)
-    const skins = act(at('greenvale-1', { gold: 10 }), { type: 'buyWaterskin', count: 2 })
-    expect(skins).toMatchObject({ gold: 6, waterskins: 2 })
+    const skins = act(at('greenvale-1', { gold: 20 }), { type: 'buyWaterskin', count: 2 })
+    expect(skins).toMatchObject({ gold: 20 - 2 * WATERSKIN_PRICE, waterskins: 2 })
     expect(act(skins, { type: 'sellWaterskin', count: 2 })).toMatchObject({
-      gold: 6 + 2 * WATERSKIN_SELL_PRICE,
+      gold: skins.gold + 2 * WATERSKIN_SELL_PRICE,
       waterskins: 0,
     })
   })
@@ -555,20 +555,6 @@ describe('stowing away', () => {
       expect(after.travel?.to).toBe('farisle-1')
       expect(lastLine(after)).toMatch(/, working its passage\.$/)
     }
-  })
-
-  test("the days worked end like any other: the animals' upkeep falls due (regression)", () => {
-    for (let seed = 0; seed < 500; seed++) {
-      const before = at('ashmoor-1', { gold: 0, rng: createRng(seed), animals: { mule: 1 } })
-      const after = stow(before)
-      if (after.lastRoll?.tier !== 'partial' && after.lastRoll?.tier !== 'fail') continue
-      expect(after.upkeepOwed).toBeCloseTo(
-        STOWAWAY_WORK_DAYS * content.animals.mule.upkeepPerDay,
-        5
-      )
-      return
-    }
-    throw new Error('no seed puts the party to work')
   })
 
   test('a critical failure is a brawl: a hostile sea situation tagged brawl, or a beating', () => {
