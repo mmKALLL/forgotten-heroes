@@ -195,10 +195,13 @@ export const RECOVERY_HALF_LIFE_DAYS = 10
  * moves the price by a factor of e (about 63% down when selling).
  */
 export const MARKET_DEPTH: readonly number[] = [6, 10, 16, 24, 40, 60]
-/** The gap between buying and selling at an average shop, by size tier (outpost first). */
-export const SPREAD_BY_SIZE: readonly number[] = [0.24, 0.2, 0.17, 0.14, 0.12, 0.1]
+/**
+ * The gap between buying and selling at an average shop, by size tier (outpost first): 0.3, 2 points
+ * less a size (designer call: size matters less than quality; bigger places just have more shops).
+ */
+export const SPREAD_BY_SIZE: readonly number[] = [0.3, 0.28, 0.26, 0.24, 0.22, 0.2]
 /** Each point of shop quality above 3 narrows the spread by this much (and below widens it). */
-export const SPREAD_PER_QUALITY = 0.03
+export const SPREAD_PER_QUALITY = 0.05
 /** No spread is narrower than this, whatever the quality or standing. */
 export const SPREAD_MIN = 0.02
 /** The market stalls every settlement has for essentials trade at this quality (the worst spread). */

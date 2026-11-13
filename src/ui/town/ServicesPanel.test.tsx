@@ -11,7 +11,7 @@ import { describeHook } from '../../engine/gear/hooks'
 import { recruitOffers } from '../../engine/town/recruits'
 import { serviceRows } from '../../engine/town/services'
 import { ServicesPanel } from './ServicesPanel'
-import { HEALER_PRICE } from '../../engine/constants'
+import { SPREAD_PER_QUALITY, HEALER_PRICE } from '../../engine/constants'
 
 /** The fixture with a temple that heals and blesses, and a courier. */
 const content: Content = (() => {
@@ -235,7 +235,8 @@ test('quality pips explain what quality does there on hover or focus', async () 
   )
   const jeweller = screen.getByRole('region', { name: 'Jewelry trader' })
   const tip = within(jeweller).getByRole('tooltip', { hidden: true })
-  expect(tip.textContent).toMatch(/you pay 1\.5% less when buying here, and get 1\.5% more/)
+  const half = String(Math.round(SPREAD_PER_QUALITY * 50 * 10) / 10)
+  expect(tip.textContent).toContain(`you pay ${half}% less when buying here, and get ${half}% more`)
   expect(tip.textContent).not.toMatch(/average/)
 })
 

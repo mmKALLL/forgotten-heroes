@@ -44,7 +44,7 @@
       "name": "Scout's kit",
       "description": "A good glass, soft boots, a hooded cloak, trail signs learned the hard way and a whistle that sounds like a bird.",
       "basePrice": 150,
-      "soldBy": ["adventurers-guild", "adventuring-supplies", "mercenaries"]
+      "soldBy": ["adventurers-guild", "mercenaries"]
     }
   ]
 }
