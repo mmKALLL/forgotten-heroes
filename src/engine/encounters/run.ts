@@ -477,7 +477,10 @@ function resolve(
   const failed = crisisFailsDuring(state, effects)
   const tags = encounter.situation.tags
   const chips = [
+    // A found accessory gets its own line naming it ("Found: …"), so the outcome line doesn't
+    // repeat "an accessory" (designer call 2026-11-14); the preview still shows the chip.
     ...effects.flatMap((e) => {
+      if (e.effect === 'accessory') return []
       const chip = describeEffect(e, actorName ?? 'someone', place, act)
       const hidden = chip && hiddenNote(state, tags, e)
       return chip ? [hidden ? `${chip} (${hidden})` : chip] : []
