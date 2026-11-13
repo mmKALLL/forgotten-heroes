@@ -7,6 +7,7 @@ import type { Action } from '../engine/state'
 import type { Accessory } from '../schema/gear'
 import type { Character, SkillUse } from '../schema/state'
 import type { CamaraderieInfo } from '../engine/town/camaraderie'
+import { dismissRefusal } from '../engine/town/recruits'
 import { levelNumeral, type OwnedUpgrade } from '../engine/town/upgrades'
 import { useI18n } from './i18n/I18n'
 import { CamaraderieLine, MemberDetails, XpBar } from './MemberDetails'
@@ -45,6 +46,7 @@ export function PartyPanel({
           character={c}
           gear={gear}
           onAction={onAction}
+          dismissRefusal={dismissRefusal(party, c)}
           usesToday={
             day === undefined
               ? []
@@ -82,11 +84,13 @@ function CharacterCard({
   usesToday,
   gear,
   onAction,
+  dismissRefusal,
 }: {
   character: Character
   usesToday: SkillUse[]
   gear: readonly Accessory[]
   onAction?: (a: Action) => void
+  dismissRefusal: string | null
 }) {
   const { t, stat, name } = useI18n()
   const [expanded, setExpanded] = useState(false)
@@ -202,7 +206,12 @@ function CharacterCard({
           ))}
         </div>
         <p className="muted small">{t('party.legend')}</p>
-        <MemberDetails character={c} gear={gear} onAction={onAction} />
+        <MemberDetails
+          character={c}
+          gear={gear}
+          onAction={onAction}
+          dismissRefusal={dismissRefusal}
+        />
       </div>
       {!expanded && (
         <p className="muted small">
