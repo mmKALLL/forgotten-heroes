@@ -115,7 +115,7 @@ test('the pace changes the days, supplies, encounters and warnings shown', async
     )
   ).toBeTruthy()
   const warnings = within(group.getByRole('list', { name: 'Warnings' }))
-  expect(warnings.getByText(/A forced march of \d+ days \(CON DC \d+ each day\)/)).toBeTruthy()
+  expect(warnings.getByText(/A forced march of \d+ days is likely to exhaust/)).toBeTruthy()
   expect(group.getByText('Ambushes: Exposed')).toBeTruthy()
 
   await userEvent.click(pacePicker.getByRole('button', { name: 'Stealthy' }))

@@ -552,7 +552,7 @@ export const en = {
   'paceHint.stealthy': 'Half speed; covers your tracks; Edge in ambushes unless foraging',
   'paceHint.steady': 'Normal speed',
   'paceHint.brisk': '1.25× speed; more hostile encounters, ambushes find you Exposed',
-  'paceHint.forced': '1.5× speed; more supplies and a CON check against exhaustion each day',
+  'paceHint.forced': '1.5× speed and supply use; a CON DC {dc} exhaustion check each day',
   'footing.edge': 'Edge',
   'footing.normal': 'normal footing',
   'footing.exposed': 'Exposed',
@@ -566,8 +566,7 @@ export const en = {
   'warning.foodRunsOut': 'Not enough food for the journey: it runs out on day {day}.',
   'warning.foodRunsOutShort':
     'Not enough food for the journey: it runs out on day {day} ({missing} short).',
-  'warning.forcedMarch':
-    'A forced march of {days} (CON DC {dc} each day): {name} will likely gain {levels} exhaustion.',
+  'warning.forcedMarch': 'A forced march of {days} is likely to exhaust {name}',
   'warning.forcedMarchDeadly':
     'A forced march of {days} could kill {name} ({pct}% chance of reaching the sixth level of exhaustion).',
   'warning.exhaustedMember': '{name} (level {level})',

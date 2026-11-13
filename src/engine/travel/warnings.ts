@@ -311,10 +311,7 @@ export function warningText(w: TravelWarning): string {
         (w.params.missing > 0 ? ` (${plural(w.params.missing, 'ration')} short).` : '.')
       )
     case 'forcedMarchExhaustion':
-      return (
-        `A forced march of ${plural(w.params.days, 'day')} (CON DC ${w.params.dc} each day): ` +
-        `${w.params.name} will likely gain ${Math.max(1, Math.round(w.params.expectedLevels))} exhaustion.`
-      )
+      return `A forced march of ${plural(w.params.days, 'day')} is likely to exhaust ${w.params.name}`
     case 'forcedMarchDeadly':
       return (
         `A forced march of ${plural(w.params.days, 'day')} could kill ${w.params.name} ` +

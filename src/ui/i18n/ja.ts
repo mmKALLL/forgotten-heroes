@@ -399,7 +399,7 @@ export const ja: Partial<Messages> = {
     '速度½。痕跡を消して追っ手をまき、敵対的な遭遇の一部を避け、待ち伏せには好機で臨む（採集しなければ）',
   'paceHint.steady': '通常の速度',
   'paceHint.brisk': '速度1.25倍。敵対的な遭遇が増え、待ち伏せには窮地で臨む',
-  'paceHint.forced': '速度1.5倍。物資が多くいり、毎日耐久力判定で消耗を防ぐ',
+  'paceHint.forced': '速度1.5倍・物資も1.5倍。毎日、耐久力DC{dc}で消耗判定',
   'footing.edge': '好機',
   'footing.normal': '通常',
   'footing.exposed': '窮地',
@@ -410,8 +410,7 @@ export const ja: Partial<Messages> = {
     '水は採集がうまくいった場合のみ足りる。採集なしでは{day}日目に尽きる。',
   'warning.foodRunsOut': '食料が足りない：{day}日目に尽きる。',
   'warning.foodRunsOutShort': '食料が足りない：{day}日目に尽きる（{missing}不足）。',
-  'warning.forcedMarch':
-    '{days}の強行軍（毎日耐久力DC {dc}）で{name}はおそらく消耗する：およそ{levels}段階。',
+  'warning.forcedMarch': '{days}の強行軍で{name}はおそらく消耗する',
   'warning.forcedMarchDeadly':
     '{days}の強行軍で{name}が死ぬおそれがある（消耗6段階に達する確率{pct}%）。',
   'warning.exhaustedMember': '{name}（消耗{level}）',

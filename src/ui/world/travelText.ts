@@ -1,3 +1,4 @@
+import { FORCED_MARCH_DC } from '../../engine/constants'
 import { formatPercent } from '../../engine/format'
 import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/preview'
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
@@ -50,7 +51,9 @@ export const paceText = (t: T, pace: string): string =>
   Object.hasOwn(en, `pace.${pace}`) ? t(`pace.${pace}` as MessageKey) : pace
 /** A pace's speed and effect, or nothing for a pace without a string. */
 export const paceHintText = (t: T, pace: string): string =>
-  Object.hasOwn(en, `paceHint.${pace}`) ? t(`paceHint.${pace}` as MessageKey) : ''
+  Object.hasOwn(en, `paceHint.${pace}`)
+    ? t(`paceHint.${pace}` as MessageKey, { dc: FORCED_MARCH_DC })
+    : ''
 
 /** The days hired mounts save: "−1 day", "−2 days", or "no faster". */
 export const savedText = (t: T, days: number): string =>
@@ -163,10 +166,7 @@ export function warningMessage(t: T, w: TravelWarning): string {
     case 'forcedMarchExhaustion':
       return t('warning.forcedMarch', {
         days: daysText(t, w.params.days),
-        dc: w.params.dc,
         name: w.params.name,
-        // The expected levels gained, as a whole number (at least 1: the warning means some).
-        levels: Math.max(1, Math.round(w.params.expectedLevels)),
       })
     case 'encumbered':
       return t('warning.encumbered', w.params)
