@@ -6,7 +6,7 @@ import type { Content } from '../../content/build'
 import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import type { GameState } from '../../schema/state'
 import { I18nProvider } from '../i18n/I18n'
-import { accessoryOffers } from '../../engine/gear/accessories'
+import { accessoryOffers, describeAccessory } from '../../engine/gear/accessories'
 import { describeHook } from '../../engine/gear/hooks'
 import { recruitOffers } from '../../engine/town/recruits'
 import { ServicesPanel } from './ServicesPanel'
@@ -169,8 +169,11 @@ test("a recruit's old wound and the gear they bring are shown", async () => {
   await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))
   const row = within(screen.getByRole('listitem', { name: offer.character.name }))
   if (offer.wound) expect(row.getByText(`Old wound: ${offer.wound}`)).toBeTruthy()
-  if (offer.gear)
-    expect(row.getByText(new RegExp(`^Brings .* \\(\\+${offer.gearPrice} gp\\)$`))).toBeTruthy()
+  // The accessory alone: no "Brings", no price (designer call).
+  if (offer.gear) {
+    expect(row.getByText(describeAccessory(offer.gear))).toBeTruthy()
+    expect(row.queryByText(/Brings|\(\+\d+ gp\)/)).toBeNull()
+  }
 })
 
 test('a recruit the party cannot afford is disabled with the reason inline', async () => {

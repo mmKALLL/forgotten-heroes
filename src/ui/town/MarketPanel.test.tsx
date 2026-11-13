@@ -29,13 +29,19 @@ const town = (overrides: Partial<GameState> = {}) =>
 test('rows are grouped by category, with waterskins under Essentials', () => {
   market(town())
   const groups = screen.getAllByRole('rowgroup').slice(1) // after the header
-  expect(groups.map((g) => within(g).getAllByRole('rowheader')[0].textContent)).toEqual([
+  // The category's full name is its accessible name and tooltip; the vertical label is short.
+  const heads = groups.map((g) => within(g).getAllByRole('rowheader')[0])
+  expect(heads.map((h) => h.getAttribute('aria-label'))).toEqual([
     'Essentials',
     'Consumables',
     'Equipment',
     'Materials',
     'Precious',
   ])
+  expect(heads.map((h) => h.getAttribute('title'))).toEqual(
+    heads.map((h) => h.getAttribute('aria-label'))
+  )
+  expect(heads[1].textContent!.length).toBeLessThan('Consumables'.length)
   expect(within(groups[0]).getByRole('rowheader', { name: /^Waterskins/ })).toBeTruthy()
   // Water is free and refills by itself: no row of its own.
   expect(within(groups[0]).queryByRole('rowheader', { name: /^Water\b(?!skins)/ })).toBeNull()
@@ -56,13 +62,31 @@ test('the quote follows the amount, and buy and sell dispatch it', async () => {
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyGoods', good: 'food', amount: 1 })
   await userEvent.click(screen.getByRole('button', { name: '10' }))
   const sell = screen.getByRole('button', { name: `Sell 10 Food for ${total('sell', 10)} gp` })
-  expect(sell.getAttribute('title')).toMatch(/^Sell 10: \d+ gp \(.+ gp each\)$/)
+  expect(sell.getAttribute('title')).toMatch(/^Sell 10: \d+ gp \(.+ gp each\)$/m)
   await userEvent.click(sell)
   expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'food', amount: 10 })
   await userEvent.click(
     screen.getByRole('button', { name: `Buy 10 Food for ${total('buy', 10)} gp` })
   )
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyGoods', good: 'food', amount: 10 })
+})
+
+test('shift-clicking Sell sells 5 at once, or all there is if fewer', async () => {
+  const state = town({ goods: { food: 12, fuel: 3 } })
+  const onAction = market(state)
+  const total = quote(state, content, 'ashmoor-1', 'food', 'sell', 5)!.total
+  const sell = screen.getByRole('button', { name: /^Sell 1 Food/ })
+  // The tooltip previews the shift sale.
+  expect(sell.getAttribute('title')).toMatch(new RegExp(`\\nShift: sell 5: ${total} gp`))
+  const user = userEvent.setup()
+  await user.keyboard('{Shift>}')
+  await user.click(sell)
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'food', amount: 5 })
+  await user.click(screen.getByRole('button', { name: /^Sell 1 Fuel/ }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'fuel', amount: 3 })
+  await user.keyboard('{/Shift}')
+  await user.click(sell)
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'food', amount: 1 })
 })
 
 test('prices known elsewhere show their age, stale and heard', () => {
