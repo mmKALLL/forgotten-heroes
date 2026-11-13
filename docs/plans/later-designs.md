@@ -19,6 +19,19 @@ This is the "owned businesses" item of design §11, in a first, simple form.
   - what happens to an investment when the town changes hands or is raided;
   - whether it counts toward the Hall of the Fallen.
 
+## Secret contracts for the wealthy (designer idea, 2026-11-13)
+
+Visible wealth has an upside: people of high standing (aristocrats, guild masters, rich merchants) take a party that clearly has money seriously, and offer it discreet work.
+
+**Claude's proposal for its shape** (to confirm):
+- **Who offers:** notable people of a high class, using the existing notable people (`person-roles.json`, e.g. a noble, a guild master or a merchant prince). The offer is made through the People panel, not the notice board.
+- **When:** the party has visible wealth of 3 or more steps (`WEALTH_BREAKPOINTS`) and at least neutral standing with that person.
+- **What:**
+  - **The work:** a few kinds of quiet work. These are a sealed delivery (no questions), recovering a relic from a site, smuggling precious goods past a toll, and a payment that has to arrive unseen.
+  - **Pay and secrecy:** pay is about 1.5–2× a same-level contract, plus a good word with that person.
+  - **The catch:** the work is secret. Failing it, or being caught (a thieves or toll situation drawn while it is held), costs standing with the town, not just the patron.
+- **How it shows:** at most one secret offer per town at a time. It is shown as "a private word" beside the person, and it counts toward the board's 3-offer limit only if the designer wants that.
+
 ## Also listed for later
 
 - **Classes:** the Monk (ki: stunning, harrying) and the Barbarian (big single blows), from the combat design.
