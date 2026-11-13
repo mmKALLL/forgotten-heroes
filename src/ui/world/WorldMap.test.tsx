@@ -6,6 +6,7 @@ import { edgesFrom } from '../../engine/world/graph'
 import { territory } from '../../engine/world/territory'
 import { step } from '../../engine/state'
 import { routeOptions } from '../../engine/travel/preview'
+import { kingdomsByDistance } from '../../engine/world/mapView'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
@@ -17,6 +18,7 @@ import {
   kingdomColours,
   nearestInDirection,
   viewBoxFor,
+  VIEW_ASPECT,
 } from './WorldMap'
 
 const content = fixtureContent()
@@ -183,11 +185,23 @@ test('the road to the selected neighbour, and the journey under way, are highlig
 })
 
 test('zooming centres on the party without leaving the map', () => {
-  expect(viewBoxFor({ x: 100, y: 100 }, true)).toBe('0 0 840 630')
-  expect(viewBoxFor({ x: 2000, y: 1500 }, true)).toBe('1580 1185 840 630')
-  expect(viewBoxFor({ x: 4000, y: 3000 }, true)).toBe('3256 2442 840 630')
-  expect(viewBoxFor(null, true)).toBe('0 0 4096 3072')
-  expect(viewBoxFor({ x: 2000, y: 1500 }, false)).toBe('0 0 4096 3072')
+  expect(viewBoxFor({ x: 100, y: 100 }, true)).toBe('0 0 864 768')
+  expect(viewBoxFor({ x: 2000, y: 1500 }, true)).toBe('1568 1116 864 768')
+  expect(viewBoxFor({ x: 4000, y: 3000 }, true)).toBe('3232 2304 864 768')
+})
+
+test('both views keep the almost-square frame; the whole map is centred on what is drawn', () => {
+  const aspect = (box: string) => {
+    const [, , w, h] = box.split(' ').map(Number)
+    return w / h
+  }
+  for (const box of [viewBoxFor({ x: 2000, y: 1500 }, true), viewBoxFor(null, false)]) {
+    expect(aspect(box)).toBeCloseTo(VIEW_ASPECT)
+  }
+  // The whole height, and a band of the width around the markers, inside the image.
+  expect(viewBoxFor(null, true)).toBe('320 0 3456 3072')
+  expect(viewBoxFor({ x: 2000, y: 1500 }, false, { min: 500, max: 3400 })).toBe('222 0 3456 3072')
+  expect(viewBoxFor(null, false, { min: 0, max: 100 })).toBe('0 0 3456 3072')
 })
 
 test('the map starts zoomed in on the party, follows it, and can show the whole map', async () => {
@@ -203,7 +217,7 @@ test('the map starts zoomed in on the party, follows it, and can show the whole 
   rerender(<WorldMap {...props} state={moved} />)
   expect(svg().getAttribute('viewBox')).toBe(viewBoxFor(content.settlements['ashmoor-1'].at, true))
   await userEvent.click(screen.getByRole('button', { name: 'Whole map' }))
-  expect(svg().getAttribute('viewBox')).toBe('0 0 4096 3072')
+  expect(svg().getAttribute('viewBox')).toBe('0 0 3456 3072')
   await userEvent.click(screen.getByRole('button', { name: 'Zoom to party' }))
   expect(svg().getAttribute('viewBox')).toBe(viewBoxFor(content.settlements['ashmoor-1'].at, true))
 })
@@ -344,11 +358,14 @@ test('the kingdom overlay tints every land spot in its kingdom’s colour, and i
     const kingdom = state.world.domains[domain].kingdom
     expect(rect.style.fill).toBe(hexToRgb(colours.get(kingdom)!))
   }
-  // Seats wear a crown, and the legend names the kingdoms.
+  // Seats wear a crown, and the legend names the kingdoms, nearest first.
   expect(container.querySelectorAll('.crown')).toHaveLength(state.world.kingdoms.length)
   const legend = within(screen.getByRole('list', { name: 'Kingdom colours' }))
   expect(legend.getAllByRole('listitem').map((li) => li.textContent)).toEqual(
-    state.world.kingdoms.map((k) => k.name)
+    kingdomsByDistance(state, content).map((k) => k.name)
+  )
+  expect(legend.getAllByRole('listitem')[0].textContent).toBe(
+    state.world.kingdoms.find((k) => k.domains.includes('greenvale-1'))!.name
   )
   expect(localStorage.getItem(KINGDOM_OVERLAY_KEY)).toBe('true')
 

@@ -43,6 +43,9 @@ test('offers show their route, deadline and pay; Take dispatches, a locked one s
   expect(row.getByText(`level ${open.level}`)).toBeTruthy()
   // A countdown to the deadline, not its day.
   expect(row.getByText(new RegExp(`${open.km} km · ${open.days} days left · `))).toBeTruthy()
+  // Every offer's text is shown in full, with no more/less toggle.
+  expect(board.queryByRole('button', { name: /^(more|less)$/ })).toBeNull()
+  expect(row.getByText(open.text)).toBeTruthy()
   await userEvent.click(row.getByRole('button', { name: `Take “${open.title}”` }))
   expect(onAction).toHaveBeenCalledWith({ type: 'acceptContract', offerId: open.id })
 

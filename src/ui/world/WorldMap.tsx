@@ -2,9 +2,10 @@ import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
 import { formatPercent } from '../../engine/format'
 import type { Action } from '../../engine/state'
-import { journeyProgress, routeOptions, type RouteOption } from '../../engine/travel/preview'
+import { routeOptions, type RouteOption } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom, nodeOf } from '../../engine/world/graph'
+import { kingdomsByDistance, partyPoint } from '../../engine/world/mapView'
 import { siteEmpty } from '../../engine/world/sites'
 import { crisisInfo } from '../../engine/crisis/status'
 import { territory } from '../../engine/world/territory'
@@ -90,11 +91,18 @@ function saveOverlay(on: boolean) {
  */
 export const DANGER_COLOURS = ['#f4ead2', '#f0b429', '#e0662b', '#b51f18'] as const
 /**
+ * The map's frame is 9:8, almost square (designer call, Plan 6 wave 2b: about 32 px taller than
+ * the image's own 4:3 in the left column). Both views keep it, so the frame never jumps.
+ */
+export const VIEW_ASPECT = 9 / 8
+/**
  * The zoomed view (the default): this many map pixels around the party, close in (designer
  * decision) yet reaching the neighbours most roads lead to (nine in ten land roads are under
  * 420 px long).
  */
-export const ZOOM = { width: 840, height: 630 }
+export const ZOOM = { width: 864, height: 768 }
+/** The whole map at the frame's aspect: all its height, and a band of its width. */
+export const WHOLE = { width: Math.round(MAP_HEIGHT * VIEW_ASPECT), height: MAP_HEIGHT }
 /**
  * Half a marker's width, in map pixels (the map's own markers are about 20 px): larger on the
  * whole map, which is drawn at about a fifth of its size, so markers stay easy to see and hit.
@@ -130,11 +138,6 @@ type Props = {
   onClose?: () => void
 }
 
-const lerp = (a: MapPoint, b: MapPoint, t: number): MapPoint => ({
-  x: a.x + (b.x - a.x) * t,
-  y: a.y + (b.y - a.y) * t,
-})
-
 /** A small three-pointed crown above a seat's marker. */
 function crownPath(at: MapPoint, marker: number): string {
   const w = marker * 0.9
@@ -149,9 +152,21 @@ function crownPath(at: MapPoint, marker: number): string {
   )
 }
 
-/** The whole map, or a window around `centre` that stays inside the map. */
-export function viewBoxFor(centre: MapPoint | null, zoomed: boolean): string {
-  if (!zoomed || !centre) return `0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`
+/**
+ * A window around `centre` that stays inside the map; or, zoomed out (or with no party), the whole
+ * map's height and the band of its width centred on `span`, the x-extent of what is drawn (the
+ * image is 4:3, wider than the frame, and its far edges are sea).
+ */
+export function viewBoxFor(
+  centre: MapPoint | null,
+  zoomed: boolean,
+  span: { min: number; max: number } = { min: 0, max: MAP_WIDTH }
+): string {
+  if (!zoomed || !centre) {
+    const mid = (span.min + span.max) / 2
+    const x = Math.min(Math.max(0, mid - WHOLE.width / 2), MAP_WIDTH - WHOLE.width)
+    return `${Math.round(x)} 0 ${WHOLE.width} ${WHOLE.height}`
+  }
   const x = Math.min(Math.max(0, centre.x - ZOOM.width / 2), MAP_WIDTH - ZOOM.width)
   const y = Math.min(Math.max(0, centre.y - ZOOM.height / 2), MAP_HEIGHT - ZOOM.height)
   return `${Math.round(x)} ${Math.round(y)} ${ZOOM.width} ${ZOOM.height}`
@@ -207,18 +222,10 @@ export function WorldMap({
   const at = (id: string): MapPoint | null => nodeOf(state, content, id)?.at ?? null
   const travel = state.travel
   const from = travel ? at(travel.from) : null
-  const to = travel ? at(travel.to) : null
   // On the road the party is drawn the share of the way it has travelled along its road.
-  const party = travel
-    ? from && to
-      ? lerp(from, to, journeyProgress(travel))
-      : null
-    : state.location
-      ? at(state.location)
-      : null
+  const party = partyPoint(state, content)
   const roads = routeOptions(state, content, prefs?.forage ?? true)
   const reachable = new Set(roads.map((r) => r.to))
-  const viewBox = viewBoxFor(party, zoomed)
   const picked = !travel && prefs && onTravel ? roads.find((r) => r.to === selected) : undefined
   const pickedAt = picked ? at(picked.to) : null
   const shownRoute = travel?.route ?? roads.find((r) => r.to === selected)?.routeId ?? null
@@ -239,6 +246,10 @@ export function WorldMap({
   const crisisSites = new Map((crisisInfo(state, content)?.sites ?? []).map((s) => [s.poi, s]))
   // Everything the arrow keys move between.
   const markers: { id: string; at: MapPoint }[] = [...sites, ...pois]
+  // The whole map shows the band of the image around what is drawn.
+  const xs = markers.map((m) => m.at.x)
+  const span = xs.length > 0 ? { min: Math.min(...xs), max: Math.max(...xs) } : undefined
+  const viewBox = viewBoxFor(party, zoomed, span)
   // Roving tab stops: where the party is (or is headed), where it can go, and the selection.
   const tabStops = new Set(reachable)
   if (state.location) tabStops.add(state.location)
@@ -543,7 +554,7 @@ export function WorldMap({
       </ul>
       {overlay && (
         <ul className="map-legend small" aria-label={t('map.kingdomLegend')}>
-          {state.world.kingdoms.map((k) => (
+          {kingdomsByDistance(state, content).map((k) => (
             <li key={k.id}>
               <svg className="kingdom-swatch" viewBox="0 0 10 10" aria-hidden="true">
                 <rect width={10} height={10} style={{ fill: colours.get(k.id) }} />
