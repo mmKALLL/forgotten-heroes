@@ -34,7 +34,9 @@ The engine's balance and tuning numbers are all in **[`src/engine/constants.ts`]
 | `data/claude/crisis-sites.json` | `pathDanger` and `water` per type | How dangerous the path to each Crisis site is, and whether it refills the waterskins (every one does: some lie days off the road in the desert) |
 | `data/claude/crisis-situations.json`, `dungeon-rooms-1.json`, `dungeon-rooms-2.json` | each finale's or boss room's `challenge` `successes` and `failures`, and its round options | How long a climax's skill challenge is (by CR: 3/2, 4/3, 5/3) and what each round costs |
 | `data/claude/crisis-situations.json` | the `dc` of each Crisis situation's checks (read as offsets from 12, `CRISIS_DC_BASE`), the wounds (`hp`, played as written, so written for the act's CR), the gold paid and asked, and `xp` 0 on the approach checks | How much harder or easier each check is than its act's CR, how much a visit hurts and pays, and that only the finale (and a lead's last stage) pays XP |
-Encounter odds and rewards live in the situations themselves (`situations.json` files in every source).
+| `data/claude/situations.json`, `road-situations-2.json`, `poi-situations.json`, `archetypes.json`, the Crisis omens in `crisis-situations.json`, `data/procedural/twists.json` | the negative `hp` effects (wounds) | How much a road or site encounter hurts, as written for a novice party (designer call 2026-11-14, design §7): one member 4–6 low stakes, 7–10 moderate, 11–15 serious; everyone (`all`) about 60% of that (3–4, 5–6, 7–9); nothing below 3. Partial lighter than fail, fail than critical failure. Dungeon rooms and Crisis sites have their own scale (above) |
+
+Encounter odds and rewards live in the situations themselves (`situations.json` files in every source). The fixed wounds outside situations are in the same band: `GATHER_INJURY` (6) and `STOWAWAY_BRAWL_DAMAGE` (5–10).
 
 See also [threat-levels.md](threat-levels.md) for how threat and Rampant are worked out.
 

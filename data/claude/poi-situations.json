@@ -103,7 +103,7 @@
               "outcomes": {
                 "fail": {
                   "text": "The water is only cold. {actor} slips on the wet stones climbing out.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }]
                 },
                 "partial": {
                   "text": "The cold drives the ache out of {actor}'s bones, if no one else's.",
@@ -165,7 +165,7 @@
               "outcomes": {
                 "fail": {
                   "text": "{actor} stumbles over the words. The water stirs, and cold hands catch at your ankles all the way out.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
                 },
                 "partial": {
                   "text": "The water stills. You rest a while on the gallery and leave a little mended.",
@@ -190,13 +190,13 @@
               "outcomes": {
                 "fail": {
                   "text": "Something under the water takes hold of {actor}'s wrist and does not let go for far too long.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }]
                 },
                 "partial": {
                   "text": "{actor} comes up with a handful of green coins and a chill that won't shift.",
                   "effects": [
                     { "effect": "gold", "amount": 6 },
-                    { "effect": "hp", "amount": -2, "target": "actor" }
+                    { "effect": "hp", "amount": -5, "target": "actor" }
                   ]
                 },
                 "success": {
@@ -236,7 +236,7 @@
               "outcomes": {
                 "fail": {
                   "text": "{actor} slips off the wet ledge and lands badly.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }],
                   "goto": "carvings"
                 },
                 "partial": {
@@ -328,7 +328,7 @@
               "outcomes": {
                 "fail": {
                   "text": "A stair gives way under {actor}, who drops into the black water among the timbers.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }],
                   "goto": "bell"
                 },
                 "partial": {
@@ -423,7 +423,7 @@
               "outcomes": {
                 "fail": {
                   "text": "The stair crumbles under {actor}'s feet. It is a bad fall.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }],
                   "goto": "walls"
                 },
                 "partial": {
@@ -653,7 +653,7 @@
                 "critFail": {
                   "text": "The rush overwhelms you. You run for your lives and leave half your packs in the mud.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -661,13 +661,13 @@
                 "fail": {
                   "text": "There are too many of them. You fight your way clear and run, and the camp jeers you all the way down the valley.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You cut through the first rush, bleeding, but the war-chief rallies the rest around the war totem.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -687,7 +687,7 @@
                 "fail": {
                   "text": "They laugh at {actor}, and a thrown spear nearly ends the conversation.",
                   "effects": [
-                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -711,7 +711,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You fight a retreat to the gully and lose them in the dark.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -730,15 +730,15 @@
                 "fail": {
                   "text": "He batters {actor} senseless. You drag them away while the camp howls.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} brings him down at a terrible cost. The camp breaks up around his body.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 15 },
                     { "effect": "clearPoi" }
                   ]
@@ -784,7 +784,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You give ground step by step, and they let you go.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -896,7 +896,7 @@
                 "critFail": {
                   "text": "Something falls on you in the dark. You scramble out without your purse, and the goblins have a party.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -904,13 +904,13 @@
                 "fail": {
                   "text": "You crawl out bleeding from a dozen small cuts, and the jeering follows you all the way down the hill.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You beat back the mob, cut a dozen times, and the survivors bolt for their boss's den.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -930,7 +930,7 @@
                 "fail": {
                   "text": "{actor} pulls the wrong prop, and the roof comes down on them instead.",
                   "effects": [
-                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -970,7 +970,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You back out the way you came, and the goblins don't follow into the daylight.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -989,15 +989,15 @@
                 "fail": {
                   "text": "The worg drags {actor} down, and you have to cut your way out of the den.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} ends up bitten to the bone, but the boss is dead and the tribe is gone.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 10 },
                     { "effect": "clearPoi" }
                   ]
@@ -1043,7 +1043,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You give ground step by step, and the boss is happy to let you go.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1137,7 +1137,7 @@
                 "critFail": {
                   "text": "A bolt in the thigh and a spear in the pack. You lose your purse getting over the fence.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -1145,13 +1145,13 @@
                 "fail": {
                   "text": "Crossbow bolts drive you back across the yard and over the fence. The outlaws don't bother to chase you.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "The outlaws fall back to the barn, where their captain is buckling on her sword.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -1171,7 +1171,7 @@
                 "fail": {
                   "text": "A horse kicks {actor} into the trough, and the outlaws laugh as they reload.",
                   "effects": [
-                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -1195,7 +1195,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You fight a retreat across the yard and over the fence.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1214,15 +1214,15 @@
                 "fail": {
                   "text": "She is better than {actor}, much better. You get out alive only because she lets you.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} trades cut for cut with her until she falls. Her outlaws scatter, but most of the chest goes with them.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 15 },
                     { "effect": "clearPoi" }
                   ]
@@ -1268,7 +1268,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back away across the yard, and she lets you go.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1365,7 +1365,7 @@
                 "critFail": {
                   "text": "They ride you down in the meadow. You escape over the river with nothing but your lives.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -1373,13 +1373,13 @@
                 "fail": {
                   "text": "There are too many pikes. You break out of the camp and run, and the host cheers.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You cut your way through the sworn men, but the pretender has seen the fight and is riding up.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -1399,7 +1399,7 @@
                 "fail": {
                   "text": "{actor} is caught with the torch and beaten for it.",
                   "effects": [
-                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -1423,7 +1423,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You fight your way back to the river and over it.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1442,15 +1442,15 @@
                 "fail": {
                   "text": "The pretender's guard closes ranks. {actor} goes down under the pikes, and you barely get them out.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} drags the pretender from the saddle, hurt badly in the doing. The host scatters.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 10 },
                     { "effect": "clearPoi" }
                   ]
@@ -1495,7 +1495,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back off between the tents and lose yourselves among the camp followers.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1590,7 +1590,7 @@
                 "critFail": {
                   "text": "The dead drag you down in the mist. You crawl out with nothing but your lives.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -1598,13 +1598,13 @@
                 "fail": {
                   "text": "They keep coming, and their touch is cold as the grave. You fight your way out of the gate and run.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You hack them down, torn and chilled, but they gather around the great tomb at the centre.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -1624,7 +1624,7 @@
                 "fail": {
                   "text": "{actor} pries at the wrong grave, and something inside bites.",
                   "effects": [
-                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -1648,7 +1648,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You fight your way back to the gate, and the dead stop there.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1667,15 +1667,15 @@
                 "fail": {
                   "text": "The knight's cold blade finds {actor}, and you drag them out of the gate.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} brings the knight down, chilled to the bone. The graveyard goes quiet.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 10 },
                     { "effect": "clearPoi" }
                   ]
@@ -1701,7 +1701,7 @@
                 "fail": {
                   "text": "He does not want rest. He wants company.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -1721,7 +1721,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back away through the mist, and the dead let you go.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1818,7 +1818,7 @@
                 "critFail": {
                   "text": "The chant hits you like a fist. You flee the manor with nothing, and wake up far down the road.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -1826,13 +1826,13 @@
                 "fail": {
                   "text": "The knives and the chanting drive you back up the stair and out into the night.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You cut down the first of them, but the high priest has reached the altar.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -1852,7 +1852,7 @@
                 "fail": {
                   "text": "The circle bites back, and {actor} reels away with burnt hands.",
                   "effects": [
-                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -1873,7 +1873,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You fight your way back up the cellar stair and out.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -1892,15 +1892,15 @@
                 "fail": {
                   "text": "The shadow wraps around {actor} and won't let go. You haul them out of the cellar.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} kills the priest, torn by the shadow before it fades. The cult is broken.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 10 },
                     { "effect": "clearPoi" }
                   ]
@@ -1927,7 +1927,7 @@
                 "fail": {
                   "text": "The shadow likes {actor}, and squeezes.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -1947,7 +1947,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back up the stair and slam the cellar door behind you.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2041,7 +2041,7 @@
                 "critFail": {
                   "text": "The venom takes hold. You wake in the jungle with nothing, a day later.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -2049,13 +2049,13 @@
                 "fail": {
                   "text": "The venom slows you, and the blades keep coming. You stagger out into the jungle.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You beat them back, scratched and sick with venom, and their priestess climbs out of the pit.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -2075,7 +2075,7 @@
                 "fail": {
                   "text": "A temple snake bites {actor} on the hand.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -2099,7 +2099,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You fight your way down the stair and into the trees.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2118,15 +2118,15 @@
                 "fail": {
                   "text": "The serpent wraps around {actor}, and you barely cut them free.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} is crushed and bitten, but the serpent dies and the priestess flees.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 15 },
                     { "effect": "clearPoi" }
                   ]
@@ -2169,7 +2169,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back down the stair, and the serpent doesn't follow into daylight.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2274,7 +2274,7 @@
                 "critFail": {
                   "text": "You wake on the road with your purses lighter and no memory of the last day.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "all" },
+                    { "effect": "hp", "amount": -7, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -2282,13 +2282,13 @@
                 "fail": {
                   "text": "The water drags you under, again and again. You crawl out of the hollow half-drowned.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You beat off the water-shapes, but the three crones are joining hands at the pot.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -2308,7 +2308,7 @@
                 "fail": {
                   "text": "The brew splashes {actor}, and it burns like cold fire.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -2332,7 +2332,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You wade back across the black water as fast as you can.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2351,15 +2351,15 @@
                 "fail": {
                   "text": "The eldest lifts {actor} like a child and throws them into the water. You run.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} is clawed and cursed, but the coven breaks and the hut sinks into the bog.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": 10 },
                     { "effect": "clearPoi" }
                   ]
@@ -2386,7 +2386,7 @@
                 "fail": {
                   "text": "They laugh, and the water rises around you again.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -2406,7 +2406,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back away across the water while they argue over you.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2503,7 +2503,7 @@
                 "critFail": {
                   "text": "Fire catches your packs. You run down the crag with smoke trailing behind you.",
                   "effects": [
-                    { "effect": "hp", "amount": -7, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -2511,13 +2511,13 @@
                 "fail": {
                   "text": "Fire and teeth drive you down the crag. You run until the heat is gone.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "all" },
+                    { "effect": "hp", "amount": -6, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You bring down one drake, burnt and bloodied, and a roar from the cave answers its death.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -2537,7 +2537,7 @@
                 "fail": {
                   "text": "The scree goes from under {actor} instead.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -2561,7 +2561,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You scramble down the crag with fire licking at your heels.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2580,15 +2580,15 @@
                 "fail": {
                   "text": "Her fire catches {actor} full on. You drag them down the crag, smoking.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -10, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} is badly burnt, but the brood-mother falls. The roost is yours.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
                     { "effect": "gold", "amount": 20 },
                     { "effect": "clearPoi" }
                   ]
@@ -2615,7 +2615,7 @@
                 "fail": {
                   "text": "She is not afraid of torches. She is made of fire.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "random" },
+                    { "effect": "hp", "amount": -6, "target": "random" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -2635,7 +2635,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back away down the crag while she roars after you.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2729,7 +2729,7 @@
                 "critFail": {
                   "text": "They kick you down the mountain like stones, and your packs go further than you do.",
                   "effects": [
-                    { "effect": "hp", "amount": -7, "target": "all" },
+                    { "effect": "hp", "amount": -8, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -2737,13 +2737,13 @@
                 "fail": {
                   "text": "A tree trunk sweeps you off the path. You crawl away down the scree.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "all" },
+                    { "effect": "hp", "amount": -6, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You bring one giant down, bruised all over, and their mother takes the great maul down from the hearth.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }],
                   "goto": "chief"
                 },
                 "success": {
@@ -2763,7 +2763,7 @@
                 "fail": {
                   "text": "A giant ox tramples {actor} into the mud.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -2787,7 +2787,7 @@
               "description": "Get out with a few cuts. The lair stays.",
               "outcome": {
                 "text": "You fight your way back down the pass, and they throw rocks after you.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2806,15 +2806,15 @@
                 "fail": {
                   "text": "The maul catches {actor}. You carry them down the pass.",
                   "effects": [
-                    { "effect": "hp", "amount": -6, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" },
+                    { "effect": "hp", "amount": -10, "target": "actor" },
+                    { "effect": "hp", "amount": -3, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} is battered half to death, but she falls, and the clan goes with her.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
+                    { "effect": "hp", "amount": -8, "target": "actor" },
                     { "effect": "gold", "amount": 20 },
                     { "effect": "clearPoi" }
                   ]
@@ -2857,7 +2857,7 @@
               "description": "Break off while you still can. The lair stays.",
               "outcome": {
                 "text": "You back out of the hall while she laughs at you.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -2927,12 +2927,12 @@
               "outcomes": {
                 "fail": {
                   "text": "A flag tips under {actor}, who drops into a pit of bones and climbs out torn.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }],
                   "goto": "guardian"
                 },
                 "partial": {
                   "text": "{actor} finds most of the false flags. Most.",
-                  "effects": [{ "effect": "hp", "amount": -1, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
                   "goto": "guardian"
                 },
                 "success": {
@@ -2952,14 +2952,14 @@
                 "fail": {
                   "text": "Flags give way under {actor}, and the noise echoes ahead of you into the chamber.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "goto": "guardian"
                 },
                 "partial": {
                   "text": "{actor} gets through with a turned ankle.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }],
                   "goto": "guardian"
                 },
                 "success": {
@@ -2992,13 +2992,13 @@
                 "fail": {
                   "text": "His cold blade and his rising dead drive you back up the passage and out into the light.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "all" },
+                    { "effect": "hp", "amount": -6, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You hack him down, torn and frozen, and the bones fall still.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }],
                   "goto": "vault"
                 },
                 "success": {
@@ -3019,14 +3019,14 @@
                 "fail": {
                   "text": "He does not want rest. His cold hand closes on {actor}'s throat.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
                 },
                 "partial": {
                   "text": "He lies back slowly, and his cold hand brushes {actor} as he goes.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }],
                   "goto": "vault"
                 },
                 "success": {
@@ -3049,7 +3049,7 @@
                   "text": "The chalk line smokes and breaks as he rises. {actor} is caught too close.",
                   "effects": [
                     { "effect": "goods", "good": "arcana", "amount": -1 },
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -3058,7 +3058,7 @@
                   "text": "He strains at the circle, then lies back, cursing {actor} in a dead tongue.",
                   "effects": [
                     { "effect": "goods", "good": "arcana", "amount": -1 },
-                    { "effect": "hp", "amount": -1, "target": "actor" }
+                    { "effect": "hp", "amount": -4, "target": "actor" }
                   ],
                   "goto": "vault"
                 },
@@ -3080,7 +3080,7 @@
               "description": "Get out with a few cuts. The barrow stays haunted.",
               "outcome": {
                 "text": "You run for the daylight with the dead at your heels.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -3099,7 +3099,7 @@
                   { "effect": "gold", "amount": 15 },
                   { "effect": "goods", "good": "relics", "amount": 1 },
                   { "effect": "goods", "good": "gems", "amount": 1 },
-                  { "effect": "hp", "amount": -3, "target": "all" },
+                  { "effect": "hp", "amount": -4, "target": "all" },
                   { "effect": "clearPoi" }
                 ]
               }
@@ -3126,7 +3126,7 @@
               "outcomes": {
                 "fail": {
                   "text": "The curse lashes out at {actor}. Nobody wants to touch the coffer now.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }],
                   "stay": true
                 },
                 "partial": {
@@ -3232,7 +3232,7 @@
               "outcomes": {
                 "fail": {
                   "text": "A deadfall catches {actor} across the shoulders.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }],
                   "goto": "warren"
                 },
                 "partial": {
@@ -3256,14 +3256,14 @@
                 "fail": {
                   "text": "The bridge was cut half through. {actor} goes into the black water and comes up gasping, and the splash carries.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "goto": "warren"
                 },
                 "partial": {
                   "text": "The bridge sways and holds. {actor} scrapes a shin on the far side.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }],
                   "goto": "warren"
                 },
                 "success": {
@@ -3296,13 +3296,13 @@
                 "fail": {
                   "text": "Spears from every ledge, and then the lantern comes down in a sheet of fire. You flee back up the tunnels.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -5, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You break the tribe in a long, scrappy fight, and the chief's lantern singes everyone.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "vault"
                 },
                 "success": {
@@ -3324,7 +3324,7 @@
                   "text": "The flask smashes on the rock wall and lights the ore-carts. Through smoke and spears you flee back up the tunnels.",
                   "effects": [
                     { "effect": "goods", "good": "alchemicals", "amount": -1 },
-                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "hp", "amount": -4, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
@@ -3332,7 +3332,7 @@
                   "text": "The throne goes up in green fire. The tribe scatters, but not before their spears find you.",
                   "effects": [
                     { "effect": "goods", "good": "alchemicals", "amount": -1 },
-                    { "effect": "hp", "amount": -2, "target": "all" }
+                    { "effect": "hp", "amount": -3, "target": "all" }
                   ],
                   "goto": "vault"
                 },
@@ -3376,7 +3376,7 @@
               "description": "Get out with a few cuts. The mine stays theirs.",
               "outcome": {
                 "text": "You run for the daylight with spears whistling past.",
-                "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                "effects": [{ "effect": "hp", "amount": -5, "target": "random" }]
               }
             }
           ]
@@ -3407,7 +3407,7 @@
                 "fail": {
                   "text": "The roof groans, and stones come down on {actor}. You take the hoard and get out.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "gold", "amount": 15 },
                     { "effect": "goods", "good": "gems", "amount": 1 },
                     { "effect": "clearPoi" }
@@ -3458,7 +3458,7 @@
               "outcomes": {
                 "fail": {
                   "text": "The rubble shifts and rolls onto {actor}'s foot. You get in anyway, limping.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }],
                   "goto": "undercroft"
                 },
                 "partial": {
@@ -3515,7 +3515,7 @@
               "outcomes": {
                 "fail": {
                   "text": "An arch comes down without warning.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "random" }],
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "random" }],
                   "goto": "strongroom"
                 },
                 "partial": {
@@ -3539,14 +3539,14 @@
                 "fail": {
                   "text": "{actor} goes under in a sinkhole and comes up with a rat on their arm.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "goto": "strongroom"
                 },
                 "partial": {
                   "text": "The rats take a bite or two out of {actor} on the way.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }],
                   "goto": "strongroom"
                 },
                 "success": {
@@ -3578,12 +3578,12 @@
               "outcomes": {
                 "fail": {
                   "text": "{actor} guesses wrong. The face spits fire.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }],
                   "stay": true
                 },
                 "partial": {
                   "text": "{actor} gets it nearly right. The face scorches you all, then grudgingly lets you in.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
                   "goto": "vault"
                 },
                 "success": {
@@ -3602,12 +3602,12 @@
               "outcomes": {
                 "fail": {
                   "text": "The face sees {actor}'s hands and spits fire on them.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }],
                   "stay": true
                 },
                 "partial": {
                   "text": "The lock gives, and so does the face's temper.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }],
                   "goto": "vault"
                 },
                 "success": {
@@ -3840,7 +3840,7 @@
                   "text": "{actor} comes back with the wrong herbs and a leech on each leg. She tends you anyway, grudgingly.",
                   "effects": [
                     { "effect": "days", "amount": 1 },
-                    { "effect": "hp", "amount": -2, "target": "actor" }
+                    { "effect": "hp", "amount": -5, "target": "actor" }
                   ]
                 },
                 "partial": {
@@ -3937,22 +3937,22 @@
               "outcomes": {
                 "fail": {
                   "text": "He puts {actor} on the ground three times without breaking a sweat. 'Come back when you're quicker.'",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }],
                   "twist": {
                     "text": "He puts {actor} on the ground, then keeps hitting, and he isn't smiling.",
-                    "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
+                    "effects": [{ "effect": "hp", "amount": -10, "target": "actor" }]
                   }
                 },
                 "partial": {
                   "text": "{actor} lasts long enough to earn a few bruises and his grudging respect. He teaches, between insults.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "days", "amount": 3 },
                     { "effect": "trainSkill", "skill": "acrobatics" }
                   ],
                   "twist": {
                     "text": "Halfway through, he swaps the stick for a blade, and his eyes go flat.",
-                    "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                    "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }],
                     "goto": "@twist"
                   }
                 },
@@ -4041,12 +4041,12 @@
               "outcomes": {
                 "fail": {
                   "text": "He is old, and he is still better. {actor} falls in the dust, and he walks away without looking back.",
-                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -10, "target": "actor" }]
                 },
                 "partial": {
                   "text": "Blood on both sides. He lowers the sword, satisfied, and teaches {actor} what he knows while they heal.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "days", "amount": 3 },
                     { "effect": "trainSkill", "skill": "acrobatics" }
                   ]
@@ -4436,7 +4436,7 @@
               "outcomes": {
                 "fail": {
                   "text": "The bronze bites {actor} with cold, and the hand stays numb for an hour.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }]
                 },
                 "partial": {
                   "text": "{actor} feels something vast and patient on the other side, and takes the hand away quickly."

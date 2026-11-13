@@ -19,25 +19,25 @@
             "critFail": {
               "text": "The fight goes badly wrong. You break and run, and they loot what you drop.",
               "effects": [
-                { "effect": "hp", "amount": -6, "target": "all" },
+                { "effect": "hp", "amount": -8, "target": "all" },
                 { "effect": "gold", "amount": -10 }
               ]
             },
             "fail": {
               "text": "You drive them off, but every one of you is bleeding.",
-              "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+              "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
             },
             "partial": {
               "text": "They scatter after a short, ugly fight. {actor} takes the worst of it.",
               "effects": [
-                { "effect": "hp", "amount": -4, "target": "actor" },
+                { "effect": "hp", "amount": -6, "target": "actor" },
                 { "effect": "gold", "amount": 5 }
               ]
             },
             "success": {
               "text": "{actor} leads the charge and they flee, leaving a purse behind.",
               "effects": [
-                { "effect": "hp", "amount": -1, "target": "actor" },
+                { "effect": "hp", "amount": -4, "target": "actor" },
                 { "effect": "gold", "amount": 10 }
               ]
             },
@@ -58,7 +58,7 @@
             "critFail": {
               "text": "A branch snaps under {actor}'s boot, right beside their lookout.",
               "effects": [
-                { "effect": "hp", "amount": -2, "target": "actor" },
+                { "effect": "hp", "amount": -5, "target": "actor" },
                 { "effect": "position", "position": "exposed" }
               ],
               "stay": true
@@ -90,7 +90,7 @@
             "critFail": {
               "text": "Talk sours into insults, and someone throws a stone.",
               "effects": [
-                { "effect": "hp", "amount": -2, "target": "random" },
+                { "effect": "hp", "amount": -5, "target": "random" },
                 { "effect": "position", "position": "exposed" }
               ],
               "stay": true
@@ -132,14 +132,14 @@
             "critFail": {
               "text": "You scatter in a panic, dropping packs and coin.",
               "effects": [
-                { "effect": "hp", "amount": -3, "target": "all" },
+                { "effect": "hp", "amount": -4, "target": "all" },
                 { "effect": "gold", "amount": -10 }
               ]
             },
             "fail": {
               "text": "You get away, but only after a long, punishing chase.",
               "effects": [
-                { "effect": "hp", "amount": -2, "target": "all" },
+                { "effect": "hp", "amount": -3, "target": "all" },
                 { "effect": "exhaustion", "amount": 1, "target": "actor" }
               ]
             },
@@ -252,7 +252,7 @@
               "effects": [{ "effect": "followUp", "situation": "grudge-on-the-road", "after": 1 }],
               "twist": {
                 "text": "They see right through you, and they were the dangerous ones.",
-                "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }]
               }
             },
             "fail": { "text": "They clutch their things and back away from you." },
