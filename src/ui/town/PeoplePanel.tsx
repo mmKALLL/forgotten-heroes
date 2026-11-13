@@ -1,19 +1,18 @@
 import type { Content } from '../../content/build'
-import { formatModifier } from '../../engine/format'
+import { capitalFirst, formatModifier, formatPoints } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
 import type { Action } from '../../engine/state'
-import { peopleRows } from '../../engine/town/reputation'
+import { peopleRows, standingView } from '../../engine/town/reputation'
 import { RUMOURS_DONE, rumourOption, rumourRefusal } from '../../engine/town/rumours'
 import type { GameState } from '../../schema/state'
-import type { Standing } from '../../schema/types'
-import { useI18n } from '../i18n/I18n'
+import { useI18n, type I18n } from '../i18n/I18n'
 import { TierOutcomes } from '../world/TierOutcomes'
 
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
 /**
  * The notable people here (design §8): each with their title and name, their role and the
- * party's standing with them. Always open (designer decision): the list is compact.
+ * party's reputation points with them. Always open (designer decision): the list is compact.
  */
 export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
   const { t, name } = useI18n()
@@ -31,7 +30,7 @@ export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
               <span className="muted">
                 · {name('personRoles', state.world.people[p.id]?.role ?? '', p.role)}
               </span>{' '}
-              <StandingBadge standing={p.standing} points={p.points} />
+              <ReputationValue points={p.points} label={t('people.rep')} />
             </li>
           ))}
         </ul>
@@ -40,17 +39,49 @@ export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
   )
 }
 
-/** A standing tier as a small coloured badge, with the points behind it in its tooltip. */
-export function StandingBadge({ standing, points }: { standing: Standing; points?: number }) {
-  const { t } = useI18n()
+/**
+ * Reputation points as plain text after a label ("Reputation 3", "rep −4"; designer, 2026-11-14:
+ * the points, not the tier), negative ones in the bad tone. The tooltip names the tier, its range
+ * and what it does; `whom` names who it is with, where the text doesn't.
+ */
+export function ReputationValue({
+  points,
+  label,
+  whom,
+}: {
+  points: number
+  label: string
+  whom?: string
+}) {
+  const i18n = useI18n()
+  const hint = reputationHint(i18n.t, points)
+  const tone = points < 0 ? 'tone-bad' : points > 0 ? 'tone-good' : 'muted'
   return (
     <span
-      className={`standing standing-${standing}`}
-      title={points === undefined ? undefined : t('people.points', { n: points })}
+      className={`rep ${tone}`}
+      title={whom ? i18n.t('reputation.with', { name: whom, hint }) : hint}
     >
-      {t(`standing.${standing}`)}
+      {label} {formatPoints(points)}
     </span>
   )
+}
+
+/** "Known (5 to 14): market spreads 2 points narrower, rumour DC 1 lower". */
+export function reputationHint(t: I18n['t'], points: number): string {
+  const v = standingView(points)
+  const range =
+    v.min === null
+      ? t('reputation.below', { max: formatPoints(v.max!) })
+      : v.max === null
+        ? t('reputation.above', { min: formatPoints(v.min) })
+        : t('reputation.range', { min: formatPoints(v.min), max: formatPoints(v.max) })
+  const effects =
+    v.spread > 0 || v.rumourDc > 0
+      ? t('reputation.better', { spread: v.spread, dc: v.rumourDc })
+      : v.spread < 0 || v.rumourDc < 0
+        ? t('reputation.worse', { spread: -v.spread, dc: -v.rumourDc })
+        : t('reputation.none')
+  return t('reputation.hint', { tier: capitalFirst(t(`standing.${v.standing}`)), range, effects })
 }
 
 /**

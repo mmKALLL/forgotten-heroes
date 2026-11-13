@@ -23,19 +23,24 @@ const show = (state: GameState) => {
   return onAction
 }
 
-test('the people here show with their titles, roles and standing tiers', () => {
+test('the people here show with their titles, roles and reputation points', () => {
   const state = makeState({ location: 'greenvale-1', gold: 50 })
   const people = peopleRows(state, content)
-  const first = people[0]
-  const liked = { ...state, reputation: { ...state.reputation, people: { [first.id]: 40 } } }
-  show(liked)
+  const [first, second] = people
+  const points = { [first.id]: 40, ...(second ? { [second.id]: -7 } : {}) }
+  show({ ...state, reputation: { ...state.reputation, people: points } })
   const list = within(screen.getByRole('list', { name: 'Notable people' }))
   expect(list.getAllByRole('listitem')).toHaveLength(people.length)
   const row = within(list.getByText(first.name).closest('li')!)
   expect(row.getByText(`· ${first.role}`)).toBeTruthy()
-  const tier = peopleRows(liked, content)[0].standing
-  expect(tier).not.toBe('stranger')
-  expect(row.getByText(tier)).toBeTruthy()
+  // The points, not the tier; the tier and what it does are in the tooltip.
+  const rep = row.getByText('rep 40')
+  expect(rep.className).toContain('tone-good')
+  expect(rep.title).toMatch(/^Trusted \(30 to 49\): /)
+  if (second) {
+    const bad = within(list.getByText(second.name).closest('li')!).getByText('rep −7')
+    expect(bad.className).toContain('tone-bad')
+  }
 })
 
 test('the rumour line shows who listens and the DC, the tiers their chances, and dispatches', async () => {

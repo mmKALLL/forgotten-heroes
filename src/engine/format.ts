@@ -3,6 +3,9 @@ import type { FaceRange } from './rules/checks'
 export const formatModifier = (n: number): string => (n >= 0 ? `+${n}` : `−${Math.abs(n)}`)
 
 /** Never shows a possible outcome as 0% or a failable one as 100%. */
+/** A whole number with a true minus sign, and no plus: reputation points, "−4". */
+export const formatPoints = (n: number): string => (n < 0 ? `−${Math.abs(n)}` : `${n}`)
+
 export function formatPercent(p: number): string {
   const rounded = Math.round(p * 100)
   if (rounded === 0 && p > 0) return '<1%'

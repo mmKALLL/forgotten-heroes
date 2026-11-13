@@ -2,6 +2,7 @@ import type { Content } from '../../content/build'
 import { capitalFirst } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import { noticeBoard, type Offer } from '../../engine/town/contracts'
+import { standingFloor } from '../../engine/town/reputation'
 import { serviceRows } from '../../engine/town/services'
 import type { GameState } from '../../schema/state'
 import { contractText } from '../contractText'
@@ -17,8 +18,8 @@ export const hasBoard = (state: GameState, content: Content): boolean =>
 /**
  * The notice board here (design §5, §8): each offer with its kind, destination, distance, the
  * days left to its deadline (and the days it takes at a steady pace), pay and reputation, urgent
- * ones badged, and its text in full. Offers the party lacks the standing
- * for, or can't take now, are disabled with the reason.
+ * ones badged, and its text in full. Offers the party lacks the reputation for (in points, with
+ * the town or the patron), or can't take now, are disabled with the reason.
  */
 export function NoticeBoard({ content, state, onAction }: Props) {
   const { t } = useI18n()
@@ -56,9 +57,7 @@ function OfferRow({
   // (designer call: no separate urgent badge). A marker splits the line around it.
   const left = leftText(t, o.deadline - today)
   const MARK = '\u0000'
-  const why = o.locked
-    ? t('board.locked', { standing: t(`standing.${o.locked}`) })
-    : (o.reason ?? null)
+  const why = o.locked ? t('board.locked', { n: standingFloor(o.locked) }) : (o.reason ?? null)
   const rep = o.reputation.patron + o.reputation.settlement
   const route =
     o.kind === 'procurement'

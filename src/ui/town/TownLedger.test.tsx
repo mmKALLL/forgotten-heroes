@@ -55,7 +55,9 @@ test('the ledger opens on its Market tab; the Travel tab holds Explore, the road
   render(<Ledger state={state} onAction={onAction} />)
   const info = placeInfo(state, content, 'ashmoor-1')!
   expect(screen.getByRole('heading', { name: info.name })).toBeTruthy()
-  expect(screen.getByText('Standing:').textContent).toBe('Standing: stranger')
+  // The header shows the reputation points here, not the tier (designer, 2026-11-14).
+  expect(screen.getByText('Reputation 0')).toBeTruthy()
+  expect(screen.queryByText(/stranger/)).toBeNull()
   // Market: the market and the services, side by side.
   expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Market', 'Travel'])
   expect(tab('Market').getAttribute('aria-selected')).toBe('true')

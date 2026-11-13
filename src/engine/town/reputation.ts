@@ -21,6 +21,9 @@ export function standingOf(points: number): Standing {
   return STANDINGS[0]
 }
 
+/** The fewest points a standing needs (STANDING_POINTS), e.g. "needs reputation 5". */
+export const standingFloor = (standing: Standing): number => STANDING_POINTS[standing]
+
 /** Tiers above stranger (negative below): known is 1, disliked is −1. */
 export const standingSteps = (standing: Standing): number => STANDINGS.indexOf(standing) - STRANGER
 
@@ -157,8 +160,8 @@ export function goodWord(state: GameState, kingdomId: string, amount: number): G
     next = addReputation(next, { settlement: id, amount }, undefined, { quiet: true })
   const text =
     amount > 0
-      ? `Word of you spreads through ${kingdom.name}: ${formatSigned(amount)} standing in each of its settlements.`
-      : `Ill word of you spreads through ${kingdom.name}: ${formatSigned(amount)} standing in each of its settlements.`
+      ? `Word of you spreads through ${kingdom.name}: ${formatSigned(amount)} reputation in each of its settlements.`
+      : `Ill word of you spreads through ${kingdom.name}: ${formatSigned(amount)} reputation in each of its settlements.`
   return note(next, text, amount > 0 ? 'good' : 'bad')
 }
 
@@ -247,9 +250,40 @@ export function peopleRows(state: GameState, content: Content): PersonRow[] {
     }))
 }
 
-/** Why a `standing` requirement isn't met, e.g. "needs standing known in Avarus"; null if met. */
+/** Why a `standing` requirement isn't met, e.g. "needs reputation 5 in Avarus"; null if met. */
 export function unmetStanding(state: GameState, min: Standing): string | null {
   const id = encounterSettlement(state)
   if (atLeast(settlementStanding(state, id), min)) return null
-  return `needs standing ${min}${id ? ` in ${settlementName(state, id)}` : ''}`
+  return `needs reputation ${standingFloor(min)}${id ? ` in ${settlementName(state, id)}` : ''}`
+}
+
+/**
+ * What a number of reputation points means (the UI shows the points; this goes in their tooltip):
+ * the standing, its range of points, and what it does to spreads and the rumour check.
+ */
+export type StandingView = {
+  points: number
+  standing: Standing
+  /** The range of points of this standing: no floor for hated, no ceiling for honoured. */
+  min: number | null
+  max: number | null
+  /** Percentage points the buy/sell spread narrows (negative: widens). */
+  spread: number
+  /** How much lower the rumour DC is (negative: higher). */
+  rumourDc: number
+}
+
+export function standingView(points: number): StandingView {
+  const standing = standingOf(points)
+  const i = STANDINGS.indexOf(standing)
+  const floor = STANDING_POINTS[standing]
+  const steps = standingSteps(standing)
+  return {
+    points,
+    standing,
+    min: Number.isFinite(floor) ? floor : null,
+    max: i + 1 < STANDINGS.length ? STANDING_POINTS[STANDINGS[i + 1]] - 1 : null,
+    spread: Math.round(steps * STANDING_SPREAD * 100),
+    rumourDc: steps,
+  }
 }

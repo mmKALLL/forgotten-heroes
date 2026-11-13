@@ -22,7 +22,7 @@ import type { GameState } from '../../schema/state'
 import { useI18n, type I18n } from '../i18n/I18n'
 import { Tip } from '../Tip'
 import type { QualityEffect } from '../../engine/economy/market'
-import { StandingBadge } from './PeoplePanel'
+import { ReputationValue } from './PeoplePanel'
 import { AccessoryShop } from './AccessoryShop'
 import { RecruitsPanel } from './RecruitsPanel'
 import { UpgradeOffers } from './UpgradeOffers'
@@ -231,7 +231,7 @@ function ServiceTile({
 }: Props & { row: ServiceRow; opener: Opener }) {
   const { t, name, fields } = useI18n()
   const title = name('services', row.service, row.name)
-  // Who keeps it, and the party's standing with them.
+  // Who keeps it (in the tooltip), and the party's reputation points with them when not 0.
   const keeperId =
     state.location === null ? null : shopKeeper(state, content, state.location, row.service)
   const keeper = keeperId ? peopleRows(state, content).find((p) => p.id === keeperId) : undefined
@@ -240,8 +240,7 @@ function ServiceTile({
     title,
     t(`services.function.${row.function}`),
     specialty,
-    keeper &&
-      t('services.keeper', { name: keeper.name, standing: t(`standing.${keeper.standing}`) }),
+    keeper && t('services.keeper', { name: keeper.name }),
   ]
     .filter(Boolean)
     .join(' · ')
@@ -257,9 +256,9 @@ function ServiceTile({
       <div className="service-name">
         <span>{title}</span> <QualityPips quality={row.quality} effects={row.qualityEffects} />
       </div>
-      {keeper && keeper.standing !== 'stranger' && (
+      {keeper && keeper.points !== 0 && (
         <div className="small">
-          <StandingBadge standing={keeper.standing} points={keeper.points} />
+          <ReputationValue points={keeper.points} label={t('people.rep')} whom={keeper.name} />
         </div>
       )}
       <div className="service-actions">

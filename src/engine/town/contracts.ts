@@ -29,6 +29,7 @@ import {
   kingdomOf,
   personStanding,
   settlementStanding,
+  standingFloor,
   shopKeeper,
 } from './reputation'
 import { RUMOUR_LEAD } from './rumours'
@@ -125,7 +126,10 @@ export type Offer = {
   service: string | null
   /** From a rumour's lead (rumours.ts). */
   lead: boolean
-  /** The standing it needs, when the party doesn't have it yet; null otherwise. */
+  /**
+   * The standing it needs, when the party doesn't have it yet (with the board's settlement or the
+   * patron, whichever is better); null otherwise. The UI shows its floor (standingFloor) in points.
+   */
   locked: Standing | null
   available: boolean
   /** Why it can't be taken now (English), or null. */
@@ -404,7 +408,10 @@ export function offerLevel(state: Pick<GameState, 'party' | 'world'>, offerId: s
 
 /** Why an offer can't be taken now (English), or null. */
 function offerRefusal(state: GameState, content: Content, offer: Offer): string | null {
-  if (offer.locked) return `needs standing ${offer.locked} in ${settlementName(state, offer.from)}`
+  if (offer.locked) {
+    const town = settlementName(state, offer.from)
+    return `needs reputation ${standingFloor(offer.locked)} in ${town} or with ${offer.patronName}`
+  }
   if (offer.kind === 'bounty' && offer.poi && bountyEmptied(state, offer.poi)) {
     return 'someone has cleared the site already'
   }
@@ -724,7 +731,7 @@ export function sellCargoPreview(
     fromName,
     text:
       `Selling the ${lot.carried} ${name} breaks "${lot.title}": the market pays ${q.total} gp, ` +
-      `${lot.patronName} is owed ${owed} gp for the goods, and you lose ${standing} standing ` +
+      `${lot.patronName} is owed ${owed} gp for the goods, and you lose ${standing} reputation ` +
       `with ${lot.patronName} and with ${fromName}.`,
   }
 }

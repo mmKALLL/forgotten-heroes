@@ -3,6 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
+import { STANDING_POINTS } from '../../engine/constants'
 import { noticeBoard } from '../../engine/town/contracts'
 import type { GameState } from '../../schema/state'
 import { I18nProvider } from '../i18n/I18n'
@@ -53,7 +54,11 @@ test('offers show their route, deadline and pay; Take dispatches, a locked one s
   const locked = offers.find((o) => o.locked)!
   const take = board.getByRole('button', { name: `Take “${locked.title}”` }) as HTMLButtonElement
   expect(take.disabled).toBe(true)
-  expect(take.title).toBe(`needs standing ${locked.locked}`)
+  // The need in points, from the tier's floor: with the town or the patron, whichever is better.
+  const needs = `needs reputation ${STANDING_POINTS.known} (town or patron)`
+  expect(take.title).toBe(needs)
+  const lockedRow = within(take.closest('li')!)
+  expect(lockedRow.getByText(`${needs} ·`, { exact: false })).toBeTruthy()
 })
 
 test('an urgent offer has no badge: its days left are bold red', () => {

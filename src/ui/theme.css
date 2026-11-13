@@ -2194,33 +2194,12 @@ h2[tabindex='-1']:focus {
 .zone-talk .rumours-line {
   margin-top: 0;
 }
-/* Beside the roads the people are one to a line, so a standing badge never wraps alone. */
+/* Beside the roads the people are one to a line, so the reputation never wraps alone. */
 .zone-talk .people {
   columns: 1;
 }
-.standing {
-  display: inline-block;
-  font-size: 0.7rem;
-  padding: 0 0.35rem;
-  border-radius: 999px;
-  border: 1px solid var(--line);
+.rep {
   white-space: nowrap;
-}
-.standing-hated,
-.standing-disliked {
-  color: var(--bad);
-  border-color: var(--bad);
-}
-.standing-known,
-.standing-liked {
-  color: var(--good);
-  border-color: color-mix(in srgb, var(--good) 60%, var(--line));
-}
-.standing-trusted,
-.standing-honoured {
-  color: var(--good);
-  border-color: var(--good);
-  font-weight: bold;
 }
 .people li {
   break-inside: avoid;
