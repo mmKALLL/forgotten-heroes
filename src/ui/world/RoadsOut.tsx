@@ -470,9 +470,7 @@ function CrisisDeadlineLine({
     <li className={d.inTime ? 'wide' : 'wide tone-bad'}>
       {d.tooLate
         ? t('crisis.roadTooLate', { arrives, numeral, failsOn: d.failsOn })
-        : d.inTime
-          ? t('crisis.roadInTime', { arrives, numeral, due: d.due })
-          : t('crisis.roadLate', { arrives, numeral, due: d.due, days: d.late, dc: d.lateDc })}
+        : t('crisis.roadInTime', { arrives, numeral, due: d.due })}
     </li>
   )
 }

@@ -4,7 +4,7 @@ import type { RunEnding } from '../../schema/types'
 import type { GameState, LogEntry } from '../../schema/state'
 import { isAlive } from '../town/camaraderie'
 import { settlementName } from '../world/geo'
-import { crisisStatus } from './status'
+import { crisisStatus, planKnown } from './status'
 import { villainOf } from './text'
 
 // How a run ends (Plan 5b E5, design §11): the Crisis won or lost (the party may keep playing), or
@@ -73,7 +73,7 @@ export function runSummary(state: GameState, content: Content): RunSummary {
   return {
     ending: runEnding(state),
     day: state.day,
-    villain: crisis && crisis.learned !== null ? crisis.name : null,
+    villain: crisis && planKnown(crisis) ? crisis.name : null,
     acts: crisis
       ? crisis.acts.map((a, i) => ({
           name: villain?.acts[i]?.name ?? a.id,

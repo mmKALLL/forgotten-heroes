@@ -1,7 +1,8 @@
 import type { Content } from '../content/build'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { WorldStateSchema, type WorldState } from '../schema/world'
-import { generateCrisis } from './crisis/generate'
+import { actCalendar } from './crisis/calendar'
+import { generateCrisis, placeLeads } from './crisis/generate'
 import { generatePeople } from './town/people'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, mainlandSettlements, startingSettlement, worldSeed } from './world/generate'
@@ -13,7 +14,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 12
+export const CURRENT_SAVE_VERSION = 13
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -280,6 +281,78 @@ export function v10ToV11(raw: Record<string, unknown>, content: Content): Record
   }
 }
 
+/** A Plan 5b Crisis as a v11 (and v12) save stored it. */
+type V11Crisis = {
+  villain: string
+  name: string
+  startDay: number
+  reveal: string
+  acts: { id: string; poi: string; due: number }[]
+  learned: number | null
+  clues?: number[]
+  thwarted?: (number | null)[]
+  endSeen?: boolean
+}
+
+/** An old run that is migrated keeps at least this many days for the act it is in. */
+const MIGRATED_ACT_DAYS_LEFT = 10
+
+/**
+ * v12 → v13 (Plan 6 C2–C3: the phased Crisis on a fixed calendar). The reveal site becomes act
+ * I's lead site and each act's site its key site; acts II and III gain lead sites, placed as a new
+ * game places them (crisis/generate.ts placeLeads). The calendar follows from the start day, with
+ * no leeway: when the act the run is in would already be past (or within MIGRATED_ACT_DAYS_LEFT
+ * of) its new due day, the start day moves on so that it has that long left. Progress maps over:
+ * a learned plan wins act I's lead (its prevention); a later act whose old site was found (two
+ * clues, or discovered) has its lead won too. A Crisis already in the new shape (rolled by the v10
+ * → v11 step) is kept; one that can't be mapped (unknown villain, no room for the leads) is
+ * dropped.
+ */
+export function v12ToV13(raw: Record<string, unknown>, content: Content): Record<string, unknown> {
+  const old = raw.crisis as V11Crisis | null | undefined
+  if (!old || typeof old !== 'object' || !('reveal' in old)) return { ...raw, version: 13 }
+  const world = WorldStateSchema.safeParse(raw.world)
+  const villain = Object.hasOwn(content.villains, old.villain)
+    ? content.villains[old.villain]
+    : null
+  const keys = old.acts.map((a) => a.poi)
+  const placed =
+    world.success && villain && placeLeads(world.data, content, villain, old.name, keys)
+  if (!placed) return { ...raw, version: 13, crisis: null }
+  const day = typeof raw.day === 'number' && raw.day >= 1 ? Math.floor(raw.day) : 1
+  const thwarted = old.thwarted ?? [null, null, null]
+  const clues = old.clues ?? [0, 0, 0]
+  const pois = (raw.world as { pois: Record<string, { discovered?: boolean }> }).pois
+  const current = thwarted.findIndex((d) => d === null)
+  const due = current < 0 ? day : actCalendar({ startDay: old.startDay }, current).due
+  const startDay = old.startDay + Math.max(0, day + MIGRATED_ACT_DAYS_LEFT - due)
+  const leads = old.acts.map((a, i) => {
+    if (i === 0) return old.learned
+    if (thwarted[i] !== null) return thwarted[i]
+    const found = (clues[i] ?? 0) >= 2 || pois[a.poi]?.discovered === true
+    return thwarted[i - 1] !== null && found ? day : null
+  })
+  return {
+    ...raw,
+    version: 13,
+    world: { ...(raw.world as object), pois: { ...pois, ...placed.pois } },
+    crisis: {
+      villain: old.villain,
+      name: old.name,
+      startDay,
+      acts: old.acts.map((a, i) => ({
+        id: a.id,
+        lead: i === 0 ? old.reveal : placed.ids[i - 1],
+        key: a.poi,
+      })),
+      leads,
+      clues,
+      thwarted,
+      endSeen: old.endSeen ?? false,
+    },
+  }
+}
+
 /**
  * v11 → v12 (Plan 6, track A): wages are gone. A member who drew a wage is marked `hired` (the
  * founders drew none), and the `wage` field goes; wages still owed are forgiven silently. No one
@@ -335,6 +408,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v10ToV11(raw as Record<string, unknown>, content), content)
     case 11:
       return migrate(v11ToV12(raw as Record<string, unknown>), content)
+    case 12:
+      return migrate(v12ToV13(raw as Record<string, unknown>, content), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

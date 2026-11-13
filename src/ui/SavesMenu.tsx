@@ -184,10 +184,7 @@ function SlotLines({ view }: { view: SlotView }) {
           t('top.day', { day: s.day }),
           t('top.gold', { gold: s.gold }),
           s.place && t(s.onRoad ? 'saves.onRoad' : 'saves.at', { place: s.place }),
-          s.crisis &&
-            (s.crisis.late > 0
-              ? t('crisis.markLate', { numeral: s.crisis.numeral, days: s.crisis.late })
-              : t('crisis.mark', { numeral: s.crisis.numeral, days: s.crisis.daysLeft })),
+          s.crisis && t('crisis.mark', { numeral: s.crisis.numeral, days: s.crisis.daysLeft }),
           s.ending && t(`saves.ending.${s.ending}`),
         ]
           .filter(Boolean)

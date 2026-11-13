@@ -488,14 +488,14 @@
           "$ref": "#/$defs/__schema30"
         },
         "goto": {
-          "$ref": "#/$defs/__schema87"
+          "$ref": "#/$defs/__schema88"
         },
         "stay": {
-          "$ref": "#/$defs/__schema89"
+          "$ref": "#/$defs/__schema90"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema91"
+          "$ref": "#/$defs/__schema92"
         }
       },
       "required": [
@@ -957,16 +957,13 @@
             "required": [
               "effect"
             ],
-            "description": "The party learns the villain's plan. Only works in the Crisis's reveal situation"
+            "description": "Act I's lead won: the party learns the villain's plan and finds the act's key site. It works as revealKeySite, at the current act's lead site only"
           },
           {
             "type": "object",
             "properties": {
               "effect": {
                 "$ref": "#/$defs/__schema84"
-              },
-              "amount": {
-                "$ref": "#/$defs/__schema85"
               },
               "if": {
                 "$ref": "#/$defs/__schema33"
@@ -975,12 +972,15 @@
             "required": [
               "effect"
             ],
-            "description": "A clue to the current stage of the Crisis: before the plan is known it reveals the reveal site; during an act it adds to that act's clues"
+            "description": "Wins the current act's lead: its key site is found and the prevention begins. Only works at that act's lead site (at act I's, the plan is learned too)"
           },
           {
             "type": "object",
             "properties": {
               "effect": {
+                "$ref": "#/$defs/__schema85"
+              },
+              "amount": {
                 "$ref": "#/$defs/__schema86"
               },
               "if": {
@@ -990,7 +990,22 @@
             "required": [
               "effect"
             ],
-            "description": "Thwarts the act whose site is being visited. Only works at that site"
+            "description": "A clue to the open act of the Crisis: it adds to that act's clues (two reveal its lead site, three its weakness at the key site). In act I before the plan, it reveals the lead"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema87"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema33"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "Thwarts the current act. Only works at its key site, once it has been found"
           }
         ]
       }
@@ -1262,23 +1277,27 @@
     },
     "__schema84": {
       "type": "string",
-      "const": "crisisClue"
+      "const": "revealKeySite"
     },
     "__schema85": {
+      "type": "string",
+      "const": "crisisClue"
+    },
+    "__schema86": {
       "default": 1,
       "type": "integer",
       "minimum": 1,
       "maximum": 2
     },
-    "__schema86": {
+    "__schema87": {
       "type": "string",
       "const": "thwartAct"
     },
-    "__schema87": {
-      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema88"
-    },
     "__schema88": {
+      "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
+      "$ref": "#/$defs/__schema89"
+    },
+    "__schema89": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -1289,14 +1308,14 @@
         }
       ]
     },
-    "__schema89": {
-      "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema90"
-    },
     "__schema90": {
-      "type": "boolean"
+      "description": "Stay on the current stage",
+      "$ref": "#/$defs/__schema91"
     },
     "__schema91": {
+      "type": "boolean"
+    },
+    "__schema92": {
       "type": "object",
       "properties": {
         "text": {
@@ -1306,10 +1325,10 @@
           "$ref": "#/$defs/__schema30"
         },
         "goto": {
-          "$ref": "#/$defs/__schema87"
+          "$ref": "#/$defs/__schema88"
         },
         "stay": {
-          "$ref": "#/$defs/__schema89"
+          "$ref": "#/$defs/__schema90"
         }
       },
       "required": [

@@ -28,7 +28,7 @@ import { crisisActNumber } from '../crisis/status'
 import { crisisFailsDuring, tooLateChip, tooLateLine } from '../crisis/progress'
 import { omenFactor } from '../crisis/clues'
 import { boonReadyIn, siteStatus } from '../world/sites'
-import { dangerLevel, harden } from '../world/danger'
+import { atChallenge, dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import { branchFor, defaultXp, isHighStakes, setbackCamaraderie, tierOutcome } from './outcomes'
@@ -144,11 +144,12 @@ function sitePowerDc(state: GameState, poi: string | undefined): number {
 }
 
 /**
- * How a situation starts beyond its place: more DC on every check (a late Crisis act), a starting
- * position (the Edge, from knowing the villain's weakness), and lines for its log saying why.
+ * How a situation starts beyond its place: at a challenge rating (a Crisis site: its DCs come
+ * from the CR, in place of the danger ramp and site power), a starting position (the Edge, from
+ * knowing the villain's weakness), and lines for its log saying why.
  */
 export type StartOptions = {
-  dcBonus?: number
+  cr?: number
   position?: Position
   lines?: { text: string; tone: LogTone }[]
 }
@@ -158,8 +159,9 @@ export type StartOptions = {
  * place, and on a journey a hostile encounter meets the party on the footing its pace gives
  * (ambushPositionForPace). The encounter happens in the place's domain (or, without a place,
  * where the party is), and at `poi` when visiting one. The snapshot is hardened once, here, by the
- * day's danger and the site's power (world/danger.ts harden), so the previews and rolls agree and a
- * save loaded later doesn't change an open encounter.
+ * day's danger and the site's power (world/danger.ts harden), or set to its challenge rating
+ * (`options.cr`, atChallenge), so the previews and rolls agree and a save loaded later doesn't
+ * change an open encounter.
  */
 export function startEncounter(
   state: GameState,
@@ -190,13 +192,13 @@ export function startEncounter(
     )
     return { slots: { ...slots, ...rollSlots(d, content, own) }, twist, kind }
   })
-  const danger = dangerLevel(state.day)
-  const powerDc = sitePowerDc(state, poi)
-  const dcBonus = powerDc + (options.dcBonus ?? 0)
-  const joined = harden(kind ? attachTwistKind(compiled, kind, content) : compiled, {
-    dcBonus,
-    danger,
-  })
+  const atCr = options.cr !== undefined
+  const danger = atCr ? 0 : dangerLevel(state, content)
+  const powerDc = atCr ? 0 : sitePowerDc(state, poi)
+  const twisted = kind ? attachTwistKind(compiled, kind, content) : compiled
+  const joined = atCr
+    ? atChallenge(twisted, options.cr!)
+    : harden(twisted, { dcBonus: powerDc, danger })
   // The title and the twist are filled once, here; other text is filled as it is shown.
   const situation = {
     ...joined,

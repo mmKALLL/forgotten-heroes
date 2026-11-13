@@ -202,7 +202,16 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     .describe("Loot: roll one accessory of this tier into the party's gear"),
   z
     .object({ effect: z.literal('learnPlan'), ...when })
-    .describe("The party learns the villain's plan. Only works in the Crisis's reveal situation"),
+    .describe(
+      "Act I's lead won: the party learns the villain's plan and finds the act's key site. It " +
+        "works as revealKeySite, at the current act's lead site only"
+    ),
+  z
+    .object({ effect: z.literal('revealKeySite'), ...when })
+    .describe(
+      "Wins the current act's lead: its key site is found and the prevention begins. Only works " +
+        "at that act's lead site (at act I's, the plan is learned too)"
+    ),
   z
     .object({
       effect: z.literal('crisisClue'),
@@ -210,12 +219,12 @@ export const EffectSchema = z.discriminatedUnion('effect', [
       ...when,
     })
     .describe(
-      'A clue to the current stage of the Crisis: before the plan is known it reveals the ' +
-        "reveal site; during an act it adds to that act's clues"
+      "A clue to the open act of the Crisis: it adds to that act's clues (two reveal its lead " +
+        'site, three its weakness at the key site). In act I before the plan, it reveals the lead'
     ),
   z
     .object({ effect: z.literal('thwartAct'), ...when })
-    .describe('Thwarts the act whose site is being visited. Only works at that site'),
+    .describe('Thwarts the current act. Only works at its key site, once it has been found'),
 ])
 export type Effect = z.infer<typeof EffectSchema>
 

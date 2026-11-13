@@ -8,7 +8,7 @@ import { newGame, step, type Action } from '../engine/state'
 import { trader, type TraderOptions, type TraderWhy } from '../engine/travel/trader'
 import { wander } from '../engine/travel/wander'
 import { settlementName } from '../engine/world/geo'
-import { dangerLevel } from '../engine/world/danger'
+import { rampLevel } from '../engine/world/danger'
 import { gatherOptions, type GatherOption } from '../engine/world/gather'
 import { isAlive, isHired, livingMembers } from '../engine/town/camaraderie'
 import { MAX_EXHAUSTION } from '../engine/rules/character'
@@ -854,7 +854,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
       const wins = long.reduce((n, r) => n + (r.bands[b]?.successes ?? 0), 0)
       row([
         `${b * BAND_DAYS + 1}–${Math.min(LONG_DAYS, (b + 1) * BAND_DAYS)}`,
-        `+${Math.round(dangerLevel(b * BAND_DAYS + 1) * 100)}%`,
+        `+${Math.round(rampLevel(b * BAND_DAYS + 1) * 100)}%`,
         checks,
         pct(wins / Math.max(1, checks)),
         long.reduce((n, r) => n + (r.bands[b]?.deaths ?? 0), 0),

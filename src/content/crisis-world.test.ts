@@ -33,7 +33,7 @@ describe('the Crisis on Altaeus (seeds 1–50)', () => {
     const { adjacent } = territory(content)
     for (const state of worlds) {
       expect(state.crisis, `seed ${state.seed}`).not.toBeNull()
-      const domains = state.crisis!.acts.map((a) => state.world.pois[a.poi].domain)
+      const domains = state.crisis!.acts.map((a) => state.world.pois[a.key].domain)
       const island = new Set(Object.keys(content.settlements))
       for (const i of [1, 2]) {
         const hops = hopsFrom(adjacent, domains[i - 1], island).get(domains[i])
@@ -42,12 +42,23 @@ describe('the Crisis on Altaeus (seeds 1–50)', () => {
     }
   })
 
-  test('act I’s site is 4–12 steady days from the start in at least 90% of worlds', () => {
-    const act1 = (s: GameState) => days(s, s.crisis!.acts[0].poi)
+  test('act I’s key site is 4–12 steady days from the start in at least 90% of worlds', () => {
+    const act1 = (s: GameState) => days(s, s.crisis!.acts[0].key)
     expect(share((s) => act1(s) >= 4 && act1(s) <= 12)).toBeGreaterThanOrEqual(0.9)
   })
 
-  test('the reveal site is at most 8 steady days from the start in at least 90% of worlds', () => {
-    expect(share((s) => days(s, s.crisis!.reveal) <= 8)).toBeGreaterThanOrEqual(0.9)
+  test('act I’s lead site is at most 8 steady days from the start in at least 90% of worlds', () => {
+    expect(share((s) => days(s, s.crisis!.acts[0].lead) <= 8)).toBeGreaterThanOrEqual(0.9)
+  })
+
+  test('the later leads are placed and reachable, near the key site before, in most worlds', () => {
+    const near = (s: GameState, i: number) => {
+      const from = s.world.pois[s.crisis!.acts[i - 1].key].domain
+      return poiReach(s, content, from, s.crisis!.acts[i].lead)?.days ?? Infinity
+    }
+    for (const s of worlds) {
+      for (const i of [1, 2]) expect(near(s, i), `seed ${s.seed}`).toBeLessThan(Infinity)
+    }
+    expect(share((s) => near(s, 1) <= 8 && near(s, 2) <= 8)).toBeGreaterThanOrEqual(0.8)
   })
 })

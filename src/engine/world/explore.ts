@@ -245,8 +245,9 @@ export function visitPoi(state: GameState, content: Content): GameState {
   if (situations.length === 0) return appendLog(state, `Nothing happens at ${poi.name}.`, 'bad')
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const place = placeHere(state, content) ?? undefined
-  // The current Crisis act's site is harder when late, and easier with its weakness known.
-  const options = crisisVisit(state, id)
+  // The current Crisis act's site is played at its challenge rating, with the Edge once the
+  // villain's weakness is known.
+  const options = crisisVisit(state, content, id)
   const started = startEncounter(
     { ...state, rng, visited: true },
     content,

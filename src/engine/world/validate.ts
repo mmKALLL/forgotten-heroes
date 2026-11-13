@@ -125,8 +125,9 @@ export function dungeonIssues(content: Content): string[] {
 }
 
 /**
- * Problems with the villains (Plan 5b): unknown threats, name tables and site types, and crisis
- * site types that could be drawn as ordinary sites (they must be weight-0 quests).
+ * Problems with the villains (Plans 5b and 6): unknown threats, name tables and site types (each
+ * act's lead and key), and crisis site types that could be drawn as ordinary sites (they must be
+ * weight-0 quests).
  */
 export function villainIssues(content: Content): string[] {
   const issues: string[] = []
@@ -137,7 +138,7 @@ export function villainIssues(content: Content): string[] {
       if (!Object.hasOwn(threats, id)) issues.push(`${at}: unknown threat "${id}"`)
     if (villain.names !== undefined && !Object.hasOwn(partsTables, villain.names))
       issues.push(`${at}: unknown parts table "${villain.names}"`)
-    for (const id of [villain.reveal, ...villain.acts.map((a) => a.site)]) {
+    for (const id of new Set(villain.acts.flatMap((a) => [a.lead, a.site]))) {
       if (!Object.hasOwn(poiTypes, id)) {
         issues.push(`${at}: unknown poi type "${id}"`)
         continue

@@ -533,11 +533,13 @@ export const PATH_DETOUR = 1.25
 // Progression and XP (rules/progression.ts; encounters/outcomes.ts, effects.ts; town/contracts.ts)
 
 /**
- * Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset). Checked by the economy
- * report (Plan 5a I1): about level 2 by day 15, 4 by day 60 and 5 by day 120.
+ * Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset): 150 × n × (n − 1). Levels
+ * 1–10 were checked by the economy report (Plan 5a I1: about level 2 by day 15, 4 by day 60 and 5
+ * by day 120); 11–20 continue the pattern provisionally (Plan 6 C1) until Track B tunes them.
  */
 export const XP_BY_LEVEL: readonly number[] = [
-  0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500,
+  0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500, 16500, 19800, 23400, 27300, 31500, 36000,
+  40800, 45900, 51300, 57000,
 ]
 /** XP for a successful check, per point of its final DC (site power and danger included). */
 export const XP_PER_DC = 5
@@ -554,6 +556,17 @@ export const XP_CLEAR = 150
 /** Each point of interest discovered (exploring, rumours, clues, contracts) pays this much XP. */
 export const XP_DISCOVER = 25
 
+// Challenge ratings (rules/challenge.ts)
+
+/** The base DC of a check against each CR 0–20 (provisional, Plan 6 C1). */
+export const CR_DC: readonly number[] = [
+  10, 11, 12, 13, 13, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22,
+]
+/** Past the table, the DC rises by 1 every this many CR. */
+export const CR_DC_BEYOND = 2
+/** A CR is meant for a party of about this many levels above it. */
+export const CR_LEVEL_OFFSET = 1
+
 // World danger (world/danger.ts)
 
 /** The world grows more dangerous every this many days (day 51, 101, …). */
@@ -568,42 +581,57 @@ export const DANGER_RAMP_MAX = 1
 /** A villain one of whose threats holds a land, and a domain that suits a site, weigh this much more. */
 export const CRISIS_THREAT_FAVOUR = 3
 /**
- * The reveal site lies this many steady days from the start (inclusive), by road and path. On
- * Altaeus domain hops vary too much in days (two hops are 7–19 days), so the near sites use days.
+ * Act I's lead site (where the plan is learned) lies this many steady days from the start
+ * (inclusive), by road and path. On Altaeus domain hops vary too much in days (two hops are 7–19
+ * days), so the near sites use days.
  */
 export const CRISIS_REVEAL_DAYS: readonly [number, number] = [2, 8]
-/** Act I's site lies this many steady days from the start (inclusive), by road and path. */
+/** Act I's key site lies this many steady days from the start (inclusive), by road and path. */
 export const CRISIS_ACT1_DAYS: readonly [number, number] = [4, 12]
-/** Acts II and III lie at least this many domain hops from the act before. */
+/** The key sites of acts II and III lie at least this many domain hops from the act before's. */
 export const CRISIS_ACT_SPREAD = 3
-/** Act n is due about n × this many days after the Crisis starts (the designer's number). */
+/** The lead sites of acts II and III lie this many steady days from the previous act's key site. */
+export const CRISIS_LEAD_DAYS: readonly [number, number] = [2, 8]
+
+// The Crisis: the calendar (crisis/calendar.ts). Day d of act n is day 100(n − 1) + d of the run.
+
+/** Each act spans this many days, and is due (its last day) on the last of them. */
 export const CRISIS_ACT_DAYS = 100
-/** Each due day is moved by up to ± this many days (seeded). */
-export const CRISIS_DUE_JITTER = 10
+/** An act opens (its lead site wakes; the investigation can begin) on this day of its span. */
+export const CRISIS_ACT_OPEN = 30
+/** The act's climax is expected from this day of its span (a party may clear it sooner). */
+export const CRISIS_ACT_EXPECTED = 60
+/** The journal tells the party to hurry on this day of the act's span. */
+export const CRISIS_ACT_HURRY = 80
 
-// The Crisis: deadlines and news (crisis/status.ts)
+// The Crisis: the danger surge (crisis/surge.ts)
 
-/** An act not thwarted this many days after its due day fails, and the Crisis is lost. */
-export const CRISIS_LEEWAY_DAYS = 30
-/** Each this many days late (or part of it) adds 1 to every DC at the act's site. */
-export const CRISIS_LATE_STEP_DAYS = 10
-/** The journal warns this many days before an act is due (once the plan is known). */
-export const CRISIS_WARN_DAYS = 14
+/**
+ * In an act with `surge`, the world's danger rises by this share from this many days before its
+ * due day (the largest that applies), while the act stands.
+ */
+export const CRISIS_SURGE: readonly (readonly [days: number, share: number])[] = [
+  [20, 0.1],
+  [10, 0.2],
+]
 
 // The Crisis: clues and thwarting (crisis/progress.ts)
 
-/** Clues to an act that reveal its site (the first, its land, comes with the act). */
+/** Clues to an act that reveal its lead site (the first, its land, comes with the act). */
 export const CRISIS_SITE_CLUES = 2
-/** Clues to an act that reveal the villain's weakness there: the party goes in with the Edge. */
+/** Clues to an act that reveal the villain's weakness: the party starts its key site with the Edge. */
 export const CRISIS_WEAKNESS_CLUES = 3
 /** Thwarting act n pays this much XP × n (rules/progression.ts gainXp). */
 export const XP_THWART = 300
+/**
+ * A Crisis situation's written DC is read against this: at CR c a check written DC w is
+ * crDc(c) + (w − this), so DC 13 at CR 6 is crDc(6) + 1.
+ */
+export const CRISIS_DC_BASE = 12
 
 // The Crisis: rumours, the summons and omens (crisis/clues.ts)
 
-/** Clues a rumour success in the current act's land gives (one more on a critical success). */
+/** Clues a rumour success in the open act's land gives (one more on a critical success). */
 export const CRISIS_RUMOUR_CLUES = 1
-/** From this day, arriving in a settlement while the plan is unknown brings the summons. */
-export const CRISIS_SUMMONS_DAY = 15
-/** An omen weighs this much more on a road in the current act's land. */
+/** An omen weighs this much more on a road in the land the open act points to. */
 export const CRISIS_OMEN_FAVOUR = 3

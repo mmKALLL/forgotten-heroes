@@ -42,26 +42,26 @@
           "threats": {
             "$ref": "#/$defs/__schema5"
           },
-          "summary": {
+          "boss": {
             "$ref": "#/$defs/__schema7"
           },
-          "omen": {
-            "$ref": "#/$defs/__schema8"
-          },
-          "plan": {
+          "summary": {
             "$ref": "#/$defs/__schema9"
           },
-          "reveal": {
+          "omen": {
             "$ref": "#/$defs/__schema10"
           },
-          "acts": {
+          "plan": {
             "$ref": "#/$defs/__schema11"
           },
+          "acts": {
+            "$ref": "#/$defs/__schema12"
+          },
           "victory": {
-            "$ref": "#/$defs/__schema15"
+            "$ref": "#/$defs/__schema21"
           },
           "notes": {
-            "$ref": "#/$defs/__schema16"
+            "$ref": "#/$defs/__schema22"
           }
         },
         "required": [
@@ -70,7 +70,6 @@
           "summary",
           "omen",
           "plan",
-          "reveal",
           "acts",
           "victory"
         ]
@@ -116,30 +115,38 @@
       }
     },
     "__schema7": {
-      "type": "string",
-      "description": "One line for the Crisis panel"
+      "default": "finale",
+      "description": "recurring: the villain is met at every key site, stronger each time; finale: its lieutenants hold acts I and II, and it is met at act III",
+      "$ref": "#/$defs/__schema8"
     },
     "__schema8": {
       "type": "string",
-      "description": "What a notable person or a rumour says before the plan is known"
+      "enum": [
+        "recurring",
+        "finale"
+      ]
     },
     "__schema9": {
       "type": "string",
-      "description": "Logged in full when the plan is learned"
+      "description": "One line for the Crisis panel"
     },
     "__schema10": {
-      "description": "The poiTypes id of the site where the plan is learned",
-      "$ref": "#/$defs/__schema0"
+      "type": "string",
+      "description": "What a notable person or a rumour says before the plan is known"
     },
     "__schema11": {
+      "type": "string",
+      "description": "Logged in full when the plan is learned (at act I's lead site)"
+    },
+    "__schema12": {
       "minItems": 3,
       "maxItems": 3,
       "type": "array",
       "items": {
-        "$ref": "#/$defs/__schema12"
+        "$ref": "#/$defs/__schema13"
       }
     },
-    "__schema12": {
+    "__schema13": {
       "type": "object",
       "properties": {
         "id": {
@@ -154,23 +161,52 @@
           "type": "string",
           "description": "What the villain means to do, e.g. \"wake the dead of the barrows\""
         },
-        "site": {
-          "description": "The poiTypes id of the act site (weight 0, category quest)",
+        "lead": {
+          "description": "The poiTypes id of the act's lead site (weight 0, category quest): henchmen, and the way to the key site. Act I's is where the plan is learned. Acts may share a lead type",
           "$ref": "#/$defs/__schema0"
+        },
+        "site": {
+          "description": "The poiTypes id of the act's key site (weight 0, category quest)",
+          "$ref": "#/$defs/__schema0"
+        },
+        "leadCr": {
+          "description": "The challenge rating of the lead site's encounter (its DCs, rules/challenge)",
+          "$ref": "#/$defs/__schema14"
+        },
+        "keyCr": {
+          "description": "The challenge rating of the key site's encounter",
+          "$ref": "#/$defs/__schema14"
+        },
+        "boss": {
+          "description": "Who is met at the key site, e.g. \"Captain Hask, the Prophet's Hand\": a finale villain's lieutenant; absent for the villain itself",
+          "$ref": "#/$defs/__schema15"
+        },
+        "surge": {
+          "default": false,
+          "description": "The world's danger surges in the last days before the act's due day",
+          "$ref": "#/$defs/__schema16"
         },
         "biomes": {
           "default": [],
-          "description": "Favoured terrain: the act site is placed more often in a land of these biomes",
-          "$ref": "#/$defs/__schema13"
+          "description": "Favoured terrain: the key site is placed more often in a land of these biomes",
+          "$ref": "#/$defs/__schema17"
         },
         "seat": {
           "default": false,
-          "description": "The act site is placed in a kingdom seat's domain (not the start's)",
-          "$ref": "#/$defs/__schema14"
+          "description": "The key site is placed in a kingdom seat's domain (not the start's)",
+          "$ref": "#/$defs/__schema18"
         },
         "clue": {
           "type": "string",
-          "description": "Logged when the act's land becomes known, e.g. \"{villain}'s diggers ... {land}.\""
+          "description": "Logged when the act's land (its lead's) becomes known, e.g. \"{villain}'s diggers ... {land}.\""
+        },
+        "open": {
+          "description": "Logged on the day the act opens (else a default line)",
+          "$ref": "#/$defs/__schema19"
+        },
+        "hurry": {
+          "description": "Logged on its hurry day (else a default line)",
+          "$ref": "#/$defs/__schema20"
         },
         "thwarted": {
           "type": "string",
@@ -185,13 +221,27 @@
         "id",
         "name",
         "goal",
+        "lead",
         "site",
+        "leadCr",
+        "keyCr",
         "clue",
         "thwarted",
         "failed"
       ]
     },
-    "__schema13": {
+    "__schema14": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 30
+    },
+    "__schema15": {
+      "type": "string"
+    },
+    "__schema16": {
+      "type": "boolean"
+    },
+    "__schema17": {
       "type": "array",
       "items": {
         "type": "string",
@@ -207,14 +257,20 @@
         ]
       }
     },
-    "__schema14": {
+    "__schema18": {
       "type": "boolean"
     },
-    "__schema15": {
+    "__schema19": {
+      "type": "string"
+    },
+    "__schema20": {
+      "type": "string"
+    },
+    "__schema21": {
       "type": "string",
       "description": "Shown when all three acts are thwarted"
     },
-    "__schema16": {
+    "__schema22": {
       "type": "string"
     }
   }

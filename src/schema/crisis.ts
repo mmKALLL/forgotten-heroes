@@ -1,31 +1,57 @@
 import { z } from 'zod'
 import { BiomeSchema, IdSchema } from './common'
-import { CRISIS_ACTS, RUN_ENDINGS } from './types'
+import { CRISIS_ACTS, CRISIS_BOSS_STYLES, MAX_LEVEL, RUN_ENDINGS } from './types'
 
 // ---------------------------------------------------------------------------------------------
-// The Crisis (Plan 5b, design §10b): every world rolls one villain whose plot has three acts,
-// each due about 100 days after the last and played out at its own hidden site.
+// The Crisis (Plans 5b and 6, design §10b): every world rolls one villain whose plot has three
+// acts on a fixed calendar. Each act is an investigation at its lead site, then a prevention at
+// its key site, both hidden POIs.
 // Text slots in villain and act texts: {villain}, {land}, {site}, {seat}.
 // ---------------------------------------------------------------------------------------------
 
 export const RunEndingSchema = z.enum(RUN_ENDINGS)
 
+const cr = z.number().min(0).max(30)
+
 export const VillainActSchema = z.object({
   id: IdSchema.describe('Unique within its villain'),
   name: z.string().describe('e.g. "The Opened Graves"'),
   goal: z.string().describe('What the villain means to do, e.g. "wake the dead of the barrows"'),
-  site: IdSchema.describe('The poiTypes id of the act site (weight 0, category quest)'),
+  lead: IdSchema.describe(
+    "The poiTypes id of the act's lead site (weight 0, category quest): henchmen, and the way to " +
+      "the key site. Act I's is where the plan is learned. Acts may share a lead type"
+  ),
+  site: IdSchema.describe("The poiTypes id of the act's key site (weight 0, category quest)"),
+  leadCr: cr.describe(
+    "The challenge rating of the lead site's encounter (its DCs, rules/challenge)"
+  ),
+  keyCr: cr.describe("The challenge rating of the key site's encounter"),
+  boss: z
+    .string()
+    .optional()
+    .describe(
+      'Who is met at the key site, e.g. "Captain Hask, the Prophet\'s Hand": a finale ' +
+        "villain's lieutenant; absent for the villain itself"
+    ),
+  surge: z
+    .boolean()
+    .default(false)
+    .describe("The world's danger surges in the last days before the act's due day"),
   biomes: z
     .array(BiomeSchema)
     .default([])
-    .describe('Favoured terrain: the act site is placed more often in a land of these biomes'),
+    .describe('Favoured terrain: the key site is placed more often in a land of these biomes'),
   seat: z
     .boolean()
     .default(false)
-    .describe("The act site is placed in a kingdom seat's domain (not the start's)"),
+    .describe("The key site is placed in a kingdom seat's domain (not the start's)"),
   clue: z
     .string()
-    .describe('Logged when the act\'s land becomes known, e.g. "{villain}\'s diggers ... {land}."'),
+    .describe(
+      "Logged when the act's land (its lead's) becomes known, e.g. \"{villain}'s diggers ... {land}.\""
+    ),
+  open: z.string().optional().describe('Logged on the day the act opens (else a default line)'),
+  hurry: z.string().optional().describe('Logged on its hurry day (else a default line)'),
   thwarted: z.string().describe('Logged when the act is thwarted'),
   failed: z.string().describe('Logged when the act fails, and shown on the game-over screen'),
 })
@@ -43,10 +69,16 @@ export const VillainSchema = z
       .array(IdSchema)
       .default([])
       .describe('Threat ids: the villain is favoured in worlds where one holds a land'),
+    boss: z
+      .enum(CRISIS_BOSS_STYLES)
+      .default('finale')
+      .describe(
+        'recurring: the villain is met at every key site, stronger each time; finale: its ' +
+          'lieutenants hold acts I and II, and it is met at act III'
+      ),
     summary: z.string().describe('One line for the Crisis panel'),
     omen: z.string().describe('What a notable person or a rumour says before the plan is known'),
-    plan: z.string().describe('Logged in full when the plan is learned'),
-    reveal: IdSchema.describe('The poiTypes id of the site where the plan is learned'),
+    plan: z.string().describe("Logged in full when the plan is learned (at act I's lead site)"),
     acts: z.array(VillainActSchema).length(CRISIS_ACTS),
     victory: z.string().describe('Shown when all three acts are thwarted'),
     notes: z.string().optional(),
@@ -55,33 +87,41 @@ export const VillainSchema = z
     message: 'act ids must be distinct',
     path: ['acts'],
   })
-  .refine((v) => new Set([v.reveal, ...v.acts.map((a) => a.site)]).size === v.acts.length + 1, {
-    message: 'the reveal and each act need their own site type',
-    path: ['acts'],
-  })
+  .refine(
+    (v) =>
+      new Set(v.acts.map((a) => a.site)).size === v.acts.length &&
+      v.acts.every((a) => !v.acts.some((b) => b.lead === a.site)),
+    { message: 'each act needs its own key site type, never used as a lead', path: ['acts'] }
+  )
 export type Villain = z.infer<typeof VillainSchema>
 
 const day = z.number().int().min(1)
 
-/** One act as rolled for this world: its site (a POI id) and its due day. */
+/** One act as rolled for this world: its lead and key sites (POI ids). */
 export const CrisisActStateSchema = z.object({
   id: IdSchema.describe("The villain's act id"),
-  poi: IdSchema.describe('The act site: a POI id in world.pois'),
-  due: day,
+  lead: IdSchema.describe('The lead site: a POI id in world.pois'),
+  key: IdSchema.describe('The key site: a POI id in world.pois'),
 })
 export type CrisisActState = z.infer<typeof CrisisActStateSchema>
 
 /**
- * The world's Crisis: rolled once (the villain, its sites and due days), plus only what the party
- * did. Lateness, failure and the outcome are derived from the day, never stored.
+ * The world's Crisis: rolled once (the villain and its sites), plus only what the party did. The
+ * calendar follows from `startDay` (crisis/calendar.ts); the phases, failure and the outcome are
+ * derived from the day, never stored.
  */
 export const CrisisStateSchema = z.object({
   villain: IdSchema.describe('A villains id'),
   name: z.string().describe('The rolled name, e.g. "Morvaine, the Ashen Prophet"'),
-  startDay: day,
-  reveal: IdSchema.describe('The reveal site: a POI id in world.pois'),
+  startDay: day.describe('Day 1 of the calendar: act n opens on startDay − 1 + 100(n − 1) + 30'),
   acts: z.array(CrisisActStateSchema).length(CRISIS_ACTS),
-  learned: day.nullable().default(null).describe('The day the plan was learned'),
+  leads: z
+    .array(day.nullable())
+    .length(CRISIS_ACTS)
+    .default([null, null, null])
+    .describe(
+      "The day each act's lead was won (its key site revealed); act I's is the day the plan was learned"
+    ),
   clues: z
     .array(z.number().int().min(0))
     .length(CRISIS_ACTS)
@@ -112,7 +152,7 @@ export const RunRecordSchema = z.object({
       name: z.string(),
       ancestry: IdSchema,
       classId: IdSchema,
-      level: z.number().int().min(1).max(20),
+      level: z.number().int().min(1).max(MAX_LEVEL),
       fallen: z.boolean(),
     })
   ),

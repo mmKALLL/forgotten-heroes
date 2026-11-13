@@ -47,14 +47,14 @@ export const siteLand = (
 
 /**
  * A villain or act text with its slots filled: {villain}, and {land}, {site} and {seat} from the
- * site (the act's own, or the reveal site for villain texts).
+ * site (the act's own, or act I's lead site for villain texts).
  */
 export function crisisText(
   state: Pick<GameState, 'world'>,
   content: Content,
   crisis: CrisisState,
   text: string,
-  poiId: string = crisis.reveal
+  poiId: string = crisis.acts[0].lead
 ): string {
   return fillText(text, { villain: shortName(crisis.name), ...siteWhere(state, content, poiId) })
 }

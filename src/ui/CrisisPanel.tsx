@@ -1,6 +1,6 @@
 import type { Content } from '../content/build'
-import { CRISIS_LATE_STEP_DAYS, CRISIS_LEEWAY_DAYS } from '../engine/constants'
 import { crisisInfo, type CrisisActInfo, type CrisisInfo } from '../engine/crisis/status'
+import { crisisTracker, type TrackerAct } from '../engine/crisis/tracker'
 import type { GameState } from '../schema/state'
 import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
@@ -11,28 +11,19 @@ type T = ReturnType<typeof useI18n>['t']
 export const currentAct = (info: CrisisInfo | null): CrisisActInfo | null =>
   info?.current != null ? (info.acts[info.current] ?? null) : null
 
-/** "Late 6d: DC +1 at the site · fails on day 134", explained on hover or focus. */
-function LateLine({ t, act }: { t: T; act: CrisisActInfo }) {
-  return (
-    <div className="tone-bad">
-      <Tip tip={t('crisis.lateHint', { step: CRISIS_LATE_STEP_DAYS, leeway: CRISIS_LEEWAY_DAYS })}>
-        {t('crisis.late', { days: act.late, dc: act.lateDc, failsOn: act.failsOn })}
-      </Tip>
-    </div>
-  )
-}
-
 /**
- * The Crisis under the contracts (design §10b, Plan 5b U2), from the engine's `crisisInfo`.
- * Hidden until the plan is learned, unless the reveal site is known. Then the villain and its
- * three acts: thwarted ones with their day, the current one with where it is, its clues and its
- * due day (or lateness), later ones by name and goal. Once the Crisis ends, one line.
+ * The Crisis under the contracts (design §10b, Plan 5b U2), from the engine's `crisisInfo` (and the
+ * next step from `crisisTracker`; Track K's endgame tracker replaces this). Hidden until the plan
+ * is learned, unless act I's lead site is known. Then the villain and its three acts: thwarted
+ * ones with their day, the open one with its next step, where it is, its clues and its due day,
+ * later ones by name and goal. Once the Crisis ends, one line.
  */
 export function CrisisPanel({ content, state }: { content: Content; state: GameState }) {
   const { t } = useI18n()
   const info = crisisInfo(state, content)
   if (!info) return null
-  const body = panelBody(t, info)
+  const tracker = crisisTracker(state, content)
+  const body = panelBody(t, info, tracker?.acts ?? [])
   if (!body) return null
   return (
     <section className="panel crisis" aria-label={t('crisis.heading')}>
@@ -41,7 +32,7 @@ export function CrisisPanel({ content, state }: { content: Content; state: GameS
   )
 }
 
-function panelBody(t: T, info: CrisisInfo) {
+function panelBody(t: T, info: CrisisInfo, tracked: TrackerAct[]) {
   if (info.ended) {
     const { outcome, day, text } = info.ended
     const line =
@@ -65,14 +56,14 @@ function panelBody(t: T, info: CrisisInfo) {
       {info.summary && <p className="muted small crisis-summary">{info.summary}</p>}
       <ol className="crisis-acts small">
         {info.acts.map((act) => (
-          <ActRow key={act.n} t={t} act={act} />
+          <ActRow key={act.n} t={t} act={act} next={tracked[act.n - 1]?.next ?? null} />
         ))}
       </ol>
     </>
   )
 }
 
-function ActRow({ t, act }: { t: T; act: CrisisActInfo }) {
+function ActRow({ t, act, next }: { t: T; act: CrisisActInfo; next: string | null }) {
   const done = act.thwartedDay !== null
   const future = !done && !act.current
   return (
@@ -91,6 +82,7 @@ function ActRow({ t, act }: { t: T; act: CrisisActInfo }) {
       {act.current && <div className="muted">{act.goal}</div>}
       {act.current && (
         <>
+          {next && <div>{next}</div>}
           <div>
             {act.poi
               ? act.where
@@ -104,15 +96,11 @@ function ActRow({ t, act }: { t: T; act: CrisisActInfo }) {
                 : t('crisis.clues', { n: act.clues, needs: act.needs, at: act.weaknessAt })}
             </Tip>
           </div>
-          {act.late > 0 ? (
-            <LateLine t={t} act={act} />
-          ) : (
-            <div className={act.pressing ? 'tone-bad' : undefined}>
-              {act.daysLeft === 0
-                ? t('crisis.dueToday', { due: act.due })
-                : t('crisis.due', { due: act.due, days: act.daysLeft })}
-            </div>
-          )}
+          <div className={act.pressing ? 'tone-bad' : undefined}>
+            {act.daysLeft === 0
+              ? t('crisis.dueToday', { due: act.due })
+              : t('crisis.due', { due: act.due, days: act.daysLeft })}
+          </div>
         </>
       )}
     </li>
@@ -120,19 +108,19 @@ function ActRow({ t, act }: { t: T; act: CrisisActInfo }) {
 }
 
 /**
- * The Crisis at the site the party is at (the site panel): which act of whose plot, lateness and
- * the weakness at the current act's site, or the reveal site's promise. Why a quiet site holds
- * nothing more is the visit's refusal (`crisisRefusal`), which the site panel shows.
+ * The Crisis at the site the party is at (the site panel): which act of whose plot, and the
+ * weakness at the current act's key site, or (before the plan) act I's lead's promise. Why a quiet
+ * site holds nothing more is the visit's refusal (`crisisRefusal`), which the site panel shows.
  */
 export function CrisisSiteNote({ content, state }: { content: Content; state: GameState }) {
   const { t } = useI18n()
   const info = crisisInfo(state, content)
   const site = info?.sites.find((s) => s.poi === state.location)
   if (!info || !site) return null
-  if (site.kind === 'reveal') {
+  if (info.acts.length === 0) {
     return site.quiet ? null : <p className="small crisis-note">{t('crisis.siteReveal')}</p>
   }
-  const act = info.acts[site.act! - 1]
+  const act = info.acts[site.act - 1]
   const numeral = act?.numeral ?? String(site.act)
   return (
     <div className="small crisis-note">
@@ -141,9 +129,11 @@ export function CrisisSiteNote({ content, state }: { content: Content; state: Ga
           {t('crisis.siteAct', { numeral, name: info.short, act: act.name })}
         </p>
       )}
-      {!site.quiet && act && (
+      {!site.quiet && act && site.kind === 'lead' && (
+        <p className="muted">{t('crisis.siteLead')}</p>
+      )}
+      {!site.quiet && act && site.kind === 'key' && (
         <>
-          {act.late > 0 && <LateLine t={t} act={act} />}
           {act.weakness ? (
             <p className="tone-good">{t('crisis.weakness', { name: info.short ?? '' })}</p>
           ) : (

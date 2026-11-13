@@ -6,7 +6,10 @@ const act = (n: number, site = `act-site-${n}`) => ({
   id: `act-${n}`,
   name: `Act ${n}`,
   goal: 'do something dreadful',
+  lead: 'lead-site',
   site,
+  leadCr: 2 + 6 * (n - 1),
+  keyCr: 6 * n,
   clue: '{villain} was seen in {land}.',
   thwarted: 'Stopped.',
   failed: 'Done.',
@@ -19,7 +22,6 @@ const villain = (acts: unknown[]) => ({
   summary: 'A villain.',
   omen: 'Something stirs.',
   plan: 'The plan.',
-  reveal: 'reveal-site',
   acts,
   victory: 'Won.',
 })
@@ -28,17 +30,18 @@ describe('villains', () => {
   test('parse with defaults', () => {
     const v = VillainSchema.parse(villain([act(1), act(2), act(3)]))
     expect(v.weight).toBe(1)
-    expect(v.acts[0]).toMatchObject({ biomes: [], seat: false })
+    expect(v.boss).toBe('finale')
+    expect(v.acts[0]).toMatchObject({ biomes: [], seat: false, surge: false })
   })
 
-  test('need exactly three acts with distinct ids and distinct site types', () => {
+  test('need exactly three acts with distinct ids and key site types; leads may be shared', () => {
     expect(VillainSchema.safeParse(villain([act(1), act(2)])).success).toBe(false)
     expect(VillainSchema.safeParse(villain([act(1), act(2), act(3), act(4)])).success).toBe(false)
     expect(VillainSchema.safeParse(villain([act(1), act(2), act(3, 'act-site-1')])).success).toBe(
       false
     )
     expect(VillainSchema.safeParse(villain([act(1), act(2), act(2)])).success).toBe(false)
-    expect(VillainSchema.safeParse(villain([act(1), act(2), act(3, 'reveal-site')])).success).toBe(
+    expect(VillainSchema.safeParse(villain([act(1), act(2), act(3, 'lead-site')])).success).toBe(
       false
     )
   })
@@ -55,8 +58,9 @@ describe('crisis effects', () => {
     expect(EffectSchema.safeParse({ effect: 'crisisClue', amount: 0 }).success).toBe(false)
   })
 
-  test('learnPlan and thwartAct parse', () => {
+  test('learnPlan, revealKeySite and thwartAct parse', () => {
     expect(EffectSchema.parse({ effect: 'learnPlan' })).toEqual({ effect: 'learnPlan' })
+    expect(EffectSchema.parse({ effect: 'revealKeySite' })).toEqual({ effect: 'revealKeySite' })
     expect(EffectSchema.parse({ effect: 'thwartAct' })).toEqual({ effect: 'thwartAct' })
   })
 
@@ -71,13 +75,12 @@ describe('crisis state', () => {
     villain: 'the-test-villain',
     name: 'Morvaine, the Test Villain',
     startDay: 1,
-    reveal: 'poi-9',
-    acts: [1, 2, 3].map((n) => ({ id: `act-${n}`, poi: `poi-${9 + n}`, due: 100 * n })),
+    acts: [1, 2, 3].map((n) => ({ id: `act-${n}`, lead: `poi-${2 * n}`, key: `poi-${2 * n + 1}` })),
   }
 
   test('parses with nothing done yet', () => {
     expect(CrisisStateSchema.parse(crisis)).toMatchObject({
-      learned: null,
+      leads: [null, null, null],
       clues: [0, 0, 0],
       thwarted: [null, null, null],
       endSeen: false,

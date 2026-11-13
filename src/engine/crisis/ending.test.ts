@@ -4,6 +4,7 @@ import { SituationSchema } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { step } from '../state'
 import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../test-fixtures'
+import { actCalendar } from './calendar'
 import { FALLEN_LINE, partyWiped, recordCrisis, runEnding, runRecord, runSummary } from './ending'
 
 const content = fixtureContent()
@@ -66,7 +67,7 @@ describe('run summaries', () => {
     const base = makeState({ day: 260 })
     const state = {
       ...base,
-      crisis: { ...base.crisis!, learned: 10, thwarted: [50, 150, 250] },
+      crisis: { ...base.crisis!, leads: [35, 140, 240], thwarted: [50, 150, 250] },
     }
     const summary = runSummary(state, content)
     expect(summary.ending).toBe('won')
@@ -82,7 +83,7 @@ describe('run summaries', () => {
 
   test('a lost Crisis names the failed act; runEnding is null while it goes on', () => {
     const base = makeState()
-    const due = base.crisis!.acts[0].due
+    const due = actCalendar(base.crisis!, 0).due
     expect(runEnding(base)).toBeNull()
     const lost = runSummary({ ...base, day: due + 40 }, content)
     expect(lost.ending).toBe('lost')

@@ -10,20 +10,25 @@ import { territory } from '../world/territory'
 import { poiReach } from '../travel/reach'
 import {
   CRISIS_ACT1_DAYS,
-  CRISIS_ACT_DAYS,
   CRISIS_ACT_SPREAD,
-  CRISIS_DUE_JITTER,
+  CRISIS_LEAD_DAYS,
   CRISIS_REVEAL_DAYS,
   CRISIS_THREAT_FAVOUR,
 } from '../constants'
 import { shortName } from './text'
 
-// Rolling the Crisis (Plan 5b E1, design §10b): one villain per world, its reveal site and three
-// act sites (new hidden POIs), and the acts' due days. It draws from its own salted stream, so the
-// rest of the world is unchanged and a world always rolls the same Crisis.
+// Rolling the Crisis (Plans 5b E1 and 6 C3, design §10b): one villain per world, and each act's
+// lead and key sites (new hidden POIs). It draws from its own salted streams, so the rest of the
+// world is unchanged and a world always rolls the same Crisis. The calendar follows from the
+// start day (crisis/calendar.ts).
 
 /** Mixed into the world seed, so the Crisis changes no other world draw. */
 export const CRISIS_SALT = 0xc415e5b1
+/**
+ * The lead sites of acts II and III (Plan 6) draw from their own stream, so act I's lead and the
+ * key sites stay where a Plan 5b world put them, and a v11 save's Crisis gains the same leads.
+ */
+export const CRISIS_LEAD_SALT = 0x1ead5a17
 
 /** When the Crisis starts and where the party is (a settlement or a POI; its domain counts). */
 export type CrisisStart = { startDay: number; start: string | null }
@@ -35,7 +40,7 @@ const own = <T>(table: Record<string, T>, id: string | null | undefined): T | un
 const usable = (content: Content, v: Villain): boolean =>
   v.weight > 0 &&
   (v.names === undefined || Object.hasOwn(content.partsTables, v.names)) &&
-  [v.reveal, ...v.acts.map((a) => a.site)].every((id) => Object.hasOwn(content.poiTypes, id))
+  v.acts.flatMap((a) => [a.lead, a.site]).every((id) => Object.hasOwn(content.poiTypes, id))
 
 /** Domain hops from `from` over the domain adjacency, within the given domains only. */
 export function hopsFrom(
@@ -126,17 +131,17 @@ function daysTo(
 
 /**
  * Rolls this world's Crisis: a villain by weight (×CRISIS_THREAT_FAVOUR when one of its threats
- * holds a land here), its name, then the reveal site and the three act sites as new hidden POIs
+ * holds a land here), its name, then act I's lead site and the three key sites as new hidden POIs
  * on the start's island:
- * - the reveal site CRISIS_REVEAL_DAYS steady days from the start, act I CRISIS_ACT1_DAYS (by
+ * - act I's lead CRISIS_REVEAL_DAYS steady days from the start, its key site CRISIS_ACT1_DAYS (by
  *   road, then the path from the site's settlement);
- * - acts II and III at least CRISIS_ACT_SPREAD domain hops from the act before;
- * - act I outside the start's own domain, and an act with `seat` in a kingdom seat's domain other
- *   than the start's (when there is one).
+ * - the key sites of acts II and III at least CRISIS_ACT_SPREAD domain hops from the act before's;
+ * - act I's key site outside the start's own domain, and an act with `seat` in a kingdom seat's
+ *   domain other than the start's (when there is one).
  * Within those, a domain weighs ×CRISIS_THREAT_FAVOUR where a threat of the villain holds its land
  * or (for an act) its land's biome is one the act favours. Each site takes a free spot; without
- * one in range, the nearest domain that has one. Act n is due on startDay + n × CRISIS_ACT_DAYS ±
- * CRISIS_DUE_JITTER. Null without a usable villain, a start or room for the sites. Pure.
+ * one in range, the nearest domain that has one. Then the leads of acts II and III (placeLeads).
+ * Null without a usable villain, a start or room for the sites. Pure.
  */
 export function generateCrisis(
   world: WorldState,
@@ -224,7 +229,7 @@ export function generateCrisis(
       previous = site.domain
     }
 
-    const types = [villain.reveal, ...villain.acts.map((a) => a.site)]
+    const types = [villain.acts[0].lead, ...villain.acts.map((a) => a.site)]
     const villainShort = shortName(name)
     const firstId = 1 + Math.max(0, ...Object.keys(world.pois).map(poiNumber))
     const pois: Record<string, PoiState> = {}
@@ -249,26 +254,97 @@ export function generateCrisis(
       }
     })
     const ids = Object.keys(pois)
-    const acts = villain.acts.map((act, i) => ({
-      id: act.id,
-      poi: ids[i + 1],
-      due: startDay + (i + 1) * CRISIS_ACT_DAYS + d.int(-CRISIS_DUE_JITTER, CRISIS_DUE_JITTER),
-    }))
-    const crisis: CrisisState = {
-      villain: villain.id,
-      name,
-      startDay,
-      reveal: ids[0],
-      acts,
-      learned: null,
-      clues: Array<number>(CRISIS_ACTS).fill(0),
-      thwarted: Array<number | null>(CRISIS_ACTS).fill(null),
-      endSeen: false,
-    }
-    return { pois, crisis }
+    return { villain, name, pois, lead: ids[0], keys: ids.slice(1) }
   })[0]
   if (!rolled) return null
-  return { world: { ...world, pois: { ...world.pois, ...rolled.pois } }, crisis: rolled.crisis }
+  const rolledWorld = { ...world, pois: { ...world.pois, ...rolled.pois } }
+  const leads = placeLeads(rolledWorld, content, rolled.villain, rolled.name, rolled.keys)
+  if (!leads) return null
+  const crisis: CrisisState = {
+    villain: rolled.villain.id,
+    name: rolled.name,
+    startDay,
+    acts: rolled.villain.acts.map((act, i) => ({
+      id: act.id,
+      lead: i === 0 ? rolled.lead : leads.ids[i - 1],
+      key: rolled.keys[i],
+    })),
+    leads: Array<number | null>(CRISIS_ACTS).fill(null),
+    clues: Array<number>(CRISIS_ACTS).fill(0),
+    thwarted: Array<number | null>(CRISIS_ACTS).fill(null),
+    endSeen: false,
+  }
+  return { world: { ...rolledWorld, pois: { ...rolledWorld.pois, ...leads.pois } }, crisis }
+}
+
+/**
+ * The lead sites of acts II and III (Plan 6 C3), as new hidden POIs of the acts' lead types: each
+ * CRISIS_LEAD_DAYS steady days from the previous act's key site (from its domain's settlement),
+ * on the key sites' island, a domain weighing ×CRISIS_THREAT_FAVOUR where a threat of the villain
+ * holds its land. They draw from their own salted stream (CRISIS_LEAD_SALT), so newGame and the
+ * v11 → v12 migration place the same leads. Null without room for them.
+ */
+export function placeLeads(
+  world: WorldState,
+  content: Content,
+  villain: Villain,
+  name: string,
+  keys: readonly string[]
+): { pois: Record<string, PoiState>; ids: string[] } | null {
+  const domainOf = (poi: string | undefined) => own(world.pois, poi)?.domain
+  const first = own(content.settlements, domainOf(keys[0]))
+  if (!first) return null
+  const pool = sortedEntries(content.settlements)
+    .filter((s) => s.island === first.island && Object.hasOwn(world.domains, s.id))
+    .map((s) => s.id)
+    .sort(byCodeUnit)
+  const threatOf = (domain: string) => own(world.lands, own(world.domains, domain)?.land)?.threat
+  const weight = (domain: string) => {
+    const threat = threatOf(domain)
+    return threat !== undefined && villain.threats.includes(threat) ? CRISIS_THREAT_FAVOUR : 1
+  }
+  const landName = (domain: string) => {
+    const region = own(content.settlements, domain)?.region
+    return own(content.regions, region)?.name ?? region ?? domain
+  }
+  return withRng(createRng((world.seed ^ CRISIS_LEAD_SALT) >>> 0), (d) => {
+    const placed: LandSpot[] = Object.values(world.pois).flatMap(
+      (p) => own(content.landSpots, p.spot) ?? []
+    )
+    const usedNames = new Set(Object.values(world.pois).map((p) => p.name))
+    const firstId = 1 + Math.max(0, ...Object.keys(world.pois).map(poiNumber))
+    const pois: Record<string, PoiState> = {}
+    const ids: string[] = []
+    for (let i = 1; i < villain.acts.length; i++) {
+      const from = domainOf(keys[i - 1])
+      const type = own(content.poiTypes, villain.acts[i].lead)
+      if (!from || !type) return null
+      const days: Measure = (domain, spot) => daysTo(content, from, domain, spot)
+      const site = placeSite(d, content, pool, days, CRISIS_LEAD_DAYS, weight, placed)
+      if (!site) return null
+      placed.push(site.spot)
+      const values = { villain: shortName(name), land: landName(site.domain) }
+      let title = poiName(d, content, type, values)
+      for (let tries = 1; tries < NAME_TRIES && usedNames.has(title); tries++) {
+        title = poiName(d, content, type, values)
+      }
+      usedNames.add(title)
+      const id = `poi-${firstId + ids.length}`
+      pois[id] = {
+        type: type.id,
+        category: type.category,
+        spot: site.spot.id,
+        domain: site.domain,
+        name: title,
+        threat: 0,
+        discovered: false,
+        clearedDay: null,
+        boonDay: null,
+      }
+      ids.push(id)
+    }
+    return { pois, ids }
+  })[0]
 }
 
 /** The number of a "poi-<n>" id (0 for any other id). */
