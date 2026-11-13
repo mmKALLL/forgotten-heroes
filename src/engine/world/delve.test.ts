@@ -51,6 +51,15 @@ describe('delving', () => {
     })
   })
 
+  test('found only by exploring, its level is unknown until entered (Plan 6 wave 2b)', () => {
+    const { state, id } = atVault()
+    expect(delvePreview(state, content, id)!.suggestedLevel).toBeNull()
+    const entered = act(state, { type: 'visitPoi' })
+    expect(entered.world.pois[id].known).toBe(true)
+    const preview = delvePreview(entered, content, id)!
+    expect(preview.suggestedLevel).toBe(preview.level)
+  })
+
   test('a failed room drives the party out, as its outcome says: no hoard, the site stays', () => {
     const { state, id } = atVault()
     const entered = act(state, { type: 'visitPoi' })

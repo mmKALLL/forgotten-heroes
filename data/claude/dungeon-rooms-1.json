@@ -549,7 +549,7 @@
                 "effects": [
                   {
                     "effect": "camaraderie",
-                    "amount": -5
+                    "amount": -13
                   }
                 ]
               }
@@ -1025,7 +1025,7 @@
                 "effects": [
                   {
                     "effect": "camaraderie",
-                    "amount": -5
+                    "amount": -13
                   }
                 ]
               }
@@ -4129,7 +4129,7 @@
                     },
                     {
                       "effect": "camaraderie",
-                      "amount": 5
+                      "amount": 13
                     }
                   ]
                 }
@@ -5870,7 +5870,7 @@
                     },
                     {
                       "effect": "camaraderie",
-                      "amount": 5
+                      "amount": 13
                     }
                   ]
                 }

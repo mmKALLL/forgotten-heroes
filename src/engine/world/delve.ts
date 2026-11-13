@@ -108,6 +108,30 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
 }
 
 /**
+ * The sites with these ids known by word (Plan 6 wave 2b): heard of in a rumour or entered, so an
+ * authored dungeon's suggested party level shows. Unknown ids are skipped.
+ */
+export function markKnown(state: GameState, ids: readonly string[]): GameState {
+  const fresh = ids.filter(
+    (id) => Object.hasOwn(state.world.pois, id) && !state.world.pois[id].known
+  )
+  if (fresh.length === 0) return state
+  const pois = { ...state.world.pois }
+  for (const id of fresh) pois[id] = { ...pois[id], known: true }
+  return { ...state, world: { ...state.world, pois } }
+}
+
+/**
+ * The party level an authored dungeon calls for (crLevel of the CR it is played at), once it is
+ * known by word; null while it is known only from exploring (or not at all), or for any other site.
+ */
+export function suggestedLevel(state: GameState, content: Content, poiId: string): number | null {
+  const poi = own(state.world.pois, poiId)
+  const dungeon = dungeonOf(content, poi)
+  return poi?.known && dungeon ? crLevel(playedCr(state, poiId, dungeon)) : null
+}
+
+/**
  * Enters the dungeon at the POI the party is at (visitPoi, once the visit is allowed): the delve
  * starts with its first room, and an errand to the site is done by going there.
  */
@@ -116,7 +140,9 @@ export function enterDungeon(state: GameState, content: Content, poiId: string):
   if (!dungeon) return state
   if (!state.party.some(canAct)) return appendLog(state, 'No one is fit to go in.', 'bad')
   const delve: DelveState = { poi: poiId, dungeon: dungeon.id, room: 0, inRoom: false, ended: null }
-  const entered = appendLog({ ...state, visited: true }, `You enter ${dungeon.name}.`, 'info')
+  // Once entered, the dungeon is known: its suggested level shows from now on.
+  const known = markKnown(state, [poiId])
+  const entered = appendLog({ ...known, visited: true }, `You enter ${dungeon.name}.`, 'info')
   return siteContractsMet(startRoom(entered, content, delve), 'errand', poiId)
 }
 
@@ -186,6 +212,11 @@ export type DelvePreview = {
   /** The CR it is played at (a contract's may be higher), and the party level it is meant for. */
   cr: number
   level: number
+  /**
+   * The party level it calls for as the party knows it: `level` once heard of in a rumour or
+   * entered (Plan 6 wave 2b), else null (found only by exploring: the level is unknown).
+   */
+  suggestedLevel: number | null
   /** The best level among the living members. */
   partyLevel: number
   /** What every check here adds over its written DC (CR, power and the day's danger aside). */
@@ -264,6 +295,7 @@ export function delvePreview(
     dungeon,
     cr,
     level: crLevel(cr),
+    suggestedLevel: poi.known ? crLevel(cr) : null,
     partyLevel: Math.max(1, ...(living.length > 0 ? living : state.party).map((c) => c.level)),
     dcBonus: crOffset(cr) + power * POWER_DC,
     done: current,

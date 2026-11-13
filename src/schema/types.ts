@@ -267,16 +267,16 @@ export type AccessoryPart = (typeof ACCESSORY_PARTS)[number]
 export const OPTION_TAGS = ['retreat'] as const
 export type OptionTag = (typeof OPTION_TAGS)[number]
 
-/** The top of the party's camaraderie scale (0–40, design §3; ×5 in Plan 6 for whole-step losses). */
-export const CAMARADERIE_MAX = 40
+/** The top of the party's camaraderie scale (0–100, design §3; Plan 6 wave 2b, ×2.5 from 0–40). */
+export const CAMARADERIE_MAX = 100
 
 /** Camaraderie tiers, worst first: a tier holds from its `min` up to the next tier's. */
 export const CAMARADERIE_TIERS = [
   { id: 'fractured', min: 0 },
-  { id: 'strained', min: 10 },
-  { id: 'steady', min: 20 },
-  { id: 'close', min: 30 },
-  { id: 'sworn', min: 40 },
+  { id: 'strained', min: 25 },
+  { id: 'steady', min: 50 },
+  { id: 'close', min: 75 },
+  { id: 'sworn', min: 100 },
 ] as const
 export type CamaraderieTier = (typeof CAMARADERIE_TIERS)[number]['id']
 
@@ -288,7 +288,7 @@ export type CamaraderieTier = (typeof CAMARADERIE_TIERS)[number]['id']
 export const CRISIS_ACTS = 3
 
 /** How a run ended: the Crisis won or lost, or the whole party fallen (a wipe). */
-export const RUN_ENDINGS = ['won', 'lost', 'fallen'] as const
+export const RUN_ENDINGS = ['won', 'lost', 'fallen', 'disbanded'] as const
 export type RunEnding = (typeof RUN_ENDINGS)[number]
 
 /**

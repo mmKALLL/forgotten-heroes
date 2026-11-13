@@ -58,6 +58,7 @@ export const en = {
   'saves.ending.won': 'Crisis won',
   'saves.ending.lost': 'Crisis lost',
   'saves.ending.fallen': 'Fallen',
+  'saves.ending.disbanded': 'Disbanded',
   'saves.continue': 'Continue',
   'saves.newParty': 'New party here',
   'saves.delete': 'Delete',
@@ -127,12 +128,14 @@ export const en = {
 
   'camaraderie.label': 'Camaraderie:',
   'camaraderie.value': '{label} ({value}/{max})',
-  'camaraderie.desert': 'desertion {n}%',
+  'camaraderie.leaving': 'a member leaves day {day}',
   'camaraderie.tipValue': 'Camaraderie {value} of {max}: {label}.',
   'camaraderie.tipRules':
-    'It falls with a failed check (−{fail} for this party; twice that on a critical failure), fleeing (−{flee}), a day of hunger or thirst, and a death: the bigger the party, the more blame goes round. It rises by flat amounts, whatever the party’s size, with a contract kept, a night in good rooms and a round at the inn.',
+    'It falls with a failed check (−{fail} for this party; −{crit} on a critical failure), fleeing (−{flee}), a day of hunger or thirst, and a death: the bigger the party, the more blame goes round. It rises by flat amounts, whatever the party’s size, with a contract kept, a night in good rooms, a round at the inn, and a member leaving (+{parting}).',
   'camaraderie.tipEffect':
-    'At {max} or below the party is Fractured: each hired member may desert on arriving in a settlement ({n}%). Founders never leave.',
+    'Below {low} the party is Fractured: for each {days}d it stays below, a member leaves (a hired one first, never the last). At {zero} the party breaks up and the run ends.',
+  'camaraderie.tipSpell':
+    'Below {low} for {weeks} full weeks; the next member leaves on day {day}.',
   'camaraderie.tipNow': 'Now: {causes}.',
   'camaraderie.tipFine': 'Nothing is pulling it down now.',
 
@@ -558,6 +561,8 @@ export const en = {
 
   'delve.heading': 'Delve',
   'delve.rooms': '{n} rooms, in order, without leaving.',
+  'delve.levelUnknown':
+    'Level unknown: no word of this place yet. Rumours, or going in, would tell what party it calls for.',
   'delve.roomsLeft': '{left} of {n} rooms left.',
   'delve.room': 'Room {n} of {total}: {name}',
   'delve.next': 'Next: {name}',
@@ -683,6 +688,8 @@ export const en = {
   'crisis.challenges': 'lead CR {lead} · key CR {key}',
   'crisis.foe': 'Holding it: {name}',
   'crisis.surge': '⚠ the roads are {percent}% more dangerous until it is stopped',
+  'crisis.wait':
+    '⚠ the roads are {percent}% more dangerous, and more each day, until its lead is followed',
   'crisis.won': '{name} is defeated (day {day})',
   'crisis.lost': '{name}’s plot is complete (day {day})',
   'crisis.lostUnknown': 'Far away, something you never learned of is finished (day {day})',
@@ -706,6 +713,7 @@ export const en = {
   'end.lostTitle': '{name}’s plot is complete',
   'end.lostUnknown': 'A plot you never learned of is complete',
   'end.fallenTitle': 'The party has fallen',
+  'end.disbandedTitle': 'The party has broken up',
   'end.lastLines': 'The last days',
   'end.acts': 'The plot',
   'end.actThwarted': '✓ thwarted day {day}',
@@ -723,6 +731,7 @@ export const en = {
   'end.lookBack': 'Look back',
   'end.newPartySure': 'Start a new party in a new world? This party and its world are left behind.',
   'end.fallenBanner': 'The party has fallen',
+  'end.disbandedBanner': 'The party has broken up',
   'hall.heading': 'Hall of the Fallen',
   'hall.button': 'Hall of the Fallen ({n})',
   'hall.empty': 'No run has ended yet.',

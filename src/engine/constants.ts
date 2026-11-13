@@ -13,8 +13,8 @@ export const STARTING_PARTY_SIZE = 2
 export const STARTING_GOLD = 10
 /** A random start skips settlements whose every route has at least this danger (notorious). */
 export const START_UNSAFE_DANGER = 3
-/** Camaraderie a new party starts at (0–40): Steady. The state schema's default repeats it. */
-export const CAMARADERIE_START = 25
+/** Camaraderie a new party starts at (0–100): Steady. The state schema's default repeats it. */
+export const CAMARADERIE_START = 63
 
 // Travel: speed, fares and encounters (routes.ts)
 
@@ -403,31 +403,36 @@ export const RECRUIT_GEAR_PRICE = 0.75
 /** The share of recruits of the settlement's own ancestry; the rest are any playable one. */
 export const RECRUIT_LOCAL_ANCESTRY = 0.75
 
-// Camaraderie and desertion (town/camaraderie.ts)
+// Camaraderie, parting and the low spell (town/camaraderie.ts)
 
 // Losses that blame someone scale with the party (each × the living members − 1): more people pin
 // it on someone. Gains are flat, so a bigger party costs more to keep happy (designer, 2026-11-13).
 
 /** Camaraderie lost at the end of a day on which anyone went without food or water. */
-export const CAMARADERIE_HUNGER = 5
+export const CAMARADERIE_HUNGER = 13
 /** Camaraderie lost for each member who dies. */
-export const CAMARADERIE_DEATH = 10
-/** Camaraderie lost for a failed encounter check, per living member beyond the first. */
-export const CAMARADERIE_FAIL = 1
+export const CAMARADERIE_DEATH = 25
+/**
+ * Camaraderie lost for a failed encounter check, per living member beyond the first (the total is
+ * rounded: 3 for a pair, 13 for six).
+ */
+export const CAMARADERIE_FAIL = 2.5
 /** Camaraderie lost for a critically failed encounter check, per living member beyond the first. */
-export const CAMARADERIE_CRIT_FAIL = 2
+export const CAMARADERIE_CRIT_FAIL = 5
 /** Camaraderie lost for fleeing (an option tagged `retreat`), per living member beyond the first. */
-export const CAMARADERIE_RETREAT = 2
+export const CAMARADERIE_RETREAT = 5
 /** Camaraderie gained for each contract completed. */
-export const CAMARADERIE_CONTRACT = 5
+export const CAMARADERIE_CONTRACT = 13
 /** Camaraderie gained for a night in a private room, once per arrival. */
-export const CAMARADERIE_BOND = 5
+export const CAMARADERIE_BOND = 13
 /** Camaraderie gained for standing the party a round at the inn, once per arrival. */
-export const CAMARADERIE_ROUND = 3
+export const CAMARADERIE_ROUND = 8
 /** A round at the inn, per living member (gp). */
 export const ROUND_PRICE = 1
-/** While camaraderie is Fractured, the chance each hired member deserts on arriving in a settlement. */
-export const DESERT_CHANCE = 0.25
+/** Camaraderie gained at once when a living member leaves: dismissed, or lost to a low spell. */
+export const CAMARADERIE_PARTING = 5
+/** Below Fractured's top, one member leaves for each full this many days of an unbroken spell. */
+export const CAMARADERIE_LEAVE_DAYS = 7
 
 // Points of interest (pois.ts)
 
@@ -651,6 +656,16 @@ export const CRISIS_SURGE: readonly (readonly [days: number, share: number])[] =
   [20, 0.1],
   [10, 0.2],
 ]
+
+// The Crisis: the waiting penalty (crisis/surge.ts crisisWait)
+
+/**
+ * From this day of an act's span (50, 150, 250 on a new game) while its lead is not won, the
+ * world's danger rises by CRISIS_WAIT_STEP a day (this day included); it drops once the lead is won.
+ */
+export const CRISIS_WAIT_DAY = 50
+/** The waiting penalty's daily rise in the danger share. */
+export const CRISIS_WAIT_STEP = 0.01
 
 // The Crisis: clues and thwarting (crisis/progress.ts)
 

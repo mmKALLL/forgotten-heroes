@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "The Crisis (Plans 5b and 6): the situations of the crisis sites in crisis-sites.json, played at the act's challenge rating (a written DC w is played at crDc(CR) + (w − 12), with no danger ramp; wounds as written, so they are written for the CR). Lead situations, one per lead site: act I's (two stages; CR 2) learn the plan (learnPlan) on every ending but leaving, and a slower reading can also give a clue (crisisClue). Acts II and III's (three stages; CR 8 and 14) are retryable: an approach (a check, a consumable, blood or coin), the act's henchmen (a fight whose failure throws the party out for a day, a once-only check, a price and a retreat), then the find, which reveals the key site (revealKeySite), or a day spent on it for a clue as well; only that last stage pays XP. Key situations, one per act (CR 6, 12 and 18): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more); and a high-stakes finale against the act's boss (villains.json: a finale villain's lieutenant at acts I and II, the villain at act III; a recurring villain at every act, remembering the last meeting), written at DC 15 for the strike and 14 for the once-only clever way. A success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. The approach checks at key sites pay no XP (an explicit `xp` of 0), since a site stays open until thwarted. Flight is tagged `retreat`. Road omens (two per villain, one hostile and one neutral) name their villain (`villains`): they are drawn on the road only while that villain's Crisis is undecided, and a success gives a clue (crisisClue). Texts name the villain by title only (the Ashen Prophet, the Speaker, the Hand), since situations have no {villain} slot. Written by Claude.",
+  "notes": "The Crisis (Plans 5b and 6): the situations of the crisis sites in crisis-sites.json, played at the act's challenge rating (a written DC w is played at crDc(CR) + (w − 12), with no danger ramp; wounds as written, so they are written for the CR). Lead situations, one per lead site: act I's (two stages; CR 3) learn the plan (learnPlan) on every ending but leaving, and a slower reading can also give a clue (crisisClue). Acts II and III's (three stages; CR 9 and 15) are retryable: an approach (a check, a consumable, blood or coin), the act's henchmen (a fight whose failure throws the party out for a day, a once-only check, a price and a retreat), then the find, which reveals the key site (revealKeySite), or a day spent on it for a clue as well; only that last stage pays XP. Key situations, one per act (CR 6, 12 and 18): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more); and a high-stakes finale against the act's boss (villains.json: a finale villain's lieutenant at acts I and II, the villain at act III; a recurring villain at every act, remembering the last meeting), written at DC 15 for the strike and 14 for the once-only clever way. A success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. The approach checks at key sites pay no XP (an explicit `xp` of 0), since a site stays open until thwarted. Flight is tagged `retreat`. Road omens (two per villain, one hostile and one neutral) name their villain (`villains`): they are drawn on the road only while that villain's Crisis is undecided, and a success gives a clue (crisisClue). Texts name the villain by title only (the Ashen Prophet, the Speaker, the Hand), since situations have no {villain} slot. Written by Claude.",
   "entries": [
     {
       "id": "burned-chapel-search",
@@ -532,7 +532,7 @@
                   },
                   {
                     "effect": "camaraderie",
-                    "amount": -5
+                    "amount": -13
                   }
                 ]
               }
@@ -4361,7 +4361,7 @@
                     },
                     {
                       "effect": "camaraderie",
-                      "amount": -5
+                      "amount": -13
                     }
                   ]
                 },
@@ -5282,7 +5282,7 @@
                     },
                     {
                       "effect": "camaraderie",
-                      "amount": -5
+                      "amount": -13
                     }
                   ]
                 },
@@ -7193,7 +7193,7 @@
                     },
                     {
                       "effect": "camaraderie",
-                      "amount": -5
+                      "amount": -13
                     }
                   ]
                 },

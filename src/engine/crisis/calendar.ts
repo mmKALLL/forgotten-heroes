@@ -4,6 +4,7 @@ import {
   CRISIS_ACT_EXPECTED,
   CRISIS_ACT_HURRY,
   CRISIS_ACT_OPEN,
+  CRISIS_WAIT_DAY,
 } from '../constants'
 
 // The Crisis's fixed calendar (Plan 6 C2, design §10b). Each act spans CRISIS_ACT_DAYS from the
@@ -17,6 +18,8 @@ export type ActCalendar = {
   opens: number
   /** Its climax is expected from here (informational: a party may clear it sooner). */
   expected: number
+  /** From here, while its lead is not won, the world's danger rises a little each day (surge.ts). */
+  waiting: number
   /** The journal says to hurry. */
   hurry: number
   /** The last day to thwart it. */
@@ -32,6 +35,7 @@ export function actCalendar(crisis: Pick<CrisisState, 'startDay'>, i: number): A
   return {
     opens: before + CRISIS_ACT_OPEN,
     expected: before + CRISIS_ACT_EXPECTED,
+    waiting: before + CRISIS_WAIT_DAY,
     hurry: before + CRISIS_ACT_HURRY,
     due,
     failsOn: due + 1,

@@ -15,7 +15,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 14
+export const CURRENT_SAVE_VERSION = 15
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -405,6 +405,34 @@ export function v13ToV14(raw: Record<string, unknown>, content: Content): Record
 }
 
 /**
+ * v14 → v15 (Plan 6 wave 2b, track E): camaraderie moves from 0–40 to 0–100 (×2.5, rounded, and
+ * at least 1, so an old save never loads disbanded) with no low spell yet (it starts on the next
+ * step if the party is below Fractured's top). An authored dungeon the party has cleared, or is
+ * delving, is known by word (its suggested level shows); every other site is not.
+ */
+export function v14ToV15(raw: Record<string, unknown>): Record<string, unknown> {
+  const camaraderie =
+    typeof raw.camaraderie === 'number'
+      ? Math.min(100, Math.max(1, Math.round(raw.camaraderie * 2.5)))
+      : raw.camaraderie
+  const base = { ...raw, version: 15, camaraderie, lowSpell: null }
+  const world = raw.world as { pois?: Record<string, Record<string, unknown>> } | undefined
+  if (!world?.pois || typeof world.pois !== 'object') return base
+  const delving = (raw.delve as { poi?: unknown } | null | undefined)?.poi
+  const pois = Object.fromEntries(
+    Object.entries(world.pois).map(([id, poi]) => [
+      id,
+      typeof poi === 'object' && poi !== null && typeof poi.dungeon === 'string'
+        ? typeof poi.clearedDay === 'number' || delving === id
+          ? { ...poi, known: true }
+          : poi
+        : poi,
+    ])
+  )
+  return { ...base, world: { ...world, pois } }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -441,6 +469,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v12ToV13(raw as Record<string, unknown>, content), content)
     case 13:
       return migrate(v13ToV14(raw as Record<string, unknown>, content), content)
+    case 14:
+      return migrate(v14ToV15(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

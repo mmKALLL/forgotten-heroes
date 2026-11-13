@@ -26,6 +26,7 @@ export function DayMark({
     danger.text +
       (danger.nextDay === null ? '' : ` · ${t('top.dangerNext', { day: danger.nextDay })}`),
     ...(danger.surge ? [danger.surge.text] : []),
+    ...(danger.wait ? [danger.wait.text] : []),
   ].join('\n')
   const act = currentAct(crisis)
   return (

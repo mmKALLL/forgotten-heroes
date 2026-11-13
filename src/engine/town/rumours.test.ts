@@ -10,6 +10,7 @@ import { nearestSettlements } from '../travel/reach'
 import { STANDING_POINTS } from '../constants'
 import { RUMOUR_LEAD, RUMOUR_TROUBLE_TAG, RUMOURS_DONE, rumourOption, rumourPrice } from './rumours'
 import { serviceRows } from './services'
+import { delvePreview } from '../world/delve'
 
 const content = fixtureContent()
 const HERE = 'greenvale-1'
@@ -174,6 +175,24 @@ describe('listenRumours', () => {
     )
     const known = { ...state, world: { ...state.world, pois } }
     expect(listen(known).world.pois).toEqual(pois)
+  })
+
+  test('a dungeon heard of is known by word: its suggested level shows (Plan 6 wave 2b)', () => {
+    const base = here({ location: 'ashmoor-1', crisis: null })
+    const vault = Object.keys(base.world.pois).find((id) => base.world.pois[id].dungeon)!
+    // Every other site in the vault's land is known already, so the talk is of the vault.
+    const pois = Object.fromEntries(
+      Object.entries(base.world.pois).map(([id, p]) => [id, { ...p, discovered: id !== vault }])
+    )
+    const settlements = { ...base.world.settlements }
+    settlements['ashmoor-1'] = { ...settlements['ashmoor-1'], services: ['inn-tavern'] }
+    const state = rolling('success', { ...base, world: { ...base.world, pois, settlements } })
+    expect(delvePreview(state, content, vault)!.suggestedLevel).toBeNull()
+    const after = listen(state)
+    expect(after.world.pois[vault]).toMatchObject({ discovered: true, known: true })
+    const level = delvePreview(after, content, vault)!.suggestedLevel
+    expect(level).toBe(delvePreview(after, content, vault)!.level)
+    expect(after.log.some((l) => l.text.includes(`calls for a party of level ${level}`))).toBe(true)
   })
 
   test('once per arrival', () => {

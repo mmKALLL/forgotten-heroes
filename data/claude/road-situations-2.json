@@ -194,7 +194,7 @@
       "disposition": "neutral",
       "biomes": ["desert"],
       "tags": ["road", "storm"],
-      "notes": "Sitting it out costs a day (and its water) and brings the party closer (camaraderie +1, a shared hardship). Pushing on keeps the day at the risk of HP. The ruin also costs the day, risks a falling roof, and may hold old coin (a tier-1 accessory on a critical success).",
+      "notes": "Sitting it out costs a day (and its water) and brings the party closer (camaraderie +13, a shared hardship). Pushing on keeps the day at the risk of HP. The ruin also costs the day, risks a falling roof, and may hold old coin (a tier-1 accessory on a critical success).",
       "stages": {
         "start": {
           "text": "The southern horizon has turned brown, and it is getting taller. The wind is already throwing grit hard enough to sting. You have an hour, maybe less.",
@@ -208,7 +208,7 @@
                 "text": "You hunker down in a ring behind the packs, cloaks over your heads. It blows for a day and a night. You share the water, then the stories, then the silences. When it drops you dig each other out, laughing at nothing.",
                 "effects": [
                   { "effect": "days", "amount": 1 },
-                  { "effect": "camaraderie", "amount": 5 }
+                  { "effect": "camaraderie", "amount": 13 }
                 ]
               }
             },
@@ -700,7 +700,7 @@
       "disposition": "pleasant",
       "biomes": ["jungle"],
       "tags": ["road", "river"],
-      "notes": "A day's rest (half of everyone's HP, a level of exhaustion, and camaraderie +1) against the time and food it costs; a cold dive for what glints (old coin, or a tier-1 accessory on a critical success); or a quick drink and on.",
+      "notes": "A day's rest (half of everyone's HP, a level of exhaustion, and camaraderie +13) against the time and food it costs; a cold dive for what glints (old coin, or a tier-1 accessory on a critical success); or a quick drink and on.",
       "stages": {
         "start": {
           "text": "A waterfall drops into a round pool so clear you can count the pebbles on the bottom. It is cool under the spray and the insects keep away. Something down there catches the light.",
@@ -716,7 +716,7 @@
                   { "effect": "days", "amount": 1 },
                   { "effect": "healFraction", "fraction": 0.5, "target": "all" },
                   { "effect": "exhaustion", "amount": -1, "target": "all" },
-                  { "effect": "camaraderie", "amount": 5 }
+                  { "effect": "camaraderie", "amount": 13 }
                 ]
               }
             },
@@ -1102,7 +1102,7 @@
       "disposition": "neutral",
       "biomes": ["plains"],
       "tags": ["road"],
-      "notes": "Found money divides a party. Keeping it starts a quarrel (camaraderie −1); running the courier down earns a small fee, standing and camaraderie +1; handing it in earns standing and nothing else.",
+      "notes": "Found money divides a party. Keeping it starts a quarrel (camaraderie −13); running the courier down earns a small fee, standing and camaraderie +13; handing it in earns standing and nothing else.",
       "stages": {
         "start": {
           "text": "A leather purse lies in a wheel rut, its drawstring cut through on a stone. It is heavy. A courier's badge is stitched to the flap, and the hoofprints heading on down the road are still sharp.",
@@ -1116,7 +1116,7 @@
                 "text": "You split it. The talk round the fire that night is short, and one of you doesn't join in.",
                 "effects": [
                   { "effect": "gold", "amount": 15 },
-                  { "effect": "camaraderie", "amount": -5 }
+                  { "effect": "camaraderie", "amount": -13 }
                 ]
               }
             },
@@ -1137,7 +1137,7 @@
                   "text": "You find the courier at a well, frantic. He takes the purse with both hands and has nothing to give you but thanks.",
                   "effects": [
                     { "effect": "reputation", "amount": 1 },
-                    { "effect": "camaraderie", "amount": 5 }
+                    { "effect": "camaraderie", "amount": 13 }
                   ]
                 },
                 "success": {
@@ -1145,7 +1145,7 @@
                   "effects": [
                     { "effect": "gold", "amount": 5 },
                     { "effect": "reputation", "amount": 2 },
-                    { "effect": "camaraderie", "amount": 5 }
+                    { "effect": "camaraderie", "amount": 13 }
                   ]
                 }
               }
@@ -1170,7 +1170,7 @@
       "disposition": "neutral",
       "biomes": ["marsh"],
       "tags": ["road", "village", "restless-dead"],
-      "notes": "A body in the bog with a bronze torc (a tier-1 accessory). The rites earn standing and a clue, and show how restless he is (they reveal the twist's odds). The torc can be bought (20 gp) or lifted while the cutters pray (a quarrel in the party, camaraderie −1, and standing if seen). A bespoke twist: the dead man may rise for it, and the torc is only kept if he is put down.",
+      "notes": "A body in the bog with a bronze torc (a tier-1 accessory). The rites earn standing and a clue, and show how restless he is (they reveal the twist's odds). The torc can be bought (20 gp) or lifted while the cutters pray (a quarrel in the party, camaraderie −13, and standing if seen). A bespoke twist: the dead man may rise for it, and the torc is only kept if he is put down.",
       "twist": {
         "chance": 0.3,
         "what": "the dead man is not finished with his torc",
@@ -1239,7 +1239,7 @@
                   "text": "A cutter opens her eyes mid-prayer and sees {actor}'s hand at the dead man's throat. You leave without the torc, and the story goes ahead of you.",
                   "effects": [
                     { "effect": "reputation", "amount": -3 },
-                    { "effect": "camaraderie", "amount": -5 }
+                    { "effect": "camaraderie", "amount": -13 }
                   ]
                 },
                 "partial": {
@@ -1247,14 +1247,14 @@
                   "effects": [
                     { "effect": "accessory", "tier": 1 },
                     { "effect": "reputation", "amount": -2 },
-                    { "effect": "camaraderie", "amount": -5 }
+                    { "effect": "camaraderie", "amount": -13 }
                   ],
                   "twist": {
                     "text": "{actor} twists the torc free, and the dead man's eyes open. The boy at the back of the crowd screams.",
                     "effects": [
                       { "effect": "openingHit" },
                       { "effect": "reputation", "amount": -2 },
-                      { "effect": "camaraderie", "amount": -5 }
+                      { "effect": "camaraderie", "amount": -13 }
                     ],
                     "goto": "risen"
                   }
@@ -1263,13 +1263,13 @@
                   "text": "Heads are bowed. {actor}'s hand goes in and comes out with the torc, and nobody sees but you.",
                   "effects": [
                     { "effect": "accessory", "tier": 1 },
-                    { "effect": "camaraderie", "amount": -5 }
+                    { "effect": "camaraderie", "amount": -13 }
                   ],
                   "twist": {
                     "text": "{actor} twists the torc free while heads are bowed, and the dead man's hand comes up after it.",
                     "effects": [
                       { "effect": "openingHit" },
-                      { "effect": "camaraderie", "amount": -5 }
+                      { "effect": "camaraderie", "amount": -13 }
                     ],
                     "goto": "risen"
                   }
@@ -1521,7 +1521,7 @@
       "disposition": "neutral",
       "biomes": ["sea"],
       "tags": ["sea"],
-      "notes": "No wind. Row with the crew (a level of exhaustion each, no time lost, and camaraderie +1 for the shared work), wait it out (two days of supplies), or whistle up a wind (a sailors' superstition; failing it costs a fine for the crew's peace of mind).",
+      "notes": "No wind. Row with the crew (a level of exhaustion each, no time lost, and camaraderie +13 for the shared work), wait it out (two days of supplies), or whistle up a wind (a sailors' superstition; failing it costs a fine for the crew's peace of mind).",
       "stages": {
         "start": {
           "text": "The wind dies at dawn and doesn't come back. By noon the sails hang like washing, the pitch is soft in the deck seams, and the captain is rationing water. The crew have started looking at the passengers.",
@@ -1535,7 +1535,7 @@
                 "text": "You row with the crew in shifts through two days of heat. It's brutal, and by the end you are singing their filthy songs with them.",
                 "effects": [
                   { "effect": "exhaustion", "amount": 1, "target": "all" },
-                  { "effect": "camaraderie", "amount": 5 }
+                  { "effect": "camaraderie", "amount": 13 }
                 ]
               }
             },

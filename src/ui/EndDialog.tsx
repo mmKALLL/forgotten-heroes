@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import type { Content } from '../content/build'
-import { runSummary } from '../engine/crisis/ending'
+import { FINAL_ENDINGS, runSummary } from '../engine/crisis/ending'
 import { crisisInfo } from '../engine/crisis/status'
 import { actNumeral, shortName } from '../engine/crisis/text'
 import type { GameState } from '../schema/state'
@@ -15,7 +15,7 @@ type Props = {
   onKeepPlaying: () => void
   /** A new party in a new world, in this slot. */
   onNewParty: () => void
-  /** Fallen: closes the screen for this session, to look over the ended run. */
+  /** Fallen or disbanded: closes the screen for this session, to look over the ended run. */
   onLookBack: () => void
 }
 
@@ -41,7 +41,8 @@ export function EndDialog({
   const box = useRef<HTMLDivElement>(null)
   // Leaving a living party behind is asked first; a fallen run has nothing left to lose.
   const [asking, setAsking] = useState(false)
-  const fallen = ending === 'fallen'
+  // Fallen or disbanded (camaraderie 0): the run is over for good.
+  const fallen = FINAL_ENDINGS.includes(ending)
   const dismiss = fallen ? onLookBack : onKeepPlaying
 
   const backdrop = useRef<HTMLDivElement>(null)
@@ -91,7 +92,7 @@ export function EndDialog({
   const kicker = fallen ? null : t(ending === 'won' ? 'end.victory' : 'end.gameOver')
   // A villain without a given name reads "the Ashen Prophet": capitalised as a heading.
   const title = fallen
-    ? t('end.fallenTitle')
+    ? t(ending === 'disbanded' ? 'end.disbandedTitle' : 'end.fallenTitle')
     : villain === null
       ? t('end.lostUnknown')
       : t(ending === 'won' ? 'end.wonTitle' : 'end.lostTitle', { name: shortName(villain) })

@@ -923,7 +923,7 @@
               "effect",
               "amount"
             ],
-            "description": "Raise (+) or lower (−) the party's camaraderie (0–40; a quarrel is about −5)"
+            "description": "Raise (+) or lower (−) the party's camaraderie (0–100; a quarrel is about −13)"
           },
           {
             "type": "object",

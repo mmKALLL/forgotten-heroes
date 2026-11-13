@@ -101,6 +101,7 @@ function ActRow(props: {
         </div>
       )}
       {act.surge > 0 && <div className="tone-bad">{t('crisis.surge', { percent: act.surge })}</div>}
+      {act.wait > 0 && <div className="tone-bad">{t('crisis.wait', { percent: act.wait })}</div>}
     </li>
   )
 }

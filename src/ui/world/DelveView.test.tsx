@@ -17,14 +17,15 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'matchMedia')
 })
 
-/** The party at the fixture's dungeon (The Test Vault), found and inhabited. */
-function atVault(): GameState {
+/** The party at the fixture's dungeon (The Test Vault), found and inhabited; known by word or not. */
+function atVault(known = true): GameState {
   const base = makeState()
   const id = Object.keys(base.world.pois).find((p) => base.world.pois[p].dungeon)!
   const poi = {
     ...base.world.pois[id],
     discovered: true,
     clearedDay: base.day - REINHABIT_DAYS - 1,
+    ...(known && { known: true as const }),
   }
   return {
     ...base,
@@ -33,11 +34,11 @@ function atVault(): GameState {
   }
 }
 
-test('the site panel shows the dungeon: CR against the party, its summary, rooms and hoard', () => {
+const panel = (state: GameState) =>
   render(
     <PoiPanel
       content={content}
-      state={atVault()}
+      state={state}
       selected={null}
       onSelect={vi.fn()}
       prefs={DEFAULT_TRAVEL_PREFS}
@@ -45,11 +46,20 @@ test('the site panel shows the dungeon: CR against the party, its summary, rooms
       onAction={vi.fn()}
     />
   )
+
+test('the site panel shows the dungeon: CR against the party, its summary, rooms and hoard', () => {
+  panel(atVault())
   expect(screen.getByText(/CR 2: meant for a party of level 3/)).toBeTruthy()
   expect(screen.getByText('A drowned treasury.')).toBeTruthy()
   expect(screen.getByText(/3 rooms, in order/)).toBeTruthy()
   expect(screen.getByText(/The hoard at the end: \d+–\d+ gp, 1 precious goods/)).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Enter' })).toBeTruthy()
+})
+
+test('a dungeon found only by exploring shows its level as unknown', () => {
+  panel(atVault(false))
+  expect(screen.getByText(/Level unknown/)).toBeTruthy()
+  expect(screen.queryByText(/meant for a party of level/)).toBeNull()
 })
 
 test('between rooms, the schematic marks the way, and Press on and Withdraw dispatch', async () => {

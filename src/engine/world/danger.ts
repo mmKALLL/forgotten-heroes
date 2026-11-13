@@ -1,13 +1,14 @@
 import type { Content } from '../../content/build'
 import type { Effect, Option, Outcome, OutcomeBranch, Situation } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
-import { crisisSurge } from '../crisis/surge'
+import { crisisSurge, crisisWait } from '../crisis/surge'
 import { crDc } from '../rules/challenge'
 import { normalizeDc } from '../rules/checks'
 import { CRISIS_DC_BASE, DANGER_RAMP_DAYS, DANGER_RAMP_MAX, DANGER_RAMP_STEP } from '../constants'
 
-// The world's rising danger (design §10b; Plan 5a A3, Plan 6 C4). Nothing ticks: the danger level
-// follows from the day, plus the Crisis's surge near a due day. It hardens each encounter's
+// The world's rising danger (design §10b; Plan 5a A3, Plan 6 C4 and wave 2b). Nothing ticks: the
+// danger level follows from the day, plus the Crisis's surge near a due day and its waiting penalty
+// while an act's lead goes unfollowed (crisis/surge.ts). It hardens each encounter's
 // snapshot once, when it starts: harder checks, worse wounds. It is independent of the party's
 // level and wealth, and touches only encounters. Crisis encounters are played at their challenge
 // rating instead (atChallenge).
@@ -27,10 +28,14 @@ export function rampLevel(day: number): number {
 /** What the danger depends on: the day, and the Crisis (its surge). */
 export type DangerAt = Pick<GameState, 'day' | 'crisis'>
 
-/** The danger share: the ramp, plus the Crisis's surge (crisis/surge.ts) when content is given. */
+/**
+ * The danger share: the ramp, plus the Crisis's waiting penalty and, when content is given, its
+ * surge (crisis/surge.ts). They stack.
+ */
 export function dangerLevel(state: DangerAt, content?: Content): number {
   const surge = crisisSurge(state, content)?.share ?? 0
-  return toPercent(rampLevel(state.day) + surge) / 100
+  const wait = crisisWait(state)?.share ?? 0
+  return toPercent(rampLevel(state.day) + surge + wait) / 100
 }
 
 /** What the top bar says about the danger: the share, as a percent, and the day it next rises. */
@@ -43,6 +48,8 @@ export type DangerInfo = {
   text: string
   /** The surge's part, and why (e.g. "Act II, The Bone Choir, is near its day: +10%"); null without one. */
   surge: { percent: number; text: string } | null
+  /** The waiting penalty's part, and why ("…its lead goes unfollowed: +4%, …"); null without one. */
+  wait: { percent: number; text: string } | null
 }
 
 export function dangerInfo(state: DangerAt, content?: Content): DangerInfo {
@@ -51,6 +58,7 @@ export function dangerInfo(state: DangerAt, content?: Content): DangerInfo {
   const ramp = rampLevel(state.day)
   const step = Math.floor(Math.max(0, state.day - 1) / DANGER_RAMP_DAYS)
   const surge = crisisSurge(state, content)
+  const wait = crisisWait(state, content)
   return {
     share,
     percent,
@@ -60,6 +68,7 @@ export function dangerInfo(state: DangerAt, content?: Content): DangerInfo {
         ? 'The roads are as they have always been'
         : `The roads grow more dangerous: +${percent}%`,
     surge: surge && { percent: toPercent(surge.share), text: surge.text },
+    wait: wait && { percent: toPercent(wait.share), text: wait.text },
   }
 }
 

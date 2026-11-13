@@ -142,6 +142,15 @@ test('fallen: New party or Look back, never Keep playing; the banner stays', asy
   expect(hall.getByText(/Day 1 · Fallen/)).toBeTruthy()
 })
 
+test('disbanded (camaraderie 0) ends the run like a fall, and the Hall says so', () => {
+  localStorage.setItem(SAVE_KEY, serialize({ ...newGame(9, content), camaraderie: 0 }))
+  render(<App />)
+  expect(dialog().getByRole('heading', { name: 'The party has broken up' })).toBeTruthy()
+  expect(dialog().queryByRole('button', { name: /Keep playing/ })).toBeNull()
+  expect(dialog().getByRole('button', { name: 'Look back' })).toBeTruthy()
+  expect(readHall()).toEqual([expect.objectContaining({ id: '9', ending: 'disbanded' })])
+})
+
 test('the Hall holds one record per run, updated when the run ends again', () => {
   const at = '2026-11-13'
   const run = lost()

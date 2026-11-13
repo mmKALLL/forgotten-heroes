@@ -158,16 +158,27 @@ function AccessorySlot({
   )
 }
 
-/** "Camaraderie: Steady (25/40)", explained on hover or tap. */
+/** "Camaraderie: Steady (63/100)", explained on hover or tap. */
 export function CamaraderieLine({ info }: { info: CamaraderieInfo }) {
   const { t } = useI18n()
   const tip = [
     t('camaraderie.tipValue', { label: info.label, value: info.value, max: info.max }),
-    t('camaraderie.tipRules', { fail: info.failCost, flee: info.fleeCost }),
-    t('camaraderie.tipEffect', {
-      max: info.fracturedMax,
-      n: Math.round(info.desertChance * 100),
+    t('camaraderie.tipRules', {
+      fail: info.failCost,
+      crit: info.critCost,
+      flee: info.fleeCost,
+      parting: info.parting,
     }),
+    t('camaraderie.tipEffect', { low: info.lowBelow, days: info.leaveDays, zero: info.disbandAt }),
+    ...(info.nextLoss !== null
+      ? [
+          t('camaraderie.tipSpell', {
+            low: info.lowBelow,
+            weeks: info.weeksBelow,
+            day: info.nextLoss,
+          }),
+        ]
+      : []),
     info.causes.length > 0
       ? t('camaraderie.tipNow', { causes: info.causes.join('; ') })
       : t('camaraderie.tipFine'),
@@ -180,10 +191,10 @@ export function CamaraderieLine({ info }: { info: CamaraderieInfo }) {
         <strong className={low ? 'tone-bad' : undefined}>
           {t('camaraderie.value', { label: info.label, value: info.value, max: info.max })}
         </strong>
-        {info.desertRisk > 0 && (
+        {info.nextLoss !== null && (
           <span className="tone-bad">
             {' · '}
-            {t('camaraderie.desert', { n: Math.round(info.desertRisk * 100) })}
+            {t('camaraderie.leaving', { day: info.nextLoss })}
           </span>
         )}
       </Tip>

@@ -57,6 +57,15 @@ describe('crisisTracker', () => {
     expect(acts[0]).toMatchObject({ phase: 'thwarted', next: null, daysLeft: null, surge: 0 })
   })
 
+  test('the waiting penalty is told on the act whose lead goes unfollowed', () => {
+    const quiet = crisisTracker(withCrisis({}, { day: 40 }), content)!.acts[0]
+    expect(quiet.wait).toBe(0)
+    const waiting = crisisTracker(withCrisis({}, { day: quiet.waitFrom + 4 }), content)!.acts[0]
+    expect(waiting.wait).toBeGreaterThan(0)
+    const led = withCrisis({ leads: [quiet.waitFrom, null, null] }, { day: quiet.waitFrom + 4 })
+    expect(crisisTracker(led, content)!.acts[0].wait).toBe(0)
+  })
+
   test('names who holds each key site once the plan is known: a lieutenant, else the villain', () => {
     const before = crisisTracker(withCrisis({}, { day: 40 }), content)!
     expect(before.acts.map((a) => a.foe)).toEqual([null, null, null])

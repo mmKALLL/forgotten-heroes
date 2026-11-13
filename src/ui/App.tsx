@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { loadBundledContent } from '../content/bundled'
 import { inProgress } from '../engine/encounters/run'
-import { runEnding, runRecord } from '../engine/crisis/ending'
+import { FINAL_ENDINGS, runEnding, runRecord } from '../engine/crisis/ending'
 import { crisisInfo } from '../engine/crisis/status'
 import { camaraderieInfo } from '../engine/town/camaraderie'
 import { suppliesInfo } from '../engine/travel/preview'
@@ -86,12 +86,14 @@ function Game() {
   // The town ledger takes a wider centre column (theme.css), so a settlement fits one screen.
   const inTown = !state.encounter && !shown.travel && !atSite
   const crisis = crisisInfo(shown, content)
-  const fallen = runEnding(shown) === 'fallen'
-  // The end screen: fallen at once; a won or lost Crisis once the encounter that decided it closes.
-  const endScreen = fallen
+  // Fallen or disbanded: the run is over for good.
+  const shownEnding = runEnding(shown)
+  const final = shownEnding !== null && FINAL_ENDINGS.includes(shownEnding) ? shownEnding : null
+  // The end screen: a final ending at once; a won or lost Crisis once the encounter that decided it closes.
+  const endScreen = final
     ? lookedBack === run
       ? null
-      : 'fallen'
+      : final
     : crisis?.showEnd && !shown.encounter
       ? crisis.ended!.outcome
       : null
@@ -133,9 +135,9 @@ function Game() {
           }}
         />
       </header>
-      {fallen && (
+      {final && (
         <div className="fallen-banner" role="status">
-          <span>{t('end.fallenBanner')}</span>
+          <span>{t(final === 'disbanded' ? 'end.disbandedBanner' : 'end.fallenBanner')}</span>
           <button className="primary" onClick={newParty}>
             {t('end.newParty')}
           </button>
