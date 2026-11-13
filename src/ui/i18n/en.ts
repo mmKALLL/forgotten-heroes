@@ -37,7 +37,7 @@ export const en = {
   'wealth.label': 'Visible wealth {steps} of {max}',
   'wealth.hint': 'Precious goods worth {precious} gp: +{pct} hostile on the road',
   'wealth.hintPurse':
-    'Precious goods worth {precious} gp and a heavy purse ({purse} gp showing): +{pct} hostile on the road',
+    '{purse} gp in coin and {precious} gp in precious goods: +{pct} hostile on the road',
   'drop.heading': 'Drop goods',
   'drop.weight': '{kg} kg',
   'drop.one': 'Leave 1 {good} behind',
@@ -700,7 +700,7 @@ export const en = {
   'quality.none': 'Its quality changes nothing yet.',
   'wealth.short': 'Wealth',
   'wealth.explain':
-    'Visible wealth draws trouble on the road: each ◆ adds about +{pct} hostile encounters, and thieves and tolls come more often. It counts precious goods (gems, relics, luxuries) and coin above about {free} gp per member; one ◆ per {step} gp per member.',
+    'Visible wealth draws trouble on the road: each ◆ adds about +{pct} hostile encounters, and thieves and tolls come more often. It counts coin and precious goods (gems, relics, luxuries): a ◆ each at {steps} gp, whatever the party’s size.',
   // The Crisis (Plan 5b, U2): the panel, the top-bar mark, roads, the site panel and the map.
   'crisis.heading': 'Crisis',
   'crisis.act': '{numeral}. {name}',

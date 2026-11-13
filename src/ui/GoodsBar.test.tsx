@@ -48,19 +48,21 @@ test('the capacity meter shows the load and its level', () => {
 
 test('the wealth diamonds are labelled and explain themselves on hover or focus', async () => {
   bar({ goods: {}, gold: 0 })
-  const none = screen.getByRole('img', { name: /^Visible wealth 0 of 4$/ })
-  expect(none.textContent).toMatch(/^Wealth◇◇◇◇/)
+  const none = screen.getByRole('img', { name: /^Visible wealth 0 of 6$/ })
+  expect(none.textContent).toMatch(/^Wealth◇◇◇◇◇◇/)
   const tip = screen.getByRole('tooltip', { hidden: true })
   expect(tip.hidden).toBe(true)
-  expect(tip.textContent).toMatch(/^Visible wealth draws trouble.*\+5% hostile.*50 gp per member/)
+  expect(tip.textContent).toMatch(
+    /^Visible wealth draws trouble.*\+5% hostile.*a ◆ each at 100, 300, 600/
+  )
   await userEvent.hover(none)
   expect(tip.hidden).toBe(false)
   cleanup()
   bar({ goods: { gems: 3 }, gold: 0 })
-  const shown = screen.getByRole('img', { name: /^Visible wealth 1 of 4\./ })
+  const shown = screen.getByRole('img', { name: /^Visible wealth 2 of 6\./ })
   act(() => shown.focus())
   const now = screen.getByRole('tooltip')
-  expect(now.textContent).toMatch(/^Precious goods worth 300 gp: \+5% hostile on the road\n/)
+  expect(now.textContent).toMatch(/^Precious goods worth 300 gp: \+10% hostile on the road\n/)
 })
 
 test('Japanese falls back to English for missing keys', () => {

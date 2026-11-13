@@ -20,6 +20,7 @@ import {
   DUNGEON_NEAR_COUNT,
   DUNGEON_NEAR_CR,
   DUNGEON_NEAR_DAYS,
+  KINGDOMS,
 } from '../engine/constants'
 
 const content = loadBundledContent()
@@ -142,7 +143,9 @@ describe('threats and realm names', () => {
     const share = rampant / domains
     expect(share).toBeGreaterThanOrEqual(0.08)
     expect(share).toBeLessThanOrEqual(0.18)
-    expect(spread / 200).toBeGreaterThanOrEqual(0.8)
+    // Most worlds have a few hot-spots (0.75: fewer kingdoms, designer's KINGDOMS.min 6, leave more
+    // land unheld).
+    expect(spread / 200).toBeGreaterThanOrEqual(0.75)
     // Sprawling kingdoms crack at the edges: seats hold better than borders.
     const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]
     expect(median(seats)).toBeLessThan(median(borders))
@@ -159,7 +162,7 @@ describe('generated worlds on Altaeus', () => {
   test.each([1, 2, 3, 4, 5, 6, 7, 8])('seed %i is valid and fully named', (seed) => {
     const world = generateWorld(worldSeed(seed), content)
     expect(WorldStateSchema.parse(world)).toEqual(world)
-    expect(world.kingdoms.length).toBeGreaterThanOrEqual(8)
+    expect(world.kingdoms.length).toBeGreaterThanOrEqual(KINGDOMS.min)
     expect(Object.keys(world.lands).sort()).toEqual(Object.keys(content.regions).sort())
     expect(Object.keys(world.domains).sort()).toEqual(Object.keys(content.settlements).sort())
     const names = Object.values(world.settlements).map((s) => s.name)

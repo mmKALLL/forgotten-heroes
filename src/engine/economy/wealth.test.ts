@@ -10,7 +10,7 @@ import { placeOnRoute } from '../travel/journey'
 import { routeOptions } from '../travel/preview'
 import { hostileShare } from '../travel/routes'
 import { visibleWealth } from './wealth'
-import { HOSTILE_SHARE_RANGE } from '../constants'
+import { HOSTILE_SHARE_RANGE, WEALTH_BREAKPOINTS, WEALTH_MAX_STEPS } from '../constants'
 
 const content = fixtureContent()
 
@@ -19,7 +19,7 @@ describe('visibleWealth', () => {
     expect(visibleWealth(makeState({ gold: 20, goods: { food: 10 } }), content).steps).toBe(0)
   })
 
-  test('the same gems carried by four members add fewer steps than by two', () => {
+  test('the same gems count the same whatever the party size (designer call)', () => {
     const goods = { gems: 6 }
     const two = makeState({ gold: 0, goods, party: [brom, lyra] })
     const four = makeState({
@@ -28,15 +28,16 @@ describe('visibleWealth', () => {
       party: [brom, lyra, makeCharacter({ id: 'c' }), makeCharacter({ id: 'd' })],
     })
     expect(visibleWealth(two, content).steps).toBeGreaterThan(0)
-    expect(visibleWealth(four, content).steps).toBeLessThan(visibleWealth(two, content).steps)
+    expect(visibleWealth(four, content).steps).toBe(visibleWealth(two, content).steps)
   })
 
-  test('a heavy purse counts partly', () => {
-    const light = visibleWealth(makeState({ gold: 100, goods: {} }), content)
-    const heavy = visibleWealth(makeState({ gold: 1000, goods: {} }), content)
-    expect(light.value).toBe(0)
-    expect(heavy.value).toBeGreaterThan(0)
-    expect(heavy.value).toBeLessThan(1000)
+  test('coin steps up at each breakpoint, up to WEALTH_MAX_STEPS', () => {
+    const at = (gold: number) => visibleWealth(makeState({ gold, goods: {} }), content).steps
+    WEALTH_BREAKPOINTS.forEach((gp, i) => {
+      expect(at(gp - 1)).toBe(i)
+      expect(at(gp)).toBe(i + 1)
+    })
+    expect(at(1_000_000)).toBe(WEALTH_MAX_STEPS)
   })
 })
 

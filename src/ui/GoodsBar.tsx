@@ -13,10 +13,9 @@ import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
 import {
   OVERLOAD_RATIO,
-  PURSE_FREE_PER_MEMBER,
   WEALTH_HOSTILE_PER_STEP,
   WEALTH_MAX_STEPS,
-  WEALTH_STEP_GP,
+  WEALTH_BREAKPOINTS,
 } from '../engine/constants'
 
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
@@ -133,8 +132,7 @@ export function WealthPips({ wealth }: { wealth: VisibleWealth }) {
         : t('wealth.hint', { precious: Math.round(wealth.precious), pct })
   const explain = t('wealth.explain', {
     pct: formatPercent(WEALTH_HOSTILE_PER_STEP),
-    free: PURSE_FREE_PER_MEMBER,
-    step: WEALTH_STEP_GP,
+    steps: WEALTH_BREAKPOINTS.join(', '),
   })
   return (
     <Tip
