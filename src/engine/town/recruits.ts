@@ -316,6 +316,7 @@ export function hireRecruit(state: GameState, content: Content, offerId: string)
     party: [...state.party, c],
     goods: { ...state.goods, food: (state.goods.food ?? 0) + STARTING_FOOD_DAYS },
     recruitsTaken: [...state.recruitsTaken, offer.id],
+    doneHere: [...state.doneHere, hiredHere(c.id)],
   }
   return appendLog(
     next,
@@ -325,23 +326,40 @@ export function hireRecruit(state: GameState, content: Content, offerId: string)
   )
 }
 
+/** doneHere key: this member signed on during the current stay (hireRecruit). */
+const hiredHere = (id: string) => `hired:${id}`
+
 /**
- * Parts ways with a hired member (alive or dead); founders are never dismissed. It costs nothing,
- * and their accessory stays with the party's gear. A living member's leaving lifts the rest
- * (CAMARADERIE_PARTING, town/camaraderie.ts); laying the dead to rest doesn't.
+ * Why a hired member can't be dismissed (English), or null: never the last living member, which
+ * would end the run as if the company had fallen. Founders stay anyway (isHired).
+ */
+export function dismissRefusal(party: readonly Character[], c: Character): string | null {
+  const others = party.filter((m) => m.id !== c.id && isAlive(m))
+  return isAlive(c) && others.length === 0 ? 'They are all that is left of the company.' : null
+}
+
+/**
+ * Parts ways with a hired member (alive or dead); founders are never dismissed, nor the last
+ * living member (dismissRefusal). It costs nothing, and their accessory stays with the party's
+ * gear. A living member's leaving lifts the rest (CAMARADERIE_PARTING, town/camaraderie.ts),
+ * unless they signed on during this same stay (hiring to dismiss isn't a way to mend spirits);
+ * laying the dead to rest doesn't.
  */
 export function dismissMember(state: GameState, characterId: string): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const c = state.party.find((m) => m.id === characterId)
   if (!c) return appendLog(state, 'There is no such member.', 'bad')
   if (!isHired(c)) return appendLog(state, `${c.name} is a founder and stays.`, 'bad')
+  const refused = dismissRefusal(state.party, c)
+  if (refused) return appendLog(state, `You can't dismiss ${c.name}: ${refused}`, 'bad')
   const next: GameState = {
     ...state,
     party: state.party.filter((m) => m.id !== c.id),
     gear: c.accessory ? [...state.gear, c.accessory] : state.gear,
   }
   if (!isAlive(c)) return appendLog(next, `${c.name} is laid to rest and left behind.`, 'info')
-  return parting(appendLog(next, `${c.name} is dismissed and leaves the party.`, 'info'), c.name)
+  const left = appendLog(next, `${c.name} is dismissed and leaves the party.`, 'info')
+  return state.doneHere.includes(hiredHere(c.id)) ? left : parting(left, c.name)
 }
 
 export function stepRecruit(state: GameState, action: RecruitAction, content: Content): GameState {

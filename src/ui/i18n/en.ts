@@ -194,6 +194,8 @@ export const en = {
   'challenge.of': '{n} of {of}',
   'challenge.chance': '≈{percent} to win, choosing the best each round',
   'challenge.rule': 'A critical counts twice.',
+  'challenge.win': 'Win:',
+  'challenge.lose': 'Lose:',
 
   'option.situational': 'situational',
   /** A party upgrade's next level for sale on a service tile (Plan 6c). */
@@ -609,6 +611,8 @@ export const en = {
   'delve.hoardPrecious': ', {n} precious goods',
   'delve.hoardAccessory': ', an accessory',
   'delve.hoardAccessories': ', {n} accessories',
+  'delve.hoardUnknown': 'The hoard at the end: ? gp, and ? XP.',
+  'delve.riskUnknown': 'About ?% that the next room drives you out: no word of this place yet.',
   'delve.rule':
     'Each room is about twice as risky as the road: wounds are doubled, and a failed room drives you out with no hoard. Between rooms you may withdraw with what you found.',
   'delve.risk': 'About {pct}% that the next room drives you out, with your best opening choice.',

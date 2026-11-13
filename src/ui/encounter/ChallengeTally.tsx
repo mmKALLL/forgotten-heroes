@@ -1,4 +1,4 @@
-import type { ChallengePreview } from '../../engine/encounters/preview'
+import type { BranchPreview, ChallengePreview } from '../../engine/encounters/preview'
 import { formatPercent } from '../../engine/format'
 import { useI18n } from '../i18n/I18n'
 
@@ -6,9 +6,25 @@ import { useI18n } from '../i18n/I18n'
 const pips = (filled: number, of: number, on: string, off: string) =>
   Array.from({ length: of }, (_, i) => (i < filled ? on : off)).join('')
 
+/** What winning or losing does, as chips ("—" when nothing). */
+function Ending({ label, branch }: { label: string; branch: BranchPreview }) {
+  return (
+    <span className="challenge-ending">
+      {label}{' '}
+      {branch.effects.length === 0
+        ? '—'
+        : branch.effects.map((e) => (
+            <span key={e} className="chip">
+              {e}
+            </span>
+          ))}
+    </span>
+  )
+}
+
 /**
  * A skill challenge's tally (Plan 6 S): successes and failures so far against what wins and
- * loses it, and the chance of winning with the best choice each round. What each tier marks is
+ * loses it, the chance of winning with the best choice each round, and what winning and losing do. What each tier marks is
  * on the outcome rows; only the hidden critical tiers' rule is said here.
  */
 export function ChallengeTally({ challenge }: { challenge: ChallengePreview }) {
@@ -30,6 +46,11 @@ export function ChallengeTally({ challenge }: { challenge: ChallengePreview }) {
       </span>
       <span className="challenge-chance">
         {t('challenge.chance', { percent: formatPercent(challenge.chance) })}
+      </span>
+      <span className="small challenge-endings">
+        <Ending label={t('challenge.win')} branch={challenge.win} />
+        <span aria-hidden="true"> · </span>
+        <Ending label={t('challenge.lose')} branch={challenge.lose} />
       </span>
       <span className="muted small challenge-rule">{t('challenge.rule')}</span>
     </section>

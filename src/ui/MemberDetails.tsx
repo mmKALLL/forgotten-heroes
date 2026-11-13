@@ -43,10 +43,13 @@ export function MemberDetails({
   character: c,
   gear,
   onAction,
+  dismissRefusal = null,
 }: {
   character: Character
   /** The party's unworn accessories. */
   gear: readonly Accessory[]
+  /** Why this member can't be dismissed (recruits.ts dismissRefusal), shown in place of Dismiss. */
+  dismissRefusal?: string | null
   /** Absent while nothing can be changed (an encounter is open). */
   onAction?: (a: Action) => void
 }) {
@@ -81,7 +84,9 @@ export function MemberDetails({
         <div className="member-hire">
           <span>{t('party.hired')}</span>
           {onAction &&
-            (confirming ? (
+            (dismissRefusal ? (
+              <span className="muted">{dismissRefusal}</span>
+            ) : confirming ? (
               <span className="member-confirm">
                 <span className="tone-bad">
                   {t(alive ? 'party.dismissAsk' : 'party.layToRestAsk', { name: c.name })}

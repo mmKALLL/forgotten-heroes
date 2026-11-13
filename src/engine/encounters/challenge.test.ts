@@ -197,6 +197,26 @@ describe('a challenge stage', () => {
     expect(fled.gold).toBe(at.gold)
   })
 
+  test('the win and lose previews are what ending it does', () => {
+    const seen = new Set<string>()
+    for (let seed = 1; seed <= 40 && seen.size < 2; seed++) {
+      let s = atDuel(seed)
+      for (let guard = 0; guard < 50 && s.encounter?.stage === 'duel'; guard++) {
+        const { win, lose } = challengePreview(s)!
+        const next = play(unstrained(s), challengePreview(s)!.best!)
+        if (next.encounter!.stage === null) {
+          const won = next.encounter!.tally!.successes >= 3
+          const shown = won ? win : lose
+          const texts = next.encounter!.log.map((l) => l.text)
+          expect(texts).toContain(`${shown.text} (${shown.effects.join(', ')})`)
+          seen.add(won ? 'win' : 'lose')
+        }
+        s = next
+      }
+    }
+    expect([...seen].sort()).toEqual(['lose', 'win'])
+  })
+
   test('is deterministic', () => {
     expect(bestPlay(atDuel(7))).toEqual(bestPlay(atDuel(7)))
   })

@@ -592,9 +592,10 @@ describe('explore', () => {
     expect(again.day).toBe(after.day)
     expect(again.goods).toEqual(after.goods)
     expect(again.log.at(-1)!.text).toBe(FULLY_EXPLORED)
-    // Something new to find (a site placed later) makes the record lapse.
+    // Something hidden becoming findable doesn't lift the mark by itself: that would point to it.
+    // Only what the party learns does (forgetExplored; see crisis/progress.test.ts).
     const fresh = { ...after, world: { ...after.world, pois: { 'poi-1': poi('greenvale-1', 0) } } }
-    expect(exploreOption(fresh, content)!.explored).toBe(false)
+    expect(exploreOption(fresh, content)!.explored).toBe(true)
   })
 
   test('a critical success that finds one of two marks the domain explored too', () => {

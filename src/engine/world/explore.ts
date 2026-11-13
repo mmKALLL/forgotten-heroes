@@ -17,8 +17,9 @@ import { forageDay } from '../travel/forage'
 import { passDay } from '../travel/supplies'
 import { compass, settlementName } from './geo'
 import { poiPaths } from './graph'
-import { anyUndiscovered, domainAt, poisToDiscover } from './pois'
+import { domainAt, poisToDiscover } from './pois'
 import { crisisHidden, crisisSites } from '../crisis/sites'
+import { crisisStatus } from '../crisis/status'
 import { gainXp } from '../rules/progression'
 import { kmPerDay } from '../travel/routes'
 import { crisisRefusal, crisisVisit } from '../crisis/progress'
@@ -68,9 +69,10 @@ export type ExploreOption = {
   /** The sites each tier finds and the days it takes, for previews in any language. */
   finds: Record<Tier, { found: number; days: number }>
   /**
-   * True when the party knows the domain is fully explored (a search here came up short, and
-   * nothing new has appeared since): Explore is replaced by FULLY_EXPLORED and refused. Before
-   * that it is offered as usual, so the preview never tells what the party doesn't know.
+   * True when the party knows the domain is fully explored (a search here came up short, and it
+   * has learned of nothing new there since: knownExplored): Explore is replaced by FULLY_EXPLORED
+   * and refused. Before that it is offered as usual, so the preview never tells what the party
+   * doesn't know.
    */
   explored: boolean
 }
@@ -113,12 +115,37 @@ const searchHidden = (state: GameState, domain: string) => crisisHidden(state, d
 
 /**
  * Whether the party knows this domain is fully explored: it is in `state.explored` (a search here
- * came up short) and there is still nothing to find. When something new appears (a Crisis lead
- * the clues now point to, a site placed later) the record no longer counts, and Explore returns.
+ * came up short). The mark lapses only with what the party learns (forgetExplored), never merely
+ * because something hidden became findable: Explore returning in one domain would point to it.
  */
 export function knownExplored(state: GameState, domain: string): boolean {
-  if (!state.explored.includes(domain)) return false
-  return !anyUndiscovered(state.world, domain, { scope: 'domain' }, searchHidden(state, domain))
+  return state.explored.includes(domain)
+}
+
+/** The land the open act's lead can be searched for in (crisisHidden: a clue in hand), or null. */
+function leadLand(state: GameState): string | null {
+  const crisis = state.crisis
+  if (!crisis) return null
+  const status = crisisStatus(crisis, state.day)
+  if (status.phase !== 'investigation' || status.clues < 1 || status.act === null) return null
+  const domain = own(state.world.pois, crisis.acts[status.act].lead)?.domain
+  const land = own(state.world.domains, domain)?.land
+  return land ? `${status.act}:${land}` : null
+}
+
+/**
+ * After a step (state.ts): when the open act's lead comes within a search's reach (its land made
+ * known by a clue line, or its act opening with a clue in hand), every domain of that land loses
+ * its "fully explored" mark, so Explore returns across the land the party was told of, not in
+ * the lead's own domain alone.
+ */
+export function forgetExplored(before: GameState, after: GameState): GameState {
+  if (after.explored.length === 0) return after
+  const key = leadLand(after)
+  if (key === null || key === leadLand(before)) return after
+  const land = key.slice(key.indexOf(':') + 1)
+  const explored = after.explored.filter((d) => own(after.world.domains, d)?.land !== land)
+  return explored.length === after.explored.length ? after : { ...after, explored }
 }
 
 /**

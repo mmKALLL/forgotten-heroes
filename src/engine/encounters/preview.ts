@@ -19,6 +19,7 @@ import {
   conditionHolds,
   describeCondition,
   describeEffect,
+  downedChips,
   openingEffects,
   prepareEffects,
 } from './effects'
@@ -53,6 +54,8 @@ type ChipContext = {
   upgraded: (effect: Effect) => Effect | null
   /** What the smuggler's compartment hides from a goods loss ("3 hidden"), or null (hiddenNote). */
   hidden: (effect: Effect) => string | null
+  /** Who the effects would put down (downedChips), with `actorId` as the actor. */
+  downed: (effects: readonly Effect[]) => string[]
 }
 
 /** `next` is "escalates" for a twist branch that goes on to the twist's escalation stage. */
@@ -183,13 +186,15 @@ function branchPreview(
   const own = branch.effects
     .filter((e) => e.effect === 'xp' && (!e.if || conditionHolds(e.if, encounter)))
     .reduce((sum, e) => sum + (e.effect === 'xp' ? e.amount : 0), 0)
-  const failed = ctx.failsAct(prepareEffects(branch.effects, encounter))
+  const prepared = prepareEffects(branch.effects, encounter)
+  const failed = ctx.failsAct(prepared)
   const chips = [
     ...effectChips(branch.effects, encounter, actorName, ctx),
     ...(fallback > 0 ? [describeEffect({ effect: 'xp', amount: fallback }, actorName)!] : []),
     ...(setback < 0
       ? [describeEffect({ effect: 'camaraderie', amount: setback }, actorName)!]
       : []),
+    ...ctx.downed(prepared.flatMap((e) => ctx.upgraded(e) ?? [])),
     ...(failed !== null ? [tooLateChip(failed)] : []),
   ]
   return {
@@ -230,6 +235,21 @@ function outcomePreview(
 }
 
 /**
+ * The chip context of the open encounter: its place, the Crisis act, the party's upgrades, and
+ * who acts (`actorId`: none for a fixed option or a challenge's ending).
+ */
+function chipContext(state: GameState, encounter: EncounterState, actorId?: string): ChipContext {
+  return {
+    downed: (effects) => downedChips(state.party, effects, actorId),
+    place: encounterSettlementName(state),
+    act: crisisActNumber(state),
+    failsAct: (effects) => crisisFailsDuring(state, effects),
+    upgraded: (effect) => upgradedEffect(state, effect),
+    hidden: (effect) => hiddenNote(state, encounter.situation.tags, effect),
+  }
+}
+
+/**
  * Everything the player sees before committing (design §7): the acting member, skill, DC, the
  * odds of every tier, and the outcomes of all but the critical tiers, which stay hidden. `actorIds` maps option ids to the player's actor overrides.
  */
@@ -241,13 +261,7 @@ export function encounterOptions(
   if (!encounter) return []
   const mode = POSITION_MODE[encounter.position]
   const situationalModifier = encounter.nextCheckModifier
-  const ctx: ChipContext = {
-    place: encounterSettlementName(state),
-    act: crisisActNumber(state),
-    failsAct: (effects) => crisisFailsDuring(state, effects),
-    upgraded: (effect) => upgradedEffect(state, effect),
-    hidden: (effect) => hiddenNote(state, encounter.situation.tags, effect),
-  }
+  const ctx = chipContext(state, encounter)
   const members = livingMembers(state).length
   const challenge = challengeOf(encounter)
   return currentOptions(encounter).map((option) => {
@@ -296,6 +310,7 @@ export function encounterOptions(
       }
     }
     const values = { ...encounter.slots, actor: preview.actorName }
+    const acted = chipContext(state, encounter, preview.actorId)
     const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
     // The same effective modifier `chooseOption` rolls with: delving gear helps in dungeon rooms,
     // the scout's kit on a surprise check or when Exposed.
@@ -321,7 +336,7 @@ export function encounterOptions(
       encounter,
       values,
       preview.actorName,
-      ctx,
+      acted,
       xpFor('success')
     )
     const check: OptionCheckPreview = {
@@ -354,7 +369,7 @@ export function encounterOptions(
               encounter,
               values,
               preview.actorName,
-              ctx,
+              acted,
               xpFor(tier),
               setbackAt(tier)
             ),
@@ -391,6 +406,12 @@ export type ChallengePreview = {
   chance: number
   best: string | null
   ifChosen: Record<string, number>
+  /**
+   * What winning and losing do, as `chooseOption` applies them (no actor, no XP of their own): a
+   * room's hoard or driving out, upgrades, and the Crisis's "too late" all show as chips.
+   */
+  win: BranchPreview
+  lose: BranchPreview
 }
 
 /** Null when the encounter isn't on a challenge stage (or has ended). */
@@ -413,11 +434,16 @@ export function challengePreview(state: GameState): ChallengePreview | null {
     used: encounter.used,
   })
   const ranked = Object.entries(ifChosen).sort((a, b) => b[1] - a[1])
+  const ctx = chipContext(state, encounter)
+  const ending = (branch: OutcomeBranch) =>
+    branchPreview(branch, encounter, encounter.slots, 'someone', ctx, () => 0, 0)
   return {
     tally,
     need: { successes: challenge.successes, failures: challenge.failures },
     chance,
     best: ranked[0]?.[0] ?? null,
     ifChosen,
+    win: ending(challenge.win),
+    lose: ending(challenge.lose),
   }
 }

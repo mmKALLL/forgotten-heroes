@@ -14,7 +14,7 @@ import {
   XP_BY_LEVEL,
 } from '../constants'
 import { serviceRows } from './services'
-import { gearPrice, recruitOffers, signOnFee, type RecruitOffer } from './recruits'
+import { dismissRefusal, gearPrice, recruitOffers, signOnFee, type RecruitOffer } from './recruits'
 
 const content = fixtureContent()
 const HERE = 'greenvale-1'
@@ -233,5 +233,31 @@ describe('hiring and dismissing', () => {
     const left = act(hired, { type: 'dismissMember', characterId: recruit.id })
     expect(left.party.map((c) => c.id)).toEqual([brom.id, lyra.id])
     expect(left.gold).toBe(hired.gold)
+  })
+
+  test('dismissing someone hired this stay lifts no one; someone hired before does', () => {
+    const s = at({ camaraderie: 10 })
+    const hired = act(s, { type: 'hireRecruit', offerId: offers(s)[0].id })
+    const recruit = hired.party[2]
+    const now = act(hired, { type: 'dismissMember', characterId: recruit.id })
+    expect(now.camaraderie).toBe(hired.camaraderie)
+    // A later stay: doneHere is cleared on arrival.
+    const later = act(
+      { ...hired, doneHere: [] },
+      { type: 'dismissMember', characterId: recruit.id }
+    )
+    expect(later.camaraderie).toBeGreaterThan(hired.camaraderie)
+  })
+
+  test('the last living member is never dismissed', () => {
+    const last = { ...lyra, hired: true }
+    const s = at({ party: [{ ...brom, exhaustion: 6 }, last] })
+    expect(dismissRefusal(s.party, last)).toBe('They are all that is left of the company.')
+    const tried = act(s, { type: 'dismissMember', characterId: last.id })
+    expect(tried.party).toHaveLength(2)
+    expect(tried.log.at(-1)!.text).toContain('all that is left')
+    // The dead can still be laid to rest.
+    const dead = { ...lyra, id: 'x', hired: true, exhaustion: 6 }
+    expect(dismissRefusal([brom, dead], dead)).toBeNull()
   })
 })

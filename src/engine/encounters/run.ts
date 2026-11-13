@@ -31,7 +31,7 @@ import { omenFactor } from '../crisis/clues'
 import { boonReadyIn, siteStatus } from '../world/sites'
 import { atChallenge, dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
-import { applyEffects, describeEffect, prepareEffects } from './effects'
+import { applyEffects, describeEffect, downedChips, prepareEffects } from './effects'
 import {
   addGoods,
   checkUpgrades,
@@ -476,6 +476,7 @@ function resolve(
       const hidden = chip && hiddenNote(state, tags, e)
       return chip ? [hidden ? `${chip} (${hidden})` : chip] : []
     }),
+    ...downedChips(state.party, effects, actorId),
     ...(failed !== null ? [tooLateChip(failed)] : []),
   ]
   const text = fill(branch.text) + (chips.length > 0 ? ` (${chips.join(', ')})` : '')

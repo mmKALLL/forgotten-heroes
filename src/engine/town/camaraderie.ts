@@ -152,14 +152,20 @@ const busy = (s: GameState): boolean => s.encounter !== null && s.encounter.stag
 /**
  * After every step (state.ts): the low spell. Below LOW_BELOW it starts (on this day) or goes on,
  * and for each full CAMARADERIE_LEAVE_DAYS of it a member leaves, between encounters. At
- * LOW_BELOW or above it ends.
+ * LOW_BELOW or above it ends. At 0 the party has disbanded: no one leaves first (their parting
+ * would lift it off 0).
  */
 export function keepLowSpell(state: GameState): GameState {
   if (state.camaraderie >= LOW_BELOW) return state.lowSpell ? { ...state, lowSpell: null } : state
   let next: GameState = state.lowSpell
     ? state
     : { ...state, lowSpell: { since: state.day, losses: 0 } }
-  while (next.lowSpell && !busy(next) && next.day >= nextLossDay(next.lowSpell)!) {
+  while (
+    next.lowSpell &&
+    !partyDisbanded(next) &&
+    !busy(next) &&
+    next.day >= nextLossDay(next.lowSpell)!
+  ) {
     next = loseToTheSpell(next)
   }
   return next

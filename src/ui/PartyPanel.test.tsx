@@ -133,6 +133,21 @@ test('dismissing a hired member asks first; founders have no Dismiss', async () 
   expect(onAction).toHaveBeenCalledWith({ type: 'dismissMember', characterId: 'lyra' })
 })
 
+test('the last living member has no Dismiss, and says why', async () => {
+  render(
+    <PartyPanel
+      party={[
+        { ...brom, exhaustion: 6 },
+        { ...lyra, hired: true },
+      ]}
+      onAction={vi.fn()}
+    />
+  )
+  await userEvent.click(toggle('Lyra'))
+  expect(card('Lyra').queryByRole('button', { name: 'Dismiss' })).toBeNull()
+  expect(card('Lyra').getByText('They are all that is left of the company.')).toBeTruthy()
+})
+
 test('the accessory slot: the worn one with its hooks, Take off, and wearing from the gear', async () => {
   const ring: Accessory = {
     id: 'ring',

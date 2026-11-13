@@ -7,6 +7,7 @@ import { crLevel } from '../../engine/rules/challenge'
 import { founderLevel } from '../../engine/rules/levels'
 import { delvePreview } from '../../engine/world/delve'
 import { siteCr } from '../../engine/world/dungeons'
+import { terrainHere } from '../../engine/world/graph'
 import { DungeonCard, SiteCr } from './DelveView'
 import { useI18n } from '../i18n/I18n'
 import { ExploreAction } from './ExploreAction'
@@ -46,7 +47,7 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
   // An authored dungeon (Plan 6 D3) or a lair's challenge rating (D2).
   const dungeon = delvePreview(state, content, state.location!)
   const cr = siteCr(state.world, content, state.location!, state.day)
-  const supplies = suppliesInfo(state)
+  const supplies = suppliesInfo(state, terrainHere(state, content), content)
   const reason = visit?.code ?? null
   return (
     <section className="panel place poi-panel" aria-label={t('poi.heading')}>

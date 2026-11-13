@@ -133,8 +133,9 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       const party = state.party.map((c) => {
         if (!ids.includes(c.id)) return c
         const hp = clamp(c.hp + effect.amount, 0, c.maxHp)
-        // A wound that drops a living member to 0 HP, or lands on one already down, leaves a
-        // level of exhaustion (Plan 6 B): pressing on hurt can kill (exhaustion 6 is death).
+        // A wound that drops a living member to 0 HP, or lands on one already down, leaves
+        // DOWNED_EXHAUSTION levels of exhaustion (Plan 6 B): pressing on hurt can kill (exhaustion
+        // 6 is death). downedChips foresees it for the previews.
         if (effect.amount >= 0 || hp > 0 || c.exhaustion >= MAX_EXHAUSTION) return { ...c, hp }
         downed.push(c.name)
         return { ...c, hp, exhaustion: clamp(c.exhaustion + DOWNED_EXHAUSTION, 0, MAX_EXHAUSTION) }
@@ -313,6 +314,60 @@ export function applyEffects(
 }
 
 const WHO = { all: 'everyone', random: 'someone' } as const
+
+/**
+ * Who these effects (prepared: prepareEffects) would put down, as chips after the effect chips:
+ * "Bram goes down: +2 exhaustion" for a wound that drops a member to 0 HP or lands on one already
+ * down, as applyEffect's hp does, following HP through the effects in order. A random target (or
+ * "actor" with no actor) can't be named: "a member at 0 HP gains +2 exhaustion" when the wound
+ * could drop someone able to act.
+ */
+export function downedChips(
+  party: readonly Character[],
+  effects: readonly Effect[],
+  actorId: string | undefined
+): string[] {
+  let members = [...party]
+  const chips: string[] = []
+  const named = (target: 'actor' | 'all' | 'random'): string[] | null => {
+    if (target === 'all') return members.map((c) => c.id)
+    if (target === 'actor' && members.some((c) => c.id === actorId)) return [actorId!]
+    return null
+  }
+  for (const effect of effects) {
+    if (effect.effect === 'hp') {
+      const ids = named(effect.target)
+      if (ids === null) {
+        const could = members.some((c) => canAct(c) && c.hp + effect.amount <= 0)
+        if (effect.amount < 0 && could)
+          chips.push(`a member at 0 HP gains +${DOWNED_EXHAUSTION} exhaustion`)
+        continue
+      }
+      const down: string[] = []
+      members = members.map((c) => {
+        if (!ids.includes(c.id)) return c
+        const hp = clamp(c.hp + effect.amount, 0, c.maxHp)
+        if (effect.amount >= 0 || hp > 0 || c.exhaustion >= MAX_EXHAUSTION) return { ...c, hp }
+        down.push(c.name)
+        return { ...c, hp, exhaustion: clamp(c.exhaustion + DOWNED_EXHAUSTION, 0, MAX_EXHAUSTION) }
+      })
+      if (down.length > 0)
+        chips.push(
+          `${down.join(' and ')} ${down.length > 1 ? 'go' : 'goes'} down: +${DOWNED_EXHAUSTION} exhaustion${down.length > 1 ? ' each' : ''}`
+        )
+    } else if (effect.effect === 'healFraction' || effect.effect === 'exhaustion') {
+      const ids = named(effect.target)
+      if (ids === null) continue
+      members = members.map((c) => {
+        if (!ids.includes(c.id)) return c
+        return effect.effect === 'healFraction'
+          ? { ...c, hp: Math.min(c.maxHp, c.hp + healOf(c, effect.fraction)) }
+          : { ...c, exhaustion: clamp(c.exhaustion + effect.amount, 0, MAX_EXHAUSTION) }
+      })
+    }
+  }
+  return chips
+}
 
 /** What a healFraction heals a character: the share of their max HP, rounded up. */
 export const healOf = (c: Pick<Character, 'maxHp'>, fraction: number): number =>

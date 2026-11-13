@@ -435,7 +435,7 @@ export const CAMARADERIE_HUNGER = 8
 export const CAMARADERIE_DEATH = 25
 /**
  * Camaraderie lost for a failed encounter check, per living member beyond the first (the total is
- * rounded: 3 for a pair, 13 for six).
+ * rounded to whole points).
  */
 export const CAMARADERIE_FAIL = 1
 /** Camaraderie lost for a critically failed encounter check, per living member beyond the first. */

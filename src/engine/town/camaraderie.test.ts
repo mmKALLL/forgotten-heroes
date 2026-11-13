@@ -323,6 +323,16 @@ describe('disbanded (Plan 6 wave 2b)', () => {
     expect(runEnding(broken)).toBe('disbanded')
     expect(broken.log.at(-1)).toMatchObject({ text: DISBANDED_LINE, tone: 'crit' })
     expect(act(broken, { type: 'rest', lodging: 'common' })).toBe(broken)
+    // On a day the low spell would take someone, 0 still disbands: no one leaves to lift it.
+    const due = {
+      ...s,
+      camaraderie: 5,
+      lowSpell: { since: 1, losses: 0 },
+      day: CAMARADERIE_LEAVE_DAYS + 1,
+    }
+    const ended = act(due, { type: 'chooseOption', optionId: 'part' })
+    expect(ended.party).toHaveLength(due.party.length)
+    expect(runEnding(ended)).toBe('disbanded')
   })
 })
 

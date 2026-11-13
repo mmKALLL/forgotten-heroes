@@ -7,7 +7,7 @@ import { camaraderieInfo } from '../engine/town/camaraderie'
 import { ownedUpgrades } from '../engine/town/upgrades'
 import { suppliesInfo } from '../engine/travel/preview'
 import { dangerInfo } from '../engine/world/danger'
-import { nodeOf } from '../engine/world/graph'
+import { nodeOf, terrainHere } from '../engine/world/graph'
 import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
 import { ContractsPanel } from './ContractsPanel'
@@ -82,7 +82,8 @@ function Game() {
   const rolling = revealed !== state && !reducedMotion && addsRoll(revealed, state)
   if (!rolling && revealed !== state) setRevealed(state)
   const shown = rolling ? revealed : state
-  const supplies = suppliesInfo(shown)
+  // Camels' desert saving counts, as on the journey panel.
+  const supplies = suppliesInfo(shown, terrainHere(shown, content), content)
   const atSite = shown.location !== null && nodeOf(shown, content, shown.location)?.kind === 'poi'
   // The town ledger takes a wider centre column (theme.css), so a settlement fits one screen.
   const inTown = !state.encounter && !shown.travel && !atSite

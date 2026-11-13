@@ -127,14 +127,6 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
   const current = p.current ?? dungeon.rooms.length
   const nextRoom = dungeon.rooms[nextIndex]
   const between = !p.inRoom && nextRoom !== undefined
-  const { hoard } = p
-  const extra =
-    (hoard.precious > 0 ? t('delve.hoardPrecious', { n: hoard.precious }) : '') +
-    (hoard.accessories === 1
-      ? t('delve.hoardAccessory')
-      : hoard.accessories > 1
-        ? t('delve.hoardAccessories', { n: hoard.accessories })
-        : '')
   return (
     <section className="panel delve-panel" aria-label={t('delve.heading')}>
       <div className="map-head">
@@ -197,17 +189,9 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
       {between && (
         <>
           <p className="small">
-            {t('delve.hoard', {
-              gold: `${hoard.gold.min}–${hoard.gold.max}`,
-              extra,
-              xp: hoard.xp,
-            })}
+            <HoardLine preview={p} />
           </p>
-          {p.risk !== null && (
-            <p className={`small ${p.risk >= 0.5 ? 'tone-bad' : 'muted'}`}>
-              <RiskLine risk={p.risk} />
-            </p>
-          )}
+          <Risk preview={p} />
           <div className="actions">
             <button className="primary" onClick={() => onAction({ type: 'pressOn' })}>
               {t('delve.pressOn', { name: nextRoom.name })}
@@ -223,12 +207,13 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
 }
 
 /**
- * What a site panel says of an authored dungeon before entering: its summary, CR against the
- * party's level, its rooms, the hoard and the rule that a failed room drives the party out.
+ * The hoard at the end, or "?" while the dungeon's level is unknown (suggestedLevel null): its
+ * gold, goods and XP come from the CR, so they would give the level away.
  */
-export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
+function HoardLine({ preview: p }: { preview: DelvePreview }) {
   const { t } = useI18n()
   const { hoard } = p
+  if (p.suggestedLevel === null) return <>{t('delve.hoardUnknown')}</>
   const extra =
     (hoard.precious > 0 ? t('delve.hoardPrecious', { n: hoard.precious }) : '') +
     (hoard.accessories === 1
@@ -236,6 +221,29 @@ export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
       : hoard.accessories > 1
         ? t('delve.hoardAccessories', { n: hoard.accessories })
         : '')
+  return (
+    <>{t('delve.hoard', { gold: `${hoard.gold.min}–${hoard.gold.max}`, extra, xp: hoard.xp })}</>
+  )
+}
+
+/** The next room's risk line; "?" while the level is unknown (the risk comes from the CR). */
+function Risk({ preview: p }: { preview: DelvePreview }) {
+  const { t } = useI18n()
+  if (p.risk === null) return null
+  if (p.suggestedLevel === null) return <p className="small muted">{t('delve.riskUnknown')}</p>
+  return (
+    <p className={`small ${p.risk >= 0.5 ? 'tone-bad' : 'muted'}`}>
+      <RiskLine risk={p.risk} />
+    </p>
+  )
+}
+
+/**
+ * What a site panel says of an authored dungeon before entering: its summary, CR against the
+ * party's level, its rooms, the hoard and the rule that a failed room drives the party out.
+ */
+export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
+  const { t } = useI18n()
   return (
     <div className="dungeon-card">
       <p className="small">
@@ -248,14 +256,10 @@ export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
       )}
       <p className="small">{t('delve.rooms', { n: p.dungeon.rooms.length })}</p>
       <p className="small">
-        {t('delve.hoard', { gold: `${hoard.gold.min}–${hoard.gold.max}`, extra, xp: hoard.xp })}
+        <HoardLine preview={p} />
       </p>
       <p className="muted small">{t('delve.rule')}</p>
-      {p.risk !== null && (
-        <p className={`small ${p.risk >= 0.5 ? 'tone-bad' : 'muted'}`}>
-          <RiskLine risk={p.risk} />
-        </p>
-      )}
+      <Risk preview={p} />
     </div>
   )
 }
