@@ -56,7 +56,8 @@
               "party",
               "enemy",
               "tile",
-              "twoTiles"
+              "twoTiles",
+              "unit"
             ]
           },
           "range": {
@@ -77,16 +78,16 @@
           "action": {
             "default": "action",
             "description": "Spells and abilities take an action unless free",
-            "$ref": "#/$defs/__schema7"
+            "$ref": "#/$defs/__schema10"
           },
           "roll": {
             "description": "An attack or a save; none: it always lands",
-            "$ref": "#/$defs/__schema8"
+            "$ref": "#/$defs/__schema11"
           },
           "rounds": {
             "default": 1,
-            "description": "How long the lasting effects last (1: this round; 10: the whole fight)",
-            "$ref": "#/$defs/__schema9"
+            "description": "How long the lasting effects last (1: this round; 10: until the fight ends)",
+            "$ref": "#/$defs/__schema12"
           }
         },
         "required": [
@@ -473,6 +474,10 @@
             "effect": {
               "type": "string",
               "const": "banish"
+            },
+            "onReturn": {
+              "description": "Buffs the unit gets for `rounds` from the round it returns (Demiplane)",
+              "$ref": "#/$defs/__schema7"
             }
           },
           "required": [
@@ -500,6 +505,11 @@
             },
             "dice": {
               "$ref": "#/$defs/__schema5"
+            },
+            "flee": {
+              "default": "sometimes",
+              "description": "How readily an enemy starting its turn on the tile steps off it, braving free swings (sometimes: when the hazard would hurt it more than the swings it braves)",
+              "$ref": "#/$defs/__schema9"
             }
           },
           "required": [
@@ -517,6 +527,24 @@
           },
           "required": [
             "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "shift"
+            },
+            "tiles": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4
+            }
+          },
+          "required": [
+            "effect",
+            "tiles"
           ]
         },
         {
@@ -654,13 +682,118 @@
       "minimum": 0
     },
     "__schema7": {
+      "type": "object",
+      "properties": {
+        "effects": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema8"
+          }
+        },
+        "rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "effects",
+        "rounds"
+      ]
+    },
+    "__schema8": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "toHit"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "damageBonus"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "ac"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "ward"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        }
+      ]
+    },
+    "__schema9": {
+      "type": "string",
+      "enum": [
+        "never",
+        "sometimes",
+        "always"
+      ]
+    },
+    "__schema10": {
       "type": "string",
       "enum": [
         "action",
         "free"
       ]
     },
-    "__schema8": {
+    "__schema11": {
       "oneOf": [
         {
           "type": "object",
@@ -716,7 +849,7 @@
         }
       ]
     },
-    "__schema9": {
+    "__schema12": {
       "type": "integer",
       "minimum": 1,
       "maximum": 10

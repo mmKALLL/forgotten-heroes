@@ -20,9 +20,11 @@ const share = (pool: string, level: number) => {
 const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length
 
 describe.each(SPELL_POOLS)('the %s pool', (pool) => {
-  test('levels 1–6 hold 5–8 spells, levels 7–9 hold 4–6', () => {
+  // Design §5 asks for 5–8 (1–6) and 4–6 (7–9). The designer's review (2026-11-14) added the
+  // Shove spells at level 2, which takes it to 9, so levels 1–6 may hold one more.
+  test('levels 1–6 hold 5–9 spells, levels 7–9 hold 4–6', () => {
     for (const level of LEVELS) {
-      const [min, max] = level <= 6 ? [5, 8] : [4, 6]
+      const [min, max] = level <= 6 ? [5, 9] : [4, 6]
       const n = atLevel(pool, level).length
       expect(n, `level ${level}`).toBeGreaterThanOrEqual(min)
       expect(n, `level ${level}`).toBeLessThanOrEqual(max)

@@ -103,6 +103,23 @@ export type EnemyRoleDef = z.infer<typeof EnemyRoleDefSchema>
 export const CombatTargetSchema = z.enum(['self', 'ally', 'party', 'enemy', 'tile', 'twoTiles'])
 
 /**
+ * A spell's target: an ability's, or `unit`, any one unit, a member or an enemy (Shove). A member
+ * never resists a spell's save: it always lands on a friend.
+ */
+export const SpellTargetSchema = z.enum([...CombatTargetSchema.options, 'unit'])
+
+/**
+ * The buffs a banished ally gets when it returns to the line (Demiplane, designer review
+ * 2026-11-14): a small subset of the effects, so the union isn't recursive.
+ */
+const ReturnBuffSchema = z.discriminatedUnion('effect', [
+  z.object({ effect: z.literal('toHit'), amount: z.number().int() }),
+  z.object({ effect: z.literal('damageBonus'), amount: z.number().int() }),
+  z.object({ effect: z.literal('ac'), amount: z.number().int() }),
+  z.object({ effect: z.literal('ward'), amount: z.number().int().min(1) }),
+])
+
+/**
  * What an ability or spell does: small typed objects the engine interprets (no functions). Each
  * applies to every target; the lasting ones (toHit, damageBonus, ac, tempHp, ward, vulnerable,
  * the conditions, wall and hazard) last the user's `rounds`. Amounts are signed: toHit −2 on an
@@ -152,13 +169,37 @@ export const CombatEffectSchema = z.discriminatedUnion('effect', [
   /** Attacks against the target are at disadvantage. */
   z.object({ effect: z.literal('conceal') }),
   /** It leaves the line (it can't act or be attacked), then returns to its tile or the nearest free one. */
-  z.object({ effect: z.literal('banish') }),
+  z.object({
+    effect: z.literal('banish'),
+    onReturn: z
+      .object({
+        effects: z.array(ReturnBuffSchema).min(1),
+        rounds: z.number().int().min(1).max(10),
+      })
+      .optional()
+      .describe('Buffs the unit gets for `rounds` from the round it returns (Demiplane)'),
+  }),
   /** A wall stands on the tile: no unit may move into or across it, and no attack passes it. */
   z.object({ effect: z.literal('wall') }),
-  /** The tile hurts: units on it when cast, entering it or starting a turn on it take the dice. */
-  z.object({ effect: z.literal('hazard'), dice: DiceSchema }),
+  /**
+   * The tile hurts: a unit takes the dice at the start of each of its turns on it (not when cast,
+   * nor on stepping in). A save roll is made each time.
+   */
+  z.object({
+    effect: z.literal('hazard'),
+    dice: DiceSchema,
+    flee: z
+      .enum(['never', 'sometimes', 'always'])
+      .default('sometimes')
+      .describe(
+        'How readily an enemy starting its turn on the tile steps off it, braving free swings ' +
+          '(sometimes: when the hazard would hurt it more than the swings it braves)'
+      ),
+  }),
   /** Every member still fighting leaves the line at once, without free swings: a retreat. */
   z.object({ effect: z.literal('escape') }),
+  /** A push or a pull, the user's choice when it is used (Shove: move a friend or a foe). */
+  z.object({ effect: z.literal('shift'), tiles: z.number().int().min(1).max(4) }),
   // Track C (class abilities) added these; the engine plays them (combat/abilities.ts).
   /**
    * Heals what the target lacks from the user's pool of perLevel × level HP a long rest (Lay on
@@ -205,7 +246,7 @@ const usedFields = {
     .min(1)
     .max(10)
     .default(1)
-    .describe('How long the lasting effects last (1: this round; 10: the whole fight)'),
+    .describe('How long the lasting effects last (1: this round; 10: until the fight ends)'),
 }
 
 export const ClassAbilitySchema = z.object({
@@ -240,6 +281,7 @@ export const SpellSchema = z.object({
   pool: SpellPoolSchema,
   level: z.number().int().min(1).max(9),
   ...usedFields,
+  target: SpellTargetSchema,
 })
 export type Spell = z.infer<typeof SpellSchema>
 

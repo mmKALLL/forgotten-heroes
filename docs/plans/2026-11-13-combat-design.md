@@ -124,6 +124,12 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
   - Each tier is stronger at higher spell levels.
   - This needs an alignment for clerics only: picked at creation, rolled for recruits.
 - **Forced movement:** a few abilities and spells push or pull, for example a shield bash, a pulling spell or a polearm hook. They make the tile-targeted intents something to play against.
+- **Designer review of the spells (2026-11-14; details in `docs/notes/spells-review.md`, "Revisions 2026-11-14"):**
+  - **Short ranges**, so positioning matters: arcane at most 4 (rays, arrows and missiles 5, heavy areas 3); divine mostly 1–3, with 4 as long range.
+  - **No scaling with the caster's level:** a spell's damage is fixed by its spell level.
+  - **Hazards** hurt only at the start of a unit's turn on the tile. Enemies sometimes step off one, braving free swings (the hazard's `flee`).
+  - **Push and pull** without damage at levels 2 (friend or foe) and 4–5 (a tile); arcane 6–9 adds damaging ones, with strong pulls to reach the enemy's mages.
+  - Party-wide buffs start at level 3; Bless is one ally. Levels 1–6 may hold 9 spells (the level-2 additions).
 
 **Later classes:** the Monk (ki: stunning, harrying) and the Barbarian (big single blows). DDO-style spell points may come later too.
 

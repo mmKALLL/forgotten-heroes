@@ -2,7 +2,7 @@
   "$schema": "../_schema/spells.schema.json",
   "kind": "spells",
   "source": "claude",
-  "notes": "Plan 7 Track S draft (for the designer's review; docs/notes/spells-review.md). The arcane pool (wizards) and the divine pool (clerics; paladins and rangers draw from its levels 1-5), levels 1-9. Names echo SRD 5.1 spells; the descriptions and numbers are ours. Each divine level holds one Calling, whose summon depends on the caster's alignment (summons.json). The combat engine does not cast spells yet.",
+  "notes": "Plan 7 Track S draft (for the designer's review; docs/notes/spells-review.md). The arcane pool (wizards) and the divine pool (clerics; paladins and rangers draw from its levels 1-5), levels 1-9. Names echo SRD 5.1 spells; the descriptions and numbers are ours. Each divine level holds one Calling, whose summon depends on the caster's alignment (summons.json). The combat engine does not cast spells yet. Revised after the designer’s review 2026-11-14 (docs/notes/spells-review.md, \"Revisions 2026-11-14\"): shorter ranges, Mage Armor for Shield, Mass Dominate, the push and pull spells, hazards that hurt only at the start of a turn. Damage is fixed by the spell level: nothing scales with the caster’s level.",
   "entries": [
     {
       "id": "magic-missile",
@@ -11,7 +11,7 @@
       "level": 1,
       "description": "Three darts of pale force curl past any guard and strike home.",
       "target": "enemy",
-      "range": [1, 6],
+      "range": [1, 5],
       "effects": [
         {
           "effect": "damage",
@@ -80,7 +80,7 @@
       "level": 1,
       "description": "A hurled sphere of raw element: a heavy blow, if it lands.",
       "target": "enemy",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "attack"
       },
@@ -95,20 +95,20 @@
       ]
     },
     {
-      "id": "shield",
-      "name": "Shield",
+      "id": "mage-armor",
+      "name": "Mage Armor",
       "pool": "arcane",
       "level": 1,
-      "description": "A pane of force flickers up between the caster and the next blows.",
+      "description": "A close-fitting skin of force settles over the caster and holds until the fight is done.",
       "target": "self",
       "range": [0, 0],
-      "action": "free",
       "effects": [
         {
           "effect": "ac",
-          "amount": 5
+          "amount": 3
         }
-      ]
+      ],
+      "rounds": 10
     },
     {
       "id": "sleep",
@@ -117,7 +117,7 @@
       "level": 1,
       "description": "A drowsy hush falls on one tile; whoever gives in to it loses a turn.",
       "target": "tile",
-      "range": [2, 5],
+      "range": [2, 4],
       "roll": {
         "roll": "save",
         "ability": "wis"
@@ -135,7 +135,7 @@
       "level": 1,
       "description": "The ground turns slick: those who fail can only scramble where they stand.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "dex"
@@ -154,7 +154,7 @@
       "level": 1,
       "description": "A bank of fog settles on one tile and hides all within it from aimed blows.",
       "target": "tile",
-      "range": [0, 5],
+      "range": [0, 4],
       "rounds": 3,
       "effects": [
         {
@@ -190,7 +190,7 @@
       "level": 2,
       "description": "A ringing note splits stone and bone on one tile far down the line.",
       "target": "tile",
-      "range": [2, 6],
+      "range": [2, 4],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -238,9 +238,9 @@
       "name": "Cloud of Daggers",
       "pool": "arcane",
       "level": 2,
-      "description": "A whirl of conjured blades hangs over one tile and cuts whoever stands in it.",
+      "description": "A whirl of conjured blades hangs over one tile and cuts whoever starts a turn in it.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 4],
       "rounds": 3,
       "effects": [
         {
@@ -326,13 +326,32 @@
       ]
     },
     {
+      "id": "shove",
+      "name": "Shove",
+      "pool": "arcane",
+      "level": 2,
+      "description": "An unseen hand shoves one creature, friend or foe, two tiles toward the caster or away.",
+      "target": "unit",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "str"
+      },
+      "effects": [
+        {
+          "effect": "shift",
+          "tiles": 2
+        }
+      ]
+    },
+    {
       "id": "fireball",
       "name": "Fireball",
       "pool": "arcane",
       "level": 3,
       "description": "A bead of fire that blooms over two tiles. Mind where your friends stand.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -355,7 +374,7 @@
       "level": 3,
       "description": "A crack of lightning down the line, all of its force on one tile.",
       "target": "tile",
-      "range": [1, 6],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -378,7 +397,7 @@
       "level": 3,
       "description": "A starless cold spreads over two tiles: inside it nothing sees, and everything freezes.",
       "target": "twoTiles",
-      "range": [1, 5],
+      "range": [1, 3],
       "rounds": 2,
       "effects": [
         {
@@ -400,7 +419,7 @@
       "level": 3,
       "description": "Time thickens around the foes on two tiles: they plod, fumble and leave gaps.",
       "target": "twoTiles",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "wis"
@@ -485,7 +504,7 @@
       "level": 4,
       "description": "Hail the size of fists batters two tiles and leaves the ground treacherous.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -511,7 +530,7 @@
       "level": 4,
       "description": "Life drains out of one foe like sap from a cut stalk.",
       "target": "enemy",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -532,9 +551,9 @@
       "name": "Wall of Fire",
       "pool": "arcane",
       "level": 4,
-      "description": "A sheet of roaring flame on one tile: nothing crosses it, and whatever stands in it burns.",
+      "description": "A sheet of roaring flame on one tile: nothing crosses it, and whatever starts a turn in it burns.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -550,7 +569,8 @@
           "dice": {
             "count": 3,
             "die": 8
-          }
+          },
+          "flee": "always"
         }
       ]
     },
@@ -561,7 +581,7 @@
       "level": 4,
       "description": "Black limbs rise from the ground, drag the foes on one tile two tiles nearer and hold them there.",
       "target": "tile",
-      "range": [2, 5],
+      "range": [2, 4],
       "roll": {
         "roll": "save",
         "ability": "str"
@@ -661,7 +681,7 @@
       "level": 5,
       "description": "A yellow-green fog of poison settles over two tiles and will not lift.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 3],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -685,7 +705,7 @@
       "level": 5,
       "description": "An unseen, unbreakable pane on one tile cuts the line in two.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 4],
       "rounds": 3,
       "effects": [
         {
@@ -719,7 +739,7 @@
       "level": 5,
       "description": "An unseen hand plucks one foe off its feet and drags it three tiles closer.",
       "target": "enemy",
-      "range": [1, 6],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "str"
@@ -727,6 +747,25 @@
       "effects": [
         {
           "effect": "pull",
+          "tiles": 3
+        }
+      ]
+    },
+    {
+      "id": "repelling-wave",
+      "name": "Repelling Wave",
+      "pool": "arcane",
+      "level": 5,
+      "description": "A wall of unseen force rolls down the line and sweeps everyone on one tile three tiles back.",
+      "target": "tile",
+      "range": [1, 3],
+      "roll": {
+        "roll": "save",
+        "ability": "str"
+      },
+      "effects": [
+        {
+          "effect": "push",
           "tiles": 3
         }
       ]
@@ -753,7 +792,7 @@
       "level": 6,
       "description": "Lightning leaps from foe to foe across two tiles far down the line.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -838,7 +877,7 @@
       "level": 6,
       "description": "A single reasonable word, \"leave\", and the foes on two tiles start backing off.",
       "target": "twoTiles",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "wis"
@@ -867,13 +906,67 @@
       ]
     },
     {
+      "id": "undertow",
+      "name": "Undertow",
+      "pool": "arcane",
+      "level": 6,
+      "description": "A drowning current of force seizes one far foe, batters it and drags it four tiles in.",
+      "target": "enemy",
+      "range": [1, 5],
+      "roll": {
+        "roll": "save",
+        "ability": "str",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 6,
+            "die": 10
+          }
+        },
+        {
+          "effect": "pull",
+          "tiles": 4
+        }
+      ]
+    },
+    {
+      "id": "crashing-wave",
+      "name": "Crashing Wave",
+      "pool": "arcane",
+      "level": 6,
+      "description": "A conjured breaker of grey water smashes over two tiles and hurls the foes two tiles back.",
+      "target": "twoTiles",
+      "range": [1, 3],
+      "roll": {
+        "roll": "save",
+        "ability": "str",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 7,
+            "die": 8
+          }
+        },
+        {
+          "effect": "push",
+          "tiles": 2
+        }
+      ]
+    },
+    {
       "id": "delayed-blast-fireball",
       "name": "Delayed Blast Fireball",
       "pool": "arcane",
       "level": 7,
-      "description": "A swelling bead of fire that bursts over two tiles with twice the fury of its lesser kin.",
+      "description": "A swelling bead of fire bursts over two tiles with twice the fury of its lesser kin and throws the foes back.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -886,6 +979,10 @@
             "count": 12,
             "die": 6
           }
+        },
+        {
+          "effect": "push",
+          "tiles": 1
         }
       ]
     },
@@ -896,7 +993,7 @@
       "level": 7,
       "description": "A pointed finger and a word of unmaking: the foe withers from within.",
       "target": "enemy",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -920,7 +1017,7 @@
       "level": 7,
       "description": "Bars of force shut in everyone on one tile: they can neither act nor be harmed.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 4],
       "rounds": 2,
       "effects": [
         {
@@ -935,7 +1032,7 @@
       "level": 7,
       "description": "Over two tiles down becomes up: the foes there fall into the sky and lose a turn.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 4],
       "roll": {
         "roll": "save",
         "ability": "dex"
@@ -967,7 +1064,7 @@
       "level": 8,
       "description": "Noon erupts over two tiles: it burns, and leaves the survivors seeing only white.",
       "target": "twoTiles",
-      "range": [1, 6],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -994,7 +1091,7 @@
       "level": 8,
       "description": "One spoken word, and one foe stands dazed for two turns. No save.",
       "target": "enemy",
-      "range": [1, 6],
+      "range": [1, 4],
       "rounds": 2,
       "effects": [
         {
@@ -1007,29 +1104,36 @@
       "name": "Maze",
       "pool": "arcane",
       "level": 8,
-      "description": "One foe is lost in a labyrinth between worlds and must find its own way back.",
+      "description": "One foe is hurled into a labyrinth between worlds and comes back battered and bewildered.",
       "target": "enemy",
-      "range": [1, 5],
+      "range": [1, 4],
       "rounds": 2,
       "effects": [
         {
           "effect": "banish"
+        },
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 6,
+            "die": 10
+          }
         }
       ]
     },
     {
-      "id": "dominate-monster",
-      "name": "Dominate Monster",
+      "id": "mass-dominate",
+      "name": "Mass Dominate",
       "pool": "arcane",
       "level": 8,
-      "description": "Any creature at all, bent to the caster's will and set against its friends.",
-      "target": "enemy",
-      "range": [1, 5],
+      "description": "For one turn the foes on a tile answer to the caster, and turn their blows on their own.",
+      "target": "tile",
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "wis"
       },
-      "rounds": 3,
+      "rounds": 1,
       "effects": [
         {
           "effect": "discord"
@@ -1041,13 +1145,26 @@
       "name": "Demiplane",
       "pool": "arcane",
       "level": 8,
-      "description": "A door onto a quiet grey room: one ally steps through and out of harm for a while.",
+      "description": "A door onto a quiet grey room: one ally steps through, out of harm, and comes back rested and sharp.",
       "target": "ally",
-      "range": [0, 4],
+      "range": [0, 3],
       "rounds": 2,
       "effects": [
         {
-          "effect": "banish"
+          "effect": "banish",
+          "onReturn": {
+            "effects": [
+              {
+                "effect": "toHit",
+                "amount": 2
+              },
+              {
+                "effect": "ac",
+                "amount": 2
+              }
+            ],
+            "rounds": 4
+          }
         }
       ]
     },
@@ -1058,7 +1175,7 @@
       "level": 9,
       "description": "Burning stones fall from a clear sky onto two tiles. Little stands afterwards.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -1095,7 +1212,7 @@
       "level": 9,
       "description": "One ally sees each moment a heartbeat before it comes, all fight long.",
       "target": "ally",
-      "range": [0, 4],
+      "range": [0, 2],
       "rounds": 10,
       "effects": [
         {
@@ -1127,13 +1244,40 @@
       ]
     },
     {
+      "id": "singularity",
+      "name": "Singularity",
+      "pool": "arcane",
+      "level": 9,
+      "description": "A point of crushing dark opens before the caster: everything on two tiles is torn toward it, three tiles in.",
+      "target": "twoTiles",
+      "range": [2, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "str",
+        "half": true
+      },
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 10,
+            "die": 10
+          }
+        },
+        {
+          "effect": "pull",
+          "tiles": 3
+        }
+      ]
+    },
+    {
       "id": "healing-word",
       "name": "Healing Word",
       "pool": "divine",
       "level": 1,
       "description": "A word of comfort carried down the line closes a wound without breaking stride.",
       "target": "ally",
-      "range": [0, 4],
+      "range": [0, 3],
       "action": "free",
       "effects": [
         {
@@ -1151,10 +1295,10 @@
       "name": "Bless",
       "pool": "divine",
       "level": 1,
-      "description": "A blessing over the whole party steadies every hand for two rounds.",
-      "target": "party",
-      "range": [0, 0],
-      "rounds": 2,
+      "description": "A blessing on one ally steadies their hand for three rounds.",
+      "target": "ally",
+      "range": [0, 2],
+      "rounds": 3,
       "effects": [
         {
           "effect": "toHit",
@@ -1169,7 +1313,7 @@
       "level": 1,
       "description": "A muttered curse makes the foes on one tile doubt every swing.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "cha"
@@ -1189,7 +1333,7 @@
       "level": 1,
       "description": "A bolt of light strikes hard and leaves the foe glowing for the next blow.",
       "target": "enemy",
-      "range": [1, 6],
+      "range": [1, 4],
       "roll": {
         "roll": "attack"
       },
@@ -1297,9 +1441,9 @@
       "name": "Spiritual Weapon",
       "pool": "divine",
       "level": 2,
-      "description": "A floating weapon of light strikes at a word, leaving the caster free to act.",
+      "description": "A weapon of light at the caster’s side strikes a foe beside them at a word, leaving the caster free to act.",
       "target": "enemy",
-      "range": [1, 4],
+      "range": [1, 1],
       "action": "free",
       "roll": {
         "roll": "attack"
@@ -1322,7 +1466,7 @@
       "level": 2,
       "description": "One foe's arms or armour glow red-hot: it burns, and fights clumsily.",
       "target": "enemy",
-      "range": [1, 4],
+      "range": [1, 3],
       "rounds": 2,
       "effects": [
         {
@@ -1334,7 +1478,7 @@
         },
         {
           "effect": "toHit",
-          "amount": -2
+          "amount": -4
         }
       ]
     },
@@ -1343,9 +1487,9 @@
       "name": "Moonbeam",
       "pool": "divine",
       "level": 2,
-      "description": "A pale column of moonlight on one tile sears whoever stands in it or steps in.",
+      "description": "A pale column of moonlight on one tile sears whoever starts a turn in it.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -1367,9 +1511,9 @@
       "name": "Spike Growth",
       "pool": "divine",
       "level": 2,
-      "description": "The ground over two tiles sprouts hidden thorns: whoever stands or walks there bleeds.",
+      "description": "The ground over two tiles sprouts hidden thorns: whoever starts a turn there bleeds.",
       "target": "twoTiles",
-      "range": [1, 5],
+      "range": [1, 3],
       "rounds": 5,
       "effects": [
         {
@@ -1377,7 +1521,8 @@
           "dice": {
             "count": 2,
             "die": 4
-          }
+          },
+          "flee": "never"
         }
       ]
     },
@@ -1386,17 +1531,17 @@
       "name": "Aid",
       "pool": "divine",
       "level": 2,
-      "description": "Hope and grit: every member gains a few hit points for the fight.",
-      "target": "party",
-      "range": [0, 0],
+      "description": "Hope and grit: one ally gains hit points that last the fight.",
+      "target": "ally",
+      "range": [0, 2],
       "rounds": 10,
       "effects": [
         {
           "effect": "tempHp",
           "dice": {
-            "count": 1,
+            "count": 2,
             "die": 6,
-            "bonus": 3
+            "bonus": 4
           }
         }
       ]
@@ -1408,7 +1553,7 @@
       "level": 2,
       "description": "A shimmer of faith around one ally turns blows aside all fight long.",
       "target": "ally",
-      "range": [0, 4],
+      "range": [0, 2],
       "rounds": 10,
       "effects": [
         {
@@ -1424,7 +1569,7 @@
       "level": 2,
       "description": "One word of command, \"Back!\", and the foe gives up two tiles.",
       "target": "enemy",
-      "range": [1, 4],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "wis"
@@ -1432,6 +1577,25 @@
       "effects": [
         {
           "effect": "push",
+          "tiles": 2
+        }
+      ]
+    },
+    {
+      "id": "shepherds-crook",
+      "name": "Shepherd’s Crook",
+      "pool": "divine",
+      "level": 2,
+      "description": "A crook of light hooks one creature, friend or foe, and moves it two tiles nearer or farther.",
+      "target": "unit",
+      "range": [1, 3],
+      "roll": {
+        "roll": "save",
+        "ability": "str"
+      },
+      "effects": [
+        {
+          "effect": "shift",
           "tiles": 2
         }
       ]
@@ -1457,7 +1621,7 @@
       "name": "Spirit Guardians",
       "pool": "divine",
       "level": 3,
-      "description": "Spirits wheel over the tile before the caster and tear at every foe who stands there.",
+      "description": "Spirits wheel over the tile before the caster and tear at every foe who starts a turn there.",
       "target": "tile",
       "range": [1, 1],
       "roll": {
@@ -1483,7 +1647,7 @@
       "level": 3,
       "description": "A storm cloud gathers and drops its lightning on one tile far down the line.",
       "target": "tile",
-      "range": [2, 6],
+      "range": [2, 4],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -1506,7 +1670,7 @@
       "level": 3,
       "description": "An arrow turns to lightning in flight and strikes one far foe.",
       "target": "enemy",
-      "range": [3, 6],
+      "range": [3, 5],
       "roll": {
         "roll": "attack"
       },
@@ -1596,7 +1760,7 @@
       "name": "Guardian of Faith",
       "pool": "divine",
       "level": 4,
-      "description": "A towering spectral guardian holds one tile: no foe gets past, and those beside it suffer.",
+      "description": "A towering spectral guardian holds one tile: no foe gets past, and those who linger by it suffer.",
       "target": "tile",
       "range": [1, 3],
       "roll": {
@@ -1625,7 +1789,7 @@
       "level": 4,
       "description": "A prayer of unmaking dries one foe out from within.",
       "target": "enemy",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -1673,7 +1837,7 @@
       "level": 4,
       "description": "A raised holy symbol blazes, and the foes on one tile shrink back from it.",
       "target": "tile",
-      "range": [1, 4],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "wis"
@@ -1708,7 +1872,7 @@
       "level": 4,
       "description": "A vine bursts from the earth, coils round one foe and hauls it three tiles in.",
       "target": "enemy",
-      "range": [1, 5],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "dex"
@@ -1717,6 +1881,25 @@
         {
           "effect": "pull",
           "tiles": 3
+        }
+      ]
+    },
+    {
+      "id": "call-of-the-fold",
+      "name": "Call of the Fold",
+      "pool": "divine",
+      "level": 4,
+      "description": "A bell only the soul hears tolls, and the foes on one tile stumble two tiles toward it.",
+      "target": "tile",
+      "range": [1, 4],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "effects": [
+        {
+          "effect": "pull",
+          "tiles": 2
         }
       ]
     },
@@ -1743,7 +1926,7 @@
       "level": 5,
       "description": "A column of holy fire roars down on one tile.",
       "target": "tile",
-      "range": [1, 6],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -1766,7 +1949,7 @@
       "level": 5,
       "description": "A biting swarm of locusts settles on two tiles and stays.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 3],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -1808,7 +1991,7 @@
       "level": 5,
       "description": "The tile is made holy: the allies standing on it fight better and are harder to hit.",
       "target": "tile",
-      "range": [0, 3],
+      "range": [0, 2],
       "rounds": 10,
       "effects": [
         {
@@ -1915,9 +2098,9 @@
       "name": "Blade Barrier",
       "pool": "divine",
       "level": 6,
-      "description": "A whirling wall of blades on one tile: nothing crosses, and whatever stands in it is cut apart.",
+      "description": "A whirling wall of blades on one tile: nothing crosses, and whatever starts a turn in it is cut apart.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -1933,7 +2116,8 @@
           "dice": {
             "count": 6,
             "die": 10
-          }
+          },
+          "flee": "always"
         }
       ]
     },
@@ -1993,7 +2177,7 @@
       "level": 7,
       "description": "Sheets of fire roll over two tiles at the caster's command.",
       "target": "twoTiles",
-      "range": [1, 6],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -2016,7 +2200,7 @@
       "level": 7,
       "description": "A word of the gods' own tongue: the foes on one tile reel, deaf, blind and still.",
       "target": "tile",
-      "range": [1, 5],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "cha"
@@ -2081,7 +2265,7 @@
       "level": 7,
       "description": "A beam of noon light down the line: it burns one tile and dazzles all on it.",
       "target": "tile",
-      "range": [1, 6],
+      "range": [1, 4],
       "roll": {
         "roll": "save",
         "ability": "con",
@@ -2124,7 +2308,7 @@
       "level": 8,
       "description": "The ground heaves under two tiles: the foes there are battered and thrown off balance.",
       "target": "twoTiles",
-      "range": [1, 6],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "dex",
@@ -2185,7 +2369,7 @@
       "level": 8,
       "description": "A deep longing draws the foes on two tiles three tiles toward the caster.",
       "target": "twoTiles",
-      "range": [2, 6],
+      "range": [2, 4],
       "roll": {
         "roll": "save",
         "ability": "wis"
@@ -2239,7 +2423,7 @@
       "level": 9,
       "description": "A churning black storm breaks over two tiles: thunder, acid, hail and lightning.",
       "target": "twoTiles",
-      "range": [1, 6],
+      "range": [1, 3],
       "roll": {
         "roll": "save",
         "ability": "con",
