@@ -2,7 +2,9 @@
 import { act, cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
-import { fixtureContent, makeState } from '../engine/test-fixtures'
+import { buildContent } from '../content/build'
+import { fixtureContent, makeState, testEconomy, testWorld } from '../engine/test-fixtures'
+import { SPOIL_SHOW_DAYS } from '../engine/constants'
 import { GoodsBar } from './GoodsBar'
 import { I18nProvider, LANGUAGE_KEY } from './i18n/I18n'
 
@@ -83,4 +85,35 @@ test('drop goods leaves one or all of a good behind', async () => {
   expect(onAction).toHaveBeenLastCalledWith({ type: 'dropGoods', good: 'stone', amount: 1 })
   await userEvent.click(screen.getByRole('button', { name: 'Leave all 3 Stone behind' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'dropGoods', good: 'stone', amount: 3 })
+})
+
+test('food shows when it spoils, only within SPOIL_SHOW_DAYS days', () => {
+  const goods = testEconomy['data/claude/goods.json'] as { entries: { id: string }[] }
+  const { content: spoiling } = buildContent({
+    ...testWorld,
+    'data/claude/goods.json': {
+      ...goods,
+      entries: goods.entries.map((e) => (e.id === 'food' ? { ...e, shelfDays: 14 } : e)),
+    },
+  })
+  const food = (day: number) => {
+    const state = makeState({
+      day,
+      goods: { food: 7 },
+      foodLots: [
+        { day: 1, amount: 3 },
+        { day: 6, amount: 4 },
+      ],
+    })
+    render(
+      <I18nProvider content={spoiling}>
+        <GoodsBar content={spoiling} state={state} />
+      </I18nProvider>
+    )
+    return screen.getByText(/^Food/).closest('.goods-item')!.textContent
+  }
+  // The first batch spoils on day 15.
+  expect(food(15 - SPOIL_SHOW_DAYS - 1)).toBe(' Food 7')
+  cleanup()
+  expect(food(13)).toBe(' Food 73 spoil in 2d')
 })
