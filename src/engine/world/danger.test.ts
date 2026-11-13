@@ -7,6 +7,7 @@ import { createRng } from '../rng'
 import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { DANGER_RAMP_DAYS, DANGER_RAMP_MAX, DANGER_RAMP_STEP } from '../constants'
+import { actCalendar } from '../crisis/calendar'
 import { dangerInfo, dangerLevel, harden, rampLevel } from './danger'
 
 const content = fixtureContent()
@@ -85,6 +86,7 @@ describe('dangerLevel and dangerInfo', () => {
       nextDay: DANGER_RAMP_DAYS + 1,
       text: 'The roads are as they have always been',
       surge: null,
+      wait: null,
     })
     const later = dangerInfo(on(DAY_TWO_STEPS))
     expect(later.percent).toBe(Math.round(200 * DANGER_RAMP_STEP))
@@ -110,6 +112,45 @@ describe('dangerLevel and dangerInfo', () => {
     const info = dangerInfo({ day: 195, crisis }, content)
     expect(info.surge!.text).toMatch(/^Act II, The Test Act 2, is near its day: \+\d+%$/)
     expect(info.percent).toBe(Math.round(at(195) * 100))
+  })
+
+  test('the waiting penalty grows each day an open act’s lead goes unfollowed, then drops', () => {
+    const base = makeState()
+    const crisis = { ...base.crisis!, leads: [null, null, null], thwarted: [null, null, null] }
+    const from = actCalendar(crisis, 0).waiting
+    const wait = (day: number, c = crisis) => dangerLevel({ day, crisis: c }) - rampLevel(day)
+    expect(wait(from - 1)).toBeCloseTo(0)
+    expect(wait(from)).toBeGreaterThan(0)
+    expect(wait(from + 5)).toBeGreaterThan(wait(from))
+    // Winning the lead ends it; it stacks with the ramp (and needs no content).
+    expect(wait(from + 5, { ...crisis, leads: [from + 2, null, null] })).toBeCloseTo(0)
+    const info = dangerInfo({ day: from + 5, crisis }, content)
+    expect(info.wait!.percent).toBe(Math.round(wait(from + 5) * 100))
+    expect(info.percent).toBe(Math.round(dangerLevel({ day: from + 5, crisis }) * 100))
+    // Act II's begins on its own waiting day, while its lead is not won, and says which act.
+    const two = { ...crisis, leads: [35, null, null], thwarted: [60, null, null] }
+    const from2 = actCalendar(two, 1).waiting
+    expect(from2).toBeGreaterThan(from)
+    expect(wait(from2 - 1, two)).toBeCloseTo(0)
+    expect(dangerInfo({ day: from2 + 3, crisis: two }, content).wait!.text).toMatch(
+      /^Act II, The Test Act 2: its lead goes unfollowed: \+\d+%/
+    )
+  })
+
+  test('an encounter started while waiting is hardened by it (preview == actual)', () => {
+    const base = makeState()
+    const crisis = { ...base.crisis!, leads: [null, null, null], thwarted: [null, null, null] }
+    const day = actCalendar(crisis, 0).waiting + 10
+    const state = step(
+      { ...base, day, crisis },
+      { type: 'startEncounter', situationId: 'ford' },
+      withFord
+    )
+    expect(state.encounter!.danger).toBe(dangerLevel(state, withFord))
+    expect(state.encounter!.danger).toBeGreaterThan(rampLevel(day))
+    const [wade] = encounterOptions(state)
+    const rolled = step(state, { type: 'chooseOption', optionId: 'wade' }, withFord)
+    expect(rolled.lastRoll!.dc).toBe(wade.check!.dc)
   })
 })
 

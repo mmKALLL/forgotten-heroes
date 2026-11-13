@@ -5,7 +5,7 @@ import { canAct } from '../rules/character'
 import { crLevel } from '../rules/challenge'
 import { actCalendar } from './calendar'
 import { actOpen, crisisStatus, planKnown } from './status'
-import { crisisSurge } from './surge'
+import { crisisSurge, crisisWait } from './surge'
 import { actNumeral, shortName, siteWhere, villainOf } from './text'
 
 // The endgame tracker's view model (Plan 6 C5, design §10b): each act's phase, its days, the next
@@ -47,6 +47,13 @@ export type TrackerAct = {
   /** The act's danger surge now, in percent (0 when none), and whether its data surges at all (told once the plan is known). */
   surge: number
   surges: boolean
+  /**
+   * The waiting penalty now, in percent (0 when none): from the act's waiting day while its lead
+   * goes unfollowed, the danger rises a little each day.
+   */
+  wait: number
+  /** The day the waiting penalty starts for this act (its day CRISIS_WAIT_DAY). */
+  waitFrom: number
 }
 
 export type CrisisTracker = {
@@ -69,6 +76,7 @@ export function crisisTracker(state: GameState, content: Content): CrisisTracker
   const known = planKnown(crisis)
   const partyLevel = Math.max(1, ...state.party.filter(canAct).map((c) => c.level))
   const surge = crisisSurge(state, content)
+  const wait = crisisWait(state, content)
   const decided = status.phase === 'won' || status.phase === 'lost'
   const pois = state.world.pois
   const found = (id: string) => Object.hasOwn(pois, id) && pois[id].discovered
@@ -119,6 +127,8 @@ export function crisisTracker(state: GameState, content: Content): CrisisTracker
       foe: known ? (act.boss ?? shortName(crisis.name)) : null,
       surge: surge?.act === i ? Math.round(surge.share * 100) : 0,
       surges: known && act.surge,
+      wait: wait?.act === i ? Math.round(wait.share * 100) : 0,
+      waitFrom: days.waiting,
     }
   })
   const open = actOpen(status.phase)
