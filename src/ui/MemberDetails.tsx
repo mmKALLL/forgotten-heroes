@@ -14,9 +14,9 @@ import { Tip } from './Tip'
 // founder, Dismiss and the accessory slot) and the party's camaraderie line.
 
 /**
- * The yellow bar to the next level under the HP bar, with "512/1000 XP" beside it (total XP / the
- * next level's threshold; designer call 2026-11-13), or full with "MAX" at the cap. What is still
- * needed is in the hover text, so the sheet doesn't repeat it.
+ * The yellow bar to the next level under the HP bar, with "512/1000 XP" centred inside it (total
+ * XP / the next level's threshold; designer calls 2026-11-13), or full with "MAX" at the cap. What
+ * is still needed is in the hover text, so the sheet doesn't repeat it.
  */
 export function XpBar({ character: c }: { character: Character }) {
   const { t } = useI18n()
@@ -26,18 +26,17 @@ export function XpBar({ character: c }: { character: Character }) {
       ? t('party.xpCap', { xp: p.xp })
       : t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })
   return (
-    <div className="xp" title={text}>
-      <div
-        className="xp-bar"
-        role="meter"
-        aria-label={t('party.xpLabel', { name: c.name })}
-        aria-valuenow={Math.round(p.share * 100)}
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuetext={text}
-      >
-        <span className="xp-fill" style={{ width: `${p.share * 100}%` }} />
-      </div>
+    <div
+      className="xp-bar"
+      role="meter"
+      aria-label={t('party.xpLabel', { name: c.name })}
+      aria-valuenow={Math.round(p.share * 100)}
+      aria-valuemin={0}
+      aria-valuemax={100}
+      aria-valuetext={text}
+      title={text}
+    >
+      <span className="xp-fill" style={{ width: `${p.share * 100}%` }} />
       <span className="xp-text" aria-hidden="true">
         {p.next === null ? t('party.xpMax') : t('party.xpShort', { xp: p.xp, next: p.next })}
       </span>

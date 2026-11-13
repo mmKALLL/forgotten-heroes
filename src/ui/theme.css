@@ -14,6 +14,8 @@
   --tier-success: #6f9a5b;
   /* A bright yellow that takes dark (ink) labels: at least 10:1 in both themes. */
   --tier-critSuccess: #f5cf3a;
+  /* The XP bar's empty track: light enough for its ink-dark label in both themes. */
+  --xp-track: color-mix(in srgb, var(--tier-critSuccess) 40%, var(--panel));
   font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
   color: var(--ink);
   background: var(--bg);
@@ -34,6 +36,7 @@
     --tier-partial: #e0b56e;
     --tier-success: #649c50;
     --tier-critSuccess: #f7d34a;
+    --xp-track: color-mix(in srgb, var(--tier-critSuccess) 62%, var(--panel));
   }
 }
 * {
@@ -159,20 +162,17 @@ input {
   line-height: 1;
   padding-left: 0.4rem;
 }
-/* The yellow bar to the next level under the HP bar, its "512/1000 XP" beside it (Plan 5a U1). */
-.xp {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin: -0.2rem 0 0.4rem;
-}
+/* The yellow bar to the next level, just under the HP bar, its "512/1000 XP" centred inside
+   (Plan 5a U1). The label stays ink-dark in both themes, on a track light enough for it. */
 .xp-bar {
   position: relative;
-  flex: 1;
-  min-width: 0;
-  height: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 0.8rem;
+  margin: -0.3rem 0 0.4rem;
   border-radius: 3px;
-  background: color-mix(in srgb, var(--tier-critSuccess) 22%, transparent);
+  background: var(--xp-track);
   overflow: hidden;
 }
 .xp-fill {
@@ -181,9 +181,11 @@ input {
   background: var(--tier-critSuccess);
 }
 .xp-text {
-  font-size: 0.7rem;
+  position: relative;
+  font-size: 0.62rem;
   line-height: 1;
-  color: var(--muted);
+  color: #2b2118;
+  text-shadow: 0 0 1px rgb(255 246 214 / 0.6);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
