@@ -13,7 +13,7 @@ import { serviceWith } from './animals'
 import { rumourOption, rumourRefusal } from './rumours'
 import { noticeBoard } from './contracts'
 import { recruitOffers } from './recruits'
-import { changeCamaraderie, livingMembers, shiftCamaraderie } from './camaraderie'
+import { bondGain, changeCamaraderie, livingMembers, shiftCamaraderie } from './camaraderie'
 import { accessoryOffers } from '../gear/accessories'
 import {
   BLESSING_PRICE,
@@ -38,7 +38,20 @@ const own = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
 
 /** A room at the inn here: its price for the party and the Strain stacks a night fades. */
-export type LodgingOption = { room: Room; service: string; cost: number; fade: number }
+export type LodgingOption = {
+  room: Room
+  service: string
+  cost: number
+  fade: number
+  /** What a night there does, very short (English): "Rest 1d · full HP · −1 Strain". */
+  effect: string
+}
+
+/** A night's rest at the inn (supplies.ts `rest`): a day, all HP back, `fade` Strain stacks. */
+const roomEffect = (fade: number, camaraderie = 0): string =>
+  [`Rest 1d · full HP · −${fade} Strain`, camaraderie > 0 && `+${camaraderie} camaraderie`]
+    .filter(Boolean)
+    .join(' · ')
 
 /**
  * The rooms of the inn here (a service whose role offers lodging): a common room, and a private
@@ -49,7 +62,7 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
   if (!inn || state.location === null) return []
   const members = state.party.length
   const rooms: LodgingOption[] = [
-    { room: 'common', service: inn, cost: LODGING_PRICE * members, fade: 1 },
+    { room: 'common', service: inn, cost: LODGING_PRICE * members, fade: 1, effect: roomEffect(1) },
   ]
   if (serviceQuality(state, state.location, inn) >= PRIVATE_ROOM_MIN_QUALITY) {
     rooms.push({
@@ -57,10 +70,15 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
       service: inn,
       cost: PRIVATE_ROOM_PRICE * members,
       fade: PRIVATE_ROOM_FADE,
+      // A night in good rooms also brings the party closer, once per arrival (bond).
+      effect: roomEffect(PRIVATE_ROOM_FADE, bondGain(state)),
     })
   }
   return rooms
 }
+
+/** The refusal for want of coin; the UI shows it only on the disabled button (designer). */
+export const NOT_ENOUGH_GOLD = 'not enough gold'
 
 /** Once-per-arrival key (doneHere) for standing a round. */
 const ROUND = 'round'
@@ -84,7 +102,7 @@ export function roundOption(state: GameState): RoundOption {
   const reason = state.doneHere.includes(ROUND)
     ? 'already stood a round this visit'
     : state.gold < cost
-      ? 'not enough gold'
+      ? NOT_ENOUGH_GOLD
       : null
   return { cost, camaraderie, available: reason === null, reason }
 }
@@ -153,7 +171,19 @@ export type ServiceActionView = {
   available: boolean
   /** Why not, or null. */
   reason: string | null
+  /**
+   * What it does, very short (English), for the button's second line: "+1 Inspiration". Null
+   * where the button doesn't buy an effect (lists, the market) or lodging, whose rooms each carry
+   * their own (LodgingOption.effect).
+   */
+  effect: string | null
 }
+
+/** The Inspiration a temple's blessing gives. */
+const BLESSING_INSPIRATION = 1
+
+/** The exhaustion levels a healer takes off each member treated. */
+const HEALER_EXHAUSTION = 1
 
 export type ServiceRow = {
   service: string
@@ -174,23 +204,33 @@ function actionView(
   service: string,
   action: ServiceAction
 ): ServiceActionView {
-  const view = (cost: number | null, reason: string | null = null): ServiceActionView => ({
+  const view = (
+    cost: number | null,
+    reason: string | null = null,
+    effect: string | null = null
+  ): ServiceActionView => ({
     action,
     cost,
     available: reason === null && (cost === null || state.gold >= cost),
-    reason: reason ?? (cost !== null && state.gold < cost ? 'not enough gold' : null),
+    reason: reason ?? (cost !== null && state.gold < cost ? NOT_ENOUGH_GOLD : null),
+    effect,
   })
   switch (action) {
     case 'lodging':
       return view(lodgingOptions(state, content)[0]?.cost ?? null)
     case 'heal': {
       const treated = needsHealer(state).length
-      return view(treated * HEALER_PRICE, treated === 0 ? 'no one needs healing' : null)
+      return view(
+        treated * HEALER_PRICE,
+        treated === 0 ? 'no one needs healing' : null,
+        `Full HP · −${HEALER_EXHAUSTION} exhaustion`
+      )
     }
     case 'bless':
       return view(
         BLESSING_PRICE,
-        state.doneHere.includes(`bless:${service}`) ? 'already blessed this visit' : null
+        state.doneHere.includes(`bless:${service}`) ? 'already blessed this visit' : null,
+        `+${BLESSING_INSPIRATION} Inspiration`
       )
     case 'news':
       return view(
@@ -199,7 +239,8 @@ function actionView(
           ? null
           : courierTowns(state, content).length > 0
             ? 'you know fresher prices from every town a courier reaches'
-            : 'no news to bring'
+            : 'no news to bring',
+        'Learn its prices'
       )
     case 'rumours': {
       // Listening is the listenRumours action, previewed by rumourOption.
@@ -223,7 +264,7 @@ function actionView(
     }
     case 'round': {
       const option = roundOption(state)
-      return view(option.cost, option.reason)
+      return view(option.cost, option.reason, `+${option.camaraderie} camaraderie`)
     }
     case 'recruit': {
       // Recruits are hired one by one (hireRecruit), listed by recruitOffers.
@@ -314,7 +355,9 @@ function heal(state: GameState): GameState {
   const cost = treated.length * HEALER_PRICE
   if (state.gold < cost) return appendLog(state, `The healer asks ${cost} gp.`, 'bad')
   const party = state.party.map((c) =>
-    treated.includes(c.id) ? { ...c, hp: c.maxHp, exhaustion: Math.max(0, c.exhaustion - 1) } : c
+    treated.includes(c.id)
+      ? { ...c, hp: c.maxHp, exhaustion: Math.max(0, c.exhaustion - HEALER_EXHAUSTION) }
+      : c
   )
   return appendLog(
     { ...state, gold: state.gold - cost, party },
@@ -337,7 +380,7 @@ function bless(state: GameState, service: string): GameState {
     {
       ...state,
       gold: state.gold - BLESSING_PRICE,
-      inspiration: state.inspiration + 1,
+      inspiration: state.inspiration + BLESSING_INSPIRATION,
       doneHere: [...state.doneHere, key],
     },
     `You make an offering of ${BLESSING_PRICE} gp and are blessed. Inspiration gained!`,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { accessoryOffers } from '../../engine/gear/accessories'
@@ -8,6 +8,7 @@ import { peopleRows, shopKeeper } from '../../engine/town/reputation'
 import {
   lodgingOptions,
   needsHealer,
+  NOT_ENOUGH_GOLD,
   newsTargets,
   serviceRows,
   type ServiceActionView,
@@ -80,6 +81,55 @@ export function QualityPips({ quality, effects }: { quality: number; effects: Qu
 /** Why a service's button is disabled, shown under it (not only in its tooltip). */
 function Why({ reason }: { reason: string | null | undefined }) {
   return reason ? <span className="service-why muted small">{reason}</span> : null
+}
+
+/**
+ * A service's purchase button: its name and price ("Blessing · −10 gp"), then on a second line the
+ * engine's short effect ("+1 Inspiration"); the longer description is its tooltip. A refusal is
+ * linked to it for screen readers and shown under it, except for want of gold, which the disabled
+ * button says enough (designer): that one is only in the tooltip and the accessible description.
+ */
+function BuyButton({
+  label,
+  effect,
+  title,
+  reason,
+  disabled,
+  onClick,
+}: {
+  label: ReactNode
+  effect: string | null
+  title: string
+  reason: string | null
+  disabled: boolean
+  onClick: () => void
+}) {
+  const id = useId()
+  const poor = reason === NOT_ENOUGH_GOLD
+  return (
+    <>
+      <button
+        className="service-buy"
+        disabled={disabled}
+        title={poor ? `${title} · ${reason}` : title}
+        aria-describedby={reason ? id : undefined}
+        onClick={onClick}
+      >
+        <span>{label}</span>
+        {effect && (
+          <>
+            {' '}
+            <span className="service-effect">{effect}</span>
+          </>
+        )}
+      </button>
+      {reason && (
+        <span id={id} className={poor ? 'sr-only' : 'service-why muted small'}>
+          {reason}
+        </span>
+      )}
+    </>
+  )
 }
 
 /**
@@ -267,70 +317,66 @@ function ServiceAction({
       return (
         <>
           {lodgingOptions(state, content).map((room) => (
-            <button
+            <BuyButton
               key={room.room}
-              disabled={state.gold < room.cost}
+              label={t(`services.room.${room.room}`, { gp: room.cost })}
+              effect={room.effect}
               title={t(`services.roomHint.${room.room}`, { n: PRIVATE_ROOM_FADE })}
+              reason={state.gold < room.cost ? NOT_ENOUGH_GOLD : null}
+              disabled={state.gold < room.cost}
               onClick={() => onAction({ type: 'rest', lodging: room.room })}
-            >
-              {t(`services.room.${room.room}`, { gp: room.cost })}
-            </button>
+            />
           ))}
-          <Why reason={view.reason} />
         </>
       )
     case 'heal': {
       const treated = needsHealer(state)
       const names = state.party.filter((c) => treated.includes(c.id)).map((c) => c.name)
       return (
-        <>
-          <button
-            disabled={!view.available}
-            title={
-              treated.length === 0
-                ? t('services.healNone')
-                : t('services.healHint', { names: names.join(', ') })
-            }
-            onClick={() => onAction({ type: 'useService', service: row.service, action: 'heal' })}
-          >
-            {treated.length === 0
+        <BuyButton
+          label={
+            treated.length === 0
               ? t('services.healEach', { gp: HEALER_PRICE })
-              : t('services.heal', { n: treated.length, gp: view.cost ?? 0 })}
-          </button>
-          <Why reason={treated.length === 0 ? t('services.healNone') : view.reason} />
-        </>
+              : t('services.heal', { n: treated.length, gp: view.cost ?? 0 })
+          }
+          effect={view.effect}
+          title={
+            treated.length === 0
+              ? t('services.healNone')
+              : t('services.healHint', { names: names.join(', ') })
+          }
+          reason={treated.length === 0 ? t('services.healNone') : view.reason}
+          disabled={!view.available}
+          onClick={() => onAction({ type: 'useService', service: row.service, action: 'heal' })}
+        />
       )
     }
     case 'bless': {
       const blessed = state.doneHere.includes(`bless:${row.service}`)
       return (
-        <>
-          <button
-            disabled={!view.available}
-            title={blessed ? t('services.blessed') : t('services.blessHint')}
-            onClick={() => onAction({ type: 'useService', service: row.service, action: 'bless' })}
-          >
-            {blessed ? t('services.blessed') : t('services.bless', { gp: view.cost ?? 0 })}
-          </button>
-          {/* "Blessed" on the button says it already. */}
-          {!blessed && <Why reason={view.reason} />}
-        </>
+        // "Blessed" on the button says it already: no effect line or reason under it.
+        <BuyButton
+          label={blessed ? t('services.blessed') : t('services.bless', { gp: view.cost ?? 0 })}
+          effect={blessed ? null : view.effect}
+          title={blessed ? t('services.blessed') : t('services.blessHint')}
+          reason={blessed ? null : view.reason}
+          disabled={!view.available}
+          onClick={() => onAction({ type: 'useService', service: row.service, action: 'bless' })}
+        />
       )
     }
     case 'round': {
       const round = roundOption(state)
       const stood = state.doneHere.includes('round')
       return (
-        <>
-          <button
-            disabled={!view.available}
-            title={t('services.roundHint', { n: round.camaraderie })}
-            onClick={() => onAction({ type: 'useService', service: row.service, action: 'round' })}
-          >
-            {stood ? t('services.roundStood') : t('services.round', { gp: round.cost })}
-          </button>
-          {!stood && <Why reason={view.reason} />}
-        </>
+        <BuyButton
+          label={stood ? t('services.roundStood') : t('services.round', { gp: round.cost })}
+          effect={stood ? null : view.effect}
+          title={t('services.roundHint', { n: round.camaraderie })}
+          reason={stood ? null : view.reason}
+          disabled={!view.available}
+          onClick={() => onAction({ type: 'useService', service: row.service, action: 'round' })}
+        />
       )
     }
     case 'news': {
@@ -351,11 +397,13 @@ function ServiceAction({
               </option>
             ))}
           </select>
-          <button
-            disabled={!view.available || !chosen}
+          <BuyButton
+            label={t('services.news', { gp: view.cost ?? 0 })}
+            effect={view.effect}
             title={t('services.newsHint')}
+            reason={view.reason}
+            disabled={!view.available}
             onClick={() =>
-              chosen &&
               onAction({
                 type: 'useService',
                 service: row.service,
@@ -363,10 +411,7 @@ function ServiceAction({
                 settlement: chosen.id,
               })
             }
-          >
-            {t('services.news', { gp: view.cost ?? 0 })}
-          </button>
-          <Why reason={view.reason} />
+          />
         </span>
       )
     }
@@ -395,13 +440,14 @@ function ServiceAction({
             ))}
           </select>
           <span className="muted small">{info}</span>
-          <button
+          <BuyButton
+            label={t('services.buyAnimal')}
+            effect={null}
+            title={info}
+            reason={chosen.buyReason}
             disabled={chosen.buyReason !== null}
             onClick={() => onAction({ type: 'buyAnimal', animal: chosen.id })}
-          >
-            {t('services.buyAnimal')}
-          </button>
-          <Why reason={chosen.buyReason} />
+          />
           {chosen.owned > 0 && (
             <button onClick={() => onAction({ type: 'sellAnimal', animal: chosen.id })}>
               {t('services.sellAnimal', { n: chosen.owned, gp: chosen.resale })}

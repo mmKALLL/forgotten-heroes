@@ -72,7 +72,11 @@ export function RoadsOut({
       <ul className="road-list" aria-label={t('place.roads')}>
         {roads.map((r) => (
           <li key={r.routeId}>
-            <button aria-pressed={r.to === selected} onClick={() => onSelect(r.to)}>
+            {/* Clicking the chosen destination again closes its journey card. */}
+            <button
+              aria-pressed={r.to === selected}
+              onClick={() => onSelect(r.to === selected ? null : r.to)}
+            >
               {r.toName}
             </button>{' '}
             {isPoi(r.to) && <span className="badge small">{t('place.siteBadge')}</span>}{' '}
