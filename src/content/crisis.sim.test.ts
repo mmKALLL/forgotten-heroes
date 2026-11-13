@@ -7,6 +7,7 @@ import { currentOptions } from '../engine/encounters/run'
 import { newGame, type Action } from '../engine/state'
 import { isAlive } from '../engine/town/camaraderie'
 import { crusader, trader, type TraderOptions } from '../engine/travel/trader'
+import { CRISIS_ACT_OPEN } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
 import type { RunEnding } from '../schema/types'
 import { loadBundledContent } from './bundled'
@@ -33,6 +34,9 @@ type Policy = 'crusader' | 'crusader, game start' | 'trader' | 'trader, on to da
  * crusader that starts with the game's STARTING_GOLD.
  */
 const SIM_GOLD = 50
+
+/** The plan should be learned within 15 days of act I opening (never before it: Plan 6). */
+const LEARN_BY = CRISIS_ACT_OPEN + 15
 
 type FoundBy = 'rumour' | 'omen' | 'summons' | 'other'
 
@@ -230,7 +234,7 @@ describe.runIf(REPORT)('the Crisis report (CRISIS_REPORT=path)', () => {
       'Policy',
       'Act I lead known (P10 / median / P90 day)',
       'Plan learned (P10 / median / P90 day)',
-      'Learned by day 25',
+      `Learned by day ${LEARN_BY}`,
       'Never learned',
       'Rumour / omen / summons / other',
     ])
@@ -241,7 +245,7 @@ describe.runIf(REPORT)('the Crisis report (CRISIS_REPORT=path)', () => {
         policy,
         spread(nums(runs.map((r) => r.revealDay))),
         spread(nums(runs.map((r) => r.learned))),
-        pct(share(runs, (r) => r.learned !== null && r.learned <= 25)),
+        pct(share(runs, (r) => r.learned !== null && r.learned <= LEARN_BY)),
         runs.filter((r) => r.learned === null).length,
         `${by('rumour')} / ${by('omen')} / ${by('summons')} / ${by('other')}`,
       ])
@@ -323,7 +327,7 @@ describe.runIf(REPORT)('the Crisis report (CRISIS_REPORT=path)', () => {
     }
 
     // The targets (Plan 5b I1).
-    const learned25 = share(crusade, (r) => r.learned !== null && r.learned <= 25)
+    const learned25 = share(crusade, (r) => r.learned !== null && r.learned <= LEARN_BY)
     const spare = crusade.flatMap((r) => r.acts.filter((a) => a.found !== null))
     const spareMedian = median(spare.map((a) => a.due - a.found!))
     const won = share(crusade, (r) => r.ending === 'won')
@@ -339,7 +343,7 @@ describe.runIf(REPORT)('the Crisis report (CRISIS_REPORT=path)', () => {
     lines.push('', '## Targets', '')
     row(['Target', 'Value', ''])
     row(['---', '---', '---'])
-    row(['Plan learned by day 25 in ≥ 90% of runs', pct(learned25), ok(learned25 >= 0.9)])
+    row([`Plan learned by day ${LEARN_BY} in ≥ 90% of runs`, pct(learned25), ok(learned25 >= 0.9)])
     row(['Median act site found with ≥ 30d to spare', `${f0(spareMedian)}d`, ok(spareMedian >= 30)])
     row(['Crusader wins 40–75%', pct(won), ok(won >= 0.4 && won <= 0.75)])
     // Apart from the party's survival: of the runs the Crisis decided, the share won.
