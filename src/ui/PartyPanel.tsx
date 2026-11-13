@@ -116,16 +116,18 @@ function CharacterCard({
         </span>
       </div>
       <XpBar character={c} />
-      {(c.exhaustion > 0 || strained.length > 0) && (
+      {/* Open, the sheet shows strain by each skill: the card's badges would say it twice. */}
+      {(c.exhaustion > 0 || (strained.length > 0 && !expanded)) && (
         <p className="conditions small">
           {c.exhaustion > 0 && (
             <span className="badge condition">{t('party.exhaustion', { n: c.exhaustion })}</span>
           )}
-          {strained.map(([skill, n]) => (
-            <span key={skill} className="badge condition strain" title={t('party.strainHint')}>
-              {t('party.strain', { skill: stat(skill), n })}
-            </span>
-          ))}
+          {!expanded &&
+            strained.map(([skill, n]) => (
+              <span key={skill} className="badge condition strain" title={t('party.strainHint')}>
+                {t('party.strain', { skill: stat(skill), n })}
+              </span>
+            ))}
         </p>
       )}
       {/* Always in the page, so aria-controls has a target; hidden while collapsed. */}

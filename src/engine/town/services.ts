@@ -84,7 +84,7 @@ export function roundOption(state: GameState): RoundOption {
   const reason = state.doneHere.includes(ROUND)
     ? 'already stood a round this visit'
     : state.gold < cost
-      ? `costs ${cost} gp`
+      ? 'not enough gold'
       : null
   return { cost, camaraderie, available: reason === null, reason }
 }
@@ -178,7 +178,7 @@ function actionView(
     action,
     cost,
     available: reason === null && (cost === null || state.gold >= cost),
-    reason: reason ?? (cost !== null && state.gold < cost ? `costs ${cost} gp` : null),
+    reason: reason ?? (cost !== null && state.gold < cost ? 'not enough gold' : null),
   })
   switch (action) {
     case 'lodging':

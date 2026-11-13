@@ -194,7 +194,7 @@ export function animalOffers(state: GameState, content: Content): AnimalOffer[] 
       upkeep: def.upkeepPerDay,
       rides: def.rider ? def.speed : null,
       owned: state.animals[def.id] ?? 0,
-      buyReason: state.gold < def.price ? `costs ${def.price} gp` : null,
+      buyReason: state.gold < def.price ? 'not enough gold' : null,
     }))
 }
 

@@ -172,7 +172,7 @@ describe('animal offers', () => {
     expect(offers.map((o) => o.id)).toEqual(['mule', 'cart', 'riding-horse'])
     expect(offers[0]).toMatchObject({ owned: 1, capacity: 100, upkeep: 1, buyReason: null })
     expect(offers[0].resale).toBeLessThan(offers[0].price)
-    expect(offers[2]).toMatchObject({ rides: 2, buyReason: 'costs 80 gp' })
+    expect(offers[2]).toMatchObject({ rides: 2, buyReason: 'not enough gold' })
     expect(animalOffers(at('greenvale-2'), content)).toEqual([])
   })
 })

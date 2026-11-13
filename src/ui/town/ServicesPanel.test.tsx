@@ -110,7 +110,8 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
 
   const stable = within(screen.getByRole('region', { name: 'Animals & mounts' }))
   expect(stable.getByText('+100 kg · 1 gp a day')).toBeTruthy()
-  await userEvent.click(stable.getByRole('button', { name: 'Buy · 10 gp' }))
+  // The price is in the picker ("Mule · 10 gp"); the button doesn't repeat it.
+  await userEvent.click(stable.getByRole('button', { name: 'Buy' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyAnimal', animal: 'mule' })
   await userEvent.click(stable.getByRole('button', { name: /^Sell \(1\)/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'sellAnimal', animal: 'mule' })
@@ -224,4 +225,13 @@ test('quality pips explain what quality does there on hover or focus', async () 
   const jeweller = screen.getByRole('region', { name: 'Jewelry trader' })
   const tip = within(jeweller).getByRole('tooltip', { hidden: true })
   expect(tip.textContent).toMatch(/narrows the gap between buying and selling by 3 points/)
+})
+
+test('a service the party can’t afford names its price once: on the button, not again below', () => {
+  panel(town({ gold: 0 }))
+  const bless = screen.getByRole('button', { name: /^Blessing · \d+ gp$/ })
+  const temple = within(bless.closest('section')!)
+  expect((bless as HTMLButtonElement).disabled).toBe(true)
+  expect(temple.queryByText(/costs \d+ gp/)).toBeNull()
+  expect(temple.getAllByText('not enough gold').length).toBeGreaterThan(0)
 })

@@ -115,7 +115,8 @@ test('a cleared site lies empty, can’t be visited, and says why', () => {
   expect(screen.queryByText(/Feeds the/)).toBeNull()
   const enter = screen.getByRole('button', { name: 'Enter' }) as HTMLButtonElement
   expect(enter.disabled).toBe(true)
-  expect(screen.getByText('Redtusk camp lies empty for now.')).toBeTruthy()
+  // Said once, in the summary: no second "lies empty" line by the button.
+  expect(screen.queryByText('Redtusk camp lies empty for now.')).toBeNull()
 })
 
 test('a site already visited since arriving can’t be visited again, and says why', () => {
