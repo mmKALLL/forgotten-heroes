@@ -88,6 +88,12 @@ export function mournTheDead(before: GameState, after: GameState): GameState {
     .reduce((s, c) => changeCamaraderie(s, -CAMARADERIE_DEATH, `${c.name} is dead`), after)
 }
 
+/** The camaraderie a night in a private room would add now (bond): 0 once had this arrival. */
+export const bondGain = (state: Pick<GameState, 'camaraderie' | 'doneHere'>): number =>
+  state.doneHere.includes(BOND)
+    ? 0
+    : shiftCamaraderie(state.camaraderie, CAMARADERIE_BOND).value - state.camaraderie
+
 /** A night in a private room: CAMARADERIE_BOND, once per arrival. */
 export function bond(state: GameState): GameState {
   if (state.doneHere.includes(BOND)) return state

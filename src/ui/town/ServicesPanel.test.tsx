@@ -9,6 +9,7 @@ import { I18nProvider } from '../i18n/I18n'
 import { accessoryOffers, describeAccessory } from '../../engine/gear/accessories'
 import { describeHook } from '../../engine/gear/hooks'
 import { recruitOffers } from '../../engine/town/recruits'
+import { serviceRows } from '../../engine/town/services'
 import { ServicesPanel } from './ServicesPanel'
 import { HEALER_PRICE } from '../../engine/constants'
 
@@ -72,9 +73,9 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
   const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 }, day: 20 })
   const onAction = panel(hurt)
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
-  await userEvent.click(inn.getByRole('button', { name: /^Common · \d+ gp$/ }))
+  await userEvent.click(inn.getByRole('button', { name: /^Common room · −\d+ gp Rest 1d/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: 'common' })
-  const round = inn.getByRole('button', { name: /^Stand a round · \d+ gp$/ })
+  const round = inn.getByRole('button', { name: /^Stand a round · −\d+ gp \+\d+ camaraderie$/ })
   expect(round.getAttribute('title')).toMatch(/^Drinks for everyone: \+\d+ camaraderie/)
   await userEvent.click(round)
   expect(onAction).toHaveBeenLastCalledWith({
@@ -83,7 +84,9 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
     action: 'round',
   })
 
-  const heal = screen.getByRole('button', { name: `Heal 1 · ${HEALER_PRICE} gp` })
+  const heal = screen.getByRole('button', {
+    name: new RegExp(`^Heal 1 · −${HEALER_PRICE} gp Full HP`),
+  })
   expect(heal.getAttribute('title')).toMatch(/for Brom,/)
   await userEvent.click(heal)
   expect(onAction).toHaveBeenLastCalledWith({
@@ -91,7 +94,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
     service: 'temple',
     action: 'heal',
   })
-  await userEvent.click(screen.getByRole('button', { name: /^Blessing · \d+ gp$/ }))
+  await userEvent.click(screen.getByRole('button', { name: /^Blessing · −\d+ gp/ }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'useService',
     service: 'temple',
@@ -100,7 +103,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
 
   const from = screen.getByRole('combobox', { name: 'News from' }) as HTMLSelectElement
   await userEvent.selectOptions(from, from.options[1].value)
-  await userEvent.click(screen.getByRole('button', { name: /^News · \d+ gp$/ }))
+  await userEvent.click(screen.getByRole('button', { name: /^News · −\d+ gp/ }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'useService',
     service: 'couriers',
@@ -120,8 +123,11 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
 test('the healer is disabled when no one needs healing, and resting on carried food dispatches', async () => {
   const onAction = panel(town())
   expect(
-    (screen.getByRole('button', { name: `Heal · ${HEALER_PRICE} gp each` }) as HTMLButtonElement)
-      .disabled
+    (
+      screen.getByRole('button', {
+        name: new RegExp(`^Heal · −${HEALER_PRICE} gp each`),
+      }) as HTMLButtonElement
+    ).disabled
   ).toBe(true)
   await userEvent.click(screen.getByRole('button', { name: 'Rest a day, eating carried food' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: false })
@@ -227,11 +233,31 @@ test('quality pips explain what quality does there on hover or focus', async () 
   expect(tip.textContent).toMatch(/narrows the gap between buying and selling by 3 points/)
 })
 
-test('a service the party can’t afford names its price once: on the button, not again below', () => {
-  panel(town({ gold: 0 }))
-  const bless = screen.getByRole('button', { name: /^Blessing · \d+ gp$/ })
+test('a service button shows its price, then the engine’s short effect on a second line', () => {
+  const state = town()
+  panel(state)
+  const bless = screen.getByRole('button', { name: /^Blessing · −\d+ gp/ })
+  const effect = serviceRows(state, content)
+    .find((r) => r.service === 'temple')!
+    .actions.find((a) => a.action === 'bless')!.effect!
+  expect(bless.querySelector('.service-effect')?.textContent).toBe(effect)
+  expect(effect).toBe('+1 Inspiration')
+  // The longer description stays in the tooltip; nothing else on the tile repeats the effect.
+  expect(bless.getAttribute('title')).toMatch(/Inspiration/)
   const temple = within(bless.closest('section')!)
+  expect(temple.getAllByText(/Inspiration/)).toHaveLength(1)
+})
+
+test('a service the party can’t afford is only disabled: "not enough gold" is not shown', () => {
+  panel(town({ gold: 0 }))
+  const bless = screen.getByRole('button', { name: /^Blessing · −\d+ gp/ })
   expect((bless as HTMLButtonElement).disabled).toBe(true)
-  expect(temple.queryByText(/costs \d+ gp/)).toBeNull()
-  expect(temple.getAllByText('not enough gold').length).toBeGreaterThan(0)
+  // The reason is in the tooltip and the accessible description, not a visible line.
+  expect(bless.getAttribute('title')).toMatch(/not enough gold$/)
+  const why = document.getElementById(bless.getAttribute('aria-describedby') ?? '')
+  expect(why?.textContent).toBe('not enough gold')
+  expect(why?.className).toBe('sr-only')
+  for (const line of document.querySelectorAll('.service-why')) {
+    expect(line.textContent).not.toMatch(/gold/)
+  }
 })

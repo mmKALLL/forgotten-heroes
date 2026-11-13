@@ -117,6 +117,31 @@ describe('healers, temples and couriers', () => {
     expect(newsTargets(after, content).map((t) => t.id)).not.toContain(target.id)
   })
 
+  test('each service’s short effect says what using it does', () => {
+    const s = hurt(at('greenvale-1'))
+    const views = serviceRows(s, content).flatMap((r) => r.actions)
+    const effect = (action: string) => views.find((a) => a.action === action)!.effect!
+    const num = (text: string, what: string) =>
+      Number(text.match(new RegExp(`([+−-]\\d+) ${what}`))![1].replace('−', '-'))
+    const blessed = act(s, { type: 'useService', service: 'temple', action: 'bless' })
+    expect(num(effect('bless'), 'Inspiration')).toBe(blessed.inspiration - s.inspiration)
+    const healed = act(s, { type: 'useService', service: 'temple', action: 'heal' })
+    expect(effect('heal')).toMatch(/^Full HP/)
+    expect(num(effect('heal'), 'exhaustion')).toBe(
+      healed.party[0].exhaustion - s.party[0].exhaustion
+    )
+    const stood = act(s, { type: 'useService', service: 'inn-tavern', action: 'round' })
+    expect(num(effect('round'), 'camaraderie')).toBe(stood.camaraderie - s.camaraderie)
+    // Each room's own effect: the Strain a night fades, and a private room's bond.
+    const strained = { ...s, party: [{ ...brom, strain: { survival: 3 } }, lyra] }
+    for (const room of lodgingOptions(strained, content)) {
+      const night = act(strained, { type: 'rest', lodging: room.room })
+      expect(num(room.effect, 'Strain')).toBe(night.party[0].strain.survival! - 3)
+      const bond = room.effect.match(/\+(\d+) camaraderie/)
+      expect(bond ? Number(bond[1]) : 0).toBe(night.camaraderie - strained.camaraderie)
+    }
+  })
+
   test('services nothing supports yet are listed as coming later', () => {
     const rows = serviceRows(at('greenvale-1'), content)
     expect(rows.find((r) => r.service === 'port')).toMatchObject({ later: true })
