@@ -526,7 +526,7 @@ describe('supply forecasts and warnings', () => {
     expect(forced.warnings.map(warningText)).toEqual([
       'Water runs out on day 1 even with foraging (2 days without).',
       expect.stringMatching(
-        /^A forced march of 2 days \(CON DC 12 each day\) will likely exhaust Lyra: about 1\.\d levels\.$/
+        /^A forced march of 2 days \(CON DC 12 each day\): Lyra will likely gain \d exhaustion\.$/
       ),
     ])
   })

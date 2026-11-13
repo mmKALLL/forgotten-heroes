@@ -312,8 +312,8 @@ export function warningText(w: TravelWarning): string {
       )
     case 'forcedMarchExhaustion':
       return (
-        `A forced march of ${plural(w.params.days, 'day')} (CON DC ${w.params.dc} each day) will ` +
-        `likely exhaust ${w.params.name}: about ${w.params.expectedLevels.toFixed(1)} levels.`
+        `A forced march of ${plural(w.params.days, 'day')} (CON DC ${w.params.dc} each day): ` +
+        `${w.params.name} will likely gain ${Math.max(1, Math.round(w.params.expectedLevels))} exhaustion.`
       )
     case 'forcedMarchDeadly':
       return (

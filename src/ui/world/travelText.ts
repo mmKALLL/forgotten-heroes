@@ -165,7 +165,8 @@ export function warningMessage(t: T, w: TravelWarning): string {
         days: daysText(t, w.params.days),
         dc: w.params.dc,
         name: w.params.name,
-        levels: w.params.expectedLevels.toFixed(1),
+        // The expected levels gained, as a whole number (at least 1: the warning means some).
+        levels: Math.max(1, Math.round(w.params.expectedLevels)),
       })
     case 'encumbered':
       return t('warning.encumbered', w.params)
