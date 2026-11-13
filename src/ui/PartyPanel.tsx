@@ -9,6 +9,7 @@ import type { Character, SkillUse } from '../schema/state'
 import type { CamaraderieInfo } from '../engine/town/camaraderie'
 import { dismissRefusal } from '../engine/town/recruits'
 import { levelNumeral, type OwnedUpgrade } from '../engine/town/upgrades'
+import type { Content } from '../content/build'
 import { useI18n } from './i18n/I18n'
 import { CamaraderieLine, MemberDetails, XpBar } from './MemberDetails'
 
@@ -25,6 +26,10 @@ type Props = {
   onAction?: (a: Action) => void
   /** The party's upgrades (ownedUpgrades), listed compactly under the camaraderie. */
   upgrades?: readonly OwnedUpgrade[]
+  /** The content, for each sheet's weapon, armour and abilities (Plan 7); none when absent. */
+  content?: Content
+  /** Weapons and armour carried but not worn (GameState.stash), for each sheet's pickers. */
+  stash?: readonly string[]
 }
 
 export function PartyPanel({
@@ -35,6 +40,8 @@ export function PartyPanel({
   gear = [],
   onAction,
   upgrades = [],
+  content,
+  stash = [],
 }: Props) {
   const { t } = useI18n()
   return (
@@ -46,6 +53,8 @@ export function PartyPanel({
           key={c.id}
           character={c}
           gear={gear}
+          content={content}
+          stash={stash}
           onAction={onAction}
           dismissRefusal={dismissRefusal(party, c)}
           usesToday={
@@ -83,12 +92,16 @@ function CharacterCard({
   character: c,
   usesToday,
   gear,
+  content,
+  stash,
   onAction,
   dismissRefusal,
 }: {
   character: Character
   usesToday: SkillUse[]
   gear: readonly Accessory[]
+  content?: Content
+  stash: readonly string[]
   onAction?: (a: Action) => void
   dismissRefusal: string | null
 }) {
@@ -220,6 +233,8 @@ function CharacterCard({
         <MemberDetails
           character={c}
           gear={gear}
+          content={content}
+          stash={stash}
           onAction={onAction}
           dismissRefusal={dismissRefusal}
         />

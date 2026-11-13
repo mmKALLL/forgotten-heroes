@@ -1,4 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
+import type { Content } from '../content/build'
+import { abilitySlots } from '../engine/combat/abilities'
+import { memberStats } from '../engine/combat/gear'
+import { WEAPON_FAMILY_RULES } from '../engine/constants'
+import { formatModifier } from '../engine/format'
+import { armsPiece } from '../engine/town/arms'
 import { describeAccessory } from '../engine/gear/accessories'
 import { describeHook } from '../engine/gear/hooks'
 import { xpProgress } from '../engine/rules/progression'
@@ -51,12 +57,18 @@ export function XpBar({ character: c }: { character: Character }) {
 export function MemberDetails({
   character: c,
   gear,
+  content,
+  stash = [],
   onAction,
   dismissRefusal = null,
 }: {
   character: Character
   /** The party's unworn accessories. */
   gear: readonly Accessory[]
+  /** The content, for the weapon, armour and abilities (Plan 7); none when absent. */
+  content?: Content
+  /** Weapons and armour carried but not worn. */
+  stash?: readonly string[]
   /** Why this member can't be dismissed (recruits.ts dismissRefusal), shown in place of Dismiss. */
   dismissRefusal?: string | null
   /** Absent while nothing can be changed (an encounter is open). */
@@ -81,6 +93,13 @@ export function MemberDetails({
         <p className="tone-bad">
           {t(c.oldWounds.length > 1 ? 'party.wounds' : 'party.wound', { wound: oldWoundText(c)! })}
         </p>
+      )}
+      {content && (
+        <>
+          <ArmsSlot slot="weapon" character={c} {...{ content, stash, onAction }} />
+          <ArmsSlot slot="armour" character={c} {...{ content, stash, onAction }} />
+          <AbilityList character={c} content={content} />
+        </>
       )}
       <AccessorySlot character={c} gear={gear} onAction={onAction} />
       {hired ? (
@@ -167,6 +186,94 @@ function AccessorySlot({
         </span>
       )}
     </div>
+  )
+}
+
+/**
+ * A weapon or armour slot (Plan 7 Track C): what is worn, what it does, a warning when the class
+ * isn't trained in it, Take off, and a picker of the stash's pieces of that kind to wear.
+ */
+function ArmsSlot({
+  slot,
+  character: c,
+  content,
+  stash,
+  onAction,
+}: {
+  slot: 'weapon' | 'armour'
+  character: Character
+  content: Content
+  stash: readonly string[]
+  onAction?: (a: Action) => void
+}) {
+  const { t } = useI18n()
+  const [pick, setPick] = useState<string | null>(null)
+  const pieces = [...new Set(stash)].flatMap((id) => {
+    const p = armsPiece(content, id)
+    return p && p.kind === slot ? [p.item] : []
+  })
+  const chosen = pieces.find((p) => p.id === pick) ?? pieces[0]
+  const worn = c.gear[slot] ? armsPiece(content, c.gear[slot]!) : null
+  const stats = memberStats(c, content)
+  const untrained = slot === 'weapon' ? !stats.weaponTrained : !stats.armourTrained
+  const detail =
+    slot === 'weapon'
+      ? t('arms.weaponStats', {
+          die: WEAPON_FAMILY_RULES[stats.family].die,
+          hit: formatModifier(stats.toHit),
+        })
+      : t('arms.armourStats', { ac: stats.ac })
+  return (
+    <div className="accessory-slot arms-slot">
+      <span className="muted">{t(`arms.${slot}`)}</span>{' '}
+      <span>
+        {worn ? worn.item.name : t('party.accessoryNone')} <span className="muted">{detail}</span>
+      </span>
+      {worn && untrained && <span className="tone-bad"> {t(`arms.untrained.${slot}`)}</span>}
+      {onAction && worn && isAlive(c) && (
+        <button onClick={() => onAction({ type: 'unequipArms', characterId: c.id, slot })}>
+          {t('party.unequip')}
+        </button>
+      )}
+      {onAction && chosen && isAlive(c) && (
+        <span className="inline-pick">
+          <select
+            aria-label={t(`arms.pick.${slot}`, { name: c.name })}
+            value={chosen.id}
+            onChange={(e) => setPick(e.target.value)}
+          >
+            {pieces.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <button onClick={() => onAction({ type: 'equipArms', characterId: c.id, id: chosen.id })}>
+            {t(worn ? 'party.swap' : 'party.wear')}
+          </button>
+        </span>
+      )}
+    </div>
+  )
+}
+
+/** The member's class abilities with their uses until a long rest (Plan 7 Track C). */
+function AbilityList({ character: c, content }: { character: Character; content: Content }) {
+  const { t } = useI18n()
+  const slots = abilitySlots({ combat: null, party: [c] }, content, c.id)
+  if (slots.length === 0) return null
+  return (
+    <p className="ability-list">
+      <span className="muted">{t('arms.abilities')}</span>{' '}
+      {slots.map((s, i) => (
+        <span key={s.ability.id}>
+          {i > 0 && ' · '}
+          <Tip tip={s.ability.description}>
+            {t('arms.ability', { name: s.ability.name, left: s.left, max: s.max })}
+          </Tip>
+        </span>
+      ))}
+    </p>
   )
 }
 

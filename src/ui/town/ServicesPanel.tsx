@@ -24,6 +24,8 @@ import { formatModifier } from '../../engine/format'
 import { Tip } from '../Tip'
 import type { QualityEffect } from '../../engine/economy/market'
 import { AccessoryShop } from './AccessoryShop'
+import { ArmsShop } from './ArmsShop'
+import { armsOffers } from '../../engine/town/arms'
 import { RecruitsPanel } from './RecruitsPanel'
 import { UpgradeOffers } from './UpgradeOffers'
 import { upgradeOffers } from '../../engine/town/upgrades'
@@ -36,7 +38,11 @@ type Props = { content: Content; state: GameState; onAction: (a: Action) => void
  * A service's list opened in place of the tiles (the recruits, or an accessory shop), at the
  * settlement it was opened in, so it closes by itself when the party leaves.
  */
-export type ServiceList = { kind: 'recruits' | 'accessories'; service: string; at: string | null }
+export type ServiceList = {
+  kind: 'recruits' | 'accessories' | 'arms'
+  service: string
+  at: string | null
+}
 
 /** What a tile needs to open a list, and which opener ("kind/service") takes focus back. */
 type Opener = { open: (list: ServiceList) => void; returnTo: string | null }
@@ -151,7 +157,13 @@ export function ServicesPanel({ content, state, onAction }: Props) {
         setList(null)
       },
     }
-    return list.kind === 'recruits' ? <RecruitsPanel {...props} /> : <AccessoryShop {...props} />
+    return list.kind === 'recruits' ? (
+      <RecruitsPanel {...props} />
+    ) : list.kind === 'arms' ? (
+      <ArmsShop {...props} />
+    ) : (
+      <AccessoryShop {...props} />
+    )
   }
   const opener: Opener = { open: setList, returnTo }
   return (
@@ -201,7 +213,7 @@ export function ServicesPanel({ content, state, onAction }: Props) {
  */
 const TILE_KINDS = ['info', 'list', 'picker', 'buttons'] as const
 type TileKind = (typeof TILE_KINDS)[number]
-const LIST_ACTIONS = ['recruit', 'accessories']
+const LIST_ACTIONS = ['recruit', 'accessories', 'arms']
 const PICKER_ACTIONS = ['animals']
 
 /** The actions a tile shows (rumours, the board, the market and passage live elsewhere). */
@@ -341,6 +353,17 @@ function ServiceAction({
           kind="accessories"
           label={t('shop.open', { n })}
           enabled={n > 0 || state.gear.length > 0}
+          {...{ state, row, view, opener }}
+        />
+      )
+    }
+    case 'arms': {
+      const n = listCount('arms', row.service, state, content)
+      return (
+        <ListOpener
+          kind="arms"
+          label={t('arms.open', { n })}
+          enabled={n > 0 || state.stash.length > 0}
           {...{ state, row, view, opener }}
         />
       )
@@ -495,7 +518,7 @@ function ServiceAction({
 
 /** How many recruits or accessories a service offers here this week. */
 function listCount(
-  action: 'recruit' | 'accessories',
+  action: 'recruit' | 'accessories' | 'arms',
   service: string,
   state: GameState,
   content: Content
@@ -505,7 +528,9 @@ function listCount(
   const offers =
     action === 'recruit'
       ? recruitOffers(state, content, here)
-      : accessoryOffers(state, content, here)
+      : action === 'arms'
+        ? armsOffers(state, content, here)
+        : accessoryOffers(state, content, here)
   return offers.filter((o) => o.service === service).length
 }
 
@@ -517,6 +542,9 @@ function emptyOpener(action: string, service: string, state: GameState, content:
   if (action === 'recruit') return listCount(action, service, state, content) === 0
   if (action === 'accessories') {
     return state.gear.length === 0 && listCount(action, service, state, content) === 0
+  }
+  if (action === 'arms') {
+    return state.stash.length === 0 && listCount(action, service, state, content) === 0
   }
   return false
 }
@@ -555,7 +583,13 @@ function ListOpener({
       disabled={!enabled}
       title={
         enabled
-          ? t(kind === 'recruits' ? 'recruits.openHint' : 'shop.openHint')
+          ? t(
+              kind === 'recruits'
+                ? 'recruits.openHint'
+                : kind === 'arms'
+                  ? 'arms.openHint'
+                  : 'shop.openHint'
+            )
           : (view.reason ?? undefined)
       }
       onClick={() => opener.open({ kind, service: row.service, at: state.location })}

@@ -169,6 +169,8 @@ function Game() {
             gear={shown.gear}
             onAction={inProgress(state) ? undefined : dispatch}
             upgrades={ownedUpgrades(shown, content)}
+            content={content}
+            stash={shown.stash}
           />
           <WorldMap
             content={content}
