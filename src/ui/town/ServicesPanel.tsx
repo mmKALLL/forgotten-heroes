@@ -16,7 +16,7 @@ import {
   roundOption,
 } from '../../engine/town/services'
 import { goodDef } from '../../engine/economy/goods'
-import { SERVICE_FUNCTIONS, type Good } from '../../schema/types'
+import type { Good } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { useI18n, type I18n } from '../i18n/I18n'
 import { Tip } from '../Tip'
@@ -25,6 +25,7 @@ import { StandingBadge } from './PeoplePanel'
 import { AccessoryShop } from './AccessoryShop'
 import { RecruitsPanel } from './RecruitsPanel'
 import { UpgradeOffers } from './UpgradeOffers'
+import { upgradeOffers } from '../../engine/town/upgrades'
 import { daysText } from '../world/travelText'
 import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 
@@ -174,15 +175,15 @@ export function ServicesPanel({ content, state, onAction }: Props) {
         <p className="muted small">{t('services.none')}</p>
       ) : (
         <div className="service-tiles">
-          {SERVICE_FUNCTIONS.map((fn) => {
-            const group = rows.filter((r) => r.function === fn)
+          {TILE_KINDS.map((kind) => {
+            const group = rows.filter((r) => tileKind(r, state, content) === kind)
             if (group.length === 0) return null
             return (
               <div
-                key={fn}
+                key={kind}
                 className="service-group"
                 role="group"
-                aria-label={t(`services.function.${fn}`)}
+                aria-label={t(`services.kind.${kind}`)}
               >
                 {group.map((row) => (
                   <ServiceTile
@@ -198,6 +199,33 @@ export function ServicesPanel({ content, state, onAction }: Props) {
       )}
     </>
   )
+}
+
+/**
+ * The tiles in reading order (designer call): places described only, then shops that open a list
+ * (recruits, accessories), then shops with a picker (news, animals), then places with buttons.
+ */
+const TILE_KINDS = ['info', 'list', 'picker', 'buttons'] as const
+type TileKind = (typeof TILE_KINDS)[number]
+const LIST_ACTIONS = ['recruit', 'accessories']
+const PICKER_ACTIONS = ['news', 'animals']
+
+/** The actions a tile shows (rumours, the board, the market and passage live elsewhere). */
+function tileActions(row: ServiceRow, state: GameState, content: Content): ServiceActionView[] {
+  const acting = row.actions.filter(
+    (a) => !['market', 'passage', 'rumours', 'board'].includes(a.action)
+  )
+  // An empty list opener ("Recruits (0)") only shows when it is the tile's one action.
+  const filled = acting.filter((a) => !emptyOpener(a.action, row.service, state, content))
+  return filled.length > 0 ? filled : acting
+}
+
+function tileKind(row: ServiceRow, state: GameState, content: Content): TileKind {
+  const actions = tileActions(row, state, content).map((a) => a.action)
+  if (actions.some((a) => LIST_ACTIONS.includes(a))) return 'list'
+  if (actions.some((a) => PICKER_ACTIONS.includes(a))) return 'picker'
+  const upgrades = upgradeOffers(state, content).some((o) => o.service === row.service)
+  return actions.length > 0 || upgrades ? 'buttons' : 'info'
 }
 
 function ServiceTile({
@@ -223,13 +251,7 @@ function ServiceTile({
   ]
     .filter(Boolean)
     .join(' · ')
-  // Rumours and the notice board have their own lines in the talk zone (no pointer here).
-  const acting = row.actions.filter(
-    (a) => !['market', 'passage', 'rumours', 'board'].includes(a.action)
-  )
-  // An empty list opener ("Recruits (0)") only shows when it is the tile's one action.
-  const filled = acting.filter((a) => !emptyOpener(a.action, row.service, state, content))
-  const working = filled.length > 0 ? filled : acting
+  const working = tileActions(row, state, content)
   const market = row.actions.some((a) => a.action === 'market')
   const passage = row.actions.some((a) => a.action === 'passage')
   return (

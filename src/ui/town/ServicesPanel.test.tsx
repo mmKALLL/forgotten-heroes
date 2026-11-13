@@ -59,10 +59,15 @@ const panel = (state: GameState) => {
   return onAction
 }
 
-test('tiles are grouped by function; an unsupported service shows "coming later"', () => {
+test('tiles run from places described only to places with buttons; "coming later" shows', () => {
   panel(town())
   const groups = screen.getAllByRole('group').map((g) => g.getAttribute('aria-label'))
-  expect(groups).toEqual(['Trade', 'Rest & Recovery', 'Hire & Contracts', 'Temple & Arcane'])
+  const order = ['Places', 'Shops with a list', 'Shops with a choice', 'Services']
+  expect(groups.length).toBeGreaterThan(1)
+  expect(groups).toEqual(order.filter((g) => groups.includes(g)))
+  // A shop described only (the jeweller) comes before one with buttons (the inn).
+  const tiles = screen.getAllByRole('region').map((r) => r.getAttribute('aria-label'))
+  expect(tiles.indexOf('Jewelry trader')).toBeLessThan(tiles.indexOf('Inn/Tavern'))
   const magic = screen.getByRole('region', { name: 'Magic items' })
   expect(within(magic).getByText('coming later')).toBeTruthy()
   expect(within(screen.getByRole('region', { name: 'Jewelry trader' })).getByText(/^Trades gems/))
