@@ -7,6 +7,7 @@ import type { Action } from '../engine/state'
 import type { Accessory } from '../schema/gear'
 import type { Character, SkillUse } from '../schema/state'
 import type { CamaraderieInfo } from '../engine/town/camaraderie'
+import { levelNumeral, type OwnedUpgrade } from '../engine/town/upgrades'
 import { useI18n } from './i18n/I18n'
 import { CamaraderieLine, MemberDetails, XpBar } from './MemberDetails'
 
@@ -21,6 +22,8 @@ type Props = {
   gear?: readonly Accessory[]
   /** Dismiss, wear and take off; absent while that isn't possible (an encounter is open). */
   onAction?: (a: Action) => void
+  /** The party's upgrades (ownedUpgrades), listed compactly under the camaraderie. */
+  upgrades?: readonly OwnedUpgrade[]
 }
 
 export function PartyPanel({
@@ -30,6 +33,7 @@ export function PartyPanel({
   camaraderie,
   gear = [],
   onAction,
+  upgrades = [],
 }: Props) {
   const { t } = useI18n()
   return (
@@ -49,6 +53,19 @@ export function PartyPanel({
         />
       ))}
       {camaraderie && <CamaraderieLine info={camaraderie} />}
+      {upgrades.length > 0 && (
+        <p className="small upgrades-owned">
+          <span className="muted">{t('upgrades.owned')}:</span>{' '}
+          {upgrades.map((u, i) => (
+            <span key={u.id}>
+              {i > 0 && ' · '}
+              <span title={u.effect}>
+                {t('upgrades.ownedItem', { name: u.name, level: levelNumeral(u.level) })}
+              </span>
+            </span>
+          ))}
+        </p>
+      )}
     </section>
   )
 }

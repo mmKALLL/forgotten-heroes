@@ -3,7 +3,8 @@ import type { Action } from '../../engine/state'
 import { journeyInfo, suppliesInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
-import { biomeText, paceText } from './travelText'
+import { biomeText, campHint, paceText } from './travelText'
+import { restOption } from '../../engine/travel/supplies'
 
 /**
  * The journey under way: where from and to, how far, the pace (fixed at departure), the
@@ -58,7 +59,12 @@ export function JourneyPanel({
         >
           {t('journey.continue')}
         </button>
-        <button onClick={() => onAction({ type: 'rest' })}>{t('journey.camp')}</button>
+        <button
+          title={campHint(t, restOption(state, content))}
+          onClick={() => onAction({ type: 'rest' })}
+        >
+          {t('journey.camp')}
+        </button>
       </div>
       {autoRest && (
         <label className="inline small">

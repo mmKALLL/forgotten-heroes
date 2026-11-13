@@ -79,6 +79,10 @@ export function OptionCard({
     check && check.situationalModifier !== 0
       ? ` · ${formatModifier(check.situationalModifier)} ${check.situationalReason ?? t('option.situational')}`
       : ''
+  const gear =
+    check && check.upgradeModifier !== 0
+      ? ` · ${formatModifier(check.upgradeModifier)} ${t('option.delvingGear')}`
+      : ''
   const position =
     check && check.mode !== 'normal'
       ? ` · ${t(check.mode === 'advantage' ? 'position.edge' : 'position.exposed')}`
@@ -134,6 +138,7 @@ export function OptionCard({
             <span className="small check-line">
               {t('option.vsDc', { check: checkLabel ?? check.label, dc: check.dc })}
               {modifier}
+              {gear}
               {position}
               {/* The odds already include the reroll (Plan 5a, a `lucky` accessory). */}
               {check.lucky && <span title={t('option.luckyHint')}> · {t('option.lucky')}</span>}

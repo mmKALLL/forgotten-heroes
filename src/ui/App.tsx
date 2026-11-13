@@ -4,6 +4,7 @@ import { inProgress } from '../engine/encounters/run'
 import { FINAL_ENDINGS, runEnding, runRecord } from '../engine/crisis/ending'
 import { crisisInfo } from '../engine/crisis/status'
 import { camaraderieInfo } from '../engine/town/camaraderie'
+import { ownedUpgrades } from '../engine/town/upgrades'
 import { suppliesInfo } from '../engine/travel/preview'
 import { dangerInfo } from '../engine/world/danger'
 import { nodeOf } from '../engine/world/graph'
@@ -153,6 +154,7 @@ function Game() {
             camaraderie={camaraderieInfo(shown)}
             gear={shown.gear}
             onAction={inProgress(state) ? undefined : dispatch}
+            upgrades={ownedUpgrades(shown, content)}
           />
           <ContractsPanel content={content} state={shown} onAction={dispatch} />
           <WorldMap

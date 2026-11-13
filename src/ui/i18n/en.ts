@@ -193,6 +193,13 @@ export const en = {
   'challenge.rule': 'A critical counts twice.',
 
   'option.situational': 'situational',
+  /** A party upgrade's next level for sale on a service tile (Plan 6c). */
+  'upgrades.offer': '{name} {level} · {gp} gp',
+  /** The party panel's line of owned upgrades. */
+  'upgrades.owned': 'Upgrades',
+  'upgrades.ownedItem': '{name} {level}',
+  /** What delving gear adds to a check in a dungeon room (Plan 6c), after its modifier. */
+  'option.delvingGear': 'delving gear',
   'option.lucky': 'lucky',
   'option.luckyHint':
     'A lucky charm: a natural 1 is rerolled once today. The odds already include it.',
@@ -568,6 +575,9 @@ export const en = {
   'poi.rest': 'Make camp (rest a day)',
   'poi.restHint':
     'A day in camp eats carried food and heals a quarter of max HP; everyone fed loses a level of exhaustion.',
+  /** Added to a camp-rest hint when the camp kit helps (Plan 6c). */
+  'camp.kit': 'The camp kit adds +{hp} HP each.',
+  'camp.kitCheer': 'The camp kit adds +{hp} HP each and +{n} camaraderie (once a stop).',
   'poi.noTrade': 'Not here: there is no one to buy from or sell to.',
   'site.cr': 'CR {cr}: meant for a party of level {level} (your best: {party}).',
   'site.crHard': 'Too strong for you yet.',
@@ -603,6 +613,8 @@ export const en = {
   'explore.foundLate': 'Finds a site, after {days}',
   'explore.nothing': 'Finds nothing',
   'explore.line': '{name}, {skill} {modifier} vs DC {dc}',
+  /** The explore line's tooltip when surveyor's maps help (Plan 6c). */
+  'explore.mapsHint': "Includes {bonus} from the surveyor's maps",
   'explore.fullyExplored': 'This area is already fully explored.',
   'explore.button': 'Explore ({days})',
   'gather.heading': 'Gather local goods',
