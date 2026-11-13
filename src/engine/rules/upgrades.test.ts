@@ -7,7 +7,7 @@ import { brom, fixtureContent, makeEncounter, makeState } from '../test-fixtures
 import { challengePreview, encounterOptions, type ShownOutcome } from '../encounters/preview'
 import { visibleWealth } from '../economy/wealth'
 import { wentWithout } from '../town/camaraderie'
-import { restOption } from '../travel/supplies'
+import { healed, restOption } from '../travel/supplies'
 import { exploreOption } from '../world/explore'
 import { routeOptions } from '../travel/preview'
 import { placeOnRoute } from '../travel/journey'
@@ -64,28 +64,30 @@ describe("surveyor's maps", () => {
 })
 
 describe('camp kit', () => {
-  test('a rest in camp heals the shown extra HP, and from level III lifts camaraderie once', () => {
+  test('a rest in camp heals the shown extra share of max HP, more per level, no camaraderie', () => {
     const poi = Object.keys(makeState().world.pois)[0]
+    const big = { ...brom, maxHp: 60, hp: 2 }
     const hurt = makeState({
       location: poi,
-      party: [{ ...brom, hp: 2 }],
+      party: [big],
       goods: { food: 10, water: 10 },
       upgrades: { 'camp-kit': 3 },
     })
+    const plain = restOption({ ...hurt, upgrades: {} }, content, false)
     const option = restOption(hurt, content, false)
     expect(option.inTown).toBe(false)
-    expect(option.kitHp).toBeGreaterThan(0)
-    expect(option.cheer).toBeGreaterThan(0)
+    expect(plain.kitHeal).toBe(0)
+    expect(option.kitHeal).toBeGreaterThan(0)
+    expect(option.healShare).toBeCloseTo(plain.healShare + option.kitHeal)
+    expect(
+      restOption({ ...hurt, upgrades: { 'camp-kit': 5 } }, content, false).kitHeal
+    ).toBeGreaterThan(option.kitHeal)
     const rested = step(hurt, { type: 'rest', lodging: false }, content)
-    const heal = Math.ceil(brom.maxHp * option.healShare) + option.kitHp
-    expect(rested.party[0].hp).toBe(Math.min(brom.maxHp, 2 + heal))
-    expect(rested.camaraderie).toBe(hurt.camaraderie + option.cheer)
-    // Once a stop: the next rest here brings no more.
-    expect(restOption(rested, content, false).cheer).toBe(0)
-    const again = step(rested, { type: 'rest', lodging: false }, content)
-    expect(again.camaraderie).toBe(rested.camaraderie)
-    // Below level III, no camaraderie.
-    expect(restOption({ ...hurt, upgrades: { 'camp-kit': 2 } }, content, false).cheer).toBe(0)
+    expect(rested.party[0].hp).toBe(Math.min(big.maxHp, 2 + healed(big.maxHp, option.healShare)))
+    expect(rested.party[0].hp).toBeGreaterThan(
+      step({ ...hurt, upgrades: {} }, { type: 'rest', lodging: false }, content).party[0].hp
+    )
+    expect(rested.camaraderie).toBe(hurt.camaraderie)
   })
 })
 

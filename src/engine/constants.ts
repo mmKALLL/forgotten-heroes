@@ -466,12 +466,8 @@ export const CAMARADERIE_LEAVE_DAYS = 7
 
 // Party upgrades (town/upgrades.ts; Plan 6c). Prices are data: `basePrice` in upgrades.json.
 
-/** Camp kit: HP each member regains per level on a day's rest in camp, on top of CAMP_HEAL. */
-export const CAMP_KIT_HP = 1
-/** Camp kit: from this level a day's rest in camp lifts camaraderie (CAMP_KIT_CHEER)... */
-export const CAMP_KIT_CHEER_LEVEL = 3
-/** ...by this much, once per arrival or journey (like a private room's bond). */
-export const CAMP_KIT_CHEER = 5
+/** Camp kit: the share of max HP a day's rest in camp heals more per level, on top of CAMP_HEAL. */
+export const CAMP_KIT_HEAL = 0.05
 /** Smuggler's compartment: the share of each precious good hidden from tolls and thieves, per level. */
 export const SMUGGLE_SHARE = 0.2
 /** Surveyor's maps: added to explore checks per level. */

@@ -13,8 +13,8 @@ import { inSettlement, notHere } from './where'
 import { load } from '../economy/capacity'
 import type { BuyLimit } from '../economy/trade'
 import { lodgingOptions, type Room } from '../town/services'
-import { bond, changeCamaraderie, shiftCamaraderie } from '../town/camaraderie'
-import { campKitCheer, campKitHp } from '../rules/upgrades'
+import { bond } from '../town/camaraderie'
+import { campKitHeal } from '../rules/upgrades'
 import { journeyDays } from './routes'
 import {
   CAMP_HEAL,
@@ -97,17 +97,16 @@ export type RestOption = {
   room: Room | null
   /**
    * The share of max HP each member regains: a common room's (COMMON_ROOM_HEAL) or a private
-   * room's (PRIVATE_ROOM_HEAL); without a room, in camp or in town, CAMP_HEAL.
+   * room's (PRIVATE_ROOM_HEAL); without a room, in camp or in town, CAMP_HEAL; in camp, plus the
+   * camp kit's `kitHeal`.
    */
   healShare: number
-  /** In camp: the HP each member regains on top of the share, from the camp kit (else 0). */
-  kitHp: number
-  /** In camp: the camaraderie the camp kit's rest brings now (once a stop or journey), else 0. */
-  cheer: number
+  /** In camp: the part of `healShare` the camp kit adds (CAMP_KIT_HEAL per level), else 0. */
+  kitHeal: number
 }
 
-/** Once-per-arrival key (doneHere) for the camp kit's camaraderie. */
-const CAMPFIRE = 'campfire'
+/** The HP a day's rest heals a member: the share of max HP, rounded up. */
+export const healed = (maxHp: number, share: number): number => Math.ceil(maxHp * share - 1e-9)
 
 /**
  * How the party would rest: `lodging` true (or "common") takes a common room, "private" a private
@@ -125,18 +124,14 @@ export function restOption(
   const wanted = lodging === false ? null : lodging === 'private' ? 'private' : 'common'
   const room = rooms.find((r) => r.room === wanted) ?? common
   const stays = wanted !== null && room !== undefined && state.gold >= room.cost
-  const cheer =
-    inTown || state.doneHere.includes(CAMPFIRE)
-      ? 0
-      : shiftCamaraderie(state.camaraderie, campKitCheer(state)).value - state.camaraderie
+  const kitHeal = inTown ? 0 : campKitHeal(state)
   return {
     inTown,
     lodgingCost: (wanted !== null ? room?.cost : common?.cost) ?? 0,
     lodging: stays,
     room: stays ? room!.room : null,
-    healShare: stays ? room!.heal : CAMP_HEAL,
-    kitHp: inTown ? 0 : campKitHp(state),
-    cheer,
+    healShare: stays ? room!.heal : Math.round((CAMP_HEAL + kitHeal) * 100) / 100,
+    kitHeal,
   }
 }
 
@@ -148,7 +143,7 @@ export function restOption(
  * PRIVATE_ROOM_EXHAUSTION (designer calls 2026-11-13). Otherwise it eats its own food and heals as
  * in camp (CAMP_HEAL), so a room is always worth more.
  * In camp (on the road or at a point of interest) it eats carried food, drinking as the terrain
- * there needs, and heals CAMP_HEAL of max HP (and the camp kit's); at a site with a spring or well (`water`) the
+ * there needs, and heals CAMP_HEAL of max HP (and CAMP_KIT_HEAL more per camp-kit level); at a site with a spring or well (`water`) the
  * waterskins are refilled after the day's drinking. Either way, everyone who ate and drank loses
  * a level of exhaustion. Resting is never a forced march.
  */
@@ -178,7 +173,7 @@ export function rest(
     : consumeDay(state, terrain, DEFAULT_PACE, content)
   const party = after.party.map((c) => {
     if (c.exhaustion >= MAX_EXHAUSTION) return c
-    const hp = Math.min(c.maxHp, c.hp + Math.ceil(c.maxHp * option.healShare) + option.kitHp)
+    const hp = Math.min(c.maxHp, c.hp + healed(c.maxHp, option.healShare))
     const exhaustion = unfed.includes(c.id) ? c.exhaustion : Math.max(0, c.exhaustion - lifts)
     return { ...c, hp, exhaustion }
   })
@@ -197,12 +192,7 @@ export function rest(
         `${option.lodgingCost} gp, meals included.`
       : `The party rests a day in ${place}, eating its own food.`
   const rested = appendLog({ ...after, party, goods }, text, 'good')
-  // A night in a private room brings the party closer, once per arrival; so does a good camp
-  // (the camp kit, once a stop or journey).
-  if (option.cheer > 0) {
-    const marked = { ...rested, doneHere: [...rested.doneHere, CAMPFIRE] }
-    return changeCamaraderie(marked, option.cheer, 'a good night by the fire')
-  }
+  // A night in a private room brings the party closer, once per arrival.
   return option.room === 'private' ? bond(rested) : rested
 }
 

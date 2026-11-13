@@ -220,13 +220,8 @@ export function roadReasonMessage(t: T, r: RoadReason): string {
 }
 
 /** A day's rest in camp, for the camp buttons' tooltip: the rule, then what the camp kit adds. */
-export function campHint(t: T, option: Pick<RestOption, 'kitHp' | 'cheer' | 'healShare'>): string {
-  const kit =
-    option.cheer > 0
-      ? t('camp.kitCheer', { hp: option.kitHp, n: option.cheer })
-      : option.kitHp > 0
-        ? t('camp.kit', { hp: option.kitHp })
-        : ''
+export function campHint(t: T, option: Pick<RestOption, 'kitHeal' | 'healShare'>): string {
+  const kit = option.kitHeal > 0 ? t('camp.kit', { pct: Math.round(option.kitHeal * 100) }) : ''
   const pct = Math.round(option.healShare * 100)
   return [t('poi.restHint', { pct }), kit].filter(Boolean).join(' ')
 }

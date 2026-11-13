@@ -107,8 +107,8 @@ test('each card shows its level and a bar to the next; the sheet has XP, hired a
   expect(toggle('Lyra').textContent).toMatch(/lv 2/)
   const bar = card('Lyra').getByRole('meter', { name: 'Lyra XP' })
   expect(bar.getAttribute('aria-valuetext')).toMatch(/to level 3$/)
-  // Beside it, total XP over the next level's threshold.
-  expect(card('Lyra').getByText(`${XP_BY_LEVEL[1]}/${XP_BY_LEVEL[2]} XP`)).toBeTruthy()
+  // Inside it, total XP over the next level's threshold.
+  expect(bar.textContent).toBe(`${XP_BY_LEVEL[1]}/${XP_BY_LEVEL[2]} XP`)
   await userEvent.click(toggle('Lyra'))
   expect(card('Lyra').getByText('Hired')).toBeTruthy()
   expect(card('Lyra').getByText('Old wound: A badly set leg (−2 DEX)')).toBeTruthy()
@@ -116,8 +116,9 @@ test('each card shows its level and a bar to the next; the sheet has XP, hired a
   // At the cap the bar is full and says MAX.
   cleanup()
   render(<PartyPanel party={[{ ...brom, level: MAX_LEVEL, xp: XP_BY_LEVEL[MAX_LEVEL - 1] }]} />)
-  expect(screen.getByRole('meter', { name: 'Brom XP' }).getAttribute('aria-valuenow')).toBe('100')
-  expect(card('Brom').getByText('MAX')).toBeTruthy()
+  const max = screen.getByRole('meter', { name: 'Brom XP' })
+  expect(max.getAttribute('aria-valuenow')).toBe('100')
+  expect(max.textContent).toBe('MAX')
 })
 
 test('dismissing a hired member asks first; founders have no Dismiss', async () => {

@@ -596,8 +596,7 @@ export const en = {
   'poi.restHint':
     'A day in camp eats carried food and heals {pct}% of max HP; everyone fed loses a level of exhaustion.',
   /** Added to a camp-rest hint when the camp kit helps (Plan 6c). */
-  'camp.kit': 'The camp kit adds +{hp} HP each.',
-  'camp.kitCheer': 'The camp kit adds +{hp} HP each and +{n} camaraderie (once a stop).',
+  'camp.kit': 'The camp kit adds +{pct}% of that.',
   'poi.noTrade': 'Not here: there is no one to buy from or sell to.',
   'site.cr': 'CR {cr}: meant for a party of level {level} (your best: {party}).',
   'site.crHard': 'Too strong for you yet.',
