@@ -30,7 +30,14 @@ import { runOver } from '../crisis/ending'
 import { siteLand } from '../crisis/text'
 import { routeOptions, type RouteOption } from './preview'
 import { poiReach, settlementReach } from './reach'
-import { goodsOf, maxWaterskins, partyWaterCapacity, restOption, waterNeed } from './supplies'
+import {
+  goodsOf,
+  maxWaterskins,
+  partyWaterCapacity,
+  restOption,
+  waterCapacity,
+  waterNeed,
+} from './supplies'
 import type { Pick } from './wander'
 import {
   ENCUMBERED_SPEED,
@@ -1008,10 +1015,12 @@ export function trader(
     // Sell first: the coin may pay for the inn.
     sellCargo()
     upkeep()
-    // Spare waterskins are refilled on arrival and weigh a lot: sell them back when laden
-    // (provisioning buys them again for a dry road).
-    if (state.waterskins > 0 && load(state, content).ratio > 0.8) {
-      act({ type: 'sellWaterskin', count: state.waterskins }, 'sell')
+    // Spare waterskins are refilled on arrival and their water weighs a lot: when laden, pour it
+    // out (water is free in town, and provisioning pours in what the next road needs). The skins
+    // are kept: they are dear (a lasting upgrade), so selling and rebuying them would waste coin.
+    const spareWater = goodsOf(state.goods, 'water') - waterCapacity(state.party.length)
+    if (state.waterskins > 0 && spareWater > 0 && load(state, content).ratio > 0.8) {
+      act({ type: 'dropGoods', good: 'water', amount: spareWater }, 'drop')
     }
     for (let day = 0; day < MAX_REST_DAYS && state.party.some(needsRest); day++) {
       const inn = restOption(state, content)

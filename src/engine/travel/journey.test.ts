@@ -9,7 +9,7 @@ import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { placeOnRoute } from './journey'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
-import { WATERSKIN_SELL_PRICE } from '../constants'
+import { WATERSKIN_PRICE, WATERSKIN_SELL_PRICE } from '../constants'
 
 const content = fixtureContent()
 const at = (location: string, overrides: Partial<GameState> = {}): GameState =>
@@ -268,10 +268,10 @@ describe('continueJourney', () => {
     const fed = act(at('greenvale-1', { gold: 10 }), { type: 'buyGoods', good: 'food', amount: 2 })
     expect(fed.gold).toBeLessThan(10)
     expect(fed.goods.food).toBe(12)
-    const skins = act(at('greenvale-1', { gold: 10 }), { type: 'buyWaterskin', count: 2 })
-    expect(skins).toMatchObject({ gold: 6, waterskins: 2 })
+    const skins = act(at('greenvale-1', { gold: 20 }), { type: 'buyWaterskin', count: 2 })
+    expect(skins).toMatchObject({ gold: 20 - 2 * WATERSKIN_PRICE, waterskins: 2 })
     expect(act(skins, { type: 'sellWaterskin', count: 2 })).toMatchObject({
-      gold: 6 + 2 * WATERSKIN_SELL_PRICE,
+      gold: skins.gold + 2 * WATERSKIN_SELL_PRICE,
       waterskins: 0,
     })
   })
