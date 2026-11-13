@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { Content } from '../../content/build'
 import { SituationSchema, type Situation } from '../../schema/encounter'
+import type { CrisisState } from '../../schema/crisis'
 import type { GameState } from '../../schema/state'
 import { encounterOptions } from '../encounters/preview'
 import { createRng } from '../rng'
@@ -116,7 +117,11 @@ describe('dangerLevel and dangerInfo', () => {
 
   test('the waiting penalty grows each day an open act’s lead goes unfollowed, then drops', () => {
     const base = makeState()
-    const crisis = { ...base.crisis!, leads: [null, null, null], thwarted: [null, null, null] }
+    const crisis: CrisisState = {
+      ...base.crisis!,
+      leads: [null, null, null],
+      thwarted: [null, null, null],
+    }
     const from = actCalendar(crisis, 0).waiting
     const wait = (day: number, c = crisis) => dangerLevel({ day, crisis: c }) - rampLevel(day)
     expect(wait(from - 1)).toBeCloseTo(0)
@@ -139,7 +144,11 @@ describe('dangerLevel and dangerInfo', () => {
 
   test('an encounter started while waiting is hardened by it (preview == actual)', () => {
     const base = makeState()
-    const crisis = { ...base.crisis!, leads: [null, null, null], thwarted: [null, null, null] }
+    const crisis: CrisisState = {
+      ...base.crisis!,
+      leads: [null, null, null],
+      thwarted: [null, null, null],
+    }
     const day = actCalendar(crisis, 0).waiting + 10
     const state = step(
       { ...base, day, crisis },
