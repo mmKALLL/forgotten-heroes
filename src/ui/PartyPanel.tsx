@@ -17,7 +17,7 @@ type Props = {
   /** Recent encounter checks (groundwork for Strain); the sheet counts today's. */
   skillUses?: SkillUse[]
   day?: number
-  /** The party's camaraderie line under the cards (camaraderieInfo); none when absent. */
+  /** The party's camaraderie line under the heading (camaraderieInfo); none when absent. */
   camaraderie?: CamaraderieInfo
   /** The party's unworn accessories, for each sheet's picker. */
   gear?: readonly Accessory[]
@@ -40,6 +40,7 @@ export function PartyPanel({
   return (
     <section className="panel" aria-label={t('party.heading')}>
       <h2>{t('party.heading')}</h2>
+      {camaraderie && <CamaraderieLine info={camaraderie} />}
       {party.map((c) => (
         <CharacterCard
           key={c.id}
@@ -54,7 +55,6 @@ export function PartyPanel({
           }
         />
       ))}
-      {camaraderie && <CamaraderieLine info={camaraderie} />}
       {upgrades.length > 0 && (
         <p className="small upgrades-owned">
           <span className="muted">{t('upgrades.owned')}:</span>{' '}
@@ -100,7 +100,7 @@ function CharacterCard({
     .slice(0, 3)
   const strained = SKILLS.map((s) => [s, strainOf(c, s)] as const).filter(([, n]) => n > 0)
   return (
-    <article className={expanded ? 'card expanded' : 'card'} aria-label={c.name}>
+    <article className={expanded ? 'card member expanded' : 'card member'} aria-label={c.name}>
       <h3 className="card-name">
         <button
           type="button"
@@ -137,6 +137,17 @@ function CharacterCard({
         </span>
       </div>
       <XpBar character={c} />
+      {/* The six abilities at a glance; open, the sheet shows them with their modifiers instead. */}
+      {!expanded && (
+        <p className="abilities-line small" role="group" aria-label={t('party.abilities')}>
+          {ABILITIES.map((a, i) => (
+            <span key={a}>
+              {i > 0 && ' · '}
+              <span className="muted">{stat(a)}</span> {c.abilities[a]}
+            </span>
+          ))}
+        </p>
+      )}
       {/* Open, the sheet shows strain by each skill: the card's badges would say it twice. */}
       {(c.exhaustion > 0 || (strained.length > 0 && !expanded)) && (
         <p className="conditions small">

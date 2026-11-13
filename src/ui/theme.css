@@ -2523,3 +2523,19 @@ h2[tabindex='-1']:focus {
 .shop-text .shop-effect {
   display: block;
 }
+
+/* Party members without card frames (designer call 2026-11-13): a thin rule between them. */
+.card.member {
+  border: none;
+  border-radius: 0;
+  padding: 0.35rem 0;
+  margin-bottom: 0.35rem;
+  border-bottom: 1px solid var(--line);
+}
+.card.member:last-of-type {
+  border-bottom: none;
+}
+.abilities-line {
+  margin: 0.15rem 0 0;
+  font-variant-numeric: tabular-nums;
+}

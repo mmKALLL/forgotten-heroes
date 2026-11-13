@@ -94,6 +94,7 @@ export const en = {
   'source.claude': 'Claude',
   'source.hint': 'Content source: data/{source}/',
 
+  'party.abilities': 'Abilities',
   'party.heading': 'Party',
   'party.summary': '{ancestry} {class} · lv {level}',
   'party.hpLabel': '{name} HP',
