@@ -93,10 +93,23 @@ export function describeFoes(content: Content, enemies: readonly FightEnemy[]): 
 /** The members who would stand on the line. */
 const fighters = (party: readonly Character[]) => party.filter((c) => isAlive(c) && c.hp > 0)
 
-/** A branch with its written wounds dropped (the fight did the hurting). */
-const unhurt = (b: OutcomeBranch): OutcomeBranch => ({
+/** A branch's text and effects that name no actor: a fight's ending has none. */
+const ACTORLESS: Record<'win' | 'flee' | 'lose', string> = {
+  win: 'The fight is yours.',
+  flee: 'You get away.',
+  lose: 'You come to, beaten and alone on the ground.',
+}
+
+/**
+ * A check's branch as a fight's ending: its written wounds dropped (the fight did the hurting),
+ * and with no actor, so effects on the actor go and a text naming {actor} becomes a plain line.
+ */
+const unhurt = (b: OutcomeBranch, end: 'win' | 'flee' | 'lose'): OutcomeBranch => ({
   ...b,
-  effects: b.effects.filter((e) => !(e.effect === 'hp' && e.amount < 0)),
+  text: /\{actor\}/i.test(b.text) ? ACTORLESS[end] : b.text,
+  effects: b.effects.filter(
+    (e) => !(e.effect === 'hp' && e.amount < 0) && !('target' in e && e.target === 'actor')
+  ),
 })
 
 /** An outcome as a plain branch (its twist branch dropped). */
@@ -110,8 +123,8 @@ const DEFAULT_FLEE: OutcomeBranch = { text: 'You break off and get away.', effec
 /** A stage's flight: its retreat option's outcome (a check's success), unhurt; else a plain getaway. */
 function fleeOf(stage: Stage): OutcomeBranch {
   const retreat = stage.options.find((o) => o.tags?.includes('retreat'))
-  if (retreat?.kind === 'fixed') return unhurt(plain(retreat.outcome))
-  if (retreat?.kind === 'check') return unhurt(plain(retreat.outcomes.success))
+  if (retreat?.kind === 'fixed') return unhurt(plain(retreat.outcome), 'flee')
+  if (retreat?.kind === 'check') return unhurt(plain(retreat.outcomes.success), 'flee')
   return DEFAULT_FLEE
 }
 
@@ -233,9 +246,9 @@ function stageFights(
     ctx.content,
     enemies,
     ambush,
-    plain(check.outcomes.success),
+    unhurt(plain(check.outcomes.success), 'win'),
     fleeOf(stage),
-    ending(unhurt(plain(check.outcomes.fail)))
+    ending(unhurt(plain(check.outcomes.fail), 'lose'))
   )
   // An authored parley (the hostile-group archetype's) stands for it, written for the scene.
   if (stage.options.some((o) => o.id === 'parley')) return [fight]
@@ -270,7 +283,7 @@ function climaxFight(stage: Stage, ctx: FightContext, cr: number, climax: Climax
       false,
       challenge.win,
       fleeOf(stage),
-      ending(unhurt(challenge.lose))
+      ending(unhurt(challenge.lose, 'lose'))
     ),
   ]
 }
