@@ -805,6 +805,15 @@ export const en = {
   'levelUp.now': '→ {value}',
   'levelUp.proficiency': 'Proficiency bonus +{from} → +{to}',
   'levelUp.continue': 'Continue',
+  'levelUp.choose': 'Make every pick to go on.',
+  'levelUp.pick.style': 'Level {level}: a fighting style',
+  'levelUp.pick.specialise': 'Level {level}: specialise a song',
+  'levelUp.style.two-attack': 'Two-attack style',
+  'levelUp.style.single-blow': 'Single-blow style',
+  'levelUp.styleHint.two-attack':
+    '+2 damage on each attack of a two-attack full action (daggers, blades, thrown).',
+  'levelUp.styleHint.single-blow':
+    '+2 damage on the full action of axes, maces, polearms, bows and staffs.',
   'hall.heading': 'Hall of the Fallen',
   'hall.button': 'Hall of the Fallen ({n})',
   'hall.empty': 'No run has ended yet.',

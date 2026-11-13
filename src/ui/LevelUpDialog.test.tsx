@@ -17,12 +17,15 @@ afterEach(() => {
 
 const content = loadBundledContent()
 
-/** A new party whose first member has just reached level 5 (two ability raises, +1 proficiency). */
-function leveled(): GameState {
+/**
+ * A new party whose first member, a wizard (no level-up picks), has just reached level 5 (two
+ * ability raises, +1 proficiency); or, with `classId`, a member of that class.
+ */
+function leveled(classId = 'wizard', level = 5): GameState {
   const s = newGame(7, content)
   return applyLevelUps({
     ...s,
-    party: s.party.map((c, i) => (i === 0 ? { ...c, xp: XP_BY_LEVEL[4] } : c)),
+    party: s.party.map((c, i) => (i === 0 ? { ...c, classId, xp: XP_BY_LEVEL[level - 1] } : c)),
   })
 }
 
@@ -54,7 +57,30 @@ test('pending level-ups open the dialog: who, which levels and what they gained'
   expect(document.querySelector('[inert]')).toBeNull()
 })
 
-test('Escape confirms too, as there is nothing to choose yet', async () => {
+test("a fighter's style pick: Continue waits until it is chosen", async () => {
+  localStorage.setItem(SAVE_KEY, serialize(leveled('fighter', 4)))
+  render(<App />)
+  const go = dialog().getByRole('button', { name: 'Continue' }) as HTMLButtonElement
+  expect(go.disabled).toBe(true)
+  expect(dialog().getByRole('group', { name: 'Level 4: a fighting style' })).toBeTruthy()
+  await userEvent.keyboard('{Escape}')
+  expect(screen.getByRole('dialog')).toBeTruthy()
+  await userEvent.click(dialog().getByRole('radio', { name: /Single-blow style/ }))
+  expect(go.disabled).toBe(false)
+  await userEvent.click(go)
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(saved().party[0].picks).toEqual(['single-blow'])
+})
+
+test("a bard's specialisation lists the songs they know", async () => {
+  localStorage.setItem(SAVE_KEY, serialize(leveled('bard', 4)))
+  render(<App />)
+  const group = within(dialog().getByRole('group', { name: 'Level 4: specialise a song' }))
+  expect(group.getAllByRole('radio').length).toBeGreaterThanOrEqual(4)
+  expect(group.getByRole('radio', { name: /Inspire/ })).toBeTruthy()
+})
+
+test('Escape confirms too when there is nothing to choose', async () => {
   localStorage.setItem(SAVE_KEY, serialize(leveled()))
   render(<App />)
   expect(screen.getByRole('dialog')).toBeTruthy()

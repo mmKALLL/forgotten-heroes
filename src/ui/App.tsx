@@ -246,7 +246,12 @@ function Game() {
         </div>
       </main>
       {levelUps && (
-        <LevelUpDialog state={shown} onContinue={() => dispatch({ type: 'acknowledgeLevelUps' })} />
+        <LevelUpDialog
+          content={content}
+          state={shown}
+          onAction={dispatch}
+          onContinue={() => dispatch({ type: 'acknowledgeLevelUps' })}
+        />
       )}
       {endScreen && !levelUps && (
         <EndDialog

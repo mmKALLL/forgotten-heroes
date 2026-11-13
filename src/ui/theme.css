@@ -2486,6 +2486,24 @@ h2[tabindex='-1']:focus {
   padding: 0;
   line-height: 1.45;
 }
+.levelup-choice {
+  margin: 0.45rem 0 0;
+  padding: 0.3rem 0.45rem 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--crit) 35%, var(--line));
+  border-radius: 4px;
+  min-width: 0;
+}
+.levelup-choice legend {
+  padding: 0 0.25rem;
+  font-weight: 700;
+}
+.levelup-option {
+  display: flex;
+  gap: 0.35rem;
+  align-items: baseline;
+  margin-top: 0.2rem;
+  overflow-wrap: anywhere;
+}
 .levelup-actions {
   margin-top: 1rem;
 }
