@@ -126,7 +126,7 @@ export const ja: Partial<Messages> = {
   'services.newsTarget': '{name}（{days}前）',
   'services.newsHint': '飛脚が市場ひとつ分の相場を伝える。その道のりの分だけ古い',
   'services.animal': '動物',
-  'services.animalInfo': '+{kg} kg · 1日{upkeep} gp',
+  'services.animalInfo': '+{kg} kg',
   'services.animalRider': '{speed}倍の速さで騎乗',
   'services.buyAnimal': '購入',
   'services.sellAnimal': '売却（{n}） · +{gp} gp',

@@ -273,7 +273,7 @@ export const DelveStateSchema = z.object({
 export type DelveState = z.infer<typeof DelveStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(16),
+  version: z.literal(17),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -303,8 +303,6 @@ export const GameStateSchema = z.object({
   spoilage: z.partialRecord(GoodSchema, z.number().min(0).max(1)).default({}),
   /** Owned animals and carts by animals id (bought; hired mounts are in travel.hired). */
   animals: z.record(IdSchema, z.number().int().min(0)).default({}),
-  /** Upkeep for owned animals (gp) that went unpaid for lack of coin. */
-  upkeepOwed: z.number().min(0).default(0),
   reputation: ReputationSchema.default({ settlements: {}, people: {} }),
   /** Accepted contracts, in progress. */
   contracts: z.array(ContractStateSchema).default([]),

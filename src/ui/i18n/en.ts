@@ -390,7 +390,7 @@ export const en = {
   'services.newsHint': 'A courier brings the prices of one market, as old as the road from there',
   'services.animal': 'Animal',
   'services.animalOption': '{name} · {gp} gp',
-  'services.animalInfo': '+{kg} kg · {upkeep} gp a day',
+  'services.animalInfo': '+{kg} kg',
   'services.animalRider': 'rides at {speed}× speed',
   'services.buyAnimal': 'Buy',
   'services.sellAnimal': 'Sell ({n}) · +{gp} gp',

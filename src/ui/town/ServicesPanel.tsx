@@ -376,7 +376,7 @@ function ServiceAction({
       if (!chosen) return null
       const animalName = (o: (typeof offers)[number]) => name('animals', o.id, o.name)
       const info = [
-        t('services.animalInfo', { kg: chosen.capacity, upkeep: chosen.upkeep }),
+        t('services.animalInfo', { kg: chosen.capacity }),
         chosen.rides !== null && t('services.animalRider', { speed: chosen.rides }),
       ]
         .filter(Boolean)

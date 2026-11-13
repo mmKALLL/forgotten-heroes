@@ -180,7 +180,10 @@ export type ProducerRule = z.infer<typeof ProducerRuleSchema>
 export const AnimalDefSchema = z.object({
   id: IdSchema,
   name: z.string(),
-  price: z.number().min(0).describe('gp to buy one'),
+  price: z
+    .number()
+    .min(0)
+    .describe('gp to buy one; owning it costs nothing more (no upkeep, designer call 2026-11-13)'),
   hirePerDay: z
     .number()
     .min(0)
@@ -210,11 +213,6 @@ export const AnimalDefSchema = z.object({
     .describe(
       'Units of water it drinks per day (halves allowed); the total for all animals is rounded up to whole units'
     ),
-  upkeepPerDay: z
-    .number()
-    .min(0)
-    .default(0)
-    .describe('gp per day while owned: fodder, stabling and care'),
   stealable: z
     .boolean()
     .default(false)

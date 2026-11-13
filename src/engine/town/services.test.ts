@@ -8,7 +8,7 @@ import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { carryCapacity } from '../economy/capacity'
 import { routeOptions } from '../travel/preview'
 import { restOption } from '../travel/supplies'
-import { animalOffers, payUpkeep } from './animals'
+import { animalOffers } from './animals'
 import { lodgingOptions, newsTargets, serviceRows } from './services'
 import { KM_PER_DAY, MOUNT_ROUGH_SPEED } from '../constants'
 
@@ -54,15 +54,10 @@ describe('lodging', () => {
     expect(strained.gold - private_.gold).toBe(restOption(strained, content, 'private').lodgingCost)
   })
 
-  test('the animals’ keep is added to the cost of a night', () => {
-    const plain = at('greenvale-1')
-    const withMule = at('greenvale-1', { animals: { mule: 1 } })
+  test('owned animals add nothing to the cost of a night (no upkeep)', () => {
+    const withMule = at('greenvale-1', { animals: { mule: 1, 'riding-horse': 1 } })
     const option = restOption(withMule, content)
-    expect(option.stabling).toBeGreaterThan(0)
-    expect(plain.gold - act(plain, { type: 'rest' }).gold).toBe(option.lodgingCost)
-    expect(withMule.gold - act(withMule, { type: 'rest' }).gold).toBe(
-      option.lodgingCost + option.stabling
-    )
+    expect(withMule.gold - act(withMule, { type: 'rest' }).gold).toBe(option.lodgingCost)
   })
 })
 
@@ -167,10 +162,10 @@ describe('animals', () => {
 })
 
 describe('animal offers', () => {
-  test('list what is for sale where there is an animals service, with resale and keep', () => {
+  test('list what is for sale where there is an animals service, with resale', () => {
     const offers = animalOffers(at('greenvale-1', { gold: 15, animals: { mule: 1 } }), content)
     expect(offers.map((o) => o.id)).toEqual(['mule', 'cart', 'riding-horse'])
-    expect(offers[0]).toMatchObject({ owned: 1, capacity: 100, upkeep: 1, buyReason: null })
+    expect(offers[0]).toMatchObject({ owned: 1, capacity: 100, buyReason: null })
     expect(offers[0].resale).toBeLessThan(offers[0].price)
     expect(offers[2]).toMatchObject({ rides: 2, buyReason: 'not enough gold' })
     expect(animalOffers(at('greenvale-2'), content)).toEqual([])
@@ -256,21 +251,15 @@ describe('hired horses', () => {
   })
 })
 
-describe('the animals’ upkeep', () => {
-  const cheap = structuredClone(fixtureContent())
-  cheap.animals.mule = { ...cheap.animals.mule, upkeepPerDay: 0.2 }
-  const owner = (gold: number) => makeState({ location: 'greenvale-1', gold, animals: { mule: 1 } })
-
-  test('carries fractions of a gp over quietly while the purse could pay', () => {
-    const paid = payUpkeep(owner(50), cheap)
-    expect(paid.gold).toBe(50)
-    expect(paid.upkeepOwed).toBeCloseTo(0.2)
-    expect(paid.log).toEqual(owner(50).log)
-  })
-
-  test('says so when the coin runs out', () => {
-    const broke = payUpkeep(owner(0), fixtureContent())
-    expect(broke.upkeepOwed).toBe(1)
-    expect(broke.log.at(-1)!.text).toMatch(/no coin left for the animals/)
+describe('buying a mount', () => {
+  test('costs exactly the offered price, and keeping it costs nothing a day after', () => {
+    const rich = at('greenvale-1', { gold: 200 })
+    const offer = animalOffers(rich, content).find((o) => o.id === 'riding-horse')!
+    const bought = act(rich, { type: 'buyAnimal', animal: 'riding-horse' })
+    expect(rich.gold - bought.gold).toBe(offer.price)
+    expect(bought.animals['riding-horse']).toBe(1)
+    // A day of rest on the party's own food: the horse costs nothing to keep.
+    const rested = act(bought, { type: 'rest', lodging: false })
+    expect(rested.gold).toBe(bought.gold)
   })
 })

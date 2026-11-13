@@ -9,7 +9,7 @@ import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { placeOnRoute } from './journey'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
-import { STOWAWAY_WORK_DAYS, WATERSKIN_SELL_PRICE } from '../constants'
+import { WATERSKIN_SELL_PRICE } from '../constants'
 
 const content = fixtureContent()
 const at = (location: string, overrides: Partial<GameState> = {}): GameState =>
@@ -555,20 +555,6 @@ describe('stowing away', () => {
       expect(after.travel?.to).toBe('farisle-1')
       expect(lastLine(after)).toMatch(/, working its passage\.$/)
     }
-  })
-
-  test("the days worked end like any other: the animals' upkeep falls due (regression)", () => {
-    for (let seed = 0; seed < 500; seed++) {
-      const before = at('ashmoor-1', { gold: 0, rng: createRng(seed), animals: { mule: 1 } })
-      const after = stow(before)
-      if (after.lastRoll?.tier !== 'partial' && after.lastRoll?.tier !== 'fail') continue
-      expect(after.upkeepOwed).toBeCloseTo(
-        STOWAWAY_WORK_DAYS * content.animals.mule.upkeepPerDay,
-        5
-      )
-      return
-    }
-    throw new Error('no seed puts the party to work')
   })
 
   test('a critical failure is a brawl: a hostile sea situation tagged brawl, or a beating', () => {

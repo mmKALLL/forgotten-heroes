@@ -13,7 +13,6 @@ import { inSettlement, notHere } from './where'
 import { load } from '../economy/capacity'
 import type { BuyLimit } from '../economy/trade'
 import { lodgingOptions, type Room } from '../town/services'
-import { animalUpkeep } from '../town/animals'
 import { bond } from '../town/camaraderie'
 import { journeyDays } from './routes'
 import {
@@ -93,8 +92,6 @@ export type RestOption = {
   lodging: boolean
   /** The room it would take, or null. */
   room: Room | null
-  /** The owned animals' fodder and stabling for the day (paid wherever the party is). */
-  stabling: number
 }
 
 /**
@@ -118,7 +115,6 @@ export function restOption(
     lodgingCost: (wanted !== null ? room?.cost : common?.cost) ?? 0,
     lodging: stays,
     room: stays ? room!.room : null,
-    stabling: animalUpkeep(state, content),
   }
 }
 
@@ -129,8 +125,7 @@ export function restOption(
  * In camp (on the road or at a point of interest) it eats carried food, drinking as the terrain
  * there needs, and heals a quarter of max HP; at a site with a spring or well (`water`) the
  * waterskins are refilled after the day's drinking. Either way, everyone who ate and drank loses
- * a level of exhaustion, and the day ends as any day does (endOfDay: spoilage and the animals'
- * keep). Resting is never a forced march.
+ * a level of exhaustion, and the day ends as any day does (endOfDay: spoilage). Resting is never a forced march.
  */
 export function rest(
   state: GameState,
@@ -168,7 +163,6 @@ export function rest(
     ? autoRefill({ ...after, waterskins: state.waterskins }, content)
     : after.goods
   const place = option.inTown ? settlementName(state, state.location!) : ''
-  const keep = option.stabling > 0 ? ` The animals’ keep: ${option.stabling} gp.` : ''
   const text = !option.inTown
     ? spring
       ? 'The party makes camp by the water and rests a day. The waterskins are refilled.'
@@ -176,8 +170,8 @@ export function rest(
     : option.lodging
       ? `The party rests a day at an inn in ${place}` +
         `${option.room === 'private' ? ', in a private room' : ''}: ` +
-        `${option.lodgingCost} gp, meals included.${keep}`
-      : `The party rests a day in ${place}, eating its own food.${keep}`
+        `${option.lodgingCost} gp, meals included.`
+      : `The party rests a day in ${place}, eating its own food.`
   const rested = appendLog({ ...after, party, goods }, text, 'good')
   // A night in a private room brings the party closer, once per arrival.
   return option.room === 'private' ? bond(rested) : rested

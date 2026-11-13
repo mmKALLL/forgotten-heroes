@@ -887,7 +887,7 @@ export const testEconomy: Record<string, unknown> = {
     kind: 'animals',
     source: 'claude',
     entries: [
-      { id: 'mule', name: 'Mule', price: 10, capacity: 100, upkeepPerDay: 1, stealable: true },
+      { id: 'mule', name: 'Mule', price: 10, capacity: 100, stealable: true },
       {
         id: 'cart',
         name: 'Cart',
@@ -906,7 +906,6 @@ export const testEconomy: Record<string, unknown> = {
         speed: 2,
         rider: true,
         maxPathDanger: 1,
-        upkeepPerDay: 1,
         stealable: true,
       },
     ],

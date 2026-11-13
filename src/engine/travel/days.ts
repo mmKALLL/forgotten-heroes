@@ -4,7 +4,7 @@ import type { Character, GameState, Goods } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { spoilDay } from '../economy/goods'
-import { animalWater, payUpkeep } from '../town/animals'
+import { animalWater } from '../town/animals'
 import type { Rng } from '../rng'
 import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
@@ -126,9 +126,8 @@ export function consumeDay(
   return { state: content ? endOfDay(next, content) : next, unfed }
 }
 
-/** A day ends: goods spoil (spoilDay), then the owned animals' upkeep is paid (payUpkeep). */
-export const endOfDay = (state: GameState, content: Content): GameState =>
-  payUpkeep(spoilDay(state, content), content)
+/** A day ends: goods spoil (spoilDay). Owned animals cost nothing to keep (designer call). */
+export const endOfDay = (state: GameState, content: Content): GameState => spoilDay(state, content)
 
 /** A day on the road at this pace (goods spoil when `content` is given). */
 export const passDay = (
