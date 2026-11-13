@@ -11,8 +11,8 @@ import { PX_PER_KM } from '../schema/world'
 export const STARTING_PARTY_SIZE = 2
 /** Gold a new party starts with. */
 export const STARTING_GOLD = 10
-/** Camaraderie a new party starts at (0–8): Steady. The state schema's default repeats it. */
-export const CAMARADERIE_START = 5
+/** Camaraderie a new party starts at (0–40): Steady. The state schema's default repeats it. */
+export const CAMARADERIE_START = 25
 
 // Travel: speed, fares and encounters (routes.ts)
 
@@ -400,14 +400,27 @@ export const RECRUIT_LOCAL_ANCESTRY = 0.75
 
 // Camaraderie and desertion (town/camaraderie.ts)
 
+// Losses that blame someone scale with the party (each × the living members − 1): more people pin
+// it on someone. Gains are flat, so a bigger party costs more to keep happy (designer, 2026-11-13).
+
 /** Camaraderie lost at the end of a day on which anyone went without food or water. */
-export const CAMARADERIE_HUNGER = 1
+export const CAMARADERIE_HUNGER = 5
 /** Camaraderie lost for each member who dies. */
-export const CAMARADERIE_DEATH = 2
+export const CAMARADERIE_DEATH = 10
+/** Camaraderie lost for a failed encounter check, per living member beyond the first. */
+export const CAMARADERIE_FAIL = 1
+/** Camaraderie lost for a critically failed encounter check, per living member beyond the first. */
+export const CAMARADERIE_CRIT_FAIL = 2
+/** Camaraderie lost for fleeing (an option tagged `retreat`), per living member beyond the first. */
+export const CAMARADERIE_RETREAT = 2
 /** Camaraderie gained for each contract completed. */
-export const CAMARADERIE_CONTRACT = 1
+export const CAMARADERIE_CONTRACT = 5
 /** Camaraderie gained for a night in a private room, once per arrival. */
-export const CAMARADERIE_BOND = 1
+export const CAMARADERIE_BOND = 5
+/** Camaraderie gained for standing the party a round at the inn, once per arrival. */
+export const CAMARADERIE_ROUND = 3
+/** A round at the inn, per living member (gp). */
+export const ROUND_PRICE = 1
 /** While camaraderie is Fractured, the chance each hired member deserts on arriving in a settlement. */
 export const DESERT_CHANCE = 0.25
 

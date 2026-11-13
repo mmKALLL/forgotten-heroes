@@ -9,6 +9,7 @@ import { appendLog } from '../log'
 import { withRng } from '../rng'
 import { MAX_EXHAUSTION } from '../rules/character'
 import { inSettlement } from '../travel/where'
+import { setbackCamaraderie } from '../encounters/outcomes'
 import {
   CAMARADERIE_BOND,
   CAMARADERIE_DEATH,
@@ -16,10 +17,12 @@ import {
   DESERT_CHANCE,
 } from '../constants'
 
-// Camaraderie and desertion (Plan 5a, B2; Plan 6, A1; design §3). Camaraderie is one party-wide
-// value, changed only by a few rules: a day of hunger or thirst, a death, a contract kept, a night
-// in a private room, and encounter effects. Its only effect for now: while it is Fractured, hired
-// members may desert on arrival. Founders never desert. There are no wages (Plan 6).
+// Camaraderie and desertion (Plan 5a, B2; Plan 6, A1 and A3; design §3). Camaraderie is one
+// party-wide value, 0–40, changed only by a few rules: a failed encounter check and fleeing
+// (encounters/outcomes.ts setbackCamaraderie: more the bigger the party), a day of hunger or
+// thirst, a death, and flat gains for a contract kept, a night in a private room and a round at the
+// inn (town/services.ts), and encounter effects. Its only effect for now: while it is Fractured,
+// hired members may desert on arrival. Founders never desert. There are no wages (Plan 6).
 
 /** A member who isn't dead (exhaustion 6). */
 export const isAlive = (c: Character): boolean => c.exhaustion < MAX_EXHAUSTION
@@ -130,6 +133,10 @@ export type CamaraderieInfo = {
   desertChance: number
   /** The highest value that is still Fractured. */
   fracturedMax: number
+  /** What a failed encounter check costs this party now (more the bigger it is), positive. */
+  failCost: number
+  /** What fleeing an encounter (a `retreat` option) costs this party now, positive. */
+  fleeCost: number
 }
 
 export function camaraderieInfo(state: GameState): CamaraderieInfo {
@@ -153,5 +160,7 @@ export function camaraderieInfo(state: GameState): CamaraderieInfo {
     desertRisk,
     desertChance: DESERT_CHANCE,
     fracturedMax: CAMARADERIE_TIERS[1].min - 1,
+    failCost: -setbackCamaraderie(living, { wonder: false }, {}, 'fail'),
+    fleeCost: -setbackCamaraderie(living, { wonder: false }, { tags: ['retreat'] }, null),
   }
 }

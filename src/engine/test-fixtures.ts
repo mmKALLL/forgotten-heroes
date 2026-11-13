@@ -806,7 +806,7 @@ export const testEconomy: Record<string, unknown> = {
       {
         id: 'inn-tavern',
         function: 'rest',
-        actions: ['lodging', 'rumours', 'board', 'recruit', 'accessories'],
+        actions: ['lodging', 'rumours', 'board', 'recruit', 'accessories', 'round'],
         // Plan 5a: an inn that also hires out and sells trinkets, so one service covers both.
         recruits: { offers: [1, 2], levels: [1, 3] },
         accessories: { offers: [1, 2], maxTier: 2 },

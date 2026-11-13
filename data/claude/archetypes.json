@@ -123,6 +123,7 @@
         },
         {
           "id": "flee",
+          "tags": ["retreat"],
           "kind": "check",
           "label": "Run",
           "description": "Turn back and outpace them. Costs breath, maybe blood, maybe a day.",

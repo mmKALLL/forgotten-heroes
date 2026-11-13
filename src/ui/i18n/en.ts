@@ -124,7 +124,7 @@ export const en = {
   'camaraderie.desert': 'desertion {n}%',
   'camaraderie.tipValue': 'Camaraderie {value} of {max}: {label}.',
   'camaraderie.tipRules':
-    'It falls with unpaid wages, a day of hunger or thirst, and a death; it rises with a contract kept and a night in good rooms.',
+    'It falls with a failed check (−{fail} for this party; twice that on a critical failure), fleeing (−{flee}), a day of hunger or thirst, and a death: the bigger the party, the more blame goes round. It rises by flat amounts, whatever the party’s size, with a contract kept, a night in good rooms and a round at the inn.',
   'camaraderie.tipEffect':
     'At {max} or below the party is Fractured: each hired member may desert on arriving in a settlement ({n}%). Founders never leave.',
   'camaraderie.tipNow': 'Now: {causes}.',
@@ -363,6 +363,9 @@ export const en = {
   'services.bless': 'Blessing · {gp} gp',
   'services.blessHint': 'An offering for 1 Inspiration, once each visit',
   'services.blessed': 'Already blessed this visit',
+  'services.round': 'Stand a round · {gp} gp',
+  'services.roundHint': 'Drinks for everyone: +{n} camaraderie, once each visit',
+  'services.roundStood': 'Round stood this visit',
   'services.news': 'News · {gp} gp',
   'services.newsFrom': 'News from',
   'services.newsTarget': '{name} ({days} old)',

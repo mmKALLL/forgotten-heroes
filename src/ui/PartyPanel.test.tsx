@@ -167,6 +167,8 @@ test('the camaraderie line: tier, value and desertion, explained on hover', () =
     desertRisk: 0.25,
     desertChance: 0.25,
     fracturedMax: 9,
+    failCost: 2,
+    fleeCost: 4,
   }
   render(<PartyPanel party={[brom]} camaraderie={info} />)
   const line = document.querySelector('.camaraderie')!
@@ -174,4 +176,5 @@ test('the camaraderie line: tier, value and desertion, explained on hover', () =
   expect(screen.getByRole('tooltip', { hidden: true }).textContent).toMatch(
     /Now: food or water won't last everyone a day\./
   )
+  expect(screen.getByRole('tooltip', { hidden: true }).textContent).toMatch(/failed check \(−2/)
 })

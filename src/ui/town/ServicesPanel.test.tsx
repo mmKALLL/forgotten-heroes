@@ -67,13 +67,21 @@ test('tiles are grouped by function; an unsupported service shows "coming later"
   expect(within(screen.getByRole('region', { name: 'Jewelry trader' })).getByText(/^Trades gems/))
 })
 
-test('rooms, the healer, a blessing, news and animals dispatch their actions', async () => {
+test('rooms, a round, the healer, a blessing, news and animals dispatch their actions', async () => {
   // Late enough that a courier's news is fresher than any prices the party knows.
   const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 }, day: 20 })
   const onAction = panel(hurt)
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
   await userEvent.click(inn.getByRole('button', { name: /^Common · \d+ gp$/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: 'common' })
+  const round = inn.getByRole('button', { name: /^Stand a round · \d+ gp$/ })
+  expect(round.getAttribute('title')).toMatch(/^Drinks for everyone: \+\d+ camaraderie/)
+  await userEvent.click(round)
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'useService',
+    service: 'inn-tavern',
+    action: 'round',
+  })
 
   const heal = screen.getByRole('button', { name: `Heal 1 · ${HEALER_PRICE} gp` })
   expect(heal.getAttribute('title')).toMatch(/for Brom,/)

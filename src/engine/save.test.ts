@@ -145,10 +145,10 @@ function withoutCrisis(state: GameState): GameState['world'] {
 /** What every character from before Plan 5a loads with: no XP, a founder, unwounded, nothing worn. */
 const CHARACTER_5A_DEFAULTS = { xp: 0, hired: false, oldWound: null, accessory: null }
 
-/** What a save from before Plan 5a loads with (camaraderie Steady, as CAMARADERIE_START). */
+/** What a save from before Plan 5a loads with (camaraderie Steady: 5 of 8 then, 25 of 40 now). */
 const PLAN_5A_DEFAULTS = {
   gear: [],
-  camaraderie: 5,
+  camaraderie: 25,
   gathered: {},
   recruitsTaken: [],
   gearTaken: [],
@@ -632,10 +632,11 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
 })
 
 describe('v10 → v11 (Plan 5b: the Crisis)', () => {
-  /** A current state as a v10 save wrote it: no Crisis. */
+  /** A current state as a v10 save wrote it: no Crisis, and camaraderie on the 0–8 scale. */
   function asV10(state: GameState): Record<string, unknown> {
     const { crisis: _crisis, ...rest } = structuredClone(state)
-    return { ...rest, version: 10, world: withoutCrisis(state) }
+    const camaraderie = state.camaraderie / 5
+    return { ...rest, version: 10, world: withoutCrisis(state), camaraderie }
   }
 
   test('a v10 save loads with the party, gold, goods and world untouched', () => {
@@ -703,13 +704,17 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
 })
 
 describe('v11 → v12 (Plan 6, track A: no wages)', () => {
-  /** A current state as a v11 save wrote it: wages, owed wages, and no `hired` or old wounds. */
+  /**
+   * A current state as a v11 save wrote it: wages, owed wages, no `hired` or old wounds, and
+   * camaraderie on the 0–8 scale.
+   */
   function asV11(state: GameState, owed = 0): Record<string, unknown> {
     const party = structuredClone(state.party).map(({ hired, oldWound: _wound, ...c }) => ({
       ...c,
       wage: hired ? 1.5 : 0,
     }))
-    return { ...structuredClone(state), version: 11, party, wagesOwed: owed }
+    const camaraderie = state.camaraderie / 5
+    return { ...structuredClone(state), version: 11, party, wagesOwed: owed, camaraderie }
   }
 
   test('a member who drew a wage is hired; owed wages are forgiven; the rest is untouched', () => {
@@ -723,6 +728,10 @@ describe('v11 → v12 (Plan 6, track A: no wages)', () => {
     expect(loaded.party.map((c) => c.hired)).toEqual([false, true])
     expect(loaded.gold).toBe(37)
     expect('wagesOwed' in loaded).toBe(false)
+    // Camaraderie moves to the 0–40 scale: Close (7 of 8) is still Close.
+    const close = deserialize(JSON.stringify({ ...asV11(state), camaraderie: 7 }), content)!
+    expect(close.camaraderie).toBe(35)
+    expect(loaded.camaraderie).toBe(state.camaraderie)
   })
 
   test('migrating twice gives identical output, and the input is not mutated', () => {

@@ -275,8 +275,8 @@ export const GameStateSchema = z.object({
   doneHere: z.array(z.string()).default([]),
   /** Accessories carried but not worn (weightless). */
   gear: z.array(AccessorySchema).default([]),
-  /** The party's camaraderie, 0–8 (tiers in CAMARADERIE_TIERS). 5 is CAMARADERIE_START. */
-  camaraderie: z.number().int().min(0).max(CAMARADERIE_MAX).default(5),
+  /** The party's camaraderie, 0–40 (tiers in CAMARADERIE_TIERS). 25 is CAMARADERIE_START. */
+  camaraderie: z.number().int().min(0).max(CAMARADERIE_MAX).default(25),
   /** Units gathered recently by domain (settlement id) and good; the land recovers like a market. */
   gathered: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
   /** Recruit offer ids hired, so they are never offered again. */

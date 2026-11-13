@@ -2,7 +2,6 @@ import type { Content } from '../content/build'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { WorldStateSchema, type WorldState } from '../schema/world'
 import { generateCrisis } from './crisis/generate'
-import { CAMARADERIE_START } from './constants'
 import { generatePeople } from './town/people'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, mainlandSettlements, startingSettlement, worldSeed } from './world/generate'
@@ -206,7 +205,7 @@ export function v8ToV9(raw: Record<string, unknown>): Record<string, unknown> {
 
 /**
  * v9 → v10 (Plan 5a): every character has no XP yet, no wage (they are all founders) and wears
- * nothing; the party carries no gear, starts at CAMARADERIE_START and owes no wages, has gathered
+ * nothing; the party carries no gear, starts Steady (5 of 8) and owes no wages, has gathered
  * nothing, hired and bought nothing, and spent no luck. An open encounter had no danger applied.
  */
 export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
@@ -220,7 +219,8 @@ export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
     party,
     encounter: encounter ? { ...encounter, danger: 0 } : encounter,
     gear: [],
-    camaraderie: CAMARADERIE_START,
+    // Steady on the 0–8 scale of the time; v12 scales it ×5.
+    camaraderie: 5,
     wagesOwed: 0,
     gathered: {},
     recruitsTaken: [],
@@ -283,7 +283,7 @@ export function v10ToV11(raw: Record<string, unknown>, content: Content): Record
 /**
  * v11 → v12 (Plan 6, track A): wages are gone. A member who drew a wage is marked `hired` (the
  * founders drew none), and the `wage` field goes; wages still owed are forgiven silently. No one
- * has an old wound.
+ * has an old wound. Camaraderie moves from the 0–8 scale to 0–40 (×5).
  */
 export function v11ToV12(raw: Record<string, unknown>): Record<string, unknown> {
   const party = Array.isArray(raw.party)
@@ -295,7 +295,11 @@ export function v11ToV12(raw: Record<string, unknown>): Record<string, unknown> 
       })
     : raw.party
   const { wagesOwed: _forgiven, ...rest } = raw
-  return { ...rest, version: 12, party }
+  const camaraderie =
+    typeof raw.camaraderie === 'number' && raw.version === 11
+      ? raw.camaraderie * 5
+      : raw.camaraderie
+  return { ...rest, version: 12, party, camaraderie }
 }
 
 /**

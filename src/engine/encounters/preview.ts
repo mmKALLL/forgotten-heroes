@@ -22,7 +22,8 @@ import {
   openingEffects,
   prepareEffects,
 } from './effects'
-import { defaultXp, isHighStakes, tierOutcome } from './outcomes'
+import { defaultXp, isHighStakes, setbackCamaraderie, tierOutcome } from './outcomes'
+import { livingMembers } from '../town/camaraderie'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
 import { crisisActNumber } from '../crisis/status'
@@ -138,7 +139,8 @@ function effectChips(
 
 /**
  * `xpFor` gives a check branch's default XP (defaultXp: none when the branch has its own `xp`
- * effect); fixed options have none.
+ * effect); fixed options have none. `setback` is the choice's camaraderie cost at this tier
+ * (setbackCamaraderie), shown as a chip as `chooseOption` applies it.
  */
 function branchPreview(
   branch: OutcomeBranch,
@@ -146,7 +148,8 @@ function branchPreview(
   values: Record<string, string>,
   actorName: string,
   ctx: ChipContext,
-  xpFor: (branch: OutcomeBranch) => number
+  xpFor: (branch: OutcomeBranch) => number,
+  setback: number
 ): BranchPreview {
   const fallback = xpFor(branch)
   const own = branch.effects
@@ -156,6 +159,9 @@ function branchPreview(
   const chips = [
     ...effectChips(branch.effects, encounter, actorName, ctx),
     ...(fallback > 0 ? [describeEffect({ effect: 'xp', amount: fallback }, actorName)!] : []),
+    ...(setback < 0
+      ? [describeEffect({ effect: 'camaraderie', amount: setback }, actorName)!]
+      : []),
     ...(failed !== null ? [tooLateChip(failed)] : []),
   ]
   return {
@@ -182,14 +188,15 @@ function outcomePreview(
   values: Record<string, string>,
   actorName: string,
   ctx: ChipContext,
-  xpFor: (branch: OutcomeBranch) => number = () => 0
+  xpFor: (branch: OutcomeBranch) => number = () => 0,
+  setback = 0
 ): ShownOutcome {
   return {
-    ...branchPreview(outcome, encounter, values, actorName, ctx, xpFor),
+    ...branchPreview(outcome, encounter, values, actorName, ctx, xpFor, setback),
     tier,
     hidden: false,
     twist: outcome.twist
-      ? branchPreview(outcome.twist, encounter, values, actorName, ctx, xpFor)
+      ? branchPreview(outcome.twist, encounter, values, actorName, ctx, xpFor, setback)
       : null,
   }
 }
@@ -211,7 +218,10 @@ export function encounterOptions(
     act: crisisActNumber(state),
     failsAct: (effects) => crisisFailsDuring(state, effects),
   }
+  const members = livingMembers(state).length
   return currentOptions(encounter).map((option) => {
+    const setbackAt = (tier: Tier | null) =>
+      setbackCamaraderie(members, encounter.situation, option, tier)
     const unmet = unmetRequirements(state, option.requires)
     const base = {
       id: option.id,
@@ -221,7 +231,16 @@ export function encounterOptions(
     }
     if (option.kind === 'fixed') {
       const outcomes = [
-        outcomePreview(option.outcome, null, encounter, encounter.slots, 'someone', ctx),
+        outcomePreview(
+          option.outcome,
+          null,
+          encounter,
+          encounter.slots,
+          'someone',
+          ctx,
+          undefined,
+          setbackAt(null)
+        ),
       ]
       return { ...base, available: optionAvailable(state, option), unmet, check: null, outcomes }
     }
@@ -290,7 +309,8 @@ export function encounterOptions(
             values,
             preview.actorName,
             ctx,
-            xpFor(tier)
+            xpFor(tier),
+            setbackAt(tier)
           )
     )
     return { ...base, available: optionAvailable(state, option), unmet, check, outcomes }

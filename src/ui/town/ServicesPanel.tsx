@@ -12,6 +12,7 @@ import {
   serviceRows,
   type ServiceActionView,
   type ServiceRow,
+  roundOption,
 } from '../../engine/town/services'
 import { goodDef } from '../../engine/economy/goods'
 import { SERVICE_FUNCTIONS, type Good } from '../../schema/types'
@@ -313,6 +314,22 @@ function ServiceAction({
           </button>
           {/* "Blessed" on the button says it already. */}
           {!blessed && <Why reason={view.reason} />}
+        </>
+      )
+    }
+    case 'round': {
+      const round = roundOption(state)
+      const stood = state.doneHere.includes('round')
+      return (
+        <>
+          <button
+            disabled={!view.available}
+            title={t('services.roundHint', { n: round.camaraderie })}
+            onClick={() => onAction({ type: 'useService', service: row.service, action: 'round' })}
+          >
+            {stood ? t('services.roundStood') : t('services.round', { gp: round.cost })}
+          </button>
+          {!stood && <Why reason={view.reason} />}
         </>
       )
     }

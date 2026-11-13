@@ -639,6 +639,7 @@
             },
             {
               "id": "run",
+              "tags": ["retreat"],
               "kind": "check",
               "label": "Take the ford instead",
               "check": { "skill": "acrobatics", "dc": 11 },
@@ -941,6 +942,7 @@
             },
             {
               "id": "run",
+              "tags": ["retreat"],
               "kind": "check",
               "label": "Make a run for it",
               "check": { "skill": "athletics", "dc": 13 },

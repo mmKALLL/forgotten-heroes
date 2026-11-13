@@ -31,7 +31,8 @@ import { boonReadyIn, siteStatus } from '../world/sites'
 import { dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
-import { branchFor, defaultXp, isHighStakes, tierOutcome } from './outcomes'
+import { branchFor, defaultXp, isHighStakes, setbackCamaraderie, tierOutcome } from './outcomes'
+import { livingMembers } from '../town/camaraderie'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
 import { POWER_DC, TWIST_PLACE_WEIGHT } from '../constants'
@@ -398,7 +399,9 @@ function resolve(
   entry: Pick<EncounterLogEntry, 'tone' | 'roll' | 'highStakes'>,
   content?: Content,
   /** The roll's default XP (defaultXp), granted as an `xp` effect so it shows as a chip. */
-  xp = 0
+  xp = 0,
+  /** The choice's camaraderie cost (setbackCamaraderie, ≤ 0), applied as a `camaraderie` effect. */
+  setback = 0
 ): GameState {
   const encounter = state.encounter!
   const fromStage = encounter.stage!
@@ -410,6 +413,7 @@ function resolve(
       e.effect === 'log' ? { ...e, text: fill(e.text) } : e
     ),
     ...(xp > 0 ? [{ effect: 'xp' as const, amount: xp }] : []),
+    ...(setback < 0 ? [{ effect: 'camaraderie' as const, amount: setback }] : []),
   ]
   const place = encounterSettlementName(state)
   const act = crisisActNumber(state)
@@ -474,12 +478,20 @@ export function chooseOption(
   const used = option.once ? [...encounter.used, onceKey(encounter.stage, option)] : encounter.used
   if (option.kind === 'fixed') {
     const marked = spendBoon({ ...state, encounter: { ...encounter, used } }, option)
+    const setback = setbackCamaraderie(
+      livingMembers(state).length,
+      encounter.situation,
+      option,
+      null
+    )
     return resolve(
       marked,
       branchFor(option.outcome, encounter.twist),
       undefined,
       { tone: 'info' },
-      content
+      content,
+      0,
+      setback
     )
   }
 
@@ -539,7 +551,8 @@ export function chooseOption(
     actor.characterId,
     { tone: TIER_TONE[roll.tier], roll: record, highStakes },
     content,
-    defaultXp(encounter.situation, branch, dc, roll.tier)
+    defaultXp(encounter.situation, branch, dc, roll.tier),
+    setbackCamaraderie(livingMembers(state).length, encounter.situation, option, roll.tier)
   )
 }
 

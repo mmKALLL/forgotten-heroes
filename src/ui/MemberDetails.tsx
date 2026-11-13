@@ -163,7 +163,7 @@ export function CamaraderieLine({ info }: { info: CamaraderieInfo }) {
   const { t } = useI18n()
   const tip = [
     t('camaraderie.tipValue', { label: info.label, value: info.value, max: info.max }),
-    t('camaraderie.tipRules'),
+    t('camaraderie.tipRules', { fail: info.failCost, flee: info.fleeCost }),
     t('camaraderie.tipEffect', {
       max: info.fracturedMax,
       n: Math.round(info.desertChance * 100),
