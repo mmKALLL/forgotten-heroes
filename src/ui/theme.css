@@ -213,7 +213,8 @@ input {
   color: var(--bad);
   letter-spacing: 0.1em;
 }
-.challenge-rule {
+.challenge-rule,
+.challenge-endings {
   flex-basis: 100%;
 }
 .abilities {

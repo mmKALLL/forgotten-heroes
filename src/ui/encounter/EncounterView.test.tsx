@@ -532,7 +532,7 @@ test('a skill challenge shows its tally, the chance of winning, and what each ou
         challenge: {
           successes: 3,
           failures: 2,
-          win: { text: 'He yields.' },
+          win: { text: 'He yields.', effects: [{ effect: 'gold', amount: 10 }] },
           lose: { text: 'You are beaten.' },
         },
         options: ['strike', 'feint'].map((id) => ({
@@ -557,6 +557,7 @@ test('a skill challenge shows its tally, the chance of winning, and what each ou
   expect(tally.getByText('1 of 3')).toBeTruthy()
   expect(tally.getByText('0 of 2')).toBeTruthy()
   expect(tally.getByText(/^≈\d+% to win/)).toBeTruthy()
+  expect(tally.getByText('+10 gp')).toBeTruthy()
   // The first card is focused: its rows say what each tier marks.
   expect(outcomes().getByText('+1 success')).toBeTruthy()
   expect(outcomes().getByText('no ground gained')).toBeTruthy()

@@ -227,6 +227,17 @@ function outcomePreview(
   }
 }
 
+/** The chip context of the open encounter: its place, the Crisis act, and the party's upgrades. */
+function chipContext(state: GameState, encounter: EncounterState): ChipContext {
+  return {
+    place: encounterSettlementName(state),
+    act: crisisActNumber(state),
+    failsAct: (effects) => crisisFailsDuring(state, effects),
+    upgraded: (effect) => upgradedEffect(state, effect),
+    hidden: (effect) => hiddenNote(state, encounter.situation.tags, effect),
+  }
+}
+
 /**
  * Everything the player sees before committing (design §7): the acting member, skill, DC, the
  * odds of every tier, and the outcomes of all but the critical tiers, which stay hidden. `actorIds` maps option ids to the player's actor overrides.
@@ -239,13 +250,7 @@ export function encounterOptions(
   if (!encounter) return []
   const mode = POSITION_MODE[encounter.position]
   const situationalModifier = encounter.nextCheckModifier
-  const ctx: ChipContext = {
-    place: encounterSettlementName(state),
-    act: crisisActNumber(state),
-    failsAct: (effects) => crisisFailsDuring(state, effects),
-    upgraded: (effect) => upgradedEffect(state, effect),
-    hidden: (effect) => hiddenNote(state, encounter.situation.tags, effect),
-  }
+  const ctx = chipContext(state, encounter)
   const members = livingMembers(state).length
   const challenge = challengeOf(encounter)
   return currentOptions(encounter).map((option) => {
@@ -386,6 +391,12 @@ export type ChallengePreview = {
   chance: number
   best: string | null
   ifChosen: Record<string, number>
+  /**
+   * What winning and losing do, as `chooseOption` applies them (no actor, no XP of their own): a
+   * room's hoard or driving out, upgrades, and the Crisis's "too late" all show as chips.
+   */
+  win: BranchPreview
+  lose: BranchPreview
 }
 
 /** Null when the encounter isn't on a challenge stage (or has ended). */
@@ -405,11 +416,16 @@ export function challengePreview(state: GameState): ChallengePreview | null {
     used: encounter.used,
   })
   const ranked = Object.entries(ifChosen).sort((a, b) => b[1] - a[1])
+  const ctx = chipContext(state, encounter)
+  const ending = (branch: OutcomeBranch) =>
+    branchPreview(branch, encounter, encounter.slots, 'someone', ctx, () => 0, 0)
   return {
     tally,
     need: { successes: challenge.successes, failures: challenge.failures },
     chance,
     best: ranked[0]?.[0] ?? null,
     ifChosen,
+    win: ending(challenge.win),
+    lose: ending(challenge.lose),
   }
 }

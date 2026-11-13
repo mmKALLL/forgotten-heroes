@@ -191,6 +191,8 @@ export const en = {
   'challenge.of': '{n} of {of}',
   'challenge.chance': '≈{percent} to win, choosing the best each round',
   'challenge.rule': 'A critical counts twice.',
+  'challenge.win': 'Win:',
+  'challenge.lose': 'Lose:',
 
   'option.situational': 'situational',
   /** A party upgrade's next level for sale on a service tile (Plan 6c). */
