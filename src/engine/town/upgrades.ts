@@ -58,7 +58,7 @@ export function upgradeEffect(id: UpgradeId, level: number): string {
     case 'company-banner':
       return `Every camaraderie loss is ${BANNER_SOFTEN * level} smaller`
     case 'scouts-kit':
-      return `+${SCOUT_CHECK_BONUS * level} to surprise and Exposed checks; ${Math.round(SCOUT_HOSTILE_PER_LEVEL * level * 100)}% fewer hostile road encounters`
+      return `+${SCOUT_CHECK_BONUS * level} to surprise checks; ${Math.round(SCOUT_HOSTILE_PER_LEVEL * level * 100)}% fewer hostile road encounters`
   }
 }
 

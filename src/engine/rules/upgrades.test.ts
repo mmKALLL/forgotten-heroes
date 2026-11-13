@@ -265,15 +265,14 @@ describe("scout's kit", () => {
     expect(encounterOptions(meeting(ambush))[0].check!.upgradeModifier).toBe(0)
   })
 
-  test('adds to any check rolled Exposed, once on an exposed surprise check', () => {
+  test('an Exposed check gets nothing unless it is a surprise check (designer call)', () => {
     const state = exposed(meeting(ambush, { upgrades: { 'scouts-kit': 2 } }))
     const [spot, fight] = encounterOptions(state)
     expect(fight.check!.mode).toBe('disadvantage')
-    expect(fight.check!.upgradeParts.scout).toBe(2 * SCOUT_CHECK_BONUS)
+    expect(fight.check!.upgradeParts.scout).toBe(0)
     expect(spot.check!.upgradeParts.scout).toBe(2 * SCOUT_CHECK_BONUS)
     const rolled = choose(state, 'fight')
-    expect(rolled.lastRoll!.modifier).toBe(fight.check!.modifier + 2 * SCOUT_CHECK_BONUS)
-    expect(fight.check!.odds).toEqual(tierOdds(rolled.lastRoll!.modifier, 13, 'disadvantage'))
+    expect(rolled.lastRoll!.modifier).toBe(fight.check!.modifier)
   })
 
   test('fewer hostile encounters on the road, as the road preview shows and the journey draws', () => {

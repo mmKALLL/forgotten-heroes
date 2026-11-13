@@ -109,16 +109,16 @@ export const isSurprise = (option: { tags?: readonly string[] }): boolean =>
   option.tags?.includes('surprise') ?? false
 
 /**
- * Scout's kit: added to a surprise check (isSurprise) or to any check rolled with disadvantage
- * (Exposed): SCOUT_CHECK_BONUS per level, once even when both hold. Combat's surprise roll
- * (Plan 7) should read the same bonus.
+ * Scout's kit: added to a surprise check (isSurprise) only, SCOUT_CHECK_BONUS per level (designer
+ * call: not to Exposed checks in general). Combat's surprise roll (Plan 7) should read the same
+ * bonus. `_mode` is kept so callers needn't change.
  */
 export function scoutBonus(
   state: Owned,
   option: { tags?: readonly string[] },
-  mode: RollMode
+  _mode?: RollMode
 ): number {
-  if (!isSurprise(option) && mode !== 'disadvantage') return 0
+  if (!isSurprise(option)) return 0
   return SCOUT_CHECK_BONUS * upgradeLevel(state, 'scouts-kit')
 }
 
