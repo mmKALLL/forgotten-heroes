@@ -2,7 +2,7 @@
   "$schema": "../_schema/partsTables.schema.json",
   "kind": "partsTables",
   "source": "claude",
-  "notes": "Names for the Crisis (Plan 5b). The crisis-name-* tables give each villain's own name, put before its title (\"Morvaine, the Ashen Prophet\"). The crisis-site-* tables name the crisis sites in crisis-sites.json; {land} is the land the site stands in, filled when the Crisis is rolled. Each villain table has 8 names and each site table 8. Original names only. Written by Claude; add rows freely.",
+  "notes": "Names for the Crisis (Plans 5b and 6). The crisis-name-* tables give each villain's own name, put before its title (\"Morvaine, the Ashen Prophet\"). The crisis-site-* tables name the crisis sites in crisis-sites.json (every lead and key site); {land} is the land the site stands in, filled when the Crisis is rolled. Each villain table has 8 names and each site table 8. Original names only. Written by Claude; add rows freely.",
   "entries": [
     {
       "id": "crisis-name-ashen-prophet",
@@ -212,6 +212,90 @@
         { "text": "Emberdeep" },
         { "text": "the Long Hall" },
         { "text": "the Ash Hall" }
+      ]
+    },
+    {
+      "id": "crisis-site-bone-yard",
+      "description": "The Ashen Prophet's second lead: a bone-buyers' yard",
+      "rows": [
+        { "text": "the Knacker's Yard" },
+        { "text": "the Lime-Pit Yard" },
+        { "text": "the Rag-and-Bone Yard of {land}" },
+        { "text": "the Carters' Yard" },
+        { "text": "the Old Tannery Yard" },
+        { "text": "the Charnel Barn" },
+        { "text": "Gallows Lane Yard" },
+        { "text": "the Wheelwright’s Yard" }
+      ]
+    },
+    {
+      "id": "crisis-site-pilgrims-hostel",
+      "description": "The Ashen Prophet's last lead: a pilgrims' hostel",
+      "rows": [
+        { "text": "the Hostel of Saint Ash" },
+        { "text": "the Grey Pilgrims' House" },
+        { "text": "the Wayfarers' Hospice of {land}" },
+        { "text": "the Hostel at the Crossing" },
+        { "text": "the Lantern Hospice" },
+        { "text": "the Old Pilgrim House" },
+        { "text": "the House of Kneeling Kings" },
+        { "text": "the Ash House" }
+      ]
+    },
+    {
+      "id": "crisis-site-counting-house",
+      "description": "The Pretender's Hand's second lead: a robbers' counting-house",
+      "rows": [
+        { "text": "the Silver Mill" },
+        { "text": "the Toll-House on the Old Road" },
+        { "text": "Black Ledger House" },
+        { "text": "the Moneylender's Tower" },
+        { "text": "the Drovers' Bank of {land}" },
+        { "text": "the Abbey Grange" },
+        { "text": "the Mill at Cold Ford" },
+        { "text": "the Counting-House" }
+      ]
+    },
+    {
+      "id": "crisis-site-summer-house",
+      "description": "The Pretender's Hand's last lead: a bishop's summer house",
+      "rows": [
+        { "text": "the Bishop's Orchard" },
+        { "text": "the Summer Palace of {land}" },
+        { "text": "Applegarth House" },
+        { "text": "the Bishop’s Retreat" },
+        { "text": "Saint Oda’s Lodge" },
+        { "text": "the Walled Orchard" },
+        { "text": "the Mitre House" },
+        { "text": "the Grange of the See" }
+      ]
+    },
+    {
+      "id": "crisis-site-woodcamp",
+      "description": "The Drake-Speaker's second lead: a giants' woodcamp",
+      "rows": [
+        { "text": "Hewer's Clearing" },
+        { "text": "the Giants' Woodyard" },
+        { "text": "the Felling of {land}" },
+        { "text": "the Stump-Field" },
+        { "text": "the Pitch Camp" },
+        { "text": "Broken Oak Camp" },
+        { "text": "the Haulers' Camp" },
+        { "text": "Tarpot Hollow" }
+      ]
+    },
+    {
+      "id": "crisis-site-dry-springs",
+      "description": "The Drake-Speaker's last lead: hot springs run dry",
+      "rows": [
+        { "text": "the Dry Springs of {land}" },
+        { "text": "the Steaming Rocks" },
+        { "text": "Wyrm's Breath Springs" },
+        { "text": "the Old Baths" },
+        { "text": "Cinder Wells" },
+        { "text": "the Sulphur Pools" },
+        { "text": "the Boiling Stair" },
+        { "text": "the Hermit's Springs" }
       ]
     }
   ]

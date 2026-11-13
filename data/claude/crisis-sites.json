@@ -2,7 +2,7 @@
   "$schema": "../_schema/poiTypes.schema.json",
   "kind": "poiTypes",
   "source": "claude",
-  "notes": "Crisis sites (Plan 5b): one reveal site and three act sites per villain in villains.json. They are weight 0, so never drawn as ordinary POIs; the Crisis places them when it is rolled (and with them the villain's act biomes and seat hints). Category quest, never hostile: they don't feed threat or cycle. Their names are in crisis-names.json and their situations in crisis-situations.json. Every crisis site has water (an abandoned well, a spring or a cistern), so a party needs to carry water only for the way there: some sites lie 3–4 days off the road in the desert (Plan 5b I2; see docs/notes/crisis-report.md). Written by Claude.",
+  "notes": "Crisis sites (Plans 5b and 6): each villain in villains.json has three lead sites (henchmen and the investigation; act I's is where the plan is learned) and three key sites (the prevention, against the act's boss). They are weight 0, so never drawn as ordinary POIs; the Crisis places them when it is rolled (and with them the villain's act biomes and seat hints). Category quest, never hostile: they don't feed threat or cycle. Their names are in crisis-names.json and their situations in crisis-situations.json. Every crisis site has water (an abandoned well, a spring or a cistern), so a party needs to carry water only for the way there: some sites lie 3–4 days off the road in the desert (Plan 5b I2; see docs/notes/crisis-report.md). Written by Claude; the act II and III leads were added in Plan 6 Track K.",
   "entries": [
     {
       "id": "burned-chapel",
@@ -14,6 +14,28 @@
       "names": "crisis-site-burned-chapel",
       "situations": ["burned-chapel-search"],
       "icon": "burning-embers"
+    },
+    {
+      "id": "bone-buyers-yard",
+      "category": "quest",
+      "name": "Bone-buyers' yard",
+      "weight": 0,
+      "pathDanger": 2,
+      "water": true,
+      "names": "crisis-site-bone-yard",
+      "situations": ["bone-yard-lead"],
+      "icon": "cartwheel"
+    },
+    {
+      "id": "pilgrims-hostel",
+      "category": "quest",
+      "name": "Pilgrims' hostel",
+      "weight": 0,
+      "pathDanger": 2,
+      "water": true,
+      "names": "crisis-site-pilgrims-hostel",
+      "situations": ["pilgrims-hostel-lead"],
+      "icon": "pilgrim-hat"
     },
     {
       "id": "desecrated-barrow-field",
@@ -60,6 +82,28 @@
       "icon": "scroll-unfurled"
     },
     {
+      "id": "robbers-counting-house",
+      "category": "quest",
+      "name": "Robbers' counting-house",
+      "weight": 0,
+      "pathDanger": 2,
+      "water": true,
+      "names": "crisis-site-counting-house",
+      "situations": ["counting-house-lead"],
+      "icon": "coins-pile"
+    },
+    {
+      "id": "bishops-summer-house",
+      "category": "quest",
+      "name": "Bishop's summer house",
+      "weight": 0,
+      "pathDanger": 2,
+      "water": true,
+      "names": "crisis-site-summer-house",
+      "situations": ["summer-house-lead"],
+      "icon": "prayer-beads"
+    },
+    {
       "id": "forgers-den",
       "category": "quest",
       "name": "Forger's den",
@@ -102,6 +146,28 @@
       "names": "crisis-site-shepherds-hut",
       "situations": ["shepherds-hut-search"],
       "icon": "sheep"
+    },
+    {
+      "id": "giants-woodcamp",
+      "category": "quest",
+      "name": "Giants' woodcamp",
+      "weight": 0,
+      "pathDanger": 2,
+      "water": true,
+      "names": "crisis-site-woodcamp",
+      "situations": ["woodcamp-lead"],
+      "icon": "logging"
+    },
+    {
+      "id": "dry-springs",
+      "category": "quest",
+      "name": "Dry hot springs",
+      "weight": 0,
+      "pathDanger": 2,
+      "water": true,
+      "names": "crisis-site-dry-springs",
+      "situations": ["dry-springs-lead"],
+      "icon": "dragon-breath"
     },
     {
       "id": "brood-cave",

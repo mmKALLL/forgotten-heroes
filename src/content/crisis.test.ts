@@ -115,17 +115,60 @@ const omens = allSituations(content).filter((s) => s.villains.length > 0)
 const ids = (list: Situation[]) => list.map((s) => [s.id, s] as const)
 
 describe('lead situations', () => {
-  test.each(ids(leads))('%s wins the lead on every ending but leaving', (_, s) => {
-    let won = 0
-    for (const [stageId, stage] of reachable(s))
-      for (const option of stage.options)
-        for (const b of branchesOf(option).filter(ends)) {
-          if (option.id === 'leave') continue
-          const wins = has(b, 'learnPlan') || has(b, 'revealKeySite')
-          expect(wins, `${stageId}/${option.id}: ${b.text}`).toBe(true)
-          won++
+  test.each(ids(leads))(
+    '%s wins the lead on every ending but leaving, fleeing or being thrown out hurt',
+    (_, s) => {
+      let won = 0
+      for (const [stageId, stage] of reachable(s))
+        for (const option of stage.options) {
+          if (option.id === 'leave' || option.tags?.includes('retreat')) continue
+          const lost =
+            option.kind === 'check' ? [option.outcomes.fail, option.outcomes.critFail] : []
+          for (const b of branchesOf(option).filter(ends)) {
+            const wins = has(b, 'learnPlan') || has(b, 'revealKeySite')
+            if (!wins && lost.includes(b)) {
+              // A retryable lead: a failed fight throws the party out, hurt.
+              expect(b.effects.some((e) => e.effect === 'hp' && e.amount < 0)).toBe(true)
+              continue
+            }
+            expect(wins, `${stageId}/${option.id}: ${b.text}`).toBe(true)
+            won++
+          }
         }
-    expect(won).toBeGreaterThan(0)
+      expect(won).toBeGreaterThan(0)
+    }
+  )
+
+  test('acts II and III have their own lead types, and a lead can be lost and tried again', () => {
+    for (const v of villains) {
+      expect(new Set(v.acts.map((a) => a.lead)).size, v.id).toBe(3)
+      for (const act of v.acts.slice(1)) {
+        const [s] = situationsOf([act.lead])
+        const thrownOut = Object.values(s.stages)
+          .flatMap((st) => st.options)
+          .some(
+            (o) =>
+              o.kind === 'check' && ends(o.outcomes.fail) && !has(o.outcomes.fail, 'revealKeySite')
+          )
+        expect(thrownOut, s.id).toBe(true)
+      }
+    }
+  })
+})
+
+describe('bosses', () => {
+  test('each style is used, and a finale villain names its lieutenants at acts I and II only', () => {
+    expect(new Set(villains.map((v) => v.boss))).toEqual(new Set(['recurring', 'finale']))
+    for (const v of villains) {
+      const named = v.acts.map((a) => a.boss !== undefined)
+      expect(named, v.id).toEqual(v.boss === 'finale' ? [true, true, false] : [false, false, false])
+    }
+  })
+
+  test('some acts surge, but not all', () => {
+    const surges = villains.flatMap((v) => v.acts.map((a) => a.surge))
+    expect(surges.some(Boolean)).toBe(true)
+    expect(surges.every(Boolean)).toBe(false)
   })
 })
 
