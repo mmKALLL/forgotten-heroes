@@ -837,6 +837,31 @@ h2[tabindex='-1']:focus {
   min-width: 0;
 }
 /*
+ * Wide screens: the left column is one card (designer call 2026-11-14): the party, held contracts
+ * and the map share a frame, with a large gap before the map's heading, so the map gets the room.
+ */
+@media (min-width: 901px) {
+  .left {
+    gap: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 1rem;
+  }
+  .left > .panel {
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+  }
+  .left > .panel + .panel {
+    margin-top: 1rem;
+  }
+  .left > .map-panel {
+    margin-top: 2.5rem;
+  }
+}
+/*
  * On narrow screens the columns stack as party, then the centre (settlement, site, journey or
  * encounter, so the actions come early), then the map, then the journal.
  */
