@@ -342,7 +342,8 @@
           "name": "The Hearth Hall",
           "at": [0.5, 0.71],
           "text": "The heart of the lower house: a great hearth carved as a snarling face, its fire burning without wood.",
-          "situations": ["stormwrack-manor-hearth"]
+          "situations": ["stormwrack-manor-hearth"],
+          "milestone": true
         },
         {
           "id": "west-rooms",
@@ -460,7 +461,8 @@
           "name": "The Golden Stair",
           "at": [0.14, 0.15],
           "text": "At the top of a long stair, a hall lit gold by braziers, with four round pedestals round a lidded altar.",
-          "situations": ["ape-king-vault-pedestals"]
+          "situations": ["ape-king-vault-pedestals"],
+          "milestone": true
         },
         {
           "id": "sphere-room",

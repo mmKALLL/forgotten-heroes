@@ -337,6 +337,9 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
       issues.push(`${where}: ${effect.effect} only works in a site situation`)
     // Delving (Plan 6 D3): the engine writes these into a room's snapshot (encounters/room.ts).
     if (effect.effect === 'hoard') issues.push(`${where}: hoard is added by the engine only`)
+    if (effect.effect === 'milestone') {
+      issues.push(`${where}: milestone is added by the engine only`)
+    }
     if (effect.effect === 'driveOut' && !compiled.room)
       issues.push(`${where}: driveOut only works in a dungeon room`)
   }

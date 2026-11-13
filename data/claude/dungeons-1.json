@@ -459,7 +459,8 @@
           "name": "The Violet Glyph",
           "at": [0.21, 0.13],
           "text": "A hall turning south, its far corner a quarter-circle of glowing violet runes round a body wrapped in grave-cloth.",
-          "situations": ["lichs-gauntlet-glyph"]
+          "situations": ["lichs-gauntlet-glyph"],
+          "milestone": true
         },
         {
           "id": "braziers",
@@ -525,7 +526,8 @@
           "name": "The Drake Pens",
           "at": [0.87, 0.58],
           "text": "A timber stockade holds a red drake on a heavy chain, with a water trough beside it.",
-          "situations": ["drakescale-forge-drake"]
+          "situations": ["drakescale-forge-drake"],
+          "milestone": true
         },
         {
           "id": "east-furnace",
@@ -546,7 +548,8 @@
           "name": "The Tithe Heap",
           "at": [0.11, 0.15],
           "text": "A side cave knee-deep in coin, where blackened shapes of men stand half sunk in the gold. A clerk's desk heaped with ledgers stands at its mouth.",
-          "situations": ["drakescale-forge-heap"]
+          "situations": ["drakescale-forge-heap"],
+          "milestone": true
         },
         {
           "id": "bridges",

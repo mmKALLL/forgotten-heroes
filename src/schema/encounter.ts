@@ -233,6 +233,16 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     ),
   z
     .object({
+      effect: z.literal('milestone'),
+      xp: z.number().int().min(0).describe('XP for getting through the room'),
+      ...when,
+    })
+    .describe(
+      "A dungeon room's midway reward: XP, paid once per clearing. Engine-made only: the engine " +
+        "adds it to a milestone room's outcomes that end the room without driving the party out"
+    ),
+  z
+    .object({
       effect: z.literal('hoard'),
       gold: z
         .object({ min: z.number().int().min(0), max: z.number().int().min(0) })

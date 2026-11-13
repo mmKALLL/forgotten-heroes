@@ -283,6 +283,15 @@ describe('dungeonIssues', () => {
     ])
   })
 
+  test('the last room is never a milestone (Plan 6 B)', () => {
+    const broken = edit((c) => {
+      c.dungeons['test-vault'].rooms[2].milestone = true
+    })
+    expect(dungeonIssues(broken)).toEqual([
+      "dungeon test-vault: room vault: the last room can't be a milestone",
+    ])
+  })
+
   test('dungeons lie on land', () => {
     const wet = edit((c) => {
       c.dungeons['test-vault'].biomes = ['hills', 'sea']

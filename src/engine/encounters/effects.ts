@@ -19,10 +19,13 @@ import { changeAnimals } from '../town/animals'
 import { siteContractsMet } from '../town/contract-hooks'
 import { siteStatus } from '../world/sites'
 import { gainXp, xpLine } from '../rules/progression'
-import { XP_CLEAR, XP_DISCOVER } from '../constants'
+import { DOWNED_EXHAUSTION, LAIR_XP_SHARE, XP_CLEAR, XP_DISCOVER } from '../constants'
+import { crLevel } from '../rules/challenge'
+import { levelGap } from '../rules/levels'
+import { siteCr } from '../world/dungeons'
 import { shiftCamaraderie } from '../town/camaraderie'
 import { describeAccessory, lootAccessory } from '../gear/accessories'
-import { describeHoard, payHoard } from '../world/hoard'
+import { describeHoard, payHoard, payMilestone } from '../world/hoard'
 
 export { MAX_EXHAUSTION }
 
@@ -126,10 +129,22 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       return { ...state, gold: Math.max(0, state.gold + effect.amount) }
     case 'hp': {
       const [ids, rng] = targetIds(state, effect.target, ctx)
-      const party = state.party.map((c) =>
-        ids.includes(c.id) ? { ...c, hp: clamp(c.hp + effect.amount, 0, c.maxHp) } : c
+      const downed: string[] = []
+      const party = state.party.map((c) => {
+        if (!ids.includes(c.id)) return c
+        const hp = clamp(c.hp + effect.amount, 0, c.maxHp)
+        // A wound that drops a living member to 0 HP, or lands on one already down, leaves a
+        // level of exhaustion (Plan 6 B): pressing on hurt can kill (exhaustion 6 is death).
+        if (effect.amount >= 0 || hp > 0 || c.exhaustion >= MAX_EXHAUSTION) return { ...c, hp }
+        downed.push(c.name)
+        return { ...c, hp, exhaustion: clamp(c.exhaustion + DOWNED_EXHAUSTION, 0, MAX_EXHAUSTION) }
+      })
+      const next = { ...state, rng, party }
+      return downed.reduce(
+        (s, name) =>
+          note(s, `${name} goes down, badly hurt: +${DOWNED_EXHAUSTION} exhaustion.`, 'bad'),
+        next as GameState
       )
-      return { ...state, rng, party }
     }
     case 'healFraction': {
       const [ids, rng] = targetIds(state, effect.target, ctx)
@@ -207,12 +222,17 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       const id = state.encounter?.poi
       if (!id || !Object.hasOwn(state.world.pois, id)) return state
       const poi = state.world.pois[id]
-      // A site grown stronger pays more: XP_CLEAR × (1 + power), the power before clearing.
+      // A lair (any cycling site with a CR) pays LAIR_XP_SHARE of what its CR's level needs to
+      // level up (Plan 6 B), a site without one XP_CLEAR; a site grown stronger pays more, × (1 +
+      // power), the power before clearing.
       const power = siteStatus(state.world.seed, id, poi, state.day)?.power ?? 0
+      const cr = ctx.content ? siteCr(state.world, ctx.content, id, state.day) : null
+      const xp =
+        (1 + power) * (cr === null ? XP_CLEAR : Math.round(LAIR_XP_SHARE * levelGap(crLevel(cr))))
       const pois = { ...state.world.pois, [id]: { ...poi, clearedDay: state.day } }
       const cleared = { ...state, world: { ...state.world, pois } }
       const told = note(cleared, `${poi.name} is cleared. It will lie empty for a while.`, 'good')
-      const paid = xpNote(told, XP_CLEAR * (1 + power), `${poi.name} cleared`)
+      const paid = xpNote(told, xp, `${poi.name} cleared`)
       return siteContractsMet(paid, 'bounty', id)
     }
     case 'trainSkill': {
@@ -272,6 +292,8 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       return state.delve ? { ...state, delve: { ...state.delve, ended: 'driven' } } : state
     case 'hoard':
       return payHoard(state, ctx.content, effect)
+    case 'milestone':
+      return payMilestone(state, effect)
   }
 }
 
@@ -390,5 +412,7 @@ export function describeEffect(
       return 'driven out: the delve ends'
     case 'hoard':
       return describeHoard(effect)
+    case 'milestone':
+      return `+${effect.xp} XP: a milestone (once a clearing)`
   }
 }

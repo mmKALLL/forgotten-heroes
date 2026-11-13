@@ -20,6 +20,13 @@ export const DungeonRoomSchema = z.object({
     .min(1)
     .max(3)
     .describe('The possible encounters (situations with room: true and site: true); one is drawn'),
+  milestone: z
+    .literal(true)
+    .optional()
+    .describe(
+      'A significant midway point (a gate, a midboss): getting through it pays a share of the ' +
+        "dungeon's XP, once per clearing (Plan 6 B). Never the last room"
+    ),
 })
 export type DungeonRoom = z.infer<typeof DungeonRoomSchema>
 

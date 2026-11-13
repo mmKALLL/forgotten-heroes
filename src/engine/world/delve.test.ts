@@ -2,11 +2,12 @@ import { describe, expect, test } from 'vitest'
 import type { CheckOption } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { createRng } from '../rng'
-import { crOffset } from '../rules/levels'
+import { crOffset, crWound, levelGap } from '../rules/levels'
+import { crLevel } from '../rules/challenge'
 import { step, type Action } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { delvePreview } from './delve'
-import { DELVE_WOUND, REINHABIT_DAYS } from '../constants'
+import { DELVE_WOUND, DUNGEON_XP_SHARE, REINHABIT_DAYS } from '../constants'
 
 const content = fixtureContent()
 const act = (s: GameState, a: Action) => step(s, a, content)
@@ -126,6 +127,48 @@ describe('delving', () => {
       return s
     }
     expect(run()).toEqual(run())
+  })
+
+  test('a milestone room pays its XP as previewed, once per clearing (Plan 6 B)', () => {
+    const marked = structuredClone(content)
+    marked.dungeons['test-vault'].rooms[1].milestone = true
+    const go = (s: GameState, a: Action) => step(s, a, marked)
+    const { state, id } = atVault()
+    const sneak = (s: GameState) => go(s, { type: 'chooseOption', optionId: 'sneak' })
+    const atMilestone = go(sneak(go(state, { type: 'visitPoi' })), { type: 'pressOn' })
+    const opts = atMilestone.encounter!.situation.stages.start.options
+    const passing = opts.find((o) => o.id === 'sneak')!
+    const reward =
+      passing.kind === 'fixed' && passing.outcome.effects.find((e) => e.effect === 'milestone')
+    expect(reward).toBeTruthy()
+    const xp = reward && reward.effect === 'milestone' ? reward.xp : 0
+    const passed = sneak(atMilestone)
+    expect(passed.party[0].xp - atMilestone.party[0].xp).toBe(xp)
+    // Withdrawing and coming back: the milestone is not offered or paid again this clearing.
+    const out = go(passed, { type: 'withdraw' })
+    const again = go(sneak(go({ ...out, visited: false }, { type: 'visitPoi' })), {
+      type: 'pressOn',
+    })
+    const flat = JSON.stringify(again.encounter!.situation)
+    expect(flat).not.toContain('"milestone"')
+    expect(sneak(again).party[0].xp).toBe(again.party[0].xp)
+    // The milestone and the hoard share the dungeon's XP: about DUNGEON_XP_SHARE of a level.
+    const hoard = delvePreview(state, marked, id)!.hoard.xp
+    const gap = levelGap(crLevel(marked.dungeons['test-vault'].cr))
+    expect(hoard + xp).toBeCloseTo(DUNGEON_XP_SHARE * gap, -1)
+  })
+
+  test('a deeper CR wounds deeper, and pays more XP (Plan 6 B)', () => {
+    expect(crWound(9)).toBeGreaterThan(crWound(2))
+    expect(crWound(0)).toBe(1)
+    const { state, id } = atVault()
+    const deep = {
+      ...content,
+      dungeons: { 'test-vault': { ...content.dungeons['test-vault'], cr: 9 } },
+    }
+    expect(delvePreview(state, deep, id)!.hoard.xp).toBeGreaterThan(
+      delvePreview(state, content, id)!.hoard.xp
+    )
   })
 
   test('a deeper CR hoards more', () => {

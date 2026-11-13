@@ -11,18 +11,19 @@ import { withRng } from '../rng'
 import { crLevel } from '../rules/challenge'
 import { canAct, chooseActor } from '../rules/character'
 import { TIERS, tierOdds } from '../rules/checks'
-import { crOffset, levelCr } from '../rules/levels'
+import { crOffset, crWound, levelCr } from '../rules/levels'
 import { siteContractsMet } from '../town/contract-hooks'
 import { dangerLevel, harden } from './danger'
 import { dungeonOf } from './dungeons'
-import { hoardOf, type HoardEffect } from './hoard'
+import { dungeonXp, hoardOf, milestonePaid, type HoardEffect } from './hoard'
 import { siteStatus } from './sites'
 import { DELVE_WOUND, POWER_DC } from '../constants'
 
 // Delving an authored dungeon (Plan 6 D3, design §6). Entering starts a delve: the rooms in order,
 // each one situation drawn from its own, played in a row without leaving. A room is about twice an
 // overworld encounter's risk: its DCs are rebased to the dungeon's CR (rules/levels.ts crOffset,
-// on top of the danger ramp and the site's power) and its wounds are DELVE_WOUND × as deep. A
+// on top of the danger ramp and the site's power) and its wounds are DELVE_WOUND × crWound(CR) as
+// deep (Plan 6 B: deeper the higher its CR). A
 // failed room that ends drives the party out (no hoard; the site stays, to be tried again on
 // another arrival). Between rooms the party presses on or withdraws, keeping what it found
 // (withdrawing isn't fleeing: no camaraderie). The last room's end pays the hoard and clears the
@@ -67,12 +68,19 @@ function roomSetup(
   dungeon: Dungeon,
   index: number
 ): { dcBonus: number; rules: RoomRules } {
-  const poi = state.world.pois[poiId]
-  const power = siteStatus(state.world.seed, poiId, poi, state.day)?.power ?? 0
   const last = index === dungeon.rooms.length - 1
+  const cr = playedCr(state, poiId, dungeon)
   return {
-    dcBonus: crOffset(playedCr(state, poiId, dungeon)),
-    rules: { wound: DELVE_WOUND, hoard: last ? hoardOf(dungeon, power) : null },
+    dcBonus: crOffset(cr),
+    rules: {
+      wound: DELVE_WOUND * crWound(cr),
+      hoard: last ? hoardOf(dungeon, dungeon.cr) : null,
+      // A milestone room pays its share once per clearing (Plan 6 B): not when already paid.
+      milestone:
+        !last && dungeon.rooms[index].milestone && !milestonePaid(state, poiId, index)
+          ? { effect: 'milestone', xp: dungeonXp(dungeon, dungeon.cr).milestone }
+          : null,
+    },
   }
 }
 
@@ -313,7 +321,7 @@ export function delvePreview(
     current: current < dungeon.rooms.length ? current : null,
     roomsLeft: dungeon.rooms.length - current,
     inRoom,
-    hoard: hoardOf(dungeon, power),
+    hoard: hoardOf(dungeon, dungeon.cr),
     risk: inRoom ? null : roomRisk(state, content, poiId, dungeon, current),
   }
 }
