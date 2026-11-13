@@ -122,3 +122,25 @@ test('Pause holds the day where it is; Resume (or Space) walks on', () => {
   wait(3100)
   expect(walks(sent)).toHaveLength(1)
 })
+
+test('the km done counts up a km at a time with the glide, between walks', () => {
+  const sent = vi.fn()
+  render(<Harness initial={onTheRoad([])} sent={sent} />)
+  const kmShown = () => Number(/· (\d+) of 75 km/.exec(document.body.textContent ?? '')![1])
+  const seen = [kmShown()]
+  // 30 km a day at 5 km/s: a km every 200 ms; sample twice as often across the first day.
+  for (let i = 0; i < 29; i++) {
+    wait(100)
+    seen.push(kmShown())
+  }
+  expect(walks(sent)).toHaveLength(0)
+  expect(seen[0]).toBe(0)
+  for (let i = 1; i < seen.length; i++) expect(seen[i] - seen[i - 1]).toBeGreaterThanOrEqual(0)
+  for (let i = 1; i < seen.length; i++) expect(seen[i] - seen[i - 1]).toBeLessThanOrEqual(1)
+  expect(new Set(seen)).toEqual(new Set(Array.from({ length: 15 }, (_, k) => k)))
+  // After the walk the count goes on from the engine's 30 km.
+  wait(3200)
+  expect(walks(sent)).toHaveLength(1)
+  expect(kmShown()).toBeGreaterThanOrEqual(30)
+  expect(kmShown()).toBeLessThan(35)
+})

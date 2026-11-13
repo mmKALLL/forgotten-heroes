@@ -7,7 +7,7 @@ import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
 import { biomeText, campHint, paceText } from './travelText'
 import { restOption } from '../../engine/travel/supplies'
-import type { AutoTravel } from './autoTravel'
+import { useGlideKm, type AutoTravel } from './autoTravel'
 
 /** Space pauses or resumes auto-travel while nothing interactive has focus and no modal is open. */
 function useSpaceToggle(auto: AutoTravel | undefined) {
@@ -48,6 +48,8 @@ export function JourneyPanel({
 }) {
   const { t } = useI18n()
   useSpaceToggle(auto)
+  // During auto-travel the km done counts up with the marker, a km at a time.
+  const kmDone = useGlideKm(auto?.glide, state)
   const j = journeyInfo(state, content)
   if (!j) return null
   const supplies = suppliesInfo(state, j.terrain, content)
@@ -61,7 +63,7 @@ export function JourneyPanel({
         {t('journey.days', {
           done: j.daysDone,
           days: j.days,
-          kmDone: j.kmDone,
+          kmDone,
           km: j.km,
         })}
       </p>

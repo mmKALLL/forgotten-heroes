@@ -75,6 +75,28 @@ export function useGlideShare(
   return glide.key !== null && glide.key === journeyDayKey(state) ? glide.share : 0
 }
 
+/**
+ * The km done that the journey view shows: during a glide it counts up a whole km at a time in
+ * step with the marker (it may run a little ahead of the engine's position, which only moves a
+ * day at a time); otherwise, and with reduced motion, the engine's km. Only re-renders when the
+ * whole km changes.
+ */
+export function useGlideKm(
+  store: GlideStore | undefined,
+  state: Pick<GameState, 'travel' | 'day'>
+): number {
+  const travel = state.travel
+  const key = journeyDayKey(state)
+  const km = () => {
+    if (!travel) return 0
+    const done = Math.round(travel.kmDone)
+    const glide = store?.get()
+    if (!glide || glide.key === null || glide.key !== key) return done
+    return Math.max(done, Math.floor(travel.kmDone + glide.share * nextDayKm(travel)))
+  }
+  return useSyncExternalStore(store?.subscribe ?? noSubscribe, km)
+}
+
 /** A modal is open (the end screen and the like) or the tab is hidden: time stands still. */
 const waiting = (): boolean =>
   document.hidden || document.querySelector('[aria-modal="true"]') !== null
