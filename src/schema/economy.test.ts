@@ -39,17 +39,16 @@ describe('goods', () => {
       unit: 'ration',
       weight: 1,
       price: 1,
-      spoilPerDay: 0,
       depth: 1,
       uses: 'Eaten each day.',
     })
   })
 
-  test('reject unknown goods, negative weights and spoilage above 1', () => {
+  test('reject unknown goods, negative weights and a shelf life under a day', () => {
     const base = { id: 'food', name: 'Food', unit: 'ration', weight: 1, price: 1, uses: '' }
     expect(GoodDefSchema.safeParse({ ...base, id: 'spices' }).success).toBe(false)
     expect(GoodDefSchema.safeParse({ ...base, weight: -1 }).success).toBe(false)
-    expect(GoodDefSchema.safeParse({ ...base, spoilPerDay: 1.5 }).success).toBe(false)
+    expect(GoodDefSchema.safeParse({ ...base, shelfDays: 0 }).success).toBe(false)
   })
 })
 
