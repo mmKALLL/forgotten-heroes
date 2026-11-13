@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "weapons"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "family": {
+            "type": "string",
+            "enum": [
+              "daggers",
+              "blades",
+              "axes",
+              "maces",
+              "polearms",
+              "bows",
+              "thrown",
+              "staffs"
+            ],
+            "description": "Its die, reach, full action and trait (constants)"
+          },
+          "quality": {
+            "default": "plain",
+            "description": "Fine is +1 to hit; magic +1/+2",
+            "$ref": "#/$defs/__schema0"
+          },
+          "price": {
+            "description": "gp at a smith (Track C)",
+            "$ref": "#/$defs/__schema1"
+          },
+          "weight": {
+            "description": "kg (Track C)",
+            "$ref": "#/$defs/__schema2"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "family"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "enum": [
+        "plain",
+        "fine",
+        "magic1",
+        "magic2"
+      ]
+    },
+    "__schema1": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema2": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

@@ -3,6 +3,7 @@ import type { Character } from '../schema/state'
 import { withRng, type Rng } from './rng'
 import { ABILITIES } from './rules/abilities'
 import { personName } from './world/names'
+import { rollAlignment, startingGear } from './combat/gear'
 
 export type GenerateOptions = {
   classId?: string
@@ -39,8 +40,10 @@ export function generateCharacter(
     // Ported from the prototype: generous starting HP, since there is no full combat yet.
     const maxHp = Math.max(1, cls.hitDie * 2 + (abilities.con - 10) * 2)
 
+    const id = `c-${d.int(0, 36 ** 6 - 1).toString(36)}`
+    const alignment = rollAlignment({ id, classId: cls.id })
     return {
-      id: `c-${d.int(0, 36 ** 6 - 1).toString(36)}`,
+      id,
       name,
       ancestry: ancestry.id,
       classId: cls.id,
@@ -56,6 +59,11 @@ export function generateCharacter(
       hired: false,
       oldWounds: [],
       accessory: null,
+      // Plan 7: a plain weapon and armour by class; a cleric's alignment from its own stream.
+      gear: startingGear(cls.id),
+      uses: {},
+      spells: {},
+      ...(alignment ? { alignment } : {}),
     }
   })
 }

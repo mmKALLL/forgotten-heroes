@@ -1,0 +1,39 @@
+{
+  "$schema": "../_schema/spells.schema.json",
+  "kind": "spells",
+  "source": "claude",
+  "notes": "Placeholder (Plan 7 Track T) — Track S fills this in: one spell per pool and a summon, to show the shape. The combat engine does not cast spells yet.",
+  "entries": [
+    {
+      "id": "arcane-bolt",
+      "name": "Arcane Bolt",
+      "pool": "arcane",
+      "level": 1,
+      "description": "Three darts of force that never miss their mark.",
+      "target": "enemy",
+      "range": [1, 4],
+      "effects": [{ "effect": "damage", "dice": { "count": 3, "die": 4, "bonus": 3 } }]
+    },
+    {
+      "id": "mending-word",
+      "name": "Mending Word",
+      "pool": "divine",
+      "level": 1,
+      "description": "A spoken blessing closes a wound at a distance.",
+      "target": "ally",
+      "range": [0, 3],
+      "action": "free",
+      "effects": [{ "effect": "heal", "dice": { "count": 1, "die": 4, "bonus": 2 } }]
+    },
+    {
+      "id": "call-the-hound",
+      "name": "Call the Hound",
+      "pool": "divine",
+      "level": 1,
+      "description": "A spirit hound answers the prayer and fights beside the party.",
+      "target": "tile",
+      "range": [0, 1],
+      "effects": [{ "effect": "summon", "summon": "spirit-hound" }]
+    }
+  ]
+}

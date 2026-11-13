@@ -1,4 +1,16 @@
-import type { Biome, Pace, Skill, Standing, Tier } from '../schema/types'
+import type {
+  Ability,
+  ArmourGrade,
+  Biome,
+  CreatureSize,
+  MoralAlignment,
+  Pace,
+  Skill,
+  Standing,
+  Tier,
+  WeaponFamily,
+  WeaponQuality,
+} from '../schema/types'
 import { PX_PER_KM } from '../schema/world'
 
 // The engine's balance and tuning numbers, by topic (docs/notes/constants.md). Each section names
@@ -791,3 +803,233 @@ export const CRISIS_DC_BASE = 12
 export const CRISIS_RUMOUR_CLUES = 1
 /** An omen weighs this much more on a road in the land the open act points to. */
 export const CRISIS_OMEN_FAVOUR = 3
+
+// Combat: the line (Plan 7; combat/line.ts, combat/start.ts)
+
+/** A fight's line in tiles, unless the room's shape sets another length. */
+export const COMBAT_LINE = 7
+/** A tile holds at most this many size points of one side's units. */
+export const STACK_CAP = 4
+/** Size points per creature size, toward the stack cap and the assist comparison. */
+export const SIZE_POINTS: Readonly<Record<CreatureSize, number>> = {
+  tiny: 1,
+  small: 1,
+  medium: 1,
+  large: 2,
+  huge: 3,
+  gargantuan: 4,
+}
+/** An ambush adds this many more enemies (inclusive range), apart or behind the party. */
+export const AMBUSH_EXTRA: readonly [number, number] = [1, 3]
+/** The surprise roll's DC before the enemies' best WIS (their alertness). */
+export const SURPRISE_DC_BASE = 10
+/**
+ * What each tier of the surprise roll gives: the party sneaking up rolls Stealth, the party
+ * walking into an ambush rolls Perception (both + the scout's kit). `party`: the enemies skip
+ * their first turn; `enemy`: they act before the party's first turn; `half`: only half the party
+ * acts in round 1.
+ */
+export const SURPRISE_RESULT: Readonly<
+  Record<'approach' | 'ambush', Readonly<Record<Tier, 'party' | 'enemy' | 'half' | 'none'>>>
+> = {
+  approach: {
+    critFail: 'half',
+    fail: 'none',
+    partial: 'none',
+    success: 'party',
+    critSuccess: 'party',
+  },
+  ambush: {
+    critFail: 'enemy',
+    fail: 'enemy',
+    partial: 'half',
+    success: 'none',
+    critSuccess: 'party',
+  },
+}
+
+// Combat: attacks (combat/attack.ts)
+
+/** To hit per size point the attacker's stack is bigger (or smaller) than the target's. */
+export const ASSIST_PER_POINT = 2
+/** A polearm striking the next tile instead of two away. */
+export const REACH_PENALTY = 4
+/** A bow or thrown weapon used while an enemy is on an adjacent tile. */
+export const ENGAGED_RANGED_PENALTY = 4
+/** A staggered enemy's to-hit penalty (its weakened intent also does half damage). */
+export const STAGGER_PENALTY = 2
+/** A bloodied enemy (at or below this share of its HP) has BLOODIED_PENALTY to hit; a boss grows desperate. */
+export const BLOODIED_SHARE = 0.5
+export const BLOODIED_PENALTY = 2
+/** An archer's volley attacks every unit on a tile at this penalty. */
+export const VOLLEY_PENALTY = 2
+/** A leader's rally: the allies acting after it this round get this to hit. */
+export const RALLY_BONUS = 2
+/** A boss has this many times its role's HP. */
+export const BOSS_HP_FACTOR = 2
+
+/**
+ * The weapon families (combat design §4): damage die, reach [nearest, farthest], the full action
+ * (a second attack at a penalty, or one attack with a bonus), the lowest critical face, whether it
+ * is ranged (ENGAGED_RANGED_PENALTY), and its trait (cleave: a crit also hits a second enemy on
+ * the tile; stagger: a hit staggers; reach: REACH_PENALTY at the next tile).
+ */
+export const WEAPON_FAMILY_RULES: Readonly<
+  Record<
+    WeaponFamily,
+    {
+      die: 4 | 6 | 8 | 10 | 12
+      reach: readonly [number, number]
+      full: { kind: 'second'; penalty: number } | { kind: 'bonus'; amount: number }
+      critMin: number
+      ranged: boolean
+      trait: 'cleave' | 'stagger' | 'reach' | null
+    }
+  >
+> = {
+  daggers: {
+    die: 4,
+    reach: [1, 1],
+    full: { kind: 'second', penalty: 2 },
+    critMin: 19,
+    ranged: false,
+    trait: null,
+  },
+  blades: {
+    die: 8,
+    reach: [1, 1],
+    full: { kind: 'second', penalty: 6 },
+    critMin: 20,
+    ranged: false,
+    trait: null,
+  },
+  axes: {
+    die: 10,
+    reach: [1, 1],
+    full: { kind: 'bonus', amount: 2 },
+    critMin: 20,
+    ranged: false,
+    trait: 'cleave',
+  },
+  maces: {
+    die: 8,
+    reach: [1, 1],
+    full: { kind: 'bonus', amount: 2 },
+    critMin: 20,
+    ranged: false,
+    trait: 'stagger',
+  },
+  polearms: {
+    die: 10,
+    reach: [1, 2],
+    full: { kind: 'bonus', amount: 2 },
+    critMin: 20,
+    ranged: false,
+    trait: 'reach',
+  },
+  bows: {
+    die: 8,
+    reach: [3, 5],
+    full: { kind: 'bonus', amount: 2 },
+    critMin: 20,
+    ranged: true,
+    trait: null,
+  },
+  thrown: {
+    die: 6,
+    reach: [1, 3],
+    full: { kind: 'second', penalty: 6 },
+    critMin: 20,
+    ranged: true,
+    trait: null,
+  },
+  staffs: {
+    die: 6,
+    reach: [1, 4],
+    full: { kind: 'bonus', amount: 2 },
+    critMin: 20,
+    ranged: false,
+    trait: null,
+  },
+}
+/** What a weapon's quality adds to hit and to damage. */
+export const WEAPON_QUALITY_BONUS: Readonly<
+  Record<WeaponQuality, { toHit: number; damage: number }>
+> = {
+  plain: { toHit: 0, damage: 0 },
+  fine: { toHit: 1, damage: 0 },
+  magic1: { toHit: 1, damage: 1 },
+  magic2: { toHit: 2, damage: 2 },
+}
+/** Armour: base AC + DEX up to the cap (null: no cap). Unarmoured is cloth. */
+export const ARMOUR_AC: Readonly<Record<ArmourGrade, { base: number; dexCap: number | null }>> = {
+  cloth: { base: 10, dexCap: null },
+  leather: { base: 12, dexCap: null },
+  chain: { base: 14, dexCap: 2 },
+  plate: { base: 16, dexCap: 0 },
+}
+/** The casting ability by class (a staff attacks with it); other classes use their best of INT, WIS and CHA. */
+export const CASTING_ABILITY: Readonly<Record<string, Ability>> = {
+  wizard: 'int',
+  cleric: 'wis',
+  paladin: 'cha',
+  ranger: 'wis',
+  bard: 'cha',
+}
+
+// Combat: stagger, stun and morale (combat/turns.ts, combat/morale.ts)
+
+/** Hits within one party turn that stagger and stun an enemy, by kind of enemy. */
+export const STAGGER_HITS: Readonly<
+  Record<'normal' | 'ranged' | 'boss', { stagger: number; stun: number }>
+> = {
+  normal: { stagger: 3, stun: 4 },
+  ranged: { stagger: 1, stun: 2 },
+  boss: { stagger: 5, stun: 6 },
+}
+/**
+ * Morale breaks only near the end: [smallest group, enemies left] — a group of 3–4 tests at 1
+ * left, 5–8 at 2, 9 or more at 3. Smaller groups never test.
+ */
+export const MORALE_THRESHOLDS: readonly (readonly [group: number, left: number])[] = [
+  [3, 1],
+  [5, 2],
+  [9, 3],
+]
+/** Each enemy left saves WIS against this + the party's best Intimidation; the majority decides. */
+export const MORALE_DC_BASE = 10
+
+// Combat: defeat (combat/defeat.ts)
+
+/** A member downed in a fight loses the party this much camaraderie, for good. */
+export const CAMARADERIE_DOWNED = 5
+/** The chance a downed member takes a lasting injury (−OLD_WOUND_PENALTY to an ability)… */
+export const INJURY_BASE = 0.25
+/** …plus this much per point of damage past 0 HP. */
+export const INJURY_PER_OVERKILL = 0.01
+/** A member who already has this many injuries (old wounds count) dies instead on DEATH_CHANCE. */
+export const INJURY_DEATH_AFTER = 2
+export const DEATH_CHANCE = 0.5
+/** A wipe by robbers (any humanoid foe) takes all the gold and this share of each good. */
+export const WIPE_GOODS_TAKEN = 0.5
+
+// Combat: starting gear (party.ts; save v22)
+
+/** A founder's plain weapon and armour by class (fighters and paladins start in chain: plate is dear). */
+export const STARTING_GEAR: Readonly<Record<string, { weapon: string; armour: string }>> = {
+  fighter: { weapon: 'longsword', armour: 'chain-mail' },
+  paladin: { weapon: 'longsword', armour: 'chain-mail' },
+  ranger: { weapon: 'shortbow', armour: 'chain-mail' },
+  rogue: { weapon: 'dagger', armour: 'leather-armour' },
+  cleric: { weapon: 'mace', armour: 'chain-mail' },
+  wizard: { weapon: 'quarterstaff', armour: 'cloth-garb' },
+  bard: { weapon: 'longsword', armour: 'leather-armour' },
+}
+/** Any other class. */
+export const FALLBACK_GEAR = { weapon: 'dagger', armour: 'cloth-garb' } as const
+/** A cleric's alignment when it is rolled (recruits; founders until the creation screen picks). */
+export const CLERIC_ALIGNMENT_WEIGHTS: Readonly<Record<MoralAlignment, number>> = {
+  good: 0.45,
+  neutral: 0.35,
+  evil: 0.2,
+}

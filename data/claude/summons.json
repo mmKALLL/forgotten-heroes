@@ -1,0 +1,18 @@
+{
+  "$schema": "../_schema/summons.schema.json",
+  "kind": "summons",
+  "source": "claude",
+  "notes": "Placeholder (Plan 7 Track T) — Track S fills this in: one summon to show the shape.",
+  "entries": [
+    {
+      "id": "spirit-hound",
+      "name": "Spirit hound",
+      "level": 1,
+      "kind": "beast",
+      "hp": 11,
+      "ac": 13,
+      "toHit": 4,
+      "damage": { "count": 1, "die": 6, "bonus": 2 }
+    }
+  ]
+}

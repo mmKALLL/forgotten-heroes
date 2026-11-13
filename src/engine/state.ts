@@ -138,6 +138,7 @@ export function newGame(
     delve: null,
     upgrades: {},
     levelUps: [],
+    combat: null,
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state

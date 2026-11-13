@@ -9,13 +9,14 @@ import { generateWorld, mainlandSettlements, startingSettlement, worldSeed } fro
 import { straightKm } from './world/geo'
 import { domainAt } from './world/pois'
 import { placeDungeons } from './world/dungeons'
+import { rollAlignment, startingGear } from './combat/gear'
 
 export const SAVE_KEY = 'forgotten-heroes/save/v1'
 /** Where a save that no longer loads is copied, so a new game doesn't destroy it. */
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 21
+export const CURRENT_SAVE_VERSION = 22
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -500,6 +501,30 @@ export const v20ToV21 = (raw: Record<string, unknown>): Record<string, unknown> 
 })
 
 /**
+ * v21 → v22 (Plan 7, linear combat): no fight is open; every member gets their class's plain
+ * weapon and armour (STARTING_GEAR), no ability or spell uses or spells yet, and a cleric an
+ * alignment rolled from their id (combat/gear.ts rollAlignment), as a new cleric gets. Only what
+ * is missing is filled in.
+ */
+export function v21ToV22(raw: Record<string, unknown>): Record<string, unknown> {
+  const party = Array.isArray(raw.party)
+    ? raw.party.map((c: Record<string, unknown>) => {
+        const id = typeof c.id === 'string' ? c.id : ''
+        const classId = typeof c.classId === 'string' ? c.classId : ''
+        const alignment = c.alignment ?? rollAlignment({ id, classId })
+        return {
+          ...c,
+          gear: c.gear ?? startingGear(classId),
+          uses: c.uses ?? {},
+          spells: c.spells ?? {},
+          ...(alignment ? { alignment } : {}),
+        }
+      })
+    : raw.party
+  return { ...raw, version: 22, party, combat: raw.combat ?? null }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -550,6 +575,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v19ToV20(raw as Record<string, unknown>), content)
     case 20:
       return migrate(v20ToV21(raw as Record<string, unknown>), content)
+    case 21:
+      return migrate(v21ToV22(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

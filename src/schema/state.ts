@@ -11,7 +11,17 @@ import {
   SkillSchema,
   SourceSchema,
 } from './common'
-import { ABILITIES, CAMARADERIE_MAX, MAX_LEVEL, SKILLS, TIERS, UPGRADE_MAX_LEVEL } from './types'
+import {
+  ABILITIES,
+  CAMARADERIE_MAX,
+  MAX_LEVEL,
+  MORAL_ALIGNMENTS,
+  RANKS,
+  SKILLS,
+  TIERS,
+  UPGRADE_MAX_LEVEL,
+} from './types'
+import { CombatStateSchema } from './combat'
 import { UpgradeIdSchema } from './upgrades'
 import { SituationSchema } from './encounter'
 import { CrisisStateSchema } from './crisis'
@@ -43,6 +53,18 @@ export const CharacterSchema = z.object({
   oldWounds: z.array(AbilitySchema).default([]),
   /** The accessory worn (one slot), or null. */
   accessory: AccessorySchema.nullable().default(null),
+  /** The weapon and armour carried into a fight (Plan 7), by weapons and armours id; null for none. */
+  gear: z
+    .object({ weapon: IdSchema.nullable(), armour: IdSchema.nullable() })
+    .default({ weapon: null, armour: null }),
+  /** Ability and spell uses left until the next long rest, by ability id or "spell-<level>". */
+  uses: z.record(z.string(), z.number().int().min(0)).default({}),
+  /** Spells known, one per spell level ("1"–"9" → spells id). */
+  spells: z.record(z.string().regex(/^[1-9]$/), IdSchema).default({}),
+  /** A cleric's alignment (summons); others have none. */
+  alignment: z.enum(MORAL_ALIGNMENTS).optional(),
+  /** Front or back rank in the formation (set in the party panel); unset follows the weapon. */
+  rank: z.enum(RANKS).optional(),
 })
 export type Character = z.infer<typeof CharacterSchema>
 
@@ -319,7 +341,7 @@ export const LevelUpSchema = z.object({
 export type LevelUp = z.infer<typeof LevelUpSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(21),
+  version: z.literal(22),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -392,5 +414,7 @@ export const GameStateSchema = z.object({
     .default({}),
   /** Level-ups not yet acknowledged (save v21): while any wait, only acknowledging is played. */
   levelUps: z.array(LevelUpSchema).default([]),
+  /** The open fight on the line (Plan 7, combat/); null when there is none (save v22). */
+  combat: CombatStateSchema.nullable().default(null),
 })
 export type GameState = z.infer<typeof GameStateSchema>

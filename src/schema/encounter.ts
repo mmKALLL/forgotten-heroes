@@ -14,7 +14,7 @@ import {
   StandingSchema,
 } from './common'
 import { AccessoryTierSchema } from './gear'
-import { MAX_DC, MIN_DC, OPTION_TAGS } from './types'
+import { CREATURE_SIZES, ENEMY_ROLES, MAX_DC, MIN_DC, OPTION_TAGS } from './types'
 
 // ---------------------------------------------------------------------------------------------
 // Effects: what an outcome does to the game. The engine interprets them in applyEffects().
@@ -449,6 +449,34 @@ export const ChallengeSchema = z.object({
 })
 export type Challenge = z.infer<typeof ChallengeSchema>
 
+/** One kind of enemy in a fight: a creature × a count. */
+export const FightEnemySchema = z.object({
+  creature: IdSchema.describe('A creatures id'),
+  count: z.number().int().min(1).max(12).default(1),
+  boss: z
+    .boolean()
+    .default(false)
+    .describe('A boss: more HP, harder to stagger, desperate when bloodied'),
+})
+export type FightEnemy = z.infer<typeof FightEnemySchema>
+
+/**
+ * A fight on the line (Plan 7, combat design §1–§2): who the enemies are, whether they spring an
+ * ambush, the line's length, and what each ending does to the encounter (no actor in them).
+ */
+export const FightSchema = z.object({
+  enemies: z.array(FightEnemySchema).min(1),
+  ambush: z
+    .boolean()
+    .default(false)
+    .describe('1–3 more enemies apart from the group or on the far side of the party'),
+  line: z.number().int().min(5).max(8).optional().describe("Tiles (default 7): the room's shape"),
+  win: OutcomeBranchSchema.optional().describe('Victory or a rout'),
+  flee: OutcomeBranchSchema.optional().describe('The party retreated off its end of the line'),
+  lose: OutcomeBranchSchema.optional().describe('A wipe: robbed or left for dead'),
+})
+export type Fight = z.infer<typeof FightSchema>
+
 export const StageSchema = z.object({
   text: z.string(),
   archetype: ArchetypeRefSchema.optional().describe(
@@ -570,6 +598,7 @@ export const SituationSchema = z.object({
     ),
   start: IdSchema.default('start'),
   stages: z.record(IdSchema, StageSchema),
+  fight: FightSchema.optional().describe('A fight on the line this situation can open (Plan 7)'),
 })
 export type Situation = z.infer<typeof SituationSchema>
 
@@ -641,5 +670,10 @@ export const CreatureSchema = z.object({
   type: CreatureTypeSchema,
   cr: z.number().min(0),
   description: z.string().describe('One line, in our own words'),
+  role: z
+    .enum(ENEMY_ROLES)
+    .default('brute')
+    .describe('Its combat role (data/claude/enemy-roles.json): stats by CR, range and trick'),
+  size: z.enum(CREATURE_SIZES).default('medium').describe("Size points toward a tile's stack cap"),
 })
 export type Creature = z.infer<typeof CreatureSchema>

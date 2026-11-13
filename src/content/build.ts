@@ -53,6 +53,12 @@ export const emptyContent = (): Content => ({
   villains: {},
   dungeons: {},
   upgrades: {},
+  weapons: {},
+  armours: {},
+  enemyRoles: {},
+  classAbilities: {},
+  spells: {},
+  summons: {},
   translations: {},
 })
 

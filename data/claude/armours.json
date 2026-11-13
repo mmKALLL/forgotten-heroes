@@ -1,0 +1,12 @@
+{
+  "$schema": "../_schema/armours.schema.json",
+  "kind": "armours",
+  "source": "claude",
+  "notes": "Placeholder (Plan 7 Track T) — Track C fills this in: one armour per grade, no prices or weights yet. AC rules are ARMOUR_AC in src/engine/constants.ts.",
+  "entries": [
+    { "id": "cloth-garb", "name": "Travelling clothes", "grade": "cloth" },
+    { "id": "leather-armour", "name": "Leather armour", "grade": "leather" },
+    { "id": "chain-mail", "name": "Chain mail", "grade": "chain" },
+    { "id": "plate-armour", "name": "Plate armour", "grade": "plate" }
+  ]
+}

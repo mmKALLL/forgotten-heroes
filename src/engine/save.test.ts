@@ -22,6 +22,7 @@ import {
   v18ToV19,
   v19ToV20,
   v20ToV21,
+  v21ToV22,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -150,6 +151,7 @@ function migrated() {
     explored: [],
     upgrades: {},
     levelUps: [],
+    combat: null,
   }
 }
 
@@ -196,7 +198,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(21)
+  expect(CURRENT_SAVE_VERSION).toBe(22)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -653,16 +655,18 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v20ToV21(
-          v19ToV20(
-            v18ToV19(
-              v17ToV18(
-                v16ToV17(
-                  v15ToV16(
-                    v14ToV15(
-                      v13ToV14(
-                        v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
-                        content
+        v21ToV22(
+          v20ToV21(
+            v19ToV20(
+              v18ToV19(
+                v17ToV18(
+                  v16ToV17(
+                    v15ToV16(
+                      v14ToV15(
+                        v13ToV14(
+                          v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
+                          content
+                        )
                       )
                     )
                   )
@@ -1020,6 +1024,35 @@ describe('v20 → v21 (level-ups wait for the player)', () => {
     const { levelUps: _ups, ...v20 } = { ...structuredClone(state), version: 20 }
     expect(v20ToV21(v20)).toMatchObject({ version: 21, levelUps: [] })
     expect(deserialize(JSON.stringify(v20), content)).toEqual(state)
+  })
+})
+
+describe('v21 → v22 (Plan 7: linear combat)', () => {
+  test('members get their class gear and no uses or spells; a cleric an alignment; no fight is open', () => {
+    const cleric = makeCharacter({ id: 'c-cleric', classId: 'cleric' })
+    const state = makeState({ party: [brom, cleric] })
+    const strip = ({
+      gear: _g,
+      uses: _u,
+      spells: _s,
+      alignment: _a,
+      ...c
+    }: GameState['party'][0]) => c
+    const { combat: _combat, ...rest } = structuredClone(state)
+    const v21 = { ...rest, version: 21, party: state.party.map(strip) }
+    const loaded = deserialize(JSON.stringify(v21), content)!
+    expect(loaded.combat).toBeNull()
+    expect(loaded.party.map((c) => c.gear)).toEqual([
+      { weapon: 'longsword', armour: 'chain-mail' },
+      { weapon: 'mace', armour: 'chain-mail' },
+    ])
+    expect(loaded.party.every((c) => Object.keys(c.uses).length === 0)).toBe(true)
+    expect(loaded.party[0].alignment).toBeUndefined()
+    expect(['good', 'neutral', 'evil']).toContain(loaded.party[1].alignment)
+    // The rest is untouched.
+    expect(loaded.party.map(strip)).toEqual(state.party.map(strip))
+    expect({ ...loaded, party: [] }).toEqual({ ...state, party: [] })
+    expect(v21ToV22(v21)).toMatchObject({ version: 22 })
   })
 })
 

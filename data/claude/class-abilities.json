@@ -1,0 +1,27 @@
+{
+  "$schema": "../_schema/classAbilities.schema.json",
+  "kind": "classAbilities",
+  "source": "claude",
+  "notes": "Placeholder (Plan 7 Track T) — Track C fills this in: two abilities to show the shape. The combat engine does not play abilities yet.",
+  "entries": [
+    {
+      "id": "second-wind",
+      "name": "Second Wind",
+      "classId": "fighter",
+      "level": 2,
+      "description": "A breath, a grunt, and the fighter is back in it.",
+      "target": "self",
+      "effects": [{ "effect": "heal", "dice": { "count": 1, "die": 10, "bonus": 1 } }]
+    },
+    {
+      "id": "cunning-action",
+      "name": "Cunning Action",
+      "classId": "rogue",
+      "level": 2,
+      "description": "Two quick steps, slipping out of reach without a free swing.",
+      "target": "self",
+      "action": "free",
+      "effects": [{ "effect": "move", "tiles": 2 }]
+    }
+  ]
+}
