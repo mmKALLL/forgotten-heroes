@@ -6,9 +6,10 @@ import { step, type Action } from '../state'
 import { createRng } from '../rng'
 import { startEncounter } from '../encounters/run'
 import { brom, combatFixtureContent, lyra, makeState, testFight } from '../test-fixtures'
-import { CAMARADERIE_DOWNED, CAMARADERIE_RETREAT, STACK_CAP, SIZE_POINTS } from '../constants'
+import { CAMARADERIE_RETREAT, STACK_CAP, SIZE_POINTS } from '../constants'
 import { startCombat } from './fight'
 import { actionOrder } from './intents'
+import { stepOf } from './line'
 import { combatPreview } from './preview'
 import { surprisePreview } from './start'
 import { unitOf, withFight } from './test-fixtures'
@@ -142,25 +143,36 @@ describe('turns', () => {
     expect(after.combat!.round).toBe(2)
   })
 
-  test('a mace hit staggers at once; a hit on a caster staggers it, two stun it', () => {
+  test("a mace hit counts two up the ladder; a caster's blows are halved when staggered, lost when stunned", () => {
     const mace = unitOf({ id: 'brom', side: 'party', tile: 1, family: 'maces', toHit: 30 })
-    const target = unitOf({ id: 'e1', side: 'enemy', tile: 2, hp: 99, maxHp: 99 })
+    const intent = { kind: 'attack' as const, from: 2, tile: 1, twice: false }
+    const target = unitOf({ id: 'e1', side: 'enemy', tile: 2, hp: 99, maxHp: 99, intent })
     const hit = step(
       withFight([mace, target]),
       { type: 'combatAct', unit: 'brom', tile: 2 },
       content
     )
-    expect(hit.combat!.units[1].staggered).toBe(true)
+    expect(hit.combat!.units[1].hits).toBe(2)
+    expect(stepOf(hit.combat!.units[1])).toBe('stifled')
+    // A caster at 2 hits is staggered: its intent shows half damage.
     const caster = { ...target, role: 'caster' as const }
+    const staggered = step(
+      withFight([mace, caster]),
+      { type: 'combatAct', unit: 'brom', tile: 2 },
+      content
+    )
+    const shown = combatPreview(staggered)!.intents[0]
+    expect(shown.step).toBe('staggered')
+    expect(shown.attacks[0].half).toBe(true)
+    // One more hit (a blade's full action lands two) stuns it.
     const blade = { ...mace, family: 'blades' as const }
     const full = step(
-      withFight([blade, caster]),
+      withFight([blade, { ...caster, hits: 1 }]),
       { type: 'combatAct', unit: 'brom', tile: 2, full: true },
       content
     )
-    const shown = combatPreview(full)!.intents
-    expect(full.combat!.units[1].hits).toBe(2)
-    expect(shown.length === 0 || shown[0].stunned).toBe(true)
+    expect(full.combat!.units[1].hits).toBe(3)
+    expect(combatPreview(full)!.intents[0].stunned).toBe(true)
   })
 
   test('the actions are refused by the rest of the game while a fight is open', () => {
@@ -218,29 +230,6 @@ describe('the end of a fight', () => {
     state = step(state, { type: 'combatRetreat', unit: 'lyra' }, content)
     expect(state.combat!.result).toBe('retreat')
     expect(state.camaraderie).toBe(before - CAMARADERIE_RETREAT * (state.party.length - 1))
-  })
-
-  test('a wipe by robbers takes the gold; the living come to with 1 HP; each downing costs camaraderie', () => {
-    const doomed = (id: string) => unitOf({ id, side: 'party', tile: 1, hp: 1, ac: 1 })
-    const killer = (id: string) =>
-      unitOf({
-        id,
-        side: 'enemy',
-        tile: 2,
-        toHit: 30,
-        intent: { kind: 'attack', from: 2, tile: 1, twice: false },
-      })
-    const state = withFight([doomed('brom'), doomed('lyra'), killer('e1'), killer('e2')], {}, 1, {
-      gold: 50,
-      camaraderie: 60,
-    })
-    const after = step(state, { type: 'combatEndTurn' }, content)
-    expect(after.combat!.result).toBe('wipe')
-    expect(after.gold).toBe(0)
-    const living = after.party.filter((c) => c.exhaustion < 6)
-    expect(living.every((c) => c.hp === 1)).toBe(true)
-    // Two downings, plus the camaraderie any deaths cost.
-    expect(after.camaraderie).toBeLessThanOrEqual(60 - 2 * CAMARADERIE_DOWNED)
   })
 
   test('morale is tested at its threshold; when it breaks the fight is a rout', () => {

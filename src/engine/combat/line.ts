@@ -55,15 +55,46 @@ export function nearest(combat: CombatState, tile: number, side: CombatSide): nu
   return Math.min(...sideUnits(combat, side).map((u) => distance(u.tile, tile)), Infinity)
 }
 
-/** Which stagger thresholds an enemy has: a boss, a caster or archer, or a normal one. */
-export function hitThresholds(u: CombatUnit): { stagger: number; stun: number } {
+/** The hit ladder's thresholds an enemy has (combat design §3): a boss, a caster or archer, or a normal one. */
+export function hitThresholds(u: Pick<CombatUnit, 'boss' | 'role'>): {
+  stifle: number
+  stagger: number
+  stun: number
+} {
   if (u.boss) return STAGGER_HITS.boss
   return u.role === 'archer' || u.role === 'caster' ? STAGGER_HITS.ranged : STAGGER_HITS.normal
 }
 
-/** Staggered: by a trait, or by the hits taken this party turn. */
+/** A step of the hit ladder: stifled (−2 to hit), staggered (and half damage), stunned. */
+export type HitStep = 'stifled' | 'staggered' | 'stunned'
+const STEP_RANK: Record<HitStep, number> = { stifled: 1, staggered: 2, stunned: 3 }
+
+/** The step `hits` hits this party turn reach (null: none), with `staggered` forcing at least that. */
+export function hitStep(
+  u: Pick<CombatUnit, 'boss' | 'role' | 'side'>,
+  hits: number,
+  staggered = false
+): HitStep | null {
+  if (u.side !== 'enemy') return null
+  const t = hitThresholds(u)
+  if (hits >= t.stun) return 'stunned'
+  if (staggered || hits >= t.stagger) return 'staggered'
+  return hits >= t.stifle ? 'stifled' : null
+}
+
+/** The higher of two steps. */
+export const stepAbove = (a: HitStep | null, b: HitStep | null): boolean =>
+  (a ? STEP_RANK[a] : 0) > (b ? STEP_RANK[b] : 0)
+
+/** The step an enemy stands at now (`staggered` is set by an effect, whatever the hits). */
+export const stepOf = (u: CombatUnit): HitStep | null => hitStep(u, u.hits, u.staggered)
+
+/** Stifled or worse: −STAGGER_PENALTY to hit. */
+export const isStifled = (u: CombatUnit): boolean => stepOf(u) !== null
+
+/** Staggered (or stunned): its blows do half damage. */
 export const isStaggered = (u: CombatUnit): boolean =>
-  u.side === 'enemy' && (u.staggered || u.hits >= hitThresholds(u).stagger)
+  stepOf(u) === 'staggered' || stepOf(u) === 'stunned'
 
 /** Stunned: enough hits this party turn that it loses its next action. */
 export const isStunned = (u: CombatUnit): boolean =>

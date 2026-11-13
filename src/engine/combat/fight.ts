@@ -10,9 +10,24 @@ import { statLabel } from '../rules/abilities'
 import { setbackCamaraderie } from '../encounters/outcomes'
 import { resolveFightBranch } from '../encounters/run'
 import { changeCamaraderie, livingMembers } from '../town/camaraderie'
-import { CAMARADERIE_DOWNED, WEAPON_FAMILY_RULES, WIPE_GOODS_TAKEN } from '../constants'
-import { attackSpec, rollAttack, rollDamage, type AttackSpec, type Part } from './attack'
-import { applyDefeat, defeatOdds, rollDefeat } from './defeat'
+import { MAX_EXHAUSTION } from '../rules/character'
+import {
+  CAMARADERIE_DOWNED,
+  CAMARADERIE_WIPE,
+  DOWNED_EXHAUSTION,
+  WEAPON_FAMILY_RULES,
+} from '../constants'
+import { attackSpec, hitWeight, rollAttack, rollDamage, type AttackSpec, type Part } from './attack'
+import {
+  applyDefeat,
+  defeatOdds,
+  exhaustDowned,
+  livingOf,
+  rollDefeat,
+  rollStruggle,
+  wipeOptions,
+  type WipeChoice,
+} from './defeat'
 import { actionOrder, planIntents, repositionTile } from './intents'
 import {
   canEnter,
@@ -41,7 +56,8 @@ import {
 // left to right and top to bottom. Every roll uses the same specs the preview shows
 // (combat/preview.ts): preview == actual. The fight ends in victory, a rout, a retreat or a wipe;
 // the ending's branch then applies to the open encounter, and `closeCombat` (or any other action)
-// clears it.
+// clears it. A wipe waits for the player's choice (`combatWipeChoice`: surrender, struggle or
+// sacrifice), which applies its cost and the `lose` branch and closes the fight.
 
 export type CombatAction =
   /**
@@ -57,8 +73,10 @@ export type CombatAction =
   | { type: 'combatRetreat'; unit: string }
   /** The party's turn ends: the enemies act, and a new round begins. */
   | { type: 'combatEndTurn' }
-  /** Clear a finished fight. */
+  /** Clear a finished fight (not a wipe: that waits for its choice). */
   | { type: 'closeCombat' }
+  /** After a wipe: how the party gets out of it; `member` stays behind for a sacrifice. */
+  | { type: 'combatWipeChoice'; choice: WipeChoice; member?: string }
 
 export const COMBAT_ACTIONS: readonly string[] = [
   'startCombat',
@@ -67,6 +85,7 @@ export const COMBAT_ACTIONS: readonly string[] = [
   'combatRetreat',
   'combatEndTurn',
   'closeCombat',
+  'combatWipeChoice',
 ]
 
 /** A fight is open and undecided. */
@@ -210,7 +229,10 @@ function hurt(
   return downMember(s, draw, target, amount - target.hp, content)
 }
 
-/** A member at 0 HP: out of the fight, camaraderie lost for good, and the injury roll. */
+/**
+ * A member at 0 HP: out of the fight, camaraderie lost for good, DOWNED_EXHAUSTION (death at 6,
+ * gear lost), and otherwise the injury roll.
+ */
 function downMember(
   s: GameState,
   draw: Draw,
@@ -219,11 +241,22 @@ function downMember(
   _content: Content
 ): GameState {
   let next = syncHp(setUnit(s, { ...target, hp: 0, status: 'down' }), target.id, 0)
-  next = log(next, `${target.name} goes down.`, 'bad')
-  next = appendLog(next, `${target.name} goes down in the fight.`, 'bad')
+  const line = `${target.name} goes down: +${DOWNED_EXHAUSTION} exhaustion.`
+  next = appendLog(log(next, line, 'bad'), line, 'bad')
   next = changeCamaraderie(next, -CAMARADERIE_DOWNED, `${target.name} went down`)
-  const member = next.party.find((c) => c.id === target.id)
-  if (!member) return next
+  const found = next.party.find((c) => c.id === target.id)
+  if (!found) return next
+  const member = exhaustDowned(found)
+  if (member.exhaustion >= MAX_EXHAUSTION) {
+    const dead = `${member.name} doesn't get up again, and their gear is lost with them.`
+    next = {
+      ...next,
+      party: next.party.map((c) => (c.id === member.id ? applyDefeat(c, { kind: 'death' }) : c)),
+    }
+    next = setUnit(next, { ...unit(next, target.id), status: 'dead' })
+    return appendLog(log(next, dead, 'crit'), dead, 'crit')
+  }
+  next = { ...next, party: next.party.map((c) => (c.id === member.id ? member : c)) }
   const defeat = rollDefeat(draw, defeatOdds(next, member, overkill))
   next = {
     ...next,
@@ -290,14 +323,10 @@ function strike(
     }
   )
   if (!roll.hit) return next
-  const family = attacker.family ? WEAPON_FAMILY_RULES[attacker.family] : null
+  // Hits climb the ladder (stifled, staggered, stunned); a mace's count double.
   if (target.side === 'enemy') {
     const t = unit(next, target.id)
-    next = setUnit(next, {
-      ...t,
-      hits: t.hits + (partyTurn ? 1 : 0),
-      staggered: t.staggered || family?.trait === 'stagger',
-    })
+    next = setUnit(next, { ...t, hits: t.hits + (partyTurn ? hitWeight(attacker) : 0) })
   }
   next = hurt(next, draw, target.id, roll.damage, content)
   // An axe's crit also hits a second enemy on that tile.
@@ -573,11 +602,15 @@ const END_LINES: Record<CombatResult, [string, LogTone]> = {
   wipe: ['The last of the party goes down.', 'crit'],
 }
 
-/** The ending's effects: the retreat's camaraderie, a wipe's robbery, the encounter's branch. */
+/**
+ * The ending's effects: the retreat's camaraderie and the encounter's branch. A wipe waits for the
+ * player's choice (`combatWipeChoice`), which applies its cost and the `lose` branch.
+ */
 function finish(s: GameState, result: CombatResult, content: Content): GameState {
   const [text, tone] = END_LINES[result]
   let next = log(setCombat(s, { ...combatOf(s), result }), text, tone)
   next = appendLog(next, text, tone)
+  if (result === 'wipe') return next
   if (result === 'retreat') {
     const cost = setbackCamaraderie(
       livingMembers(next).length,
@@ -587,41 +620,79 @@ function finish(s: GameState, result: CombatResult, content: Content): GameState
     )
     next = changeCamaraderie(next, cost, 'they fled a fight')
   }
-  if (result === 'wipe') next = wiped(next, content)
   const fight = combatOf(next).fight
-  const branch =
-    result === 'victory' || result === 'rout'
-      ? fight?.win
-      : result === 'retreat'
-        ? fight?.flee
-        : fight?.lose
-  if (branch) next = resolveFightBranch(next, branch, tone === 'crit' ? 'bad' : tone, content)
+  const branch = result === 'retreat' ? fight?.flee : fight?.win
+  if (branch) next = resolveFightBranch(next, branch, tone, content)
   return next
 }
 
+/** A wipe waiting for the player's choice of how the party gets out of it. */
+export const wipePending = (state: Pick<GameState, 'combat'>): boolean =>
+  state.combat?.result === 'wipe'
+
 /**
- * A wipe (combat design §7): robbers (any humanoid foe) take all the gold and WIPE_GOODS_TAKEN
- * of each good; beasts and monsters leave the party for dead. Either way the living come to
- * with 1 HP.
+ * A wipe's choice (combat design §7, combat/defeat.ts wipeOptions): its cost, CAMARADERIE_WIPE,
+ * the living come to with 1 HP, the encounter's `lose` branch, and the fight is closed.
  */
-function wiped(s: GameState, content: Content): GameState {
-  const robbers = combatOf(s).units.some(
-    (u) =>
-      u.side === 'enemy' &&
-      u.creature !== null &&
-      content.creatures[u.creature]?.type === 'humanoid'
-  )
-  const party = s.party.map((c) => (c.exhaustion < 6 && c.hp <= 0 ? { ...c, hp: 1 } : c))
-  if (!robbers)
-    return appendLog({ ...s, party }, 'They are left for dead, and come to hours later.', 'bad')
-  const goods = Object.fromEntries(
-    Object.entries(s.goods).map(([g, n]) => [g, (n ?? 0) - Math.floor((n ?? 0) * WIPE_GOODS_TAKEN)])
-  ) as Partial<Record<Good, number>>
-  return appendLog(
-    { ...s, party, gold: 0, goods },
-    'They come to robbed: every coin gone, and half of what they carried.',
-    'bad'
-  )
+function chooseAfterWipe(
+  s: GameState,
+  draw: Draw,
+  action: Extract<CombatAction, { type: 'combatWipeChoice' }>,
+  content: Content
+): GameState {
+  const options = wipeOptions(s)
+  const name = (id: string) => s.party.find((c) => c.id === id)?.name ?? id
+  let next = s
+  if (action.choice === 'surrender') {
+    const { gold, kept, goods } = options.surrender
+    const left = { ...s.goods }
+    for (const [g, n] of Object.entries(goods) as [Good, number][]) left[g] = (left[g] ?? 0) - n
+    next = { ...next, gold: s.gold - gold, goods: left }
+    const hidden = kept > 0 ? ` (${kept} gp stay hidden in the compartment)` : ''
+    next = appendLog(
+      next,
+      `They surrender: ${gold} gp and half of every good but essentials are taken${hidden}.`,
+      'bad'
+    )
+  } else if (action.choice === 'struggle') {
+    // The same draws the preview peeked at: the first of this step's RNG.
+    const injuries = rollStruggle(draw, livingOf(s.party))
+    for (const { member, ability } of injuries) {
+      next = {
+        ...next,
+        party: next.party.map((c) =>
+          c.id === member ? applyDefeat(c, { kind: 'injury', ability }) : c
+        ),
+      }
+      next = appendLog(
+        next,
+        `${name(member)} struggles free with a lasting wound (−2 ${statLabel(ability)}).`,
+        'bad'
+      )
+    }
+  } else {
+    const member = action.member
+    if (!member || !options.sacrifice?.members.includes(member)) return s
+    next = {
+      ...next,
+      party: next.party.map((c) => (c.id === member ? applyDefeat(c, { kind: 'death' }) : c)),
+    }
+    next = appendLog(
+      next,
+      `${name(member)} stays behind so the others can get away, and dies; their gear is lost with them.`,
+      'crit'
+    )
+  }
+  next = changeCamaraderie(next, -CAMARADERIE_WIPE, 'the party was beaten')
+  next = {
+    ...next,
+    party: next.party.map((c) =>
+      c.exhaustion < MAX_EXHAUSTION && c.hp <= 0 ? { ...c, hp: 1 } : c
+    ),
+  }
+  const branch = combatOf(s).fight?.lose
+  if (branch) next = resolveFightBranch(next, branch, 'bad', content)
+  return { ...next, combat: null }
 }
 
 /** Ends the fight when it is decided. */
@@ -643,7 +714,14 @@ export function stepCombat(state: GameState, action: CombatAction, content: Cont
     return startCombat(state, content, fight, { footing: open?.position ?? 'normal' })
   }
   if (action.type === 'closeCombat')
-    return state.combat && state.combat.result !== null ? { ...state, combat: null } : state
+    return state.combat && state.combat.result !== null && !wipePending(state)
+      ? { ...state, combat: null }
+      : state
+  if (action.type === 'combatWipeChoice') {
+    if (!wipePending(state)) return state
+    const [next, rng] = withRng(state.rng, (draw) => chooseAfterWipe(state, draw, action, content))
+    return next === state ? state : { ...next, rng }
+  }
   if (!fighting(state)) return state
   const [next, rng] = withRng(state.rng, (draw) => {
     switch (action.type) {
