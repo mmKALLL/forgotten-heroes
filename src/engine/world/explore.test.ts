@@ -11,7 +11,7 @@ import { createRng } from '../rng'
 import { rollCheck, TIERS, type Tier } from '../rules/checks'
 import { availableActions, step } from '../state'
 import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../test-fixtures'
-import { NOTHING_TO_LEARN, PICKED_CLEAN, exploreOption } from './explore'
+import { NOTHING_TO_LEARN, exploreOption, nothingLeftText } from './explore'
 import { edgeById, pathId } from './graph'
 import { domainThreatLevel } from './pois'
 import { territory } from './territory'
@@ -545,17 +545,43 @@ describe('explore', () => {
     expect(after.log.some((e) => e.text.includes('inn'))).toBe(false)
   })
 
-  test('in a picked-clean domain only a successful search says so', () => {
-    const empty = (tier: Tier) => {
-      const state = rolling(tier)
-      return step({ ...state, world: { ...state.world, pois: {} } }, { type: 'explore' }, content)
+  test('the search line names what it found, where, and the XP; a failure says nothing was found', () => {
+    const line = (tier: Tier) => {
+      const after = step(rolling(tier), { type: 'explore' }, content)
+      return { after, text: after.log.find((e) => e.text.includes('leads a search'))!.text }
     }
-    const texts = (s: GameState) => s.log.map((e) => e.text)
-    expect(texts(empty('success'))).toContain(PICKED_CLEAN)
-    expect(texts(empty('critSuccess'))).toContain(PICKED_CLEAN)
-    expect(texts(empty('partial'))).toContain(PICKED_CLEAN)
-    expect(texts(empty('fail'))).not.toContain(PICKED_CLEAN)
-    // Up front, the option is offered as usual.
-    expect(exploreOption(withPois({}, { location: 'greenvale-1' }), content)).not.toBeNull()
+    const one = line('success')
+    const [found] = discovered(one.after)
+    const name = one.after.world.pois[found].name
+    expect(one.text).toContain(`Success: you find ${name} (a war camp), `)
+    expect(one.text).toMatch(/(half a day|a day|about \d+ days) (north|south|east|west)/)
+    expect(one.text).toContain(`of ${one.after.world.settlements['greenvale-1'].name}`)
+    expect(one.text).toContain(`marked on the map (+${XP_DISCOVER} XP)`)
+    // No separate "You learn of" or XP line: it is all in the one line.
+    expect(one.after.log.some((e) => e.text.startsWith('You learn of'))).toBe(false)
+    const two = line('critSuccess')
+    for (const id of discovered(two.after)) {
+      expect(two.text).toContain(two.after.world.pois[id].name)
+    }
+    expect(two.text).toContain(`+${2 * XP_DISCOVER} XP`)
+    expect(line('fail').text).toMatch(/Failure: nothing found\.$/)
+  })
+
+  test('with nothing left to find, the preview says so and the search is refused: no days spent', () => {
+    const empty = { ...here(), world: { ...here().world, pois: {} } }
+    const option = exploreOption(empty, content)!
+    expect(option.nothingLeft).toBe(true)
+    expect(exploreOption(here(), content)!.nothingLeft).toBe(false)
+    const after = step(empty, { type: 'explore' }, content)
+    expect(after.day).toBe(empty.day)
+    expect(after.goods).toEqual(empty.goods)
+    expect(after.skillUses).toEqual(empty.skillUses)
+    expect(after.log.at(-1)!.text).toBe(
+      nothingLeftText(empty.world.settlements['greenvale-1'].name)
+    )
+    // A known site isn't left to find either.
+    const known = structuredClone(here())
+    for (const p of Object.values(known.world.pois)) p.discovered = true
+    expect(exploreOption(known, content)!.nothingLeft).toBe(true)
   })
 })

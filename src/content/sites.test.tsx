@@ -3,6 +3,7 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, test, vi } from 'vitest'
 import { newGame, step } from '../engine/state'
+import { exploreOption } from '../engine/world/explore'
 import { edgesFrom } from '../engine/world/graph'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { PlacePanel } from '../ui/world/PlacePanel'
@@ -117,10 +118,12 @@ describe.each([1, 2, 3, 4, 5])('seed %i', (seed) => {
 
   test('exploring the starting domain with the real situations keeps the state valid', () => {
     let state = newGame(seed, content)
+    // A start with nothing left to find refuses the search and spends no days.
+    const searches = !exploreOption(state, content)!.nothingLeft
     for (let i = 0; i < 6 && !state.encounter; i++) {
       state = step(state, { type: 'explore' }, content)
       expect(GameStateSchema.parse(state)).toEqual(state)
     }
-    expect(state.day).toBeGreaterThan(1)
+    expect(state.day > 1).toBe(searches)
   })
 })

@@ -3,7 +3,6 @@ import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ComponentProps } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
-import { formatPercent } from '../../engine/format'
 import { exploreOption } from '../../engine/world/explore'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom } from '../../engine/world/graph'
@@ -144,20 +143,13 @@ test('rest at a site is camp only, and there is nothing to buy or sell', async (
   expect(onAction).toHaveBeenCalledWith({ type: 'rest', lodging: false })
 })
 
-test('the explore preview shows the searcher, DC, chance, days and the non-critical tiers', async () => {
+test('the explore preview shows the searcher, DC, days and the non-critical tiers with their chances', async () => {
   const state = world('poi-1', ['poi-1'])
   const option = exploreOption(state, content)!
   const { onAction } = show(state)
   const box = within(screen.getByRole('group', { name: 'Explore the domain' }))
   const name = state.party.find((c) => c.id === option.actorId)!.name
-  const chance = option.chances.partial + option.chances.success + option.chances.critSuccess
-  expect(
-    box.getByText(
-      new RegExp(
-        `^${name}, \\w+ [+−]\\d+ vs DC ${option.dc} · ${formatPercent(chance)} to find a site$`
-      )
-    )
-  ).toBeTruthy()
+  expect(box.getByText(new RegExp(`^${name}, \\w+ [+−]\\d+ vs DC ${option.dc}$`))).toBeTruthy()
   // Outcome lines, never an odds bar (design §9).
   expect(box.queryByRole('img', { name: /Success: / })).toBeNull()
   const rows = within(box.getByRole('list', { name: 'What the search finds' }))
@@ -168,12 +160,24 @@ test('the explore preview shows the searcher, DC, chance, days and the non-criti
     expect.stringMatching(/^Partial success: .*Finds a site, after 3 days$/),
     expect.stringMatching(/^Failure: .*Finds nothing$/),
   ])
-  // Critical tiers stay a surprise, and so does whether anything is left to find.
+  // Critical tiers stay a surprise.
   expect(box.getByRole('list', { name: 'What the search finds' }).textContent).not.toMatch(
-    /Critical|picked clean|Two/
+    /Critical|Two/
   )
   await userEvent.click(box.getByRole('button', { name: 'Explore (2 days)' }))
   expect(onAction).toHaveBeenCalledWith({ type: 'explore' })
+})
+
+test('with nothing left to find, Explore says so and does nothing', async () => {
+  const state = world('poi-1', ['poi-1'])
+  for (const p of Object.values(state.world.pois)) p.discovered = true
+  const { onAction } = show(state)
+  const box = within(screen.getByRole('group', { name: 'Explore the domain' }))
+  expect(box.getByText('Nothing left to find here.')).toBeTruthy()
+  const button = box.getByRole('button', { name: 'Explore (2 days)' })
+  expect(button.getAttribute('aria-disabled')).toBe('true')
+  await userEvent.click(button)
+  expect(onAction).not.toHaveBeenCalled()
 })
 
 test('the paths out are listed with their previews, and Travel takes the chosen one', async () => {

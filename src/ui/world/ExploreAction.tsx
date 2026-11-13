@@ -1,15 +1,16 @@
 import type { Content } from '../../content/build'
-import { formatModifier, formatPercent } from '../../engine/format'
+import { formatModifier } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
 import { availableActions, type Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
 import { TierOutcomes } from './TierOutcomes'
 import { daysText } from './travelText'
+import { ReasonButton } from '../ReasonButton'
 
 /**
- * Exploring the domain the party is in: who searches, with what, against what DC, the chance to
- * find a site, the days it takes and what each non-critical tier finds (a vertical list, always
+ * Exploring the domain the party is in: who searches, with what, against what DC, the days it
+ * takes and what each non-critical tier finds, with its chance (a vertical list, always
  * shown: design §9), before the party commits. Nothing when the engine offers no search here.
  */
 export function ExploreAction({
@@ -37,24 +38,30 @@ export function ExploreAction({
       ? t('explore.foundLate', { days: daysText(t, days) })
       : t('explore.found')
   }
-  // Who searches, with what, and the chance to find a site; the days are on the button.
+  // Who searches, with what, against what DC; the days are on the button, the chances below.
   const line = t('explore.line', {
     name,
     skill: stat(option.skill),
     modifier: formatModifier(option.modifier),
     dc: option.dc,
-    pct: formatPercent(option.findChance),
   })
-  const outcomes = (
+  // With nothing left to find the search is refused (no days spent): the button says why.
+  const button = (
+    <ReasonButton
+      available={!option.nothingLeft}
+      reason={option.nothingLeft ? t('explore.nothingLeft') : null}
+      onClick={() => onAction({ type: 'explore' })}
+    >
+      {t('explore.button', { days: daysText(t, option.days) })}
+    </ReasonButton>
+  )
+  const outcomes = option.nothingLeft ? null : (
     <TierOutcomes label={t('explore.outcomes')} odds={option.chances} faces={faces} text={finds} />
   )
   if (compact) {
     return (
       <div className="explore-line" role="group" aria-label={t('explore.heading')}>
-        <button onClick={() => onAction({ type: 'explore' })}>
-          {t('explore.button', { days: daysText(t, option.days) })}
-        </button>{' '}
-        <span className="small">{line}</span>
+        {button} <span className="small">{line}</span>
         {outcomes}
       </div>
     )
@@ -64,9 +71,7 @@ export function ExploreAction({
       <h3>{t('explore.heading')}</h3>
       <p className="small">{line}</p>
       {outcomes}
-      <button onClick={() => onAction({ type: 'explore' })}>
-        {t('explore.button', { days: daysText(t, option.days) })}
-      </button>
+      {button}
     </div>
   )
 }
