@@ -66,29 +66,29 @@
           "action": {
             "default": "action",
             "description": "Spells and abilities take an action unless free",
-            "$ref": "#/$defs/__schema8"
+            "$ref": "#/$defs/__schema11"
           },
           "roll": {
             "description": "An attack or a save; none: it always lands",
-            "$ref": "#/$defs/__schema9"
+            "$ref": "#/$defs/__schema12"
           },
           "rounds": {
             "default": 1,
-            "description": "How long the lasting effects last (1: this round; 10: the whole fight)",
-            "$ref": "#/$defs/__schema10"
+            "description": "How long the lasting effects last (1: this round; 10: until the fight ends)",
+            "$ref": "#/$defs/__schema13"
           },
           "spends": {
             "default": "uses",
             "description": "What it spends: its own uses, or one of the user's spell uses (Smite)",
-            "$ref": "#/$defs/__schema11"
+            "$ref": "#/$defs/__schema14"
           },
           "only": {
             "description": "It affects only creatures of this type (Turn Undead: \"undead\")",
-            "$ref": "#/$defs/__schema12"
+            "$ref": "#/$defs/__schema15"
           },
           "specialised": {
             "description": "What a bard's specialisation pick changes (level-up choices)",
-            "$ref": "#/$defs/__schema13"
+            "$ref": "#/$defs/__schema16"
           }
         },
         "required": [
@@ -486,6 +486,10 @@
             "effect": {
               "type": "string",
               "const": "banish"
+            },
+            "onReturn": {
+              "description": "Buffs the unit gets for `rounds` from the round it returns (Demiplane)",
+              "$ref": "#/$defs/__schema8"
             }
           },
           "required": [
@@ -513,6 +517,11 @@
             },
             "dice": {
               "$ref": "#/$defs/__schema6"
+            },
+            "flee": {
+              "default": "sometimes",
+              "description": "How readily an enemy starting its turn on the tile steps off it, braving free swings (sometimes: when the hazard would hurt it more than the swings it braves)",
+              "$ref": "#/$defs/__schema10"
             }
           },
           "required": [
@@ -530,6 +539,24 @@
           },
           "required": [
             "effect"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "shift"
+            },
+            "tiles": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 4
+            }
+          },
+          "required": [
+            "effect",
+            "tiles"
           ]
         },
         {
@@ -667,13 +694,118 @@
       "minimum": 0
     },
     "__schema8": {
+      "type": "object",
+      "properties": {
+        "effects": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema9"
+          }
+        },
+        "rounds": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        }
+      },
+      "required": [
+        "effects",
+        "rounds"
+      ]
+    },
+    "__schema9": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "toHit"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "damageBonus"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "ac"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": -9007199254740991,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "ward"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "amount"
+          ]
+        }
+      ]
+    },
+    "__schema10": {
+      "type": "string",
+      "enum": [
+        "never",
+        "sometimes",
+        "always"
+      ]
+    },
+    "__schema11": {
       "type": "string",
       "enum": [
         "action",
         "free"
       ]
     },
-    "__schema9": {
+    "__schema12": {
       "oneOf": [
         {
           "type": "object",
@@ -729,22 +861,22 @@
         }
       ]
     },
-    "__schema10": {
+    "__schema13": {
       "type": "integer",
       "minimum": 1,
       "maximum": 10
     },
-    "__schema11": {
+    "__schema14": {
       "type": "string",
       "enum": [
         "uses",
         "spell"
       ]
     },
-    "__schema12": {
+    "__schema15": {
       "type": "string"
     },
-    "__schema13": {
+    "__schema16": {
       "type": "object",
       "properties": {
         "description": {
