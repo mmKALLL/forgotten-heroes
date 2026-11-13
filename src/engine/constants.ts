@@ -1,4 +1,4 @@
-import type { Biome, Pace, Standing, Tier } from '../schema/types'
+import type { Biome, Pace, Skill, Standing, Tier } from '../schema/types'
 import { PX_PER_KM } from '../schema/world'
 
 // The engine's balance and tuning numbers, by topic (docs/notes/constants.md). Each section names
@@ -446,6 +446,27 @@ export const ROUND_PRICE = 1
 export const CAMARADERIE_PARTING = 5
 /** Below Fractured's top, one member leaves for each full this many days of an unbroken spell. */
 export const CAMARADERIE_LEAVE_DAYS = 7
+
+// Party upgrades (town/upgrades.ts; Plan 6c). Prices are data: `basePrice` in upgrades.json.
+
+/** Camp kit: HP each member regains per level on a day's rest in camp, on top of CAMP_HEAL. */
+export const CAMP_KIT_HP = 1
+/** Camp kit: from this level a day's rest in camp lifts camaraderie (CAMP_KIT_CHEER)... */
+export const CAMP_KIT_CHEER_LEVEL = 3
+/** ...by this much, once per arrival or journey (like a private room's bond). */
+export const CAMP_KIT_CHEER = 5
+/** Smuggler's compartment: the share of each precious good hidden from tolls and thieves, per level. */
+export const SMUGGLE_SHARE = 0.2
+/** Surveyor's maps: added to explore checks per level. */
+export const MAPS_EXPLORE = 2
+/** Delving gear: added per level to dungeon-room checks of these skills... */
+export const DELVING_GEAR_BONUS = 1
+/** ...which are these. */
+export const DELVING_GEAR_SKILLS: readonly Skill[] = ['athletics', 'perception', 'acrobatics']
+/** Delving gear: from this level, +1 more to every skill-challenge round in a dungeon room. */
+export const DELVING_GEAR_CHALLENGE_LEVEL = 5
+/** Company banner: every camaraderie loss is this much smaller per level (never below 0). */
+export const BANNER_SOFTEN = 1
 
 // Points of interest (pois.ts)
 

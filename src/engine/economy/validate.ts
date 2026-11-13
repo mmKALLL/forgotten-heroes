@@ -1,5 +1,5 @@
 import { sortedEntries, type Content } from '../../content/build'
-import { GOOD_CATEGORY, GOODS, type ContractKind, type Good } from '../../schema/types'
+import { GOOD_CATEGORY, GOODS, UPGRADES, type ContractKind, type Good } from '../../schema/types'
 import { slotNames } from '../encounters/slots'
 
 /** Water is refilled free in every settlement, so no shop or market rule may deal in it. */
@@ -118,6 +118,17 @@ export function economyIssues(content: Content): string[] {
     for (const name of slotNames(`${template.title} ${template.text}`)) {
       if (!allowed.includes(name)) {
         issues.push(`contracts ${template.id}: {${name}} doesn't fit a ${template.kind} contract`)
+      }
+    }
+  }
+  // Party upgrades (Plan 6c): every type is defined, and sold by services that exist.
+  for (const id of UPGRADES) {
+    if (!Object.hasOwn(content.upgrades, id)) issues.push(`upgrades: "${id}" is not defined`)
+  }
+  for (const upgrade of sortedEntries(content.upgrades)) {
+    for (const service of upgrade.soldBy) {
+      if (!Object.hasOwn(services, service)) {
+        issues.push(`upgrades ${upgrade.id}: unknown service "${service}"`)
       }
     }
   }

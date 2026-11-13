@@ -270,6 +270,23 @@ export type OptionTag = (typeof OPTION_TAGS)[number]
 /** The top of the party's camaraderie scale (0–100, design §3; Plan 6 wave 2b, ×2.5 from 0–40). */
 export const CAMARADERIE_MAX = 100
 
+/**
+ * Party upgrades (Plan 6c, design §4 "Party upgrades"): lasting purchases owned by the party,
+ * each bought level by level from 0 to UPGRADE_MAX_LEVEL. What each level does is in
+ * src/engine/town/upgrades.ts and the constants' "Party upgrades" section; names, prices and the
+ * services that sell them are in data/claude/upgrades.json.
+ */
+export const UPGRADES = [
+  'camp-kit',
+  'smugglers-compartment',
+  'surveyors-maps',
+  'delving-gear',
+  'company-banner',
+] as const
+export type UpgradeId = (typeof UPGRADES)[number]
+/** The highest level of a party upgrade. */
+export const UPGRADE_MAX_LEVEL = 5
+
 /** Camaraderie tiers, worst first: a tier holds from its `min` up to the next tier's. */
 export const CAMARADERIE_TIERS = [
   { id: 'fractured', min: 0 },

@@ -781,6 +781,14 @@ const good = (id: string, unit: string, weight: number, price: number, spoilPerD
   uses: `Test ${id}.`,
 })
 
+const upgrade = (id: string, name: string, basePrice: number, soldBy: string[]) => ({
+  id,
+  name,
+  description: `Test ${id}.`,
+  basePrice,
+  soldBy,
+})
+
 /**
  * Plan 4 content with round numbers (weights in kg): the 15 goods, four service roles, three
  * market rules, four producer rules, a mule, a cart and a riding horse, three person roles and one contract
@@ -908,6 +916,18 @@ export const testEconomy: Record<string, unknown> = {
         maxPathDanger: 1,
         stealable: true,
       },
+    ],
+  },
+  // Plan 6c: every upgrade is sold at the inn or the outfitters, so most test towns sell them.
+  'data/claude/upgrades.json': {
+    kind: 'upgrades',
+    source: 'claude',
+    entries: [
+      upgrade('camp-kit', 'Camp kit', 75, ['adventuring-supplies', 'inn-tavern']),
+      upgrade('smugglers-compartment', "Smuggler's compartment", 125, ['inn-tavern']),
+      upgrade('surveyors-maps', "Surveyor's maps", 100, ['inn-tavern']),
+      upgrade('delving-gear', 'Delving gear', 100, ['adventuring-supplies', 'inn-tavern']),
+      upgrade('company-banner', 'Company banner', 200, ['inn-tavern']),
     ],
   },
   'data/claude/person-roles.json': {

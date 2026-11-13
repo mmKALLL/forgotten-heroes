@@ -21,6 +21,7 @@ import { VillainSchema } from './crisis'
 import { DungeonSchema } from './dungeon'
 import { AccessoryPartSchema } from './gear'
 import { GatherRuleSchema } from './gather'
+import { UpgradeDefSchema } from './upgrades'
 import {
   LandSpotSchema,
   PlaceNameTableSchema,
@@ -174,6 +175,7 @@ export const CONTENT_KINDS = {
   gatherRules: GatherRuleSchema,
   villains: VillainSchema,
   dungeons: DungeonSchema,
+  upgrades: UpgradeDefSchema,
   translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS

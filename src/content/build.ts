@@ -52,6 +52,7 @@ export const emptyContent = (): Content => ({
   gatherRules: {},
   villains: {},
   dungeons: {},
+  upgrades: {},
   translations: {},
 })
 

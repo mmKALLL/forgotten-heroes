@@ -15,6 +15,7 @@ import { stepTravel, type TravelAction } from './travel/journey'
 import { observe, stepTrade, type TradeAction } from './economy/trade'
 import { useService, type ServiceUse } from './town/services'
 import { buyAnimal, sellAnimal } from './town/animals'
+import { buyUpgrade, type BuyUpgrade } from './town/upgrades'
 import { listenRumours } from './town/rumours'
 import { expireContracts, stepContract, voidBounties, type ContractAction } from './town/contracts'
 import { provision, type ProvisionFor } from './town/provision'
@@ -72,6 +73,8 @@ export type Action =
   | { type: 'acknowledgeEnd' }
   /** Press on into a dungeon's next room, or withdraw (world/delve.ts). */
   | DelveAction
+  /** Buy the next level of a party upgrade from a service here (town/upgrades.ts). */
+  | BuyUpgrade
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -132,6 +135,7 @@ export function newGame(
     luckUsed: {},
     crisis: crisis?.crisis ?? null,
     delve: null,
+    upgrades: {},
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state
@@ -254,6 +258,8 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'pressOn':
     case 'withdraw':
       return stepDelve(state, action, content)
+    case 'buyUpgrade':
+      return buyUpgrade(state, content, action.upgrade)
     default:
       return stepEncounter(state, action, content)
   }

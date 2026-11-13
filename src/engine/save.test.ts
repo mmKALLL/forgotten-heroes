@@ -18,6 +18,7 @@ import {
   v14ToV15,
   v15ToV16,
   v16ToV17,
+  v17ToV18,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -144,6 +145,7 @@ function migrated() {
     crisis,
     delve: null,
     explored: [],
+    upgrades: {},
   }
 }
 
@@ -191,7 +193,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(17)
+  expect(CURRENT_SAVE_VERSION).toBe(18)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -649,12 +651,14 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v16ToV17(
-          v15ToV16(
-            v14ToV15(
-              v13ToV14(
-                v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
-                content
+        v17ToV18(
+          v16ToV17(
+            v15ToV16(
+              v14ToV15(
+                v13ToV14(
+                  v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
+                  content
+                )
               )
             )
           )
@@ -954,6 +958,19 @@ describe('v16 → v17 (no animal upkeep)', () => {
     expect('upkeepOwed' in loaded).toBe(false)
     const once = v16ToV17(structuredClone(v16))
     expect(v16ToV17({ ...once, version: 16 })).toEqual(once)
+  })
+})
+
+describe('v17 → v18 (party upgrades)', () => {
+  test('an older party owns no upgrades, and everything else is kept', () => {
+    const state = makeState({ gold: 77 })
+    const { upgrades: _none, ...rest } = structuredClone(state)
+    const v17 = { ...rest, version: 17 }
+    const loaded = deserialize(JSON.stringify(v17), content)!
+    expect(loaded).toEqual(state)
+    expect(loaded.upgrades).toEqual({})
+    const once = v17ToV18(structuredClone(v17))
+    expect(v17ToV18({ ...once, version: 17 })).toEqual(once)
   })
 })
 
