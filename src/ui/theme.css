@@ -164,6 +164,7 @@ html {
   position: absolute;
   inset: 0 auto 0 0;
   background: color-mix(in srgb, var(--good) 55%, transparent);
+  transition: width 1.2s ease;
 }
 .hp-text {
   position: relative;
@@ -188,6 +189,14 @@ html {
   position: absolute;
   inset: 0 auto 0 0;
   background: var(--tier-critSuccess);
+  transition: width 1.2s ease;
+}
+/* HP and XP changes glide over 1.2s (designer call 2026-11-14), unless motion is reduced. */
+@media (prefers-reduced-motion: reduce) {
+  .hp-fill,
+  .xp-fill {
+    transition: none;
+  }
 }
 .xp-text {
   position: relative;
@@ -2621,4 +2630,11 @@ h2[tabindex='-1']:focus {
 /* A closed card's best skills: half the paragraph margin, to keep cards short. */
 .best-skills {
   margin: 0.5em 0;
+}
+/* The top bar's purse: large as in the market, left of the load (designer call 2026-11-14). */
+.top-gold {
+  font-weight: bold;
+  font-size: 1.15rem;
+  white-space: nowrap;
+  align-self: center;
 }

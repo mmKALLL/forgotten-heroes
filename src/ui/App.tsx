@@ -107,12 +107,11 @@ function Game() {
     <div className="app">
       <header className="topbar">
         <h1>{t('app.title')}</h1>
-        {/* One row of two-line blocks (design §9): the day, gold and Inspiration over the
-            essentials, the other goods as a 2×2 block, and the load over the wealth. */}
+        {/* One row of two-line blocks (design §9): the day and Inspiration over the essentials,
+            the other goods as a 2×2 block, the gold, and the load over the wealth. */}
         <div className="top-stack top-status">
           <span className="top-line">
             <DayMark day={shown.day} crisis={crisis} danger={dangerInfo(shown, content)} />
-            <span>{t('top.gold', { gold: shown.gold })}</span>
             <span title={t('top.inspirationHint')}>
               {t('top.inspiration', { n: shown.inspiration })}
             </span>

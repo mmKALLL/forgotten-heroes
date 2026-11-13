@@ -122,6 +122,8 @@ export function TopInventory({
           )
         })}
       </ul>
+      {/* The purse, large as in the market, beside the load it buys (designer call 2026-11-14). */}
+      <span className="top-gold">{t('top.gold', { gold: state.gold })}</span>
       <div className="top-stack top-load">
         <CapacityMeter laden={load(state, content)} />
         <span className="top-line">
