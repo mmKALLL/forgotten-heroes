@@ -184,6 +184,28 @@ describe('startingSettlement', () => {
     expect([...starts].sort()).toEqual(['ashmoor-1', 'greenvale-1', 'greenvale-2'])
   })
 
+  test('in random mode, skips a settlement whose every route is notorious (danger 3)', () => {
+    const notorious = (id: string) =>
+      edit((c) => {
+        for (const r of Object.values(c.routes)) if (r.from === id || r.to === id) r.danger = 3
+      })
+    for (let seed = 0; seed < 20; seed++) {
+      const world = generateWorld(seed, content)
+      const start = startingSettlement(world, content, 'random')!
+      const moved = startingSettlement(world, notorious(start), 'random')!
+      expect(moved).not.toBe(start)
+      expect(content.settlements[moved].island).toBe('mainland')
+    }
+    // With nowhere safe, the old pool stands.
+    const everywhere = edit((c) => {
+      for (const r of Object.values(c.routes)) r.danger = 3
+    })
+    const world = generateWorld(1, content)
+    expect(startingSettlement(world, everywhere, 'random')).toBe(
+      startingSettlement(world, content, 'random')
+    )
+  })
+
   test('draws from its own stream, salted apart from the one that rolled the world', () => {
     const mainland = ['ashmoor-1', 'greenvale-1', 'greenvale-2']
     const pick = (seed: number) => withRng(createRng(seed), (d) => d.pick(mainland))[0]

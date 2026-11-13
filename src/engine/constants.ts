@@ -11,6 +11,8 @@ import { PX_PER_KM } from '../schema/world'
 export const STARTING_PARTY_SIZE = 2
 /** Gold a new party starts with. */
 export const STARTING_GOLD = 10
+/** A random start skips settlements whose every route has at least this danger (notorious). */
+export const START_UNSAFE_DANGER = 3
 /** Camaraderie a new party starts at (0–40): Steady. The state schema's default repeats it. */
 export const CAMARADERIE_START = 25
 
