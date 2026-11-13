@@ -19,7 +19,7 @@ export type VisibleWealth = {
   steps: number
   /**
    * What it adds to the share of hostile encounters on the road (HostileShare.wealth, before the
-   * clamp and the pace's avoidance): WEALTH_HOSTILE_PER_STEP per step. For the goods bar's %.
+   * clamp and the pace's avoidance): WEALTH_HOSTILE_PER_STEP per step. For the top bar's wealth %.
    */
   hostile: number
 }

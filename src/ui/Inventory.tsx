@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment } from 'react'
 import type { Content } from '../content/build'
 import { load, type Load } from '../engine/economy/capacity'
 import { goodDef, goodsInCategory } from '../engine/economy/goods'
@@ -6,8 +6,8 @@ import { visibleWealth, type VisibleWealth } from '../engine/economy/wealth'
 import { formatPercent } from '../engine/format'
 import type { Action } from '../engine/state'
 import { cargoInfo } from '../engine/town/contracts'
-import { partyWaterCapacity } from '../engine/travel/supplies'
-import { GOODS, GOOD_CATEGORIES, type Good } from '../schema/types'
+import type { SuppliesInfo } from '../engine/travel/preview'
+import { GOODS, type Good, type GoodCategory } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
@@ -20,67 +20,116 @@ import {
 
 const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good] ?? 0
 
+/** The four categories in the top bar's 2×2 block; the essentials are the supplies line. */
+const GRID_CATEGORIES: readonly GoodCategory[] = [
+  'consumables',
+  'equipment',
+  'materials',
+  'precious',
+]
+
+/** A good's name, its uses and the units of it that are a contract's cargo (reserved, and still carried). */
+function useGoods(content: Content, state: GameState) {
+  const { name, fields } = useI18n()
+  const lots = cargoInfo(state, content).lots
+  return {
+    goodName: (g: Good) => name('goods', g, goodDef(content, g)?.name ?? g),
+    goodUses: (g: Good) => fields('goods', g)?.uses ?? goodDef(content, g)?.uses,
+    cargo: (g: Good) => lots.filter((l) => l.good === g).reduce((n, l) => n + l.carried, 0),
+  }
+}
+
+function CargoBadge({ n }: { n: number }) {
+  const { t } = useI18n()
+  if (n <= 0) return null
+  return <span className="badge small cargo-badge">{t('market.cargoShort', { n })}</span>
+}
+
 /**
- * The bottom bar (design §9): the goods carried by category (goods at 0 hidden, "—" for an empty
- * category; a contract's cargo marked), the capacity meter, and the visible-wealth pips.
- * `children` adds controls at its end.
+ * The essentials in the top bar (design §9): "Food 5 (2d) · Water 1/8 (0d) · Fuel 2", with the
+ * days food and water last for the whole party and a contract's cargo marked.
  */
-export function GoodsBar({
+export function Essentials({
   content,
   state,
-  onAction,
-  children,
+  supplies,
 }: {
   content: Content
   state: GameState
-  /** With it, a "Drop goods" control leaves goods behind (so loot can't strand the party). */
-  onAction?: (a: Action) => void
-  children?: ReactNode
+  supplies: SuppliesInfo
 }) {
-  const { t, name, fields } = useI18n()
-  const goodName = (g: Good) => name('goods', g, goodDef(content, g)?.name ?? g)
-  const goodUses = (g: Good) => fields('goods', g)?.uses ?? goodDef(content, g)?.uses
-  // The units of each good that are a contract's cargo (reserved, and still carried).
-  const lots = cargoInfo(state, content).lots
-  const cargo = (g: Good) => lots.filter((l) => l.good === g).reduce((n, l) => n + l.carried, 0)
+  const { t } = useI18n()
+  const { goodUses, cargo } = useGoods(content, state)
   return (
-    <footer className="goods-bar" aria-label={t('goods.heading')}>
-      <ul className="goods-groups" aria-label={t('goods.heading')}>
-        {GOOD_CATEGORIES.map((category) => {
+    <span className="essentials" title={t('top.suppliesHint')}>
+      {t('top.food', { food: supplies.food, days: supplies.foodDays })}
+      <CargoBadge n={cargo('food')} /> ·{' '}
+      {t('top.water', {
+        water: supplies.water,
+        capacity: supplies.waterCapacity,
+        days: supplies.waterDays,
+      })}
+      <CargoBadge n={cargo('water')} /> ·{' '}
+      <span title={goodUses('fuel')}>{t('top.fuel', { fuel: units(state, 'fuel') })}</span>
+      <CargoBadge n={cargo('fuel')} />
+    </span>
+  )
+}
+
+/**
+ * The rest of the goods carried, in the top bar (design §9): the four other categories as a 2×2
+ * block, each "Consum.: Healing 2, Arcana 1" (the full name on hover and for screen readers; goods
+ * at 0 hidden, "—" for an empty category; a contract's cargo marked), then the load meter, the
+ * visible-wealth pips and "Drop goods" (with `onAction`).
+ */
+export function TopInventory({
+  content,
+  state,
+  onAction,
+}: {
+  content: Content
+  state: GameState
+  onAction?: (a: Action) => void
+}) {
+  const { t } = useI18n()
+  const { goodName, goodUses, cargo } = useGoods(content, state)
+  return (
+    <>
+      <ul className="goods-grid" aria-label={t('goods.heading')}>
+        {GRID_CATEGORIES.map((category) => {
           const held = goodsInCategory(category).filter((g) => units(state, g) > 0)
+          const full = t(`goodCategory.${category}`)
           return (
-            <li key={category} className="goods-group">
-              <span className="goods-cat muted">{t(`goodCategory.${category}`)}</span>
+            <li key={category}>
+              <span className="goods-cat muted" title={full}>
+                <span aria-hidden="true">{t(`goodCategoryShort.${category}`)}:</span>
+                <span className="sr-only">{full}:</span>
+              </span>{' '}
               {held.length === 0 ? (
-                <span className="muted"> {t('goods.none')}</span>
+                <span className="muted">{t('goods.none')}</span>
               ) : (
-                held.map((g) => (
-                  <span key={g} className="goods-item" title={goodUses(g)}>
-                    {' '}
-                    {goodName(g)}{' '}
-                    <b>
-                      {g === 'water'
-                        ? `${units(state, g)}/${partyWaterCapacity(state)}`
-                        : units(state, g)}
-                    </b>
-                    {cargo(g) > 0 && (
-                      <span className="badge small cargo-badge">
-                        {t('market.cargoShort', { n: cargo(g) })}
-                      </span>
-                    )}
-                  </span>
+                held.map((g, i) => (
+                  <Fragment key={g}>
+                    {i > 0 && ', '}
+                    <span className="goods-item" title={goodUses(g)}>
+                      {goodName(g)} <b>{units(state, g)}</b>
+                      <CargoBadge n={cargo(g)} />
+                    </span>
+                  </Fragment>
                 ))
               )}
             </li>
           )
         })}
       </ul>
-      <span className="spacer" />
-      <CapacityMeter laden={load(state, content)} />
-      <WealthPips wealth={visibleWealth(state, content)} />
-      {onAction && <DropGoods content={content} state={state} onAction={onAction} />}
-      {children}
-    </footer>
+      <div className="top-stack top-load">
+        <CapacityMeter laden={load(state, content)} />
+        <span className="top-line">
+          <WealthPips wealth={visibleWealth(state, content)} />
+          {onAction && <DropGoods content={content} state={state} onAction={onAction} />}
+        </span>
+      </div>
+    </>
   )
 }
 
@@ -153,7 +202,7 @@ export function WealthPips({ wealth }: { wealth: VisibleWealth }) {
 
 /**
  * Leaving goods behind: each good carried with "1" and "all" buttons, in a disclosure that opens
- * upwards from the bar. It is marked when the party is too heavy to set out.
+ * under the top bar. It is marked when the party is too heavy to set out.
  */
 export function DropGoods({
   content,

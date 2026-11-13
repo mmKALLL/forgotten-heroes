@@ -17,7 +17,7 @@ import { DevArea } from './DevArea'
 import { EndDialog } from './EndDialog'
 import { prefersReducedMotion } from './dice/DiceRoll'
 import { EncounterView } from './encounter/EncounterView'
-import { GoodsBar } from './GoodsBar'
+import { Essentials, TopInventory } from './Inventory'
 import { recordRun } from './hall'
 import { addsRoll } from './encounter/rolls'
 import { I18nProvider, LanguageToggle, useI18n } from './i18n/I18n'
@@ -107,22 +107,23 @@ function Game() {
     <div className="app">
       <header className="topbar">
         <h1>{t('app.title')}</h1>
-        <DayMark day={shown.day} crisis={crisis} danger={dangerInfo(shown, content)} />
-        <span>{t('top.gold', { gold: shown.gold })}</span>
-        <span title={t('top.suppliesHint')}>
-          {t('top.food', { food: supplies.food, days: supplies.foodDays })} ·{' '}
-          {t('top.water', {
-            water: supplies.water,
-            capacity: supplies.waterCapacity,
-            days: supplies.waterDays,
-          })}
-        </span>
-        <span title={t('top.inspirationHint')}>
-          {t('top.inspiration', { n: shown.inspiration })}
-        </span>
-        <span className="spacer" />
-        <span className="muted small">{t('top.seed', { seed: state.seed })}</span>
-        <LanguageToggle />
+        {/* One row of two-line blocks (design §9): the day, gold and Inspiration over the
+            essentials, the other goods as a 2×2 block, and the load over the wealth. */}
+        <div className="top-stack top-status">
+          <span className="top-line">
+            <DayMark day={shown.day} crisis={crisis} danger={dangerInfo(shown, content)} />
+            <span>{t('top.gold', { gold: shown.gold })}</span>
+            <span title={t('top.inspirationHint')}>
+              {t('top.inspiration', { n: shown.inspiration })}
+            </span>
+          </span>
+          <Essentials content={content} state={shown} supplies={supplies} />
+        </div>
+        <TopInventory content={content} state={shown} onAction={dispatch} />
+        <div className="top-stack top-meta">
+          <span className="muted small">{t('top.seed', { seed: state.seed })}</span>
+          <LanguageToggle />
+        </div>
         <SavesMenu
           content={content}
           state={state}
@@ -229,7 +230,6 @@ function Game() {
           </DevArea>
         </div>
       </main>
-      <GoodsBar content={content} state={shown} onAction={dispatch} />
       {endScreen && (
         <EndDialog
           key={`${run}:${endScreen}`}
