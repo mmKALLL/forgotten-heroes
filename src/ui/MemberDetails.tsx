@@ -10,27 +10,37 @@ import type { Character } from '../schema/state'
 import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
 
-// Plan 5a, U1: the progression parts of a member's card (the XP bar; in the sheet the XP line,
-// hired or founder, Dismiss and the accessory slot) and the party's camaraderie line.
+// Plan 5a, U1: the progression parts of a member's card (the XP bar; in the sheet hired or
+// founder, Dismiss and the accessory slot) and the party's camaraderie line.
 
-/** A thin bar to the next level under the HP bar; none at the cap. */
+/**
+ * The yellow bar to the next level under the HP bar, with "512/1000 XP" beside it (total XP / the
+ * next level's threshold; designer call 2026-11-13), or full with "MAX" at the cap. What is still
+ * needed is in the hover text, so the sheet doesn't repeat it.
+ */
 export function XpBar({ character: c }: { character: Character }) {
   const { t } = useI18n()
   const p = xpProgress(c)
-  if (p.toNext === null) return null
-  const text = t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })
+  const text =
+    p.toNext === null
+      ? t('party.xpCap', { xp: p.xp })
+      : t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })
   return (
-    <div
-      className="xp-bar"
-      role="meter"
-      aria-label={t('party.xpLabel', { name: c.name })}
-      aria-valuenow={Math.round(p.share * 100)}
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuetext={text}
-      title={text}
-    >
-      <span className="xp-fill" style={{ width: `${p.share * 100}%` }} />
+    <div className="xp" title={text}>
+      <div
+        className="xp-bar"
+        role="meter"
+        aria-label={t('party.xpLabel', { name: c.name })}
+        aria-valuenow={Math.round(p.share * 100)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuetext={text}
+      >
+        <span className="xp-fill" style={{ width: `${p.share * 100}%` }} />
+      </div>
+      <span className="xp-text" aria-hidden="true">
+        {p.next === null ? t('party.xpMax') : t('party.xpShort', { xp: p.xp, next: p.next })}
+      </span>
     </div>
   )
 }
@@ -64,16 +74,10 @@ export function MemberDetails({
     else if (asked.current) ask.current?.focus()
     asked.current = confirming
   }, [confirming])
-  const p = xpProgress(c)
   const hired = isHired(c)
   const alive = isAlive(c)
   return (
     <div className="member-details small">
-      <p>
-        {p.toNext === null
-          ? t('party.xpCap', { xp: p.xp })
-          : t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })}
-      </p>
       {c.oldWounds.length > 0 && (
         <p className="tone-bad">
           {t(c.oldWounds.length > 1 ? 'party.wounds' : 'party.wound', { wound: oldWoundText(c)! })}

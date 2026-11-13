@@ -29,17 +29,19 @@ export type XpProgress = {
   xp: number
   /** XP still needed for the next level, or null at the cap. */
   toNext: number | null
+  /** The total XP the next level needs (its threshold), or null at the cap. */
+  next: number | null
   /** 0–1 of the way from this level's threshold to the next (1 at the cap). */
   share: number
 }
 
 export function xpProgress(character: Character): XpProgress {
   const toNext = xpToNext(character)
-  if (toNext === null) return { xp: character.xp, toNext, share: 1 }
+  if (toNext === null) return { xp: character.xp, toNext, next: null, share: 1 }
   const from = XP_BY_LEVEL[character.level - 1] ?? 0
   const span = XP_BY_LEVEL[character.level] - from
   const share = span > 0 ? Math.min(1, Math.max(0, (character.xp - from) / span)) : 0
-  return { xp: character.xp, toNext, share }
+  return { xp: character.xp, toNext, next: XP_BY_LEVEL[character.level], share }
 }
 
 /**

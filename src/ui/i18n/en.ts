@@ -109,6 +109,8 @@ export const en = {
   'party.xpLabel': '{name} XP',
   'party.xpValue': '{xp} XP · {n} to level {level}',
   'party.xpCap': '{xp} XP · highest level',
+  'party.xpShort': '{xp}/{next} XP',
+  'party.xpMax': 'MAX',
   'party.accessory': 'Accessory:',
   'party.accessoryNone': 'none',
   'party.unequip': 'Take off',
