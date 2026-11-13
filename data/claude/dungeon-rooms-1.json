@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Room situations for the dungeons in dungeons-1.json (Plan 6 D5): site situations with room: true, played only in a delve and never on the road or at an ordinary site. DCs and wounds are written at standard difficulty; the engine rebases DCs to the dungeon's CR and doubles wounds. Ids start with their dungeon's id. A failed or critically failed room that ends the encounter drives the party out of the dungeon (no hoard; the site can be retried another time), so failure texts describe being driven back.",
+  "notes": "Room situations for the dungeons in dungeons-1.json (Plan 6 D5): site situations with room: true, played only in a delve and never on the road or at an ordinary site. DCs and wounds are written at standard difficulty; the engine rebases DCs to the dungeon's CR and doubles wounds. Ids start with their dungeon's id. A failed or critically failed room that ends the encounter drives the party out of the dungeon (no hoard; the site can be retried another time), so failure texts describe being driven back. The last room of each dungeon is a skill challenge sized by the dungeon's CR (3 successes before 2 failures up to CR 5, 4 before 3 up to CR 12, 5 before 3 above), whose win pays the hoard and whose loss drives the party out.",
   "entries": [
     {
       "id": "cutpurse-hollow-lookout",
@@ -682,77 +682,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Her knives are quicker than they look. {actor} goes down bleeding, and you drag them back out along the stream.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -5,
-                      "target": "actor"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "A long, ugly scuffle across the table, but she yields.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -2,
-                      "target": "all"
-                    }
-                  ]
-                },
-                "success": {
-                  "text": "{actor} pins her knife hand to the table, and the fight goes out of her crew."
-                }
-              }
-            },
-            {
-              "id": "scare",
-              "kind": "check",
-              "label": "Talk her crew out of it",
-              "description": "Win without a fight, or face them all.",
-              "check": {
-                "skill": "intimidation",
-                "dc": 14
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "They laugh, and come at you together. You are chased out along the stream with their jeers behind you.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -3,
-                      "target": "all"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "Two of them back off. She fights on alone, and loses, but not cheaply.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -2,
-                      "target": "actor"
-                    }
-                  ]
-                },
-                "success": {
-                  "text": "{actor}'s look is enough. Her crew drop their blades, and so, cursing, does she."
-                }
-              }
-            },
-            {
-              "id": "kegs",
-              "kind": "check",
-              "label": "Kick the kegs over into them",
-              "description": "A trick that can turn the fight, or turn on you.",
-              "check": {
-                "skill": "acrobatics",
-                "dc": 12
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "{actor} slips on the spilled ale and takes a knife in the leg. You haul them out before the crew can finish the job.",
+                  "text": "Her knives are quicker than they look. {actor} reels back, bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -762,7 +692,43 @@
                   ]
                 },
                 "partial": {
-                  "text": "The kegs bowl two of them over. The captain fights on.",
+                  "text": "A long, ugly scuffle across the table. A loyalist goes down, and so does some of your blood.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} pins her knife hand to the table, and she has to tear it free."
+                }
+              }
+            },
+            {
+              "id": "kegs",
+              "kind": "check",
+              "label": "Kick the kegs over into them",
+              "description": "Sure to knock them flat, and sure to hurt.",
+              "check": {
+                "skill": "acrobatics",
+                "dc": 12
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} slips on the spilled ale and takes a knife in the leg.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The kegs bowl two of them over, and {actor} goes down in the ale with them.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -772,11 +738,67 @@
                   ]
                 },
                 "success": {
-                  "text": "The kegs crash into them, and {actor} is on the captain before she is up."
+                  "text": "The kegs crash into them. {actor} is on the captain before she is up, bruised from the tumble.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "scare",
+              "kind": "check",
+              "label": "Stare her crew down",
+              "description": "Break their nerve and leave her open, or face them all.",
+              "check": {
+                "skill": "intimidation",
+                "dc": 15
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "They laugh, and come at {actor} together.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "They look at each other, and stay where they are."
+                },
+                "success": {
+                  "text": "{actor}'s look is enough. Her crew edge back from the table, and she fights alone.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 3,
+            "failures": 2,
+            "win": {
+              "text": "The captain drops her knives and yields. Her crew are already gone into the dark."
+            },
+            "lose": {
+              "text": "Her crew close in around the table, and you are chased out along the stream with their jeers behind you."
+            }
+          }
         }
       }
     },
@@ -1250,33 +1272,76 @@
               "label": "Hold the mouth of the funnel",
               "check": {
                 "skill": "athletics",
-                "dc": 13,
+                "dc": 14,
                 "combat": true
               },
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Her fangs sink into {actor}, and the venom burns like fire. You drag them back up the webbed throat and out.",
+                  "text": "Her fangs sink into {actor}, and the venom burns like fire.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -5,
+                      "amount": -4,
                       "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "A long fight on sticky ground, and her legs reach everyone before she falls.",
+                  "text": "A hard fight on sticky ground, and her legs reach everyone.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -2,
+                      "amount": -1,
                       "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} drives a blade between her eyes as she comes out of the hole."
+                  "text": "{actor} drives a blade into her face as she comes out of the hole. She pulls back, hissing."
+                }
+              }
+            },
+            {
+              "id": "joints",
+              "kind": "check",
+              "label": "Strike where her legs join",
+              "description": "You know where she is weak. Getting close costs blood.",
+              "check": {
+                "skill": "nature",
+                "dc": 12
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} gets in close and misses the joint. Her legs fold round them.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} hacks at a leg. It holds, and a fang grazes them.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} knows spiders. A leg comes away at the joint, and a fang grazes them as she lurches.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ]
                 }
               }
             },
@@ -1287,31 +1352,35 @@
               "description": "Fight her on your ground, if she bites.",
               "check": {
                 "skill": "survival",
-                "dc": 13
+                "dc": 15
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "She does not take the bait. She comes from above instead, and you flee the hollow with her clicking behind you.",
+                  "text": "She does not take the bait. She comes from above instead, onto {actor}.",
                   "effects": [
                     {
                       "effect": "hp",
                       "amount": -3,
-                      "target": "all"
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "She comes out, slowly. The fight is hard but fair.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -2,
-                      "target": "actor"
-                    }
-                  ]
+                  "text": "She twitches, and waits."
                 },
                 "success": {
-                  "text": "{actor} twitches a thread like a struggling fly. She rushes out straight onto your blades."
+                  "text": "{actor} twitches a thread like a struggling fly. She rushes out straight onto your blades.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -1319,7 +1388,8 @@
               "id": "fire",
               "kind": "fixed",
               "label": "Throw alchemist's fire into the funnel",
-              "description": "Uses 1 alchemicals.",
+              "description": "Uses 1 alchemicals. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
@@ -1328,7 +1398,7 @@
                 }
               ],
               "outcome": {
-                "text": "The funnel goes up like dry straw. She comes out burning and thrashing, and dies hard.",
+                "text": "The funnel goes up like dry straw. She comes out burning and thrashing, and lashes about her.",
                 "effects": [
                   {
                     "effect": "goods",
@@ -1337,13 +1407,26 @@
                   },
                   {
                     "effect": "hp",
-                    "amount": -2,
+                    "amount": -1,
                     "target": "random"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 3,
+            "failures": 2,
+            "win": {
+              "text": "The brood mother curls up on her own legs and dies, and the hollow goes quiet."
+            },
+            "lose": {
+              "text": "She drives you back up the webbed throat, and you flee the hollow with her clicking behind you."
+            }
+          }
         }
       }
     },
@@ -1814,17 +1897,17 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The priest's stolen light burns {actor} to the bone. You drag them out of the temple, and he does not follow.",
+                  "text": "The priest's stolen light burns {actor} to the bone.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -5,
+                      "amount": -4,
                       "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "A hard fight across the shining floor.",
+                  "text": "A hard exchange across the shining floor. A guard falls, and so does some of your blood.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1834,7 +1917,7 @@
                   ]
                 },
                 "success": {
-                  "text": "{actor} drives through the guards, and the priest goes down with them."
+                  "text": "{actor} drives through the guards and the priest gives ground."
                 }
               }
             },
@@ -1842,18 +1925,19 @@
               "id": "break",
               "kind": "check",
               "label": "Break his hold on the axe",
-              "description": "Turn the light against him.",
+              "description": "Turn the light against him, and leave him open.",
               "check": {
                 "skill": "arcana",
-                "dc": 14
+                "dc": 15
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The light lashes out at the one who meddles, and the blaze drives you all out of the sanctum.",
+                  "text": "The light lashes out at the one who meddles.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -3,
                       "target": "actor"
                     },
                     {
@@ -1863,17 +1947,16 @@
                   ]
                 },
                 "partial": {
-                  "text": "His hold slips. Without the light he is only a man with a knife.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -2,
-                      "target": "actor"
-                    }
-                  ]
+                  "text": "His hold slips, then catches again."
                 },
                 "success": {
-                  "text": "{actor} tears the light from him. The axe flares and his guards flee."
+                  "text": "{actor} tears a share of the light from him. He blinks, half blind.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -1884,27 +1967,18 @@
               "description": "A long shot, and a glorious one.",
               "check": {
                 "skill": "religion",
-                "dc": 15
+                "dc": 16
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The god is silent, and the priest laughs as he strikes. You flee the temple with his laughter behind you.",
+                  "text": "The god is silent, and the priest laughs as he strikes.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -3,
                       "target": "actor"
                     },
-                    {
-                      "effect": "hp",
-                      "amount": -2,
-                      "target": "all"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "The axe glows brighter, the priest falters, and you finish it.",
-                  "effects": [
                     {
                       "effect": "hp",
                       "amount": -1,
@@ -1912,8 +1986,21 @@
                     }
                   ]
                 },
+                "partial": {
+                  "text": "The axe glows brighter, then dims again."
+                },
                 "success": {
-                  "text": "The old war god answers {actor}. The light leaps from the floor and casts the priest out.",
+                  "text": "The old war god answers {actor}, and the light runs warm over your wounds.",
+                  "effects": [
+                    {
+                      "effect": "healFraction",
+                      "fraction": 0.25,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "The old war god answers {actor} in a voice like a war-horn. The light runs warm over you all.",
                   "effects": [
                     {
                       "effect": "healFraction",
@@ -1928,7 +2015,17 @@
                 }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 3,
+            "failures": 2,
+            "win": {
+              "text": "The priest goes down on the haft of the axe, and his guards flee the temple."
+            },
+            "lose": {
+              "text": "The priest's light drives you back across the floor and out of the temple. He does not follow."
+            }
+          }
         }
       }
     },
@@ -2384,11 +2481,11 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "His touch withers {actor} to the bone. You carry them back up through the sand, and he lets you go.",
+                  "text": "His touch withers {actor} to the bone.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
+                      "amount": -4,
                       "target": "actor"
                     }
                   ]
@@ -2398,13 +2495,56 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -2,
+                      "amount": -1,
                       "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} hews through the wrappings, and he falls to dust."
+                  "text": "{actor} hews through the wrappings, and dust pours from the wound."
+                }
+              }
+            },
+            {
+              "id": "jars",
+              "kind": "check",
+              "label": "Smash the jars that hold his heart",
+              "description": "Each one breaks with a breath of his curse.",
+              "check": {
+                "skill": "investigation",
+                "dc": 12
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} smashes the wrong jars, and each one breathes out his curse.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "A jar breaks, and its curse is breathed in by all.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} finds the right jar and smashes it. He shudders, and the curse it held is breathed in by all.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
                 }
               }
             },
@@ -2415,15 +2555,16 @@
               "description": "He was a sun priest once.",
               "check": {
                 "skill": "religion",
-                "dc": 14
+                "dc": 15
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "He laughs dust, and strikes. You stagger back up into the sun.",
+                  "text": "He laughs dust, and strikes {actor} down.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -3,
                       "target": "actor"
                     },
                     {
@@ -2433,17 +2574,16 @@
                   ]
                 },
                 "partial": {
-                  "text": "He staggers back into his coffin, and fights on from there, weaker.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -2,
-                      "target": "actor"
-                    }
-                  ]
+                  "text": "He pauses at the prayer, then comes on."
                 },
                 "success": {
-                  "text": "{actor} speaks the dawn prayer, and the priest-king lies down in his gold."
+                  "text": "{actor} speaks the dawn prayer, and the priest-king staggers back against his coffin.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -2451,7 +2591,8 @@
               "id": "burn",
               "kind": "fixed",
               "label": "Set his wrappings alight",
-              "description": "Uses 1 alchemicals.",
+              "description": "Uses 1 alchemicals. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
@@ -2460,7 +2601,7 @@
                 }
               ],
               "outcome": {
-                "text": "He burns like old paper, shrieking. The smoke is foul, but he does not rise again.",
+                "text": "He burns like old paper, shrieking, and gropes blindly for anyone near.",
                 "effects": [
                   {
                     "effect": "goods",
@@ -2469,13 +2610,26 @@
                   },
                   {
                     "effect": "hp",
-                    "amount": -2,
+                    "amount": -1,
                     "target": "random"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 3,
+            "failures": 2,
+            "win": {
+              "text": "The priest-king falls to dust among his jars, and the sun mask rolls ringing across the floor."
+            },
+            "lose": {
+              "text": "His curse drives you back up through the sand and into the sun. He lets you go."
+            }
+          }
         }
       }
     },
@@ -2934,53 +3088,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Her flail and their teeth find {actor} again and again. You drag them out of the warren with the pack howling behind.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "The hyenas go down first; she takes longer.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -3,
-                      "target": "all"
-                    }
-                  ]
-                },
-                "success": {
-                  "text": "{actor} breaks her guard and her crown together."
-                }
-              }
-            },
-            {
-              "id": "duel",
-              "kind": "check",
-              "label": "Challenge her alone",
-              "description": "Win alone, and the pack is beaten too.",
-              "check": {
-                "skill": "athletics",
-                "dc": 15,
-                "combat": true
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "She takes {actor} apart in front of her pack, and they jeer you all the way out.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "{actor} wins, bleeding. Her pack won't follow a beaten leader.",
+                  "text": "Her flail and their teeth find {actor} again and again.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2989,12 +3097,111 @@
                     }
                   ]
                 },
+                "partial": {
+                  "text": "A hyena goes down, and the rest take their share of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                },
                 "success": {
-                  "text": "{actor} wins cleanly. Her pack slink away and leave you her coffin.",
+                  "text": "{actor} breaks through the hyenas and lands a blow on her."
+                }
+              }
+            },
+            {
+              "id": "drive",
+              "kind": "check",
+              "label": "Drive the hyenas off with fire and noise",
+              "description": "They will scatter, but not without a bite.",
+              "check": {
+                "skill": "animalHandling",
+                "dc": 12
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "They don't scare. They pull {actor} down.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The hyenas scatter and circle back, snapping at {actor}.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} waves a torch and roars. The hyenas break off, with a parting bite.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "duel",
+              "kind": "check",
+              "label": "Call her out before her pack",
+              "description": "A long shot. Win, and her pack starts to doubt her.",
+              "check": {
+                "skill": "intimidation",
+                "dc": 16
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "She laughs, and takes {actor} apart in front of her pack.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "She snarls back. The pack waits to see who wins."
+                },
+                "success": {
+                  "text": "{actor}'s challenge rings off the coffin. She hesitates, and her pack sees it.",
                   "effects": [
                     {
                       "effect": "inspiration",
                       "amount": 1
+                    }
+                  ]
+                },
+                "critSuccess": {
+                  "text": "{actor}'s challenge rings off the coffin. Her pack backs away from her, and she is alone.",
+                  "effects": [
+                    {
+                      "effect": "inspiration",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "position",
+                      "position": "edge"
                     }
                   ]
                 }
@@ -3003,8 +3210,9 @@
             {
               "id": "meat",
               "kind": "fixed",
-              "label": "Feed the hyenas, then fight her",
-              "description": "Uses 2 food.",
+              "label": "Feed the hyenas",
+              "description": "Uses 2 food. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
@@ -3013,7 +3221,7 @@
                 }
               ],
               "outcome": {
-                "text": "The hyenas fight each other over your meat. Without them, she falls quicker.",
+                "text": "The hyenas fight each other over your meat, and leave her to face you alone. She makes you pay for it.",
                 "effects": [
                   {
                     "effect": "goods",
@@ -3022,13 +3230,26 @@
                   },
                   {
                     "effect": "hp",
-                    "amount": -2,
+                    "amount": -1,
                     "target": "all"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 3,
+            "failures": 2,
+            "win": {
+              "text": "The matriarch falls across her own coffin, crown and all, and her pack slinks away into the warren."
+            },
+            "lose": {
+              "text": "The pack closes round you, and you are driven out of the warren with the howling behind."
+            }
+          }
         }
       }
     },
@@ -3561,119 +3782,41 @@
       "room": true,
       "stages": {
         "start": {
-          "text": "The cult's high priest stands before the red-barred door, arms raised to the falls. The sludge answers: it rises into a heaving mass of ooze.",
-          "options": [
-            {
-              "id": "priest",
-              "kind": "check",
-              "label": "Strike at the priest first",
-              "check": {
-                "skill": "stealth",
-                "dc": 14,
-                "combat": true
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "The ooze is faster. It closes on {actor}.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -5,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "ooze"
-                },
-                "partial": {
-                  "text": "The priest falls, but his creature remains.",
-                  "goto": "ooze"
-                },
-                "success": {
-                  "text": "{actor} cuts the priest down mid-chant. The ooze heaves blindly.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "ooze"
-                }
-              }
-            },
-            {
-              "id": "hold",
-              "kind": "check",
-              "label": "Hold the line together",
-              "check": {
-                "skill": "athletics",
-                "dc": 13
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "The first wave of filth breaks over everyone.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -3,
-                      "target": "all"
-                    }
-                  ],
-                  "goto": "ooze"
-                },
-                "partial": {
-                  "text": "You hold firm as it comes.",
-                  "goto": "ooze"
-                },
-                "success": {
-                  "text": "You hold firm, and {actor} sees where it is thinnest.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "ooze"
-                }
-              }
-            }
-          ]
-        },
-        "ooze": {
-          "text": "The ooze fills the chamber end to end, dissolving the steps it crawls over.",
+          "text": "The cult's high priest stands before the red-barred door, arms raised to the falls. The sludge answers: it rises into a heaving mass of ooze that fills the chamber end to end, dissolving the steps it crawls over.",
           "options": [
             {
               "id": "fight",
               "kind": "check",
-              "label": "Hack it apart",
+              "label": "Hack the ooze apart",
               "check": {
                 "skill": "athletics",
-                "dc": 15,
+                "dc": 14,
                 "combat": true
               },
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "It swallows {actor} to the shoulders. You drag them free and run for the surface.",
+                  "text": "It swallows {actor} to the shoulders before you drag them free.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
+                      "amount": -4,
                       "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "Piece by piece, it dies, burning everyone.",
+                  "text": "A piece of it dies, and the spatter burns everyone.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -3,
+                      "amount": -1,
                       "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} cleaves its heart, and it spills away harmless."
+                  "text": "{actor} cleaves a great lump from it, and it spills away harmless."
                 }
               }
             },
@@ -3681,27 +3824,15 @@
               "id": "pipes",
               "kind": "check",
               "label": "Turn the pipes on it",
+              "description": "Every valve breathes fog as it opens.",
               "check": {
                 "skill": "investigation",
-                "dc": 15
+                "dc": 13
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "{actor} opens the wrong valve, and fog fills the chamber. You stagger out of the undercroft, choking.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -3,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "position",
-                      "position": "exposed"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "A gout of clean water drives it back, and you finish it.",
+                  "text": "{actor} opens the wrong valve, and green fog fills the chamber.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3710,8 +3841,65 @@
                     }
                   ]
                 },
+                "partial": {
+                  "text": "A gout of water and a gout of fog, both at once.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                },
                 "success": {
-                  "text": "The flushing water scatters it into the drains."
+                  "text": "{actor} finds the flushing valve. Clean water drives it back into the drains, and the fog comes with it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "priest",
+              "kind": "check",
+              "label": "Strike at the priest",
+              "description": "Kill his chant, and his creature falters.",
+              "check": {
+                "skill": "stealth",
+                "dc": 15,
+                "combat": true
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The ooze is faster. It closes on {actor}.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} slips round the ooze, and the priest backs off behind it."
+                },
+                "success": {
+                  "text": "{actor} cuts the priest down mid-chant. The ooze heaves blindly.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -3719,7 +3907,8 @@
               "id": "fire",
               "kind": "fixed",
               "label": "Throw alchemist's fire",
-              "description": "Uses 1 alchemicals.",
+              "description": "Uses 1 alchemicals. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
@@ -3728,7 +3917,7 @@
                 }
               ],
               "outcome": {
-                "text": "It burns with a green flame and a stink to make you retch, and shrinks to nothing.",
+                "text": "It burns with a green flame and a stink to make you retch, and shrinks back.",
                 "effects": [
                   {
                     "effect": "goods",
@@ -3737,13 +3926,26 @@
                   },
                   {
                     "effect": "hp",
-                    "amount": -2,
+                    "amount": -1,
                     "target": "all"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "The ooze sinks into a stinking puddle, and the priest's chant ends in a gurgle."
+            },
+            "lose": {
+              "text": "The filth breaks over you, and you stagger out of the undercroft, choking."
+            }
+          }
         }
       }
     },
@@ -4286,92 +4488,7 @@
       "room": true,
       "stages": {
         "start": {
-          "text": "The two clawed guardians turn their stone heads. Behind them the heart beats once, and the cold doubles.",
-          "options": [
-            {
-              "id": "fight",
-              "kind": "check",
-              "label": "Smash the guardians",
-              "check": {
-                "skill": "athletics",
-                "dc": 13,
-                "combat": true
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "A stone claw crushes {actor} against the casket.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -4,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "heart"
-                },
-                "partial": {
-                  "text": "You break them, at a cost.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -1,
-                      "target": "all"
-                    }
-                  ],
-                  "goto": "heart"
-                },
-                "success": {
-                  "text": "{actor} topples both, and the way to the heart is open.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "heart"
-                }
-              }
-            },
-            {
-              "id": "slip",
-              "kind": "check",
-              "label": "Slip between them",
-              "check": {
-                "skill": "acrobatics",
-                "dc": 13
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "They close like jaws on {actor}.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -4,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "heart"
-                },
-                "partial": {
-                  "text": "You get past them, and they lumber after.",
-                  "goto": "heart"
-                },
-                "success": {
-                  "text": "{actor} is past them before they move.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "heart"
-                }
-              }
-            }
-          ]
-        },
-        "heart": {
-          "text": "The heart beats again. The frost pours from it into a shape: a tall figure of ice, the keeper the temple was built for.",
+          "text": "The heart beats once, and the cold doubles. The frost pours from it into a shape: a tall figure of ice, the keeper the temple was built for. The two stone guardians turn their heads to watch.",
           "options": [
             {
               "id": "fight",
@@ -4379,17 +4496,17 @@
               "label": "Fight the keeper",
               "check": {
                 "skill": "athletics",
-                "dc": 13,
+                "dc": 14,
                 "combat": true
               },
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Its icy blade drives through {actor}. You drag them out of the heart and back into the wind.",
+                  "text": "Its icy blade drives through {actor}.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
+                      "amount": -4,
                       "target": "actor"
                     }
                   ]
@@ -4399,48 +4516,95 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -3,
-                      "target": "all"
-                    }
-                  ]
-                },
-                "success": {
-                  "text": "{actor} shatters it, and the shards melt to water."
-                }
-              }
-            },
-            {
-              "id": "chains",
-              "kind": "check",
-              "label": "Break the chains on the heart",
-              "description": "Kill the heart, and its keeper fades.",
-              "check": {
-                "skill": "athletics",
-                "dc": 14
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "The chains do not break. The keeper does not wait, and you flee the heart.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -4,
-                      "target": "all"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "The chains snap and the heart sputters. The keeper weakens, and you finish it.",
-                  "effects": [
-                    {
-                      "effect": "hp",
                       "amount": -1,
                       "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} breaks the chains; the heart goes dark, and the keeper with it."
+                  "text": "{actor} hacks a limb from it. It grows back slower."
+                }
+              }
+            },
+            {
+              "id": "ice",
+              "kind": "check",
+              "label": "Keep it chasing you over the ice",
+              "description": "The cold takes its toll on whoever runs.",
+              "check": {
+                "skill": "acrobatics",
+                "dc": 12
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} goes down on the ice, under its blade.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} keeps ahead of it, just, past the clawed guardians.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} leads it a dance under the guardians' claws, and they strike it. The frost bites as it cracks.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "chains",
+              "kind": "check",
+              "label": "Pick the locks on the heart",
+              "description": "Loosen its hold on the heart, and the keeper weakens.",
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 15
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The lock bites cold. The keeper strikes {actor} at the casket.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "A lock clicks, and holds."
+                },
+                "success": {
+                  "text": "{actor} springs a lock, and the heart sputters. The keeper falters.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -4448,7 +4612,8 @@
               "id": "fire",
               "kind": "fixed",
               "label": "Burn the heart",
-              "description": "Uses 1 alchemicals.",
+              "description": "Uses 1 alchemicals. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
@@ -4457,7 +4622,7 @@
                 }
               ],
               "outcome": {
-                "text": "You pour fire on the heart until it cracks. The keeper melts as it lunges, but not before it strikes.",
+                "text": "You pour fire on the heart until it cracks. The keeper reels, but not before it strikes.",
                 "effects": [
                   {
                     "effect": "goods",
@@ -4466,13 +4631,26 @@
                   },
                   {
                     "effect": "hp",
-                    "amount": -2,
+                    "amount": -1,
                     "target": "all"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "The heart goes dark in its chains, and the keeper melts to water on the stair."
+            },
+            "lose": {
+              "text": "The cold drives you out of the heart and back into the wind, the keeper's blade behind you."
+            }
+          }
         }
       }
     },
@@ -4964,99 +5142,7 @@
       "room": true,
       "stages": {
         "start": {
-          "text": "The braziers flare as you step in. The two lesser coffins open first: the king's bodyguards, mummified with their spears.",
-          "options": [
-            {
-              "id": "fight",
-              "kind": "check",
-              "label": "Cut down the guards",
-              "check": {
-                "skill": "athletics",
-                "dc": 13,
-                "combat": true
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "Their spears pin {actor} to the wall.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -5,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "king"
-                },
-                "partial": {
-                  "text": "You put them down, but the king is stirring.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -1,
-                      "target": "all"
-                    }
-                  ],
-                  "goto": "king"
-                },
-                "success": {
-                  "text": "{actor} cuts them down before they are out of their coffins.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "king"
-                }
-              }
-            },
-            {
-              "id": "seal",
-              "kind": "check",
-              "label": "Slam the lids on them",
-              "check": {
-                "skill": "athletics",
-                "dc": 13
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "One lid holds; the other guard is on {actor}.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -4,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "king"
-                },
-                "partial": {
-                  "text": "You hold both lids shut until they stop.",
-                  "effects": [
-                    {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "all"
-                    }
-                  ],
-                  "goto": "king"
-                },
-                "success": {
-                  "text": "{actor} jams both lids, and the guards are trapped.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "king"
-                }
-              }
-            }
-          ]
-        },
-        "king": {
-          "text": "The gilded coffin opens. The king steps out, wrapped in linen and gold, and dust and despair roll from him like a wind.",
+          "text": "The braziers flare. The gilded coffin opens, and the king steps out, wrapped in linen and gold, while his spear-bearers rise from the lesser coffins. Dust and despair roll from him like a wind.",
           "options": [
             {
               "id": "fight",
@@ -5070,11 +5156,11 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "His rotting fist withers {actor}. You drag them out of the burial hall and do not look back.",
+                  "text": "His rotting fist withers {actor}.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
+                      "amount": -4,
                       "target": "actor"
                     }
                   ]
@@ -5084,13 +5170,56 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -3,
+                      "amount": -1,
                       "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} breaks him at last, and he crumbles into dust."
+                  "text": "{actor} breaks through his spear-bearers and cuts deep into the linen."
+                }
+              }
+            },
+            {
+              "id": "salt",
+              "kind": "check",
+              "label": "Throw the burial salts and say the rites",
+              "description": "It works, but it means standing at arm's length.",
+              "check": {
+                "skill": "religion",
+                "dc": 12
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The salt scatters wide, and his spear-bearers drive {actor} back.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "A handful hits. He staggers, and his fist finds {actor}.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} throws salt in his face and speaks the rites. He reels, but every handful is within his reach.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "actor"
+                    }
+                  ]
                 }
               }
             },
@@ -5101,31 +5230,35 @@
               "description": "The carved signs hold his name.",
               "check": {
                 "skill": "history",
-                "dc": 14
+                "dc": 15
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "{actor} reads too slowly, and the king strikes. You flee the tomb with his name unsaid.",
+                  "text": "{actor} reads too slowly, and the king strikes.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -3,
                       "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "His name weakens him; you finish him.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -1,
-                      "target": "all"
-                    }
-                  ]
+                  "text": "{actor} finds part of it, but not enough."
                 },
                 "success": {
-                  "text": "{actor} speaks his true name, and the king falls to dust where he stands."
+                  "text": "{actor} speaks the first half of his name. He flinches, and his guard drops.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -5133,7 +5266,8 @@
               "id": "fire",
               "kind": "fixed",
               "label": "Burn him with oil and flame",
-              "description": "Uses 1 alchemicals.",
+              "description": "Uses 1 alchemicals. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
@@ -5142,7 +5276,7 @@
                 }
               ],
               "outcome": {
-                "text": "He burns like a torch, and the fight is short, but he claws on as he burns.",
+                "text": "He burns like a torch, and claws on as he burns.",
                 "effects": [
                   {
                     "effect": "goods",
@@ -5151,13 +5285,26 @@
                   },
                   {
                     "effect": "hp",
-                    "amount": -2,
+                    "amount": -1,
                     "target": "all"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "The king crumbles into dust in his gilded coffin, and his spear-bearers fall with him."
+            },
+            "lose": {
+              "text": "His despair breaks you. You flee the burial hall and do not look back."
+            }
+          }
         }
       }
     },
@@ -5636,85 +5783,7 @@
       "room": true,
       "stages": {
         "start": {
-          "text": "The lightning gathers on the bier. A knight in black armour sits up from it, a sword of violet fire in its fist: the champion of the last test.",
-          "options": [
-            {
-              "id": "charge",
-              "kind": "check",
-              "label": "Charge before it stands",
-              "check": {
-                "skill": "athletics",
-                "dc": 14,
-                "combat": true
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "The lightning leaps from the floor into {actor}.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "duel"
-                },
-                "partial": {
-                  "text": "You reach it as it stands.",
-                  "goto": "duel"
-                },
-                "success": {
-                  "text": "{actor} hits it before it finds its feet.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "duel"
-                }
-              }
-            },
-            {
-              "id": "veins",
-              "kind": "check",
-              "label": "Read the lightning veins",
-              "check": {
-                "skill": "arcana",
-                "dc": 14
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "{actor} steps on a vein. The floor throws them down.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -5,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "duel"
-                },
-                "partial": {
-                  "text": "You find a safe path to the bier.",
-                  "goto": "duel"
-                },
-                "success": {
-                  "text": "{actor} sees the champion draws strength from the veins, and how to cut it off.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "duel"
-                }
-              }
-            }
-          ]
-        },
-        "duel": {
-          "text": "The champion raises its blade. The lightning rises with it.",
+          "text": "The lightning gathers on the bier. A knight in black armour rises from it, a sword of violet fire in its fist: the champion of the last test. The lightning in the floor rises with its blade.",
           "options": [
             {
               "id": "fight",
@@ -5728,13 +5797,49 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The violet blade carves {actor} open. You carry them out of the gauntlet, and the dead let you go.",
+                  "text": "The violet blade carves {actor} open, and the lightning leaps to the rest.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
+                      "amount": -4,
                       "target": "actor"
                     },
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "A long, terrible exchange in the crackling vault.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} batters through its guard and dents the black helm."
+                }
+              }
+            },
+            {
+              "id": "lure",
+              "kind": "check",
+              "label": "Draw it over the live veins",
+              "description": "The lightning hurts it. It hurts you too.",
+              "check": {
+                "skill": "acrobatics",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The vein flares under you all, and it misses nothing.",
+                  "effects": [
                     {
                       "effect": "hp",
                       "amount": -2,
@@ -5743,52 +5848,63 @@
                   ]
                 },
                 "partial": {
-                  "text": "A long, terrible fight in the crackling vault.",
+                  "text": "The vein flares under the champion, and under you.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -1,
                       "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} strikes the helm from it, and it falls apart in smoke."
+                  "text": "{actor} leads it onto a live vein, and the lightning throws it down. It throws you down too.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
                 }
               }
             },
             {
-              "id": "bier",
+              "id": "veins",
               "kind": "check",
-              "label": "Break the bier",
-              "description": "It is bound to the stone.",
+              "label": "Read the lightning veins",
+              "description": "Learn how it is fed, and cut it off.",
               "check": {
-                "skill": "athletics",
+                "skill": "arcana",
                 "dc": 15
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The bier holds. The champion does not wait, and you are driven back through the gauntlet.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "The bier cracks; the champion weakens, and you finish it.",
+                  "text": "{actor} steps on a vein, and the floor throws them down.",
                   "effects": [
                     {
                       "effect": "hp",
                       "amount": -3,
-                      "target": "all"
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
                     }
                   ]
                 },
+                "partial": {
+                  "text": "The pattern shifts as you watch."
+                },
                 "success": {
-                  "text": "The bier shatters, and the champion with it."
+                  "text": "{actor} sees how the champion draws strength from the veins, and how to cut it off.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -5796,31 +5912,45 @@
               "id": "scroll",
               "kind": "fixed",
               "label": "Read a scroll of banishing",
-              "description": "Uses 2 arcana.",
+              "description": "Uses 1 arcana. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
                   "good": "arcana",
-                  "min": 2
+                  "min": 1
                 }
               ],
               "outcome": {
-                "text": "The champion is torn back into the dark. The lightning lashes out as it goes.",
+                "text": "The champion is torn half into the dark, and comes back weaker. The lightning lashes out as it goes.",
                 "effects": [
                   {
                     "effect": "goods",
                     "good": "arcana",
-                    "amount": -2
+                    "amount": -1
                   },
                   {
                     "effect": "hp",
-                    "amount": -2,
+                    "amount": -1,
                     "target": "all"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 5,
+            "failures": 3,
+            "win": {
+              "text": "The champion's helm falls from its shoulders, and the armour comes apart in violet smoke. The bier goes dark."
+            },
+            "lose": {
+              "text": "The violet blade drives you back through the gauntlet. The dead let you go."
+            }
+          }
         }
       }
     },
@@ -6419,92 +6549,7 @@
       "room": true,
       "stages": {
         "start": {
-          "text": "The dragon is waiting for you, coiled on its own image. It laughs, and the cave shakes. 'Thieves. You'll do for supper.'",
-          "options": [
-            {
-              "id": "hide",
-              "kind": "check",
-              "label": "Scatter behind the pillars",
-              "check": {
-                "skill": "stealth",
-                "dc": 14
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "Its breath finds {actor} in the open.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
-                    }
-                  ],
-                  "goto": "fight"
-                },
-                "partial": {
-                  "text": "You scatter as the fire comes.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -2,
-                      "target": "all"
-                    }
-                  ],
-                  "goto": "fight"
-                },
-                "success": {
-                  "text": "{actor} gets everyone behind stone before its breath fills the cave.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "fight"
-                }
-              }
-            },
-            {
-              "id": "talk",
-              "kind": "check",
-              "label": "Bargain with it",
-              "description": "Dragons love to talk. Keep it talking.",
-              "check": {
-                "skill": "persuasion",
-                "dc": 15
-              },
-              "outcomes": {
-                "fail": {
-                  "text": "It tires of you quickly, and breathes.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -4,
-                      "target": "all"
-                    }
-                  ],
-                  "goto": "fight"
-                },
-                "partial": {
-                  "text": "It listens, amused, then attacks anyway.",
-                  "goto": "fight"
-                },
-                "success": {
-                  "text": "{actor} keeps it talking long enough for everyone to get close.",
-                  "effects": [
-                    {
-                      "effect": "position",
-                      "position": "edge"
-                    }
-                  ],
-                  "goto": "fight"
-                }
-              }
-            }
-          ]
-        },
-        "fight": {
-          "text": "The dragon spreads its wings over the lava lake and comes for you.",
+          "text": "The dragon is waiting for you, coiled on its own image. It laughs, and the cave shakes. 'Thieves. You'll do for supper.' It spreads its wings over the lava lake and comes for you.",
           "options": [
             {
               "id": "fight",
@@ -6518,32 +6563,70 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Its jaws close on {actor}, and its fire on the rest. You flee the forge, carrying {actor} between you.",
+                  "text": "Its jaws close on {actor}.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
+                      "amount": -5,
                       "target": "actor"
-                    },
-                    {
-                      "effect": "hp",
-                      "amount": -3,
-                      "target": "all"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "A desperate fight on the island.",
+                  "text": "A desperate exchange on the island, and its fire licks everyone.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -1,
                       "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} drives a blade under its scales into its heart. The dragon falls into its own lake."
+                  "text": "{actor} drives a blade under its scales. It roars and pulls back."
+                }
+              }
+            },
+            {
+              "id": "pillars",
+              "kind": "check",
+              "label": "Strike from behind the pillars",
+              "description": "The pillars hide you. They do not keep out the fire.",
+              "check": {
+                "skill": "stealth",
+                "dc": 12
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "Its breath finds you all in the open.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You scatter as the fire comes, and the stone runs hot.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} slips out from behind stone and strikes its flank. Its breath fills the cave all the same.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -1,
+                      "target": "all"
+                    }
+                  ]
                 }
               }
             },
@@ -6551,35 +6634,39 @@
               "id": "wing",
               "kind": "check",
               "label": "Tear its wing and ground it",
-              "description": "Ground it, and the fight is yours.",
+              "description": "Ground it, and it is open to your blades.",
               "check": {
                 "skill": "acrobatics",
-                "dc": 15,
+                "dc": 16,
                 "combat": true
               },
+              "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "{actor} leaps and misses, and its tail sweeps them across the island. You grab them and run for the bridges.",
-                  "effects": [
-                    {
-                      "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
-                    }
-                  ]
-                },
-                "partial": {
-                  "text": "Its wing tears; grounded, it fights on.",
+                  "text": "{actor} leaps and misses, and its tail sweeps them across the island.",
                   "effects": [
                     {
                       "effect": "hp",
                       "amount": -3,
-                      "target": "all"
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "exposed"
                     }
                   ]
                 },
+                "partial": {
+                  "text": "{actor} clings to its wing and drops away."
+                },
                 "success": {
-                  "text": "{actor} rips through its wing, and it crashes into the lava, roaring."
+                  "text": "{actor} rips through its wing, and it crashes down on the island, roaring.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
                 }
               }
             },
@@ -6587,31 +6674,45 @@
               "id": "arcana",
               "kind": "fixed",
               "label": "Read your scrolls against it",
-              "description": "Uses 3 arcana.",
+              "description": "Uses 2 arcana. A sure blow, once.",
+              "once": true,
               "requires": [
                 {
                   "req": "goods",
                   "good": "arcana",
-                  "min": 3
+                  "min": 2
                 }
               ],
               "outcome": {
-                "text": "Spell after spell, until it falls. It is not cheap, and it burns you as it dies.",
+                "text": "Spell after spell tears into it. It burns you as it reels.",
                 "effects": [
                   {
                     "effect": "goods",
                     "good": "arcana",
-                    "amount": -3
+                    "amount": -2
                   },
                   {
                     "effect": "hp",
-                    "amount": -3,
+                    "amount": -1,
                     "target": "all"
                   }
-                ]
+                ],
+                "tally": {
+                  "successes": 1
+                }
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 5,
+            "failures": 3,
+            "win": {
+              "text": "The dragon falls into its own lake, and the lava closes over it. Its gold is yours."
+            },
+            "lose": {
+              "text": "Its fire drives you off the island. You flee the forge across the bridges, carrying each other."
+            }
+          }
         }
       }
     },

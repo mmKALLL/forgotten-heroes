@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "The Crisis (Plans 5b and 6): the situations of the crisis sites in crisis-sites.json, played at the act's challenge rating (a written DC w is played at crDc(CR) + (w − 12), with no danger ramp; wounds as written, so they are written for the CR). Lead situations, one per lead site: act I's (two stages; CR 3) learn the plan (learnPlan) on every ending but leaving, and a slower reading can also give a clue (crisisClue). Acts II and III's (three stages; CR 9 and 15) are retryable: an approach (a check, a consumable, blood or coin), the act's henchmen (a fight whose failure throws the party out for a day, a once-only check, a price and a retreat), then the find, which reveals the key site (revealKeySite), or a day spent on it for a clue as well; only that last stage pays XP. Key situations, one per act (CR 6, 12 and 18): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more); and a high-stakes finale against the act's boss (villains.json: a finale villain's lieutenant at acts I and II, the villain at act III; a recurring villain at every act, remembering the last meeting), written at DC 15 for the strike and 14 for the once-only clever way. A success thwarts the act (thwartAct) for gold, a critical success also loots an accessory (tier 1 in acts I and II, tier 2 in act III), a partial thwarts it at a cost (HP, a level of exhaustion or camaraderie) and a failure throws the party out hurt (HP and a day) to try again on a later arrival. The approach checks at key sites pay no XP (an explicit `xp` of 0), since a site stays open until thwarted. Flight is tagged `retreat`. Road omens (two per villain, one hostile and one neutral) name their villain (`villains`): they are drawn on the road only while that villain's Crisis is undecided, and a success gives a clue (crisisClue). Texts name the villain by title only (the Ashen Prophet, the Speaker, the Hand), since situations have no {villain} slot. Written by Claude.",
+  "notes": "The Crisis (Plans 5b and 6): the situations of the crisis sites in crisis-sites.json, played at the act's challenge rating (a written DC w is played at crDc(CR) + (w − 12), with no danger ramp; wounds as written, so they are written for the CR). Lead situations, one per lead site: act I's (two stages; CR 3) learn the plan (learnPlan) on every ending but leaving, and a slower reading can also give a clue (crisisClue). Acts II and III's (three stages; CR 9 and 15) are retryable: an approach (a check, a consumable, blood or coin), the act's henchmen (a fight whose failure throws the party out for a day, a once-only check, a price and a retreat), then the find, which reveals the key site (revealKeySite), or a day spent on it for a clue as well; only that last stage pays XP. Key situations, one per act (CR 6, 12 and 18): an approach whose options trade different things (a day for stealth, blood for force, gold for a bribe, a consumable for certainty) and set the footing; a middle stage or two (act III has one more); and a finale against the act's boss (villains.json: a finale villain's lieutenant at acts I and II, the villain at act III; a recurring villain at every act, remembering the last meeting), played as a skill challenge sized by the act's CR (4 successes before 3 failures at CR 6 and 12, 5 before 3 at CR 18): round options use different skills and trade blood, coin, consumables and footing; a round critical success on one of them loots an accessory (tier 1 in acts I and II, tier 2 in act III); winning thwarts the act (thwartAct) for gold, losing throws the party out hurt (HP and a day) to try again on a later arrival. The approach checks at key sites pay no XP (an explicit `xp` of 0), since a site stays open until thwarted. Flight is tagged `retreat`. Road omens (two per villain, one hostile and one neutral) name their villain (`villains`): they are drawn on the road only while that villain's Crisis is undecided, and a success gives a clue (crisisClue). Texts name the villain by title only (the Ashen Prophet, the Speaker, the Hand), since situations have no {villain} slot. Written by Claude.",
   "entries": [
     {
       "id": "burned-chapel-search",
@@ -3393,8 +3393,8 @@
             {
               "id": "cut-down",
               "kind": "check",
-              "label": "Cut down the Grave-Reader",
-              "description": "Silence her and the king sleeps. Fail and you are thrown out, to try again another day.",
+              "label": "Cut your way to the Grave-Reader",
+              "description": "Through the king's dead, blade first.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -3403,54 +3403,31 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The king's dead close round her like a wall. You are driven out of the mound, bleeding, and her voice follows you all the way out into the rain.",
+                  "text": "The king's dead close round her like a wall, and {actor} is thrown back bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -10,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -6,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You cut her down mid-word and the king falls back onto his bier, and the cold of him goes into all of you. The barrow-field is shut, but you carry it away with you.",
+                  "text": "{actor} hacks down two of the dead, and two more stand up in their place.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -6,
-                      "target": "all"
+                      "amount": -3,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} cuts Sister Ilse down mid-word. The king's eyes close, the chains go slack, the cult runs, and the diggers' pay chest is still by the door.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    }
-                  ]
+                  "text": "{actor} cuts a way through the dead. Sister Ilse loses her place in the reading."
                 },
                 "critSuccess": {
-                  "text": "{actor} cuts Sister Ilse down mid-word, and the king crumbles to dust on his bier. The cult runs, leaving its pay chest and the best of what it took from the barrows.",
+                  "text": "{actor} cuts a way through the dead and tears the reliquary from the bier as they go.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    },
                     {
                       "effect": "accessory",
                       "tier": 1
@@ -3462,12 +3439,11 @@
             {
               "id": "unbind",
               "kind": "check",
-              "label": "Turn her own rite back on the king",
-              "description": "Read the binding backwards over her voice. Fail and he is awake, and looking at you.",
-              "once": true,
+              "label": "Read her rite backwards over her voice",
+              "description": "Harder than steel, but it leaves her open.",
               "check": {
                 "skill": "arcana",
-                "dc": 14
+                "dc": 16
               },
               "highStakes": true,
               "outcomes": {
@@ -3476,56 +3452,96 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -8,
+                      "amount": -5,
                       "target": "actor"
                     },
                     {
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "{actor} reads her rite backwards over her voice until the king lies down, and something goes out of {actor} with him. Sister Ilse screams and runs into the dark.",
+                  "text": "Her voice and {actor}'s tangle in the air, and neither rite gains ground."
+                },
+                "success": {
+                  "text": "{actor} unpicks a line of her binding. The king's eyes dim, and she falters.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "hold",
+              "kind": "check",
+              "label": "Hold the dead back with the burial rites",
+              "description": "Surer than the blade, but every one of you takes the cold.",
+              "check": {
+                "skill": "religion",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The dead don't listen to {actor}. They listen to her, and they come for all of you.",
+                  "effects": [
                     {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "actor"
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The dead stand still while {actor} prays, and the cold of the barrow seeps into all of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} reads her rite backwards. The king sinks onto his bier, the lanterns go out one by one, and Sister Ilse falls silent for good. The cult's pay chest is by the door.",
+                  "text": "{actor}'s rites lay a row of the dead back down, but the cold of the barrow gets into all of you.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
                     }
                   ]
-                },
-                "critSuccess": {
-                  "text": "{actor} reads her rite backwards, and the king crumbles to dust on his bier. Sister Ilse falls silent for good, and the cult flees, leaving its pay chest and its plunder.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 1
-                    }
-                  ]
+                }
+              }
+            },
+            {
+              "id": "burn",
+              "kind": "fixed",
+              "label": "Burn the bier with alchemist's fire (1 alchemicals)",
+              "description": "No roll, and the fire is spent.",
+              "once": true,
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "alchemicals",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "The fire takes the old shrouds and the bier under the king. Sister Ilse screams and reads faster.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "alchemicals",
+                    "amount": -1
+                  }
+                ],
+                "tally": {
+                  "successes": 1
                 }
               }
             },
@@ -3545,7 +3561,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "Sister Ilse falls silent mid-word. The king sinks back onto his bier, the chains go slack, the cult runs, and the diggers' pay chest is still by the door.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 40
+                }
+              ]
+            },
+            "lose": {
+              "text": "The king's dead close round her like a wall. You are driven out of the mound, bleeding, and her voice follows you all the way out into the rain.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -10,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -3809,8 +3855,8 @@
             {
               "id": "silence",
               "kind": "check",
-              "label": "Silence Father Anselm",
-              "description": "End the song at its source. Fail and you are thrown out, to try again another day.",
+              "label": "Fight through the dead to Father Anselm",
+              "description": "Blade first, through the choir. Fail and the dead drag you back.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -3819,54 +3865,31 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The bells ring and the dead come. You fight your way back up the tower and out, and leave blood on every step.",
+                  "text": "The bells ring and the dead come. {actor} is dragged back into the nave and has to cut free.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -18,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -10,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You drag the old priest from his bells, but the dead get their hands on you all before the last peal dies.",
+                  "text": "{actor} cuts down the front rank, and the next rank steps up in time to the bells.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -10,
-                      "target": "all"
+                      "amount": -5,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} cuts the bell-ropes, and Father Anselm with them. Out in the nave the dead fall where they stand. In the vestry is the choir's offering-chest.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    }
-                  ]
+                  "text": "{actor} hacks a way to the bell-frame. Father Anselm misses a stroke, and the nave stumbles."
                 },
                 "critSuccess": {
-                  "text": "{actor} cuts the bell-ropes, and Father Anselm with them. Out in the nave the dead fall where they stand, and among the offerings in the vestry is something worth keeping.",
+                  "text": "{actor} cuts a bell-rope clean through, and the old priest's reliquary comes down with it into {actor}'s hands.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    },
                     {
                       "effect": "accessory",
                       "tier": 1
@@ -3880,10 +3903,9 @@
               "kind": "check",
               "label": "Ring the bells out of time",
               "description": "Break the beat the dead march to. Fail and it holds you too.",
-              "once": true,
               "check": {
                 "skill": "performance",
-                "dc": 14
+                "dc": 16
               },
               "highStakes": true,
               "outcomes": {
@@ -3892,54 +3914,67 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -10,
+                      "amount": -9,
                       "target": "actor"
                     },
                     {
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "{actor} breaks the beat, and has to keep ringing until the last of the dead falls, long after both arms have given out.",
+                  "text": "{actor}'s peal and his fight each other in the tower, and the dead stand swaying, waiting for a winner."
+                },
+                "success": {
+                  "text": "{actor} rings a wrong, broken peal. The dead stumble and lose the step, and Father Anselm has to start again.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "names",
+              "kind": "check",
+              "label": "Read the dead their names from the bone-yard's ledger",
+              "description": "Surer than the bells. The dead stop to listen, but every one of you takes their hands.",
+              "check": {
+                "skill": "history",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} reads the wrong names to the wrong dead. They come for all of you, grasping.",
+                  "effects": [
                     {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "actor"
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "A few of the dead stop at their names. The rest push past, and get their hands on you all.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} rings a wrong, broken peal. The dead stumble, lose the step and fall in heaps, and Father Anselm weeps over his bells. The offering-chest is yours.",
+                  "text": "{actor} reads out name after name, and the dead who hear their own stop and lie down. The rest still claw at you as they pass.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    }
-                  ]
-                },
-                "critSuccess": {
-                  "text": "{actor} rings a wrong, broken peal that cracks every bell in the tower. The dead fall in heaps, Father Anselm with them, and the offering-chest is yours.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 1
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
                     }
                   ]
                 }
@@ -3961,7 +3996,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "The last bell stops. Father Anselm lies silent among his ropes, and out in the nave the dead fall where they stand. In the vestry is the choir's offering-chest.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 90
+                }
+              ]
+            },
+            "lose": {
+              "text": "The bells ring and the dead come. You fight your way back up the tower and out, and leave blood on every step.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -18,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -4325,8 +4390,8 @@
             {
               "id": "strike",
               "kind": "check",
-              "label": "Strike down the Prophet",
-              "description": "End it with steel. Fail and you are thrown out, to try again another day.",
+              "label": "Strike at the Prophet",
+              "description": "Steel through the faithful. Fail and the dead close round you.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -4335,58 +4400,31 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The Prophet's dead close round you. You are driven back up the stair, and the singing follows you out.",
+                  "text": "The Prophet's dead close round {actor}, cold hands and old iron, and {actor} is thrown back bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -28,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -16,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You reach the Prophet as the crown comes down, and strike it aside. The Prophet's last curse lands on all of you, and what it says about each of you stays with the others.",
+                  "text": "{actor} cuts down the ash-faced guard at the bier, and takes a cut doing it.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -15,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "camaraderie",
-                      "amount": -13
+                      "amount": -8,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} strikes the Prophet down at the foot of the bier, and the crown rolls away into the dark. The kings sleep. The Prophet's strongbox is behind the bier.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    }
-                  ]
+                  "text": "{actor} drives the Prophet back a step from the bier. The crown stops a hand above the dead brow."
                 },
                 "critSuccess": {
-                  "text": "{actor} strikes the Prophet down at the foot of the bier. The kings sleep, and the Prophet's strongbox holds a dead king's treasure.",
+                  "text": "{actor} drives the Prophet back from the bier and tears a dead king's ring from the Prophet's ashen hand.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    },
                     {
                       "effect": "accessory",
                       "tier": 2
@@ -4398,17 +4436,16 @@
             {
               "id": "snatch",
               "kind": "check",
-              "label": "Snatch the crown",
+              "label": "Grab for the crown",
               "description": "No crown, no king. Fail and you stand within reach of the Prophet.",
-              "once": true,
               "check": {
                 "skill": "sleightOfHand",
-                "dc": 14
+                "dc": 16
               },
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "{actor}'s hand closes on air. The Prophet smiles.",
+                  "text": "{actor}'s hand closes on air. The Prophet smiles, and the cold of the crypt goes into {actor} like a knife.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4419,49 +4456,89 @@
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "{actor} gets the crown and runs with it, and the cold of it is in {actor}'s hands for days.",
+                  "text": "{actor}'s fingers brush the crown, and the Prophet pulls it back to the chest."
+                },
+                "success": {
+                  "text": "{actor} knocks the crown from the Prophet's hands. It rings on the stones, and the Prophet has to stoop for it.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pray",
+              "kind": "check",
+              "label": "Pray the kings back to sleep",
+              "description": "Surer than steel, but the cold of the tombs gets into all of you.",
+              "check": {
+                "skill": "religion",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "The kings don't listen to {actor}. They listen to the Prophet, and they reach for all of you.",
+                  "effects": [
                     {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "actor"
+                      "effect": "hp",
+                      "amount": -10,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The kings lie still while {actor} prays, and the frost of the crypt seeps into all of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} takes the crown out of the Prophet's hands. The dead king falls still, the rite falls apart, and the Prophet falls with it. The strongbox is behind the bier.",
+                  "text": "{actor}'s prayer lays a row of kings back in their tombs, but the frost of the crypt gets into all of you.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
                     }
                   ]
-                },
-                "critSuccess": {
-                  "text": "{actor} takes the crown out of the Prophet's hands. The rite falls apart, and the Prophet's strongbox holds a dead king's treasure.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 2
-                    }
-                  ]
+                }
+              }
+            },
+            {
+              "id": "relic",
+              "kind": "fixed",
+              "label": "Lay a saint's relic on the dead king's brow (1 relics)",
+              "description": "No roll, and the relic is spent.",
+              "once": true,
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "relics",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "The old king's fingers stop moving under the saint's bone. The relic blackens and cracks, and the Prophet screams at you across the bier.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "relics",
+                    "amount": -1
+                  }
+                ],
+                "tally": {
+                  "successes": 1
                 }
               }
             },
@@ -4481,7 +4558,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 5,
+            "failures": 3,
+            "win": {
+              "text": "The Prophet falls at the foot of the bier, and the crown rolls away into the dark. The kings sleep. The Prophet's strongbox is behind the bier.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 160
+                }
+              ]
+            },
+            "lose": {
+              "text": "The Prophet's dead close round you. You are driven back up the stair, and the singing follows you out.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -28,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -4728,7 +4835,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight Agathe Wren for the will",
-              "description": "Win and the forgery dies here. Fail and you are thrown out, to try again another day.",
+              "description": "Blade to blade in the cellar. Fail and her blades cut you.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -4737,54 +4844,31 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Wren's blades drive you out through the tannery yard. She leaves with the will under her arm.",
+                  "text": "Wren is quicker than she looks. {actor} takes her point in the shoulder and goes back over the bench.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -10,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -6,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You get the will into the brazier and the die under a hammer, and take cuts doing it. Wren runs.",
+                  "text": "{actor} trades cuts with one of her blades, and neither gives ground.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -6,
-                      "target": "all"
+                      "amount": -3,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} puts Agathe Wren on the floor. The will goes into the brazier, the die under a hammer, and her purse into your pack.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    }
-                  ]
+                  "text": "{actor} puts one of her blades on the floor, and Wren has to fall back from the bench."
                 },
                 "critSuccess": {
-                  "text": "{actor} puts Agathe Wren on the floor. The will burns, the die breaks, and her purse holds more than coin.",
+                  "text": "{actor} knocks the sword out of Wren's hand and cuts her purse from her belt as she stumbles. There is more in it than coin.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    },
                     {
                       "effect": "accessory",
                       "tier": 1
@@ -4796,12 +4880,11 @@
             {
               "id": "brazier",
               "kind": "check",
-              "label": "Throw the will on the brazier",
-              "description": "Ruin the will before she can take it. Miss and she is between you and it.",
-              "once": true,
+              "label": "Feed the will to the brazier",
+              "description": "Page by page, under her blades. Miss and she is between you and it.",
               "check": {
                 "skill": "acrobatics",
-                "dc": 14
+                "dc": 16
               },
               "highStakes": true,
               "outcomes": {
@@ -4810,58 +4893,79 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -8,
+                      "amount": -5,
                       "target": "actor"
                     },
                     {
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "The will burns and the die melts in the coals, and {actor}'s hands burn with them.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "hp",
-                      "amount": -8,
-                      "target": "actor"
-                    }
-                  ]
+                  "text": "{actor} gets a hand on the will, and Wren gets a hand on the other end."
                 },
                 "success": {
-                  "text": "{actor} vaults the bench and drops the will in the coals. Wren stares at it burning, then runs, and drops her purse on the steps.",
+                  "text": "{actor} vaults the bench and drops the first pages in the coals. Wren stares at them burning, and forgets her guard.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    }
-                  ]
-                },
-                "critSuccess": {
-                  "text": "{actor} vaults the bench and drops the will in the coals. Wren runs, and leaves her purse and her gloves.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 1
+                      "effect": "position",
+                      "position": "edge"
                     }
                   ]
                 }
               }
+            },
+            {
+              "id": "pay-blades",
+              "kind": "check",
+              "label": "Pay her hired blades to stand aside (5 gp)",
+              "description": "Surer than steel. They are only hired, but they take the silver whatever happens.",
+              "check": {
+                "skill": "persuasion",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "They take the silver and laugh, and one of them cuts {actor} for the cheek of it.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": -5
+                    },
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "One of them pockets the silver and stops to think about it.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": -5
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} counts out silver, and a blade sheathes his sword and goes up the steps. Wren swears after him.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": -5
+                    }
+                  ]
+                }
+              },
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 5
+                }
+              ]
             },
             {
               "id": "leave",
@@ -4879,7 +4983,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "Agathe Wren runs. The will goes into the brazier, the die under a hammer, and the purse she drops on the steps into your pack.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 40
+                }
+              ]
+            },
+            "lose": {
+              "text": "Wren's blades drive you out through the tannery yard. She leaves with the will under her arm.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -10,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -5181,8 +5315,8 @@
             {
               "id": "fight",
               "kind": "check",
-              "label": "Cut down Captain Hask",
-              "description": "Kill the deal with its broker. Fail and you are thrown out, to try again another day.",
+              "label": "Cut your way to Captain Hask",
+              "description": "Kill the deal with its broker. Fail and her sergeants cut you.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -5191,54 +5325,70 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The Grey Company closes round you and throws you out of the camp, beaten. The wagon rolls at dawn.",
+                  "text": "Hask's sergeants are quick. {actor} is beaten down in the mud before reaching her.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -18,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -10,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "Hask goes down, and so, nearly, do you. Getting out of the camp afterwards takes everything you have.",
+                  "text": "{actor} trades blows with Hask herself, and both of you step back bloody.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -10,
-                      "target": "all"
+                      "amount": -5,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} puts Captain Hask in the mud, and the muster breaks up around her. Her war-chest leaves with you.",
+                  "text": "{actor} cuts through the sergeants, and Hask has to fight with her own hands for once."
+                }
+              }
+            },
+            {
+              "id": "turn",
+              "kind": "check",
+              "label": "Show the commander what the Hand's promises are worth",
+              "description": "Pell's books say his garrison is to be paid, then hanged. Fail and Hask comes for you.",
+              "check": {
+                "skill": "persuasion",
+                "dc": 16
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "He has already counted his share. He calls the guard, and Hask's sergeants catch {actor} in the open.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
+                      "effect": "hp",
+                      "amount": -9,
+                      "target": "actor"
                     },
                     {
-                      "effect": "gold",
-                      "amount": 90
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "He reads the page twice, then folds it away and says nothing."
+                },
+                "success": {
+                  "text": "{actor} shows him the Hand's letters. He goes white, and his men lower their spears to see what he does.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
                     }
                   ]
                 },
                 "critSuccess": {
-                  "text": "{actor} puts Captain Hask in the mud, and the muster breaks up around her. Her war-chest holds more than silver.",
+                  "text": "{actor} shows him the Hand's letters. He turns on Hask in front of the whole camp, and presses a gift from his own belt on {actor} for the warning.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    },
                     {
                       "effect": "accessory",
                       "tier": 1
@@ -5248,71 +5398,70 @@
               }
             },
             {
-              "id": "turn",
+              "id": "face-down",
               "kind": "check",
-              "label": "Show the commander what the Hand's promises are worth",
-              "description": "Turn the man being bought. Fail and Hask comes for you.",
-              "once": true,
+              "label": "Face down the company in the mud",
+              "description": "Surer than talk. They give ground, but every one of you takes a beating.",
               "check": {
-                "skill": "persuasion",
-                "dc": 14
+                "skill": "intimidation",
+                "dc": 13
               },
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "He has already counted his share. He calls the guard, and Hask's sergeants are quick.",
+                  "text": "The Grey Company laughs at {actor}, and then it comes for all of you.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -10,
-                      "target": "actor"
-                    },
-                    {
-                      "effect": "position",
-                      "position": "exposed"
+                      "amount": -6,
+                      "target": "all"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "You promise him pardons you have no power to give. He takes his men home, and some of you will not look each other in the eye.",
+                  "text": "The sellswords hang back from {actor}, but they get their boots and cudgels into you all on the way.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "camaraderie",
-                      "amount": -13
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} shows him the Hand's letters: his garrison is to be paid, then hanged. He takes his men home, Hask's company breaks up unpaid, and he pays you for the warning.",
+                  "text": "{actor} stares down a whole file of them, and they decide they are not paid enough. The ones who did not decide in time leave marks.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
                     }
                   ]
-                },
-                "critSuccess": {
-                  "text": "{actor} shows him the Hand's letters. He takes his men home, Hask's company breaks up unpaid, and he pays you with a gift from his own belt.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 1
-                    }
-                  ]
+                }
+              }
+            },
+            {
+              "id": "outbid",
+              "kind": "fixed",
+              "label": "Pay a squad of the Grey Company to sit this out (40 gp)",
+              "description": "No roll, and the silver is spent.",
+              "once": true,
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 40
+                }
+              ],
+              "outcome": {
+                "text": "The sergeant weighs your silver against Hask's promises and sits down on a barrel with his squad. Hask's line has a hole in it.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -40
+                  }
+                ],
+                "tally": {
+                  "successes": 1
                 }
               }
             },
@@ -5332,7 +5481,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "Captain Hask goes down in the mud, and the muster breaks up around her. The commander takes his men home, and her war-chest leaves with you.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 90
+                }
+              ]
+            },
+            "lose": {
+              "text": "The Grey Company closes round you and throws you out of the camp, beaten. The wagon rolls at dawn.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -18,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -5683,8 +5862,8 @@
             {
               "id": "strike",
               "kind": "check",
-              "label": "Take the Hand at the altar",
-              "description": "End it at the altar. Fail and you are thrown out, to try again another day.",
+              "label": "Fight your way up the altar steps",
+              "description": "Through the guards to the Hand. Fail and the guards cut you.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -5693,76 +5872,43 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The guards drag you out of the chapel and throw you in the square. Behind you the choir is still singing.",
+                  "text": "The guards close ranks on the altar steps, and {actor} is thrown back down them bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -28,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -16,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You get the Hand down on the altar steps under a heap of guards, and the crown goes rolling. It is a long fight, and nobody walks out of it whole.",
+                  "text": "{actor} cuts down a guard on the steps, and another takes his place.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -15,
-                      "target": "all"
+                      "amount": -8,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} has the Hand down on the altar steps with a blade at their throat, and the lords stop pretending they came for a crowning. The Hand's purse pays for your trouble.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    }
-                  ]
-                },
-                "critSuccess": {
-                  "text": "{actor} has the Hand down on the altar steps, and the lords fall over each other to thank you. One of them presses a gift into your hands.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 2
-                    }
-                  ]
+                  "text": "{actor} hacks a way up two steps. The Hand flinches, and the bishop loses his place in the rite."
                 }
               }
             },
             {
               "id": "crown",
               "kind": "check",
-              "label": "Snatch the crown",
+              "label": "Snatch at the crown",
               "description": "No crown, no crowning. Fail and you stand among the guards.",
-              "once": true,
               "check": {
                 "skill": "sleightOfHand",
-                "dc": 14
+                "dc": 16
               },
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "A guard catches {actor}'s wrist an inch from the crown.",
+                  "text": "A guard catches {actor}'s wrist an inch from the crown, and the others are not gentle.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5773,49 +5919,96 @@
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
-                },
-                "partial": {
-                  "text": "{actor} gets the crown and runs the length of the nave with half the guards behind. It is a long run.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "actor"
-                    }
                   ]
                 },
+                "partial": {
+                  "text": "{actor}'s fingers close on the cushion, and the bishop pulls it back."
+                },
                 "success": {
-                  "text": "{actor} lifts the crown off its cushion and holds it up for the lords to see. Without it the Hand is only a liar in ermine, and the lords pay to have it back.",
+                  "text": "{actor} knocks the crown from the cushion, and it rolls across the chancel. The lords watch the Hand scramble for it.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
+                      "effect": "position",
+                      "position": "edge"
                     }
                   ]
                 },
                 "critSuccess": {
-                  "text": "{actor} lifts the crown off its cushion and holds it up for the lords to see. The lords pay well to have it back, and better to keep your story straight.",
+                  "text": "{actor} lifts the crown off its cushion and holds it up for the lords to see. One of them, already changing sides, presses a gift into {actor}'s hand.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    },
                     {
                       "effect": "accessory",
                       "tier": 2
                     }
                   ]
+                }
+              }
+            },
+            {
+              "id": "bishop",
+              "kind": "check",
+              "label": "Shout the bishop down with the true rite",
+              "description": "Surer than steel. The lords listen, but the guards beat at all of you while you preach.",
+              "check": {
+                "skill": "religion",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} stumbles over the words, the bishop smiles, and the guards wade into all of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -10,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The lords murmur at {actor}'s words, but the guards' clubs fall on all of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} names every fault in the bishop's rite, and half the lords stop pretending they came to kneel. The guards still get their blows in.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "knights",
+              "kind": "fixed",
+              "label": "Buy a lord's knights to turn on the guards (80 gp)",
+              "description": "No roll, and the silver is spent.",
+              "once": true,
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 80
+                }
+              ],
+              "outcome": {
+                "text": "A lord near the door weighs your purse against the Hand's promises. His knights draw on the guards at the altar steps.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -80
+                  }
+                ],
+                "tally": {
+                  "successes": 1
                 }
               }
             },
@@ -5835,7 +6028,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 5,
+            "failures": 3,
+            "win": {
+              "text": "The Hand goes down on the altar steps, the crown rolls in the dirt and the bishop flees. The lords stop pretending they came for a crowning, and the Hand's purse pays for your trouble.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 160
+                }
+              ]
+            },
+            "lose": {
+              "text": "The guards drag you out of the chapel and throw you in the square. Behind you the choir is still singing.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -28,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -6137,8 +6360,8 @@
             {
               "id": "through",
               "kind": "check",
-              "label": "Fight the Speaker for the basket",
-              "description": "Break the eggs before they leave the cave. Fail and you are thrown out, to try again another day.",
+              "label": "Fight past Ashmaw for the basket",
+              "description": "Through the young drake to the thief. Fail and its fire finds you.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -6147,54 +6370,31 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Ashmaw's fire fills the cave mouth. You are driven back into the smoke, burned, and when you come out the Speaker and the basket are gone. There will be other clutches.",
+                  "text": "Ashmaw's fire fills the cave mouth, and {actor} is driven back into the smoke, burned.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -10,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -6,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You get past Ashmaw and knock the basket off the thief's back, and the eggs break on the scree. The young drake's fire catches you all on the way out, and the Speaker flies off on its back, staring at your faces.",
+                  "text": "{actor} beats Ashmaw back a step and gets a claw across the arm for it.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -6,
-                      "target": "all"
+                      "amount": -3,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} gets to the basket first, and the eggs break on the scree. The Speaker stares at the mess, and at you, then climbs onto Ashmaw's back and is gone, shouting that this is not over. The thief's pouch holds the Speaker's silver.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    }
-                  ]
+                  "text": "{actor} gets past Ashmaw and drags the thief down by his basket straps. The Speaker stops smiling."
                 },
                 "critSuccess": {
-                  "text": "{actor} gets to the basket first, and the eggs break on the scree. The Speaker flies off on Ashmaw, shouting that this is not over, and the thief's pouch holds the Speaker's silver and a charm against fire.",
+                  "text": "{actor} gets past Ashmaw and cuts the thief's pouch loose. In it, among the Speaker's silver, is a charm against fire.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    },
                     {
                       "effect": "accessory",
                       "tier": 1
@@ -6206,12 +6406,11 @@
             {
               "id": "shoot",
               "kind": "check",
-              "label": "Shoot the thief from where you stand",
-              "description": "One shot, through smoke. Miss and Ashmaw turns on you.",
-              "once": true,
+              "label": "Shoot the thief through the smoke",
+              "description": "One clean shot and he drops the basket. Miss and Ashmaw turns on you.",
               "check": {
                 "skill": "perception",
-                "dc": 14,
+                "dc": 16,
                 "combat": true
               },
               "highStakes": true,
@@ -6221,56 +6420,96 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -8,
+                      "amount": -5,
                       "target": "actor"
                     },
                     {
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "{actor} drops the thief at the cave mouth, and the basket spills. Then {actor} has to hold Ashmaw off alone while you get the eggs back to their mother, and comes out of it spent. The Speaker is gone.",
+                  "text": "{actor}'s arrow takes the thief in the pack, and he staggers on."
+                },
+                "success": {
+                  "text": "{actor}'s arrow takes the thief in the leg. He goes down on the scree with the basket, and the Speaker has to come and get it.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "calm",
+              "kind": "check",
+              "label": "Hold Ashmaw off with a herder's calm",
+              "description": "Surer than steel. It is only young, but its fire still licks at all of you.",
+              "check": {
+                "skill": "animalHandling",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "Ashmaw hisses at {actor}'s outstretched hand and breathes on all of you.",
+                  "effects": [
                     {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "actor"
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "Ashmaw backs off from {actor}, spitting sparks over all of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} drops the thief at the cave mouth, and the eggs roll back down to their mother. The Speaker looks at you for a long moment, then rides Ashmaw out into the sky. You take the thief's pouch.",
+                  "text": "{actor} talks low and steady, and Ashmaw sits back on its haunches, puzzled. The Speaker has to call it twice. Its sparks still burn you as it goes.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
                     }
                   ]
-                },
-                "critSuccess": {
-                  "text": "{actor} drops the thief at the cave mouth, and the eggs roll back down to their mother. The Speaker rides Ashmaw out into the sky, and the thief's pouch holds something he stole.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 40
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 1
-                    }
-                  ]
+                }
+              }
+            },
+            {
+              "id": "meat",
+              "kind": "fixed",
+              "label": "Throw Ashmaw a haunch of meat (1 food)",
+              "description": "No roll, and the food is spent.",
+              "once": true,
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "food",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "Ashmaw is young and hungry. It turns on the meat, and the thief is left alone at the cave mouth with the Speaker shouting at the drake.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "food",
+                    "amount": -1
+                  }
+                ],
+                "tally": {
+                  "successes": 1
                 }
               }
             },
@@ -6290,7 +6529,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "The basket comes down and the eggs break on the scree. The Speaker stares at the mess, and at you, then climbs onto Ashmaw's back and is gone, shouting that this is not over. The thief's pouch holds the Speaker's silver.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 40
+                }
+              ]
+            },
+            "lose": {
+              "text": "Ashmaw's fire fills the cave mouth. You are driven back into the smoke, burned, and when you come out the Speaker and the basket are gone. There will be other clutches.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -10,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -6607,7 +6876,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the Speaker for the torch",
-              "description": "Win and no beacon calls the wyrm. Fail and you are thrown out, to try again another day.",
+              "description": "Up the tower, blade first. Fail and Ashmaw sweeps you off it.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -6616,54 +6885,31 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Ashmaw sweeps you off the heights with one wing, burned and beaten. Behind you the work goes on.",
+                  "text": "Ashmaw sweeps {actor} off the tower stair with one wing, burned and beaten.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -18,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -10,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You get the torch out of the Speaker's hand and throw it from the tower, and Ashmaw makes you all pay for it. The Speaker flies off again, promising that next time will be the last.",
+                  "text": "{actor} gets a hand on the Speaker's stirrup, and Ashmaw's claws rake {actor} off it.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -10,
-                      "target": "all"
+                      "amount": -5,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} tears the torch from the Speaker's hand and throws it from the tower. Ashmaw bears the Speaker away into the dark, and the saddlebag cut loose in the struggle holds the giants' pay.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    }
-                  ]
+                  "text": "{actor} cuts at the Speaker's arm, and the torch dips away from the stack."
                 },
                 "critSuccess": {
-                  "text": "{actor} tears the torch from the Speaker's hand and throws it from the tower. Ashmaw bears the Speaker away, and the saddlebag cut loose in the struggle holds the giants' pay and a ring of drake-bone.",
+                  "text": "{actor} cuts a saddlebag loose from Ashmaw's harness in the struggle. Inside, with the giants' pay, is a ring of drake-bone.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    },
                     {
                       "effect": "accessory",
                       "tier": 1
@@ -6675,12 +6921,11 @@
             {
               "id": "kick-down",
               "kind": "check",
-              "label": "Climb the tower and kick the beacon down",
+              "label": "Climb the tower and kick the stack apart",
               "description": "No stack, no beacon. A slip is a long fall.",
-              "once": true,
               "check": {
                 "skill": "acrobatics",
-                "dc": 14
+                "dc": 16
               },
               "highStakes": true,
               "outcomes": {
@@ -6689,56 +6934,96 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -10,
+                      "amount": -9,
                       "target": "actor"
                     },
                     {
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "{actor} kicks the great stack off the tower, and has to climb down through the smoke, half-blind.",
+                  "text": "{actor} gets onto the wall, and Ashmaw keeps {actor} pinned there in the smoke."
+                },
+                "success": {
+                  "text": "{actor} kicks half the great stack off the tower. The Speaker shouts, and has to wheel Ashmaw round to see where it fell.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "draw-off",
+              "kind": "check",
+              "label": "Draw Ashmaw off along the ridge",
+              "description": "Surer than the tower. Ashmaw follows you, and its fire falls on all of you.",
+              "check": {
+                "skill": "survival",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} leads you into the open, and Ashmaw catches you all on the bare ridge.",
+                  "effects": [
                     {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "actor"
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "Ashmaw follows, and you all dive among the rocks with your cloaks smoking.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} kicks the great stack off the tower before the Speaker can light it. The Speaker flees on Ashmaw's back, and leaves a saddlebag behind.",
+                  "text": "{actor} leads Ashmaw a long way down the ridge from rock to rock, and the Speaker loses precious time calling it back. Its fire still finds you.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
                     }
                   ]
-                },
-                "critSuccess": {
-                  "text": "{actor} kicks the great stack off the tower. The Speaker flees on Ashmaw's back, and leaves a saddlebag and a ring of drake-bone.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 90
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 1
-                    }
-                  ]
+                }
+              }
+            },
+            {
+              "id": "douse",
+              "kind": "fixed",
+              "label": "Douse the great beacon (2 water)",
+              "description": "No roll, and the water is spent.",
+              "once": true,
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "water",
+                  "min": 2
+                }
+              ],
+              "outcome": {
+                "text": "The water hisses into the heart of the stack. The Speaker's torch only smokes on it, and the Speaker curses you from Ashmaw's back.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "water",
+                    "amount": -2
+                  }
+                ],
+                "tally": {
+                  "successes": 1
                 }
               }
             },
@@ -6758,7 +7043,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 4,
+            "failures": 3,
+            "win": {
+              "text": "The torch goes over the wall into the dark. Ashmaw bears the Speaker away, promising that next time will be the last, and the saddlebag cut loose in the struggle holds the giants' pay.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 90
+                }
+              ]
+            },
+            "lose": {
+              "text": "Ashmaw sweeps you off the heights with one wing, burned and beaten. Behind you the work goes on.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -18,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },
@@ -7157,8 +7472,8 @@
             {
               "id": "strike",
               "kind": "check",
-              "label": "Pull the Speaker down",
-              "description": "Stop the song with steel. Fail and you are thrown out, to try again another day.",
+              "label": "Climb the wyrm and pull the Speaker down",
+              "description": "Up the scales with steel in hand. Fail and the wyrm shrugs you off.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -7167,58 +7482,31 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The wyrm breathes in its sleep, and the hall fills with fire. You crawl out with your hair burned off, and the Speaker's song goes on.",
+                  "text": "The wyrm shifts in its sleep, and {actor} slides down hot scales into the rubble.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -28,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "days",
-                      "amount": 1
+                      "amount": -16,
+                      "target": "actor"
                     }
                   ]
                 },
                 "partial": {
-                  "text": "You get the Speaker off the wyrm's head and the song stops, but the hall comes down around you, and not everyone gets out the way they went in.",
+                  "text": "{actor} gets a hand on the Speaker's heel, and a scaled fist in the face.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
                       "effect": "hp",
-                      "amount": -15,
-                      "target": "all"
-                    },
-                    {
-                      "effect": "camaraderie",
-                      "amount": -13
+                      "amount": -8,
+                      "target": "actor"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} drags the Speaker off the wyrm's head mid-song, and this time there is no drake to fly away on. The great eye closes. In the rubble is the giants' old treasure, and nobody left to guard it.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    }
-                  ]
+                  "text": "{actor} climbs to the wyrm's brow and strikes. The Speaker staggers, and the song breaks for a breath."
                 },
                 "critSuccess": {
-                  "text": "{actor} drags the Speaker off the wyrm's head mid-song, and this time there is no getting away. The great eye closes, and the giants' old treasure is yours, the best of it older than the kingdoms.",
+                  "text": "{actor} climbs to the wyrm's brow, strikes the Speaker reeling, and wrenches a giant-king's torc from where it hangs on the wyrm's horn.",
                   "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    },
                     {
                       "effect": "accessory",
                       "tier": 2
@@ -7230,17 +7518,16 @@
             {
               "id": "sing",
               "kind": "check",
-              "label": "Sing it back to sleep",
-              "description": "Out-sing the Speaker. Fail and it looks at you.",
-              "once": true,
+              "label": "Sing against the Speaker",
+              "description": "Out-sing the Speaker and the wyrm listens to you. Fail and it looks at you.",
               "check": {
                 "skill": "performance",
-                "dc": 14
+                "dc": 16
               },
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The wyrm turns its eye on {actor}, and {actor} forgets the words.",
+                  "text": "The wyrm turns its eye on {actor}, and {actor} forgets the words. The heat of that look blisters skin.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -7251,49 +7538,87 @@
                       "effect": "position",
                       "position": "exposed"
                     }
-                  ],
-                  "stay": true
+                  ]
                 },
                 "partial": {
-                  "text": "{actor} sings it down, slowly, against the Speaker, until there is no voice left in {actor} at all.",
+                  "text": "{actor}'s song and the Speaker's tangle in the hall, and the great eye stays half open."
+                },
+                "success": {
+                  "text": "{actor} sings a lullaby older than the Speaker's song. The great eye drifts half shut, and the Speaker has to sing louder.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "ward",
+              "kind": "check",
+              "label": "Bind the wyrm's sleep with wards",
+              "description": "Surer than song. The wards hold, but the heat of it scorches all of you.",
+              "check": {
+                "skill": "arcana",
+                "dc": 13
+              },
+              "highStakes": true,
+              "outcomes": {
+                "fail": {
+                  "text": "{actor}'s ward cracks, and the wyrm's breath rolls over all of you.",
+                  "effects": [
                     {
-                      "effect": "exhaustion",
-                      "amount": 1,
-                      "target": "actor"
+                      "effect": "hp",
+                      "amount": -10,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor}'s ward holds, and the heat comes through it onto all of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
                     }
                   ]
                 },
                 "success": {
-                  "text": "{actor} sings it a lullaby older than the Speaker's song. The eye closes, the Speaker falls silent for good, and the giants' old treasure lies in the rubble.",
+                  "text": "{actor} draws a binding round the great eye, and it sinks under. The heat that leaks round the edges scorches all of you.",
                   "effects": [
                     {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "all"
                     }
                   ]
-                },
-                "critSuccess": {
-                  "text": "{actor} sings it a lullaby older than the Speaker's song. The eye closes, and the giants' old treasure is yours, the best of it older than the kingdoms.",
-                  "effects": [
-                    {
-                      "effect": "thwartAct"
-                    },
-                    {
-                      "effect": "gold",
-                      "amount": 160
-                    },
-                    {
-                      "effect": "accessory",
-                      "tier": 2
-                    }
-                  ]
+                }
+              }
+            },
+            {
+              "id": "hoard",
+              "kind": "fixed",
+              "label": "Pour out gold under its eye (80 gp)",
+              "description": "No roll, and the gold is spent.",
+              "once": true,
+              "requires": [
+                {
+                  "req": "gold",
+                  "min": 80
+                }
+              ],
+              "outcome": {
+                "text": "The great eye turns from the Speaker to the gold pouring over the stones, and stays there. Old wyrms are greedy even in their sleep.",
+                "effects": [
+                  {
+                    "effect": "gold",
+                    "amount": -80
+                  }
+                ],
+                "tally": {
+                  "successes": 1
                 }
               }
             },
@@ -7313,7 +7638,37 @@
                 ]
               }
             }
-          ]
+          ],
+          "challenge": {
+            "successes": 5,
+            "failures": 3,
+            "win": {
+              "text": "The Speaker falls from the wyrm's head mid-song, and this time there is no drake to fly away on. The great eye closes. In the rubble is the giants' old treasure, and nobody left to guard it.",
+              "effects": [
+                {
+                  "effect": "thwartAct"
+                },
+                {
+                  "effect": "gold",
+                  "amount": 160
+                }
+              ]
+            },
+            "lose": {
+              "text": "The wyrm breathes in its sleep, and the hall fills with fire. You crawl out with your hair burned off, and the Speaker's song goes on.",
+              "effects": [
+                {
+                  "effect": "hp",
+                  "amount": -28,
+                  "target": "all"
+                },
+                {
+                  "effect": "days",
+                  "amount": 1
+                }
+              ]
+            }
+          }
         }
       }
     },

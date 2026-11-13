@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import type { Effect, Option, OutcomeBranch, Situation, Stage } from '../schema/encounter'
 import { allSituations } from '../engine/encounters/compile'
+import { challengeSize, playsRound } from '../engine/encounters/challenge'
 import { fillText, slotNames } from '../engine/encounters/slots'
 import { villainIssues } from '../engine/world/validate'
 import { loadBundledContent } from './bundled'
@@ -88,6 +89,11 @@ const branchesOf = (option: Option): OutcomeBranch[] =>
   (option.kind === 'fixed' ? [option.outcome] : Object.values(option.outcomes)).flatMap((o) =>
     o ? [o, ...(o.twist ? [o.twist] : [])] : []
   )
+/** Every branch of a stage: its options', and its challenge's win and lose. */
+const stageBranches = (stage: Stage): OutcomeBranch[] => [
+  ...stage.options.flatMap(branchesOf),
+  ...(stage.challenge ? [stage.challenge.win, stage.challenge.lose] : []),
+]
 const has = (branch: OutcomeBranch, effect: Effect['effect']) =>
   branch.effects.some((e) => e.effect === effect)
 const ends = (branch: OutcomeBranch) => !branch.goto && !branch.stay
@@ -100,8 +106,7 @@ function reachable(s: Situation): [string, Stage][] {
     const id = queue.shift()!
     if (seen.has(id) || !Object.hasOwn(s.stages, id)) continue
     seen.add(id)
-    for (const option of s.stages[id].options)
-      for (const b of branchesOf(option)) if (b.goto) queue.push(b.goto)
+    for (const b of stageBranches(s.stages[id])) if (b.goto) queue.push(b.goto)
   }
   return [...seen].map((id) => [id, s.stages[id]])
 }
@@ -111,6 +116,10 @@ const situationsOf = (typeIds: string[]) =>
 const leads = situationsOf([...new Set(villains.flatMap((v) => v.acts.map((a) => a.lead)))])
 const actsOf = (v: (typeof villains)[number]) => situationsOf(v.acts.map((a) => a.site))
 const acts = villains.flatMap(actsOf)
+/** Each act's key situations with the CR they are played at. */
+const keyActs = villains.flatMap((v) =>
+  v.acts.flatMap((a) => situationsOf([a.site]).map((s) => [s.id, s, a.keyCr] as const))
+)
 const omens = allSituations(content).filter((s) => s.villains.length > 0)
 const ids = (list: Situation[]) => list.map((s) => [s.id, s] as const)
 
@@ -174,38 +183,31 @@ describe('bosses', () => {
 
 describe('act situations', () => {
   test.each(ids(acts))('%s can reach thwartAct from its start', (_, s) => {
-    const branches = reachable(s).flatMap(([, st]) => st.options.flatMap(branchesOf))
+    const branches = reachable(s).flatMap(([, st]) => stageBranches(st))
     expect(branches.some((b) => has(b, 'thwartAct'))).toBe(true)
   })
 
-  test.each(ids(acts))(
-    '%s ends in a high-stakes finale: success pays, a partial costs, a failure throws you out',
-    (_, s) => {
+  test.each(keyActs)(
+    '%s ends in a skill challenge sized by its CR: winning thwarts and pays, losing throws you out hurt',
+    (_, s, cr) => {
       expect(Object.keys(s.stages).length).toBeGreaterThanOrEqual(3)
       expect(Object.keys(s.stages).length).toBeLessThanOrEqual(4)
-      const finales = reachable(s)
-        .flatMap(([, st]) => st.options)
-        .filter((o) => o.kind === 'check' && has(o.outcomes.success, 'thwartAct'))
-      expect(finales.length).toBeGreaterThan(0)
-      for (const o of finales) {
-        if (o.kind !== 'check') continue
-        expect(o.highStakes, o.id).toBe(true)
-        const { fail, partial, success } = o.outcomes
-        expect(success.effects.some((e) => e.effect === 'gold' && e.amount > 0)).toBe(true)
-        expect(has(partial, 'thwartAct'), o.id).toBe(true)
-        const cost = partial.effects.some(
-          (e) =>
-            (e.effect === 'hp' && e.amount < 0) ||
-            (e.effect === 'exhaustion' && e.amount > 0) ||
-            (e.effect === 'camaraderie' && e.amount < 0)
-        )
-        expect(cost, `${o.id} partial costs something`).toBe(true)
-        for (const b of [fail, o.outcomes.critFail ?? fail]) {
-          expect(has(b, 'thwartAct'), o.id).toBe(false)
-          if (!ends(b)) continue
-          expect(b.effects.some((e) => e.effect === 'hp' && e.amount < 0)).toBe(true)
-        }
-      }
+      const finales = reachable(s).filter(([, st]) => st.challenge)
+      expect(finales.length).toBe(1)
+      const [[id, stage]] = finales
+      const { successes, failures, win, lose } = stage.challenge!
+      expect({ successes, failures }, id).toEqual(challengeSize(cr))
+      // Three or four ways to play each round; only the challenge's end thwarts.
+      const rounds = stage.options.filter(playsRound)
+      expect(rounds.length).toBeGreaterThanOrEqual(3)
+      expect(rounds.length).toBeLessThanOrEqual(4)
+      for (const o of stage.options)
+        for (const b of branchesOf(o)) expect(has(b, 'thwartAct'), o.id).toBe(false)
+      expect(has(win, 'thwartAct')).toBe(true)
+      expect(win.effects.some((e) => e.effect === 'gold' && e.amount > 0)).toBe(true)
+      expect(has(lose, 'thwartAct')).toBe(false)
+      expect(ends(lose)).toBe(true)
+      expect(lose.effects.some((e) => e.effect === 'hp' && e.amount < 0)).toBe(true)
     }
   )
 
@@ -218,9 +220,9 @@ describe('act situations', () => {
       const tier = (s: Situation) =>
         Math.max(
           ...Object.values(s.stages).flatMap((st) =>
-            st.options
-              .flatMap(branchesOf)
-              .flatMap((b) => b.effects.flatMap((e) => (e.effect === 'accessory' ? [e.tier] : [])))
+            stageBranches(st).flatMap((b) =>
+              b.effects.flatMap((e) => (e.effect === 'accessory' ? [e.tier] : []))
+            )
           )
         )
       expect(tier(last)).toBeGreaterThan(tier(first))
@@ -250,7 +252,7 @@ test('crisis effects stay where they work', () => {
   const leadIds = new Set(leads.map((s) => s.id))
   const actIds = new Set(acts.map((s) => s.id))
   for (const s of allSituations(content)) {
-    const branches = Object.values(s.stages).flatMap((st) => st.options.flatMap(branchesOf))
+    const branches = Object.values(s.stages).flatMap(stageBranches)
     const uses = (effect: Effect['effect']) => branches.some((b) => has(b, effect))
     if (uses('learnPlan')) expect(leadIds, s.id).toContain(s.id)
     if (uses('revealKeySite')) expect(leadIds, s.id).toContain(s.id)
