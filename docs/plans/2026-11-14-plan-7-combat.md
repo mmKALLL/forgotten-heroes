@@ -136,6 +136,11 @@
   - **Lairs** fight their occupants.
   - **XP:** none for killing; the situation pays as now.
   - **Rests:** a long rest restores uses; no rest between dungeon rooms.
+- **As built (Track I)** (branch `plan7-integrate`): the combat design's §14 and the rebuild design §7 ("Fight and Parley").
+    - Fight joins a hostile stage's fight-like check (`check.combat`) when its foes are known (`foe` on 27 situations, else a creature slot), and a climax's challenge (`climax` on the 20 dungeons and 9 Crisis acts); Parley joins every non-climax Fight.
+    - Groups from `roadFightCount` (road: the party's levels; sites: the site's level) and `henchmenCount` (climaxes, hard). The CR is shown exactly.
+    - Endings: the check's success with its XP, the stage's flight, the check's failure after the wipe's choice (the challenge's win and loss at a climax).
+    - Not yet: Fights in ordinary dungeon rooms and at Crisis leads (they need foes), the simulated players fighting (Track B), boss moves, the dark rooms' footing on the Fight card (at the merge).
 - **Track D (dark rooms):**
   - `dark` rooms marked true to their maps (60% / 20%).
   - Fuel per dark room, previewed in the delve, or every check Exposed. The darkvision rule: everyone but one member, or a lone member, has darkvision.

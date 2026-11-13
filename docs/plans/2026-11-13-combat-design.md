@@ -9,7 +9,7 @@
 - **Places:** dungeon rooms and lairs with enemies, and the Crisis lead and key sites.
 - **On the road,** a hostile situation keeps its quick graded options, and **Fight** is one of them. Fighting opens a combat. The situation's text says roughly how many enemies there are.
 - **Climaxes** (dungeon bosses and Crisis keys) mostly offer a choice between **Fight** and the existing **skill challenge**. The player picks whichever they rate their chances better at.
-- **Odds before choosing.** The Fight option shows the enemies' CR as far as the party knows it: exactly, as a range, or "unknown". This follows the same knowledge rule as a dungeon's suggested level (rumours and earlier visits reveal it). There is no simulation.
+- **Odds before choosing.** The Fight option shows the enemies' CR as far as the party knows it: exactly, as a range, or "unknown". This follows the same knowledge rule as a dungeon's suggested level (rumours and earlier visits reveal it). There is no simulation. As built (§14), it is always exact where Fight is offered.
 - **Rewards.** Killing pays nothing. XP and loot come from the situation: the room, the cleared dungeon, the thwarted act. They are paid the same whether the party fought or took another approach.
 
 ## 2. The line
@@ -318,3 +318,39 @@ The details and the judgement calls to review are in `docs/notes/enemies-review.
 - The bard's picks start at level 4 (five picks for six songs); each song is specialised at most once.
 - Shops stock without limit, at fixed prices (no spread); armour comes in one quality.
 
+
+## 14. As built: Track I, Fight and Parley in encounters (Plan 7, wave 2)
+
+**Where Fight is offered** (`encounters/fights.ts`, added to the snapshot when an encounter starts, before it is hardened, so the danger ramp, a site's CR and a room's rules apply to it as to every option):
+- **A hostile stage with a fight-like check** (`check.combat: true`, the content's existing mark for fighting) whose foes are known: the situation's new `foe` (a creature id), else its first creature slot's creature (the one the slot drew). A twist's stage (`twist-…`) uses the twist kind's `foe` or slot, and only when the twist kind is hostile. On the road, and at hostile sites (lairs, the generic dungeons). Every bundled hostile road and site situation with a fight-like check names its foes (`fightCoverageIssues`, a content test): 27 gained a `foe` (wolves-and-goats in `data/original/` too, noted there), the rest have a creature slot.
+- **A climax**: the challenge stage of a dungeon's last room and of a Crisis key's finale, against the climax's boss (`climax: { boss, henchmen? }` on each dungeon and Crisis act, naming Track N's bosses and an SRD henchman). Not in other dungeon rooms or at Crisis leads (they have no foes yet).
+- The existing fight-like checks stay beside it: the quick graded check and the line are two approaches to the same scene.
+
+**The group** (combat/budget.ts):
+- **Road:** the foe × `roadFightCount` for the party's own levels, medium (`ROAD_FIGHT_DIFFICULTY`); **hard** when the situation is tagged `ambush` (ambush-at-the-narrows, sold-out-ambush, snare-line, darts-from-the-green, nets-in-the-reeds) or the stage is a twist's, and with ambush placement (`fight.ambush`) for the `ambush` tag and the ambush twist kind.
+- **Site:** the foe × `roadFightCount` for a party of the party's size at the site's level (`crLevel` of its CR), medium: the lair's CR, not the party, sets the fight.
+- **Climax:** the boss (as `boss`) plus `henchmenCount` henchmen: as many as a hard budget (`CLIMAX_FIGHT_DIFFICULTY`) for the climax's level allows beside it, often none at low CR.
+
+**The endings** (the Fight option's `fight`; combat/fight.ts applies them):
+- **Win:** the fight-like check's success (a climax: the challenge's `win`, so the hoard or `thwartAct`), plus the check's default XP for a success at its final DC (`payFights`, after hardening). Killing pays nothing of its own.
+- **Retreat:** the stage's flight (its `retreat` option's outcome; a check's success), else a plain getaway; the flight's camaraderie as any flight. In a dungeon room a retreat drives the party out, like a failure.
+- **Wipe:** after the wipe's choice, the check's failure (a climax: the challenge's `lose`), ending the encounter.
+- A fight's endings have no actor and don't hurt again (the line did the hurting): written wounds and effects on the actor are dropped, and a text naming `{actor}` becomes a plain line.
+
+**Parley** (designer call; beside every Fight but a climax's): a check option (`line-parley`, once) with the party's best of Persuasion, Deception and Intimidation when the encounter starts (the card shows the member and skill; the actor picker works as for any check). DC: on the road `crDc` of the group's CR as one foe (`groupCr`: the CR whose XP the group's cost reaches, at least its strongest creature's), at a site the site's CR (written at standard difficulty and hardened like every check there). Tiers: success and critical success let the party pass (the encounter ends; the check's default XP); a partial pays a toll in gold (`PARLEY_TOLL_SHARE` of a same-level contract's pay, at least `PARLEY_TOLL_MIN`, shown as a chip; gold never drops below 0); a failure is refused (Parley is used up, the other options stay); a critical failure opens the stage's Fight with the enemies striking first (the engine-made `fight` effect; `surprise: 'enemy'`, no surprise roll). A stage with an authored `parley` option (the hostile-group archetype's) gets no second one.
+
+**The CR shown:** the Fight card names each foe with its count and exact CR ("Bandit ×4 (CR 1/8)", "the Cutpurse Captain (boss, CR 1)"). The knowledge rule always gives the exact CR where Fight is offered: road foes and lair occupants are in sight, a dungeon is known by word once entered (so by its boss room), and a Crisis key's CR is told on arrival. No simulated win chance.
+
+**Choosing** (combat/offer.ts `chooseInEncounter`, the step's `chooseOption`): Fight uses up the option, carries the encounter's Edge or Exposed into the fight as its footing (for the whole fight) and opens it; the encounter stays on its stage under the fight. The UI shows the line in its place (App), and after Close the encounter's outcome. The Fight card says "On the line" (and the footing); the Outcomes panel shows Win, Retreat and Wiped out with their chips.
+
+**Content rules:** Fight options, the `fight` effect and the ids `line-fight` and `line-parley` are engine-made only (the lint). The simulated players (trader, wanderer) leave Fight and Parley alone until Track B's fight simulation, so the economy and Crisis reports are unchanged.
+
+**Decided while building (please review).**
+- Which scenes: a fight-like check marks a fight, rather than a new tag; a scene without known foes gets no Fight (the coverage test keeps the bundled ones complete).
+- Parley at a climax: none (a boss's defeat is the goal; "let you pass" has no meaning there).
+- A critical Parley failure gives the enemies the free round rather than leaving the party Exposed, since footing lasts the whole fight.
+- Parley's skill is fixed when the encounter starts (the best then), not re-chosen per stage.
+- The win is the check's success, not its critical success (which stays a surprise); a success's twist branch is not used.
+- Lairs field their group for the site's level, not the party's; the war-chief stage fields the same group as the assault.
+- The henchmen picked per dungeon and act (`climax.henchmen`) are Claude's choices from the SRD creatures.
+- **For the merge with dark rooms:** the Fight card's footing is the encounter's (`FightPreview.footing`); in an unlit boss room it should read `darkFooting(footing, roomUnlit(state))` as startCombat applies it.
