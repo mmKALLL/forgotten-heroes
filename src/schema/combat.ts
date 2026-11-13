@@ -216,7 +216,27 @@ export const CombatUnitSchema = z.object({
 })
 export type CombatUnit = z.infer<typeof CombatUnitSchema>
 
-export const CombatLogEntrySchema = z.object({ text: z.string(), tone: LogToneSchema })
+/** An attack's record in the fight's log: the odds it was rolled at and what came of it. */
+export const AttackRecordSchema = z.object({
+  attacker: z.string(),
+  target: z.string(),
+  /** The hit chance the roll was made at (the preview's). */
+  chance: z.number().min(0).max(1),
+  kept: z.number().int().min(1).max(20),
+  modifier: z.number().int(),
+  hit: z.boolean(),
+  crit: z.boolean(),
+  /** The damage range the roll was made at: a hit's, or a crit's. */
+  range: z.tuple([z.number().int(), z.number().int()]),
+  damage: z.number().int().min(0),
+})
+export type AttackRecord = z.infer<typeof AttackRecordSchema>
+
+export const CombatLogEntrySchema = z.object({
+  text: z.string(),
+  tone: LogToneSchema,
+  attack: AttackRecordSchema.optional(),
+})
 export type CombatLogEntry = z.infer<typeof CombatLogEntrySchema>
 
 export const CombatStateSchema = z.object({

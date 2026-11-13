@@ -527,6 +527,18 @@ function resolve(
 }
 
 /**
+ * A fight's ending applied to the open encounter (Plan 7, combat/fight.ts): its `win`, `flee` or
+ * `lose` branch, with no actor, as a challenge's win or lose applies.
+ */
+export const resolveFightBranch = (
+  state: GameState,
+  branch: OutcomeBranch,
+  tone: EncounterLogEntry['tone'],
+  content: Content
+): GameState =>
+  state.encounter?.stage == null ? state : resolve(state, branch, undefined, { tone }, content)
+
+/**
  * After a challenge round has been resolved: the round's marks join the tally, and at the
  * challenge's successes or failures its win or lose branch applies (it has no actor). Nothing is
  * decided when the round itself ended the encounter (no one is left standing, or the Crisis act
