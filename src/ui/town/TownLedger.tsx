@@ -59,11 +59,25 @@ export function TownLedger({
   const ledger = useRef<HTMLElement>(null)
   const id = useId()
   const tabs = useRef<Record<LedgerTab, HTMLButtonElement | null>>({ market: null, travel: null })
-  // Tab switches the tabs while nothing interactive has focus (the page, or the ledger itself);
-  // anywhere else, and with Shift, it moves focus as usual, so the page stays reachable by keyboard.
+  // Tab switches the tabs while nothing interactive has focus (the page, or the ledger itself), or
+  // when the last thing the player did was click (designer call: click a destination, then Tab);
+  // while moving about by keyboard, and always with Shift, it moves focus as usual, so the page
+  // stays reachable by keyboard.
   useEffect(() => {
+    let pointer = false
+    const onPointer = () => {
+      pointer = true
+    }
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return
+      if (e.key !== 'Tab') {
+        // Any other key (Enter, arrows…) means keyboard use: Tab moves focus again.
+        if (!['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) pointer = false
+        return
+      }
+      if (e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) {
+        pointer = false
+        return
+      }
       if (e.defaultPrevented || document.querySelector('[aria-modal="true"]')) return
       const at = document.activeElement
       const idle =
@@ -71,12 +85,16 @@ export function TownLedger({
         at === document.body ||
         at === document.documentElement ||
         at === ledger.current
-      if (!idle) return
+      if (!idle && !pointer) return
       e.preventDefault()
       setTab((current) => (current === 'market' ? 'travel' : 'market'))
     }
+    document.addEventListener('pointerdown', onPointer, true)
     document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('pointerdown', onPointer, true)
+      document.removeEventListener('keydown', onKey)
+    }
   }, [setTab])
   // A destination picked (on the map, say) opens the Travel tab, where its journey card is.
   useEffect(() => {

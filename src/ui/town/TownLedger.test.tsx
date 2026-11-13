@@ -92,6 +92,19 @@ test('the ledger opens on its Market tab; the Travel tab holds Explore, the road
   expect(localStorage.getItem(LEDGER_TAB_KEY)).toBe('travel')
 })
 
+test('after a click, Tab switches the tabs even though the clicked button has focus', async () => {
+  render(<Ledger state={makeState({ location: 'ashmoor-1' })} />)
+  await userEvent.click(tab('Travel'))
+  expect(document.activeElement).toBe(tab('Travel'))
+  await userEvent.keyboard('{Tab}')
+  expect(tab('Market').getAttribute('aria-selected')).toBe('true')
+  // Keyboard use (an arrow key) makes Tab move focus again.
+  tab('Market').focus()
+  await userEvent.keyboard('{ArrowRight}{ArrowLeft}{Tab}')
+  expect(tab('Market').getAttribute('aria-selected')).toBe('true')
+  expect(document.activeElement).not.toBe(tab('Market'))
+})
+
 test('Tab switches the tabs while nothing has focus, and moves focus as usual otherwise', async () => {
   render(<Ledger state={makeState({ location: 'ashmoor-1' })} />)
   expect(document.activeElement).toBe(document.body)

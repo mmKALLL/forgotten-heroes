@@ -32,6 +32,14 @@ Visible wealth has an upside: people of high standing (aristocrats, guild master
   - **The catch:** the work is secret. Failing it, or being caught (a thieves or toll situation drawn while it is held), costs standing with the town, not just the patron.
 - **How it shows:** at most one secret offer per town at a time. It is shown as "a private word" beside the person, and it counts toward the board's 3-offer limit only if the designer wants that.
 
+## Dark dungeons need fuel (designer idea, 2026-11-14)
+
+Fuel gets a use beyond trade: some dungeon rooms are **dark**. A dark room is played with light (torches and lamp oil, spending fuel) or in the dark.
+- In the dark, its checks are rolled Exposed, or it can't be entered at all for the deepest rooms.
+- The delve preview says how much fuel the dungeon's dark rooms will burn, so a party provisions before setting out.
+- The rooms are marked `dark` in the dungeon data, true to the map: caves, crypts, sewers.
+- It pairs with the alarm-level idea below.
+
 ## Also listed for later
 
 - **Classes:** the Monk (ki: stunning, harrying) and the Barbarian (big single blows), from the combat design.
