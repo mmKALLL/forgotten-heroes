@@ -1510,7 +1510,8 @@ h2[tabindex='-1']:focus {
 .goods-grid {
   flex: 1 1 16rem;
   display: grid;
-  grid-template-columns: auto auto;
+  /* Wide fixed columns: the rows don't move as a line grows (designer call 2026-11-14). */
+  grid-template-columns: minmax(17rem, auto) minmax(17rem, auto);
   justify-content: start;
   gap: 0.15rem 1.1rem;
   list-style: none;

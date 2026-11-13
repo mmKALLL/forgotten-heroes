@@ -101,10 +101,7 @@ export function TopInventory({
           const full = t(`goodCategory.${category}`)
           return (
             <li key={category}>
-              <span className="goods-cat muted" title={full}>
-                <span aria-hidden="true">{t(`goodCategoryShort.${category}`)}:</span>
-                <span className="sr-only">{full}:</span>
-              </span>{' '}
+              <span className="goods-cat muted">{full}:</span>{' '}
               {held.length === 0 ? (
                 <span className="muted">{t('goods.none')}</span>
               ) : (

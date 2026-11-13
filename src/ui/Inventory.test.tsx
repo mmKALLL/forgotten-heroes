@@ -62,12 +62,12 @@ test('the top bar shows the essentials, then the other goods as a 2×2 block wit
   const cells = within(screen.getByRole('list', { name: 'Goods carried' })).getAllByRole('listitem')
   // The short label shows; the full name is its title and is read out by screen readers.
   expect(cells.map((c) => c.textContent)).toEqual([
-    'Consum.:Consumables: Healing 2, Arcana 1',
-    'Equip.:Equipment: —',
-    'Mater.:Materials: —',
-    'Precious:Precious: Gems 32 cargo',
+    'Consumables: Healing 2, Arcana 1',
+    'Equipment: —',
+    'Materials: —',
+    'Precious: Gems 32 cargo',
   ])
-  expect(within(cells[0]).getByTitle('Consumables')).toBeTruthy()
+  expect(within(cells[0]).getByText('Consumables:')).toBeTruthy()
   expect(screen.getByRole('group', { name: 'Load' })).toBeTruthy()
   expect(screen.getByRole('img', { name: /^Visible wealth/ })).toBeTruthy()
 })
