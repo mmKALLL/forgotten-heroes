@@ -108,13 +108,15 @@ function footingAfter(branch: OutcomeBranch): { position: Position; modifier: nu
 /**
  * The options a round can be played with, as the odds see them: each check by its best actor (the
  * one who acts when the player doesn't pick) at that actor's modifier and luck now, with the
- * footing each outcome leaves; a fixed option's one outcome for sure. Strain and wounds taken in
+ * footing each outcome leaves (plus any upgrade `bonus`); a fixed option's one outcome for sure. Strain and wounds taken in
  * later rounds are not foreseen. `options` should be the ones available now.
  */
 export function roundChoices(
   state: Pick<GameState, 'party' | 'day' | 'luckUsed'>,
   options: readonly Option[],
-  stageId: string
+  stageId: string,
+  /** What the party's upgrades add to a round of this skill (delving gear in a dungeon room). */
+  bonus: (skill: string) => number = () => 0
 ): RoundChoice[] {
   return options.filter(playsRound).flatMap((option): RoundChoice[] => {
     const once = option.once ? onceKey(stageId, option) : null
@@ -128,7 +130,7 @@ export function roundChoices(
     const lucky = hasLuck(state, actor.characterId)
     const results = (position: Position, modifier: number) => {
       const odds = tierOdds(
-        actor.modifier + modifier,
+        actor.modifier + bonus(skill) + modifier,
         normalizeDc(Number(dc)),
         MODE[position],
         lucky

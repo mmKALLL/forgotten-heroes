@@ -232,7 +232,7 @@ function setOut(
  */
 export function placeOnRoute(
   state: Pick<GameState, 'world' | 'day'> &
-    Partial<Pick<GameState, 'goods' | 'gold' | 'party' | 'contracts'>>,
+    Partial<Pick<GameState, 'goods' | 'gold' | 'party' | 'contracts' | 'upgrades'>>,
   content: Content,
   travel: TravelState
 ): Place | null {
@@ -243,7 +243,10 @@ export function placeOnRoute(
   // Visible wealth draws thieves (economy/wealth.ts); without the party's goods there is none.
   const steps =
     state.goods && state.party && state.gold !== undefined
-      ? visibleWealth({ goods: state.goods, gold: state.gold, party: state.party }, content).steps
+      ? visibleWealth(
+          { goods: state.goods, gold: state.gold, party: state.party, upgrades: state.upgrades },
+          content
+        ).steps
       : 0
   return {
     biome: route.terrain,

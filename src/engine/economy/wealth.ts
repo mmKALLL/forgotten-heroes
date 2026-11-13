@@ -2,6 +2,7 @@ import type { Content } from '../../content/build'
 import { GOOD_CATEGORY, WEALTH_TAGS } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { goodsValue } from './goods'
+import { visibleGoods } from '../rules/upgrades'
 import {
   PURSE_FREE_PER_MEMBER,
   PURSE_SHARE,
@@ -17,7 +18,7 @@ import {
 export type VisibleWealth = {
   /** gp the party visibly carries: precious goods at base price, and part of a heavy purse. */
   value: number
-  /** Precious goods (gems, relics, luxuries) at base price. */
+  /** Precious goods (gems, relics, luxuries) in sight, at base price. */
   precious: number
   /** The share of the coin above PURSE_FREE_PER_MEMBER per member that shows (PURSE_SHARE). */
   purse: number
@@ -31,12 +32,13 @@ export type VisibleWealth = {
   hostile: number
 }
 
+/** What shows: the smuggler's compartment's hidden goods don't (rules/upgrades.ts). */
 export function visibleWealth(
-  state: Pick<GameState, 'goods' | 'gold' | 'party'>,
+  state: Pick<GameState, 'goods' | 'gold' | 'party'> & Partial<Pick<GameState, 'upgrades'>>,
   content: Content
 ): VisibleWealth {
   const members = Math.max(1, state.party.length)
-  const precious = goodsValue(state.goods, content, (g) => GOOD_CATEGORY[g] === 'precious')
+  const precious = goodsValue(visibleGoods(state), content, (g) => GOOD_CATEGORY[g] === 'precious')
   const purse = Math.max(0, state.gold - PURSE_FREE_PER_MEMBER * members) * PURSE_SHARE
   const value = precious + purse
   const perMember = value / members

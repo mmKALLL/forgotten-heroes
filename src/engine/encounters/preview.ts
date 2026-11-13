@@ -24,6 +24,7 @@ import {
 } from './effects'
 import { defaultXp, isHighStakes, setbackCamaraderie, tierOutcome } from './outcomes'
 import { livingMembers } from '../town/camaraderie'
+import { delvingBonus, hiddenNote, softenLoss, upgradedEffect } from '../rules/upgrades'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
 import { crisisActNumber } from '../crisis/status'
@@ -48,6 +49,10 @@ type ChipContext = {
   place?: string
   act: number | null
   failsAct: (effects: readonly Effect[]) => number | null
+  /** The effect as the party's upgrades make it, or null when nothing is left (upgradedEffect). */
+  upgraded: (effect: Effect) => Effect | null
+  /** What the smuggler's compartment hides from a goods loss ("3 hidden"), or null (hiddenNote). */
+  hidden: (effect: Effect) => string | null
 }
 
 /** `next` is "escalates" for a twist branch that goes on to the twist's escalation stage. */
@@ -87,6 +92,11 @@ export type OptionCheckPreview = CheckPreview & {
   situationalModifier: number
   /** Why, e.g. "misread"; null when no reason was given. */
   situationalReason: string | null
+  /**
+   * What the party's upgrades add (delving gear in a dungeon room: rules/upgrades.ts), also added
+   * to the actor's `modifier` for the roll and included in `odds` like the situational modifier.
+   */
+  upgradeModifier: number
   successChance: number
   highStakes: boolean
   /** The XP each living member gains on a success (the success outcome's `xp`). */
@@ -136,13 +146,18 @@ function effectChips(
   actorName: string,
   ctx: ChipContext
 ) {
+  const chip = (raw: Effect): string[] => {
+    const e = ctx.upgraded(raw)
+    const text = e && describeEffect(e, actorName, ctx.place, ctx.act)
+    if (!e || !text) return []
+    const hidden = ctx.hidden(e)
+    return [hidden ? `${text} (${hidden})` : text]
+  }
   return effects.flatMap((effect): string[] => {
     const chips =
       effect.effect === 'openingHit' && twistKindKnown(encounter)
-        ? openingEffects(encounter).flatMap(
-            (e) => describeEffect(e, actorName, ctx.place, ctx.act) ?? []
-          )
-        : [describeEffect(effect, actorName, ctx.place, ctx.act) ?? []].flat()
+        ? openingEffects(encounter).flatMap(chip)
+        : chip(effect)
     if (!effect.if || conditionHolds(effect.if, encounter)) return chips
     return chips.map((chip) => `${chip} (${describeCondition(effect.if!)})`)
   })
@@ -228,12 +243,14 @@ export function encounterOptions(
     place: encounterSettlementName(state),
     act: crisisActNumber(state),
     failsAct: (effects) => crisisFailsDuring(state, effects),
+    upgraded: (effect) => upgradedEffect(state, effect),
+    hidden: (effect) => hiddenNote(state, encounter.situation.tags, effect),
   }
   const members = livingMembers(state).length
   const challenge = challengeOf(encounter)
   return currentOptions(encounter).map((option) => {
     const setbackAt = (tier: Tier | null) =>
-      setbackCamaraderie(members, encounter.situation, option, tier)
+      softenLoss(state, setbackCamaraderie(members, encounter.situation, option, tier))
     // A challenge round stays on the stage, pays no XP of its own, and shows what it marks.
     const round = challenge !== null && playsRound(option)
     const play = (outcome: Outcome) => (round ? asRound(outcome) : outcome)
@@ -278,8 +295,9 @@ export function encounterOptions(
     }
     const values = { ...encounter.slots, actor: preview.actorName }
     const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
-    // The same effective modifier `chooseOption` rolls with.
-    const effective = preview.modifier + situationalModifier
+    // The same effective modifier `chooseOption` rolls with: delving gear helps in dungeon rooms.
+    const upgradeModifier = delvingBonus(state, encounter.situation, skill, round)
+    const effective = preview.modifier + situationalModifier + upgradeModifier
     const lucky = hasLuck(state, preview.actorId)
     const odds = tierOdds(effective, preview.dc, mode, lucky)
     const actors = rankActors(state.party, skill, ability).map((r) => ({
@@ -309,6 +327,7 @@ export function encounterOptions(
       mode,
       situationalModifier,
       situationalReason: encounter.nextCheckReason,
+      upgradeModifier,
       lucky,
       successChance: successChance(odds),
       highStakes: isHighStakes(option, odds),
@@ -375,7 +394,9 @@ export function challengePreview(state: GameState): ChallengePreview | null {
   const challenge = encounter && challengeOf(encounter)
   if (!encounter || !challenge || encounter.stage === null) return null
   const available = currentOptions(encounter).filter((o) => optionAvailable(state, o))
-  const choices = roundChoices(state, available, encounter.stage)
+  const choices = roundChoices(state, available, encounter.stage, (skill) =>
+    delvingBonus(state, encounter.situation, skill, true)
+  )
   const tally = encounter.tally ?? NO_TALLY
   const { chance, ifChosen } = challengeOdds(choices, challenge, {
     tally,

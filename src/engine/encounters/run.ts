@@ -33,6 +33,15 @@ import { atChallenge, dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import {
+  addGoods,
+  delvingBonus,
+  hiddenGoods,
+  hiddenNote,
+  smugglesPast,
+  upgradedEffect,
+  visibleGoods,
+} from '../rules/upgrades'
+import {
   NO_TALLY,
   addTally,
   asRound,
@@ -448,19 +457,25 @@ function resolve(
   const actorName = nameOf(state, actorId)
   const values = actorName ? { ...encounter.slots, actor: actorName } : encounter.slots
   const fill = (text: string) => fillText(text, values)
+  // The party's upgrades soften camaraderie losses (the company banner), as the preview shows.
   const effects: Effect[] = [
     ...prepareEffects(branch.effects, encounter).map((e) =>
       e.effect === 'log' ? { ...e, text: fill(e.text) } : e
     ),
     ...(xp > 0 ? [{ effect: 'xp' as const, amount: xp }] : []),
     ...(setback < 0 ? [{ effect: 'camaraderie' as const, amount: setback }] : []),
-  ]
+  ].flatMap((e) => upgradedEffect(state, e) ?? [])
   const place = encounterSettlementName(state)
   const act = crisisActNumber(state)
   // Days spent here may run past the Crisis act's last day: the visit then ends (crisis/progress).
   const failed = crisisFailsDuring(state, effects)
+  const tags = encounter.situation.tags
   const chips = [
-    ...effects.flatMap((e) => describeEffect(e, actorName ?? 'someone', place, act) ?? []),
+    ...effects.flatMap((e) => {
+      const chip = describeEffect(e, actorName ?? 'someone', place, act)
+      const hidden = chip && hiddenNote(state, tags, e)
+      return chip ? [hidden ? `${chip} (${hidden})` : chip] : []
+    }),
     ...(failed !== null ? [tooLateChip(failed)] : []),
   ]
   const text = fill(branch.text) + (chips.length > 0 ? ` (${chips.join(', ')})` : '')
@@ -468,7 +483,14 @@ function resolve(
   // The outcome text comes before any log effects it triggers.
   let next = appendLog(state, text, entry.tone)
   next = { ...next, encounter: { ...encounter, log: [...encounter.log, { ...entry, text }] } }
-  next = applyEffects(next, effects, { actorId, content })
+  // A toll or road thieves see only what the smuggler's compartment doesn't hide.
+  const hidden = smugglesPast(tags) ? hiddenGoods(next) : {}
+  next = applyEffects(
+    { ...next, goods: smugglesPast(tags) ? visibleGoods(next) : next.goods },
+    effects,
+    { actorId, content }
+  )
+  next = { ...next, goods: addGoods(next.goods, hidden) }
 
   // "@twist" goes to the twist's escalation stage; once there, which twist it was is no secret.
   const escalates = branch.goto === TWIST_STAGE
@@ -577,7 +599,12 @@ export function chooseOption(
   if (!actor) return appendLog(state, 'No one is able to act.', 'bad')
   const dc = normalizeDc(Number(option.check.dc))
   const mode = POSITION_MODE[encounter.position]
-  const modifier = actor.modifier + encounter.nextCheckModifier
+  // A challenge round in a dungeon room, or a check there, may gain from delving gear.
+  const round = challengeOf(encounter) !== null
+  const modifier =
+    actor.modifier +
+    encounter.nextCheckModifier +
+    delvingBonus(state, encounter.situation, skill, round)
   // A `lucky` hook rerolls a natural 1 once a day (gear/hooks.ts); the preview's odds include it.
   const lucky = hasLuck(state, actor.characterId)
   const [roll, rng, rerolled] = rollCheck(state.rng, modifier, dc, mode, lucky)

@@ -1,4 +1,5 @@
 import { GOODS, GOOD_CATEGORY, WEALTH_TAGS, type Skill, type UpgradeId } from '../../schema/types'
+import type { Effect } from '../../schema/encounter'
 import type { Goods, GameState } from '../../schema/state'
 import {
   BANNER_SOFTEN,
@@ -16,7 +17,8 @@ import {
 // party's levels, so the previews that show an effect and the steps that apply it call the same
 // function here: preview == actual. Buying them is town/upgrades.ts.
 
-type Owned = Pick<GameState, 'upgrades'>
+/** Anything that knows the party's upgrades (none when missing). */
+type Owned = Partial<Pick<GameState, 'upgrades'>>
 
 /** The level the party owns of an upgrade (0 when not bought). */
 export const upgradeLevel = (state: Owned, id: UpgradeId): number => state.upgrades?.[id] ?? 0
@@ -97,4 +99,34 @@ export function delvingBonus(
     ? DELVING_GEAR_BONUS * level
     : 0
   return gear + (round && level >= DELVING_GEAR_CHALLENGE_LEVEL ? 1 : 0)
+}
+
+/**
+ * An encounter effect as the party's upgrades make it, for its chip and for applying it alike:
+ * a camaraderie loss softened by the company banner, or null when nothing is left of it.
+ */
+export function upgradedEffect(state: Owned, effect: Effect): Effect | null {
+  if (effect.effect !== 'camaraderie' || effect.amount >= 0) return effect
+  const amount = softenLoss(state, effect.amount)
+  return amount === 0 ? null : { ...effect, amount }
+}
+
+/**
+ * The smuggler's compartment's note on a goods loss in a toll or a theft (smugglesPast): how
+ * many units of the goods it takes from are hidden ("3 hidden"), or null. The loss then falls on
+ * what is in sight only (encounters/run.ts resolve).
+ */
+export function hiddenNote(
+  state: Owned & Pick<GameState, 'goods'>,
+  tags: readonly string[] | undefined,
+  effect: Effect
+): string | null {
+  if (effect.effect !== 'goods' || !smugglesPast(tags)) return null
+  if (effect.fraction === undefined && (effect.amount ?? 0) >= 0) return null
+  const hidden = hiddenGoods(state)
+  const targets = effect.good
+    ? [effect.good]
+    : GOODS.filter((g) => GOOD_CATEGORY[g] === effect.category)
+  const n = targets.reduce((sum, g) => sum + (hidden[g] ?? 0), 0)
+  return n > 0 ? `${n} hidden` : null
 }

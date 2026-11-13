@@ -29,6 +29,7 @@ import { enterDungeon } from './delve'
 import { contractDc, contractWound, crOffset, crWound } from '../rules/levels'
 import { rumourOption, type RumourOption } from '../town/rumours'
 import { siteContractsMet } from '../town/contract-hooks'
+import { mapsBonus } from '../rules/upgrades'
 import {
   DEFAULT_PACE,
   EXPLORE_DAYS,
@@ -52,7 +53,10 @@ const BUSY = 'Finish the current encounter first.'
 export type ExploreOption = {
   actorId: string
   skill: (typeof EXPLORE_SKILLS)[number]
+  /** What the search rolls with: the searcher's modifier plus `maps`. */
   modifier: number
+  /** What the surveyor's maps add (0 without them). */
+  maps: number
   dc: number
   days: number
   /** The odds of each tier (tierOdds). */
@@ -132,11 +136,15 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
   }).sort((a, b) => b.actor.modifier - a.actor.modifier)
   if (!best) return null
   const dc = FORAGE_DC[terrain] + EXPLORE_DC_BONUS
-  const chances = tierOdds(best.actor.modifier, dc)
+  // Surveyor's maps help whoever searches (rules/upgrades.ts).
+  const maps = mapsBonus(state)
+  const modifier = best.actor.modifier + maps
+  const chances = tierOdds(modifier, dc)
   return {
     actorId: best.actor.characterId,
     skill: best.skill,
-    modifier: best.actor.modifier,
+    modifier,
+    maps,
     dc,
     days: EXPLORE_DAYS,
     chances,
