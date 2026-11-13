@@ -1,8 +1,37 @@
 # Economy report
 
-The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 5a, I1) comes first; the Plan 4 rounds follow under "Plan 4 history".
+The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 6 Track B) comes first; Plan 5a and the Plan 4 rounds follow.
 
-## Summary (Plan 5a, I1)
+## Plan 6 Track B (the roguelite arc)
+
+This round tuned the run's arc (camaraderie, levels, dungeons, the Crisis); see [crisis-report.md](crisis-report.md) for its targets, what changed and why. Its effect on the economy, rerun on the committed data:
+
+- **The trader keeps its party together** (a round at every inn below 85 camaraderie, a private room below 65, flight weighed at its camaraderie cost) and gives up a contract the town refuses because its goods were lost. Upkeep is counted as lodging (22 gp a run).
+- **Wages are gone** (Plan 6 A): recruits cost a sign-on fee, 150 gp a run for the 50 gp trader (1.9 hires); the trader now earns well inside the old +3–10 gp a day band: 4.4 by day 30 and 6.6 by day 60 (median), with up to four members; 9.3 by day 60 without recruits. Contract pay grows with the contract's level (Plan 6 D1), which is most of the rise.
+- **Levels** follow the new `XP_BY_LEVEL` (level 4 by day 30, 6 by day 60, 12 by day 120 for the trader); the 120-day trader levels faster than the crusader, since its contracts pay more XP as it levels.
+- **Going broke:** 10% by day 30 and 13% by day 60 (50 gp start), 7% / 10% from the game's 10 gp start. Desertions: 3 in 30 runs.
+- **Danger:** encounter success falls from 58% (days 1–50) to 43–55% after; 2 deaths in 10 runs over 120 days. Hostile encounters on a levelled contract now wound deeper with its level (`CR_WOUND_STEP`), as their DCs already rose.
+
+| Policy (seeds 1–30, 60 days, 50 gp start) | gp/day by 30 (P10 / median / P90) | gp/day by 60 | Broke by 30 / 60 | Deaths |
+| --- | --- | --- | --- | --- |
+| trader | −1.1 / 4.4 / 13.7 | 0.1 / 6.6 / 18.0 | 10% / 13% | 0 |
+| trader, one recruit at most | 0.5 / 5.1 / 13.7 | 1.4 / 7.8 / 15.6 | 7% / 10% | 0 |
+| trader, no recruits | 0.9 / 6.3 / 14.6 | 3.3 / 9.3 / 19.6 | 3% / 7% | 0 |
+| contracts only | −1.0 / 6.2 / 12.7 | 1.1 / 12.0 / 19.3 | 10% / 10% | 1 |
+| trade only | −1.5 / −1.0 / −0.3 | −1.0 / −0.5 / −0.1 | 17% / 27% | 0 |
+| wander | −2.0 / −1.4 / 0.0 | −2.0 / −1.2 / 0.0 | 23% / 47% | 17 |
+
+| The game's 10 gp start | gp/day by 30 / 60 (median) | Broke by 30 / 60 | Deaths |
+| --- | --- | --- | --- |
+| trader (gathers, hires, wears gear) | 4.9 / 9.6 | 7% / 10% | 0 |
+| no gathering | 6.3 / 8.0 | 7% / 10% | 1 |
+| none of gathering, hiring, gear | 7.6 / 12.2 | 3% / 7% | 2 |
+
+Levels (the party's best; P10 / median / P90): 50 gp trader day 30 3 / 4 / 5, day 60 5 / 6 / 8; 120-day runs (seeds 1–10) day 120 9 / 12 / 15.
+
+**Still open:** trade alone still doesn't pay (−0.5 gp a day); wander starves (47% broke by day 60, 17 deaths), as before; the guards (above 0 gp a day, under 25% broke by day 30, seeds 1–3 without deaths) all hold.
+
+### Summary (Plan 5a, I1)
 
 In plain words:
 
@@ -20,9 +49,9 @@ ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts
 
 Without `ECONOMY_REPORT`, the same file only runs the guard tests: seeds 1–8 for 30 days with generous bounds that pin no tuning value (the trader's median gp/day is above 0, fewer than 25% go broke by day 30, seeds 1–3 have no deaths, food's dearest price is at most 4.5× its cheapest), and seeds 1–8 for 60 days from the game's start, which must keep a valid state.
 
-## Plan 5a, I1: gathering, recruits, levels and danger
+### Plan 5a, I1: gathering, recruits, levels and danger
 
-### What the trader does now
+#### What the trader does now
 
 The trader policy (`src/engine/travel/trader.ts`, a sim policy, not a rule) gained three habits, each with an option to turn it off:
 
@@ -34,7 +63,7 @@ The report adds: the game's 10 gp start with and without these habits, and with 
 
 **Content:** these runs use the committed data only (no `data/imported-private/`), so they don't match the Plan 4 numbers below exactly. The "none of gathering, hiring, gear" row is the like-for-like baseline.
 
-### Targets: before and after
+#### Targets: before and after
 
 **Before** is the final policy on the data and constants as merged (`96123bf`). For the 10 gp start, the policy without its new habits is shown too, as the Plan 4 baseline. **After** is this commit.
 
@@ -50,7 +79,7 @@ The report adds: the game's 10 gp start with and without these habits, and with 
 | Level 5–6 by day 120 | median 5 (P10 3, P90 6) | median 5 (P10 4, P90 6) | Yes |
 | No gather rule over 2× the median rule's day | 1.15× (healing herbs) | 1.13× (firewood) | Yes |
 
-### What changed
+#### What changed
 
 The plan's order was followed: gathering, then wages and fees, then the XP table.
 
@@ -65,7 +94,7 @@ The plan's order was followed: gathering, then wages and fees, then the XP table
 - **`XP_BY_LEVEL` unchanged.** Levels already land in the target bands.
 - **`STARTING_GOLD` unchanged** (the designer's). It is not needed for the target: the 10 gp start already goes broke in only 7% of runs. More starting gold doesn't help either, because the trader hires sooner: 15 gp gives 13% broke by day 30, 20 gp 10%, 25 gp 17%, 30 gp 23%.
 
-### Findings
+#### Findings
 
 - **Gathering is what saves the 10 gp start.** Without it, the trader goes broke in 30% of runs and 20 founders die. With it, 7% and 8. Most gathering happens in the first week (53 of the 114 gathering days, 30 runs), before the first contract pays.
 - **Recruits are a pure cost today.** A recruit adds carrying, a body for checks and shared XP, but contract pay doesn't grow with the party and a recruit eats 1 gp a day besides the wage. With up to four members, the 50 gp trader pays about 47 gp of wages and 23 gp of fees per 60 days, and its gp/day by day 60 falls from 3.1 to 1.3.
@@ -74,13 +103,13 @@ The plan's order was followed: gathering, then wages and fees, then the XP table
 - **Desertions are rare:** 7 in 30 runs with a 50 gp start, 1 with 10 gp.
 - **Danger:** encounter success 66% (days 1–50), 64% (+10%), 59% (+20%); deaths 0, 2 and 3 in 10 runs.
 
-### For the designer
+#### For the designer
 
 1. **What should a recruit be worth?** Today the only return is safety and carrying. To make the "+3 gp a day with a recruit" target hold, the lightest levers are: contract pay that grows with the party (escorts and bounties paying per member), work only a bigger party can take, or `CONTRACT_PAY_PER_DAY` 10 → about 12. Lowering wages further (`RECRUIT_WAGE` 0.25 is already ½ gp at level 1) would make recruits nearly free, and the food would still cost 1 gp a day each. It may also be fine as it is: recruits as the price of safety, with Plan 5b's Crisis as their payoff.
 2. **`RECRUIT_WAGE` was halved** (Decided overnight #8 said 0.5 × (level + 1)). Revert it if wages should bite harder.
 3. **Timber and stone gathering** could be made worth more (a bigger unit, or a higher yield), or left as the poor choice they are. The preview shows their odds and units, so a player can see it.
 
-### After the Plan 5a review fixes
+#### After the Plan 5a review fixes
 
 Rerun on the committed data (no `data/imported-private/`) after the review fixes: recruit levels drawn within the service's range and capped by the founders' best + 1 (stable all week), a dismissed member's owed wages settled or written off, stowaway work days ending with wages and upkeep, and gathering depleting the land by the units carried. Nothing moves enough to change a conclusion above; the tables below are still the I1 run.
 
@@ -88,9 +117,9 @@ Rerun on the committed data (no `data/imported-private/`) after the review fixes
 - Recruiting: 1.8 hires and 47.8 gp of wages a run (1.7, 46.9); 6 desertions (7).
 - Levels and danger: day 120 best level 3 / 5 / 6 (4 / 5 / 6); deaths over 120 days 6 in 10 runs (5).
 
-### The Plan 5a report (seeds 1–30, 60 days)
+#### The Plan 5a report (seeds 1–30, 60 days)
 
-#### Policies (seeds 1–30, 60 days, a 50 gp start)
+##### Policies (seeds 1–30, 60 days, a 50 gp start)
 
 | Policy | gp/day by 30 (P10 / median / P90) | gp/day by 60 (P10 / median / P90) | IQR by 60 | Broke by 30 | Broke by 60 | Deaths |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -101,7 +130,7 @@ Rerun on the committed data (no `data/imported-private/`) after the review fixes
 | trade only | -1.5 / -1.0 / -0.5 | -0.7 / -0.5 / -0.1 | -0.6 – -0.2 | 17% | 30% | 5 |
 | wander | -1.7 / -1.2 / 0.1 | -1.4 / -0.4 / 0.2 | -1.2 – -0.2 | 23% | 40% | 58 |
 
-#### The game's 10 gp start (STARTING_GOLD), seeds 1–30, 60 days
+##### The game's 10 gp start (STARTING_GOLD), seeds 1–30, 60 days
 
 | Trader | gp/day by 30 (median) | gp/day by 60 (median) | Broke by 30 | Broke by 60 | Still poor on day 30 / 60 | Deaths |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -120,7 +149,7 @@ The full trader with other starts:
 
 Gold in hand, the full trader (P10 / median / P90): day 5 5 / 10 / 27, day 10 0 / 24 / 66, day 15 2 / 27 / 93, day 20 5 / 32 / 124, day 25 3 / 54 / 165, day 30 6 / 79 / 182.
 
-#### Gathering (the trader, seeds 1–30, 60 days)
+##### Gathering (the trader, seeds 1–30, 60 days)
 
 | Start | Runs that gather | Days (mean) | gp (mean) | gp per day | Share of income |
 | --- | --- | --- | --- | --- | --- |
@@ -134,7 +163,7 @@ gp per gathering day by week of play (gathering days in brackets):
 | 50 gp trader | – | 9.3 (3) | 6.7 (3) | 10.5 (2) | 4.0 (6) | 4.1 (7) | 2.8 (8) | 5.4 (5) | 1.5 (2) |
 | 10 gp trader | 3.7 (53) | 2.7 (16) | 2.1 (18) | 2.6 (9) | 3.3 (4) | 4.0 (12) | – | 12.0 (1) | 12.0 (2) |
 
-#### Gathering rules: a fresh day's expected value for the starting party (seeds 1–10, every settlement)
+##### Gathering rules: a fresh day's expected value for the starting party (seeds 1–10, every settlement)
 
 | Rule | Places | gp (P10 / median / P90) | × the median rule |
 | --- | --- | --- | --- |
@@ -147,7 +176,7 @@ gp per gathering day by week of play (gathering days in brackets):
 | cut-timber | 180 | 1.0 / 1.9 / 3.8 | 0.42× |
 | quarry-stone | 120 | 0.9 / 1.8 / 3.4 | 0.39× |
 
-#### Gathering saturation: one domain, 14 days running (177 domains, seeds 1–10)
+##### Gathering saturation: one domain, 14 days running (177 domains, seeds 1–10)
 
 Expected gp of the best option each day (median across domains), and its share of day 1:
 
@@ -158,14 +187,14 @@ Expected gp of the best option each day (median across domains), and its share o
 
 The best option is first worth half its day-1 value on day 3 / 8 / 14 (P10 / median / P90; 15 = not within 14 days).
 
-#### Recruiting (seeds 1–30, 60 days)
+##### Recruiting (seeds 1–30, 60 days)
 
 | Start | Members by 30 (P10 / median / P90) | Members by 60 | Hires a run | Wages a run (gp) | Desertions (all runs) |
 | --- | --- | --- | --- | --- | --- |
 | 50 gp trader | 2 / 3 / 4 | 2 / 4 / 4 | 1.7 | 46.9 | 7 |
 | 10 gp trader | 2 / 2 / 4 | 2 / 4 / 4 | 1.2 | 30.1 | 1 |
 
-#### Levels: the party’s best level (P10 / median / P90)
+##### Levels: the party’s best level (P10 / median / P90)
 
 | Runs | Day 10 | Day 15 | Day 30 | Day 60 | Day 120 |
 | --- | --- | --- | --- | --- | --- |
@@ -173,7 +202,7 @@ The best option is first worth half its day-1 value on day 3 / 8 / 14 (P10 / med
 | 10 gp trader, seeds 1–30, 60 days | 1 / 1 / 2 | 1 / 2 / 2 | 2 / 2 / 3 | 3 / 3 / 4 | – |
 | 50 gp trader, seeds 1–10, 120 days | 1 / 2 / 2 | 2 / 2 / 2 | 2 / 3 / 3 | 3 / 4 / 4 | 4 / 5 / 6 |
 
-#### Danger: the 50 gp trader by 50-day band (seeds 1–10, 120 days)
+##### Danger: the 50 gp trader by 50-day band (seeds 1–10, 120 days)
 
 | Days | Danger | Encounter checks | Success or better | Deaths |
 | --- | --- | --- | --- | --- |
@@ -183,11 +212,11 @@ The best option is first worth half its day-1 value on day 3 / 8 / 14 (P10 / med
 
 Deaths over 120 days: 5 in 10 runs.
 
-## Plan 4 history
+### Plan 4 history
 
 The Plan 4 rounds, oldest first. "The 10 gp start" and "STARTING_GOLD" there refer to the designer's start before gathering existed.
 
-### Targets
+#### Targets
 
 From Plan 4 I1, plus the designer's notes:
 
@@ -200,7 +229,7 @@ From Plan 4 I1, plus the designer's notes:
 - A starting party doesn't go broke in its first ~30 days with sensible play.
 - Encounter rates stay as they are.
 
-### Method
+#### Method
 
 - **Policies.** The policies are in `src/engine/travel/trader.ts`, built on what a player can see (the price book, the notice board, the previews).
   - **trader:** completes contracts and sells cargo where the price is as good as any it knows. It rests when hurt, listens for rumours, and takes the notice-board contract worth the most per day. That value includes any cargo the price book says would sell at the destination. It buys courier news for a contract's destination, buys a mule when the extra cargo would pay for it, and otherwise follows the best cargo run in its price book. When poor or idle it looks for a fresh notice board, explores every fifth leg, and otherwise scouts unknown markets. In encounters it takes the likeliest check, or a free fixed option when every check is a long shot.
@@ -213,7 +242,7 @@ From Plan 4 I1, plus the designer's notes:
   - **Deaths:** members at exhaustion 6, out of 60 members (30 runs of 2).
 - **Before** is the final policy on the data and constants as they were at commit `trader policy and economy report`. **After** is this commit. Comparing them that way isolates the tuning. The policy itself also improved during the work (see "Policy fixes"), so a before run on the first draft of the policy looks worse still.
 
-### Before → after (seeds 1–30, 60 days)
+#### Before → after (seeds 1–30, 60 days)
 
 | | Before | After |
 |---|---|---|
@@ -247,7 +276,7 @@ From Plan 4 I1, plus the designer's notes:
 - One outlier remains (below).
 - Trade is real but small: a mean of 24 gp profit per 60 days against 332 from contracts and 59 from loot.
 
-### What changed and why
+#### What changed and why
 
 The plan's tuning order was followed: spreads and market depth, then market rules, then contract pay, then goods prices.
 
@@ -279,13 +308,13 @@ The plan's tuning order was followed: spreads and market depth, then market rule
   - The food changes bring its worst spread from 4.9× to 3.9×.
 - **Loot** in `poi-situations.json` was left alone. Loot is about 15% of the trader's income, which is in line.
 
-### Engine fixes found by the simulation
+#### Engine fixes found by the simulation
 
 - **Provisioning with no coin said "the party already has what the road needs".** A broke party then set out with no food (`town/provision.ts`). `ready` is now false whenever the plan is short.
 - **A fraction of a gp of animal upkeep logged "There is no coin left for the animals' fodder" with gold in the purse** (`town/animals.ts`).
 - **The "varies its pace" replay test now uses a seed whose party stays fed.** A starving party camps for months, and that fills the capped log.
 
-### Policy fixes (for whoever extends the trader)
+#### Policy fixes (for whoever extends the trader)
 
 These traps would catch a player too, so they are worth knowing:
 
@@ -296,7 +325,7 @@ These traps would catch a player too, so they are worth knowing:
 - Long contracts (more than 8 steady days), sites more than 2 days out, and roads that can't be supplied are skipped.
 - Fixed options that cost coin (tolls, a healer's fee) are a last resort. This cut encounter losses from about 30 gp to 12 gp a run.
 
-### Known outliers and open points
+#### Known outliers and open points
 
 - **Arcana is the one outlier: 3 sales at a 172% median margin, against 28% overall.**
   - Two of the sales are a single pair of towns in one world: a cheap market near an expert's site and a wealthy town.
@@ -311,7 +340,7 @@ These traps would catch a player too, so they are worth knowing:
   - A run of hostile encounters can drain a 50 gp purse before the first job.
 - **"Thieves in the night… −1 animal"** is logged when the party owns no animal. The effect does nothing, but the text is wrong.
 
-### Designer questions
+#### Designer questions
 
 1. **A safety net for a broke party.** Should a broke party in town always have a way to eat, such as a day's labour for meals? Starvation is the main cause of death in the simulation, and it only hits parties that are already broke.
 2. **"Gather materials".** The numbers suggest it is worth adding as an early, capital-free income:
@@ -322,7 +351,7 @@ These traps would catch a player too, so they are worth knowing:
 3. **Provisioning order** (above): food first, or a warning when waterskins make the party encumbered? *Answered: water stays first; provisioning fills only the water the road needs and warns when that encumbers the party (last section).*
 4. **Should supply patrons advance part of the goods' cost?** That would make supply runs possible for a poor party. *Answered: no advance. Supply runs are split into freight and procurement (last section).*
 
-### Reference: a 10 gp start
+#### Reference: a 10 gp start
 
 `STARTING_GOLD` was 50 during this tuning; the designer has since set it to 10 (see "After merging C4" below).
 
@@ -339,7 +368,7 @@ Gold in hand (P10 / median / P90):
 
 The first job decides the run: parties that land a courier job in the first days are comfortable by day 10, and the P10 line stays near zero for the whole month. A 10 gp start is tight but survivable for about 9 parties in 10. Before this tuning, a 10 gp start went broke in 57% of runs by day 30.
 
-### After merging C4 and the designer's changes
+#### After merging C4 and the designer's changes
 
 Rerun once on `rebuild` after merging Plan 4 C4 (the Stealthy ½ and Cautious ¾ paces) and the designer's `STARTING_GOLD` 10 and sea speed 40 km a day. The policy tables now start every party with the simulation's own 50 gp (`SIM_GOLD`), so they compare with the numbers above; the reference section uses the game's `STARTING_GOLD`.
 
@@ -358,7 +387,7 @@ Rerun once on `rebuild` after merging Plan 4 C4 (the Stealthy ½ and Cautious ¾
 
 The 50 gp trader stays inside the targets. **The game's 10 gp start is now tighter:** about a quarter of runs go broke within the first month (gold in hand on day 5, P10 / median / P90: 2 / 10 / 33; day 30: 0 / 96 / 227). The safety net and "gather materials" questions above matter more with this start; Plan 5a's gathering is meant to answer them.
 
-### Geographic supply, whole gold and the supply split (designer decisions)
+#### Geographic supply, whole gold and the supply split (designer decisions)
 
 Rerun after four designer decisions (design §4, §5):
 
@@ -419,7 +448,7 @@ Every good reaches the ½×–2× band at its extremes; typical prices sit near 
 - **Outliers:** gems had 2 sales at a 241% median margin (one of them 461%, Greenwall → Fort Thorn); alchemicals 1 sale at 74%. Too few sales to call a pattern; watch them.
 
 
-### After the Plan 4 review fixes
+#### After the Plan 4 review fixes
 
 Rerun (seeds 1–30, 60 days) after merging the Plan 4 review fixes and the UI pass: Provision buys food only (waterskins by hand), water refills by itself (also on setting out), contract cargo is reserved, exhaustion slows travel, Cautious is gone. The trader (a sim policy, not a rule) now buys the waterskins a road needs before provisioning, never takes a road whose water it can't buy or carry the skins for (it gives up a contract with no such road), leaves sites at a pace whose supplies last, and walks brisk instead of forcing a march while encumbered. Without those, seeds 2 and 3 died of thirst.
 

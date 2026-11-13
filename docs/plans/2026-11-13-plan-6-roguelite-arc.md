@@ -293,6 +293,11 @@ export function crLevel(cr: number): number
   - **Dungeons:** they pay off for levels but carry about 2× the risk.
   - **Novices:** a level-1–3 party fails act I's prevention almost always.
 - Update `docs/notes/economy-report.md` and `docs/notes/crisis-report.md`.
+- **As built (B1–B2; details and numbers in `docs/notes/crisis-report.md`, design §3, §6, §10b, §12):**
+  - **Disbanding** was failed checks in a party of 3–4, hunger and fleeing against gains the sims never used: the sims now stand a round, take private rooms and weigh flight's cost; `CAMARADERIE_FAIL` 2.5 → 1, `CAMARADERIE_CRIT_FAIL` 5 → 2, `CAMARADERIE_HUNGER` 13 → 8. 35% of crusader runs disband (it was nearly all).
+  - **XP:** `XP_BY_LEVEL` from the crusader's income (900 a level from level 6): median 4 / 7 / 14 / 19 on days 30 / 100 / 200 / 300. Dungeons pay 75% of their level's step (designer), with `milestone` rooms paying 25% once a clearing; lairs 25% × (1 + power).
+  - **Smallest mechanics added** (flagged): going down costs `DOWNED_EXHAUSTION` (2); wounds deepen with the CR (`CR_WOUND_STEP`) in dungeons, lairs and levelled contracts' hostile encounters; act I's finale failures hurt everyone. `CR_DC` −1 from CR 12.
+  - **Not met:** 75% of runs ending before the Crisis gets going (5%), novices "almost never" winning act I's key (22%; a level-7 party of four 45%), act III (lost by all 4 runs reaching it).
 
 ### Review
 - One code review of the whole plan, then a fix round, as before.

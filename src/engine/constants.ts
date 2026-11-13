@@ -427,9 +427,9 @@ export const CAMARADERIE_DEATH = 25
  * Camaraderie lost for a failed encounter check, per living member beyond the first (the total is
  * rounded: 3 for a pair, 13 for six).
  */
-export const CAMARADERIE_FAIL = 1.5
+export const CAMARADERIE_FAIL = 1
 /** Camaraderie lost for a critically failed encounter check, per living member beyond the first. */
-export const CAMARADERIE_CRIT_FAIL = 3
+export const CAMARADERIE_CRIT_FAIL = 2
 /** Camaraderie lost for fleeing (an option tagged `retreat`), per living member beyond the first. */
 export const CAMARADERIE_RETREAT = 5
 /** Camaraderie gained for each contract completed. */
@@ -571,8 +571,8 @@ export const PATH_DETOUR = 1.25
  * every level costs the same 900.
  */
 export const XP_BY_LEVEL: readonly number[] = [
-  0, 200, 500, 900, 1500, 2300, 3200, 4100, 5000, 5900, 6800, 7700, 8600, 9500, 10400, 11300, 12200,
-  13100, 14000, 14900,
+  0, 200, 500, 900, 1500, 2300, 3200, 4100, 5000, 5900, 6800, 7700, 8600, 9600, 10700, 11900, 13200,
+  14600, 16100, 17700,
 ]
 /** XP for a successful check, per point of its final DC (site power and danger included). */
 export const XP_PER_DC = 5
@@ -593,7 +593,7 @@ export const XP_DISCOVER = 25
 
 /** The base DC of a check against each CR 0–20 (provisional, Plan 6 C1). */
 export const CR_DC: readonly number[] = [
-  10, 11, 12, 13, 13, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22,
+  10, 11, 12, 13, 13, 14, 15, 15, 16, 16, 17, 17, 17, 18, 18, 19, 19, 19, 20, 20, 21,
 ]
 /** Past the table, the DC rises by 1 every this many CR. */
 export const CR_DC_BEYOND = 2

@@ -171,7 +171,7 @@ const MAX_STALLED_LEGS = 3
 /** Below this camaraderie the policy stands the party a round on arriving at an inn. */
 const ROUND_BELOW = 85
 /** Below this it also takes a private room for a night, where an inn has one. */
-const PRIVATE_BELOW = 55
+const PRIVATE_BELOW = 65
 /** The delver goes to dungeons suggested for at most its best level + this. */
 const DELVE_LEVEL_LEAD = 1
 /** ...within this many steady days of the settlement it is in... */

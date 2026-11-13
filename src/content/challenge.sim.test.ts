@@ -11,8 +11,8 @@ import { loadBundledContent } from './bundled'
 // Plan 6 S: a climax should be hard for a low-level party. Act I's key situations are played from
 // their start at their CR by a fresh party at a given level, picking the likeliest check (never
 // leaving) and, in the finale's challenge, the round with the best chance of winning it. A guard
-// with a generous bound (Plan 6 S measured about 0.30 for novices and 0.39 at level 7 over 40
-// seeds; Track B tunes toward "almost never" for novices); the rates print for the notes.
+// with a generous bound (Plan 6 Track B measured 0.22 for a novice pair, 0.28 for a level-7 pair and
+// 0.45 for a level-7 party of four; see docs/notes/crisis-report.md); the rates print for the notes.
 
 const content = loadBundledContent()
 const villains = Object.values(content.villains)
@@ -20,10 +20,21 @@ const actOne = villains.flatMap((v) =>
   content.poiTypes[v.acts[0].site].situations.map((id) => ({ id, cr: v.acts[0].keyCr }))
 )
 
-/** A new game's party (and gold), every member raised to `level`. */
-function partyAt(seed: number, level: number): GameState {
+/**
+ * A new game's party (and gold), every member raised to `level`; with `size` 4, another world's
+ * founders join as two hired members (as a party of that level would have recruited).
+ */
+function partyAt(seed: number, level: number, size = 2): GameState {
   const state = newGame(seed, content)
-  const [party, rng] = withRng(state.rng, (d) => state.party.map((c) => levelTo(c, level, d)))
+  const extra =
+    size > 2
+      ? newGame(seed + 1000, content)
+          .party.slice(0, size - 2)
+          .map((c, i) => ({ ...c, id: `hired-${i}`, hired: true }))
+      : []
+  const [party, rng] = withRng(state.rng, (d) =>
+    [...state.party, ...extra].map((c) => levelTo(c, level, d))
+  )
   return { ...state, rng, party: party.map((c) => ({ ...c, hp: c.maxHp })), gold: 50 }
 }
 
@@ -53,14 +64,21 @@ function playOut(start: GameState): boolean {
   return false
 }
 
-function winRate(level: number, seeds: number): number {
+function winRate(level: number, seeds: number, size = 2): number {
   let wins = 0
   let runs = 0
   for (const { id, cr } of actOne)
     for (let seed = 1; seed <= seeds; seed++) {
-      const started = startEncounter(partyAt(seed, level), content, id, undefined, undefined, {
-        cr,
-      })
+      const started = startEncounter(
+        partyAt(seed, level, size),
+        content,
+        id,
+        undefined,
+        undefined,
+        {
+          cr,
+        }
+      )
       runs++
       if (playOut(started)) wins++
     }
@@ -74,8 +92,11 @@ describe("act I's key challenge", () => {
     () => {
       const novice = (winRate(1, 25) + winRate(2, 25)) / 2
       const meant = winRate(7, 25)
+      const party = winRate(7, 25, 4)
       console.log(
-        `act I key won: novice (levels 1–2) ${novice.toFixed(3)}, level 7 ${meant.toFixed(3)}`
+        `act I key won: novice pair (levels 1–2) ${novice.toFixed(3)}, level-3 pair ` +
+          `${winRate(3, 25).toFixed(3)}, level-7 pair ${meant.toFixed(3)}, level-7 party of four ` +
+          `${party.toFixed(3)}`
       )
       expect(novice).toBeLessThan(0.4)
       expect(meant).toBeGreaterThan(novice)
