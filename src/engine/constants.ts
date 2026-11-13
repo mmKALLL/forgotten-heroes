@@ -741,6 +741,11 @@ export const DELVE_REWARD: readonly [number, number] = [1.5, 2]
 /** A hoard's accessories are of tier 2 from this CR (tier 1 below). */
 export const DELVE_FINE_CR = 8
 
+// Delving: dark rooms and fuel (world/dark.ts; Plan 7 Track D, combat design §7b)
+
+/** Entering a dark room burns this much fuel to light it (else the party is Exposed there). */
+export const FUEL_PER_DARK_ROOM = 1
+
 // World danger (world/danger.ts)
 
 /** The world grows more dangerous every this many days (day 51, 101, …). */

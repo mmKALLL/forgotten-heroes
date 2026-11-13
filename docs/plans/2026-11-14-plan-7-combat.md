@@ -146,6 +146,11 @@
 - For Track U (the 1–9 keys): `abilitySlots(state, content, unit)` lists each slot with its legal uses and what each does; dispatch `combatAbility { unit, ability, tile?, target? }`. Track S can add spells as further slots and spend `spell-<level>` uses (combat/uses.ts `spellCasts`, `spellUsesLeft`).
 - Designer call (2026-11-14): the bard's fifth and sixth songs (Mending Song, Song of Renewal), each song with its own uses, specialisations raising uses and effect.
 
+### As built (Track D)
+- Built on branch `plan7-dark`; the details are in the combat design's §7b ("As built: Track D"). Save v24 → v25 (`DelveState.unlit`).
+- 12 of 20 dungeons have dark rooms, 4 mostly dark. 1 fuel per dark room as it is entered; unlit rooms make every check and any fight there Exposed (an Edge cancels it); a darkvision party (elf, dwarf, orc: all living members but one, or a lone one) burns no fuel.
+- For Track I: `startCombat` applies the dark itself; a fight preview should use `darkFooting(footing, roomUnlit(state))` (`world/dark.ts`).
+
 ## Wave 3
 - **Track B (balance):**
   - **A fight simulation** of each class party against enemies by CR, aiming at the intended win rates: the intended-level party wins most fights, and a party 2 levels below loses most.

@@ -27,6 +27,7 @@ import { defaultXp, isHighStakes, setbackCamaraderie, tierOutcome } from './outc
 import { livingMembers } from '../town/camaraderie'
 import { checkUpgrades, hiddenNote, softenLoss, upgradedEffect } from '../rules/upgrades'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
+import { darkMode, roomUnlit } from '../world/dark'
 import { fillText } from './slots'
 import { SHOW_OUTCOME_TEXT } from '../constants'
 import { crisisActNumber } from '../crisis/status'
@@ -260,7 +261,8 @@ export function encounterOptions(
 ): OptionPreview[] {
   const encounter = state.encounter
   if (!encounter) return []
-  const mode = POSITION_MODE[encounter.position]
+  // An unlit dungeon room (world/dark.ts): every check Exposed on top, as chooseOption rolls it.
+  const mode = darkMode(POSITION_MODE[encounter.position], roomUnlit(state))
   const situationalModifier = encounter.nextCheckModifier
   const ctx = chipContext(state, encounter)
   const members = livingMembers(state).length
@@ -434,7 +436,8 @@ export function challengePreview(state: GameState): ChallengePreview | null {
     state,
     available,
     encounter.stage,
-    (option, mode) => checkUpgrades(state, encounter.situation, option, mode, true).total
+    (option, mode) => checkUpgrades(state, encounter.situation, option, mode, true).total,
+    roomUnlit(state)
   )
   const tally = encounter.tally ?? NO_TALLY
   const { chance, ifChosen } = challengeOdds(choices, challenge, {

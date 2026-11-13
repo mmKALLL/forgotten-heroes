@@ -30,6 +30,7 @@ import {
 } from './defeat'
 import { actionOrder, infightTarget, infighting, planIntents, repositionTile } from './intents'
 import { useAbility, type AbilityAction } from './abilities'
+import { darkFooting, roomUnlit } from '../world/dark'
 import {
   canEnter,
   distance,
@@ -129,7 +130,8 @@ const SURPRISE_LINES: Record<CombatState['surprise'], string> = {
 
 /**
  * Opens a fight (combat design §2): units, placement, the surprise roll and the first intents.
- * The party's footing (Edge or Exposed) holds for the whole fight.
+ * The party's footing (Edge or Exposed) holds for the whole fight; in an unlit dungeon room it is
+ * Exposed on top (world/dark.ts), whoever opens the fight. A lit room is lit along the whole line.
  */
 export function startCombat(
   state: GameState,
@@ -167,7 +169,8 @@ export function startCombat(
       units: units.map((u) =>
         half && u.side === 'party' && !quick.includes(u.id) ? { ...u, moved: true, acted: true } : u
       ),
-      footing: options.footing ?? 'normal',
+      // In an unlit dungeon room the party fights Exposed on top (world/dark.ts, design §7b).
+      footing: darkFooting(options.footing ?? 'normal', roomUnlit(state)),
       surprise: surprise.result,
       firstMovers: half ? quick : [],
       groupSize: enemies.length,

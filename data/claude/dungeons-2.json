@@ -2,7 +2,7 @@
   "$schema": "../_schema/dungeons.schema.json",
   "kind": "dungeons",
   "source": "claude",
-  "notes": "Authored dungeons, set 2 of 2 (Plan 6 D5): ten dungeons on maps from the _haunted, _coastal, __dungeon entrances and _epic (n-z) folders. Each map path is relative to ~/dnd5e and listed in assets.manifest.txt (local assets only). Rooms were marked by looking at each map: coordinates are [x, y] fractions of the image, in delve order, and every room's text and situations follow what is drawn there. The last room is the climax. Room situations live in dungeon-rooms-2.json. All descriptions are our own words. Written by Claude.",
+  "notes": "Authored dungeons, set 2 of 2 (Plan 6 D5): ten dungeons on maps from the _haunted, _coastal, __dungeon entrances and _epic (n-z) folders. Each map path is relative to ~/dnd5e and listed in assets.manifest.txt (local assets only). Rooms were marked by looking at each map: coordinates are [x, y] fractions of the image, in delve order, and every room's text and situations follow what is drawn there. The last room is the climax. Room situations live in dungeon-rooms-2.json. All descriptions are our own words. Written by Claude. Dark rooms (Plan 7 Track D, combat design §7b): `dark` marks rooms unlit on the map and in their texts (caves, crypts, sewers, mine galleries, deep halls); about 60% of all dungeons have one and about 20% are mostly dark (src/content/dark.test.ts).",
   "entries": [
     {
       "id": "ashgrave-mausoleum",
@@ -19,7 +19,8 @@
           "name": "The Coffin Hall",
           "at": [0.5, 0.8],
           "text": "At the foot of the stair, a long vault of coffins on stone biers between two rows of pillars, with urn niches in the walls and doors to two side vaults.",
-          "situations": ["ashgrave-mausoleum-rats", "ashgrave-mausoleum-lid"]
+          "situations": ["ashgrave-mausoleum-rats", "ashgrave-mausoleum-lid"],
+          "dark": true
         },
         {
           "id": "east-vault",
@@ -70,28 +71,32 @@
           "name": "The Flooded Gallery",
           "at": [0.2, 0.62],
           "text": "A long channel of still green water fills the western gallery, with a rowboat tied at its foot below some plank steps.",
-          "situations": ["greyvein-mine-boat", "greyvein-mine-leeches"]
+          "situations": ["greyvein-mine-boat", "greyvein-mine-leeches"],
+          "dark": true
         },
         {
           "id": "collapsed-face",
           "name": "The Collapsed Face",
           "at": [0.72, 0.1],
           "text": "The northern working ends in a rockfall: a heap of boulders and snapped pit-props under a leaning timber hoist.",
-          "situations": ["greyvein-mine-rockfall"]
+          "situations": ["greyvein-mine-rockfall"],
+          "dark": true
         },
         {
           "id": "ore-pocket",
           "name": "The Ore Pocket",
           "at": [0.4, 0.51],
           "text": "A side cave where yellow-crusted ore lies in heaps and the walls glitter.",
-          "situations": ["greyvein-mine-ore"]
+          "situations": ["greyvein-mine-ore"],
+          "dark": true
         },
         {
           "id": "sinkhole",
           "name": "The Sinkhole",
           "at": [0.78, 0.62],
           "text": "The east gallery opens around a black sinkhole, its edge propped with old timbers and a ladder lashed to the far wall.",
-          "situations": ["greyvein-mine-crawler"]
+          "situations": ["greyvein-mine-crawler"],
+          "dark": true
         }
       ],
       "hoard": {
@@ -166,21 +171,24 @@
           "name": "The Coffin Gallery",
           "at": [0.52, 0.78],
           "text": "A long gallery with two rows of stone coffins, and a bronze star set in the floor of a side alcove.",
-          "situations": ["starfloor-crypt-darts", "starfloor-crypt-lids"]
+          "situations": ["starfloor-crypt-darts", "starfloor-crypt-lids"],
+          "dark": true
         },
         {
           "id": "offering-passage",
           "name": "The Offering Passage",
           "at": [0.73, 0.63],
           "text": "A narrow passage lined with coffin niches, with a side chamber holding an offering table and steps up to a sealed annex.",
-          "situations": ["starfloor-crypt-offering"]
+          "situations": ["starfloor-crypt-offering"],
+          "dark": true
         },
         {
           "id": "pit-hall",
           "name": "The Pit Hall",
           "at": [0.53, 0.5],
           "text": "A hall whose floor is broken by four round shafts, with star sigils by its doors.",
-          "situations": ["starfloor-crypt-pits", "starfloor-crypt-ghouls"]
+          "situations": ["starfloor-crypt-pits", "starfloor-crypt-ghouls"],
+          "dark": true
         },
         {
           "id": "star-chapel",
@@ -269,14 +277,16 @@
           "name": "The Flooded Stair",
           "at": [0.27, 0.84],
           "text": "A rubble-choked guardroom at the foot of a stair, black water to the knee and stones fallen from the vault.",
-          "situations": ["drowned-keep-sentry", "drowned-keep-vault"]
+          "situations": ["drowned-keep-sentry", "drowned-keep-vault"],
+          "dark": true
         },
         {
           "id": "cistern",
           "name": "The Pillared Cistern",
           "at": [0.41, 0.58],
           "text": "A square hall of four pillars, its floor under still water.",
-          "situations": ["drowned-keep-cistern"]
+          "situations": ["drowned-keep-cistern"],
+          "dark": true
         },
         {
           "id": "pale-chapel",
@@ -321,7 +331,8 @@
           "name": "The Statue Vestibule",
           "at": [0.5, 0.82],
           "text": "A dark entry hall between carved guardian statues, a torn red runner leading to a short stair.",
-          "situations": ["stormwrack-manor-statues", "stormwrack-manor-butler"]
+          "situations": ["stormwrack-manor-statues", "stormwrack-manor-butler"],
+          "dark": true
         },
         {
           "id": "parlour",
@@ -423,7 +434,8 @@
           "name": "The Lair Mouth",
           "at": [0.48, 0.06],
           "text": "Behind the skull, between two carved pillars, a cave opens in the rock. The air from it stings the eyes.",
-          "situations": ["skullmire-dragon"]
+          "situations": ["skullmire-dragon"],
+          "dark": true
         }
       ],
       "hoard": {
@@ -469,14 +481,16 @@
           "name": "The Sphere Room",
           "at": [0.33, 0.3],
           "text": "A narrow chamber with three great stone balls heaped in a corner, and grooves worn in the floor.",
-          "situations": ["ape-king-vault-spheres"]
+          "situations": ["ape-king-vault-spheres"],
+          "dark": true
         },
         {
           "id": "spout-hall",
           "name": "The Hall of Spouts",
           "at": [0.77, 0.28],
           "text": "A long hall with a trench down its middle and round holes along both walls at knee height. A round grate closes its far end.",
-          "situations": ["ape-king-vault-spouts"]
+          "situations": ["ape-king-vault-spouts"],
+          "dark": true
         },
         {
           "id": "knotted-floor",

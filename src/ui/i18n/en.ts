@@ -664,6 +664,17 @@ export const en = {
   'delve.zoomIn': 'Close in',
   'delve.entrance': 'Entrance',
   'delve.you': 'You are here',
+  'delve.dark': 'A dark room: fuel lights it, or the party is Exposed there',
+  'delve.fuel': 'Dark rooms ahead: {n} · fuel {have} of {need}',
+  'delve.fuelLast': ' — the last will be dark',
+  'delve.fuelLastMany': ' — the last {k} will be dark',
+  'delve.fuelNone': ' — none will be lit',
+  'delve.fuelDarkvision': 'Dark rooms ahead: {n} · darkvision: no fuel needed',
+  'delve.fuelHint':
+    'Each dark room burns {fuel} fuel as you enter it. Unlit, the party is Exposed in every check there, fights included.',
+  'delve.light.lit': 'Dark: lit (−{fuel} fuel)',
+  'delve.light.darkvision': 'Dark: darkvision',
+  'delve.light.unlit': 'Dark: Exposed',
 
   'explore.heading': 'Explore the domain',
   'explore.outcomes': 'What the search finds',

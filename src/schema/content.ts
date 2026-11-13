@@ -61,6 +61,13 @@ export const AncestryDefSchema = z.object({
   id: IdSchema,
   name: z.string(),
   playable: z.boolean(),
+  darkvision: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Sees in the dark (combat design §7b): a party all of this but one member, or a lone member ' +
+        'of it, needs no fuel in dark dungeon rooms'
+    ),
 })
 export type AncestryDef = z.infer<typeof AncestryDefSchema>
 
