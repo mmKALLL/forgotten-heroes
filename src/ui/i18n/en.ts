@@ -688,10 +688,7 @@ export const en = {
   'market.higherThere': 'higher there than here',
   'market.lowerThere': 'lower there than here',
   'quality.spread':
-    'Each step of quality narrows the gap between buying and selling by {step} points of the price.',
-  'quality.narrower': 'This one’s gap is {n} points narrower than an average (3) shop’s.',
-  'quality.wider': 'This one’s gap is {n} points wider than an average (3) shop’s.',
-  'quality.average': 'This one is an average shop.',
+    'Each step of quality: you pay {pct}% less when buying here, and get {pct}% more when selling.',
   'quality.rooms': 'Inns of quality {min} or better have private rooms: this one does.',
   'quality.noRooms': 'Inns of quality {min} or better have private rooms: this one doesn’t.',
   'quality.none': 'Its quality changes nothing yet.',

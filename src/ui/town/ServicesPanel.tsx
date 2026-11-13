@@ -46,18 +46,13 @@ const pips = (quality: number) => '●'.repeat(quality) + '○'.repeat(Math.max(
 
 /** What a service's quality does here (the engine's qualityEffects), one line each. */
 export function qualityTip(t: I18n['t'], quality: number, effects: QualityEffect[]): string {
-  const points = (share: number) => Math.round(Math.abs(share) * 100)
+  // Buying is at the middle price + half the spread and selling at − half, so each step of
+  // quality is half its spread narrower on each side, in percent of the price.
+  const halfPercent = (share: number) => String(Math.round(share * 50 * 10) / 10)
   const lines = [t('services.quality', { quality })]
   for (const e of effects) {
     if (e.effect === 'spread') {
-      lines.push(t('quality.spread', { step: points(e.perStep) }))
-      lines.push(
-        e.vsAverage < 0
-          ? t('quality.narrower', { n: points(e.vsAverage) })
-          : e.vsAverage > 0
-            ? t('quality.wider', { n: points(e.vsAverage) })
-            : t('quality.average')
-      )
+      lines.push(t('quality.spread', { pct: halfPercent(e.perStep) }))
     } else {
       lines.push(t(e.offered ? 'quality.rooms' : 'quality.noRooms', { min: e.minQuality }))
     }

@@ -235,7 +235,8 @@ test('quality pips explain what quality does there on hover or focus', async () 
   )
   const jeweller = screen.getByRole('region', { name: 'Jewelry trader' })
   const tip = within(jeweller).getByRole('tooltip', { hidden: true })
-  expect(tip.textContent).toMatch(/narrows the gap between buying and selling by 3 points/)
+  expect(tip.textContent).toMatch(/you pay 1\.5% less when buying here, and get 1\.5% more/)
+  expect(tip.textContent).not.toMatch(/average/)
 })
 
 test('a service button shows its price, then the engine’s short effect on a second line', () => {

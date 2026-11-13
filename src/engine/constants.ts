@@ -112,7 +112,7 @@ export const FORAGE_PACE_MODIFIER: Readonly<Record<Pace, number>> = {
   stealthy: 0,
   steady: 0,
   brisk: 0,
-  forced: -2,
+  forced: -4,
 }
 /** Foraging draws attention: added to the hostile share (and a stealthy party loses its Edge). */
 export const FORAGE_HOSTILE_BONUS = 0.1
