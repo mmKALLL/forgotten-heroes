@@ -10,14 +10,25 @@ const content = loadBundledContent()
 const villains = Object.values(content.villains)
 const UNFILLED = /\{[A-Za-z][a-z0-9-]*\}/
 
-/** Every crisis site type of a villain: the reveal, then the three acts. */
-const siteTypes = (v: (typeof villains)[number]) => [v.reveal, ...v.acts.map((a) => a.site)]
+/** Every crisis site type of a villain: the acts' leads (which may repeat), then their key sites. */
+const siteTypes = (v: (typeof villains)[number]) => [
+  ...new Set([...v.acts.map((a) => a.lead), ...v.acts.map((a) => a.site)]),
+]
 
 describe('villains', () => {
   test('there are at least three, each with its own sites', () => {
     expect(villains.length).toBeGreaterThanOrEqual(3)
     const all = villains.flatMap(siteTypes)
     expect(new Set(all).size).toBe(all.length)
+  })
+
+  test('each act is harder than the one before, and its key site harder than its lead', () => {
+    for (const v of villains) {
+      v.acts.forEach((act, i) => {
+        expect(act.keyCr, `${v.id}/${act.id}`).toBeGreaterThan(act.leadCr)
+        if (i > 0) expect(act.keyCr, `${v.id}/${act.id}`).toBeGreaterThan(v.acts[i - 1].keyCr)
+      })
+    }
   })
 
   test('their threats, name tables and site types exist; the sites are weight-0 quests with situations and water', () => {
@@ -44,7 +55,7 @@ describe('villains', () => {
         for (const name of slotNames(text))
           expect(allowed(false), `${v.id}: ${text}`).toContain(name)
       for (const act of v.acts)
-        for (const text of [act.clue, act.thwarted, act.failed])
+        for (const text of [act.clue, act.thwarted, act.failed, act.open ?? '', act.hurry ?? ''])
           for (const name of slotNames(text))
             expect(allowed(act.seat), `${v.id}/${act.id}: ${text}`).toContain(name)
     }
@@ -97,23 +108,24 @@ function reachable(s: Situation): [string, Stage][] {
 
 const situationsOf = (typeIds: string[]) =>
   typeIds.flatMap((id) => content.poiTypes[id].situations.map((s) => content.situations[s]))
-const reveals = situationsOf(villains.map((v) => v.reveal))
+const leads = situationsOf([...new Set(villains.flatMap((v) => v.acts.map((a) => a.lead)))])
 const actsOf = (v: (typeof villains)[number]) => situationsOf(v.acts.map((a) => a.site))
 const acts = villains.flatMap(actsOf)
 const omens = allSituations(content).filter((s) => s.villains.length > 0)
 const ids = (list: Situation[]) => list.map((s) => [s.id, s] as const)
 
-describe('reveal situations', () => {
-  test.each(ids(reveals))('%s learns the plan on every ending but leaving', (_, s) => {
-    let learned = 0
+describe('lead situations', () => {
+  test.each(ids(leads))('%s wins the lead on every ending but leaving', (_, s) => {
+    let won = 0
     for (const [stageId, stage] of reachable(s))
       for (const option of stage.options)
         for (const b of branchesOf(option).filter(ends)) {
           if (option.id === 'leave') continue
-          expect(has(b, 'learnPlan'), `${stageId}/${option.id}: ${b.text}`).toBe(true)
-          learned++
+          const wins = has(b, 'learnPlan') || has(b, 'revealKeySite')
+          expect(wins, `${stageId}/${option.id}: ${b.text}`).toBe(true)
+          won++
         }
-    expect(learned).toBeGreaterThan(0)
+    expect(won).toBeGreaterThan(0)
   })
 })
 
@@ -192,12 +204,13 @@ describe('omens', () => {
 })
 
 test('crisis effects stay where they work', () => {
-  const revealIds = new Set(reveals.map((s) => s.id))
+  const leadIds = new Set(leads.map((s) => s.id))
   const actIds = new Set(acts.map((s) => s.id))
   for (const s of allSituations(content)) {
     const branches = Object.values(s.stages).flatMap((st) => st.options.flatMap(branchesOf))
     const uses = (effect: Effect['effect']) => branches.some((b) => has(b, effect))
-    if (uses('learnPlan')) expect(revealIds, s.id).toContain(s.id)
+    if (uses('learnPlan')) expect(leadIds, s.id).toContain(s.id)
+    if (uses('revealKeySite')) expect(leadIds, s.id).toContain(s.id)
     if (uses('thwartAct')) expect(actIds, s.id).toContain(s.id)
     if (uses('crisisClue')) expect(s.site || s.villains.length > 0, s.id).toBe(true)
   }

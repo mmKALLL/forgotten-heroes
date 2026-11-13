@@ -77,17 +77,19 @@ describe('the crusader', () => {
     },
   })
 
-  test('goes after what the party knows: the reveal site, then the act’s land, then its site', () => {
-    const s = makeState()
+  test('goes after what the party knows: the open act’s lead, then its key site’s land, then the site', () => {
+    const s = makeState({ day: 40 })
     const crisis = s.crisis!
+    const { lead, key } = crisis.acts[0]
     expect(crusadeGoal(s, content)).toBeNull()
-    const reveal = discover(s, crisis.reveal)
-    expect(crusadeGoal(reveal, content)).toEqual({ poi: crisis.reveal, land: null })
-    const learned = { ...reveal, crisis: { ...crisis, learned: 1, clues: [1, 0, 0] } }
-    const land = siteLand(learned, content, crisis.acts[0].poi)
+    // Before act I opens, nothing to go after even with its lead known.
+    expect(crusadeGoal({ ...discover(s, lead), day: 20 }, content)).toBeNull()
+    const heard = discover(s, lead)
+    expect(crusadeGoal(heard, content)).toEqual({ poi: lead, land: null })
+    const learned = { ...heard, crisis: { ...crisis, leads: [35, null, null], clues: [2, 0, 0] } }
+    const land = siteLand(learned, content, key)
     expect(crusadeGoal(learned, content)).toEqual({ poi: null, land })
-    const site = crisis.acts[0].poi
-    expect(crusadeGoal(discover(learned, site), content)).toEqual({ poi: site, land: null })
+    expect(crusadeGoal(discover(learned, key), content)).toEqual({ poi: key, land: null })
   })
 
   test('replays identically and keeps a valid state', () => {

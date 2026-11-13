@@ -5,6 +5,7 @@ import { runEnding, runRecord } from '../engine/crisis/ending'
 import { crisisInfo } from '../engine/crisis/status'
 import { camaraderieInfo } from '../engine/town/camaraderie'
 import { suppliesInfo } from '../engine/travel/preview'
+import { dangerInfo } from '../engine/world/danger'
 import { nodeOf } from '../engine/world/graph'
 import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
@@ -101,7 +102,7 @@ function Game() {
     <div className="app">
       <header className="topbar">
         <h1>{t('app.title')}</h1>
-        <DayMark day={shown.day} crisis={crisis} />
+        <DayMark day={shown.day} crisis={crisis} danger={dangerInfo(shown, content)} />
         <span>{t('top.gold', { gold: shown.gold })}</span>
         <span title={t('top.suppliesHint')}>
           {t('top.food', { food: supplies.food, days: supplies.foodDays })} ·{' '}

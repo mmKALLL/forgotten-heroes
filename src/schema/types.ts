@@ -281,3 +281,24 @@ export const CRISIS_ACTS = 3
 /** How a run ended: the Crisis won or lost, or the whole party fallen (a wipe). */
 export const RUN_ENDINGS = ['won', 'lost', 'fallen'] as const
 export type RunEnding = (typeof RUN_ENDINGS)[number]
+
+/**
+ * Where an act of the Crisis stands (Plan 6, design §10b), derived from the day and what the party
+ * did: dormant before it opens, then investigation (find and win its lead site), then prevention
+ * (strike at its key site), until thwarted or failed (its due day passed, which loses the Crisis).
+ */
+export const CRISIS_ACT_PHASES = [
+  'dormant',
+  'investigation',
+  'prevention',
+  'thwarted',
+  'failed',
+] as const
+export type CrisisActPhase = (typeof CRISIS_ACT_PHASES)[number]
+
+/**
+ * How a villain is met (Plan 6): a recurring boss is met at every key site, stronger each time;
+ * a finale villain sends a lieutenant to acts I and II and is met only at act III.
+ */
+export const CRISIS_BOSS_STYLES = ['recurring', 'finale'] as const
+export type CrisisBossStyle = (typeof CRISIS_BOSS_STYLES)[number]

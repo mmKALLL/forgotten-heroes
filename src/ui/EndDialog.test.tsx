@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
 import { loadBundledContent } from '../content/bundled'
 import { runRecord } from '../engine/crisis/ending'
-import { actFailsOn } from '../engine/crisis/status'
+import { actCalendar } from '../engine/crisis/calendar'
 import { SAVE_KEY, deserialize, serialize } from '../engine/save'
 import { newGame } from '../engine/state'
 import type { GameState } from '../schema/state'
@@ -24,14 +24,15 @@ const content = loadBundledContent()
 function won(): GameState {
   const s = newGame(7, content)
   const crisis = s.crisis!
-  const days = crisis.acts.map((a) => a.due - 5)
-  return { ...s, day: days[2] + 2, crisis: { ...crisis, learned: 3, thwarted: days } }
+  const days = crisis.acts.map((_, i) => actCalendar(crisis, i).due - 5)
+  const leads = days.map((d) => d - 10)
+  return { ...s, day: days[2] + 2, crisis: { ...crisis, leads, thwarted: days } }
 }
 
 /** A new world whose act I failed. */
 function lost(): GameState {
   const s = newGame(7, content)
-  return { ...s, day: actFailsOn(s.crisis!.acts[0].due) + 1 }
+  return { ...s, day: actCalendar(s.crisis!, 0).failsOn + 1 }
 }
 
 const fallen = (s: GameState): GameState => ({
@@ -102,7 +103,7 @@ test('game over shows the failed act, and Escape keeps playing', async () => {
 
 test('game over before the plan was learned names no villain and no site', () => {
   const state = lost()
-  expect(state.crisis!.learned).toBeNull()
+  expect(state.crisis!.leads[0]).toBeNull()
   render(
     <I18nProvider content={content}>
       <EndDialog

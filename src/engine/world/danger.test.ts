@@ -7,7 +7,7 @@ import { createRng } from '../rng'
 import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { DANGER_RAMP_DAYS, DANGER_RAMP_MAX, DANGER_RAMP_STEP } from '../constants'
-import { dangerInfo, dangerLevel, harden } from './danger'
+import { dangerInfo, dangerLevel, harden, rampLevel } from './danger'
 
 const content = fixtureContent()
 
@@ -64,28 +64,52 @@ const hpOf = (situation: Situation) => {
   return option.kind === 'check' ? option.outcomes.fail.effects : []
 }
 
+/** A day with no Crisis to surge. */
+const on = (day: number) => ({ day, crisis: null })
+
 describe('dangerLevel and dangerInfo', () => {
   test('steps up every DANGER_RAMP_DAYS days and stops at the cap', () => {
-    expect(dangerLevel(1)).toBe(0)
-    expect(dangerLevel(DANGER_RAMP_DAYS)).toBe(0)
-    expect(dangerLevel(DANGER_RAMP_DAYS + 1)).toBe(DANGER_RAMP_STEP)
-    expect(dangerLevel(2 * DANGER_RAMP_DAYS)).toBe(DANGER_RAMP_STEP)
-    expect(dangerLevel(DAY_TWO_STEPS)).toBe(2 * DANGER_RAMP_STEP)
-    expect(dangerLevel(1000 * DANGER_RAMP_DAYS)).toBe(DANGER_RAMP_MAX)
+    expect(rampLevel(1)).toBe(0)
+    expect(rampLevel(DANGER_RAMP_DAYS)).toBe(0)
+    expect(rampLevel(DANGER_RAMP_DAYS + 1)).toBe(DANGER_RAMP_STEP)
+    expect(rampLevel(2 * DANGER_RAMP_DAYS)).toBe(DANGER_RAMP_STEP)
+    expect(rampLevel(DAY_TWO_STEPS)).toBe(2 * DANGER_RAMP_STEP)
+    expect(rampLevel(1000 * DANGER_RAMP_DAYS)).toBe(DANGER_RAMP_MAX)
+    expect(dangerLevel(on(DAY_TWO_STEPS))).toBe(rampLevel(DAY_TWO_STEPS))
   })
 
   test('says how dangerous the roads are and when it next rises', () => {
-    expect(dangerInfo(1)).toEqual({
+    expect(dangerInfo(on(1))).toEqual({
       share: 0,
       percent: 0,
       nextDay: DANGER_RAMP_DAYS + 1,
       text: 'The roads are as they have always been',
+      surge: null,
     })
-    const later = dangerInfo(DAY_TWO_STEPS)
+    const later = dangerInfo(on(DAY_TWO_STEPS))
     expect(later.percent).toBe(Math.round(200 * DANGER_RAMP_STEP))
     expect(later.nextDay).toBe(1 + 3 * DANGER_RAMP_DAYS)
     expect(later.text).toBe(`The roads grow more dangerous: +${later.percent}%`)
-    expect(dangerInfo(1000 * DANGER_RAMP_DAYS).nextDay).toBeNull()
+    expect(dangerInfo(on(1000 * DANGER_RAMP_DAYS)).nextDay).toBeNull()
+  })
+
+  test('the Crisis surges in the last days before a surging act is due, until it is thwarted', () => {
+    // The fixture's act II surges and is due on day 200.
+    const base = makeState()
+    const crisis = { ...base.crisis!, leads: [35, 140, null], thwarted: [50, null, null] }
+    const at = (day: number, c = crisis) => dangerLevel({ day, crisis: c }, content)
+    const surge = (day: number, c = crisis) => at(day, c) - rampLevel(day)
+    expect(surge(170)).toBeCloseTo(0)
+    expect(surge(185)).toBeGreaterThan(0)
+    expect(surge(195)).toBeGreaterThan(surge(185))
+    expect(surge(195, { ...crisis, thwarted: [50, 194, null] })).toBeCloseTo(0)
+    // Act I doesn't surge; without content there is no surge either.
+    expect(surge(95, { ...crisis, thwarted: [null, null, null] })).toBeCloseTo(0)
+    expect(dangerLevel({ day: 195, crisis })).toBe(rampLevel(195))
+    // The danger mark says why.
+    const info = dangerInfo({ day: 195, crisis }, content)
+    expect(info.surge!.text).toMatch(/^Act II, The Test Act 2, is near its day: \+\d+%$/)
+    expect(info.percent).toBe(Math.round(at(195) * 100))
   })
 })
 

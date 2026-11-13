@@ -143,6 +143,7 @@ describe('templates', () => {
       'test-act-1',
       'test-act-2',
       'test-act-3',
+      'test-lead',
       'test-omen',
       'test-reveal',
     ])

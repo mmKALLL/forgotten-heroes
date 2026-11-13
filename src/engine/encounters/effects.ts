@@ -12,7 +12,7 @@ import { addReputation, encounterSettlement } from '../town/reputation'
 import { terrainHere } from '../world/graph'
 import { domainAt, poisToDiscover } from '../world/pois'
 import { crisisHidden } from '../crisis/sites'
-import { crisisClue, learnPlan, thwartAct } from '../crisis/progress'
+import { crisisClue, learnPlan, revealKeySite, thwartAct } from '../crisis/progress'
 import { actNumeral } from '../crisis/text'
 import { changeGoods } from '../economy/goods'
 import { changeAnimals } from '../town/animals'
@@ -260,6 +260,8 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     // The Crisis (Plan 5b, crisis/progress.ts). Without content they do nothing.
     case 'learnPlan':
       return ctx.content ? learnPlan(state, ctx.content) : state
+    case 'revealKeySite':
+      return ctx.content ? revealKeySite(state, ctx.content) : state
     case 'crisisClue':
       return ctx.content ? crisisClue(state, ctx.content, effect.amount) : state
     case 'thwartAct':
@@ -370,6 +372,8 @@ export function describeEffect(
       return effect.tier === 1 ? 'an accessory' : 'a fine accessory'
     case 'learnPlan':
       return 'Learn the plan'
+    case 'revealKeySite':
+      return act === null ? 'Find the key site' : `Find Act ${actNumeral(act - 1)}'s key site`
     case 'crisisClue':
       return act === null
         ? `+${effect.amount} clue`

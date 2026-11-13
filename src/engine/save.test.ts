@@ -12,7 +12,10 @@ import {
   v8ToV9,
   v9ToV10,
   v10ToV11,
+  v11ToV12,
 } from './save'
+import { actCalendar } from './crisis/calendar'
+import { crisisSites } from './crisis/sites'
 import { newGame, step } from './state'
 import { passDay } from './travel/supplies'
 import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
@@ -118,7 +121,7 @@ function migrated() {
   })!
   return {
     ...V2_SAVE,
-    version: 11,
+    version: 12,
     party: [{ ...ada, strain: {}, ...CHARACTER_5A_DEFAULTS }],
     world,
     location,
@@ -134,9 +137,7 @@ function migrated() {
 
 /** A state's world as a save from before Plan 5b had it: without the Crisis's sites. */
 function withoutCrisis(state: GameState): GameState['world'] {
-  const sites = new Set(
-    state.crisis ? [state.crisis.reveal, ...state.crisis.acts.map((a) => a.poi)] : []
-  )
+  const sites = new Set(crisisSites(state.crisis))
   const pois = Object.fromEntries(Object.entries(state.world.pois).filter(([id]) => !sites.has(id)))
   return { ...state.world, pois }
 }
@@ -168,12 +169,12 @@ const PLAN_4_DEFAULTS = {
   doneHere: [],
 }
 
-test('a version 2 save loads as version 11 with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(11)
+test('a version 2 save loads as version 12 with a world, a starting place and supplies', () => {
+  expect(CURRENT_SAVE_VERSION).toBe(12)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
-test('a version 1 save chains through to version 11 too', () => {
+test('a version 1 save chains through to version 12 too', () => {
   expect(deserialize(JSON.stringify(V1_SAVE), content)).toEqual(migrated())
 })
 
@@ -624,7 +625,7 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
   test('newGame is unchanged for seeds 1–3 apart from the new fields', () => {
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
-      expect(v10ToV11(v9ToV10(asV9(state)), content)).toEqual(state)
+      expect(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content), content)).toEqual(state)
       expect(state.party.every((c) => c.xp === 0 && c.wage === 0 && c.accessory === null)).toBe(
         true
       )
@@ -650,15 +651,15 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
     // The Crisis is rolled as a new game rolls it (the same sites), but from the save's day.
     expect(loaded.world).toEqual(state.world)
     expect(loaded.crisis).toMatchObject({ villain: state.crisis!.villain, startDay: 150 })
-    expect(loaded.crisis!.acts.map((a) => a.poi)).toEqual(state.crisis!.acts.map((a) => a.poi))
-    expect(loaded.crisis!.acts[0].due).toBeGreaterThan(150)
+    expect(loaded.crisis!.acts).toEqual(state.crisis!.acts)
+    expect(actCalendar(loaded.crisis!, 0).due).toBeGreaterThan(150)
   })
 
   test('a save on the road rolls its Crisis from where the journey set out', () => {
     const state = makeState({ day: 20 })
     const onRoad = { ...asV10(state), location: null, travel: { from: state.location } }
     const rolled = v10ToV11(onRoad, content)
-    expect((rolled.crisis as GameState['crisis'])!.reveal).toBe(state.crisis!.reveal)
+    expect((rolled.crisis as GameState['crisis'])!.acts).toEqual(state.crisis!.acts)
   })
 
   test('a save on an island rolls its Crisis from the nearest mainland settlement', () => {
@@ -688,9 +689,12 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
       villain: 'test-villain',
       name: 'Morvaine, the Test Prophet',
       startDay: 1,
-      reveal: 'poi-1',
-      acts: [1, 2, 3].map((n) => ({ id: `test-act-${n}`, poi: `poi-${n + 1}`, due: 100 * n })),
-      learned: 12,
+      acts: [1, 2, 3].map((n) => ({
+        id: `test-act-${n}`,
+        lead: `poi-${2 * n - 1}`,
+        key: `poi-${2 * n}`,
+      })),
+      leads: [12, null, null],
       clues: [3, 1, 0],
       thwarted: [80, null, null],
       endSeen: false,
@@ -700,6 +704,72 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
     expect(
       deserialize(serialize({ ...state, crisis: { ...crisis, acts: [] } }), content)
     ).toBeNull()
+  })
+})
+
+describe('v11 → v12 (Plan 6: the phased Crisis)', () => {
+  /** A current state as a v11 save wrote it: the Plan 5b Crisis, without the later leads. */
+  function asV11(
+    state: GameState,
+    progress: Record<string, unknown> = {}
+  ): Record<string, unknown> {
+    const raw = structuredClone(state) as unknown as Record<string, unknown>
+    const crisis = state.crisis!
+    const later = new Set(crisis.acts.slice(1).map((a) => a.lead))
+    const pois = Object.fromEntries(
+      Object.entries(state.world.pois).filter(([id]) => !later.has(id))
+    )
+    return {
+      ...raw,
+      version: 11,
+      world: { ...state.world, pois },
+      crisis: {
+        villain: crisis.villain,
+        name: crisis.name,
+        startDay: crisis.startDay,
+        reveal: crisis.acts[0].lead,
+        acts: crisis.acts.map((a, i) => ({ id: a.id, poi: a.key, due: 100 * (i + 1) + 4 })),
+        learned: null,
+        clues: [0, 0, 0],
+        thwarted: [null, null, null],
+        endSeen: false,
+        ...progress,
+      },
+    }
+  }
+
+  test('the reveal and act sites become act I’s lead and the key sites; the later leads are placed as a new game places them', () => {
+    const state = makeState({ day: 20 })
+    const loaded = deserialize(JSON.stringify(asV11(state)), content)!
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
+    expect(loaded.crisis).toEqual(state.crisis)
+    expect(loaded.world).toEqual(state.world)
+  })
+
+  test('a learned plan is act I’s prevention; a later act’s found site is its prevention too', () => {
+    const state = makeState({ day: 150 })
+    const v11 = asV11(state, { learned: 12, clues: [3, 2, 0], thwarted: [80, null, null] })
+    const crisis = (v11ToV12(v11, content).crisis as GameState['crisis'])!
+    expect(crisis.leads).toEqual([12, 150, null])
+    expect(crisis.thwarted).toEqual([80, null, null])
+    expect(crisis.startDay).toBe(state.crisis!.startDay)
+  })
+
+  test('a run past its act’s new due day keeps a few days for it', () => {
+    // Day 110: under Plan 5b's leeway act I could still be thwarted; under Plan 6 it is due day 100.
+    const state = makeState({ day: 110 })
+    const loaded = deserialize(JSON.stringify(asV11(state, { learned: 12 })), content)!
+    const due = actCalendar(loaded.crisis!, 0).due
+    expect(due).toBeGreaterThan(110)
+    expect(loaded.crisis!.startDay).toBeGreaterThan(state.crisis!.startDay)
+  })
+
+  test('migrating twice gives identical output, and the input is not mutated', () => {
+    const v11 = asV11(makeState({ day: 40 }), { learned: 35 })
+    const raw = structuredClone(v11)
+    const once = v11ToV12(raw, content)
+    expect(v11ToV12(once, content)).toEqual(once)
+    expect(raw).toEqual(v11)
   })
 })
 

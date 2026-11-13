@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { actCalendar } from '../engine/crisis/calendar'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test } from 'vitest'
@@ -55,7 +56,7 @@ test('switching to slot 2 loads its save, and a new party there leaves slot 1 un
 test('a new party over a won run (which plays on) asks first', async () => {
   const content = loadBundledContent()
   const won = newGame(42, content)
-  const crisis = { ...won.crisis!, learned: 2, thwarted: [3, 4, 5], endSeen: true }
+  const crisis = { ...won.crisis!, leads: [2, 3, 4], thwarted: [3, 4, 5], endSeen: true }
   localStorage.setItem(slotKey(2), serialize({ ...won, day: 6, crisis }))
   render(<App />)
   await openSaves()
@@ -68,8 +69,8 @@ test('a new party over a won run (which plays on) asks first', async () => {
 test('a slot shows the Crisis act under way once its plan is known', async () => {
   const content = loadBundledContent()
   const game = newGame(42, content)
-  const crisis = { ...game.crisis!, learned: 2 }
-  const day = crisis.acts[0].due - 34
+  const crisis = { ...game.crisis!, leads: [32, null, null] }
+  const day = actCalendar(crisis, 0).due - 34
   localStorage.setItem(slotKey(2), serialize({ ...game, day, crisis }))
   render(<App />)
   await openSaves()

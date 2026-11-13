@@ -21,7 +21,7 @@ import { livingMembers, wagesPerDay } from '../town/camaraderie'
 import { accessorySales } from '../gear/accessories'
 import { statModifier } from '../rules/character'
 import { step, type Action } from '../state'
-import { crisisDecided, crisisStatus } from '../crisis/status'
+import { actOpen, crisisDecided, crisisStatus } from '../crisis/status'
 import { crisisSites } from '../crisis/sites'
 import { siteLand } from '../crisis/text'
 import { routeOptions, type RouteOption } from './preview'
@@ -148,7 +148,8 @@ const CRUSADE_GOLD_PER_MEMBER = 15
 const CRUSADE_SITE_FOOD_DAYS = 1
 /**
  * After this many legs in a row with no day passing (stuck: too laden to set out, too poor to
- * lighten), the crusader rests a day instead of spinning.
+ * lighten, or too poor to provision a desert road), the policy rests a day instead of spinning.
+ * (Plan 5b I1 added it for the crusader; Plan 6 found a trader stuck the same way.)
  */
 const MAX_STALLED_LEGS = 3
 
@@ -162,22 +163,21 @@ const healthy = (state: GameState) =>
 export type CrusadeGoal = { poi: string; land: null } | { poi: null; land: string }
 
 /**
- * The crusader's goal (Plan 5b I1), from what the player knows: the reveal site once it is known
- * and the plan isn't; during an act, its site once found, else its land once a clue names it. Null
- * with no Crisis, once it is decided, or with nothing known to go after.
+ * The crusader's goal (Plans 5b I1 and 6), from what the player knows: while an act is open, the
+ * site it is played at (its lead, then its key site) once found, else that site's land once a clue
+ * names it. Null with no Crisis, while no act is open, once it is decided, or with nothing known
+ * to go after.
  */
 export function crusadeGoal(state: GameState, content: Content): CrusadeGoal | null {
   const crisis = state.crisis
   if (!crisis || crisisDecided(crisis, state.day)) return null
   const found = (id: string) =>
     Object.hasOwn(state.world.pois, id) && state.world.pois[id].discovered
-  const status = crisisStatus(crisis, state.day)
-  if (status.phase === 'unknown') {
-    return found(crisis.reveal) ? { poi: crisis.reveal, land: null } : null
-  }
-  const site = crisis.acts[status.act!].poi
+  const site = crisisStatus(crisis, state.day).target
+  if (site === null) return null
   if (found(site)) return { poi: site, land: null }
-  const land = status.clues >= 1 ? siteLand(state, content, site) : undefined
+  const clues = crisis.clues[crisisStatus(crisis, state.day).act!] ?? 0
+  const land = clues >= 1 ? siteLand(state, content, site) : undefined
   return land ? { poi: null, land } : null
 }
 
@@ -409,7 +409,7 @@ export function trader(
     const raw = currentOptions(state.encounter).find((x) => x.id === option.id)
     if (raw?.kind !== 'fixed' || raw.outcome.goto) return false
     return !raw.outcome.effects.some((e) =>
-      ['learnPlan', 'crisisClue', 'thwartAct'].includes(e.effect)
+      ['learnPlan', 'revealKeySite', 'crisisClue', 'thwartAct'].includes(e.effect)
     )
   }
 
@@ -819,9 +819,10 @@ export function trader(
     if (!crisis || crisisDecided(crisis, state.day)) return false
     if (state.contracts.length > 0 || state.gold < crusadeGold()) return false
     const phase = crisisStatus(crisis, state.day).phase
-    // Talk: before the plan (it may name the reveal site), and in the act's land (a clue).
+    // Talk: in an open act with nothing to go on (it may name the lead site), and in the land the
+    // act points to (a clue).
     const talk =
-      (phase === 'unknown' && goal === null) || (goal?.land != null && landOf(here) === goal.land)
+      (actOpen(phase) && goal === null) || (goal?.land != null && landOf(here) === goal.land)
     const option = talk ? rumourOption(state, content) : null
     if (option && state.gold >= option.cost + BROKE_GOLD) {
       act({ type: 'listenRumours' }, 'rumours')
@@ -1119,7 +1120,7 @@ export function trader(
     act({ type: 'travel', routeId: road.routeId, pace }, 'travel')
   }
 
-  /** Legs in a row in which no day passed (the crusader then rests a day rather than spin). */
+  /** Legs in a row in which no day passed (the policy then rests a day rather than spin). */
   let stalled = 0
   let lastDay = state.day
   for (let leg = 0; leg < legs && !o.until?.(state); leg++) {
@@ -1127,7 +1128,7 @@ export function trader(
     if (state.encounter) resolveEncounter()
     stalled = state.day === lastDay ? stalled + 1 : 0
     lastDay = state.day
-    if (o.crusade && stalled >= MAX_STALLED_LEGS && !state.travel && state.location !== null) {
+    if (stalled >= MAX_STALLED_LEGS && !state.travel && state.location !== null) {
       const inn = restOption(state, content)
       act({ type: 'rest', lodging: inn.lodging }, 'rest')
       continue

@@ -232,7 +232,7 @@ export const ContractStateSchema = z.object({
 export type ContractState = z.infer<typeof ContractStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(11),
+  version: z.literal(12),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),

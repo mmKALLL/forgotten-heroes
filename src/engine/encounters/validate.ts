@@ -290,6 +290,7 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
     if (
       (effect.effect === 'clearPoi' ||
         effect.effect === 'learnPlan' ||
+        effect.effect === 'revealKeySite' ||
         effect.effect === 'thwartAct') &&
       !compiled.site
     )

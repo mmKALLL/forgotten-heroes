@@ -1139,9 +1139,11 @@ const testActSituation = (n: number) => ({
 })
 
 /**
- * The Crisis (Plan 5b): one villain, favoured by the bog cult, with a reveal site and three act
- * sites (weight-0 quest types, never drawn as ordinary POIs). Act II favours marsh, and act III
- * lies in a kingdom seat's domain. One road omen names the villain and gives a clue.
+ * The Crisis (Plans 5b and 6): one villain, favoured by the bog cult. Act I's lead is the burned
+ * chapel (where the plan is learned), acts II and III share a lead type that finds the key site,
+ * and each act has its own key site (weight-0 quest types, never drawn as ordinary POIs). Act II
+ * favours marsh and surges near its due day, and act III lies in a kingdom seat's domain. One
+ * road omen names the villain and gives a clue.
  */
 export const testCrisis: Record<string, unknown> = {
   'data/claude/villains.json': {
@@ -1156,13 +1158,15 @@ export const testCrisis: Record<string, unknown> = {
         summary: '{villain} would wake the drowned.',
         omen: 'Folk say the dead walk in {land}.',
         plan: '{villain} means to raise the drowned dead of the marsh.',
-        reveal: 'test-reveal-site',
         acts: [1, 2, 3].map((n) => ({
           id: `test-act-${n}`,
           name: `The Test Act ${n}`,
           goal: `finish step ${n}`,
+          lead: n === 1 ? 'test-reveal-site' : 'test-lead-site',
           site: `test-act-${n}-site`,
-          ...(n === 2 ? { biomes: ['marsh'] } : {}),
+          leadCr: 6 * n - 4,
+          keyCr: 6 * n,
+          ...(n === 2 ? { biomes: ['marsh'], surge: true } : {}),
           ...(n === 3 ? { seat: true } : {}),
           clue: "{villain}'s servants have been seen in {land}.",
           thwarted: `Act ${n} is broken.`,
@@ -1183,6 +1187,14 @@ export const testCrisis: Record<string, unknown> = {
         weight: 0,
         names: 'test-crisis-site-name',
         situations: ['test-reveal'],
+      },
+      {
+        id: 'test-lead-site',
+        category: 'quest',
+        name: 'Hideout',
+        weight: 0,
+        names: 'test-crisis-site-name',
+        situations: ['test-lead'],
       },
       ...[1, 2, 3].map((n) => ({
         id: `test-act-${n}-site`,
@@ -1225,6 +1237,37 @@ export const testCrisis: Record<string, unknown> = {
                 kind: 'fixed',
                 label: 'Read the ledger',
                 outcome: { text: 'You learn the plan.', effects: [{ effect: 'learnPlan' }] },
+              },
+              leave,
+            ],
+          },
+        },
+      },
+      {
+        id: 'test-lead',
+        title: 'The hideout',
+        disposition: 'hostile',
+        site: true,
+        stages: {
+          start: {
+            text: 'Henchmen hold the hideout.',
+            options: [
+              {
+                id: 'raid',
+                kind: 'check',
+                label: 'Raid it',
+                check: { skill: 'athletics', dc: 12 },
+                outcomes: {
+                  fail: {
+                    text: 'Driven off.',
+                    effects: [{ effect: 'hp', amount: -2, target: 'all' }],
+                  },
+                  partial: {
+                    text: 'Their orders, at a cost.',
+                    effects: [{ effect: 'revealKeySite' }],
+                  },
+                  success: { text: 'Their orders.', effects: [{ effect: 'revealKeySite' }] },
+                },
               },
               leave,
             ],

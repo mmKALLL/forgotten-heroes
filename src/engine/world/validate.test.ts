@@ -244,7 +244,7 @@ describe('villainIssues', () => {
       const v = c.villains['test-villain']
       v.threats = ['kraken']
       v.names = 'no-names'
-      v.reveal = 'no-site'
+      v.acts[0].lead = 'no-site'
     })
     expect(villainIssues(broken)).toEqual([
       'villain test-villain: unknown threat "kraken"',

@@ -1,17 +1,18 @@
 import { writeFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { partyWiped, runEnding } from '../engine/crisis/ending'
+import { actCalendar } from '../engine/crisis/calendar'
 import { crisisStatus } from '../engine/crisis/status'
 import { currentOptions } from '../engine/encounters/run'
 import { newGame, type Action } from '../engine/state'
 import { isAlive } from '../engine/town/camaraderie'
 import { crusader, trader, type TraderOptions } from '../engine/travel/trader'
-import { CRISIS_LEEWAY_DAYS } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
 import type { RunEnding } from '../schema/types'
 import { loadBundledContent } from './bundled'
 
-// The Crisis simulation (design §10b, Plan 5b I1). The guard tests below run a few seeds and never
+// The Crisis simulation (design §10b, Plan 5b I1; Plan 6 C: the phased calendar, so act n is
+// played at its lead site, then its key site, between its open and due days). The guard tests below run a few seeds and never
 // pin tuning values. The full report runs seeds 1–20 for up to 360 days under the crusader (which
 // chases the Crisis, from a 50 gp start and from the game's) and the trader (which ignores it; once
 // stopping when the Crisis is lost, once playing on to day 360 as a control for how long a party
@@ -37,11 +38,11 @@ type FoundBy = 'rumour' | 'omen' | 'summons' | 'other'
 
 type ActRun = {
   due: number
-  /** The day the act's site was found, thwarted, or failed (null when it didn't happen). */
+  /** The day the act's key site was found, thwarted, or failed (null when it didn't happen). */
   found: number | null
   thwarted: number | null
   failed: number | null
-  /** Visits to its site, and finale checks rolled there and won (a partial or better). */
+  /** Visits to its key site, and finale checks rolled there and won (a partial or better). */
   visits: number
   finales: number
   finaleWins: number
@@ -53,7 +54,7 @@ type Run = {
   seed: number
   policy: Policy
   villain: string
-  /** The day the reveal site became known, and how. */
+  /** The day act I's lead site (where the plan is learned) became known, and how. */
   revealDay: number | null
   foundBy: FoundBy | null
   learned: number | null
@@ -66,7 +67,7 @@ type Run = {
 const bestLevel = (state: GameState) =>
   Math.max(0, ...state.party.filter(isAlive).map((c) => c.level))
 
-/** How the reveal site came to be known, from the action that revealed it. */
+/** How act I's lead site came to be known, from the action that revealed it. */
 function foundBy(before: GameState, action: Action): FoundBy {
   if (action.type === 'listenRumours') return 'rumour'
   if (action.type === 'chooseOption' && (before.encounter?.situation.villains?.length ?? 0) > 0) {
@@ -93,8 +94,8 @@ function simulate(
     revealDay: null,
     foundBy: null,
     learned: null,
-    acts: crisis.acts.map((a) => ({
-      due: a.due,
+    acts: crisis.acts.map((_, i) => ({
+      due: actCalendar(crisis, i).due,
       found: null,
       thwarted: null,
       failed: null,
@@ -111,21 +112,22 @@ function simulate(
 
   const onStep = (before: GameState, action: Action, after: GameState) => {
     const c = after.crisis!
-    if (!seen(before, c.reveal) && seen(after, c.reveal)) {
+    const lead = c.acts[0].lead
+    if (!seen(before, lead) && seen(after, lead)) {
       run.revealDay ??= after.day
       run.foundBy ??= foundBy(before, action)
     }
-    if (before.crisis!.learned === null && c.learned !== null) run.learned = c.learned
+    if (before.crisis!.leads[0] === null && c.leads[0] !== null) run.learned = c.leads[0]
     c.acts.forEach((a, i) => {
       const act = run.acts[i]
-      if (!seen(before, a.poi) && seen(after, a.poi)) act.found ??= after.day
+      if (!seen(before, a.key) && seen(after, a.key)) act.found ??= after.day
       if (before.crisis!.thwarted[i] === null && c.thwarted[i] !== null) {
         act.thwarted = c.thwarted[i]
         act.level = bestLevel(after)
       }
-      if (action.type === 'visitPoi' && before.location === a.poi && after.encounter) act.visits++
+      if (action.type === 'visitPoi' && before.location === a.key && after.encounter) act.visits++
       const enc = before.encounter
-      if (action.type === 'chooseOption' && enc?.poi === a.poi) {
+      if (action.type === 'chooseOption' && enc?.poi === a.key) {
         const option = currentOptions(enc).find((o) => o.id === action.optionId)
         if (option?.kind === 'check' && option.highStakes) {
           act.finales++
@@ -226,7 +228,7 @@ describe.runIf(REPORT)('the Crisis report (CRISIS_REPORT=path)', () => {
     lines.push('', '## Learning the plan', '')
     row([
       'Policy',
-      'Reveal site known (P10 / median / P90 day)',
+      'Act I lead known (P10 / median / P90 day)',
       'Plan learned (P10 / median / P90 day)',
       'Learned by day 25',
       'Never learned',
@@ -360,7 +362,7 @@ describe.runIf(REPORT)('the Crisis report (CRISIS_REPORT=path)', () => {
     ])
     lines.push(
       '',
-      `An act fails on its due day + ${CRISIS_LEEWAY_DAYS + 1}; "late" is thwarted after the due day.`
+      'An act fails the day after its due day (no leeway, Plan 6), so none is thwarted late.'
     )
     writeFileSync(REPORT!, lines.join('\n') + '\n')
     console.log(lines.join('\n'))

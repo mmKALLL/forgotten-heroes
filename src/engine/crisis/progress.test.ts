@@ -4,26 +4,22 @@ import type { CrisisState } from '../../schema/crisis'
 import type { GameState } from '../../schema/state'
 import { applyEffects, describeEffect } from '../encounters/effects'
 import { encounterOptions } from '../encounters/preview'
+import { crDc } from '../rules/challenge'
 import { step } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { siteActions } from '../world/explore'
 import { poisToDiscover } from '../world/pois'
-import { dangerLevel } from '../world/danger'
-import { CRISIS_SITE_CLUES, XP_DISCOVER, XP_THWART } from '../constants'
+import { CRISIS_DC_BASE, CRISIS_SITE_CLUES, XP_DISCOVER, XP_THWART } from '../constants'
 import { crisisHidden } from './sites'
-import { actFailsOn, crisisInfo } from './status'
+import { actPhases, crisisInfo } from './status'
 
 const content = fixtureContent()
+const villain = content.villains['test-villain']
 
-/** The fixture world's Crisis with acts due on days `dues`. */
-function withCrisis(
-  crisis: Partial<CrisisState> = {},
-  state: Partial<GameState> = {},
-  dues = [100, 200, 300]
-): GameState {
+/** The fixture world's Crisis (acts open on days 30, 130, 230 and are due 100, 200, 300). */
+function withCrisis(crisis: Partial<CrisisState> = {}, state: Partial<GameState> = {}): GameState {
   const base = makeState(state)
-  const acts = base.crisis!.acts.map((a, i) => ({ ...a, due: dues[i] }))
-  return { ...base, crisis: { ...base.crisis!, acts, ...crisis } }
+  return { ...base, crisis: { ...base.crisis!, ...crisis } }
 }
 
 const discover = (state: GameState, ...ids: string[]): GameState => {
@@ -50,61 +46,90 @@ const standingAt = (state: GameState, poi: string): GameState => ({
   visited: false,
 })
 
-describe('learning the plan', () => {
-  test('works once, at the reveal site, and makes act I’s land known', () => {
-    const state = withCrisis({}, { day: 20 })
-    const reveal = state.crisis!.reveal
-    expect(at(state, state.crisis!.acts[0].poi, { effect: 'learnPlan' }).crisis!.learned).toBeNull()
-    const learned = at(state, reveal, { effect: 'learnPlan' })
-    expect(learned.crisis).toMatchObject({ learned: 20, clues: [1, 0, 0] })
+const visit = (state: GameState, poi: string) =>
+  step(standingAt({ ...state, encounter: null }, poi), { type: 'visitPoi' }, content)
+
+describe('winning a lead', () => {
+  test('act I’s lead learns the plan, once, and reveals the key site', () => {
+    const state = withCrisis({}, { day: 40 })
+    const { lead, key } = state.crisis!.acts[0]
+    expect(at(state, key, { effect: 'learnPlan' }).crisis!.leads[0]).toBeNull()
+    const learned = at(state, lead, { effect: 'learnPlan' })
+    expect(learned.crisis).toMatchObject({ leads: [40, null, null] })
+    expect(learned.crisis!.clues[0]).toBe(CRISIS_SITE_CLUES)
+    expect(learned.world.pois[key].discovered).toBe(true)
     expect(learned.log.map((l) => l.text)).toContain(
       'Morvaine means to raise the drowned dead of the marsh.'
     )
-    expect(learned.log.at(-1)!.text).toMatch(/^Morvaine's servants have been seen in \w+\.$/)
-    const again = at({ ...learned, day: 30 }, reveal, { effect: 'learnPlan' })
-    expect(again.crisis!.learned).toBe(20)
+    expect(actPhases(learned.crisis!, 40)[0]).toBe('prevention')
+    const again = at({ ...learned, day: 45 }, lead, { effect: 'learnPlan' })
+    expect(again.crisis!.leads[0]).toBe(40)
     expect(again.log).toHaveLength(learned.log.length)
+  })
+
+  test('a lead site is dormant (and quiet) before its act opens', () => {
+    const early = withCrisis({}, { day: 20 })
+    const lead = early.crisis!.acts[0].lead
+    expect(at(early, lead, { effect: 'learnPlan' }).crisis!.leads[0]).toBeNull()
+    const refused = standingAt(early, lead)
+    expect(siteActions(refused, content).find((a) => a.type === 'visitPoi')).toMatchObject({
+      available: false,
+      code: 'quiet',
+    })
+  })
+
+  test('revealKeySite opens a later act’s prevention at its lead', () => {
+    const state = withCrisis({ leads: [35, null, null], thwarted: [50, null, null] }, { day: 140 })
+    const { lead, key } = state.crisis!.acts[1]
+    const won = at(state, lead, { effect: 'revealKeySite' })
+    expect(won.crisis!.leads).toEqual([35, 140, null])
+    expect(won.world.pois[key].discovered).toBe(true)
+    // The plan is told once only, at act I.
+    expect(won.log.map((l) => l.text)).not.toContain(villain.plan.replace('{villain}', 'Morvaine'))
   })
 })
 
 describe('clues', () => {
-  test('before the plan, a clue reveals the reveal site', () => {
-    const state = withCrisis()
+  test('in act I before the plan, a clue reveals the lead site; before it opens, nothing', () => {
+    const state = withCrisis({}, { day: 40 })
     const told = at(state, null, { effect: 'crisisClue' })
-    expect(told.world.pois[state.crisis!.reveal].discovered).toBe(true)
+    expect(told.world.pois[state.crisis!.acts[0].lead].discovered).toBe(true)
     expect(told.crisis!.clues).toEqual([0, 0, 0])
+    const early = withCrisis({}, { day: 10 })
+    expect(at(early, null, { effect: 'crisisClue' }).world).toEqual(early.world)
   })
 
-  test('two clues reveal the act’s site, and the third gives the Edge there', () => {
-    const state = withCrisis({ learned: 10, clues: [1, 0, 0] }, { day: 50 })
-    const site = state.crisis!.acts[0].poi
+  test('two clues reveal a later act’s lead, and the third gives the Edge at its key site', () => {
+    const state = withCrisis(
+      { leads: [35, null, null], thwarted: [50, null, null], clues: [3, 1, 0] },
+      { day: 140 }
+    )
+    const { lead, key } = state.crisis!.acts[1]
     const two = at(state, null, { effect: 'crisisClue' })
-    expect(two.crisis!.clues[0]).toBe(CRISIS_SITE_CLUES)
-    expect(two.world.pois[site].discovered).toBe(true)
+    expect(two.crisis!.clues[1]).toBe(CRISIS_SITE_CLUES)
+    expect(two.world.pois[lead].discovered).toBe(true)
     expect(two.party[0].xp).toBe(state.party[0].xp + XP_DISCOVER)
     const three = at(two, null, { effect: 'crisisClue', amount: 2 })
-    expect(three.crisis!.clues[0]).toBe(3)
-    expect(three.log.at(-1)!.text).toMatch(/^You know Morvaine's weakness at /)
+    expect(three.crisis!.clues[1]).toBe(3)
+    expect(three.log.at(-1)!.text).toMatch(/^You know Morvaine's weakness in Act II/)
 
-    const visited = step(
-      standingAt({ ...three, encounter: null }, site),
-      { type: 'visitPoi' },
-      content
-    )
-    expect(visited.encounter).toMatchObject({ poi: site, position: 'edge' })
-    // Before the weakness, no Edge.
-    const plain = step(standingAt({ ...two, encounter: null }, site), { type: 'visitPoi' }, content)
-    expect(plain.encounter!.position).toBe('normal')
+    const led = { ...three, crisis: { ...three.crisis!, leads: [35, 141, null] } }
+    expect(visit({ ...led, day: 141 }, key).encounter).toMatchObject({ poi: key, position: 'edge' })
+    // At the lead, and at the key site before the weakness, no Edge.
+    expect(visit(three, lead).encounter!.position).toBe('normal')
+    const plain = { ...two, crisis: { ...two.crisis!, leads: [35, 141, null] } }
+    expect(visit({ ...plain, day: 141 }, key).encounter!.position).toBe('normal')
   })
 
   test('chips name the current act', () => {
-    const state = withCrisis({ learned: 10, thwarted: [40, null, null] }, { day: 50 })
+    const state = withCrisis({ leads: [35, 140, null], thwarted: [40, null, null] }, { day: 150 })
     const clue = EffectSchema.parse({ effect: 'crisisClue' })
     const thwart = EffectSchema.parse({ effect: 'thwartAct' })
+    const reveal = EffectSchema.parse({ effect: 'revealKeySite' })
     expect(describeEffect(clue, 'Lyra', undefined, 2)).toBe('+1 clue: Act II')
     expect(describeEffect(thwart, 'Lyra', undefined, 1)).toBe('Thwart Act I')
-    const site = state.crisis!.acts[1].poi
-    const open = step(standingAt(state, site), { type: 'visitPoi' }, content)
+    expect(describeEffect(reveal, 'Lyra', undefined, 3)).toBe("Find Act III's key site")
+    const open = visit(state, state.crisis!.acts[1].key)
     const finale = { ...open, encounter: { ...open.encounter!, stage: 'finale' } }
     const stop = encounterOptions(finale).find((o) => o.id === 'stop')!
     const success = stop.outcomes.find((o) => o.tier === 'success')
@@ -113,30 +138,34 @@ describe('clues', () => {
 })
 
 describe('the act sites', () => {
-  test('at 15 days late every check is 2 higher than on time, danger included (preview == roll)', () => {
-    // Due on day 110: days 110 and 125 have the same danger.
-    const dues = [110, 210, 310]
+  test('a Crisis visit takes its DCs from the CR, not the danger ramp (preview == roll)', () => {
+    /** Act I's key site opened on `day`, and its approach's DC as shown. */
     const dcAt = (day: number) => {
-      const state = withCrisis({ learned: 10, clues: [2, 0, 0] }, { day }, dues)
-      const open = step(standingAt(state, state.crisis!.acts[0].poi), { type: 'visitPoi' }, content)
+      const state = withCrisis({ leads: [35, null, null] }, { day })
+      const open = visit(state, state.crisis!.acts[0].key)
       const shown = encounterOptions(open).find((o) => o.id === 'sneak')!.check!.dc
-      const rolled = step(open, { type: 'chooseOption', optionId: 'sneak' }, content)
-      expect(rolled.lastRoll!.dc).toBe(shown)
       return { shown, open }
     }
-    expect(dangerLevel(110)).toBe(dangerLevel(125))
-    const onTime = dcAt(110)
-    const late = dcAt(125)
-    expect(onTime.shown).toBe(12 + Math.round(12 * dangerLevel(110)))
-    expect(late.shown).toBe(onTime.shown + 2)
-    expect(late.open.encounter!.log.map((l) => l.text)).toContain(
-      'You are 15d late: every check here is DC +2.'
+    const key = villain.acts[0].keyCr
+    const early = dcAt(40)
+    // The fixture's approach is written DC 12.
+    expect(early.shown).toBe(crDc(key) + 12 - CRISIS_DC_BASE)
+    // Day 95 has more ramp danger than day 40; the CR doesn't care.
+    expect(dcAt(95).shown).toBe(early.shown)
+    expect(early.open.encounter!.danger).toBe(0)
+    const rolled = step(early.open, { type: 'chooseOption', optionId: 'sneak' }, content)
+    expect(rolled.lastRoll!.dc).toBe(early.shown)
+    expect(early.open.encounter!.log.map((l) => l.text).join('\n')).toMatch(
+      new RegExp(`CR ${key}, meant for level ${key + 1}`)
     )
   })
 
-  test('an act site is found only by exploring its domain with a clue in hand', () => {
-    const state = withCrisis({ learned: 10, clues: [1, 0, 0] }, { day: 50 })
-    const site = state.crisis!.acts[0].poi
+  test('a lead site is found only by exploring its domain with a clue in hand', () => {
+    const state = withCrisis(
+      { leads: [35, null, null], thwarted: [50, null, null], clues: [3, 1, 0] },
+      { day: 140 }
+    )
+    const site = state.crisis!.acts[1].lead
     const domain = state.world.pois[site].domain
     // A road clue in its own domain, over the whole land.
     const clue = { ...state, encounter: makeEncounter({ domain }) }
@@ -154,32 +183,37 @@ describe('the act sites', () => {
     expect(
       poisToDiscover(state.world, content, domain, search, crisisHidden(state, domain))
     ).toContain(site)
-    const noClue = withCrisis({ learned: 10, clues: [0, 0, 0] }, { day: 50 })
+    const noClue = { ...state, crisis: { ...state.crisis!, clues: [3, 0, 0] } }
     expect(crisisHidden(noClue, domain).has(site)).toBe(true)
   })
 
-  test('thwarting act I gives act II its land; a thwarted site refuses a visit', () => {
-    const state = withCrisis({ learned: 10, clues: [3, 0, 0] }, { day: 60 })
-    const site = state.crisis!.acts[0].poi
+  test('thwarting act I on day 50 is allowed, gives act II its land, and quiets the site', () => {
+    const state = withCrisis({ leads: [35, null, null], clues: [3, 0, 0] }, { day: 50 })
+    const site = state.crisis!.acts[0].key
     const thwarted = at(state, site, { effect: 'thwartAct' })
-    expect(thwarted.crisis).toMatchObject({ thwarted: [60, null, null], clues: [3, 1, 0] })
+    expect(thwarted.crisis).toMatchObject({ thwarted: [50, null, null], clues: [3, 1, 0] })
     expect(thwarted.party[0].xp).toBe(state.party[0].xp + XP_THWART)
     expect(thwarted.log.map((l) => l.text)).toContain('Act 1 is broken.')
-    expect(crisisInfo(thwarted, content)!.acts[1].where).toMatch(/^(Greenvale|Ashmoor)$/)
-    // Not at the site: nothing.
+    // Not at the key site, or in the investigation: nothing.
     expect(at(state, null, { effect: 'thwartAct' }).crisis).toEqual(state.crisis)
+    const investigating = withCrisis({}, { day: 50 })
+    expect(at(investigating, site, { effect: 'thwartAct' }).crisis).toEqual(investigating.crisis)
 
     const back = standingAt({ ...thwarted, encounter: null }, site)
-    const visit = siteActions(back, content).find((a) => a.type === 'visitPoi')
-    expect(visit).toMatchObject({ available: false, code: 'quiet' })
+    const action = siteActions(back, content).find((a) => a.type === 'visitPoi')
+    expect(action).toMatchObject({ available: false, code: 'quiet' })
     expect(step(back, { type: 'visitPoi' }, content).encounter).toBeNull()
+    // Act II's lead is dormant until its open day.
+    const lead = thwarted.crisis!.acts[1].lead
+    expect(visit({ ...thwarted, day: 129 }, lead).encounter).toBeNull()
+    expect(visit({ ...thwarted, day: 130 }, lead).encounter?.poi).toBe(lead)
   })
 
-  test('a choice whose days run past the act’s last day ends the visit, and its preview says so', () => {
-    /** Act I's site, opened on `day`, with an approach that waits a day and goes to the finale. */
+  test('a choice whose days run past the due day ends the visit, and its preview says so', () => {
+    /** Act I's key site, opened on `day`, with an approach that waits a day and goes to the finale. */
     const openOn = (day: number): GameState => {
-      const state = withCrisis({ learned: 10, clues: [2, 0, 0] }, { day, gold: 10 })
-      const open = step(standingAt(state, state.crisis!.acts[0].poi), { type: 'visitPoi' }, content)
+      const state = withCrisis({ leads: [35, null, null] }, { day, gold: 10 })
+      const open = visit(state, state.crisis!.acts[0].key)
       const situation = structuredClone(open.encounter!.situation)
       situation.stages.start.options.push(
         OptionSchema.parse({
@@ -195,7 +229,6 @@ describe('the act sites', () => {
       )
       return { ...open, encounter: { ...open.encounter!, situation } }
     }
-    const failsOn = actFailsOn(100)
     const shown = (state: GameState) => {
       const outcome = encounterOptions(state).find((o) => o.id === 'wait')!.outcomes[0]
       if (outcome.hidden) throw new Error('a fixed outcome is never hidden')
@@ -205,22 +238,20 @@ describe('the act sites', () => {
       step(state, { type: 'chooseOption', optionId: 'wait' }, content)
 
     // In time: the visit goes on to the finale.
-    const inTime = openOn(failsOn - 2)
+    const inTime = openOn(99)
     expect(shown(inTime)).toMatchObject({ next: 'stage' })
     expect(shown(inTime).effects.join()).not.toMatch(/too late/)
     expect(wait(inTime).encounter!.stage).toBe('finale')
 
-    // A day too many: the act fails on the way in, and the visit ends there.
-    const last = openOn(failsOn - 1)
+    // On the due day, a day's wait is too many: the act fails, and the visit ends there.
+    const last = openOn(100)
     const preview = shown(last)
     expect(preview).toMatchObject({ next: 'end' })
     expect(preview.effects).toEqual(['1 day passes', 'too late: Act I fails'])
     const after = wait(last)
     expect(after.encounter!.stage).toBeNull()
-    expect(after.gold).toBe(last.gold)
     expect(after.log.map((l) => l.text)).toEqual(
       expect.arrayContaining([
-        'You wait. (1 day passes, too late: Act I fails)',
         'Too late: Act I, The Test Act 1, has failed. There is nothing left to stop here.',
       ])
     )
@@ -229,10 +260,10 @@ describe('the act sites', () => {
 
   test('thwarting act III wins', () => {
     const state = withCrisis(
-      { learned: 10, thwarted: [50, 150, null], clues: [1, 1, 1] },
+      { leads: [35, 140, 240], thwarted: [50, 150, null], clues: [1, 1, 1] },
       { day: 260 }
     )
-    const won = at(state, state.crisis!.acts[2].poi, { effect: 'thwartAct' })
+    const won = at(state, state.crisis!.acts[2].key, { effect: 'thwartAct' })
     expect(won.party[0].xp).toBe(state.party[0].xp + 3 * XP_THWART)
     expect(won.log.at(-1)!.text).toBe('Morvaine is no more.')
     expect(crisisInfo(won, content)!.ended).toMatchObject({ outcome: 'won', day: 260 })
