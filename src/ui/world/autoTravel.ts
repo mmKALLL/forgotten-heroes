@@ -123,8 +123,8 @@ export type AutoTravel = {
 
 /**
  * Walks the journey on by itself: each day takes autoTravelDayMs of real time, then dispatches
- * `continueJourney` for one day. It waits while an encounter is open (and goes on once it is
- * closed), while `hold` (a roll animating, the run over), while a modal is open or the tab is
+ * `continueJourney` for one day. It waits while an encounter or a fight is open (and goes on once it
+ * is closed), while `hold` (a roll animating, the run over), while a modal is open or the tab is
  * hidden, and pauses when the walk stopped for the player (went without, a supply warning, no one
  * fit) until the player resumes. A new journey starts running. With reduced motion the marker
  * jumps a day at a time instead of gliding.
@@ -148,9 +148,13 @@ export function useAutoTravel(
   }
   const [glide] = useState(() => new GlideStore())
   const [reduced] = useState(prefersReducedMotion)
-  // An encounter's outcome still on screen holds the clock too, until the player closes it.
+  // An encounter's outcome still on screen holds the clock too, until the player closes it; so
+  // does a fight, until it is closed.
   const canRun =
-    (journeyInfo(state, content)?.canMove ?? false) && !hold && state.encounter === null
+    (journeyInfo(state, content)?.canMove ?? false) &&
+    !hold &&
+    state.encounter === null &&
+    state.combat === null
   const running = canRun && !paused
   const key = journeyDayKey(state)
   // The real time spent on the day under way, kept across a pause.

@@ -2874,3 +2874,331 @@ h2[tabindex='-1']:focus {
   white-space: nowrap;
   align-self: center;
 }
+
+/*
+ * The fight on the line (Plan 7 Track U, ui/combat/CombatView.tsx). The centre column widens as
+ * in town. The line is a row of tiles, the party's end on the left, each tile's units stacked top
+ * to bottom; the enemies' intents are arrows above it. On a phone the line keeps readable tiles
+ * and scrolls sideways inside its own frame, never the page.
+ */
+.layout.fight {
+  grid-template-columns: minmax(230px, 0.8fr) minmax(0, 3fr) minmax(210px, 0.8fr);
+}
+@media (max-width: 900px) {
+  .layout.fight {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.combat h3 {
+  font-size: 0.9rem;
+  margin: 0 0 0.35rem;
+}
+.combat-head {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+.combat-head h2 {
+  margin-bottom: 0.5rem;
+}
+.combat-head h2:focus {
+  outline: none;
+}
+.combat-frame {
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+.combat-line {
+  display: grid;
+  grid-template-columns: repeat(var(--tiles), minmax(5.4rem, 1fr));
+  gap: 4px;
+}
+.intent-lane {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 0.25rem;
+}
+.intent-row {
+  position: relative;
+  height: 1.3rem;
+  color: var(--bad);
+}
+.intent-row.other {
+  color: var(--accent);
+}
+.intent-row.idle {
+  color: var(--muted);
+}
+.arrow {
+  position: absolute;
+  top: 50%;
+  border-top: 2px solid currentColor;
+}
+.intent-row.idle .arrow,
+.intent-row.other .arrow {
+  border-top-style: dashed;
+}
+.arrow::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  border: 5px solid transparent;
+}
+.arrow.to-right::after {
+  right: -6px;
+  border-left: 7px solid currentColor;
+}
+.arrow.to-left::after {
+  left: -6px;
+  border-right: 7px solid currentColor;
+}
+.arrow-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  z-index: 1;
+  padding: 0 0.3rem;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: var(--panel);
+  font-size: 0.72rem;
+  line-height: 1.15rem;
+  white-space: nowrap;
+}
+.arrow-label.at-start {
+  transform: translateX(-25%);
+}
+.arrow-label.at-end {
+  transform: translateX(-75%);
+}
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  min-height: 9.5rem;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bg) 60%, var(--panel));
+}
+.tile.side-party {
+  background: color-mix(in srgb, var(--good) 7%, var(--panel));
+}
+.tile.side-enemy {
+  background: color-mix(in srgb, var(--bad) 7%, var(--panel));
+}
+.tile.threatened {
+  border-top-color: var(--bad);
+}
+.tile.can-attack,
+.tile.can-move {
+  cursor: pointer;
+  outline: 2px dashed var(--accent);
+  outline-offset: -2px;
+}
+.tile.can-attack {
+  outline-color: var(--bad);
+}
+.tile.aimed {
+  outline-style: solid;
+}
+.tile-no {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  pointer-events: none;
+}
+.threat-mark {
+  color: var(--bad);
+}
+.unit {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-width: 0;
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+  border-left-width: 3px;
+  border-radius: 4px;
+  background: var(--panel);
+  color: var(--ink);
+  font-size: 0.78rem;
+  text-align: left;
+  transition: box-shadow 0.15s ease;
+}
+.unit.side-party {
+  border-left-color: var(--good);
+}
+.unit.side-enemy {
+  border-left-color: var(--bad);
+}
+.unit.selected {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+.unit.aimed {
+  box-shadow: 0 0 0 2px var(--bad);
+}
+.unit.spent {
+  opacity: 0.6;
+}
+.unit-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.25rem;
+}
+.unit-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.unit-size {
+  color: var(--muted);
+}
+.unit .hp {
+  height: 0.95rem;
+  margin: 0.2rem 0;
+}
+.unit-tags {
+  font-size: 0.7rem;
+  color: var(--bad);
+}
+.pips {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
+}
+.pip {
+  width: 0.5rem;
+  height: 0.5rem;
+  border: 1px solid var(--bad);
+  border-radius: 50%;
+}
+.pip.on {
+  background: var(--bad);
+}
+/* A gap after the pip that staggers; the last pip stuns. */
+.pip.stagger {
+  margin-right: 4px;
+}
+.move-here {
+  margin-top: auto;
+  padding: 0.15rem 0.3rem;
+  border-style: dashed;
+  font-size: 0.75rem;
+}
+.move-here.aimed {
+  border-style: solid;
+  border-color: var(--accent);
+}
+.combat-out {
+  margin: 0.5rem 0 0;
+}
+.combat-panels {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 1rem;
+  margin-top: 0.75rem;
+}
+@media (max-width: 700px) {
+  .combat-panels {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.combat-acting {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+.combat-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+.combat-controls button[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--accent) 20%, var(--panel));
+  border-color: var(--accent);
+}
+.combat-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0.5rem 0;
+}
+.slot {
+  width: 1.9rem;
+  padding: 0.15rem 0;
+  font-size: 0.8rem;
+  border-style: dashed;
+}
+.slot[aria-pressed='true'] {
+  opacity: 1;
+  outline: 2px solid var(--accent);
+}
+.combat-preview {
+  min-height: 6.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+.combat-preview p,
+.combat-preview ul {
+  margin: 0.15rem 0;
+}
+.combat-preview .spec + .spec {
+  margin-top: 0.35rem;
+}
+.combat-keys {
+  margin: 0.4rem 0 0;
+}
+.intent-list {
+  margin: 0;
+  padding-left: 1.3rem;
+  font-size: 0.85rem;
+}
+.intent-list li + li {
+  margin-top: 0.2rem;
+}
+.intent-list li.idle {
+  color: var(--muted);
+}
+.combat-intents p {
+  margin: 0.4rem 0 0;
+}
+.combat-end {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  text-align: center;
+}
+.combat-end h3 {
+  font-size: 1.1rem;
+}
+.combat-log-panel {
+  margin-top: 0.75rem;
+}
+.combat-log {
+  max-height: 10rem;
+  overflow-y: auto;
+  margin: 0;
+  padding-left: 1.3rem;
+  font-size: 0.8rem;
+}
+.deck-fights {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .unit {
+    transition: none;
+  }
+}

@@ -1,6 +1,7 @@
 import type { CombatState, CombatUnit, Intent } from '../../schema/combat'
 import type { GameState } from '../../schema/state'
 import type { CombatSide, CreatureSize } from '../../schema/types'
+import { WEAPON_FAMILY_RULES } from '../constants'
 import { bloodied, type AttackSpec } from './attack'
 import { hitThresholds, isStaggered, isStunned, standing } from './line'
 import { combatPreview, type CombatPreview, type MemberPreview } from './preview'
@@ -27,6 +28,8 @@ export type UnitView = {
   ready: boolean
   moved: boolean
   acted: boolean
+  /** Members: the weapon's trait staggers whoever it hits (maces). */
+  staggersOnHit: boolean
 }
 
 export type TileView = { index: number; side: CombatSide | null; units: UnitView[] }
@@ -89,6 +92,7 @@ function unitView(u: CombatUnit, ready: boolean): UnitView {
     ready,
     moved: u.moved,
     acted: u.acted,
+    staggersOnHit: u.family !== null && WEAPON_FAMILY_RULES[u.family].trait === 'stagger',
   }
 }
 
