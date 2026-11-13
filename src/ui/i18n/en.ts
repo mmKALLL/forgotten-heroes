@@ -691,6 +691,7 @@ export const en = {
   'mapTravel.forage': ', foraging',
   'mapTravel.mounted': ', on hired mounts',
   'mapTravel.close': 'Close',
+  'mapTravel.rep': '({points} rep.)',
   'journal.heading': 'Journal',
   'journal.log': 'Log',
   'journal.day': 'Day {day}',

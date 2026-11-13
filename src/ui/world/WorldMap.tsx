@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
-import { capitalFirst, formatPercent } from '../../engine/format'
+import { capitalFirst, formatPercent, formatPoints } from '../../engine/format'
+import { settlementPoints } from '../../engine/town/reputation'
 import type { Action } from '../../engine/state'
 import { routeOptions, type RouteOption } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
@@ -525,6 +526,9 @@ export function WorldMap({
           <TravelPopover
             key={picked.to}
             road={picked}
+            rep={
+              Object.hasOwn(state.world.pois, picked.to) ? null : settlementPoints(state, picked.to)
+            }
             prefs={prefs}
             at={pickedAt}
             viewBox={viewBox}
@@ -583,6 +587,7 @@ export function WorldMap({
  */
 function TravelPopover({
   road,
+  rep,
   prefs,
   at,
   viewBox,
@@ -590,6 +595,8 @@ function TravelPopover({
   onClose,
 }: {
   road: RouteOption
+  /** The party's reputation points with the town (null for a site). */
+  rep: number | null
   prefs: TravelPrefs
   at: MapPoint
   viewBox: string
@@ -641,6 +648,12 @@ function TravelPopover({
       }}
     >
       <strong>{capitalFirst(road.toName)}</strong>
+      {rep !== null && (
+        <span className={`small ${rep < 0 ? 'tone-bad' : rep > 0 ? 'tone-good' : 'muted'}`}>
+          {' '}
+          {t('mapTravel.rep', { points: formatPoints(rep) })}
+        </span>
+      )}
       <p className="small">
         {max > 0
           ? t('mapTravel.facts', {

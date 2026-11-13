@@ -508,3 +508,26 @@ test('each marker has an invisible hit target a little larger than what is drawn
   const r = (sel: string) => Number(site.querySelector(sel)!.getAttribute('r'))
   expect(r('circle.hit')).toBeGreaterThan(r('circle.poi-disc'))
 })
+
+test('the popover names the town’s reputation after it; a site has none', () => {
+  const base = makeState({ location: 'greenvale-1', gold: 50 })
+  const props = {
+    content,
+    onSelect: vi.fn(),
+    imageUrl: null,
+    prefs: DEFAULT_TRAVEL_PREFS,
+    onTravel: vi.fn(),
+  }
+  const pop = () => screen.getByRole('dialog')
+  const state = {
+    ...base,
+    reputation: { ...base.reputation, settlements: { 'greenvale-2': -4 } },
+  }
+  const { rerender } = render(<WorldMap {...props} state={state} selected="greenvale-2" />)
+  expect(within(pop()).getByText('(−4 rep.)').className).toContain('tone-bad')
+  rerender(<WorldMap {...props} state={base} selected="greenvale-2" />)
+  expect(within(pop()).getByText('(0 rep.)').className).toContain('muted')
+  const atSite = discover(makeState({ location: 'ashmoor-1' }), ['poi-1'])
+  rerender(<WorldMap {...props} state={atSite} selected="poi-1" />)
+  expect(pop().textContent).not.toContain('rep.')
+})
