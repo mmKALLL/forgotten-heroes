@@ -16,6 +16,7 @@ import { inSettlement, notHere } from '../travel/where'
 import { settlementName } from '../world/geo'
 import { poisToDiscover } from '../world/pois'
 import { crisisHidden } from '../crisis/sites'
+import { markKnown, suggestedLevel } from '../world/delve'
 import {
   crisisRumour,
   crisisRumourText,
@@ -52,7 +53,7 @@ export const RUMOUR_OUTCOMES: Readonly<Record<Tier, string>> = {
   critFail: 'Trouble: a pickpocket, or a fight',
   fail: 'Nothing worth hearing',
   partial: 'Idle gossip and old news, of no use',
-  success: "Two nearby towns' prices, and word of a site",
+  success: "Two nearby towns' prices, and word of a site (of a dungeon, the level it calls for)",
   critSuccess: "Three towns' prices, word of a site, and a lead on work",
 }
 
@@ -126,6 +127,20 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
     }),
     crisis: crisisRumour(state, content, state.location!),
   }
+}
+
+/**
+ * Sites heard of in talk are known by word (Plan 6 wave 2b, world/delve.ts markKnown): for an
+ * authored dungeon the talk also says what party it calls for.
+ */
+function hearOfSites(state: GameState, content: Content, ids: readonly string[]): GameState {
+  const known = markKnown(state, ids)
+  return ids.reduce((next, id) => {
+    const level = suggestedLevel(next, content, id)
+    if (level === null) return next
+    const name = next.world.pois[id].name
+    return appendLog(next, `Word is that ${name} calls for a party of level ${level}.`, 'info')
+  }, known)
 }
 
 /**
@@ -274,7 +289,7 @@ export function listenRumours(state: GameState, content: Content): GameState {
     if (crisisRumour(next, content, here) !== 'reveal') {
       const search = { count: 1, scope: 'land' } as const
       const ids = poisToDiscover(next.world, content, here, search, crisisHidden(next))
-      if (ids.length > 0) next = revealPois(next, content, ids)
+      if (ids.length > 0) next = hearOfSites(revealPois(next, content, ids), content, ids)
     }
     next = hearCrisisRumour(next, content, here, tier === 'critSuccess')
   }

@@ -554,6 +554,8 @@ export const en = {
 
   'delve.heading': 'Delve',
   'delve.rooms': '{n} rooms, in order, without leaving.',
+  'delve.levelUnknown':
+    'Level unknown: no word of this place yet. Rumours, or going in, would tell what party it calls for.',
   'delve.roomsLeft': '{left} of {n} rooms left.',
   'delve.room': 'Room {n} of {total}: {name}',
   'delve.next': 'Next: {name}',

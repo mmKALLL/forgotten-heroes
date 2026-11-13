@@ -192,7 +192,11 @@ export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
       <p className="small">
         <em>{p.dungeon.summary}</em>
       </p>
-      <SiteCr cr={p.cr} level={p.level} party={p.partyLevel} />
+      {p.suggestedLevel !== null ? (
+        <SiteCr cr={p.cr} level={p.suggestedLevel} party={p.partyLevel} />
+      ) : (
+        <p className="small muted">{t('delve.levelUnknown')}</p>
+      )}
       <p className="small">{t('delve.rooms', { n: p.dungeon.rooms.length })}</p>
       <p className="small">
         {t('delve.hoard', { gold: `${hoard.gold.min}–${hoard.gold.max}`, extra, xp: hoard.xp })}
