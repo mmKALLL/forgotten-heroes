@@ -95,7 +95,10 @@ export type RestOption = {
   lodging: boolean
   /** The room it would take, or null. */
   room: Room | null
-  /** In camp: the share of max HP each member regains (CAMP_HEAL); 1 in town (all of it). */
+  /**
+   * The share of max HP each member regains: a common room's (COMMON_ROOM_HEAL) or a private
+   * room's (PRIVATE_ROOM_HEAL); without a room, in camp or in town, CAMP_HEAL.
+   */
   healShare: number
   /** In camp: the HP each member regains on top of the share, from the camp kit (else 0). */
   kitHp: number
@@ -131,19 +134,21 @@ export function restOption(
     lodgingCost: (wanted !== null ? room?.cost : common?.cost) ?? 0,
     lodging: stays,
     room: stays ? room!.room : null,
-    healShare: inTown ? 1 : CAMP_HEAL,
+    healShare: stays ? room!.heal : CAMP_HEAL,
     kitHp: inTown ? 0 : campKitHp(state),
     cheer,
   }
 }
 
 /**
- * A day of rest. In a settlement: all HP back and the waterskins refilled. With an inn, the party
- * takes a room when it wants to and can pay (meals included, carried food untouched): a common
- * room fades one Strain stack and lifts a level of exhaustion, a private room PRIVATE_ROOM_FADE and
- * PRIVATE_ROOM_EXHAUSTION. Otherwise it eats its own food.
+ * A day of rest. In a settlement the waterskins are refilled. With an inn, the party takes a room
+ * when it wants to and can pay (meals included, carried food untouched): a common room heals
+ * COMMON_ROOM_HEAL of each member's max HP, fades one Strain stack and lifts a level of
+ * exhaustion; a private room heals PRIVATE_ROOM_HEAL, fades PRIVATE_ROOM_FADE and lifts
+ * PRIVATE_ROOM_EXHAUSTION (designer calls 2026-11-13). Otherwise it eats its own food and heals as
+ * in camp (CAMP_HEAL), so a room is always worth more.
  * In camp (on the road or at a point of interest) it eats carried food, drinking as the terrain
- * there needs, and heals a quarter of max HP; at a site with a spring or well (`water`) the
+ * there needs, and heals CAMP_HEAL of max HP (and the camp kit's); at a site with a spring or well (`water`) the
  * waterskins are refilled after the day's drinking. Either way, everyone who ate and drank loses
  * a level of exhaustion. Resting is never a forced march.
  */
@@ -173,9 +178,7 @@ export function rest(
     : consumeDay(state, terrain, DEFAULT_PACE, content)
   const party = after.party.map((c) => {
     if (c.exhaustion >= MAX_EXHAUSTION) return c
-    const hp = option.inTown
-      ? c.maxHp
-      : Math.min(c.maxHp, c.hp + Math.ceil(c.maxHp * option.healShare) + option.kitHp)
+    const hp = Math.min(c.maxHp, c.hp + Math.ceil(c.maxHp * option.healShare) + option.kitHp)
     const exhaustion = unfed.includes(c.id) ? c.exhaustion : Math.max(0, c.exhaustion - lifts)
     return { ...c, hp, exhaustion }
   })

@@ -8,6 +8,7 @@ import { load } from '../economy/capacity'
 import { supplyOutlook } from '../travel/outlook'
 import { arrivalRest } from './arrival'
 import { provisionPlan } from './provision'
+import { COMMON_ROOM_HEAL } from '../constants'
 
 const content = fixtureContent()
 const act = (s: GameState, a: Action) => step(s, a, content)
@@ -156,7 +157,7 @@ describe('auto-rest on arrival', () => {
     expect(arrivalRest(rich, content)).toEqual({ lodging: true })
     const rested = act(rich, { type: 'autoRest' })
     expect(rested.day).toBe(rich.day + 1)
-    expect(rested.party[0].hp).toBe(brom.maxHp)
+    expect(rested.party[0].hp).toBe(3 + Math.ceil(brom.maxHp * COMMON_ROOM_HEAL))
     expect(rested.log.some((e) => e.text.startsWith('Auto-rest:'))).toBe(true)
 
     const broke = at('ashmoor-1', { party: hurt, gold: 0, goods: { food: 4 } })

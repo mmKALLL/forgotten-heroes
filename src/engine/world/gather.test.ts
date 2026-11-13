@@ -7,7 +7,7 @@ import { rollCheck } from '../rules/checks'
 import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { gatherOptions, type GatherOption } from './gather'
-import { OVERLOAD_RATIO } from '../constants'
+import { GATHER_INJURY, OVERLOAD_RATIO } from '../constants'
 
 const content = fixtureContent()
 
@@ -102,5 +102,17 @@ describe('a day of gathering', () => {
     const hp = (s: GameState) => s.party.find((c) => c.id === lead)!.hp
     if (mishap.ambush) expect(after.encounter).not.toBeNull()
     else expect(hp(after)).toBe(Math.max(0, hp(state) - mishap.injury))
+  })
+
+  test('the lead’s injury is the written one for a novice party, deeper for a seasoned one', () => {
+    expect(only(at('ashmoor-1')).mishap.injury).toBe(GATHER_INJURY)
+    const seasoned = at('ashmoor-1')
+    const big = { ...seasoned, party: seasoned.party.map((c) => ({ ...c, hp: 80, maxHp: 80 })) }
+    const { actorId: lead, mishap } = only(big)
+    expect(mishap.injury).toBeGreaterThan(GATHER_INJURY)
+    const state = rolling(big, 'critFail')
+    const after = gather(state, 'healing-herbs')
+    const hp = (s: GameState) => s.party.find((c) => c.id === lead)!.hp
+    if (!mishap.ambush) expect(hp(after)).toBe(hp(state) - mishap.injury)
   })
 })

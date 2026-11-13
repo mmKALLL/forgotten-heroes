@@ -22,11 +22,13 @@ import {
   COURIER_ALL_SPEED,
   COURIER_KM_PER_DAY,
   COURIER_NEIGHBOURS_PRICE,
+  COMMON_ROOM_HEAL,
   HEALER_PRICE,
   LODGING_PRICE,
   OFF_ROAD_WINDING,
   PRIVATE_ROOM_EXHAUSTION,
   PRIVATE_ROOM_FADE,
+  PRIVATE_ROOM_HEAL,
   PRIVATE_ROOM_MIN_QUALITY,
   PRIVATE_ROOM_PRICE,
   ROUND_PRICE,
@@ -46,17 +48,19 @@ export type LodgingOption = {
   service: string
   cost: number
   fade: number
-  /** What a night there does, very short (English): "Rest 1d · full HP · −1 Strain". */
+  /** The share of each member's max HP a night there heals. */
+  heal: number
+  /** What a night there does, very short (English): "Rest 1d · 40% HP · −1 exhaustion · …". */
   effect: string
 }
 
 /**
- * A night's rest at the inn (supplies.ts `rest`): a day, all HP back, `lifts` exhaustion and
- * `fade` Strain stacks.
+ * A night's rest at the inn (supplies.ts `rest`): a day, `heal` of each member's own max HP back,
+ * `lifts` exhaustion and `fade` Strain stacks.
  */
-const roomEffect = (fade: number, lifts: number, camaraderie = 0): string =>
+const roomEffect = (heal: number, fade: number, lifts: number, camaraderie = 0): string =>
   [
-    `Rest 1d · full HP · −${lifts} exhaustion · −${fade} Strain`,
+    `Rest 1d · ${Math.round(heal * 100)}% HP · −${lifts} exhaustion · −${fade} Strain`,
     camaraderie > 0 && `+${camaraderie} camaraderie`,
   ]
     .filter(Boolean)
@@ -76,7 +80,8 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
       service: inn,
       cost: LODGING_PRICE * members,
       fade: 1,
-      effect: roomEffect(1, 1),
+      heal: COMMON_ROOM_HEAL,
+      effect: roomEffect(COMMON_ROOM_HEAL, 1, 1),
     },
   ]
   if (serviceQuality(state, state.location, inn) >= PRIVATE_ROOM_MIN_QUALITY) {
@@ -85,8 +90,14 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
       service: inn,
       cost: PRIVATE_ROOM_PRICE * members,
       fade: PRIVATE_ROOM_FADE,
+      heal: PRIVATE_ROOM_HEAL,
       // A night in good rooms also brings the party closer, once per arrival (bond).
-      effect: roomEffect(PRIVATE_ROOM_FADE, PRIVATE_ROOM_EXHAUSTION, bondGain(state)),
+      effect: roomEffect(
+        PRIVATE_ROOM_HEAL,
+        PRIVATE_ROOM_FADE,
+        PRIVATE_ROOM_EXHAUSTION,
+        bondGain(state)
+      ),
     })
   }
   return rooms

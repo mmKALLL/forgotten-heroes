@@ -21,6 +21,7 @@ import {
   type FaceRange,
   type Tier,
 } from '../rules/checks'
+import { partyWound, scaledWound } from '../rules/levels'
 import { useSkill } from '../rules/strain'
 import { consumeDay } from '../travel/days'
 import { autoRefill } from '../travel/supplies'
@@ -172,7 +173,12 @@ export function gatherOptions(state: GameState, content: Content): GatherOption[
           outcomes,
           depleted,
           room,
-          mishap: { chance: odds.critFail, ambush, injury: GATHER_INJURY },
+          mishap: {
+            chance: odds.critFail,
+            ambush,
+            // A fixed wound: deeper for a party with more HP (rules/levels.ts partyWound).
+            injury: scaledWound(GATHER_INJURY, partyWound(state.party)),
+          },
           available: reason === null,
           reason,
         },
@@ -185,7 +191,8 @@ export function gatherOptions(state: GameState, content: Content): GatherOption[
  * Inspiration), the units the tier yields arrive as goods (what the party can't carry is left
  * behind), and the land records what was carried away. Then the day passes as a day in town on the
  * party's own food (water is free in town). A critical failure draws a hostile situation that
- * fits the place, or else hurts the lead (GATHER_INJURY).
+ * fits the place, or else hurts the lead (GATHER_INJURY, scaled by the party's HP as the preview
+ * shows).
  */
 export function gather(state: GameState, content: Content, ruleId: string): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
@@ -239,12 +246,9 @@ export function gather(state: GameState, content: Content, ruleId: string): Game
   if (roll.tier !== 'critFail') return next
   const ambushed = drawAmbush(next, content)
   if (ambushed) return ambushed
+  const injury = option.mishap.injury
   const hurt = next.party.map((c) =>
-    c.id === option.actorId ? { ...c, hp: Math.max(0, c.hp - GATHER_INJURY) } : c
+    c.id === option.actorId ? { ...c, hp: Math.max(0, c.hp - injury) } : c
   )
-  return appendLog(
-    { ...next, party: hurt },
-    `${name} is hurt in the work: −${GATHER_INJURY} HP.`,
-    'bad'
-  )
+  return appendLog({ ...next, party: hurt }, `${name} is hurt in the work: −${injury} HP.`, 'bad')
 }

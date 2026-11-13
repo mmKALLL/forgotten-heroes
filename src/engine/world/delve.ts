@@ -24,7 +24,8 @@ import { DELVE_WOUND, POWER_DC } from '../constants'
 // each one situation drawn from its own, played in a row without leaving. A room is about twice an
 // overworld encounter's risk: its DCs are rebased to the dungeon's CR (rules/levels.ts crOffset,
 // on top of the danger ramp and the site's power) and its wounds are DELVE_WOUND × crWound(CR) as
-// deep (Plan 6 B: deeper the higher its CR). A
+// deep (Plan 6 B: deeper the higher its CR), or DELVE_WOUND × the party's HP factor
+// (rules/levels.ts partyWound) when that is larger. A
 // failed room that ends drives the party out (no hoard; the site stays, to be tried again on
 // another arrival). Between rooms the party presses on or withdraws, keeping what it found
 // (withdrawing isn't fleeing: no camaraderie). The last room's end pays the hoard and clears the
@@ -62,19 +63,23 @@ function playedCr(state: GameState, poiId: string, dungeon: Dungeon): number {
   return Math.max(dungeon.cr, ...jobs)
 }
 
-/** How the room at `index` is played: its DC bonus over the danger ramp, and its rules. */
+/**
+ * How the room at `index` is played: its DC bonus over the danger ramp, its CR's wound factor
+ * (harden: or the party's HP factor when larger), and its rules (DELVE_WOUND on top).
+ */
 function roomSetup(
   state: GameState,
   poiId: string,
   dungeon: Dungeon,
   index: number
-): { dcBonus: number; rules: RoomRules } {
+): { dcBonus: number; wound: number; rules: RoomRules } {
   const last = index === dungeon.rooms.length - 1
   const cr = playedCr(state, poiId, dungeon)
   return {
     dcBonus: crOffset(cr),
+    wound: crWound(cr),
     rules: {
-      wound: DELVE_WOUND * crWound(cr),
+      wound: DELVE_WOUND,
       hoard: last ? hoardOf(dungeon, dungeon.cr) : null,
       // A milestone room pays its share once per clearing (Plan 6 B): not when already paid.
       milestone:
@@ -105,7 +110,7 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
     return appendLog({ ...state, delve: null }, `Nothing stirs in ${dungeon.name}.`, 'bad')
   }
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
-  const { dcBonus, rules } = roomSetup(state, delve.poi, dungeon, delve.room)
+  const { dcBonus, wound, rules } = roomSetup(state, delve.poi, dungeon, delve.room)
   const entered = { ...delve, inRoom: true, ended: null }
   const opened = startEncounter(
     { ...state, rng, delve: entered },
@@ -115,6 +120,7 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
     delve.poi,
     {
       dcBonus,
+      wound,
       room: rules,
       lines: [{ text: `${room.name}. ${room.text}`, tone: 'info' }],
     }

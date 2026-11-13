@@ -6,8 +6,15 @@ import type { GameState } from '../../schema/state'
 import { encounterOptions } from '../encounters/preview'
 import { createRng } from '../rng'
 import { step } from '../state'
-import { fixtureContent, makeState } from '../test-fixtures'
-import { DANGER_RAMP_DAYS, DANGER_RAMP_MAX, DANGER_RAMP_STEP } from '../constants'
+import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
+import {
+  DANGER_RAMP_DAYS,
+  DANGER_RAMP_MAX,
+  DANGER_RAMP_STEP,
+  WOUND_REFERENCE_HP,
+} from '../constants'
+import { startEncounter } from '../encounters/run'
+import { partyWound } from '../rules/levels'
 import { actCalendar } from '../crisis/calendar'
 import { dangerInfo, dangerLevel, harden, rampLevel } from './danger'
 
@@ -239,5 +246,73 @@ describe('danger in encounters', () => {
     expect(start('ford', DAY_TWO_STEPS, withFord)).toEqual(state)
     const later = { ...state, day: state.day + 5 * DANGER_RAMP_DAYS }
     expect(encounterOptions(later)[0].check!.dc).toBe(encounterOptions(state)[0].check!.dc)
+  })
+})
+
+describe('wounds scale with the party’s HP (designer 2026-11-13)', () => {
+  /** Brom and Lyra at about level 10: 80 max HP each. */
+  const veterans = [
+    { ...brom, level: 10, hp: 80, maxHp: 80 },
+    { ...lyra, level: 10, hp: 80, maxHp: 80 },
+  ]
+  const factor = 80 / WOUND_REFERENCE_HP
+
+  test('the factor is the living members’ average max HP over the reference, at least 1', () => {
+    expect(partyWound([brom, lyra])).toBe(1)
+    expect(partyWound(veterans)).toBeCloseTo(factor)
+    // The dead don't count.
+    expect(partyWound([...veterans, { ...brom, maxHp: 10, exhaustion: 6 }])).toBeCloseTo(factor)
+    expect(partyWound([])).toBe(1)
+  })
+
+  test('harden: the HP factor or the CR’s, whichever is larger, then the ramp', () => {
+    const wound = (h: Parameters<typeof harden>[1]) => hpOf(harden(ford, h))[0]
+    expect(wound({ dcBonus: 0, danger: 0, hp: 3.2 })).toMatchObject({ amount: -13 }) // round(12.8)
+    expect(wound({ dcBonus: 0, danger: 0, wound: 2, hp: 3.2 })).toMatchObject({ amount: -13 })
+    expect(wound({ dcBonus: 0, danger: 0, wound: 4, hp: 3.2 })).toMatchObject({ amount: -16 })
+    expect(wound({ dcBonus: 0, danger: 0.2, hp: 3.2 })).toMatchObject({ amount: -16 }) // ceil(15.6)
+    // Healing is never scaled.
+    expect(hpOf(harden(ford, { dcBonus: 0, danger: 0, hp: 3.2 }))[1]).toMatchObject({ amount: 2 })
+  })
+
+  test('a level-10 party takes more than the written −4, a novice party exactly −4 (preview == actual)', () => {
+    const hurt = (party: typeof veterans) => {
+      for (let seed = 1; seed <= 60; seed++) {
+        const state = step(
+          { ...makeState({ party }), rng: createRng(seed) },
+          { type: 'startEncounter', situationId: 'ford' },
+          withFord
+        )
+        const fail = encounterOptions(state)[0].outcomes.find((o) => o.tier === 'fail')!
+        const after = step(
+          state,
+          { type: 'chooseOption', optionId: 'wade', actorId: 'brom' },
+          withFord
+        )
+        if (after.lastRoll!.tier !== 'fail') continue
+        // Back the healing (+2 to all) out of the change.
+        const taken = state.party[0].hp - after.party[0].hp + 2
+        expect(!fail.hidden && fail.effects).toContain(`Brom −${taken} HP`)
+        return taken
+      }
+      throw new Error('no failed wade in 60 seeds')
+    }
+    expect(hurt([brom, lyra])).toBe(4)
+    expect(hurt(veterans)).toBe(Math.round(4 * factor))
+    expect(hurt(veterans)).toBeGreaterThan(4)
+  })
+
+  test('a Crisis site, written for its CR, keeps its wounds as written', () => {
+    const state = startEncounter(
+      makeState({ party: veterans }),
+      withFord,
+      'ford',
+      undefined,
+      undefined,
+      {
+        cr: 6,
+      }
+    )
+    expect(hpOf(state.encounter!.situation)[0]).toMatchObject({ amount: -4 })
   })
 })

@@ -10,6 +10,7 @@ import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { chooseActor, chooseLead } from '../rules/character'
 import { TIER_LABELS, rollCheck, tierOdds } from '../rules/checks'
+import { partyWound, scaledWound } from '../rules/levels'
 import { fadeStrainAfter, useSkill } from '../rules/strain'
 import { fareFor, passengers } from './routes'
 import {
@@ -123,7 +124,8 @@ function putToWork(state: GameState, actorId: string): GameState {
  * - partial: caught at the gangplank, and put to work for its passage;
  * - failure: caught and fined all its coin, or put to work if it has none;
  * - critical failure: a brawl. depart() starts a hostile sea situation tagged STOWAWAY_BRAWL_TAG
- *   if one exists (brawlCandidates); otherwise the one caught takes STOWAWAY_BRAWL_DAMAGE.
+ *   if one exists (brawlCandidates); otherwise the one caught takes STOWAWAY_BRAWL_DAMAGE (scaled
+ *   by the party's HP, rules/levels.ts partyWound).
  * Whatever happens, the ship sails with the party aboard. Call only when stowawayRefusal is null.
  */
 export function stowAway(
@@ -201,7 +203,9 @@ export function stowAway(
         if (candidates.length > 0) {
           return { brawl: d.weighted(candidates, (s) => s.weight).id, damage: 0 }
         }
-        return { brawl: null, damage: d.int(...STOWAWAY_BRAWL_DAMAGE) }
+        // A fixed wound: deeper for a party with more HP (rules/levels.ts partyWound).
+        const rolled = d.int(...STOWAWAY_BRAWL_DAMAGE)
+        return { brawl: null, damage: scaledWound(rolled, partyWound(caught.party)) }
       })
       if (brawl) return { state: { ...caught, rng: rolled }, outcome: 'brawl', brawl }
       const hurt = {

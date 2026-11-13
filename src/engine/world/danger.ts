@@ -3,6 +3,7 @@ import type { Effect, Option, Outcome, OutcomeBranch, Situation } from '../../sc
 import type { GameState } from '../../schema/state'
 import { crisisSurge, crisisWait } from '../crisis/surge'
 import { crDc } from '../rules/challenge'
+import { scaledWound } from '../rules/levels'
 import { normalizeDc } from '../rules/checks'
 import { CRISIS_DC_BASE, DANGER_RAMP_DAYS, DANGER_RAMP_MAX, DANGER_RAMP_STEP } from '../constants'
 
@@ -10,7 +11,8 @@ import { CRISIS_DC_BASE, DANGER_RAMP_DAYS, DANGER_RAMP_MAX, DANGER_RAMP_STEP } f
 // danger level follows from the day, plus the Crisis's surge near a due day and its waiting penalty
 // while an act's lead goes unfollowed (crisis/surge.ts). It hardens each encounter's
 // snapshot once, when it starts: harder checks, worse wounds. It is independent of the party's
-// level and wealth, and touches only encounters. Crisis encounters are played at their challenge
+// level and wealth (the party's HP scales fixed wounds separately: rules/levels.ts partyWound),
+// and touches only encounters. Crisis encounters are played at their challenge
 // rating instead (atChallenge).
 
 /** Shares are kept to whole percent, so 3 × 0.1 is 0.3 and DCs round as written. */
@@ -72,25 +74,31 @@ export function dangerInfo(state: DangerAt, content?: Content): DangerInfo {
   }
 }
 
-/** How much harder an encounter is: a flat DC bonus (a site's power) and the danger share. */
 /**
+ * How much harder an encounter is: a flat DC bonus (a site's power, a CR) and the danger share.
  * `wound` (default 1) deepens wounds further: a site's or a job's challenge rating over standard
- * difficulty (rules/levels.ts crWound; Plan 6 B), as `dcBonus` raises the DCs.
+ * difficulty (rules/levels.ts crWound; Plan 6 B), as `dcBonus` raises the DCs. `hp` (default 1)
+ * is the party's HP factor (rules/levels.ts partyWound): whichever deepens a wound more applies.
  */
-export type Hardening = { dcBonus: number; danger: number; wound?: number }
+export type Hardening = { dcBonus: number; danger: number; wound?: number; hp?: number }
 
 /**
  * The encounter snapshot made harder, every stage included (the twist table's joined stages too):
  * each check's DC becomes `dc + dcBonus + round(dc × danger)` (normalised), and each wound (a
- * negative `hp` effect, the twist's opening hit included) `−ceil(|amount| × (1 + danger) × wound)`.
+ * negative `hp` effect, the twist's opening hit included) `−ceil(w × (1 + danger))`, where w is
+ * the larger of `|amount| × wound` and the HP-scaled wound (scaledWound: `|amount| × hp`, rounded).
  * Healing, gold and goods are unchanged. With nothing to add, the situation itself is returned.
  */
-export function harden(situation: Situation, { dcBonus, danger, wound = 1 }: Hardening): Situation {
-  if (dcBonus === 0 && danger === 0 && wound === 1) return situation
+export function harden(
+  situation: Situation,
+  { dcBonus, danger, wound = 1, hp = 1 }: Hardening
+): Situation {
+  if (dcBonus === 0 && danger === 0 && wound === 1 && hp === 1) return situation
   return mapChecks(
     situation,
     (base) => base + dcBonus + Math.round(base * danger + EPSILON),
-    (amount) => -Math.ceil(-amount * (1 + danger) * wound - EPSILON)
+    (amount) =>
+      -Math.ceil(Math.max(-amount * wound, scaledWound(-amount, hp)) * (1 + danger) - EPSILON)
   )
 }
 

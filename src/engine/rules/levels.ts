@@ -1,7 +1,9 @@
 import type { Character, GameState } from '../../schema/state'
 import { MAX_LEVEL } from '../../schema/types'
 import { crDc, crLevel } from './challenge'
+import { MAX_EXHAUSTION } from './character'
 import {
+  WOUND_REFERENCE_HP,
   XP_BY_LEVEL,
   CR_WOUND_STEP,
   CONTRACT_PAY_PER_DAY,
@@ -24,6 +26,24 @@ export const crOffset = (cr: number): number => crDc(cr) - crDc(CR_STANDARD)
  */
 export const crWound = (cr: number): number =>
   1 + CR_WOUND_STEP * Math.max(0, Math.floor(cr) - CR_STANDARD)
+
+/**
+ * How much deeper fixed written wounds go for this party (designer 2026-11-13): the living
+ * members' average max HP over WOUND_REFERENCE_HP, never below 1, so a written wound bites a
+ * seasoned party as it does a novice one. Applied once, as an encounter's snapshot is made; where a
+ * CR deepens wounds too (crWound: dungeon rooms, lairs, levelled contracts) the larger factor wins,
+ * and Crisis sites (written for their CR) take neither.
+ */
+export function partyWound(party: readonly Pick<Character, 'maxHp' | 'exhaustion'>[]): number {
+  const living = party.filter((c) => c.exhaustion < MAX_EXHAUSTION)
+  if (living.length === 0) return 1
+  const average = living.reduce((sum, c) => sum + c.maxHp, 0) / living.length
+  return Math.max(1, average / WOUND_REFERENCE_HP)
+}
+
+/** A fixed wound of `hurt` HP at the party's HP factor (partyWound), rounded to whole HP. */
+export const scaledWound = (hurt: number, factor: number): number =>
+  Math.max(hurt, Math.round(hurt * factor))
 
 /**
  * The XP a member of this level needs to reach the next (XP_BY_LEVEL); at the top level, the last

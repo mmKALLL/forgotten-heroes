@@ -112,8 +112,8 @@ export const ja: Partial<Messages> = {
   'services.passage': '船：街道の一覧を参照',
   'services.room.common': '大部屋 · {gp} gp',
   'services.room.private': '個室 · {gp} gp',
-  'services.roomHint.common': '大部屋で1日休む：HP全快、食事付き、酷使が1段階回復',
-  'services.roomHint.private': '個室で1日休む：HP全快、食事付き、酷使が{n}段階回復',
+  'services.roomHint.common': '大部屋で1日休む：最大HPの{pct}%回復、食事付き、酷使が1段階回復',
+  'services.roomHint.private': '個室で1日休む：最大HPの{pct}%回復、食事付き、酷使が{n}段階回復',
   'services.heal': '{n}人を治療 · {gp} gp',
   'services.healEach': '治療 · 1人{gp} gp',
   'services.healHint': '{names}のHPを全快し消耗を1段階回復。日数はかからない',
@@ -333,7 +333,8 @@ export const ja: Partial<Messages> = {
   'place.carried': '食料{food}、水{water}／{capacity}を携行（追加の水袋{skins}）。',
   'place.restInn': '宿で1日休む（{gp} gp、食事付き）',
   'place.restOwn': '携行食で1日休む',
-  'place.restHint': '町で1日休むとHPが全快し水が補充される。食事をとった者は消耗が1段階回復する。',
+  'place.restHint':
+    '部屋を取らずに町で1日休むと携行食を消費し、野営と同じく最大HPの{pct}%を回復する。水が補充され、食事をとった者は消耗が1段階回復する。',
   'place.buyFood': '食料を{n}買う（{gp} gp）',
   'place.buyWaterskin': '水袋を買う（{gp} gp、水+{water}）',
   'place.sellFood': '食料を{n}売る（+{gp} gp）',
@@ -437,7 +438,7 @@ export const ja: Partial<Messages> = {
   'poi.visit': '訪れる',
   'poi.rest': '野営する（1日休む）',
   'poi.restHint':
-    '野営で1日休むと携行食を消費し、最大HPの4分の1を回復する。食事をとった者は消耗が1段階回復する。',
+    '野営で1日休むと携行食を消費し、最大HPの{pct}%を回復する。食事をとった者は消耗が1段階回復する。',
   'poi.noTrade': 'ここでは売買できない。',
 
   'explore.heading': '領地を探索する',
