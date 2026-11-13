@@ -248,3 +248,31 @@
 **Pool sizes:** arcane 2 and divine 2 now hold 9 spells. Design §5 asks for 5–8 at levels 1–6; the test allows 5–9 there (the designer said adding is fine), and levels 7–9 still hold 4–6. Totals: 121 spells (61 arcane, 60 divine).
 
 **New and renamed ids:** `mage-armor` (was `shield`), `mass-dominate` (was `dominate-monster`), and the new `shove`, `repelling-wave`, `undertow`, `crashing-wave`, `singularity`, `shepherds-crook` and `call-of-the-fold`.
+
+
+## Designer answers (2026-11-14)
+
+1. **Rangers and paladins** gain a spell level every 4 levels instead of 2.
+   - Rangers (and **druids**, a class for later) draw from **either pool's nature-tagged spells**.
+   - Rangers and paladins get **no summons**; druids will get summons.
+   - Paladins are expected to lean on non-spell healing, and rangers on bow and dagger expertise later.
+2. **Enemy saves:** each role is strong in two abilities (Track N's proposal). On top of that, **leaders get +2 to all saves and bosses +4**, until full stat blocks exist.
+3. **Spell DC** is 8 + proficiency + casting ability, and a spell attack is proficiency + casting ability.
+4. **Stacking:**
+   - A character holds one copy of a given spell's effect; recasting refreshes its duration.
+   - A duration spell cast on several targets gives each of them its own copy.
+   - **Hazards stack** on a tile.
+5. **Saves on tile spells** are rolled once per target, so Sleep isn't guaranteed to take the whole tile. Every unit that isn't banished still counts toward the tile's assist bonus.
+6. **Banished units:** what happens when one returns to a tile the party now holds? *Claude's default:*
+   - A banished unit leaves the line and blocks nothing.
+   - It returns to its old tile if there's room, or else to the nearest tile toward its own side that has room.
+   - *To confirm.*
+7. **Boss immunity:** bosses get +4 to all saves, as above.
+8. **New arcane spells:** single-foe touch spells that hit automatically (no save), at range 1:
+   - **Shocking Grasp** at level 1, about half a Lightning Bolt;
+   - **Touch of Death** at level 5, about half a Finger of Death.
+9. **Escape spells** (Teleport, Word of Recall) cost no camaraderie; the spell use is investment enough.
+10. **Friendly fire:** a tile-targeted spell hits allies on the tile; a foe-targeted spell doesn't.
+11. **Out of combat:** not needed now, but wanted in future (raising the dead, mending injuries, travel).
+12. **Damage kinds and immunities:** not now. For someday: drakes and dragons take 50% less fire, undead take 50% more radiant, and so on.
+13. **The evil divine pool** may differ beyond its summons, if it isn't too much work.
