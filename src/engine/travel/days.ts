@@ -3,7 +3,6 @@ import type { Biome, Good, LogTone, Pace } from '../../schema/types'
 import type { Character, GameState, Goods } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
-import { spoilFood, syncFoodLots } from '../economy/food'
 import { animalWater, camelWaterSaving } from '../town/animals'
 import type { Rng } from '../rng'
 import { MAX_EXHAUSTION, statModifier } from '../rules/character'
@@ -63,9 +62,7 @@ function endure(
  * party then eats its extra rations (what is left of them), and every member makes a CON check
  * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades (faster with a `strainFade` hook),
  * except stacks gained today.
- * Food got today is dated today first, so the meals come off the oldest batches (economy/food.ts).
- * With `content`, food whose shelf life is up then spoils (spoilFood), and camels save water in the desert
- * (camelWaterSaving: the members drink that many units less, together). Returns the ids of those
+ * With `content`, animals drink and camels save water in the desert (camelWaterSaving: the members drink that many units less, together). Returns the ids of those
  * who went without, for rest.
  */
 export function consumeDay(
@@ -74,7 +71,6 @@ export function consumeDay(
   pace: Pace,
   content?: Content
 ): { state: GameState; unfed: string[] } {
-  state = syncFoodLots(state)
   let food = goodsOf(state.goods, 'food')
   const carried = goodsOf(state.goods, 'water')
   // The camels' saving: the members drink from what is carried and the saving together, and
@@ -132,16 +128,10 @@ export function consumeDay(
   for (const line of lines) next = appendLog(next, line.text, line.tone)
   // Camaraderie suffers once for a day on which a living member went without.
   if (state.party.some((c) => unfed.includes(c.id) && isAlive(c))) next = wentWithout(next)
-  return { state: content ? endOfDay(next, content) : next, unfed }
+  return { state: next, unfed }
 }
 
-/**
- * A day ends (`state.day` is already the next day): food whose shelf life is up spoils (spoilFood).
- * Owned animals cost nothing to keep (designer call).
- */
-export const endOfDay = (state: GameState, content: Content): GameState => spoilFood(state, content)
-
-/** A day on the road at this pace (food spoils when `content` is given). */
+/** A day on the road at this pace (`content` brings the animals' water and the camels' saving). */
 export const passDay = (
   state: GameState,
   terrain: Biome | null,

@@ -89,10 +89,9 @@ describe('the economy data', () => {
     }
   })
 
-  test('only food spoils, and only water is free', () => {
+  test('only water is free', () => {
     for (const good of GOODS) {
       const def = content.goods[good]
-      expect(def.shelfDays !== undefined, good).toBe(good === 'food')
       expect(def.price === 0, good).toBe(good === 'water')
     }
   })

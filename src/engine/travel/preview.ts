@@ -41,7 +41,7 @@ import { stowawayCheck, type StowawayCheck } from './stowaway'
 import { goodsOf, partyWaterCapacity, waterNeed } from './supplies'
 import {
   forecastJourney,
-  type FoodForecast,
+  type SupplyForecast,
   type TravelWarning,
   type WaterForecast,
 } from './warnings'
@@ -207,7 +207,7 @@ export type PaceOption = {
   days: number
   /** Water and food over the journey: needed, carried, expected foraging, and shortfalls. */
   water: WaterForecast
-  food: FoodForecast
+  food: SupplyForecast
   /** Who forages each day at this pace, the DC and the odds; null at sea or without foraging. */
   forage: ForageCheck | null
   /** Supply and exhaustion warnings, as codes with params (warningText for English). */
@@ -280,7 +280,6 @@ function paceOptions(
   return paces.map((pace) => {
     const forecast = forecastJourney(state, route, pace, forage, {
       speed,
-      content,
       animalWater: drink,
       waterSaving: saving,
       escorts: escortPassengers(state),

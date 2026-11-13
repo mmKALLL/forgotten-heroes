@@ -48,7 +48,7 @@ function at(overrides: Partial<GameState> = {}): GameState {
     ...overrides,
   })
 }
-/** A day passes in town on the party's own food (spoilage follows). */
+/** A day passes in town on the party's own food. */
 const aDay = (s: GameState) => passDay(s, null, 'steady', content)
 
 describe('no wages (Plan 6)', () => {

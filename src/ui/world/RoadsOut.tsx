@@ -323,9 +323,6 @@ export function RouteInfo({
           {t('route.food', { carried: option.food.carried, needed: round(option.food.needed) })}
           {option.food.expectedForage > 0 &&
             t('route.perDay', { n: option.food.expectedForage.toFixed(1) })}
-          {/* Food whose shelf life runs out before it is eaten (economy/food.ts). */}
-          {Math.round(option.food.spoiled) > 0 &&
-            t('route.spoils', { n: Math.round(option.food.spoiled) })}
         </li>
         <li>
           {t('route.water', {

@@ -64,14 +64,10 @@
             "minimum": 0,
             "description": "Base price in gp per unit, before supply and demand"
           },
-          "shelfDays": {
-            "description": "Days each batch keeps before what is left of it spoils at once (food only); absent: never spoils",
-            "$ref": "#/$defs/__schema0"
-          },
           "depth": {
             "default": 1,
             "description": "Market depth: how many units a market absorbs before bulk trades move the price",
-            "$ref": "#/$defs/__schema1"
+            "$ref": "#/$defs/__schema0"
           },
           "uses": {
             "type": "string",
@@ -96,11 +92,6 @@
   ],
   "$defs": {
     "__schema0": {
-      "type": "integer",
-      "minimum": 1,
-      "maximum": 9007199254740991
-    },
-    "__schema1": {
       "type": "number",
       "exclusiveMinimum": 0
     }

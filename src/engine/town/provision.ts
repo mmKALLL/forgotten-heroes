@@ -77,7 +77,6 @@ export function provisionPlan(
   const forecast = (s: GameState) =>
     forecastJourney(s, route, pace, false, {
       speed: landSpeed(s, content, route.terrain, hired),
-      content,
       animalWater: animalWater(s, content, hired),
       waterSaving: camelWaterSaving(s, content, route.terrain),
       escorts: escortPassengers(s),

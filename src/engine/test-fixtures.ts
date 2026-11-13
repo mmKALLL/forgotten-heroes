@@ -798,8 +798,6 @@ export const testEconomy: Record<string, unknown> = {
     kind: 'goods',
     source: 'claude',
     entries: [
-      // Food keeps forever here (no shelfDays), so travel tests count rations exactly (spoilage
-      // tests set it).
       good('food', 'ration', 1, 1),
       good('water', 'day', 2, 0),
       good('fuel', 'bundle', 5, 1),
@@ -1597,12 +1595,9 @@ export const lyra = makeCharacter({
   maxHp: 16,
 })
 
-/** A new game's state for Brom and Lyra; food given in `goods` is one batch got today. */
+/** A new game's state for Brom and Lyra. */
 export function makeState(overrides: Partial<GameState> = {}): GameState {
-  const state = { ...newGame(1, fixtureContent()), party: [brom, lyra], gold: 20, ...overrides }
-  if (overrides.foodLots) return state
-  const food = state.goods.food ?? 0
-  return { ...state, foodLots: food > 0 ? [{ day: state.day, amount: food }] : [] }
+  return { ...newGame(1, fixtureContent()), party: [brom, lyra], gold: 20, ...overrides }
 }
 
 export function makeEncounter(overrides: Partial<EncounterState> = {}): EncounterState {

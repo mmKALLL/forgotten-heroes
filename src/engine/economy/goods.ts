@@ -3,9 +3,9 @@ import type { GoodDef } from '../../schema/economy'
 import { GOODS, GOOD_CATEGORY, type Good, type GoodCategory } from '../../schema/types'
 import type { Goods } from '../../schema/state'
 
-// The 15 goods of design §4 as cargo: weight (kg) and value at base price (food's shelf life is
-// economy/food.ts). A good with no definition in the content weighs nothing, is worth nothing and
-// never spoils, so a world without economy data still plays.
+// The 15 goods of design §4 as cargo: weight (kg) and value at base price. Nothing spoils (designer
+// call 2026-11-13). A good with no definition in the content weighs nothing and is worth nothing,
+// so a world without economy data still plays.
 
 /** The content's definition of a good, or null when the data has none. */
 export const goodDef = (content: Content, good: Good): GoodDef | null =>

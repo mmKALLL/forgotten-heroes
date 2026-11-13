@@ -8,7 +8,7 @@ import { MAX_EXHAUSTION } from '../rules/character'
 import { fadeStrainAfter } from '../rules/strain'
 import { settlementName } from '../world/geo'
 import { springAt, terrainHere } from '../world/graph'
-import { consumeDay, dailyNeed, endOfDay, goodsOf, waterNeed } from './days'
+import { consumeDay, dailyNeed, goodsOf, waterNeed } from './days'
 import { inSettlement, notHere } from './where'
 import { load } from '../economy/capacity'
 import type { BuyLimit } from '../economy/trade'
@@ -143,7 +143,7 @@ export function restOption(
  * In camp (on the road or at a point of interest) it eats carried food, drinking as the terrain
  * there needs, and heals a quarter of max HP; at a site with a spring or well (`water`) the
  * waterskins are refilled after the day's drinking. Either way, everyone who ate and drank loses
- * a level of exhaustion, and the day ends as any day does (endOfDay: spoilage). Resting is never a forced march.
+ * a level of exhaustion. Resting is never a forced march.
  */
 export function rest(
   state: GameState,
@@ -158,15 +158,12 @@ export function rest(
   const fades = option.room === 'private' ? PRIVATE_ROOM_FADE : 1
   const { state: after, unfed } = option.lodging
     ? {
-        state: endOfDay(
-          {
-            ...state,
-            day: state.day + 1,
-            gold: state.gold - option.lodgingCost,
-            party: state.party.map((c) => fadeStrainAfter(c, state.skillUses, state.day, fades)),
-          },
-          content
-        ),
+        state: {
+          ...state,
+          day: state.day + 1,
+          gold: state.gold - option.lodgingCost,
+          party: state.party.map((c) => fadeStrainAfter(c, state.skillUses, state.day, fades)),
+        },
         unfed: [] as string[],
       }
     : consumeDay(state, terrain, DEFAULT_PACE, content)

@@ -157,13 +157,6 @@ export type SkillUse = z.infer<typeof SkillUseSchema>
 export const GoodsSchema = z.partialRecord(GoodSchema, z.number().int().min(0))
 export type Goods = z.infer<typeof GoodsSchema>
 
-/** A batch of food got on one day (bought, gathered, looted…): `amount` rations from `day`. */
-export const FoodLotSchema = z.object({
-  day: z.number().int(),
-  amount: z.number().int().min(1),
-})
-export type FoodLot = z.infer<typeof FoodLotSchema>
-
 /** A journey along one route or path, between settlements and points of interest. */
 export const TravelStateSchema = z.object({
   route: IdSchema,
@@ -281,7 +274,7 @@ export const DelveStateSchema = z.object({
 export type DelveState = z.infer<typeof DelveStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(19),
+  version: z.literal(20),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -307,12 +300,6 @@ export const GameStateSchema = z.object({
   markets: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
   /** The prices the party knows, by settlement id. */
   priceBook: z.record(IdSchema, PriceBookEntrySchema).default({}),
-  /**
-   * The food carried, by the day each batch was got, oldest first (economy/food.ts). Their sum is
-   * `goods.food` after every step: `goods.food` stays the quantity every reader uses, and the lots
-   * only say how old it is (food with `shelfDays` spoils that many days after it was got).
-   */
-  foodLots: z.array(FoodLotSchema).default([]),
   /** Owned animals and carts by animals id (bought; hired mounts are in travel.hired). */
   animals: z.record(IdSchema, z.number().int().min(0)).default({}),
   reputation: ReputationSchema.default({ settlements: {}, people: {} }),

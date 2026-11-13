@@ -2300,11 +2300,6 @@ h2[tabindex='-1']:focus {
 .cargo-badge {
   margin-left: 0.3rem;
 }
-.spoil-soon {
-  margin-left: 0.3rem;
-  color: var(--bad);
-  white-space: nowrap;
-}
 .service-why {
   flex-basis: 100%;
 }

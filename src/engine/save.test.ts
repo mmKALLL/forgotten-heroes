@@ -20,6 +20,7 @@ import {
   v16ToV17,
   v17ToV18,
   v18ToV19,
+  v19ToV20,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -140,8 +141,6 @@ function migrated() {
     visited: false,
     travel: null,
     goods: { food: 5, water: 4 },
-    // The food carried becomes one batch, fresh on the save's day (v18 → v19).
-    foodLots: [{ day: V2_SAVE.day, amount: 5 }],
     waterskins: 0,
     ...PLAN_4_DEFAULTS,
     ...PLAN_5A_DEFAULTS,
@@ -195,7 +194,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(19)
+  expect(CURRENT_SAVE_VERSION).toBe(20)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -401,7 +400,6 @@ describe('v5 → v6', () => {
     const {
       markets: _markets,
       priceBook: _priceBook,
-      foodLots: _foodLots,
       animals: _animals,
       reputation: _reputation,
       contracts: _contracts,
@@ -653,14 +651,16 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v18ToV19(
-          v17ToV18(
-            v16ToV17(
-              v15ToV16(
-                v14ToV15(
-                  v13ToV14(
-                    v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
-                    content
+        v19ToV20(
+          v18ToV19(
+            v17ToV18(
+              v16ToV17(
+                v15ToV16(
+                  v14ToV15(
+                    v13ToV14(
+                      v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
+                      content
+                    )
                   )
                 )
               )
@@ -978,17 +978,35 @@ describe('v17 → v18 (party upgrades)', () => {
   })
 })
 
-describe('v18 → v19 (food keeps 14 days a batch)', () => {
+describe('v18 → v19 (food kept 14 days a batch)', () => {
   test("the food becomes one batch, fresh on the save's day, and the old carry goes", () => {
     const state = makeState({ day: 9, goods: { food: 7, water: 4 } })
-    const { foodLots: _lots, ...rest } = structuredClone(state)
-    const v18 = { ...rest, version: 18, spoilage: { food: 0.4 } }
-    const loaded = deserialize(JSON.stringify(v18), content)!
+    const v18 = { ...structuredClone(state), version: 18, spoilage: { food: 0.4 } }
+    const v19 = v18ToV19(v18)
+    expect(v19.foodLots).toEqual([{ day: 9, amount: 7 }])
+    expect('spoilage' in v19).toBe(false)
+    expect(v18ToV19({ ...v18, goods: { water: 4 } }).foodLots).toEqual([])
+    // Through v20 an old save loads as it was, food and all.
+    expect(deserialize(JSON.stringify(v18), content)).toEqual(state)
+  })
+})
+
+describe('v19 → v20 (food no longer spoils)', () => {
+  test('the food batches go and the food carried stays', () => {
+    const state = makeState({ day: 9, goods: { food: 7, water: 4 } })
+    const v19 = {
+      ...structuredClone(state),
+      version: 19,
+      foodLots: [
+        { day: 2, amount: 3 },
+        { day: 8, amount: 4 },
+      ],
+    }
+    const loaded = deserialize(JSON.stringify(v19), content)!
     expect(loaded).toEqual(state)
-    expect(loaded.foodLots).toEqual([{ day: 9, amount: 7 }])
-    expect('spoilage' in loaded).toBe(false)
-    const starving = v18ToV19({ ...v18, goods: { water: 4 } })
-    expect(starving.foodLots).toEqual([])
+    expect(loaded.goods.food).toBe(7)
+    expect('foodLots' in loaded).toBe(false)
+    expect(v19ToV20({ ...v19, spoilage: {} })).not.toHaveProperty('spoilage')
   })
 })
 

@@ -1,6 +1,5 @@
-import type { Content } from '../../content/build'
 import type { Biome, Pace } from '../../schema/types'
-import type { Character, FoodLot, GameState } from '../../schema/state'
+import type { Character, GameState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { MAX_EXHAUSTION } from '../encounters/effects'
 import { EXHAUSTION_PENALTY, canAct, statModifier } from '../rules/character'
@@ -8,7 +7,6 @@ import { tierOdds } from '../rules/checks'
 import { expectedForage } from './forage'
 import { exhaustionSpeed, journeyDays } from './routes'
 import { dailyNeed, goodsOf, partyWaterCapacity, waterNeed } from './supplies'
-import { foodLotsOf, shelfDays, spoilsOn } from '../economy/food'
 import { DEADLY_MARCH_CHANCE, FORCED_MARCH_DC } from '../constants'
 
 // Supply forecasts and warnings for a road at a pace (design §7): the preview warns clearly when a
@@ -28,8 +26,6 @@ export type SupplyForecast = {
   runsOutOnDay: number | null
 }
 export type WaterForecast = SupplyForecast & { capacity: number }
-/** Food also counts the rations that spoil on the way (expected, with foraging). */
-export type FoodForecast = SupplyForecast & { spoiled: number }
 
 export type TravelWarning =
   | {
@@ -149,75 +145,29 @@ function simulate(
   return { shortfallDays, runsOutOnDay }
 }
 
-/**
- * The food over the journey as the road will treat it (travel/days.ts, economy/food.ts): each day
- * the day's finds are a new batch, the party eats the oldest batches first, and as the day ends
- * every batch whose shelf life (`shelf` days, none when null) is up spoils. `spoiled` is what spoils
- * on the way. Day 1 is `today`.
- */
-function simulateFood(
-  days: number,
-  lots: readonly FoodLot[],
-  today: number,
-  forage: number,
-  base: number,
-  full: number,
-  shelf: number | null
-): Run & { spoiled: number } {
-  let stock = lots.map((l) => ({ ...l }))
-  let shortfallDays = 0
-  let runsOutOnDay: number | null = null
-  let spoiled = 0
-  for (let day = 1; day <= days; day++) {
-    const date = today + day - 1
-    if (forage > 0) stock.push({ day: date, amount: forage })
-    const total = stock.reduce((n, l) => n + l.amount, 0)
-    if (total + EPSILON < base) {
-      shortfallDays++
-      runsOutOnDay ??= day
-    }
-    let eat = full
-    for (const l of stock) {
-      const taken = Math.min(eat, l.amount)
-      l.amount -= taken
-      eat -= taken
-    }
-    if (shelf !== null) {
-      for (const l of stock) if (spoilsOn(l, shelf) <= date + 1) spoiled += l.amount
-      stock = stock.filter((l) => spoilsOn(l, shelf) > date + 1)
-    }
-    stock = stock.filter((l) => l.amount > EPSILON)
-  }
-  return { shortfallDays, runsOutOnDay, spoiled }
-}
-
 export type RouteForecast = {
   days: number
   water: WaterForecast
-  food: FoodForecast
+  food: SupplyForecast
   warnings: TravelWarning[]
 }
 
 /**
  * Water, food and warnings for taking this road at this pace with the party as it is now. `speed`
- * is its land speed (routes.ts landSpeed); with `content`, food spoils as it will on the road (its
- * batches by `foodLots`, from `day`; food beyond the lots is fresh today).
+ * is its land speed (routes.ts landSpeed).
  */
 export function forecastJourney(
-  state: Pick<GameState, 'party' | 'goods' | 'waterskins'> &
-    Partial<Pick<GameState, 'foodLots' | 'day'>>,
+  state: Pick<GameState, 'party' | 'goods' | 'waterskins'>,
   route: Pick<Route, 'km' | 'terrain'>,
   pace: Pace,
   forage = true,
   {
     speed = 1,
-    content,
     animalWater = 0,
     waterSaving = 0,
     escorts = 0,
   }: {
     speed?: number
-    content?: Content
     animalWater?: number
     /** Whole units camels save the party each day (town/animals.ts camelWaterSaving). */
     waterSaving?: number
@@ -241,10 +191,7 @@ export function forecastJourney(
   const carried = { food: goodsOf(state.goods, 'food'), water: goodsOf(state.goods, 'water') }
 
   const water = simulate(days, carried.water, found.water, capacity, base.water, need.water)
-  const today = state.day ?? 1
-  const lots = foodLotsOf({ goods: state.goods, foodLots: state.foodLots ?? [], day: today })
-  const shelf = shelfDays(content)
-  const food = simulateFood(days, lots, today, found.food, base.food, need.food, shelf)
+  const food = simulate(days, carried.food, found.food, Infinity, base.food, need.food)
   const warnings: TravelWarning[] = []
   const foraging = found.water > 0
   if (water.runsOutOnDay !== null) {
@@ -268,8 +215,7 @@ export function forecastJourney(
       params: {
         day: food.runsOutOnDay,
         shortfallDays: food.shortfallDays,
-        // What spoils on the way was never there to eat.
-        missing: Math.ceil(Math.max(0, days * base.food - carried.food + food.spoiled) - EPSILON),
+        missing: Math.max(0, days * base.food - carried.food),
         withForaging: found.food > 0,
       },
     })

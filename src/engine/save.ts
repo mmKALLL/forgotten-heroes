@@ -15,7 +15,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 19
+export const CURRENT_SAVE_VERSION = 20
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -484,6 +484,15 @@ export function v18ToV19(raw: Record<string, unknown>): Record<string, unknown> 
 }
 
 /**
+ * v19 → v20 (designer call 2026-11-13): food no longer spoils at all, so its batches go. The food
+ * carried (`goods.food`) is unchanged; any leftover spoilage carry goes too.
+ */
+export function v19ToV20(raw: Record<string, unknown>): Record<string, unknown> {
+  const { foodLots: _lots, spoilage: _carry, ...rest } = raw
+  return { ...rest, version: 20 }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -530,6 +539,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v17ToV18(raw as Record<string, unknown>), content)
     case 18:
       return migrate(v18ToV19(raw as Record<string, unknown>), content)
+    case 19:
+      return migrate(v19ToV20(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:
