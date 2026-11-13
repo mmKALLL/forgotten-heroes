@@ -126,7 +126,9 @@ export function useAutoTravel(
   }
   const [glide] = useState(() => new GlideStore())
   const [reduced] = useState(prefersReducedMotion)
-  const canRun = (journeyInfo(state, content)?.canMove ?? false) && !hold
+  // An encounter's outcome still on screen holds the clock too, until the player closes it.
+  const canRun =
+    (journeyInfo(state, content)?.canMove ?? false) && !hold && state.encounter === null
   const running = canRun && !paused
   const key = journeyDayKey(state)
   // The real time spent on the day under way, kept across a pause.

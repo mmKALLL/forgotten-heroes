@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { inProgress } from '../../engine/encounters/run'
 import { step, type Action } from '../../engine/state'
-import { fixtureContent, makeState } from '../../engine/test-fixtures'
+import { fixtureContent, makeEncounter, makeState } from '../../engine/test-fixtures'
 import { nodeOf } from '../../engine/world/graph'
 import type { GameState } from '../../schema/state'
 import { autoTravelDayMs, autoTravelKmPerSecond, useAutoTravel } from './autoTravel'
@@ -97,6 +97,15 @@ test('stops when an encounter opens', () => {
   expect(screen.getByText('In an encounter')).toBeTruthy()
   wait(20_000)
   expect(walks(sent)).toHaveLength(1)
+})
+
+test("an encounter's outcome still on screen holds the clock until it is closed", () => {
+  const sent = vi.fn()
+  // The encounter is over (no stage left) but not yet closed.
+  const viewing = { ...onTheRoad([]), encounter: makeEncounter({ stage: null }) }
+  render(<Harness initial={viewing} sent={sent} />)
+  wait(20_000)
+  expect(walks(sent)).toHaveLength(0)
 })
 
 test('Pause holds the day where it is; Resume (or Space) walks on', () => {
