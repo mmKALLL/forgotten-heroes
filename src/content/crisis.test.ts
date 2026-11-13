@@ -32,7 +32,7 @@ describe('villains', () => {
     }
   })
 
-  test('their threats, name tables and site types exist; the sites are weight-0 quests with situations and water', () => {
+  test('their threats, name tables and site types exist; the sites are weight-0 quests with situations', () => {
     expect(villainIssues(content)).toEqual([])
     for (const v of villains) {
       expect(v.threats.length, v.id).toBeGreaterThan(0)
@@ -42,11 +42,16 @@ describe('villains', () => {
         expect(type.weight, id).toBe(0)
         expect(type.category, id).toBe('quest')
         expect(type.hostile, id).toBe(false)
-        expect(type.water, id).toBe(true)
         expect(type.situations.length, id).toBeGreaterThan(0)
         for (const s of type.situations) expect(content.situations[s]?.site, s).toBe(true)
       }
     }
+  })
+
+  test('act finales (key sites) have no water (designer call 2026-11-14)', () => {
+    for (const v of villains)
+      for (const act of v.acts)
+        expect(content.poiTypes[act.site].water ?? false, act.site).toBe(false)
   })
 
   test('texts use only the villain slots, and {seat} only in a seat act', () => {

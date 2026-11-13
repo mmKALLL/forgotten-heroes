@@ -43,7 +43,6 @@
       "name": "Desecrated barrow-field",
       "weight": 0,
       "pathDanger": 2,
-      "water": true,
       "names": "crisis-site-barrow-field",
       "situations": ["opened-graves-act"],
       "icon": "tombstone"
@@ -54,7 +53,6 @@
       "name": "Hidden ossuary",
       "weight": 0,
       "pathDanger": 2,
-      "water": true,
       "names": "crisis-site-ossuary",
       "situations": ["bone-choir-act"],
       "icon": "crossed-bones"
@@ -65,7 +63,6 @@
       "name": "Royal crypt",
       "weight": 0,
       "pathDanger": 1,
-      "water": true,
       "names": "crisis-site-royal-crypt",
       "situations": ["ashen-crowning-act"],
       "icon": "crowned-skull"
@@ -109,7 +106,6 @@
       "name": "Forger's den",
       "weight": 0,
       "pathDanger": 1,
-      "water": true,
       "names": "crisis-site-forgers-den",
       "situations": ["stolen-seal-act"],
       "icon": "quill-ink"
@@ -120,7 +116,6 @@
       "name": "Mercenary muster",
       "weight": 0,
       "pathDanger": 2,
-      "water": true,
       "names": "crisis-site-muster",
       "situations": ["bought-garrison-act"],
       "icon": "crossed-swords"
@@ -131,7 +126,6 @@
       "name": "Usurper's chapel",
       "weight": 0,
       "pathDanger": 1,
-      "water": true,
       "names": "crisis-site-usurpers-chapel",
       "situations": ["false-coronation-act"],
       "icon": "crown"
@@ -164,7 +158,6 @@
       "name": "Dry hot springs",
       "weight": 0,
       "pathDanger": 2,
-      "water": true,
       "names": "crisis-site-dry-springs",
       "situations": ["dry-springs-lead"],
       "icon": "dragon-breath"
@@ -175,7 +168,6 @@
       "name": "Brood cave",
       "weight": 0,
       "pathDanger": 2,
-      "water": true,
       "names": "crisis-site-brood-cave",
       "situations": ["stolen-clutch-act"],
       "icon": "egg-clutch"
@@ -186,7 +178,6 @@
       "name": "Beacon heights",
       "weight": 0,
       "pathDanger": 2,
-      "water": true,
       "names": "crisis-site-beacon-heights",
       "situations": ["burning-beacons-act"],
       "icon": "campfire"
@@ -197,7 +188,6 @@
       "name": "Hall under the mountain",
       "weight": 0,
       "pathDanger": 2,
-      "water": true,
       "names": "crisis-site-wyrm-hall",
       "situations": ["waking-act"],
       "icon": "dragon-head"

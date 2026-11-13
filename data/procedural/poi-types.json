@@ -6,6 +6,7 @@
   "entries": [
     {
       "id": "wayside-shrine",
+      "water": true,
       "category": "shrine",
       "name": "Wayside shrine",
       "weight": 1.5,
@@ -28,6 +29,7 @@
     },
     {
       "id": "drowned-chapel",
+      "water": true,
       "category": "shrine",
       "name": "Drowned chapel",
       "weight": 0.8,
@@ -49,6 +51,7 @@
     },
     {
       "id": "drowned-bell-tower",
+      "water": true,
       "category": "landmark",
       "name": "Drowned bell tower",
       "weight": 0.8,
@@ -69,6 +72,7 @@
     },
     {
       "id": "glowing-falls",
+      "water": true,
       "category": "wonder",
       "name": "Glowing falls",
       "weight": 0.5,
@@ -100,6 +104,7 @@
     },
     {
       "id": "orc-war-camp",
+      "water": true,
       "category": "lair",
       "name": "Orc war camp",
       "weight": 1.6,
@@ -134,6 +139,7 @@
     },
     {
       "id": "bandit-hideout",
+      "water": true,
       "category": "lair",
       "name": "Bandit hideout",
       "weight": 1.6,
@@ -314,6 +320,7 @@
     },
     {
       "id": "hermit-sage",
+      "water": true,
       "category": "expert",
       "name": "Hermit sage",
       "weight": 0.5,
@@ -337,6 +344,7 @@
     },
     {
       "id": "retired-duelist",
+      "water": true,
       "category": "expert",
       "name": "Retired duelist",
       "weight": 0.5,
@@ -359,6 +367,7 @@
     },
     {
       "id": "old-huntress",
+      "water": true,
       "category": "expert",
       "name": "Old huntress",
       "weight": 0.5,
@@ -370,6 +379,7 @@
     },
     {
       "id": "abandoned-waystation",
+      "water": true,
       "category": "quest",
       "name": "Abandoned waystation",
       "weight": 0.4,

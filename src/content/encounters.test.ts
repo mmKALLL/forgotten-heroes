@@ -302,10 +302,11 @@ describe('points of interest', () => {
     }
   })
 
-  test('only a spring or a well refills the waterskins', () => {
-    // Every Crisis site has water (a well, spring or cistern; see crisis-sites.json).
-    for (const t of drawn.filter((t) => t.water))
-      expect(`${t.id} ${t.name}`).toMatch(/spring|well/i)
+  test('about 40% of the sites drawn have water (designer call: most are close to a town)', () => {
+    const total = drawn.reduce((n, t) => n + t.weight, 0)
+    const wet = drawn.filter((t) => t.water).reduce((n, t) => n + t.weight, 0)
+    expect(wet / total).toBeGreaterThan(0.25)
+    expect(wet / total).toBeLessThan(0.6)
   })
 
   test('every site situation is played by some POI type, or in a dungeon room', () => {
