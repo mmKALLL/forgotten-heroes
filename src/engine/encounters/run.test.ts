@@ -19,7 +19,6 @@ import {
   twistKindWeight,
 } from './run'
 import { TWIST_PLACE_WEIGHT } from '../constants'
-import { checkXp } from '../rules/progression'
 import { setbackCamaraderie } from './outcomes'
 import type { Tier } from '../rules/checks'
 import { paceHostileAvoidance } from '../travel/pace'
@@ -292,8 +291,7 @@ describe('check options', () => {
       if (misread.lastRoll?.tier !== 'fail' && misread.lastRoll?.tier !== 'critFail') continue
       expect(misread.encounter?.nextCheckModifier).toBe(-2)
       expect(misread.encounter?.log.at(-1)?.text).toBe(
-        `You cannot tell. (−2 to the next check, +${checkXp(12, 'fail')} XP, ` +
-          `${setback(misread.lastRoll.tier)} camaraderie)`
+        `You cannot tell. (−2 to the next check, ${setback(misread.lastRoll.tier)} camaraderie)`
       )
       expect(choose(misread, 'rob', 'lyra').lastRoll?.modifier).toBe(normal - 2)
       return
@@ -323,8 +321,7 @@ describe('check options', () => {
       const after = choose(reseed(start('cliff'), seed), 'climb', 'lyra')
       if (after.lastRoll?.tier === 'fail') {
         expect(after.encounter?.log.at(-1)?.text).toBe(
-          `Lyra slips. (Lyra −3 HP, Exposed, +${checkXp(12, 'fail')} XP, ` +
-            `${setback('fail')} camaraderie)`
+          `Lyra slips. (Lyra −3 HP, Exposed, ${setback('fail')} camaraderie)`
         )
         return
       }

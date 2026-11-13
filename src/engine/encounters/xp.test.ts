@@ -46,11 +46,11 @@ const gained = (before: GameState, after: GameState) =>
   after.party.map((c, i) => c.xp - before.party[i].xp)
 
 describe('XP from encounter checks', () => {
-  test('pays more for better tiers and harder checks, and something for failing', () => {
+  test('pays more for better tiers and harder checks, and nothing for failing (designer call)', () => {
     expect(checkXp(13, 'critSuccess')).toBeGreaterThan(checkXp(13, 'success'))
     expect(checkXp(13, 'success')).toBeGreaterThan(checkXp(13, 'partial'))
     expect(checkXp(13, 'partial')).toBeGreaterThan(checkXp(13, 'fail'))
-    expect(checkXp(13, 'fail')).toBeGreaterThan(0)
+    expect(checkXp(13, 'fail')).toBe(0)
     expect(checkXp(13, 'critFail')).toBe(checkXp(13, 'fail'))
     expect(checkXp(16, 'success')).toBeGreaterThan(checkXp(13, 'success'))
   })

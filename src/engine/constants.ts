@@ -626,8 +626,8 @@ export const XP_PER_DC = 5
 export const XP_CRIT = 1.5
 /** A partial success pays this share of a success's XP. */
 export const XP_PARTIAL = 0.5
-/** A failure (critical or not) still teaches this share of a success's XP. */
-export const XP_FAIL = 0.25
+/** A failure (critical or not) pays this share of a success's XP: none (designer call 2026-11-14). */
+export const XP_FAIL = 0
 /** A completed contract pays this much XP per gp of its pay (a good word too). */
 export const CONTRACT_XP_PER_GP = 2
 /** Clearing a dungeon or lair pays this much XP, times (1 + the site's power). */
