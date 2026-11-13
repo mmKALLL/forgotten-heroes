@@ -120,6 +120,10 @@
   - Role stat tables by CR (HP, AC, to-hit, damage), modelled on 5e's monster statistics by CR.
   - Every creature gets a role and a size; bosses get a signature move and a second trick.
   - A road CR budget for the party's level and size.
+  - **As built** (branch `plan7-enemies`): design §12 and `docs/notes/enemies-review.md`.
+    - Role tables run from CR 0 to 30.
+    - 37 SRD creatures were added (`roads: false`), plus 29 named bosses with signature moves and tricks as data. The engine doesn't play the moves yet; the review note lists the missing hooks.
+    - `combat/budget.ts` has `fightBudget`, `groupXp` and `roadFightCount` for Track I.
 - **Track I (integration):**
   - **Fight** beside the existing options in hostile road situations. The enemy group is built from the situation's creature slot and the CR budget. The CR is shown as far as the party knows it.
   - **Parley** (the designer call above).

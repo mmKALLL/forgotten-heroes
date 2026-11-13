@@ -205,7 +205,7 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - **Medicine and lasting injuries** (designer idea, 2026-11-14, to think over): the party's best Medicine could lower the chance of a lasting injury, and other skills could get similar uses. Track E leaves a named hook for it.
 
 - The spell lists for each pool (arcane and divine, levels 1–9) and the summon tiers.
-- The role stat tables by CR, and the road CR budget.
+- The role stat tables by CR, and the road CR budget: drafted by Track N (§12), for review in `docs/notes/enemies-review.md`.
 - The even-level schedule of abilities and uses per class.
 - Cleric alignment: chosen at creation, and how it shows.
 - How a fight's XP relates to the situation's (none of its own, as decided; check that it feels right in play).
@@ -242,3 +242,27 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - The surprise table: sneaking up, a success or better gives the party the free round and a critical failure leaves half the party flat-footed; walking into an ambush, a failure gives the enemies the free round, a partial half the party, a critical success the party's.
 - Retreating takes the member's move; a member can attack first and then leave.
 - A wipe by robbers takes all the gold and half of each good.
+
+## 12. As built: Track N, enemies (Plan 7, wave 2)
+
+The details and the judgement calls to review are in `docs/notes/enemies-review.md`.
+
+- **Role tables** (`data/claude/enemy-roles.json`) run from CR 0 to 30.
+  - The standard row follows 5e's monster statistics for AC and to-hit.
+  - HP is a published monster's HP at the CR, scaled down for one attack a turn: 100% up to CR 1/2, 40% from CR 20.
+  - Damage is one blow a turn, 70% of 5e's damage per round.
+  - Each role then scales HP, AC, to-hit, damage and WIS (brute ×1.35 HP and ×1.2 damage on d12s, down to swarm units at ×0.45 HP).
+  - Provisional until Track B's simulation.
+- **Creatures.** Every creature has a role and a size.
+  - 37 SRD creatures were added for dungeon rooms and Crisis sites.
+  - `Creature.roads` (default true) keeps the new ones out of road creature slots, so road encounters are unchanged.
+- **Bosses.** 29 named bosses in `data/claude/creatures.json`: one per authored dungeon at its CR, one per Crisis key at its keyCr (the recurring Drake-Speaker three times), plus two drakes.
+  - Each boss is a leader or a brute with a `signature` move (played when bloodied, in place of the second action) and a `trick` (every other round, or once).
+  - Moves are data (`BossMoveSchema`: an intent kind, `damage` as a multiple of the boss's blow, reach, one or two tiles, and riders: push, pull, stagger, stun, exposed, heal, call, burn).
+  - The engine does not play them yet. Each move's `todo` names what it lacks, and `bossIssues` checks them.
+- **The road CR budget** (`combat/budget.ts`) works like 5e's encounter XP budget.
+  - `fightBudget(levels, difficulty)` is a per-member XP by level, times easy, medium or hard.
+  - `groupXp(crs, partySize)` is the SRD XP by CR, times a group-size factor shifted for small or large parties.
+  - `roadFightCount(cr, levels, difficulty)` is how many of the slot's creature fit, from 1 to `ROAD_FIGHT_MAX`.
+  - Track I wires it in.
+
