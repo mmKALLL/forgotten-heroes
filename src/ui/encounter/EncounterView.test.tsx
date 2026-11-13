@@ -5,7 +5,15 @@ import { useState } from 'react'
 import { afterEach, describe, expect, test } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { step, type Action } from '../../engine/state'
-import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../../engine/test-fixtures'
+import {
+  brom,
+  fixtureContent,
+  lyra,
+  makeEncounter,
+  makeState,
+  testCombatFoes,
+} from '../../engine/test-fixtures'
+import { CombatView } from '../combat/CombatView'
 import { SituationSchema } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { EncounterView } from './EncounterView'
@@ -563,4 +571,72 @@ test('a skill challenge shows its tally and what each outcome marks, but no chan
   // The first card is focused: its rows say what each tier marks.
   expect(outcomes().getByText('+1 success')).toBeTruthy()
   expect(outcomes().getByText('no ground gained')).toBeTruthy()
+})
+
+describe('Fight on the line (Plan 7 Track I)', () => {
+  const lineContent = fixtureContent({
+    ...testCombatFoes,
+    'data/claude/line.json': {
+      kind: 'situations',
+      source: 'claude',
+      entries: [
+        {
+          id: 'line-road',
+          title: 'Cutthroats',
+          disposition: 'hostile',
+          foe: 'cutthroat',
+          followUpOnly: true,
+          stages: {
+            start: {
+              text: 'Cutthroats block the road.',
+              options: [
+                {
+                  id: 'fight',
+                  kind: 'check',
+                  label: 'Fight',
+                  description: 'Quick and bloody.',
+                  check: { skill: 'athletics', dc: 13, combat: true },
+                  outcomes: {
+                    fail: { text: 'Beaten.', effects: [{ effect: 'gold', amount: -3 }] },
+                    partial: { text: 'A draw.' },
+                    success: { text: 'They flee.', effects: [{ effect: 'gold', amount: 7 }] },
+                  },
+                },
+                { id: 'run', kind: 'fixed', label: 'Run', outcome: { text: 'You run.' } },
+              ],
+            },
+          },
+        },
+      ],
+    },
+  })
+
+  /** The encounter, and the fight in its place while one is open (as the App does). */
+  function LineHarness({ initial }: { initial: GameState }) {
+    const [state, setState] = useState(initial)
+    const onAction = (a: Action) => setState((s) => step(s, a, lineContent))
+    if (state.combat) return <CombatView state={state} content={lineContent} onAction={onAction} />
+    return state.encounter ? <EncounterView state={state} onAction={onAction} /> : <p>closed</p>
+  }
+
+  test('Fight shows its foes and endings, and choosing it opens the fight in its place', async () => {
+    const state = step(
+      makeState(),
+      { type: 'startEncounter', situationId: 'line-road' },
+      lineContent
+    )
+    render(<LineHarness initial={state} />)
+    const fight = within(card('Fight on the line'))
+    expect(fight.getByText(/Cutthroat( ×\d)? \(CR 1\/4\)/)).toBeTruthy()
+    expect(fight.getByText('On the line')).toBeTruthy()
+    expect(card('Parley')).toBeTruthy()
+    await userEvent.hover(card('Fight on the line'))
+    expect(outcomes().getByText(/^Win/)).toBeTruthy()
+    expect(outcomes().getByText('+7 gp')).toBeTruthy()
+    expect(outcomes().getByText('−3 gp')).toBeTruthy()
+    expect(outcomes().getByText(/Wiped out/)).toBeTruthy()
+    await userEvent.click(choose('Fight on the line'))
+    expect(screen.queryByRole('region', { name: 'Outcomes' })).toBeNull()
+    expect(screen.getAllByText(/Cutthroat/).length).toBeGreaterThan(0)
+  })
 })

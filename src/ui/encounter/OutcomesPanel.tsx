@@ -83,7 +83,25 @@ export function OutcomesPanel({
                 </span>
               )}
             </p>
-            {shown.length === 0 ? (
+            {option.fight ? (
+              <ul className="outcomes">
+                {(
+                  [
+                    ['success', 'outcomes.fightWin', option.fight.win],
+                    ['partial', 'outcomes.fightFlee', option.fight.flee],
+                    ['critFail', 'outcomes.fightLose', option.fight.lose],
+                  ] as const
+                ).map(([tier, key, branch]) => (
+                  <li key={key}>
+                    <span className={`tier-marker tier-${tier}`} />
+                    <div>
+                      <strong className="small">{t(key)}: </strong>
+                      <Branch branch={branch} showText={showText} />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : shown.length === 0 ? (
               // Unmet requirements are on the option's card: not repeated here.
               <p className="muted small">{t('outcomes.nothing')}</p>
             ) : (
