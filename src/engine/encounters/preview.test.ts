@@ -4,6 +4,8 @@ import { TIERS, tierFaces, tierOdds } from '../rules/checks'
 import { checkXp } from '../rules/progression'
 import { step } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
+import { DOWNED_EXHAUSTION } from '../constants'
+import { createRng } from '../rng'
 import { applyEffects } from './effects'
 import { encounterOptions, twistInfo } from './preview'
 
@@ -130,6 +132,32 @@ describe('encounterOptions', () => {
         twist: { text: 'A trap!', effects: ['−20 gp', 'someone −3 HP'], next: 'end', xp: 0 },
       },
     ])
+  })
+
+  test('a wound that would down someone names them and the exhaustion, as the outcome does', () => {
+    const party = [{ ...brom, hp: 3 }, lyra]
+    let found = false
+    for (let seed = 1; seed <= 60 && !found; seed++) {
+      const at = start('grudge', { ...makeState({ party }), rng: createRng(seed) })
+      const fail = byId(at).fight.outcomes.find((o) => o.tier === 'fail')!
+      expect(!fail.hidden && fail.effects).toContain(
+        `Brom goes down: +${DOWNED_EXHAUSTION} exhaustion`
+      )
+      const after = step(at, { type: 'chooseOption', optionId: 'fight' }, content)
+      if (after.lastRoll!.tier !== 'fail' || fail.hidden) continue
+      found = true
+      expect(after.encounter!.log.map((l) => l.text)).toContain(
+        `${fail.text} (${fail.effects.join(', ')})`
+      )
+      expect(after.party[0].exhaustion).toBe(brom.exhaustion + DOWNED_EXHAUSTION)
+    }
+    expect(found).toBe(true)
+    // A random target can't be named: the chip says what happens to whoever falls.
+    const hurt = start('roadside', makeState({ party: [{ ...brom, hp: 2 }, lyra] }))
+    const twist = byId(hurt).trust.outcomes[0]
+    expect(!twist.hidden && twist.twist!.effects).toContain(
+      `a member at 0 HP gains +${DOWNED_EXHAUSTION} exhaustion`
+    )
   })
 
   test('unmet requirements make an option unavailable, with the reason', () => {

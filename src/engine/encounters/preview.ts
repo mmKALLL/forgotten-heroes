@@ -19,6 +19,7 @@ import {
   conditionHolds,
   describeCondition,
   describeEffect,
+  downedChips,
   openingEffects,
   prepareEffects,
 } from './effects'
@@ -53,6 +54,8 @@ type ChipContext = {
   upgraded: (effect: Effect) => Effect | null
   /** What the smuggler's compartment hides from a goods loss ("3 hidden"), or null (hiddenNote). */
   hidden: (effect: Effect) => string | null
+  /** Who the effects would put down (downedChips), with `actorId` as the actor. */
+  downed: (effects: readonly Effect[]) => string[]
 }
 
 /** `next` is "escalates" for a twist branch that goes on to the twist's escalation stage. */
@@ -181,13 +184,15 @@ function branchPreview(
   const own = branch.effects
     .filter((e) => e.effect === 'xp' && (!e.if || conditionHolds(e.if, encounter)))
     .reduce((sum, e) => sum + (e.effect === 'xp' ? e.amount : 0), 0)
-  const failed = ctx.failsAct(prepareEffects(branch.effects, encounter))
+  const prepared = prepareEffects(branch.effects, encounter)
+  const failed = ctx.failsAct(prepared)
   const chips = [
     ...effectChips(branch.effects, encounter, actorName, ctx),
     ...(fallback > 0 ? [describeEffect({ effect: 'xp', amount: fallback }, actorName)!] : []),
     ...(setback < 0
       ? [describeEffect({ effect: 'camaraderie', amount: setback }, actorName)!]
       : []),
+    ...ctx.downed(prepared.flatMap((e) => ctx.upgraded(e) ?? [])),
     ...(failed !== null ? [tooLateChip(failed)] : []),
   ]
   return {
@@ -227,9 +232,13 @@ function outcomePreview(
   }
 }
 
-/** The chip context of the open encounter: its place, the Crisis act, and the party's upgrades. */
-function chipContext(state: GameState, encounter: EncounterState): ChipContext {
+/**
+ * The chip context of the open encounter: its place, the Crisis act, the party's upgrades, and
+ * who acts (`actorId`: none for a fixed option or a challenge's ending).
+ */
+function chipContext(state: GameState, encounter: EncounterState, actorId?: string): ChipContext {
   return {
+    downed: (effects) => downedChips(state.party, effects, actorId),
     place: encounterSettlementName(state),
     act: crisisActNumber(state),
     failsAct: (effects) => crisisFailsDuring(state, effects),
@@ -299,6 +308,7 @@ export function encounterOptions(
       }
     }
     const values = { ...encounter.slots, actor: preview.actorName }
+    const acted = chipContext(state, encounter, preview.actorId)
     const nameOf = (id: string) => state.party.find((c) => c.id === id)?.name ?? '?'
     // The same effective modifier `chooseOption` rolls with: delving gear helps in dungeon rooms.
     const upgradeModifier = delvingBonus(state, encounter.situation, skill, round)
@@ -322,7 +332,7 @@ export function encounterOptions(
       encounter,
       values,
       preview.actorName,
-      ctx,
+      acted,
       xpFor('success')
     )
     const check: OptionCheckPreview = {
@@ -354,7 +364,7 @@ export function encounterOptions(
               encounter,
               values,
               preview.actorName,
-              ctx,
+              acted,
               xpFor(tier),
               setbackAt(tier)
             ),
