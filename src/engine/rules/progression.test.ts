@@ -6,8 +6,10 @@ import { step } from '../state'
 import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { abilityModifier } from './abilities'
 import {
+  acknowledgeLevelUps,
   applyLevelUps,
   grantXp,
+  levelUpCards,
   levelFor,
   levelTo,
   levelUp,
@@ -114,5 +116,76 @@ describe('grantXp and applyLevelUps', () => {
   test('no level-up leaves the state untouched', () => {
     const state = makeState()
     expect(applyLevelUps(state)).toBe(state)
+  })
+})
+
+describe('pending level-ups (the level-up dialog)', () => {
+  const content = fixtureContent()
+  const practice = { type: 'practiceCheck', stat: 'athletics', dc: 10, mode: 'normal' } as const
+
+  test('a level-up is recorded with what it gained, matching the character', () => {
+    const state = makeState({ party: [{ ...brom, xp: XP_BY_LEVEL[1] }, lyra] })
+    const after = applyLevelUps(state)
+    const gain = brom.hitDie + abilityModifier(brom.abilities.con)
+    expect(after.levelUps).toEqual([
+      {
+        characterId: brom.id,
+        from: 1,
+        to: 2,
+        gains: { maxHp: gain, abilities: {}, proficiency: 0 },
+      },
+    ])
+    expect(after.party[0].maxHp - brom.maxHp).toBe(gain)
+  })
+
+  test('several levels in one go merge into one entry per member, with the ability and proficiency', () => {
+    const state = makeState({
+      party: [
+        { ...brom, xp: XP_BY_LEVEL[4] },
+        { ...lyra, xp: XP_BY_LEVEL[1] },
+      ],
+    })
+    const after = applyLevelUps(state)
+    expect(after.levelUps.map((u) => [u.characterId, u.from, u.to])).toEqual([
+      [brom.id, 1, 5],
+      [lyra.id, 1, 2],
+    ])
+    const [up] = after.levelUps
+    const raised = after.party[0]
+    expect(up.gains.maxHp).toBe(raised.maxHp - brom.maxHp)
+    expect(sum(up.gains.abilities)).toBe(sum(raised.abilities) - sum(brom.abilities))
+    expect(sum(up.gains.abilities)).toBe(2) // levels 3 and 5
+    expect(up.gains.proficiency).toBe(1)
+    // A later level for the same member, before the first is seen, merges in too.
+    const more = applyLevelUps({
+      ...after,
+      party: after.party.map((c, i) => (i === 1 ? { ...c, xp: XP_BY_LEVEL[2] } : c)),
+    })
+    expect(more.levelUps.map((u) => [u.characterId, u.from, u.to])).toEqual([
+      [brom.id, 1, 5],
+      [lyra.id, 1, 3],
+    ])
+    expect(more.levelUps[1].gains.maxHp).toBe(more.party[1].maxHp - lyra.maxHp)
+  })
+
+  test('the cards name the member and class, and acknowledging clears them', () => {
+    const after = applyLevelUps(makeState({ party: [{ ...brom, xp: XP_BY_LEVEL[4] }, lyra] }))
+    expect(levelUpCards(after)).toMatchObject([
+      { name: 'Brom', classId: brom.classId, from: 1, to: 5, proficiencyFrom: 2, proficiencyTo: 3 },
+    ])
+    const seen = step(after, { type: 'acknowledgeLevelUps' }, content)
+    expect(seen.levelUps).toEqual([])
+    expect(seen.party).toEqual(after.party)
+    expect(acknowledgeLevelUps(seen)).toBe(seen)
+  })
+
+  test('while level-ups wait, every other action is refused', () => {
+    const state = makeState({ party: [{ ...brom, xp: XP_BY_LEVEL[1] }, lyra] })
+    const leveled = step(state, practice, content)
+    expect(leveled.levelUps).toHaveLength(1)
+    expect(step(leveled, practice, content)).toBe(leveled)
+    expect(step(leveled, { type: 'rest' }, content)).toBe(leveled)
+    const seen = step(leveled, { type: 'acknowledgeLevelUps' }, content)
+    expect(step(seen, practice, content)).not.toBe(seen)
   })
 })

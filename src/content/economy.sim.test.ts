@@ -4,7 +4,7 @@ import { load } from '../engine/economy/capacity'
 import { goodPrice } from '../engine/economy/goods'
 import { marketDepth, midPrice, quote, shopsFor } from '../engine/economy/market'
 import { noticeBoard } from '../engine/town/contracts'
-import { newGame, step, type Action } from '../engine/state'
+import { newGame, stepPastLevelUps, type Action } from '../engine/state'
 import { trader, type TraderOptions, type TraderWhy } from '../engine/travel/trader'
 import { wander } from '../engine/travel/wander'
 import { settlementName } from '../engine/world/geo'
@@ -802,12 +802,12 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         if (!best) break
         daily[d].push(best.v)
         gp.push(best.v)
-        st = step(st, { type: 'gather', rule: best.x.rule }, content)
+        st = stepPastLevelUps(st, { type: 'gather', rule: best.x.rule }, content)
         if (st.encounter) st = { ...st, encounter: null }
         const good = best.x.good
         const have = (st.goods[good] ?? 0) - (good === 'food' ? ration : 0)
         if (have > 0 && quote(st, content, id, good, 'sell', have)) {
-          st = step(st, { type: 'sellGoods', good, amount: have }, content)
+          st = stepPastLevelUps(st, { type: 'sellGoods', good, amount: have }, content)
         }
       }
       const half = gp.findIndex((v) => v <= gp[0] / 2)

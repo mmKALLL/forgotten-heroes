@@ -21,6 +21,7 @@ import {
   v17ToV18,
   v18ToV19,
   v19ToV20,
+  v20ToV21,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -148,6 +149,7 @@ function migrated() {
     delve: null,
     explored: [],
     upgrades: {},
+    levelUps: [],
   }
 }
 
@@ -194,7 +196,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(20)
+  expect(CURRENT_SAVE_VERSION).toBe(21)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -651,15 +653,17 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v19ToV20(
-          v18ToV19(
-            v17ToV18(
-              v16ToV17(
-                v15ToV16(
-                  v14ToV15(
-                    v13ToV14(
-                      v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
-                      content
+        v20ToV21(
+          v19ToV20(
+            v18ToV19(
+              v17ToV18(
+                v16ToV17(
+                  v15ToV16(
+                    v14ToV15(
+                      v13ToV14(
+                        v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
+                        content
+                      )
                     )
                   )
                 )
@@ -1007,6 +1011,15 @@ describe('v19 → v20 (food no longer spoils)', () => {
     expect(loaded.goods.food).toBe(7)
     expect('foodLots' in loaded).toBe(false)
     expect(v19ToV20({ ...v19, spoilage: {} })).not.toHaveProperty('spoilage')
+  })
+})
+
+describe('v20 → v21 (level-ups wait for the player)', () => {
+  test('an older save has no level-ups waiting', () => {
+    const state = makeState({ day: 4 })
+    const { levelUps: _ups, ...v20 } = { ...structuredClone(state), version: 20 }
+    expect(v20ToV21(v20)).toMatchObject({ version: 21, levelUps: [] })
+    expect(deserialize(JSON.stringify(v20), content)).toEqual(state)
   })
 })
 

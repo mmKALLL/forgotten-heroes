@@ -1,13 +1,14 @@
-import type { Character, GameState } from '../../schema/state'
+import type { Character, GameState, LevelUp } from '../../schema/state'
 import { MAX_LEVEL, type Tier } from '../../schema/types'
 import { XP_BY_LEVEL, XP_CRIT, XP_FAIL, XP_PARTIAL, XP_PER_DC } from '../constants'
 import { appendLog } from '../log'
 import { withRng, type Draw } from '../rng'
-import { ABILITIES, abilityModifier } from './abilities'
+import { ABILITIES, abilityModifier, proficiencyBonus, type Ability } from './abilities'
 import { MAX_EXHAUSTION } from './character'
 
 // Levels and level-ups (Plan 5a, A1). The level follows from total XP and the XP table; proficiency
-// follows from the level (abilities.ts). Level-ups are applied after each step (state.ts).
+// follows from the level (abilities.ts). Level-ups are applied after each step (state.ts), and
+// wait in `GameState.levelUps` until the player has seen them (acknowledgeLevelUps).
 
 /** Ability scores never rise above this through levelling. */
 const ABILITY_CAP = 20
@@ -49,8 +50,11 @@ export function xpProgress(character: Character): XpProgress {
  * ability below 20 (the prototype's rules). A downed member's HP stays 0. Nothing happens at the
  * cap.
  */
-export function levelUp(character: Character, d: Draw): { character: Character; lines: string[] } {
-  if (character.level >= MAX_LEVEL) return { character, lines: [] }
+export function levelUp(
+  character: Character,
+  d: Draw
+): { character: Character; lines: string[]; maxHp: number; stat: Ability | null } {
+  if (character.level >= MAX_LEVEL) return { character, lines: [], maxHp: 0, stat: null }
   const level = character.level + 1
   const hp = Math.max(1, character.hitDie + abilityModifier(character.abilities.con))
   const raisable = ABILITIES.filter((a) => character.abilities[a] < ABILITY_CAP)
@@ -69,6 +73,8 @@ export function levelUp(character: Character, d: Draw): { character: Character; 
       maxHp: character.maxHp + hp,
     },
     lines: [`${character.name} reaches level ${level}: ${gains.join(', ')}.`],
+    maxHp: hp,
+    stat,
   }
 }
 
@@ -111,21 +117,94 @@ export function grantXp(state: GameState, amount: number, why: string): GameStat
   return appendLog(gainXp(state, amount), xpLine(amount, why), 'good')
 }
 
-/** Levels up, one level at a time, every member whose XP has passed their level. */
+/**
+ * Levels up, one level at a time, every member whose XP has passed their level, and records each
+ * living member's levels as one pending level-up for the dialog (merged with one already waiting).
+ */
 export function applyLevelUps(state: GameState): GameState {
   if (state.party.every((c) => levelFor(c.xp) <= c.level)) return state
-  const [{ party, lines }, rng] = withRng(state.rng, (d) => {
+  const [{ party, lines, ups }, rng] = withRng(state.rng, (d) => {
     const lines: string[] = []
+    const ups: LevelUp[] = []
     const party = state.party.map((c) => {
       let next = c
-      while (levelFor(next.xp) > next.level) {
-        const up = levelUp(next, d)
-        next = up.character
-        lines.push(...up.lines)
+      const up: LevelUp = {
+        characterId: c.id,
+        from: c.level,
+        to: c.level,
+        gains: { maxHp: 0, abilities: {}, proficiency: 0 },
       }
+      while (levelFor(next.xp) > next.level) {
+        const one = levelUp(next, d)
+        next = one.character
+        lines.push(...one.lines)
+        up.to = next.level
+        up.gains.maxHp += one.maxHp
+        if (one.stat) up.gains.abilities[one.stat] = (up.gains.abilities[one.stat] ?? 0) + 1
+      }
+      up.gains.proficiency = proficiencyBonus(up.to) - proficiencyBonus(up.from)
+      // The dead (their XP can pass a level in the step they fall) have nothing to celebrate.
+      if (up.to > up.from && next.exhaustion < MAX_EXHAUSTION) ups.push(up)
       return next
     })
-    return { party, lines }
+    return { party, lines, ups }
   })
-  return lines.reduce((next, line) => appendLog(next, line, 'good'), { ...state, party, rng })
+  const levelUps = ups.reduce(mergeLevelUp, state.levelUps)
+  return lines.reduce((next, line) => appendLog(next, line, 'good'), {
+    ...state,
+    party,
+    rng,
+    levelUps,
+  })
+}
+
+/** Adds a member's level-up to those waiting, merged into their entry if they have one. */
+function mergeLevelUp(pending: LevelUp[], up: LevelUp): LevelUp[] {
+  const i = pending.findIndex((p) => p.characterId === up.characterId)
+  if (i < 0) return [...pending, up]
+  const was = pending[i]
+  const abilities = { ...was.gains.abilities }
+  for (const [a, n] of Object.entries(up.gains.abilities) as [Ability, number][])
+    abilities[a] = (abilities[a] ?? 0) + n
+  const merged: LevelUp = {
+    characterId: up.characterId,
+    from: was.from,
+    to: up.to,
+    gains: {
+      maxHp: was.gains.maxHp + up.gains.maxHp,
+      abilities,
+      proficiency: proficiencyBonus(up.to) - proficiencyBonus(was.from),
+    },
+  }
+  return pending.map((p, j) => (j === i ? merged : p))
+}
+
+/** The player has seen the level-ups (the dialog's Continue): the game goes on. */
+export const acknowledgeLevelUps = (state: GameState): GameState =>
+  state.levelUps.length > 0 ? { ...state, levelUps: [] } : state
+
+/** A waiting level-up as the dialog shows it: who, from and to, and what they gained. */
+export type LevelUpCard = LevelUp & {
+  name: string
+  classId: string
+  /** The proficiency bonus before and after (equal on most levels). */
+  proficiencyFrom: number
+  proficiencyTo: number
+}
+
+/** The level-ups waiting for the player, one card per member still in the party. */
+export function levelUpCards(state: GameState): LevelUpCard[] {
+  return state.levelUps.flatMap((up) => {
+    const c = state.party.find((m) => m.id === up.characterId)
+    if (!c) return []
+    return [
+      {
+        ...up,
+        name: c.name,
+        classId: c.classId,
+        proficiencyFrom: proficiencyBonus(up.from),
+        proficiencyTo: proficiencyBonus(up.to),
+      },
+    ]
+  })
 }

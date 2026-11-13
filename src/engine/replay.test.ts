@@ -2,14 +2,14 @@ import { expect, test } from 'vitest'
 import type { GameState } from '../schema/state'
 import { encounterOptions } from './encounters/preview'
 import { deserialize, serialize } from './save'
-import { newGame, step } from './state'
+import { newGame, stepPastLevelUps as step } from './state'
 import { fixtureContent } from './test-fixtures'
 import { routeOptions } from './travel/preview'
 import { wander } from './travel/wander'
 
 const content = fixtureContent()
 
-/** A fixed policy: draw an encounter, take the first available option until it ends, close it. */
+/** A fixed policy (it reads level-ups in the journal): draw an encounter, take the first available option until it ends, close it. */
 function play(start: GameState, encounters: number): GameState {
   let state = start
   for (let i = 0; i < encounters; i++) {
