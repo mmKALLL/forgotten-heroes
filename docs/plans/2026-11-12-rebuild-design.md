@@ -167,6 +167,22 @@ All numbers below are in `src/engine/constants.ts` or the `data/claude/` files n
 - **Starting purse:** 10 gp (the designer's `STARTING_GOLD`) and 5 days of food per member.
 - **Accessories:** mid- and high-tier accessories carry procedurally rolled **rule hooks** that change how the game plays (section 8).
 
+### Party upgrades (Plan 6c)
+
+Lasting purchases that cover a party's weaknesses or push a strength (designer calls 2026-11-13; plan `docs/plans/2026-11-13-plan-6c-upgrades.md`). They belong to the party, not to a member: they weigh nothing, can't be stolen or lost, and are kept when members die or leave.
+
+- **Five types, levels 0–5** (`UPGRADES`, `UPGRADE_MAX_LEVEL`), stored as `GameState.upgrades` (save v18; older saves own none). Each is bought one level at a time.
+- **Price:** level n costs `basePrice` × n gp (`data/claude/upgrades.json`): 100 is a normal base; the camp kit 75, the smuggler's compartment 125, the company banner 200 (twice the normal). No shift by quality or wealth: the price is the same everywhere.
+- **Where:** where a service in the type's `soldBy` is: the camp kit at adventuring supplies and tailors; the smuggler's compartment at thieving supplies and ports; surveyor's maps at books and maps and universities; delving gear at adventuring supplies and the adventurers' guild; the company banner at tailors. The offer sits on the first such service's tile ("Surveyor's maps II · 200 gp", what that level does on the line under it, the flavour and how it grows in the tooltip; disabled when the purse can't cover it, with no reason line). The party panel lists what is owned ("Upgrades: Camp kit II · Surveyor's maps I", each level's effect on hover).
+- **What each level does** (`src/engine/rules/upgrades.ts`; numbers in the constants' "Party upgrades" section). Every effect is applied by the same function its preview reads, so the preview is what happens:
+  - **Camp kit:** +1 HP per level for each member on a day's rest in camp (on the road or at a site), on top of the quarter of max HP. **From level III** a rest in camp also lifts camaraderie +5, once per arrival or journey (like the private room's bond). Nights in the wild cost no camaraderie in the rules as built, so the plan's "a night in the wild costs no camaraderie" became this gain (Claude's interpretation, for review). The camp buttons' tooltips add what the kit gives.
+  - **Smuggler's compartment:** 20% per level of each precious good (gems, relics, luxuries; rounded down, all of it at level V) is hidden. In a situation tagged `thieves` or `toll` (`WEALTH_TAGS`), a goods loss falls only on what is in sight; its chip says so ("lose half your precious goods (2 hidden)"). Hidden goods also don't count toward visible wealth, so they draw no thieves.
+  - **Surveyor's maps:** +2 per level to explore checks, included in the search's modifier and odds (the line's tooltip says how much comes from the maps).
+  - **Delving gear:** +1 per level to Athletics, Perception and Acrobatics checks in dungeon rooms (`room` situations); **at level V** also +1 to every skill-challenge round there. Shown on the option card ("+2 delving gear") and in its odds, the challenge's odds of winning, and the delve preview's risk.
+  - **Company banner:** every camaraderie loss is 1 smaller per level, never past 0: a failed check, a critical failure and fleeing (the setback, one loss), a `camaraderie` effect, a day without food or water, a death. Gains are unchanged. The encounter chips and the camaraderie tooltip show the softened amounts.
+- **Guild membership** was dropped (designer call 2026-11-13), and investing in a store is a later design (`docs/plans/later-designs.md`).
+- **The sim's trader** buys upgrades with gold 200 gp above its trading capital, cheapest first (delving gear only when it delves); see `docs/notes/economy-report.md`.
+
 ## 5. Towns: the ledger screen
 
 There are many establishment types (ported from the prototype's services), so towns can specialise. Whether a service exists depends on the settlement's size tier, which sets the base threshold, plus a wealth bonus. A very prosperous hamlet, say one full of wizards, can therefore have a university, a necromancer or a magic-item shop. The thresholds and the size of the wealth bonus need tuning. Everything is on one screen with no modal open and close:

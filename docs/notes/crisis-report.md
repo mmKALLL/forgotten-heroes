@@ -2,6 +2,19 @@
 
 The Crisis simulation runs a scripted party through 20 worlds for up to 360 days and records how it hears of the Crisis, learns the plan, finds and thwarts each act, and how the run ends. The newest round (Plan 6 Track B, the roguelite arc) comes first; the Plan 5b rounds follow under "Plan 5b history".
 
+## Party upgrades (Plan 6c, 2026-11-13)
+
+The trader and the crusader now buy party upgrades with gold 200 gp above their capital (cheapest first; the crusader delves, so it buys delving gear too). Rerun against the same code with the habit off:
+
+| Policy (seeds 1–20) | Won | Lost | Disbanded | Deaths |
+| --- | --- | --- | --- | --- |
+| crusader, without → with upgrades | 10% → 5% | 40% → 55% | 50% → 40% | 7 → 5 |
+| crusader, game start | 0% → 0% | 55% → 50% | 45% → 50% | 4 → 6 |
+| trader (to day 104) | 0% → 0% | 95% → 95% | 5% → 5% | 0 → 0 |
+| trader, on to day 360 | 0% → 0% | 65% → 55% | 35% → 45% | 4 → 5 |
+
+Every move is one or two runs in 20, within the report's run-to-run noise: the upgrades a sim party can afford (mostly camp kit levels, a level or two of the banner) don't change the arc's outcome. Nothing was retuned.
+
 ## Plan 6 Track B: summary
 
 In plain words (seeds 1–20, the crusader with the sim's 50 gp start unless said otherwise):

@@ -22,6 +22,7 @@ import { delvePreview } from '../world/delve'
 import { dungeonOf } from '../world/dungeons'
 import { livingMembers } from '../town/camaraderie'
 import { accessorySales } from '../gear/accessories'
+import { upgradeOffers } from '../town/upgrades'
 import { statModifier } from '../rules/character'
 import { step, type Action } from '../state'
 import { actOpen, crisisDecided, crisisStatus } from '../crisis/status'
@@ -78,6 +79,8 @@ export type TraderWhy =
   | 'upkeep'
   /** Pressing on or withdrawing in a dungeon (Plan 6 B). */
   | 'delve'
+  /** Buying a party upgrade with gold to spare (Plan 6c). */
+  | 'upgrade'
 
 export type TraderOptions = {
   /** Buy cargo from the price book (default true). Off: a contracts-only adventurer. */
@@ -94,6 +97,11 @@ export type TraderOptions = {
   hireUpTo?: number
   /** Wear accessories found or bought, and sell the spares (default true). */
   gear?: boolean
+  /**
+   * Buy party upgrades (Plan 6c) with gold beyond UPGRADE_CAPITAL, the trading capital it keeps
+   * (default true): the cheapest next level for sale here first.
+   */
+  upgrades?: boolean
   /** Chase the Crisis (default false): the crusader policy (see `crusader`). */
   crusade?: boolean
   /**
@@ -126,6 +134,8 @@ const GATHER_DEPLETED = 0.5
 const GATHER_FOOD_DAYS = 6
 /** A recruit is hired only with the sign-on fee plus this many days of the recruit's food in hand. */
 const HIRE_RESERVE_DAYS = 30
+/** Gold the trader keeps as trading capital: it buys an upgrade only with what is left above. */
+const UPGRADE_CAPITAL = 200
 /** Days the trader rests in a settlement, at most, while anyone needs it. */
 const MAX_REST_DAYS = 6
 /** Gold kept back from cargo for lodging and the next road's food, per member. */
@@ -409,6 +419,7 @@ export function trader(
     hire: true,
     hireUpTo: 4,
     gear: true,
+    upgrades: true,
     upkeep: true,
     pick: ((leg, count) => leg % count) as Pick,
     ...options,
@@ -750,6 +761,23 @@ export function trader(
     }
   }
 
+  /**
+   * Party upgrades with spare gold (Plan 6c): while the purse holds UPGRADE_CAPITAL beyond the
+   * price, the cheapest next level for sale here, one after another. Delving gear only for a
+   * party that delves.
+   */
+  const buyUpgrades = () => {
+    if (!o.upgrades) return
+    for (let guard = 0; guard < 10; guard++) {
+      const offer = upgradeOffers(state, content)
+        .filter((x) => x.id !== 'delving-gear' || delves)
+        .filter((x) => state.gold - x.price >= UPGRADE_CAPITAL)
+        .sort((a, b) => a.price - b.price)[0]
+      if (!offer) return
+      act({ type: 'buyUpgrade', upgrade: offer.id }, 'upgrade')
+    }
+  }
+
   /** Gold kept back from upkeep: lodging and the next road's food. */
   const upkeepReserve = () => RESERVE_PER_MEMBER * livingMembers(state).length + BROKE_GOLD
 
@@ -1070,6 +1098,7 @@ export function trader(
       }
     }
     hire()
+    buyUpgrades()
     if (o.contracts) {
       for (let taken = 0; taken < MAX_CONTRACTS; taken++) {
         const offer = pickOffer(here)
