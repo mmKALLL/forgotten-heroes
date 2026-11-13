@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Content } from '../../content/build'
 import { delvePreview, type DelvePreview } from '../../engine/world/delve'
 import type { Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
+import { prefersReducedMotion } from '../dice/DiceRoll'
 import { useI18n } from '../i18n/I18n'
 
 /** A point on a dungeon's map as [x, y] fractions of the image. */
@@ -40,6 +41,44 @@ export function delveViewBox(
   return `${Math.round(x)} ${Math.round(y)} ${Math.round(vw)} ${Math.round(vh)}`
 }
 
+/** How long the view takes to pan to the next room (designer call: smooth, not a jump). */
+export const PAN_MS = 550
+const easeInOut = (k: number) => (k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2)
+
+/**
+ * The view box shown: it eases from where it was to `target` over PAN_MS, in a straight line (it
+ * needn't follow the corridors), and jumps at once under reduced motion. A new target mid-pan
+ * starts from where the view is.
+ */
+export function usePannedViewBox(target: string): string {
+  const [shown, setShown] = useState(target)
+  const current = useRef(target)
+  useEffect(() => {
+    const from = current.current.split(' ').map(Number)
+    const to = target.split(' ').map(Number)
+    if (from.every((v, i) => v === to[i])) return
+    const show = (box: string) => {
+      current.current = box
+      setShown(box)
+    }
+    if (prefersReducedMotion() || typeof requestAnimationFrame !== 'function') {
+      show(target)
+      return
+    }
+    const start = performance.now()
+    let frame = 0
+    const tick = (now: number) => {
+      const k = Math.min(1, Math.max(0, (now - start) / PAN_MS))
+      const e = easeInOut(k)
+      show(k === 1 ? target : from.map((a, i) => (a + (to[i] - a) * e).toFixed(1)).join(' '))
+      if (k < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [target])
+  return shown
+}
+
 /** Where the party stands, and the room it goes to next (null when none is left). */
 function positions(p: DelvePreview): { party: MapPoint; next: MapPoint | null; nextIndex: number } {
   const rooms = p.dungeon.rooms
@@ -47,6 +86,19 @@ function positions(p: DelvePreview): { party: MapPoint; next: MapPoint | null; n
   const party = p.inRoom ? rooms[at].at : at === 0 ? p.dungeon.entrance : rooms[at - 1].at
   const nextIndex = p.inRoom ? at + 1 : at
   return { party, next: rooms[nextIndex]?.at ?? null, nextIndex }
+}
+
+/**
+ * Where the view should be: around the party in a room, or between it and the next room; the
+ * whole map when zoomed out.
+ */
+function targetViewBox(p: DelvePreview, zoomed: boolean): string {
+  const { party, next } = positions(p)
+  const centre: MapPoint =
+    next && !p.inRoom ? [(party[0] + next[0]) / 2, (party[1] + next[1]) / 2] : party
+  // While a room is played the map is a low strip, so the encounter below stays in view.
+  const aspect = p.inRoom ? ASPECT.room : ASPECT.between
+  return delveViewBox(p.dungeon.mapSize, zoomed ? centre : null, aspect)
 }
 
 /**
@@ -60,16 +112,13 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
   const [zoomed, setZoomed] = useState(true)
   const delve = state.delve
   const p = delve ? delvePreview(state, content, delve.poi) : null
+  const target = p ? targetViewBox(p, zoomed) : '0 0 1 1'
+  const viewBox = usePannedViewBox(target)
   if (!delve || !p) return null
   const { dungeon } = p
   const image = imageUrl === undefined ? assetUrl(dungeon.map) : imageUrl
   const [w, h] = dungeon.mapSize
-  const { party, next, nextIndex } = positions(p)
-  const centre: MapPoint =
-    next && !p.inRoom ? [(party[0] + next[0]) / 2, (party[1] + next[1]) / 2] : party
-  // While a room is played the map is a low strip, so the encounter below stays in view.
-  const aspect = p.inRoom ? ASPECT.room : ASPECT.between
-  const viewBox = delveViewBox(dungeon.mapSize, zoomed ? centre : null, aspect)
+  const { party, nextIndex } = positions(p)
   const r = Math.max(w, h) / (zoomed ? 90 : 60)
   const xy = (pt: MapPoint) => ({ x: pt[0] * w, y: pt[1] * h })
   const path = [dungeon.entrance, ...dungeon.rooms.map((room) => room.at)]

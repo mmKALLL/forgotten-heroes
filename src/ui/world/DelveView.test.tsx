@@ -1,17 +1,21 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from '@testing-library/react'
+import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, expect, test, vi } from 'vitest'
 import { step } from '../../engine/state'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import type { GameState } from '../../schema/state'
 import { REINHABIT_DAYS } from '../../engine/constants'
-import { DelveView, delveViewBox } from './DelveView'
+import { DelveView, PAN_MS, delveViewBox } from './DelveView'
 import { PoiPanel } from './PoiPanel'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
 
 const content = fixtureContent()
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+  Reflect.deleteProperty(window, 'matchMedia')
+})
 
 /** The party at the fixture's dungeon (The Test Vault), found and inhabited. */
 function atVault(): GameState {
@@ -73,4 +77,36 @@ test('the zoomed view is a window inside the map around the party', () => {
   expect(y + h).toBeLessThanOrEqual(1000)
   expect(w).toBeLessThan(2000)
   expect(delveViewBox([2000, 1000], null)).toBe('0 0 2000 1000')
+})
+
+test('the view pans smoothly to the next room, or jumps under reduced motion', () => {
+  const entered = step(atVault(), { type: 'visitPoi' }, content)
+  const between = step(entered, { type: 'chooseOption', optionId: 'sneak' }, content)
+  const props = { content, onAction: vi.fn(), imageUrl: null }
+  const box = () => document.querySelector('svg.delve-map')!.getAttribute('viewBox')
+  const views = (reduced: boolean) => {
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: (query: string) => ({ matches: reduced && query.includes('reduce'), media: query }),
+    })
+    const { rerender, unmount } = render(<DelveView {...props} state={entered} />)
+    const start = box()
+    rerender(<DelveView {...props} state={between} />)
+    const after = box()
+    act(() => vi.advanceTimersByTime(PAN_MS / 2))
+    const mid = box()
+    act(() => vi.advanceTimersByTime(PAN_MS))
+    const end = box()
+    unmount()
+    return { start, after, mid, end }
+  }
+  vi.useFakeTimers({ toFake: ['requestAnimationFrame', 'cancelAnimationFrame', 'performance'] })
+  const smooth = views(false)
+  expect(smooth.end).not.toBe(smooth.start)
+  // Not there yet at once, part of the way halfway through, and there after the pan.
+  expect(smooth.after).toBe(smooth.start)
+  expect([smooth.start, smooth.end]).not.toContain(smooth.mid)
+  const reduced = views(true)
+  expect(reduced.after).toBe(reduced.end)
+  expect(reduced.end).toBe(smooth.end)
 })
