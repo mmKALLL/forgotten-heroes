@@ -285,9 +285,12 @@ test('every situation and twist kind says how it treats the party', () => {
 
 /** Every outcome branch of an option, twist branches included. */
 const outcomesOf = (option: Option): OutcomeBranch[] =>
-  (option.kind === 'fixed' ? [option.outcome] : Object.values(option.outcomes)).flatMap((o) =>
-    o ? [o, ...(o.twist ? [o.twist] : [])] : []
-  )
+  (option.kind === 'fight'
+    ? []
+    : option.kind === 'fixed'
+      ? [option.outcome]
+      : Object.values(option.outcomes)
+  ).flatMap((o) => (o ? [o, ...(o.twist ? [o.twist] : [])] : []))
 
 describe('points of interest', () => {
   const types = Object.values(content.poiTypes)
@@ -655,9 +658,12 @@ describe('goods in encounters (Plan 4)', () => {
     Object.values(s.stages).flatMap((stage) => stage.options.map((o) => ({ s, o })))
   )
   const branchesOf = (o: Option): OutcomeBranch[] =>
-    (o.kind === 'fixed' ? [o.outcome] : Object.values(o.outcomes)).flatMap((b) =>
-      b ? [b, ...(b.twist ? [b.twist] : [])] : []
-    )
+    (o.kind === 'fight'
+      ? []
+      : o.kind === 'fixed'
+        ? [o.outcome]
+        : Object.values(o.outcomes)
+    ).flatMap((b) => (b ? [b, ...(b.twist ? [b.twist] : [])] : []))
   const isPrecious = (good: string | undefined) =>
     GOODS.some((g) => g === good && GOOD_CATEGORY[g] === 'precious')
 

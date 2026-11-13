@@ -122,6 +122,16 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
       dcBonus,
       wound,
       room: rules,
+      // The boss room offers a Fight against its boss beside the challenge (Plan 7).
+      ...(rules.hoard && dungeon.climax
+        ? {
+            fights: {
+              kind: 'climax' as const,
+              cr: playedCr(state, delve.poi, dungeon),
+              climax: dungeon.climax,
+            },
+          }
+        : {}),
       lines: [{ text: `${room.name}. ${room.text}`, tone: 'info' }],
     }
   )
@@ -307,6 +317,7 @@ function roomRisk(
     }
     const each = options.map((o) => {
       if (o.kind === 'fixed') return drives(o.outcome.effects) ? 1 : 0
+      if (o.kind === 'fight') return 1
       const actor = chooseActor(state.party, o.check.skill, undefined, o.check.ability)
       if (!actor) return 1
       const gear = checkUpgrades(state, played, o, 'normal', false).total

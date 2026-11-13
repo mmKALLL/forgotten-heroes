@@ -37,11 +37,15 @@ export function rollTable(d: Draw, content: Content, tableId: string, depth = 0)
   return fillText(row.text, values)
 }
 
-/** Fills a situation's declared slots. Slots are rolled in id order so a seed always gives the same text. */
+/**
+ * Fills a situation's declared slots. Slots are rolled in id order so a seed always gives the same
+ * text. `picked`, when given, records each creature slot's creature id (a Fight's foes).
+ */
 export function rollSlots(
   d: Draw,
   content: Content,
-  slots: Readonly<Record<string, SlotSource>>
+  slots: Readonly<Record<string, SlotSource>>,
+  picked?: Record<string, string>
 ): Record<string, string> {
   const values: Record<string, string> = {}
   for (const name of Object.keys(slots).sort(byCodeUnit)) {
@@ -58,6 +62,7 @@ export function rollSlots(
     )
     if (matches.length === 0) throw new Error(`no creature matches slot "${name}"`)
     const creature = d.pick(matches)
+    if (picked) picked[name] = creature.id
     values[name] = source.form === 'name' ? creature.name : creature.group
   }
   return values

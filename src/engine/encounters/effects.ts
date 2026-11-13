@@ -295,6 +295,9 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       return payHoard(state, ctx.content, effect)
     case 'milestone':
       return payMilestone(state, effect)
+    // Plan 7: the step opens the stage's Fight after the outcome (combat/offer.ts).
+    case 'fight':
+      return state
   }
 }
 
@@ -469,5 +472,7 @@ export function describeEffect(
       return describeHoard(effect)
     case 'milestone':
       return `+${effect.xp} XP: a milestone (once a clearing)`
+    case 'fight':
+      return 'the fight starts: they strike first'
   }
 }

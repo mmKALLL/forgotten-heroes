@@ -91,9 +91,12 @@ describe('villains', () => {
 
 /** Every outcome branch of an option (a missing critical tier falls back to fail or success). */
 const branchesOf = (option: Option): OutcomeBranch[] =>
-  (option.kind === 'fixed' ? [option.outcome] : Object.values(option.outcomes)).flatMap((o) =>
-    o ? [o, ...(o.twist ? [o.twist] : [])] : []
-  )
+  (option.kind === 'fight'
+    ? []
+    : option.kind === 'fixed'
+      ? [option.outcome]
+      : Object.values(option.outcomes)
+  ).flatMap((o) => (o ? [o, ...(o.twist ? [o.twist] : [])] : []))
 /** Every branch of a stage: its options', and its challenge's win and lose. */
 const stageBranches = (stage: Stage): OutcomeBranch[] => [
   ...stage.options.flatMap(branchesOf),

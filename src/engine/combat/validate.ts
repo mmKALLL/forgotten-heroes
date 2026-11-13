@@ -2,6 +2,8 @@ import { sortedEntries, type Content } from '../../content/build'
 import type { CombatEffect } from '../../schema/combat'
 import { ENEMY_ROLES } from '../../schema/types'
 import { CLASS_PICKS, FALLBACK_GEAR, STARTING_GEAR } from '../constants'
+import { allSituations, compileSituation } from '../encounters/compile'
+import type { Climax } from '../../schema/common'
 
 // Combat content references (Plan 7 Track T): the schemas check shapes; this checks that what a
 // fight, a class ability or a spell names exists. `pnpm test` runs it on the bundled content.
@@ -50,6 +52,7 @@ export function combatIssues(content: Content): string[] {
     }
   }
   issues.push(...bossIssues(content))
+  issues.push(...fightIssues(content))
   const summons = (at: string, effects: readonly CombatEffect[]) => {
     for (const e of effects) {
       if (e.effect !== 'summon') continue
@@ -149,6 +152,64 @@ export function spellIssues(content: Pick<Content, 'spells' | 'summons'>): strin
     if (ids.length !== 1)
       issues.push(
         `divine level ${level}: ${ids.length} summoning spells, not 1 (${ids.join(', ')})`
+      )
+  }
+  return issues
+}
+
+/**
+ * Fight on the line in encounters (Plan 7 Track I): every foe and climax names a creature that
+ * exists, and a climax's boss has a signature move.
+ */
+export function fightIssues(content: Content): string[] {
+  const issues: string[] = []
+  const creature = (at: string, id: string | undefined) => {
+    if (id !== undefined && !Object.hasOwn(content.creatures, id))
+      issues.push(`${at}: unknown creature "${id}"`)
+  }
+  const climax = (at: string, c: Climax | undefined) => {
+    if (!c) return
+    creature(`${at} climax`, c.boss)
+    creature(`${at} climax henchmen`, c.henchmen)
+    const boss = content.creatures[c.boss]
+    if (boss && !boss.signature) issues.push(`${at}: climax boss "${c.boss}" has no signature move`)
+  }
+  for (const dungeon of sortedEntries(content.dungeons))
+    climax(`dungeon ${dungeon.id}`, dungeon.climax)
+  for (const villain of sortedEntries(content.villains))
+    villain.acts.forEach((act) => climax(`villain ${villain.id} act ${act.id}`, act.climax))
+  for (const kind of sortedEntries(content.twists)) creature(`twist ${kind.id} foe`, kind.foe)
+  for (const situation of allSituations(content))
+    creature(`situation ${situation.id} foe`, situation.foe)
+  return issues
+}
+
+/**
+ * Where Fight is offered (Plan 7 Track I), checked on the bundled content: every dungeon and
+ * Crisis act has a climax, and every hostile road or site situation with a fight-like check
+ * (`check.combat`) can tell its foes (a `foe`, or a creature slot), so it offers Fight. Crisis
+ * sites and dungeon rooms (but the boss's, through its dungeon) offer none.
+ */
+export function fightCoverageIssues(content: Content): string[] {
+  const issues: string[] = []
+  for (const dungeon of sortedEntries(content.dungeons))
+    if (!dungeon.climax)
+      issues.push(`dungeon ${dungeon.id}: no climax (who its boss Fight is against)`)
+  for (const villain of sortedEntries(content.villains))
+    for (const act of villain.acts)
+      if (!act.climax)
+        issues.push(`villain ${villain.id} act ${act.id}: no climax (who its key Fight is against)`)
+  for (const situation of allSituations(content)) {
+    const crisisSite = situation.site && situation.tags.includes('crisis')
+    if (situation.disposition !== 'hostile' || situation.room || crisisSite) continue
+    const compiled = compileSituation(situation, content)
+    const fights = Object.values(compiled.stages).some((stage) =>
+      stage.options.some((o) => o.kind === 'check' && o.check.combat)
+    )
+    const slot = Object.values(compiled.slots).some((s) => s.from === 'creature')
+    if (fights && !situation.foe && !slot)
+      issues.push(
+        `situation ${situation.id}: a fight-like check but no foe (a \`foe\` or a creature slot) to Fight`
       )
   }
   return issues

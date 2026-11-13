@@ -3,6 +3,7 @@ import type { Character, ContractState, GameState } from '../../schema/state'
 import { GOODS, type Good, type Pace } from '../../schema/types'
 import { MAX_EXHAUSTION } from '../encounters/effects'
 import { challengePreview, encounterOptions } from '../encounters/preview'
+import { onTheLine } from '../encounters/fights'
 import { currentOptions } from '../encounters/run'
 import { load } from '../economy/capacity'
 import { goodPrice, goodWeight } from '../economy/goods'
@@ -466,7 +467,8 @@ export function trader(
 
   const resolveEncounter = () => {
     for (let guard = 0; state.encounter && guard < 50 && !runOver(state); guard++) {
-      const all = encounterOptions(state).filter((x) => x.available)
+      // The simulated players don't fight on the line or parley yet (Track B's fight sim).
+      const all = encounterOptions(state).filter((x) => x.available && !onTheLine(x.id))
       const poi = state.encounter.poi
       // At a Crisis site, and in a dungeon room once in (between rooms it may withdraw), the
       // crusader doesn't back out while it has another choice.

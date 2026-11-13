@@ -59,6 +59,9 @@
           },
           "hoard": {
             "$ref": "#/$defs/__schema18"
+          },
+          "climax": {
+            "$ref": "#/$defs/__schema24"
           }
         },
         "required": [
@@ -279,6 +282,26 @@
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991
+    },
+    "__schema24": {
+      "description": "Who the last room's Fight is against (Plan 7): the boss and its henchmen",
+      "$ref": "#/$defs/__schema25"
+    },
+    "__schema25": {
+      "type": "object",
+      "properties": {
+        "boss": {
+          "description": "A creatures id with a signature move: the boss",
+          "$ref": "#/$defs/__schema0"
+        },
+        "henchmen": {
+          "description": "A creatures id: as many as a hard CR budget for the climax level allows (0 or more) join the boss",
+          "$ref": "#/$defs/__schema0"
+        }
+      },
+      "required": [
+        "boss"
+      ]
     }
   }
 }

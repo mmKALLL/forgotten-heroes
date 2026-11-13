@@ -428,7 +428,7 @@
       "id": "ambush-at-the-narrows",
       "title": "Ambush at the narrows",
       "disposition": "hostile",
-      "tags": ["road", "hill", "thieves"],
+      "tags": ["ambush", "road", "hill", "thieves"],
       "slots": { "foe": { "from": "creature", "types": ["humanoid"], "maxCr": 1 } },
       "stages": {
         "start": {
@@ -577,6 +577,7 @@
     },
     {
       "id": "grudge-on-the-road",
+      "foe": "thug",
       "title": "An old grudge",
       "pursuit": true,
       "disposition": "hostile",
@@ -788,7 +789,7 @@
       "pursuit": true,
       "disposition": "hostile",
       "followUpOnly": true,
-      "tags": ["road"],
+      "tags": ["ambush", "road"],
       "notes": "Queued by the informant twist (twists.json): a deadlier ambush that knows you are coming.",
       "slots": { "raiders": { "from": "creature", "types": ["humanoid"], "maxCr": 2 } },
       "stages": {
@@ -904,6 +905,7 @@
     },
     {
       "id": "wardens-on-your-trail",
+      "foe": "veteran",
       "title": "Wardens on your trail",
       "pursuit": true,
       "disposition": "hostile",
@@ -1275,6 +1277,7 @@
     },
     {
       "id": "smugglers-below-decks",
+      "foe": "thug",
       "title": "Smugglers below decks",
       "biomes": ["sea"],
       "disposition": "hostile",
@@ -1369,6 +1372,7 @@
     },
     {
       "id": "horse-thieves",
+      "foe": "bandit",
       "title": "Thieves in the night",
       "disposition": "hostile",
       "tags": ["road", "thieves", "night"],
@@ -1891,6 +1895,7 @@
     },
     {
       "id": "tavern-brawl",
+      "foe": "thug",
       "title": "Trouble in the taproom",
       "disposition": "hostile",
       "weight": 0,

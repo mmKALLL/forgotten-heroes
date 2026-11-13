@@ -2,6 +2,7 @@ import type { Content } from '../../content/build'
 import type { Character, GameState } from '../../schema/state'
 import { MAX_EXHAUSTION } from '../encounters/effects'
 import { encounterOptions } from '../encounters/preview'
+import { onTheLine } from '../encounters/fights'
 import { stepPastLevelUps } from '../state'
 import { routeOptions, type PaceOption } from './preview'
 import { goodsOf, restOption } from './supplies'
@@ -108,7 +109,7 @@ export function wander(
     }
     for (let guard = 0; state.travel && guard < 100; guard++) {
       if (state.encounter) {
-        const option = encounterOptions(state).find((o) => o.available)
+        const option = encounterOptions(state).find((o) => o.available && !onTheLine(o.id))
         state = option
           ? stepPastLevelUps(state, { type: 'chooseOption', optionId: option.id }, content)
           : stepPastLevelUps(state, { type: 'closeEncounter' }, content)

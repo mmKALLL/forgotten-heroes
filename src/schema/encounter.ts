@@ -242,6 +242,12 @@ export const EffectSchema = z.discriminatedUnion('effect', [
         "adds it to a milestone room's outcomes that end the room without driving the party out"
     ),
   z
+    .object({ effect: z.literal('fight'), ...when })
+    .describe(
+      "The stage's Fight on the line starts at once, and the enemies strike first. Engine-made " +
+        "only: a Parley's critical failure"
+    ),
+  z
     .object({
       effect: z.literal('hoard'),
       gold: z
@@ -357,6 +363,34 @@ export const OutcomeSchema = z.object({
 })
 export type Outcome = z.infer<typeof OutcomeSchema>
 
+/** One kind of enemy in a fight: a creature × a count. */
+export const FightEnemySchema = z.object({
+  creature: IdSchema.describe('A creatures id'),
+  count: z.number().int().min(1).max(12).default(1),
+  boss: z
+    .boolean()
+    .default(false)
+    .describe('A boss: more HP, harder to stagger, desperate when bloodied'),
+})
+export type FightEnemy = z.infer<typeof FightEnemySchema>
+
+/**
+ * A fight on the line (Plan 7, combat design §1–§2): who the enemies are, whether they spring an
+ * ambush, the line's length, and what each ending does to the encounter (no actor in them).
+ */
+export const FightSchema = z.object({
+  enemies: z.array(FightEnemySchema).min(1),
+  ambush: z
+    .boolean()
+    .default(false)
+    .describe('1–3 more enemies apart from the group or on the far side of the party'),
+  line: z.number().int().min(5).max(8).optional().describe("Tiles (default 7): the room's shape"),
+  win: OutcomeBranchSchema.optional().describe('Victory or a rout'),
+  flee: OutcomeBranchSchema.optional().describe('The party retreated off its end of the line'),
+  lose: OutcomeBranchSchema.optional().describe('A wipe: robbed or left for dead'),
+})
+export type Fight = z.infer<typeof FightSchema>
+
 const optionFields = {
   id: IdSchema.describe('Unique within its stage'),
   label: z.string(),
@@ -402,7 +436,23 @@ export const FixedOptionSchema = z.object({
 })
 export type FixedOption = z.infer<typeof FixedOptionSchema>
 
-export const OptionSchema = z.discriminatedUnion('kind', [CheckOptionSchema, FixedOptionSchema])
+/**
+ * Fight on the line (Plan 7 Track I): engine-made only, never written in content. The encounter
+ * adds one beside a stage's fight-like check (or a climax's skill challenge) when it starts:
+ * choosing it opens `fight`, whose `win`, `flee` and `lose` branches then apply to the encounter.
+ */
+export const FightOptionSchema = z.object({
+  ...optionFields,
+  kind: z.literal('fight'),
+  fight: FightSchema,
+})
+export type FightOption = z.infer<typeof FightOptionSchema>
+
+export const OptionSchema = z.discriminatedUnion('kind', [
+  CheckOptionSchema,
+  FixedOptionSchema,
+  FightOptionSchema,
+])
 export type Option = z.infer<typeof OptionSchema>
 
 // ---------------------------------------------------------------------------------------------
@@ -448,34 +498,6 @@ export const ChallengeSchema = z.object({
   lose: OutcomeBranchSchema.describe('What losing does (no actor)'),
 })
 export type Challenge = z.infer<typeof ChallengeSchema>
-
-/** One kind of enemy in a fight: a creature × a count. */
-export const FightEnemySchema = z.object({
-  creature: IdSchema.describe('A creatures id'),
-  count: z.number().int().min(1).max(12).default(1),
-  boss: z
-    .boolean()
-    .default(false)
-    .describe('A boss: more HP, harder to stagger, desperate when bloodied'),
-})
-export type FightEnemy = z.infer<typeof FightEnemySchema>
-
-/**
- * A fight on the line (Plan 7, combat design §1–§2): who the enemies are, whether they spring an
- * ambush, the line's length, and what each ending does to the encounter (no actor in them).
- */
-export const FightSchema = z.object({
-  enemies: z.array(FightEnemySchema).min(1),
-  ambush: z
-    .boolean()
-    .default(false)
-    .describe('1–3 more enemies apart from the group or on the far side of the party'),
-  line: z.number().int().min(5).max(8).optional().describe("Tiles (default 7): the room's shape"),
-  win: OutcomeBranchSchema.optional().describe('Victory or a rout'),
-  flee: OutcomeBranchSchema.optional().describe('The party retreated off its end of the line'),
-  lose: OutcomeBranchSchema.optional().describe('A wipe: robbed or left for dead'),
-})
-export type Fight = z.infer<typeof FightSchema>
 
 export const StageSchema = z.object({
   text: z.string(),
@@ -563,6 +585,10 @@ const situationFields = {
     .default({})
     .describe('Filled when the encounter starts'),
   twist: TwistSchema.optional(),
+  foe: IdSchema.optional().describe(
+    'A creatures id: who a Fight on the line here is against (Plan 7), scaled by the CR budget. ' +
+      'Without it, the first creature slot names them'
+  ),
 }
 
 export const SituationSchema = z.object({
@@ -636,6 +662,9 @@ export const TwistKindSchema = z.object({
   slots: z.record(IdSchema, SlotSourceSchema).default({}).describe('Filled when it is drawn'),
   start: IdSchema.default('start').describe('The escalation stage "@twist" goes to'),
   stages: z.record(IdSchema, StageSchema),
+  foe: IdSchema.optional().describe(
+    "A creatures id: who a Fight on the line in its stages is against (else its first creature slot's)"
+  ),
   disposition: DispositionSchema.optional().describe('How it treats the party once it hits'),
   biomes: z
     .array(BiomeSchema)

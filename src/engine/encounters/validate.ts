@@ -18,6 +18,7 @@ import {
 } from './compile'
 import { slotNames } from './slots'
 import { playsRound } from './challenge'
+import { FIGHT_OPTION, PARLEY_OPTION } from './fights'
 
 /** Slots every check outcome may use without declaring them. */
 export const BUILT_IN_SLOTS = ['actor'] as const
@@ -26,6 +27,11 @@ type Text = { text: string; where: string; actorAllowed: boolean }
 
 function branches(option: Option): [string, Outcome][] {
   if (option.kind === 'fixed') return [['outcome', option.outcome]]
+  if (option.kind === 'fight')
+    return (['win', 'flee', 'lose'] as const).flatMap((end) => {
+      const branch = option.fight[end]
+      return branch ? [[end, branch] as [string, Outcome]] : []
+    })
   return Object.entries(option.outcomes).flatMap(([tier, o]) =>
     o ? [[tier, o] as [string, Outcome]] : []
   )
@@ -343,7 +349,16 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
     }
     if (effect.effect === 'driveOut' && !compiled.room)
       issues.push(`${where}: driveOut only works in a dungeon room`)
+    // Fight and Parley (Plan 7): the engine adds them when an encounter starts (encounters/fights.ts).
+    if (effect.effect === 'fight') issues.push(`${where}: fight is added by the engine only`)
   }
+  for (const [stageId, stage] of Object.entries(compiled.stages))
+    for (const option of stage.options) {
+      if (option.kind === 'fight')
+        issues.push(`${stageId}/${option.id}: Fight options are added by the engine only`)
+      else if (option.id === FIGHT_OPTION || option.id === PARLEY_OPTION)
+        issues.push(`${stageId}/${option.id}: the id is kept for the engine's Fight and Parley`)
+    }
   for (const villain of compiled.villains)
     if (!Object.hasOwn(content.villains, villain)) issues.push(`unknown villain "${villain}"`)
   // A consumable that unlocks an option is used up by it, whatever the roll.

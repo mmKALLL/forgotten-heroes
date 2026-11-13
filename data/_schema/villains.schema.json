@@ -58,10 +58,10 @@
             "$ref": "#/$defs/__schema12"
           },
           "victory": {
-            "$ref": "#/$defs/__schema21"
+            "$ref": "#/$defs/__schema22"
           },
           "notes": {
-            "$ref": "#/$defs/__schema22"
+            "$ref": "#/$defs/__schema23"
           }
         },
         "required": [
@@ -181,20 +181,24 @@
           "description": "Who is met at the key site, e.g. \"Captain Hask, the Prophet's Hand\": a finale villain's lieutenant; absent for the villain itself",
           "$ref": "#/$defs/__schema15"
         },
+        "climax": {
+          "description": "Who the key site's Fight is against (Plan 7): the act's boss and its henchmen",
+          "$ref": "#/$defs/__schema16"
+        },
         "surge": {
           "default": false,
           "description": "The world's danger surges in the last days before the act's due day",
-          "$ref": "#/$defs/__schema16"
+          "$ref": "#/$defs/__schema17"
         },
         "biomes": {
           "default": [],
           "description": "Favoured terrain: the key site is placed more often in a land of these biomes",
-          "$ref": "#/$defs/__schema17"
+          "$ref": "#/$defs/__schema18"
         },
         "seat": {
           "default": false,
           "description": "The key site is placed in a kingdom seat's domain (not the start's)",
-          "$ref": "#/$defs/__schema18"
+          "$ref": "#/$defs/__schema19"
         },
         "clue": {
           "type": "string",
@@ -202,11 +206,11 @@
         },
         "open": {
           "description": "Logged on the day the act opens (else a default line)",
-          "$ref": "#/$defs/__schema19"
+          "$ref": "#/$defs/__schema20"
         },
         "hurry": {
           "description": "Logged on its hurry day (else a default line)",
-          "$ref": "#/$defs/__schema20"
+          "$ref": "#/$defs/__schema21"
         },
         "thwarted": {
           "type": "string",
@@ -239,9 +243,25 @@
       "type": "string"
     },
     "__schema16": {
-      "type": "boolean"
+      "type": "object",
+      "properties": {
+        "boss": {
+          "description": "A creatures id with a signature move: the boss",
+          "$ref": "#/$defs/__schema0"
+        },
+        "henchmen": {
+          "description": "A creatures id: as many as a hard CR budget for the climax level allows (0 or more) join the boss",
+          "$ref": "#/$defs/__schema0"
+        }
+      },
+      "required": [
+        "boss"
+      ]
     },
     "__schema17": {
+      "type": "boolean"
+    },
+    "__schema18": {
       "type": "array",
       "items": {
         "type": "string",
@@ -257,20 +277,20 @@
         ]
       }
     },
-    "__schema18": {
-      "type": "boolean"
-    },
     "__schema19": {
-      "type": "string"
+      "type": "boolean"
     },
     "__schema20": {
       "type": "string"
     },
     "__schema21": {
+      "type": "string"
+    },
+    "__schema22": {
       "type": "string",
       "description": "Shown when all three acts are thwarted"
     },
-    "__schema22": {
+    "__schema23": {
       "type": "string"
     }
   }

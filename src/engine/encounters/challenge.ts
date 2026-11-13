@@ -39,6 +39,8 @@ export function marksOf(branch: Pick<OutcomeBranch, 'tally'>, tier: Tier | null)
 /** Choosing the option plays a round of a challenge: a check, or a fixed option that tallies. */
 export function playsRound(option: Option): boolean {
   if (option.kind === 'check') return true
+  // A Fight on the line (Plan 7) decides the climax at once, by its own branches.
+  if (option.kind === 'fight') return false
   const marks = marksOf(option.outcome, null)
   return marks.successes + marks.failures > 0
 }
@@ -123,6 +125,7 @@ export function roundChoices(
 ): RoundChoice[] {
   return options.filter(playsRound).flatMap((option): RoundChoice[] => {
     const once = option.once ? onceKey(stageId, option) : null
+    if (option.kind === 'fight') return []
     if (option.kind === 'fixed') {
       const result = { p: 1, marks: marksOf(option.outcome, null), ...footingAfter(option.outcome) }
       return [{ id: option.id, once, results: () => [result] }]

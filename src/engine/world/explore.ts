@@ -403,10 +403,12 @@ export function visitPoi(state: GameState, content: Content): GameState {
   const dcBonus = Math.max(cr === null ? 0 : crOffset(cr), ...held.map((c) => contractDc(c.level)))
   // Its wounds go as deep as its CR (Plan 6 B), or a held contract's when higher.
   const wound = Math.max(cr === null ? 1 : crWound(cr), ...held.map((c) => contractWound(c.level)))
-  const options =
-    crisis.cr === undefined && (dcBonus !== 0 || wound !== 1)
-      ? { ...crisis, dcBonus, wound }
-      : crisis
+  const atSite = crisis.cr === undefined && (dcBonus !== 0 || wound !== 1)
+  // Its Fights field a group meant for its CR (Plan 7), not the party's levels.
+  const options = {
+    ...(atSite ? { ...crisis, dcBonus, wound } : crisis),
+    ...(crisis.cr === undefined && cr !== null && { fights: { kind: 'site' as const, cr } }),
+  }
   const started = startEncounter(
     { ...state, rng, visited: true },
     content,

@@ -73,3 +73,40 @@ export function roadFightCount(
     count += 1
   return count
 }
+
+/**
+ * How many henchmen of CR `cr` join a boss of CR `bossCr` (a climax's Fight): the most, up to
+ * ROAD_FIGHT_MAX − 1, whose group with the boss fits the budget; 0 when the boss alone fills it.
+ */
+export function henchmenCount(
+  bossCr: number,
+  cr: number,
+  levels: readonly number[],
+  difficulty: FightDifficulty
+): number {
+  const budget = fightBudget(levels, difficulty)
+  let count = 0
+  while (
+    count < ROAD_FIGHT_MAX - 1 &&
+    groupXp([bossCr, ...Array.from({ length: count + 1 }, () => cr)], levels.length) <= budget
+  )
+    count += 1
+  return count
+}
+
+/**
+ * A group's CR as one foe (a Parley's DC): the highest CR whose XP its group cost (groupXp)
+ * reaches, and never below its strongest creature's. Four bandits talk like one CR 1 foe.
+ */
+export function groupCr(crs: readonly number[], partySize: number): number {
+  const xp = groupXp(crs, partySize)
+  const listed = Object.keys(CR_XP)
+    .map(Number)
+    .sort((a, b) => a - b)
+  const top = listed[listed.length - 1]
+  const reached =
+    xp > CR_XP[top]
+      ? top + Math.floor((xp - CR_XP[top]) / CR_XP_BEYOND)
+      : (listed.findLast((c) => CR_XP[c] <= xp) ?? 0)
+  return Math.max(reached, ...crs)
+}
