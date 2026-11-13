@@ -533,7 +533,7 @@ Designer call (2026-11-13): climaxes (the Crisis key finales, the dungeon boss r
   - **Gathering is the compact exception** (Plan 5a review): to keep the ledger short, its tiers run on one line ("▮ 65% 6 fuel · ▮ 15% 3 fuel · ▮ 10% 2 fuel"), the chances always visible and the d20 faces on hover. A muted line under it previews the critical failure from the engine's `mishap` ("A natural 1 (5%) brings trouble: a hostile encounter.", or the lead's injury where no hostile situation fits).
 - **Town ledger details** (designer decisions, Plan 6 wave 2b):
   - **Market symmetry:** every row is the same height and the vertical category labels are short ("Essent.", "Consum.", "Equip.", "Mater.", "Precious"; the full name is the label's tooltip and accessible name), so every category is exactly three rows tall (checked at 1440 × 1050; on a phone a carried good's stacked Buy and Sell make its row taller).
-  - **Shift-click Sell** sells 5 at once (all there is if fewer), whatever amount is picked; the Sell button's tooltip previews it ("Shift: sell 5: 12 gp …").
+  - **Holding Shift** counts the market's amount selector 5 times over (`SHIFT_FACTOR`: 1, 5, 10 read 5, 25, 50; Max stays Max) for buying and selling, goods and waterskins alike, while it is held (designer call 2026-11-13; it replaced shift-click selling 5). The selector's tooltip says so.
   - **Service tiles** show their text in full, wrapping (no ellipsis); the hover text is the separate description.
   - **Recruit offers** name the accessory a recruit brings, with no price and no "Brings".
   - **Notice board** offers show their text in full, with no "more" toggle (almost all fit; a held contract's text keeps it).

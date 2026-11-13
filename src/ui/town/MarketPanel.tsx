@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { Content } from '../../content/build'
 import { load } from '../../engine/economy/capacity'
 import { MARKET_STALL, qualityEffects, quote, type Quote } from '../../engine/economy/market'
@@ -36,8 +36,35 @@ import {
 export const AMOUNTS = [1, 5, 10, 'max'] as const
 export type Amount = (typeof AMOUNTS)[number]
 
-/** Shift-clicking Sell sells this many at once, or all there is if fewer (designer call). */
-export const SHIFT_SELL = 5
+/** While Shift is held, the amount selector counts this many times over (designer call). */
+export const SHIFT_FACTOR = 5
+
+/** Whether Shift is held right now (released on keyup or when the window loses focus). */
+function useShiftHeld(): boolean {
+  const [held, setHeld] = useState(false)
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') setHeld(true)
+    }
+    const up = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') setHeld(false)
+    }
+    const blur = () => setHeld(false)
+    window.addEventListener('keydown', down)
+    window.addEventListener('keyup', up)
+    window.addEventListener('blur', blur)
+    return () => {
+      window.removeEventListener('keydown', down)
+      window.removeEventListener('keyup', up)
+      window.removeEventListener('blur', blur)
+    }
+  }, [])
+  return held
+}
+
+/** The amount picked, × SHIFT_FACTOR while Shift is held ('max' stays all). */
+type Count = number | 'max'
+const scaled = (a: Amount, shift: boolean): Count => (shift && a !== 'max' ? a * SHIFT_FACTOR : a)
 
 /** Where the Elsewhere column's mode (where to sell, or where to buy) is remembered. */
 export const ELSEWHERE_MODE_KEY = 'forgotten-heroes/ui/market-elsewhere'
@@ -149,6 +176,8 @@ export function MarketPanel({
   const i18n = useI18n()
   const { t, name, fields } = i18n
   const [amount, setAmount] = useState<Amount>(1)
+  const shift = useShiftHeld()
+  const count = scaled(amount, shift)
   const [elsewhere, setElsewhere] = useState<ElsewhereMode>(loadElsewhereMode)
   const flipElsewhere = () => {
     const next = elsewhere === 'sell' ? 'buy' : 'sell'
@@ -158,7 +187,10 @@ export function MarketPanel({
   const rows = marketView(state, content).filter((r) => r.good !== 'water')
   const here = state.location
   if (rows.length === 0 || here === null) return null
-  const amountText = (a: Amount) => (a === 'max' ? t('market.max') : String(a))
+  const amountText = (a: Amount) => {
+    const n = scaled(a, shift)
+    return n === 'max' ? t('market.max') : String(n)
+  }
   // Each good's cargo lots (courier and freight contracts), with the contract's title in the UI
   // language and what selling it here would bring and cost.
   const rowsById = new Map(contractRows(state, content).map((c) => [c.id, c]))
@@ -181,7 +213,12 @@ export function MarketPanel({
       </div>
       <div className="zone-head">
         <h3>{t('ledger.market')}</h3>
-        <div className="seg-toggle" role="group" aria-label={t('market.amount')}>
+        <div
+          className="seg-toggle"
+          role="group"
+          aria-label={t('market.amount')}
+          title={t('market.shiftHint', { n: SHIFT_FACTOR })}
+        >
           {AMOUNTS.map((a) => (
             <button key={a} aria-pressed={a === amount} onClick={() => setAmount(a)}>
               {amountText(a)}
@@ -249,7 +286,7 @@ export function MarketPanel({
                         </th>
                       ) : null
                     }
-                    amount={amount}
+                    amount={count}
                     quoteFor={(side, n) => quote(state, content, here, row.good, side, n)}
                     uses={fields('goods', row.good)?.uses ?? row.uses}
                     shopName={
@@ -267,7 +304,7 @@ export function MarketPanel({
                   <WaterskinLine
                     state={state}
                     content={content}
-                    amount={amount}
+                    amount={count}
                     onAction={onAction}
                   />
                 )}
@@ -302,7 +339,7 @@ function MarketLine({
   row: MarketRow
   goodName: string
   head: ReactNode
-  amount: Amount
+  amount: Count
   quoteFor: (side: 'buy' | 'sell', n: number) => Quote | null
   /** What the good is for, in the UI language. */
   uses: string
@@ -322,9 +359,6 @@ function MarketLine({
   const sellN = amount === 'max' ? forSale : Math.min(amount, forSale)
   const buyQuote = row.buy && buyN > 0 ? quoteFor('buy', buyN) : null
   const sellQuote = row.sell && sellN > 0 ? quoteFor('sell', sellN) : null
-  // Shift sells up to SHIFT_SELL whatever the amount picked.
-  const shiftN = Math.min(SHIFT_SELL, forSale)
-  const shiftQuote = row.sell && shiftN > 0 ? quoteFor('sell', shiftN) : null
   // Why the buy can't go ahead: too heavy, or not enough gold.
   const short = row.buy !== null && (buyN === 0 || buyN > row.maxBuy)
   const buyReason = !short
@@ -438,21 +472,11 @@ function MarketLine({
             className={forSale === 0 ? 'idle' : undefined}
             title={
               sellQuote
-                ? [
-                    t('market.sellQuote', {
-                      n: sellN,
-                      gp: sellQuote.total,
-                      each: eachText(t, sellQuote),
-                    }),
-                    shiftQuote &&
-                      t('market.shiftSell', {
-                        n: shiftN,
-                        gp: shiftQuote.total,
-                        each: eachText(t, shiftQuote),
-                      }),
-                  ]
-                    .filter(Boolean)
-                    .join('\n')
+                ? t('market.sellQuote', {
+                    n: sellN,
+                    gp: sellQuote.total,
+                    each: eachText(t, sellQuote),
+                  })
                 : undefined
             }
             aria-label={t('market.sellLabel', {
@@ -460,13 +484,7 @@ function MarketLine({
               good: goodName,
               gp: sellQuote?.total ?? 0,
             })}
-            onClick={(e) =>
-              onAction({
-                type: 'sellGoods',
-                good: row.good,
-                amount: e.shiftKey ? shiftN : sellN,
-              })
-            }
+            onClick={() => onAction({ type: 'sellGoods', good: row.good, amount: sellN })}
           >
             {t('market.sellButton', { n: sellN, gp: sellQuote?.total ?? '—' })}
           </button>
@@ -528,7 +546,7 @@ function WaterskinLine({
 }: {
   state: GameState
   content: Content
-  amount: Amount
+  amount: Count
   onAction: (a: Action) => void
 }) {
   const { t } = useI18n()
@@ -536,7 +554,6 @@ function WaterskinLine({
   const affordable = maxWaterskins(state, content).units
   const buyN = amount === 'max' ? affordable : amount
   const sellN = amount === 'max' ? state.waterskins : Math.min(amount, state.waterskins)
-  const shiftN = Math.min(SHIFT_SELL, state.waterskins)
   const label = t('market.waterskins')
   const water = state.goods.water ?? 0
   return (
@@ -572,12 +589,7 @@ function WaterskinLine({
             good: label,
             gp: sellN * WATERSKIN_SELL_PRICE,
           })}
-          title={
-            shiftN > 0
-              ? t('market.shiftSellSkins', { n: shiftN, gp: shiftN * WATERSKIN_SELL_PRICE })
-              : undefined
-          }
-          onClick={(e) => onAction({ type: 'sellWaterskin', count: e.shiftKey ? shiftN : sellN })}
+          onClick={() => onAction({ type: 'sellWaterskin', count: sellN })}
         >
           {t('market.sellButton', { n: sellN, gp: sellN * WATERSKIN_SELL_PRICE })}
         </button>

@@ -71,21 +71,22 @@ test('the quote follows the amount, and buy and sell dispatch it', async () => {
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyGoods', good: 'food', amount: 10 })
 })
 
-test('shift-clicking Sell sells 5 at once, or all there is if fewer', async () => {
+test('holding Shift counts the amount selector 5 times over, for buying and selling', async () => {
   const state = town({ goods: { food: 12, fuel: 3 } })
   const onAction = market(state)
-  const total = quote(state, content, 'ashmoor-1', 'food', 'sell', 5)!.total
-  const sell = screen.getByRole('button', { name: /^Sell 1 Food/ })
-  // The tooltip previews the shift sale.
-  expect(sell.getAttribute('title')).toMatch(new RegExp(`\\nShift: sell 5: ${total} gp`))
   const user = userEvent.setup()
   await user.keyboard('{Shift>}')
-  await user.click(sell)
+  // The selector shows 5, 25, 50 and Max while Shift is held.
+  expect(screen.getByRole('button', { name: '25' })).toBeTruthy()
+  await user.click(screen.getByRole('button', { name: /^Sell 5 Food/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'food', amount: 5 })
-  await user.click(screen.getByRole('button', { name: /^Sell 1 Fuel/ }))
+  // No more than there is.
+  await user.click(screen.getByRole('button', { name: /^Sell 3 Fuel/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'fuel', amount: 3 })
+  await user.click(screen.getByRole('button', { name: /^Buy 5 Food/ }))
+  expect(onAction).toHaveBeenLastCalledWith({ type: 'buyGoods', good: 'food', amount: 5 })
   await user.keyboard('{/Shift}')
-  await user.click(sell)
+  await user.click(screen.getByRole('button', { name: /^Sell 1 Food/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'sellGoods', good: 'food', amount: 1 })
 })
 
