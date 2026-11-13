@@ -2,6 +2,19 @@
 
 The Crisis simulation runs a scripted party through 20 worlds for up to 360 days and records how it hears of the Crisis, learns the plan, finds and thwarts each act, and how the run ends. The newest round (Plan 6 Track B, the roguelite arc) comes first; the Plan 5b rounds follow under "Plan 5b history".
 
+## Wounds by the party's HP, and inn rooms (2026-11-13)
+
+Designer calls: every fixed written wound is multiplied by max(1, the living members' average max HP / 25), or by the CR's factor where that is larger (dungeon rooms, lairs, levelled contracts; Crisis sites stay as written); a common room heals 40% of max HP, a private room 80% (4 gp a member, +4 camaraderie, was +13), and resting in town without a room heals as camp does (a fifth). The sims were not changed: they already rest while anyone is below half HP (the crusader to 75% before a Crisis site), which now takes a night or two more. Same seeds, before → after:
+
+| Policy (seeds 1–20) | Won | Lost | Disbanded | Deaths | HP lost a road encounter | HP lost a dungeon room |
+| --- | --- | --- | --- | --- | --- | --- |
+| crusader | 0% → 0% | 60% → 45% | 35% → 50% | 15 → 18 | 2.8 → 6.4 | 7.9 → 8.0 |
+| crusader, game start | 0% → 5% | 60% → 65% | 35% → 25% | 12 → 7 | 2.8 → 7.2 | 9.6 → 12.6 |
+| trader (to day 104) | 0% → 0% | 85% → 85% | 15% → 15% | 0 → 0 | 2.8 → 5.0 | – |
+| trader, on to day 360 | 0% → 0% | 65% → 55% | 35% → 45% | 4 → 1 | 4.7 → 11.2 | – |
+
+Road wounds now bite about 2–2.5× as hard over a run (more as the party grows), as intended; dungeon rooms barely change, as their CR factor was already about as large. Deaths don't rise (the policies rest more), and the moves in losing and disbanding (3 runs in 20 at most, in opposite directions for the two crusaders) are within the report's noise. Private rooms now bring 1–2 camaraderie a run instead of 2–7. Levels at day 100 hardly move (medians 7 → 8, 7 → 7 and 9 → 9).
+
 ## Party upgrades (Plan 6c, 2026-11-13)
 
 The trader and the crusader now buy party upgrades with gold 200 gp above their capital (cheapest first; the crusader delves, so it buys delving gear too). Rerun against the same code with the habit off:

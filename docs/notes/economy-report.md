@@ -2,6 +2,10 @@
 
 The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 6 Track B) comes first; Plan 5a and the Plan 4 rounds follow.
 
+## Wounds by the party's HP, and inn rooms (2026-11-13)
+
+Fixed wounds now scale with the party's average max HP (÷ 25, at least ×1), a common room heals 40% and a private room 80% of max HP (4 gp a member), and resting in town without a room heals as camp does. Over 60 days the parties are still mostly level 1–4, so the books barely move: the trader's gp/day by 60 (median) 2.4 → 2.8, lodging 11.0 → 12.4 gp a run, days resting in town (all runs) 286 → 302; contracts only 2.6 → 2.4 gp/day; wander deaths 19 → 18. Nothing was retuned.
+
 ## Demand by focus, size and services (2026-11-13)
 
 Designer calls: arms are wanted where places attack (camps and forts, most when their domain is held), armour where they defend (cities and capitals, most under threat); forges, weaponsmiths and armourers make arms and armour where metal is to hand; every service wants its inputs (a smith metal, a healer healing, a magic shop arcana); villages want timber, towns stone, cities stone and metal. Goods are now listed cheapest first within each category (gear before arms, luxuries before gems). Both runs below use the same engine, before (the old rules and goods order) and after:
