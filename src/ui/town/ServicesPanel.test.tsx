@@ -136,9 +136,7 @@ test('the inn opens its recruits in place of the tiles; Hire dispatches hireRecr
   expect(screen.queryByRole('region', { name: 'Inn/Tavern' })).toBeNull()
   const first = within(list.getByRole('listitem', { name: offers[0].character.name }))
   expect(first.getByText(new RegExp(`^level ${offers[0].level} `))).toBeTruthy()
-  await userEvent.click(
-    first.getByRole('button', { name: /^Hire · \d+ gp, then [\d.]+ gp a day$/ })
-  )
+  await userEvent.click(first.getByRole('button', { name: /^Hire · \d+ gp$/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'hireRecruit', offerId: offers[0].id })
   expect(document.activeElement).toBe(list.getByRole('heading', { name: 'Recruits · Inn/Tavern' }))
   await userEvent.keyboard('{Escape}')

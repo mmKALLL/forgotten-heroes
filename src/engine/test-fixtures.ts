@@ -1393,7 +1393,8 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     exhaustion: 0,
     strain: {},
     xp: 0,
-    wage: 0,
+    hired: false,
+    oldWound: null,
     accessory: null,
     ...overrides,
   }

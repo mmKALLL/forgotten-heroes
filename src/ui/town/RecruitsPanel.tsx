@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Content } from '../../content/build'
-import { formatGp, formatModifier } from '../../engine/format'
+import { formatModifier } from '../../engine/format'
 import { ABILITIES, abilityModifier } from '../../engine/rules/abilities'
 import { statModifier } from '../../engine/rules/character'
 import type { Action } from '../../engine/state'
@@ -20,7 +20,7 @@ type Props = {
 
 /**
  * Who is looking for work at a service this week (Plan 5a U2, design §5): each offer's name,
- * level, ancestry and class, key abilities, proficient skills, fee and wage, and Hire (when
+ * level, ancestry and class, key abilities, proficient skills, sign-on fee, and Hire (when
  * refused, still focusable with the engine's reason inline and announced). After a hire, focus
  * returns to the heading. It replaces the service tiles until closed (the ledger stays on one
  * screen); Escape or Close goes back.
@@ -118,7 +118,7 @@ function RecruitRow({
           reason={o.reason}
           onClick={() => onAction({ type: 'hireRecruit', offerId: o.id })}
         >
-          {t('recruits.hire', { fee: o.fee, wage: formatGp(o.wage) })}
+          {t('recruits.hire', { fee: o.fee })}
         </ReasonButton>
       </div>
     </li>

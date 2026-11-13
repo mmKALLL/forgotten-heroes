@@ -14,7 +14,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 11
+export const CURRENT_SAVE_VERSION = 12
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -281,6 +281,24 @@ export function v10ToV11(raw: Record<string, unknown>, content: Content): Record
 }
 
 /**
+ * v11 → v12 (Plan 6, track A): wages are gone. A member who drew a wage is marked `hired` (the
+ * founders drew none), and the `wage` field goes; wages still owed are forgiven silently. No one
+ * has an old wound.
+ */
+export function v11ToV12(raw: Record<string, unknown>): Record<string, unknown> {
+  const party = Array.isArray(raw.party)
+    ? raw.party.map((c: Record<string, unknown>) => {
+        if (typeof c !== 'object' || c === null) return c
+        const { wage, ...rest } = c
+        const hired = typeof wage === 'number' ? wage > 0 : rest.hired === true
+        return { ...rest, hired, oldWound: rest.oldWound ?? null }
+      })
+    : raw.party
+  const { wagesOwed: _forgiven, ...rest } = raw
+  return { ...rest, version: 12, party }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -311,6 +329,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v9ToV10(raw as Record<string, unknown>), content)
     case 10:
       return migrate(v10ToV11(raw as Record<string, unknown>, content), content)
+    case 11:
+      return migrate(v11ToV12(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

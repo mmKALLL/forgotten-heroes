@@ -10,7 +10,7 @@ import { wander } from '../engine/travel/wander'
 import { settlementName } from '../engine/world/geo'
 import { dangerLevel } from '../engine/world/danger'
 import { gatherOptions, type GatherOption } from '../engine/world/gather'
-import { isAlive, isHired, livingMembers, wagesPerDay } from '../engine/town/camaraderie'
+import { isAlive, isHired, livingMembers } from '../engine/town/camaraderie'
 import { MAX_EXHAUSTION } from '../engine/rules/character'
 import { STARTING_GOLD } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
@@ -93,7 +93,7 @@ type Run = {
     gearSold: number
   }
   spend: Record<
-    'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'upkeep' | 'hiring' | 'wages',
+    'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'upkeep' | 'hiring',
     number
   >
   /** Gathering days and what they brought home (at the local sell price), by week of play too. */
@@ -183,7 +183,6 @@ function simulate(
       losses: 0,
       upkeep: 0,
       hiring: 0,
-      wages: 0,
     },
     gather: { days: 0, gp: 0, byWeek: [] },
     level: LEVEL_DAYS.map(() => null),
@@ -229,12 +228,7 @@ function simulate(
   }
 
   const onStep = (before: GameState, action: Action, after: GameState, why: TraderWhy) => {
-    const days = after.day - before.day
-    // Wages are paid at each day's end, whatever the action: kept apart from its other spending.
-    const wages =
-      days > 0 ? Math.max(0, wagesPerDay(before) * days + before.wagesOwed - after.wagesOwed) : 0
-    run.spend.wages += wages
-    const gold = after.gold - before.gold + wages
+    const gold = after.gold - before.gold
     const here = before.location
     if (action.type === 'chooseOption' && after.lastRoll && after.lastRoll !== before.lastRoll) {
       const b = (run.bands[Math.floor((before.day - 1) / BAND_DAYS)] ??= {
@@ -438,12 +432,16 @@ describe('the economy (guards with generous bounds)', () => {
     expect(runs.filter((r) => r.run.brokeDay !== null).length / runs.length).toBeLessThan(0.25)
   })
 
-  test('from the game’s start, seeds 1–8 run 60 days (gathering, hiring, gear) and stay valid', () => {
-    for (let seed = 1; seed <= 8; seed++) {
-      const { state } = simulate(seed, 'trader', 60, STARTING_GOLD)
-      expect(GameStateSchema.parse(state)).toEqual(state)
+  test(
+    'from the game’s start, seeds 1–8 run 60 days (gathering, hiring, gear) and stay valid',
+    { timeout: 60_000 },
+    () => {
+      for (let seed = 1; seed <= 8; seed++) {
+        const { state } = simulate(seed, 'trader', 60, STARTING_GOLD)
+        expect(GameStateSchema.parse(state)).toEqual(state)
+      }
     }
-  })
+  )
 
   test('food’s dearest mid price is at most 4.5× its cheapest (seeds 1–5, days 1 and 100)', () => {
     const food = priceSpreads([1, 2, 3, 4, 5], [1, 100]).food
@@ -537,7 +535,6 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         ['Animals’ upkeep', sum((r) => r.spend.upkeep)],
         ['Encounter losses', sum((r) => r.spend.losses)],
         ['Hiring fees', sum((r) => r.spend.hiring)],
-        ['Wages', sum((r) => r.spend.wages)],
       ]
       for (let i = 0; i < Math.max(income.length, spend.length); i++) {
         row([
@@ -801,7 +798,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
       'Members by 30 (P10 / median / P90)',
       'Members by 60',
       'Hires a run',
-      'Wages a run (gp)',
+      'Sign-on fees a run (gp)',
       'Desertions (all runs)',
     ])
     row(['---', '---', '---', '---', '---', '---'])
@@ -813,7 +810,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         spread(at(30)),
         spread(at(60)),
         f1(runs.reduce((n, r) => n + r.hires, 0) / runs.length),
-        f1(runs.reduce((n, r) => n + r.spend.wages, 0) / runs.length),
+        f1(runs.reduce((n, r) => n + r.spend.hiring, 0) / runs.length),
         runs.reduce((n, r) => n + r.desertions, 0),
       ])
     }

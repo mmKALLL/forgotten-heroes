@@ -100,14 +100,14 @@ test('no strain, no strain badge', () => {
   expect(document.querySelector('.badge.strain')).toBeNull()
 })
 
-test('each card shows its level and a bar to the next; the sheet has XP, wage and accessory', async () => {
-  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], wage: 1.5 }
+test('each card shows its level and a bar to the next; the sheet has XP, hired and accessory', async () => {
+  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], hired: true }
   render(<PartyPanel party={[brom, hired]} />)
   expect(toggle('Lyra').textContent).toMatch(/lv 2/)
   const bar = card('Lyra').getByRole('meter', { name: 'Lyra XP' })
   expect(bar.getAttribute('aria-valuetext')).toMatch(/to level 3$/)
   await userEvent.click(toggle('Lyra'))
-  expect(card('Lyra').getByText('Hired · 1.5 gp a day')).toBeTruthy()
+  expect(card('Lyra').getByText('Hired')).toBeTruthy()
   expect(card('Lyra').getByText(/^Accessory:/)).toBeTruthy()
   // At the cap there is no bar.
   cleanup()
@@ -117,7 +117,7 @@ test('each card shows its level and a bar to the next; the sheet has XP, wage an
 
 test('dismissing a hired member asks first; founders have no Dismiss', async () => {
   const onAction = vi.fn()
-  render(<PartyPanel party={[brom, { ...lyra, wage: 1 }]} onAction={onAction} />)
+  render(<PartyPanel party={[brom, { ...lyra, hired: true }]} onAction={onAction} />)
   await userEvent.click(toggle('Brom'))
   expect(card('Brom').queryByRole('button', { name: 'Dismiss' })).toBeNull()
   await userEvent.click(toggle('Lyra'))
@@ -156,25 +156,21 @@ test('the accessory slot: the worn one with its hooks, Take off, and wearing fro
   })
 })
 
-test('the camaraderie line: tier, value, wages and owed, explained on hover', () => {
+test('the camaraderie line: tier, value and desertion, explained on hover', () => {
   const info: CamaraderieInfo = {
-    value: 1,
-    max: 8,
+    value: 5,
+    max: 40,
     tier: 'fractured',
     label: 'Fractured',
-    causes: ['3 gp of wages owed'],
-    wagesPerDay: 2,
-    wagesOwed: 3,
+    causes: ["food or water won't last everyone a day"],
     desertRisk: 0.25,
     desertChance: 0.25,
-    fracturedMax: 1,
+    fracturedMax: 9,
   }
   render(<PartyPanel party={[brom]} camaraderie={info} />)
   const line = document.querySelector('.camaraderie')!
-  expect(line.textContent).toMatch(
-    /^Camaraderie: Fractured \(1\/8\) · desertion 25%.* · wages 2 gp a day · 3 gp owed$/s
-  )
+  expect(line.textContent).toMatch(/^Camaraderie: Fractured \(5\/40\) · desertion 25%/s)
   expect(screen.getByRole('tooltip', { hidden: true }).textContent).toMatch(
-    /Now: 3 gp of wages owed\./
+    /Now: food or water won't last everyone a day\./
   )
 })

@@ -22,8 +22,7 @@ const HERE = 'greenvale-1'
 const ROAD = 'greenvale-1-greenvale-2'
 const act = (s: GameState, a: Action) => step(s, a, content)
 
-const hired = (id: string, wage = 1): Character =>
-  makeCharacter({ id, name: `Hireling ${id}`, wage })
+const hired = (id: string): Character => makeCharacter({ id, name: `Hireling ${id}`, hired: true })
 
 function at(overrides: Partial<GameState> = {}): GameState {
   return makeState({
@@ -35,43 +34,17 @@ function at(overrides: Partial<GameState> = {}): GameState {
     ...overrides,
   })
 }
-/** A day passes in town on the party's own food (spoilage, upkeep and wages follow). */
+/** A day passes in town on the party's own food (spoilage and upkeep follow). */
 const aDay = (s: GameState) => passDay(s, null, 'steady', content)
 
-describe('wages', () => {
-  test('are paid daily, owed when broke (camaraderie drops that day), and paid first after', () => {
-    const s = at({ party: [brom, lyra, hired('h1', 1), hired('h2', 2)] })
-    const paid = aDay(s)
-    expect(paid.gold).toBe(s.gold - 3)
-    expect(paid.camaraderie).toBe(s.camaraderie)
-
-    const broke = aDay({ ...s, gold: 0 })
-    expect(broke.wagesOwed).toBe(3)
-    expect(broke.camaraderie).toBeLessThan(s.camaraderie)
-
-    const settled = aDay({ ...broke, gold: 50 })
-    expect(settled.wagesOwed).toBe(0)
-    expect(settled.gold).toBe(50 - 6)
-  })
-
-  test("dismissal settles the member's share of owed wages, or writes it off when broke", () => {
-    const s = at({ party: [brom, lyra, hired('h1', 1), hired('h2', 3)], wagesOwed: 8 })
-    const paid = act(s, { type: 'dismissMember', characterId: 'h1' })
-    expect([paid.gold, paid.wagesOwed]).toEqual([s.gold - 2, 6])
-    const broke = act({ ...s, gold: 0 }, { type: 'dismissMember', characterId: 'h2' })
-    expect([broke.gold, broke.wagesOwed]).toEqual([0, 2])
-    expect(broke.log.some((l) => /written off/.test(l.text))).toBe(true)
-  })
-
-  test('owed wages cost camaraderie only while a living hired member is owed', () => {
-    const s = at({ party: [brom, lyra, { ...hired('h1'), exhaustion: 6 }], gold: 0, wagesOwed: 4 })
-    expect(aDay(s).camaraderie).toBe(s.camaraderie)
-  })
-
-  test('founders and the dead draw no wages', () => {
-    const s = at({ party: [brom, lyra, { ...hired('h1', 2), exhaustion: 6 }] })
+describe('no wages (Plan 6)', () => {
+  test('a day costs hired members nothing, and dismissal is free', () => {
+    const s = at({ party: [brom, lyra, hired('h1'), hired('h2')] })
     expect(aDay(s).gold).toBe(s.gold)
-    expect(camaraderieInfo(s).wagesPerDay).toBe(0)
+    expect(aDay(s).camaraderie).toBe(s.camaraderie)
+    const left = act(s, { type: 'dismissMember', characterId: 'h1' })
+    expect(left.gold).toBe(s.gold)
+    expect(left.party.map((c) => c.id)).toEqual([brom.id, lyra.id, 'h2'])
   })
 })
 
@@ -156,13 +129,11 @@ describe('desertion', () => {
     let left = 0
     const seeds = 50
     for (let seed = 1; seed <= seeds; seed++) {
-      const s = at({ party, camaraderie: 1, wagesOwed: 8, rng: createRng(seed) })
+      const s = at({ party, camaraderie: 1, rng: createRng(seed) })
       const after = desertOnArrival(s)
       expect(desertOnArrival(s)).toEqual(after)
       const ids = after.party.map((c) => c.id)
       expect(ids).toEqual(expect.arrayContaining([brom.id, lyra.id]))
-      // Each deserter's share of the owed wages is written off.
-      expect(after.wagesOwed).toBeCloseTo((8 * (ids.length - 2)) / 4)
       left += party.length - after.party.length
     }
     const share = left / (seeds * 4)
@@ -189,9 +160,9 @@ describe('desertion', () => {
 describe('camaraderieInfo', () => {
   test('names what pulls it down and the risk of desertion', () => {
     const calm = camaraderieInfo(at())
-    expect(calm).toMatchObject({ tier: 'steady', wagesPerDay: 1, desertRisk: 0 })
+    expect(calm).toMatchObject({ tier: 'steady', desertRisk: 0 })
     expect(calm.causes).toEqual([])
-    const bad = camaraderieInfo(at({ camaraderie: 1, wagesOwed: 4 }))
+    const bad = camaraderieInfo(at({ camaraderie: 1, goods: { food: 0, water: 8 } }))
     expect(bad.tier).toBe('fractured')
     expect(bad.desertRisk).toBe(DESERT_CHANCE)
     expect(bad.causes.length).toBeGreaterThanOrEqual(2)

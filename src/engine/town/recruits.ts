@@ -2,19 +2,17 @@ import { sortedEntries, type Content } from '../../content/build'
 import type { RecruitsBlock } from '../../schema/economy'
 import type { Character, GameState } from '../../schema/state'
 import { inProgress } from '../encounters/run'
-import { formatGp } from '../format'
 import { appendLog } from '../log'
 import { generateCharacter } from '../party'
 import { withRng, type Rng } from '../rng'
 import { levelTo } from '../rules/progression'
 import { inSettlement } from '../travel/where'
-import { isAlive, isHired, livingMembers, owedTo } from './camaraderie'
+import { isAlive, isHired, livingMembers } from './camaraderie'
 import { boardWeek, keyedRng } from './contracts'
 import {
   PARTY_CAP,
   RECRUIT_FEE_PER_LEVEL,
   RECRUIT_LOCAL_ANCESTRY,
-  RECRUIT_WAGE,
   STARTING_FOOD_DAYS,
 } from '../constants'
 
@@ -32,13 +30,11 @@ export type RecruitOffer = {
   /** "r-<settlement>-w<week>-<service>-<n>"; the hired character gets the same id. */
   id: string
   service: string
-  /** The recruit as they would join: levelled, with their wage set. */
+  /** The recruit as they would join: levelled, and marked hired. */
   character: Character
   level: number
-  /** gp, paid once on hiring. */
+  /** gp, the sign-on fee: paid once on hiring. There are no wages (Plan 6). */
   fee: number
-  /** gp a day, paid at the end of each day (town/camaraderie.ts). */
-  wage: number
   available: boolean
   /** Why not (English), or null. */
   reason: string | null
@@ -46,16 +42,12 @@ export type RecruitOffer = {
 
 export type RecruitAction =
   | { type: 'hireRecruit'; offerId: string }
-  /** Part ways with a hired member (founders stay), settling or writing off their owed wages. */
+  /** Part ways with a hired member (founders stay); it costs nothing. */
   | { type: 'dismissMember'; characterId: string }
 
 /** The hiring fee for a recruit of this level at a service with this block. */
 export const recruitFee = (level: number, block: RecruitsBlock): number =>
   Math.ceil(RECRUIT_FEE_PER_LEVEL * level * block.fee)
-
-/** A recruit's daily wage, to the nearest half gp (at least half a gp). */
-export const recruitWage = (level: number, block: RecruitsBlock): number =>
-  Math.max(0.5, Math.round(RECRUIT_WAGE * (1 + level) * block.wage * 2) / 2)
 
 /**
  * One recruit, from its own keyed stream: class, ancestry, then a level within the block's
@@ -125,15 +117,13 @@ export function recruitOffers(
       if (state.recruitsTaken.includes(id)) continue
       const made = makeRecruit(keyedRng(seed, `${key}/${n}`), content, info.ancestry, block, cap)
       const fee = recruitFee(made.level, block)
-      const wage = recruitWage(made.level, block)
       const reason = hireRefusal(state, settlementId, fee)
       offers.push({
         id,
         service,
-        character: { ...made, id, wage },
+        character: { ...made, id, hired: true },
         level: made.level,
         fee,
-        wage,
         available: reason === null,
         reason,
       })
@@ -150,7 +140,7 @@ function describe(content: Content, c: Character): string {
 }
 
 /**
- * Hires an offer here: pays the fee, and the recruit joins with their wage and STARTING_FOOD_DAYS
+ * Hires an offer here: pays the fee, and the recruit joins with STARTING_FOOD_DAYS
  * of their own food (as a founder does), so hiring never starves the party on the first day.
  */
 export function hireRecruit(state: GameState, content: Content, offerId: string): GameState {
@@ -169,40 +159,29 @@ export function hireRecruit(state: GameState, content: Content, offerId: string)
   }
   return appendLog(
     next,
-    `${c.name}, ${describe(content, c)} (level ${c.level}), signs on for ${offer.fee} gp ` +
-      `and ${formatGp(offer.wage)} gp a day.`,
+    `${c.name}, ${describe(content, c)} (level ${c.level}), signs on for ${offer.fee} gp.`,
     'good'
   )
 }
 
 /**
- * Parts ways with a hired member (alive or dead); founders are never dismissed. Their accessory
- * stays with the party's gear. Their share of the owed wages (owedTo) is settled in whole gp if the
- * purse holds it, else written off, so no debt to the departed lingers.
+ * Parts ways with a hired member (alive or dead); founders are never dismissed. It costs nothing,
+ * and their accessory stays with the party's gear.
  */
 export function dismissMember(state: GameState, characterId: string): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
   const c = state.party.find((m) => m.id === characterId)
   if (!c) return appendLog(state, 'There is no such member.', 'bad')
   if (!isHired(c)) return appendLog(state, `${c.name} is a founder and stays.`, 'bad')
-  const share = owedTo(state, [c])
-  const settle = Math.ceil(share)
-  const pays = share > 0 && state.gold >= settle
-  let next: GameState = {
+  const next: GameState = {
     ...state,
     party: state.party.filter((m) => m.id !== c.id),
     gear: c.accessory ? [...state.gear, c.accessory] : state.gear,
-    gold: pays ? state.gold - settle : state.gold,
-    wagesOwed: Math.max(0, Math.round((state.wagesOwed - share) * 100) / 100),
   }
   const text = isAlive(c)
     ? `${c.name} is dismissed and leaves the party.`
     : `${c.name} is laid to rest and left behind.`
-  next = appendLog(next, text, 'info')
-  if (share <= 0) return next
-  return pays
-    ? appendLog(next, `${settle} gp of owed wages are settled with ${c.name}.`, 'info')
-    : appendLog(next, `${formatGp(share)} gp owed to ${c.name} is written off.`, 'bad')
+  return appendLog(next, text, 'info')
 }
 
 export function stepRecruit(state: GameState, action: RecruitAction, content: Content): GameState {

@@ -369,18 +369,11 @@ export const ESCORT_HOSTILE = 0.1
 export const PARTY_CAP = 6
 /** A recruit's hiring fee per level (gp), before the service's `fee` multiplier; rounded up. */
 export const RECRUIT_FEE_PER_LEVEL = 10
-/**
- * A recruit's daily wage per (level + 1) (gp), before the service's `wage`; to the nearest ½ gp
- * (½ gp at level 1, 1 gp at level 3). Halved in I1: a recruit also eats about 1 gp a day.
- */
-export const RECRUIT_WAGE = 0.25
 /** The share of recruits of the settlement's own ancestry; the rest are any playable one. */
 export const RECRUIT_LOCAL_ANCESTRY = 0.75
 
-// Wages, camaraderie and desertion (town/camaraderie.ts)
+// Camaraderie and desertion (town/camaraderie.ts)
 
-/** Camaraderie lost at the end of a day on which a whole gp of wages went unpaid. */
-export const CAMARADERIE_UNPAID = 1
 /** Camaraderie lost at the end of a day on which anyone went without food or water. */
 export const CAMARADERIE_HUNGER = 1
 /** Camaraderie lost for each member who dies. */

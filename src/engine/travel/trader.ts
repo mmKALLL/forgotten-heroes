@@ -17,7 +17,7 @@ import { exploreOption } from '../world/explore'
 import { siteStatus } from '../world/sites'
 import { gatherOptions, type GatherOption } from '../world/gather'
 import { recruitOffers } from '../town/recruits'
-import { livingMembers, wagesPerDay } from '../town/camaraderie'
+import { livingMembers } from '../town/camaraderie'
 import { accessorySales } from '../gear/accessories'
 import { statModifier } from '../rules/character'
 import { step, type Action } from '../state'
@@ -73,7 +73,7 @@ export type TraderOptions = {
   explore?: boolean
   /** Gather local goods when poor and without work (default true). */
   gather?: boolean
-  /** Hire recruits when the purse can carry their wages (default true)... */
+  /** Hire recruits when the purse can carry their sign-on fee and food (default true)... */
   hire?: boolean
   /** ...up to this many living members (default 4). */
   hireUpTo?: number
@@ -98,10 +98,7 @@ const GATHER_BELOW = 20
 const GATHER_DEPLETED = 0.5
 /** Food kept from a gathering day for the road, in days for the party; the rest is sold. */
 const GATHER_FOOD_DAYS = 6
-/**
- * A recruit is hired only with the fee plus this many days of the whole wage bill, and of the
- * recruit's food, in hand.
- */
+/** A recruit is hired only with the sign-on fee plus this many days of the recruit's food in hand. */
 const HIRE_RESERVE_DAYS = 30
 /** Days the trader rests in a settlement, at most, while anyone needs it. */
 const MAX_REST_DAYS = 6
@@ -139,7 +136,7 @@ const REVISIT_DAYS = 30
 /** The crusader rests at most this many days in a row to be fit for a Crisis site. */
 const MAX_FIT_REST_DAYS = 10
 /**
- * The crusader goes after the Crisis only with this much gold per living member (wages and food
+ * The crusader goes after the Crisis only with this much gold per living member (food
  * for the chase) and no contract in hand; poorer, it works as the trader does (contracts, cargo,
  * gathering) until it has it.
  */
@@ -655,19 +652,17 @@ export function trader(
   }
 
   /**
-   * With the fee and HIRE_RESERVE_DAYS of the whole wage bill and the recruit's food in hand,
-   * hires the best recruit on offer (the highest level, then the lowest wage), up to `hireUpTo`
-   * living members.
+   * With the sign-on fee and HIRE_RESERVE_DAYS of the recruit's food in hand, hires the best
+   * recruit on offer (the highest level, then the lowest fee), up to `hireUpTo` living members.
    */
   const hire = () => {
     if (!o.hire) return
     const ration = quote(state, content, state.location!, 'food', 'buy', 1)?.unitFirst ?? 1
+    const keep = HIRE_RESERVE_DAYS * ration
     for (let n = livingMembers(state).length; n < o.hireUpTo; n++) {
-      const bill = wagesPerDay(state)
-      const keep = (wage: number) => HIRE_RESERVE_DAYS * (bill + wage + ration)
       const offer = recruitOffers(state, content, state.location!)
-        .filter((x) => x.available && state.gold >= x.fee + keep(x.wage))
-        .sort((a, b) => b.level - a.level || a.wage - b.wage)[0]
+        .filter((x) => x.available && state.gold >= x.fee + keep)
+        .sort((a, b) => b.level - a.level || a.fee - b.fee)[0]
       if (!offer) return
       act({ type: 'hireRecruit', offerId: offer.id }, 'hire')
     }

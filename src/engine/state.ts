@@ -118,7 +118,6 @@ export function newGame(
     doneHere: [],
     gear: [],
     camaraderie: CAMARADERIE_START,
-    wagesOwed: 0,
     gathered: {},
     recruitsTaken: [],
     gearTaken: [],

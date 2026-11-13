@@ -5,7 +5,7 @@ import type { GameState } from '../../schema/state'
 import { WIDE_BERTH, drawEncounter, inProgress } from '../encounters/run'
 import { createRng } from '../rng'
 import { step, type Action } from '../state'
-import { brom, fixtureContent, lyra, makeCharacter, makeState } from '../test-fixtures'
+import { brom, fixtureContent, lyra, makeState } from '../test-fixtures'
 import { settlementName } from '../world/geo'
 import { placeOnRoute } from './journey'
 import { PURSUIT_ESCAPED, PURSUIT_LOST } from './pursuit'
@@ -556,13 +556,15 @@ describe('stowing away', () => {
     }
   })
 
-  test('the days worked end like any other: wages fall due (regression)', () => {
-    const hand = makeCharacter({ id: 'hand', name: 'Hand', wage: 1 })
+  test("the days worked end like any other: the animals' upkeep falls due (regression)", () => {
     for (let seed = 0; seed < 500; seed++) {
-      const before = at('ashmoor-1', { gold: 0, rng: createRng(seed) })
-      const after = stow({ ...before, party: [...before.party, hand] })
+      const before = at('ashmoor-1', { gold: 0, rng: createRng(seed), animals: { mule: 1 } })
+      const after = stow(before)
       if (after.lastRoll?.tier !== 'partial' && after.lastRoll?.tier !== 'fail') continue
-      expect(after.wagesOwed).toBe(STOWAWAY_WORK_DAYS)
+      expect(after.upkeepOwed).toBeCloseTo(
+        STOWAWAY_WORK_DAYS * content.animals.mule.upkeepPerDay,
+        5
+      )
       return
     }
     throw new Error('no seed puts the party to work')

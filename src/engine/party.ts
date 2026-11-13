@@ -48,7 +48,8 @@ export function generateCharacter(
       exhaustion: 0,
       strain: {},
       xp: 0,
-      wage: 0,
+      hired: false,
+      oldWound: null,
       accessory: null,
     }
   })
