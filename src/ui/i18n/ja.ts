@@ -443,10 +443,10 @@ export const ja: Partial<Messages> = {
   'explore.heading': '領地を探索する',
   'explore.outcomes': '探索の結果',
   'explore.found': '場所を1つ見つける',
-  'explore.foundLate': '{days}かけて場所を1つ見つける',
+  'explore.foundLate': '場所を1つ見つけるが、+{extra}日',
   'explore.nothing': '何も見つからない',
   'explore.line': '{name}、{skill} {modifier} 対 DC {dc}',
-  'explore.button': '探索する（{days}）',
+  'explore.button': '探索する（{days}・食料−{food}）',
 
   'journey.heading': '道中',
   'journey.route': '{from} → {to}',

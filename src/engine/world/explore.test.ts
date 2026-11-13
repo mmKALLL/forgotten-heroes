@@ -474,6 +474,25 @@ describe('explore', () => {
     })
   })
 
+  test('only the explorer eats, a ration a day; the party neither heals nor tires (designer call)', () => {
+    const state = here({
+      goods: { food: 10, water: 0 },
+      party: [{ ...brom, hp: 5, exhaustion: 1 }, lyra],
+    })
+    const option = exploreOption(state, content)!
+    expect(option.food).toBe(EXPLORE_DAYS)
+    const after = step(state, { type: 'explore' }, content)
+    const days = after.day - state.day
+    expect(days).toBeGreaterThanOrEqual(EXPLORE_DAYS)
+    expect(state.goods.food! - after.goods.food!).toBe(days)
+    expect(after.party[0].hp).toBe(5)
+    expect(after.party[0].exhaustion).toBe(1)
+    // Without the explorer's food, the search is refused.
+    const hungry = here({ goods: { food: EXPLORE_DAYS - 1 } })
+    expect(exploreOption(hungry, content)!.hungry).toBe(true)
+    expect(step(hungry, { type: 'explore' }, content).day).toBe(hungry.day)
+  })
+
   test('at a POI it searches that POI’s domain; on the road or in an encounter it is unavailable', () => {
     const atPoi = withPois(
       { ...pois, 'poi-9': poi('ashmoor-1', 0, { discovered: true }) },

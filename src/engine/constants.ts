@@ -132,11 +132,11 @@ export const WATER_DAYS = 4
 /** Each extra waterskin holds this many days of water for one member (units of water). */
 export const WATERSKIN_WATER = 2
 /** An extra waterskin's price: a lasting upgrade, so a real decision for a new party (designer). */
-export const WATERSKIN_PRICE = 5
+export const WATERSKIN_PRICE = 10
 /** A common room per member per night (meals included), at any inn. */
 export const LODGING_PRICE = 1
 /** What an extra waterskin sells back for. */
-export const WATERSKIN_SELL_PRICE = 2
+export const WATERSKIN_SELL_PRICE = 4
 
 // Carrying capacity and encumbrance (economy/capacity.ts). Weights are in kilograms.
 
@@ -520,6 +520,8 @@ export const POWER_THREAT_AT = 2
 export const EXPLORE_DC_BONUS = 2
 /** Camp days a search takes; a partial success takes one more. */
 export const EXPLORE_DAYS = 2
+/** Rations the explorer eats a day of searching (only theirs: the rest of the party waits). */
+export const EXPLORER_RATIONS = 1
 /** Sites a search finds at each tier, and the extra days it takes. */
 export const EXPLORE_FINDS: Readonly<Record<Tier, { found: number; extraDays: number }>> = {
   critFail: { found: 0, extraDays: 0 },

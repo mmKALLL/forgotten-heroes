@@ -42,7 +42,7 @@ export function ExploreAction({
     const { found, days } = option.finds[tier]
     if (found === 0) return t('explore.nothing')
     return days > option.days
-      ? t('explore.foundLate', { days: daysText(t, days) })
+      ? t('explore.foundLate', { extra: days - option.days })
       : t('explore.found')
   }
   // Who searches, with what, against what DC; the days are on the button, the chances below.
@@ -56,8 +56,12 @@ export function ExploreAction({
   const lineTitle =
     option.maps > 0 ? t('explore.mapsHint', { bonus: formatModifier(option.maps) }) : undefined
   const button = (
-    <button onClick={() => onAction({ type: 'explore' })}>
-      {t('explore.button', { days: daysText(t, option.days) })}
+    <button
+      disabled={option.hungry}
+      title={option.hungry ? t('explore.hungry') : t('explore.foodHint')}
+      onClick={() => onAction({ type: 'explore' })}
+    >
+      {t('explore.button', { days: daysText(t, option.days), food: option.food })}
     </button>
   )
   const outcomes = (

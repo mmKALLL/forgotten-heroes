@@ -161,14 +161,14 @@ test('the explore preview shows the searcher, DC, days and the non-critical tier
     .map((li) => li.textContent)
   expect(rows).toEqual([
     expect.stringMatching(/^Success: .*Finds a site$/),
-    expect.stringMatching(/^Partial success: .*Finds a site, after 3 days$/),
+    expect.stringMatching(/^Partial success: .*Finds a site, but \+1 day$/),
     expect.stringMatching(/^Failure: .*Finds nothing$/),
   ])
   // Critical tiers stay a surprise.
   expect(box.getByRole('list', { name: 'What the search finds' }).textContent).not.toMatch(
     /Critical|Two/
   )
-  await userEvent.click(box.getByRole('button', { name: 'Explore (2 days)' }))
+  await userEvent.click(box.getByRole('button', { name: /^Explore \(2 days · −\d+ food\)$/ }))
   expect(onAction).toHaveBeenCalledWith({ type: 'explore' })
 })
 
@@ -177,7 +177,7 @@ test('a domain known to be fully explored shows only that, no search', () => {
   for (const p of Object.values(state.world.pois)) p.discovered = true
   // Known only once a search came up short: until then Explore is offered as usual.
   show(state)
-  expect(screen.getByRole('button', { name: 'Explore (2 days)' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: /^Explore \(2 days · −\d+ food\)$/ })).toBeTruthy()
   cleanup()
   show({ ...state, explored: ['ashmoor-1'] })
   const box = within(screen.getByRole('group', { name: 'Explore the domain' }))
@@ -244,7 +244,7 @@ test('a settlement lists the paths to its discovered sites with a badge, and can
   expect(onAction).toHaveBeenCalledWith(
     expect.objectContaining({ type: 'travel', routeId: path.id })
   )
-  await userEvent.click(screen.getByRole('button', { name: 'Explore (2 days)' }))
+  await userEvent.click(screen.getByRole('button', { name: /^Explore \(2 days · −\d+ food\)$/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'explore' })
 })
 

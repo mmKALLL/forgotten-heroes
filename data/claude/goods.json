@@ -27,7 +27,7 @@
       "name": "Fuel",
       "unit": "bundle",
       "weight": 3,
-      "price": 0.3,
+      "price": 5,
       "depth": 3,
       "uses": "Firewood, charcoal and lamp oil. Smiths and treeless towns pay for it; cold country will need it later."
     },

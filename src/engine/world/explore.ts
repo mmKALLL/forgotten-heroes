@@ -13,8 +13,6 @@ import { statLabel } from '../rules/abilities'
 import { canAct, chooseLead } from '../rules/character'
 import { TIERS, TIER_LABELS, rollCheck, tierOdds, type Tier } from '../rules/checks'
 import { useSkill } from '../rules/strain'
-import { forageDay } from '../travel/forage'
-import { passDay } from '../travel/supplies'
 import { compass, settlementName } from './geo'
 import { poiPaths } from './graph'
 import { domainAt, poisToDiscover } from './pois'
@@ -32,7 +30,7 @@ import { rumourOption, type RumourOption } from '../town/rumours'
 import { siteContractsMet } from '../town/contract-hooks'
 import { mapsBonus } from '../rules/upgrades'
 import {
-  DEFAULT_PACE,
+  EXPLORER_RATIONS,
   EXPLORE_DAYS,
   EXPLORE_DC_BONUS,
   EXPLORE_FINDS,
@@ -60,6 +58,13 @@ export type ExploreOption = {
   maps: number
   dc: number
   days: number
+  /**
+   * The rations the search eats: the explorer's own, one a day (designer call 2026-11-13: the
+   * rest of the party neither eats, forages, rests nor tires meanwhile). A partial eats one more.
+   */
+  food: number
+  /** Not enough food for the explorer's days (the search is refused). */
+  hungry: boolean
   /** The odds of each tier (tierOdds). */
   chances: Record<Tier, number>
   /** The chance to find at least one site (the tiers that find something). */
@@ -77,11 +82,14 @@ export type ExploreOption = {
   explored: boolean
 }
 
+/** The refusal when the explorer hasn't the food for the search. */
+export const EXPLORE_HUNGRY = 'The explorer needs food for the search.'
+
 /** What each tier of a search leads to (English; in TIERS order in exploreOption). */
 export const EXPLORE_OUTCOMES: Readonly<Record<Tier, string>> = {
   critFail: 'Nothing found, and trouble finds you',
   fail: 'Nothing found',
-  partial: `One site found, after ${EXPLORE_DAYS + 1} days`,
+  partial: 'Finds a site, but +1 day',
   success: 'One site found',
   critSuccess: 'Two sites found',
 }
@@ -174,6 +182,8 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
     maps,
     dc,
     days: EXPLORE_DAYS,
+    food: EXPLORE_DAYS * EXPLORER_RATIONS,
+    hungry: (state.goods.food ?? 0) < EXPLORE_DAYS * EXPLORER_RATIONS,
     chances,
     findChance: TIERS.filter((tier) => EXPLORE_FINDS[tier].found > 0).reduce(
       (p, t) => p + chances[t],
@@ -243,8 +253,9 @@ function findsText(
 
 /**
  * Searches the domain for undiscovered sites: the explorer rolls (it counts toward Strain; a
- * natural 20 grants Inspiration), then the party camps EXPLORE_DAYS days (one more on a partial),
- * foraging and eating its own food even in town. Then it finds the nearest undiscovered sites the
+ * natural 20 grants Inspiration), then EXPLORE_DAYS days pass (one more on a partial) on the
+ * explorer's own rations, one a day: the rest of the party waits, neither eating, foraging, resting
+ * nor tiring (designer call 2026-11-13). Then it finds the nearest undiscovered sites the
  * tier allows (EXPLORE_FINDS). A critical failure draws a hostile road encounter for the place instead.
  */
 export function explore(state: GameState, content: Content): GameState {
@@ -261,6 +272,7 @@ export function explore(state: GameState, content: Content): GameState {
     )
   }
   if (option.explored) return appendLog(state, FULLY_EXPLORED, 'bad')
+  if (option.hungry) return appendLog(state, EXPLORE_HUNGRY, 'bad')
   const name = state.party.find((c) => c.id === option.actorId)?.name ?? '?'
   const [roll, rng] = rollCheck(state.rng, option.modifier, option.dc)
   const { party, skillUses, strained } = useSkill(state, option.actorId, option.skill)
@@ -309,11 +321,10 @@ export function explore(state: GameState, content: Content): GameState {
       'bad'
     )
   }
-  const terrain = domainTerrain(content, domain)
-  for (let day = 0; day < days; day++) {
-    next = forageDay(next, terrain, DEFAULT_PACE).state
-    next = passDay(next, terrain, DEFAULT_PACE, content)
-  }
+  // The days pass on the explorer's rations alone (a partial's extra day as far as food lasts).
+  const food = next.goods.food ?? 0
+  const eaten = Math.min(food, days * EXPLORER_RATIONS)
+  next = { ...next, day: next.day + days, goods: { ...next.goods, food: food - eaten } }
   if (roll.tier !== 'critFail') return next
   return ambush(next, content)
 }
