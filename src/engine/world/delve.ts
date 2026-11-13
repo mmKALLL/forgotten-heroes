@@ -91,7 +91,11 @@ const roomSituations = (content: Content, room: DungeonRoom): string[] => {
   return room.situations.filter((id) => known.has(id))
 }
 
-/** Starts the delve's room (delve.room): one of its situations, drawn, played as a room. */
+/**
+ * Starts the delve's room (delve.room): one of its situations, drawn, played as a room. When no
+ * encounter opens (broken content: startEncounter logs why), the delve ends with a line saying so,
+ * rather than the room passing as if cleared.
+ */
 function startRoom(state: GameState, content: Content, delve: DelveState): GameState {
   const dungeon = own(content.dungeons, delve.dungeon)
   const room = dungeon?.rooms[delve.room]
@@ -103,7 +107,7 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const { dcBonus, rules } = roomSetup(state, delve.poi, dungeon, delve.room)
   const entered = { ...delve, inRoom: true, ended: null }
-  return startEncounter(
+  const opened = startEncounter(
     { ...state, rng, delve: entered },
     content,
     situation,
@@ -114,6 +118,13 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
       room: rules,
       lines: [{ text: `${room.name}. ${room.text}`, tone: 'info' }],
     }
+  )
+  if (opened.encounter !== null && opened.encounter !== state.encounter) return opened
+  return appendLog(
+    { ...opened, delve: null },
+    `You can go no further into ${dungeon.name} than ${room.name}, and turn back. ` +
+      'It can be tried again another time.',
+    'bad'
   )
 }
 

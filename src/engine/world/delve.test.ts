@@ -52,6 +52,19 @@ describe('delving', () => {
     })
   })
 
+  test("a room whose encounter can't start ends the delve, saying why", () => {
+    const hall = content.situations['test-room-hall']
+    const broken = {
+      ...content,
+      situations: { ...content.situations, 'test-room-hall': { ...hall, start: 'nowhere' } },
+    }
+    const { state } = atVault()
+    const entered = step(state, { type: 'visitPoi' }, broken)
+    expect(entered.delve).toBeNull()
+    expect(entered.encounter).toBeNull()
+    expect(entered.log.at(-1)!.text).toMatch(/can go no further/)
+  })
+
   test('found only by exploring, its level is unknown until entered (Plan 6 wave 2b)', () => {
     const { state, id } = atVault()
     expect(delvePreview(state, content, id)!.suggestedLevel).toBeNull()
