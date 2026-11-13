@@ -8,9 +8,7 @@ import { inSettlement, notHere } from '../travel/where'
 import { upgradeLevel } from '../rules/upgrades'
 import {
   BANNER_SOFTEN,
-  CAMP_KIT_CHEER,
-  CAMP_KIT_CHEER_LEVEL,
-  CAMP_KIT_HP,
+  CAMP_KIT_HEAL,
   DELVING_GEAR_BONUS,
   DELVING_GEAR_CHALLENGE_LEVEL,
   MAPS_EXPLORE,
@@ -41,12 +39,8 @@ export const upgradePrice = (def: Pick<UpgradeDef, 'basePrice'>, level: number):
 /** What owning `level` of an upgrade does, in one short line (English). */
 export function upgradeEffect(id: UpgradeId, level: number): string {
   switch (id) {
-    case 'camp-kit': {
-      const hp = `A rest in camp heals +${CAMP_KIT_HP * level} HP each`
-      return level >= CAMP_KIT_CHEER_LEVEL
-        ? `${hp}, and lifts camaraderie +${CAMP_KIT_CHEER} once a stop`
-        : hp
-    }
+    case 'camp-kit':
+      return `+${Math.round(CAMP_KIT_HEAL * level * 100)}% HP when camping`
     case 'smugglers-compartment':
       return `Hides ${Math.round(Math.min(1, SMUGGLE_SHARE * level) * 100)}% of the precious goods from tolls and thieves`
     case 'surveyors-maps':
@@ -67,7 +61,7 @@ export function upgradeGrowth(id: UpgradeId): string {
   const top = `Levels I–${levelNumeral(UPGRADE_MAX_LEVEL)}`
   switch (id) {
     case 'camp-kit':
-      return `${top}: +${CAMP_KIT_HP} HP a camp rest per level; from ${levelNumeral(CAMP_KIT_CHEER_LEVEL)} a camp rest also lifts camaraderie +${CAMP_KIT_CHEER}, once per stop or journey.`
+      return `${top}: +${Math.round(CAMP_KIT_HEAL * 100)}% HP when camping per level (a day's rest in camp heals that much more of each member's max HP).`
     case 'smugglers-compartment':
       return `${top}: ${Math.round(SMUGGLE_SHARE * 100)}% more of each precious good hidden per level, from road thieves and tolls, and from the eyes that judge the party's wealth.`
     case 'surveyors-maps':

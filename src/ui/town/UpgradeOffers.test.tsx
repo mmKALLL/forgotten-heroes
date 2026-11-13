@@ -34,8 +34,8 @@ test('the party panel lists the upgrades owned, with their levels', () => {
   render(
     <PartyPanel
       party={[brom, lyra]}
-      upgrades={[{ id: 'camp-kit', name: 'Camp kit', level: 2, effect: 'A rest heals +2 HP' }]}
+      upgrades={[{ id: 'camp-kit', name: 'Camp kit', level: 2, effect: '+10% HP when camping' }]}
     />
   )
-  expect(screen.getByText('Camp kit II').getAttribute('title')).toBe('A rest heals +2 HP')
+  expect(screen.getByText('Camp kit II').getAttribute('title')).toBe('+10% HP when camping')
 })

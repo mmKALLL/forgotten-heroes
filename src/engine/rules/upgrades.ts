@@ -3,9 +3,7 @@ import type { Effect } from '../../schema/encounter'
 import type { Goods, GameState } from '../../schema/state'
 import {
   BANNER_SOFTEN,
-  CAMP_KIT_CHEER,
-  CAMP_KIT_CHEER_LEVEL,
-  CAMP_KIT_HP,
+  CAMP_KIT_HEAL,
   DELVING_GEAR_BONUS,
   DELVING_GEAR_CHALLENGE_LEVEL,
   DELVING_GEAR_SKILLS,
@@ -35,12 +33,12 @@ export function softenLoss(state: Owned, amount: number): number {
   return Math.min(0, amount + BANNER_SOFTEN * upgradeLevel(state, 'company-banner'))
 }
 
-/** Camp kit: the HP each member regains on a day's rest in camp, on top of CAMP_HEAL. */
-export const campKitHp = (state: Owned): number => CAMP_KIT_HP * upgradeLevel(state, 'camp-kit')
-
-/** Camp kit: the camaraderie a day's rest in camp brings (once per arrival), or 0. */
-export const campKitCheer = (state: Owned): number =>
-  upgradeLevel(state, 'camp-kit') >= CAMP_KIT_CHEER_LEVEL ? CAMP_KIT_CHEER : 0
+/**
+ * Camp kit: the share of max HP a day's rest in camp heals more, on top of CAMP_HEAL (rounded to
+ * whole percents, so 0.2 + 0.15 heals exactly 35%).
+ */
+export const campKitHeal = (state: Owned): number =>
+  Math.round(CAMP_KIT_HEAL * upgradeLevel(state, 'camp-kit') * 100) / 100
 
 /** Smuggler's compartment: the share of each precious good hidden (0–1). */
 export const smuggledShare = (state: Owned): number =>
