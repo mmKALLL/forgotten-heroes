@@ -22,11 +22,13 @@ test('a tile offers each next level with its price and effect; the purse decides
       <UpgradeOffers content={content} state={state} service="inn-tavern" onAction={onAction} />
     </I18nProvider>
   )
-  const maps = screen.getByRole('button', { name: "Surveyor's maps II · 200 gp" })
+  const maps = screen.getByRole('button', {
+    name: "Surveyor's maps II · 200 gp +4 to explore checks",
+  })
   expect((maps as HTMLButtonElement).disabled).toBe(true)
-  expect(screen.getByText('+4 to explore checks')).toBeTruthy()
+  expect(maps.textContent).toContain('+4 to explore checks')
   expect(screen.queryByText(/not enough gold/i)).toBeNull()
-  await userEvent.click(screen.getByRole('button', { name: "Smuggler's compartment I · 125 gp" }))
+  await userEvent.click(screen.getByRole('button', { name: /^Smuggler's compartment I · 125 gp/ }))
   expect(onAction).toHaveBeenCalledWith({ type: 'buyUpgrade', upgrade: 'smugglers-compartment' })
 })
 

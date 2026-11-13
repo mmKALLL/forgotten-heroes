@@ -78,9 +78,9 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
   const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 }, day: 20 })
   const onAction = panel(hurt)
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
-  await userEvent.click(inn.getByRole('button', { name: /^Common room · −\d+ gp \d+% HP/ }))
+  await userEvent.click(inn.getByRole('button', { name: /^Common room · \d+ gp \d+% HP/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: 'common' })
-  const round = inn.getByRole('button', { name: /^Stand a round · −\d+ gp \+\d+ camaraderie$/ })
+  const round = inn.getByRole('button', { name: /^Stand a round · \d+ gp \+\d+ camaraderie$/ })
   expect(round.getAttribute('title')).toMatch(/^Drinks for everyone: \+\d+ camaraderie/)
   await userEvent.click(round)
   expect(onAction).toHaveBeenLastCalledWith({
@@ -90,7 +90,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
   })
 
   const heal = screen.getByRole('button', {
-    name: new RegExp(`^Heal 1 · −${HEALER_PRICE} gp Full HP`),
+    name: new RegExp(`^Heal 1 · ${HEALER_PRICE} gp Full HP`),
   })
   expect(heal.getAttribute('title')).toMatch(/for Brom,/)
   await userEvent.click(heal)
@@ -99,7 +99,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
     service: 'temple',
     action: 'heal',
   })
-  await userEvent.click(screen.getByRole('button', { name: /^Blessing · −\d+ gp/ }))
+  await userEvent.click(screen.getByRole('button', { name: /^Blessing · \d+ gp/ }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'useService',
     service: 'temple',
@@ -108,7 +108,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
 
   // Two courier options, each with its price and effect; neighbours' tooltip names the towns.
   const neighbours = screen.getByRole('button', {
-    name: /^Neighbours · −\d+ gp Neighbours’ prices$/,
+    name: /^Neighbours · \d+ gp Neighbours’ prices$/,
   })
   expect(neighbours.getAttribute('title')).toMatch(/\(\d+ days? old\)/)
   await userEvent.click(neighbours)
@@ -118,7 +118,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
     action: 'news',
     reach: 'neighbours',
   })
-  await userEvent.click(screen.getByRole('button', { name: /^All towns · −\d+ gp Every town’s/ }))
+  await userEvent.click(screen.getByRole('button', { name: /^All towns · \d+ gp Every town’s/ }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'useService',
     service: 'couriers',
@@ -140,7 +140,7 @@ test('the healer is disabled when no one needs healing, and resting on carried f
   expect(
     (
       screen.getByRole('button', {
-        name: new RegExp(`^Heal · −${HEALER_PRICE} gp each`),
+        name: new RegExp(`^Heal · ${HEALER_PRICE} gp each`),
       }) as HTMLButtonElement
     ).disabled
   ).toBe(true)
@@ -253,7 +253,7 @@ test('quality pips explain what quality does there on hover or focus', async () 
 test('a service button shows its price, then the engine’s short effect on a second line', () => {
   const state = town()
   panel(state)
-  const bless = screen.getByRole('button', { name: /^Blessing · −\d+ gp/ })
+  const bless = screen.getByRole('button', { name: /^Blessing · \d+ gp/ })
   const effect = serviceRows(state, content)
     .find((r) => r.service === 'temple')!
     .actions.find((a) => a.action === 'bless')!.effect!
@@ -267,7 +267,7 @@ test('a service button shows its price, then the engine’s short effect on a se
 
 test('a service the party can’t afford is only disabled: "not enough gold" is not shown', () => {
   panel(town({ gold: 0 }))
-  const bless = screen.getByRole('button', { name: /^Blessing · −\d+ gp/ })
+  const bless = screen.getByRole('button', { name: /^Blessing · \d+ gp/ })
   expect((bless as HTMLButtonElement).disabled).toBe(true)
   // The reason is in the tooltip and the accessible description, not a visible line.
   expect(bless.getAttribute('title')).toMatch(/not enough gold$/)

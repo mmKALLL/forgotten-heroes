@@ -2512,9 +2512,6 @@ h2[tabindex='-1']:focus {
   align-items: flex-start;
   min-width: 0;
 }
-.upgrade-effect {
-  overflow-wrap: anywhere;
-}
 .upgrades-owned {
   margin: 0.3rem 0 0;
 }
