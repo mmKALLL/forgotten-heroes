@@ -122,7 +122,7 @@ export function newGame(
     markets: {},
     priceBook: {},
     animals: {},
-    reputation: { settlements: {}, people: {} },
+    reputation: { settlements: {} },
     contracts: [],
     contractsTaken: [],
     doneHere: [],

@@ -971,7 +971,7 @@ export const testEconomy: Record<string, unknown> = {
         goods: ['luxuries'],
         amount: { min: 2, max: 4 },
         urgentChance: 0.25,
-        reputation: { patron: 6, settlement: 3 },
+        reputation: 9,
       },
       {
         id: 'bring-timber',
@@ -982,7 +982,7 @@ export const testEconomy: Record<string, unknown> = {
         goods: ['timber', 'stone'],
         amount: { min: 2, max: 5 },
         urgentChance: 0,
-        reputation: { patron: 4, settlement: 2 },
+        reputation: 6,
       },
       {
         id: 'haul-fish',
@@ -993,7 +993,7 @@ export const testEconomy: Record<string, unknown> = {
         goods: ['food'],
         amount: { min: 6, max: 10 },
         urgentChance: 0,
-        reputation: { patron: 3, settlement: 1 },
+        reputation: 4,
       },
       {
         id: 'see-pilgrim',
@@ -1004,7 +1004,7 @@ export const testEconomy: Record<string, unknown> = {
         passengers: { min: 1, max: 1 },
         urgentChance: 0,
         pay: 1.5,
-        reputation: { patron: 5, settlement: 3 },
+        reputation: 8,
       },
       {
         id: 'camp-bounty',
@@ -1016,7 +1016,7 @@ export const testEconomy: Record<string, unknown> = {
         km: { min: 0, max: 100 },
         poiCategories: ['lair'],
         urgentChance: 0,
-        reputation: { patron: 8, settlement: 6 },
+        reputation: 14,
       },
       {
         id: 'visit-stones',
@@ -1027,7 +1027,7 @@ export const testEconomy: Record<string, unknown> = {
         km: { min: 0, max: 100 },
         poiCategories: ['landmark'],
         urgentChance: 0.5,
-        reputation: { patron: 3, settlement: 1 },
+        reputation: 4,
       },
     ],
   },

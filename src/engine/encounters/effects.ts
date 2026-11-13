@@ -264,11 +264,7 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
     case 'animals':
       return changeAnimals(state, ctx.content ?? emptyContent(), effect)
     case 'reputation':
-      return addReputation(
-        state,
-        { settlement: encounterSettlement(state), amount: effect.amount },
-        ctx.content
-      )
+      return addReputation(state, { settlement: encounterSettlement(state), amount: effect.amount })
     case 'xp':
       // Silent: the outcome's chips already say "+N XP" (run.ts resolve).
       return gainXp(state, effect.amount)

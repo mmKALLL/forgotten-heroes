@@ -78,9 +78,7 @@ export function ContractRewardDialog({ contract: c, title, onChoose, onClose }: 
             <button className="primary" onClick={() => onChoose('gold')}>
               {t('contracts.takeGold', { gp: gold.gold })}
             </button>
-            <p className="muted small">
-              {t('contracts.goldGives', { n: gold.patron + gold.settlement })}
-            </p>
+            <p className="muted small">{t('contracts.goldGives', { n: gold.reputation })}</p>
           </div>
           <div className="reward-choice">
             <button onClick={() => onChoose('goodWord')}>{t('contracts.goodWord')}</button>
@@ -89,13 +87,11 @@ export function ContractRewardDialog({ contract: c, title, onChoose, onClose }: 
                 ? t('contracts.goodWordTown', {
                     points: word.points,
                     town: c.fromName,
-                    patron: word.patron,
                   })
                 : t('contracts.goodWordGives', {
                     points: word.points,
                     n: word.settlements,
                     kingdom: word.kingdom,
-                    patron: word.patron,
                   })}
             </p>
           </div>

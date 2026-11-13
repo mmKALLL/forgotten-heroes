@@ -49,7 +49,7 @@ test('the top bar shows the essentials, then the other goods as a 2×2 block wit
           pay: 30,
           level: 1,
           urgent: false,
-          reputation: { patron: 5, settlement: 3 },
+          reputation: 8,
           met: false,
         },
       ],

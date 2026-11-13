@@ -238,10 +238,12 @@ export const PriceBookEntrySchema = z.object({
 })
 export type PriceBookEntry = z.infer<typeof PriceBookEntrySchema>
 
-/** Reputation points with settlements and notable people; standing tiers are derived. */
+/**
+ * Reputation points with settlements (design §8); standing tiers and a kingdom's reputation are
+ * derived. Notable people have none (designer call 2026-11-14).
+ */
 export const ReputationSchema = z.object({
   settlements: z.record(IdSchema, z.number().int()).default({}),
-  people: z.record(IdSchema, z.number().int()).default({}),
 })
 export type Reputation = z.infer<typeof ReputationSchema>
 
@@ -269,7 +271,7 @@ export const ContractStateSchema = z.object({
     .default(1)
     .describe('The level of the work (Plan 6 D1): its pay and DCs scale with it'),
   urgent: z.boolean(),
-  reputation: z.object({ patron: z.number().int(), settlement: z.number().int() }),
+  reputation: z.number().int().describe("Points with the board's settlement for the gold"),
   /**
    * Its condition was met in time (arrived, cleared, visited): it no longer expires, and is
    * completed at `to` for the reward.
@@ -319,7 +321,7 @@ export const LevelUpSchema = z.object({
 export type LevelUp = z.infer<typeof LevelUpSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(21),
+  version: z.literal(22),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -347,7 +349,7 @@ export const GameStateSchema = z.object({
   priceBook: z.record(IdSchema, PriceBookEntrySchema).default({}),
   /** Owned animals and carts by animals id (bought; hired mounts are in travel.hired). */
   animals: z.record(IdSchema, z.number().int().min(0)).default({}),
-  reputation: ReputationSchema.default({ settlements: {}, people: {} }),
+  reputation: ReputationSchema.default({ settlements: {} }),
   /** Accepted contracts, in progress. */
   contracts: z.array(ContractStateSchema).default([]),
   /** Offer ids accepted, so a board never offers them again. */

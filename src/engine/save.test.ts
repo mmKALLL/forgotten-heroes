@@ -22,6 +22,7 @@ import {
   v18ToV19,
   v19ToV20,
   v20ToV21,
+  v21ToV22,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -189,14 +190,14 @@ const PLAN_4_DEFAULTS = {
   markets: {},
   priceBook: {},
   animals: {},
-  reputation: { settlements: {}, people: {} },
+  reputation: { settlements: {} },
   contracts: [],
   contractsTaken: [],
   doneHere: [],
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(21)
+  expect(CURRENT_SAVE_VERSION).toBe(22)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -653,16 +654,18 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v20ToV21(
-          v19ToV20(
-            v18ToV19(
-              v17ToV18(
-                v16ToV17(
-                  v15ToV16(
-                    v14ToV15(
-                      v13ToV14(
-                        v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
-                        content
+        v21ToV22(
+          v20ToV21(
+            v19ToV20(
+              v18ToV19(
+                v17ToV18(
+                  v16ToV17(
+                    v15ToV16(
+                      v14ToV15(
+                        v13ToV14(
+                          v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
+                          content
+                        )
                       )
                     )
                   )
@@ -892,7 +895,7 @@ describe('v13 → v14 (Plan 6, track D: levelled work and authored dungeons)', (
     expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
     expect(loaded.world).toEqual(state.world)
     expect(loaded.delve).toBeNull()
-    expect(loaded.contracts).toEqual([{ ...job, level: 1 }])
+    expect(loaded.contracts).toEqual([{ ...job, level: 1, reputation: 2 }])
     // Migrating again places nothing twice.
     const once = v13ToV14(asV13(state), content)
     expect(v13ToV14({ ...once, version: 13 }, content).world).toEqual(once.world)
@@ -1020,6 +1023,60 @@ describe('v20 → v21 (level-ups wait for the player)', () => {
     const { levelUps: _ups, ...v20 } = { ...structuredClone(state), version: 20 }
     expect(v20ToV21(v20)).toMatchObject({ version: 21, levelUps: [] })
     expect(deserialize(JSON.stringify(v20), content)).toEqual(state)
+  })
+})
+
+describe('v21 → v22 (reputation with settlements only)', () => {
+  test('a person’s points fold into their settlement’s by the better of the two; contracts sum', () => {
+    const state = makeState({ day: 4 })
+    const ids = Object.keys(state.world.people)
+    const [a, b] = ids
+    const home = state.world.people[a].settlement
+    const other = Object.keys(state.world.settlements).find(
+      (id) => id !== home && ids.some((p) => state.world.people[p].settlement === id)
+    )!
+    const c = ids.find((p) => state.world.people[p].settlement === other)!
+    const job = {
+      id: 'c-old',
+      template: 'see-pilgrim',
+      kind: 'escort' as const,
+      patron: a,
+      from: home,
+      to: other,
+      good: null,
+      amount: 0,
+      poi: null,
+      passengers: 1,
+      accepted: 2,
+      deadline: 20,
+      pay: 30,
+      level: 1,
+      urgent: false,
+      met: false,
+    }
+    const v21 = {
+      ...structuredClone(state),
+      version: 21,
+      // The town better than its person; another town worse than its person.
+      reputation: {
+        settlements: { [home]: 7, [other]: 1 },
+        people: { [a]: 3, [b]: -9, [c]: 6, 'p-gone': 40 },
+      },
+      contracts: [{ ...job, reputation: { patron: 3, settlement: 2 } }],
+    }
+    const raw = structuredClone(v21)
+    const loaded = deserialize(JSON.stringify(v21), content)!
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
+    const settlements: Record<string, number> = { [home]: 7, [other]: 6 }
+    const bHome = state.world.people[b].settlement
+    // b's −9 never lowers a town.
+    if (!(bHome in settlements)) expect(loaded.reputation.settlements[bHome]).toBeUndefined()
+    expect(loaded.reputation).toEqual({ settlements })
+    expect(loaded.contracts).toEqual([{ ...job, reputation: 5 }])
+    // Pure, and idempotent once migrated.
+    expect(v21).toEqual(raw)
+    const once = v21ToV22(raw)
+    expect(v21ToV22({ ...once, version: 21 })).toEqual(once)
   })
 })
 

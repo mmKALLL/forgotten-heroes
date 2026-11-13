@@ -18,8 +18,8 @@ export const hasBoard = (state: GameState, content: Content): boolean =>
 /**
  * The notice board here (design §5, §8): each offer with its kind, destination, distance, the
  * days left to its deadline (and the days it takes at a steady pace), pay and reputation, urgent
- * ones badged, and its text in full. Offers the party lacks the reputation for (in points, with
- * the town or the patron), or can't take now, are disabled with the reason.
+ * ones badged, and its text in full. Offers the party lacks the town's reputation for (in
+ * points), or can't take now, are disabled with the reason.
  */
 export function NoticeBoard({ content, state, onAction }: Props) {
   const { t } = useI18n()
@@ -58,7 +58,7 @@ function OfferRow({
   const left = leftText(t, o.deadline - today)
   const MARK = '\u0000'
   const why = o.locked ? t('board.locked', { n: standingFloor(o.locked) }) : (o.reason ?? null)
-  const rep = o.reputation.patron + o.reputation.settlement
+  const rep = o.reputation
   const route =
     o.kind === 'procurement'
       ? t('board.procure', {

@@ -15,7 +15,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 21
+export const CURRENT_SAVE_VERSION = 22
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -500,6 +500,37 @@ export const v20ToV21 = (raw: Record<string, unknown>): Record<string, unknown> 
 })
 
 /**
+ * v21 → v22 (designer call 2026-11-14): reputation is with settlements (and, derived, kingdoms)
+ * only. Each notable person's points fold into their settlement's by the better-of rule (a town
+ * keeps its own points, or takes a person's there when higher), and the person points go. A held
+ * contract's patron and settlement points become one number for the settlement, their sum (as
+ * the contract templates were changed).
+ */
+export function v21ToV22(raw: Record<string, unknown>): Record<string, unknown> {
+  const rep = (raw.reputation ?? {}) as { settlements?: unknown; people?: unknown }
+  const record = (x: unknown) =>
+    typeof x === 'object' && x !== null && !Array.isArray(x) ? (x as Record<string, unknown>) : {}
+  const settlements = { ...record(rep.settlements) } as Record<string, number>
+  const world = record(raw.world)
+  const people = record(world.people)
+  for (const [id, points] of Object.entries(record(rep.people))) {
+    const home = record(people[id]).settlement
+    if (typeof home !== 'string' || typeof points !== 'number') continue
+    const own = typeof settlements[home] === 'number' ? settlements[home] : 0
+    if (points > own) settlements[home] = points
+  }
+  const contracts = Array.isArray(raw.contracts)
+    ? raw.contracts.map((c: Record<string, unknown>) => {
+        const r = c.reputation as { patron?: unknown; settlement?: unknown } | number | undefined
+        if (typeof r === 'number' || typeof r !== 'object' || r === null) return c
+        const n = (x: unknown) => (typeof x === 'number' ? x : 0)
+        return { ...c, reputation: n(r.patron) + n(r.settlement) }
+      })
+    : raw.contracts
+  return { ...raw, version: 22, reputation: { settlements }, contracts }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -550,6 +581,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v19ToV20(raw as Record<string, unknown>), content)
     case 20:
       return migrate(v20ToV21(raw as Record<string, unknown>), content)
+    case 21:
+      return migrate(v21ToV22(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

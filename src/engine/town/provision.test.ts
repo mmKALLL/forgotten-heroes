@@ -122,7 +122,7 @@ describe('provision for this road', () => {
       pay: 30,
       level: 1,
       urgent: false,
-      reputation: { patron: 5, settlement: 3 },
+      reputation: 8,
       met: false,
     }
     const s = at('greenvale-1')

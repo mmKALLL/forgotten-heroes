@@ -24,7 +24,7 @@ import {
   type CrisisRumour,
 } from '../crisis/clues'
 import { serviceWith } from './animals'
-import { personStanding, settlementStanding, shopKeeper, standingSteps } from './reputation'
+import { settlementStanding, standingSteps } from './reputation'
 import {
   PICKPOCKET_GP,
   RUMOUR_DC,
@@ -82,12 +82,9 @@ export type RumourOption = {
 
 const BUSY = 'Finish the current encounter first.'
 
-/** The better of the settlement's and the tavern keeper's standing, as steps above stranger. */
-function standingHere(state: GameState, content: Content, here: string, service: string): number {
-  const keeper = shopKeeper(state, content, here, service)
-  const steps = standingSteps(settlementStanding(state, here))
-  return keeper ? Math.max(steps, standingSteps(personStanding(state, keeper))) : steps
-}
+/** The settlement's standing, as steps above stranger. */
+const standingHere = (state: GameState, here: string): number =>
+  standingSteps(settlementStanding(state, here))
 
 /** Why the party can't listen for rumours here now (English), or null. Gold is checked apart. */
 export function rumourRefusal(state: GameState, content: Content): string | null {
@@ -111,7 +108,7 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
     return actor ? [{ skill, actor }] : []
   }).sort((a, b) => b.actor.modifier - a.actor.modifier)
   if (!best) return null
-  const dc = normalizeDc(RUMOUR_DC - standingHere(state, content, state.location!, service))
+  const dc = normalizeDc(RUMOUR_DC - standingHere(state, state.location!))
   return {
     service,
     actorId: best.actor.characterId,

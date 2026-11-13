@@ -13,6 +13,7 @@ import {
   quote,
   recordTrade,
   shopsFor,
+  spreadModifier,
 } from './market'
 import {
   DRIFT,
@@ -342,11 +343,11 @@ describe('shops', () => {
     expect(shopsFor(shopping, content, 'greenvale-1', 'food')).toEqual(shops)
   })
 
-  test('liked lowers the buy price and raises the sell price; a liking keeper counts', () => {
+  test('liked lowers the buy price and raises the sell price, in every shop of the town', () => {
     const id = 'greenvale-1'
-    const withRep = (settlements: Record<string, number>, people: Record<string, number> = {}) => ({
+    const withRep = (settlements: Record<string, number>) => ({
       ...shopping,
-      reputation: { settlements, people },
+      reputation: { settlements },
     })
     // Whole-gold prices hide a 2-point spread on cheap goods: compare on gems.
     const unit = (s: GameState, side: 'buy' | 'sell', shop?: string) =>
@@ -358,7 +359,7 @@ describe('shops', () => {
     expect(unit(liked, 'sell')).toBeGreaterThanOrEqual(unit(shopping, 'sell'))
     expect(unit(disliked, 'buy')).toBeGreaterThan(unit(shopping, 'buy'))
     expect(unit(disliked, 'sell')).toBeLessThan(unit(liked, 'sell'))
-    // An outfitter keeping the supplies shop and liking the party narrows that shop's spread only.
+    // A shop kept by a notable person goes by the town's reputation like the stalls.
     const outfitter = {
       ...content.personRoles.innkeeper,
       id: 'outfitter',
@@ -378,13 +379,22 @@ describe('shops', () => {
       },
     }
     expect(shopKeeper({ world }, kept, id, 'adventuring-supplies')).toBe('p-ada')
-    const friend = { ...withRep({}, { 'p-ada': STANDING_POINTS.liked }), world }
+    const friend = { ...withRep({ [id]: STANDING_POINTS.liked }), world }
     const at = (s: GameState, shop: string) => quote(s, kept, id, 'gear', 'buy', 1, shop)!.unitFirst
     const stranger = { ...shopping, world }
     expect(at(friend, 'adventuring-supplies')).toBeLessThan(at(stranger, 'adventuring-supplies'))
-    // The stalls have no keeper, so the outfitter's liking doesn't reach them.
-    const stall = (s: GameState) => quote(s, kept, id, 'food', 'buy', 1, MARKET_STALL)!.unitFirst
-    expect(stall(friend)).toBe(stall(stranger))
+    expect(spreadModifier(friend, id)).toBeLessThan(0)
+    const shop = (s: GameState, service: string) =>
+      shopsFor(s, kept, id, 'gear').find((x) => x.service === service)!.spread
+    const stall = (s: GameState) =>
+      shopsFor(s, kept, id, 'food').find((x) => x.service === MARKET_STALL)!.spread
+    // The same narrowing at the kept shop as at the stalls (where the floor allows).
+    expect(
+      shop(stranger, 'adventuring-supplies') - shop(friend, 'adventuring-supplies')
+    ).toBeCloseTo(
+      Math.min(-spreadModifier(friend, id), shop(stranger, 'adventuring-supplies') - SPREAD_MIN)
+    )
+    expect(stall(friend)).toBeLessThanOrEqual(stall(stranger))
   })
 
   test('quotes are whole gold: every unit rounded up, at least 1 gp', () => {

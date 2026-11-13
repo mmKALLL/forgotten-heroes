@@ -100,7 +100,7 @@ describe('travel', () => {
       pay: 30,
       level: 1,
       urgent: false,
-      reputation: { patron: 1, settlement: 1 },
+      reputation: 2,
       met: false,
     }
     const escorted = travel(

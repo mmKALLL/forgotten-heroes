@@ -23,24 +23,17 @@ const show = (state: GameState) => {
   return onAction
 }
 
-test('the people here show with their titles, roles and reputation points', () => {
+test('the people here show with their titles and roles, and no reputation', () => {
   const state = makeState({ location: 'greenvale-1', gold: 50 })
   const people = peopleRows(state, content)
-  const [first, second] = people
-  const points = { [first.id]: 40, ...(second ? { [second.id]: -7 } : {}) }
-  show({ ...state, reputation: { ...state.reputation, people: points } })
+  const [first] = people
+  show({ ...state, reputation: { settlements: { 'greenvale-1': 40 } } })
   const list = within(screen.getByRole('list', { name: 'Notable people' }))
   expect(list.getAllByRole('listitem')).toHaveLength(people.length)
   const row = within(list.getByText(first.name).closest('li')!)
   expect(row.getByText(`· ${first.role}`)).toBeTruthy()
-  // The points, not the tier; the tier and what it does are in the tooltip.
-  const rep = row.getByText('rep 40')
-  expect(rep.className).toContain('tone-good')
-  expect(rep.title).toMatch(/^Trusted \(30 to 49\): /)
-  if (second) {
-    const bad = within(list.getByText(second.name).closest('li')!).getByText('rep −7')
-    expect(bad.className).toContain('tone-bad')
-  }
+  // Reputation is with the town (the ledger's header), never beside a person.
+  expect(list.queryByText(/rep/i)).toBeNull()
 })
 
 test('the rumour line shows who listens and the DC, the tiers their chances, and dispatches', async () => {

@@ -407,7 +407,7 @@ test('a contract bound for a road’s end shows its deadline, and marks the pace
     pay: 30,
     level: 1,
     urgent: false,
-    reputation: { patron: 5, settlement: 3 },
+    reputation: 8,
     met: false,
   }
   panel({ ...base, contracts: [contract] }, 'greenvale-2')

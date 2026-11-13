@@ -180,7 +180,7 @@ describe('contract templates', () => {
     goods: ['luxuries'],
     amount: { min: 2, max: 6 },
     urgentChance: 0.2,
-    reputation: { patron: 6, settlement: 3 },
+    reputation: 9,
   }
   const bounty = {
     id: 'clear-lair',
@@ -191,7 +191,7 @@ describe('contract templates', () => {
     km: { min: 10, max: 60 },
     poiCategories: ['lair'],
     urgentChance: 0,
-    reputation: { patron: 4, settlement: 4 },
+    reputation: 8,
   }
 
   test('fill in defaults', () => {

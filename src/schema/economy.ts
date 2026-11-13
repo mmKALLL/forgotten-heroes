@@ -340,8 +340,10 @@ export const ContractTemplateSchema = z
     urgentChance: z.number().min(0).max(1).describe('Urgent offers have tighter deadlines'),
     pay: z.number().min(0).default(1).describe('Multiplies the pay worked out by the engine'),
     reputation: z
-      .object({ patron: z.number().int().min(0), settlement: z.number().int().min(0) })
-      .describe('Reputation points on completion'),
+      .number()
+      .int()
+      .min(0)
+      .describe("Reputation points with the board's settlement on completion for the gold"),
   })
   .refine((t) => !NEEDS_GOODS.includes(t.kind) || (t.goods && t.amount), {
     message: 'courier, freight and procurement contracts need goods and an amount',
