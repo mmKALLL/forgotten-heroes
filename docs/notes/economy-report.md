@@ -2,6 +2,26 @@
 
 The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 6 Track B) comes first; Plan 5a and the Plan 4 rounds follow.
 
+## Demand by focus, size and services (2026-11-13)
+
+Designer calls: arms are wanted where places attack (camps and forts, most when their domain is held), armour where they defend (cities and capitals, most under threat); forges, weaponsmiths and armourers make arms and armour where metal is to hand; every service wants its inputs (a smith metal, a healer healing, a magic shop arcana); villages want timber, towns stone, cities stone and metal. Goods are now listed cheapest first within each category (gear before arms, luxuries before gems). Both runs below use the same engine, before (the old rules and goods order) and after:
+
+| Policy (50 gp start) | gp/day by 30 / 60 (median), before → after | Broke by 30 / 60 | Deaths |
+| --- | --- | --- | --- |
+| trader | 3.3 / 2.7 → 3.7 / 3.0 | 10% / 13% → 13% / 17% | 2 → 1 |
+| trader, no upgrades | 3.7 / 6.9 → 4.0 / 7.2 | 10% / 13% → 13% / 17% | 2 → 1 |
+| contracts only | 4.7 / 2.8 → 4.3 / 2.6 | 3% / 7% → 7% / 10% | 1 → 1 |
+| The game's 10 gp start, trader | 4.9 / 3.6 → 5.3 / 3.5 | 13% / 17% → 13% / 17% | 1 → 1 |
+
+| Median price against base (seeds 1–30, days 1, 50, 100) | healing | arcana | gear | arms | armour | timber | stone | metal | gems | relics |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| before | 1.08× | 0.99× | 1.01× | 0.96× | 0.83× | 0.91× | 1.14× | 1.11× | 1.45× | 1.61× |
+| after | 1.22× | 1.04× | 1.01× | 1.02× | 1.03× | 0.98× | 1.25× | 1.30× | 1.50× | 1.66× |
+
+- **The relationships hold** (seeds 1–20, days 1, 60 and 120; `src/content/economy.test.ts` asserts them on seeds 1–5): arms demand averages 3.0 at a calm fort against 0.3 in a calm city, and 2.2 at a fort under threat; armour 1.0 in a calm city or capital, 2.6 under threat, against 1.5 at a threatened fort and 0 in a calm town or village. Metal demand is about 2.1–2.3 in cities and capitals, 0.9 in towns, 0.5–0.8 in villages and hamlets; stone 1.6–1.9 in towns and cities, 0.3–0.6 in villages; timber 1.9 in villages and hamlets, 1.0–1.2 in towns and cities.
+- **Prices rose a little** where demand was added: metal (median 1.11× → 1.30×), stone, healing (1.08× → 1.22×: herbalists and healers want what they sell) and armour (0.83× → 1.03×, as cities' workshops now make armour at 1 not 2 and the forges need metal). Arms and armour are cheaper near mines with smiths and dearer far from them, which is the new trade: metal from the mines to the cities, arms to the forts.
+- **The economy is otherwise unchanged within its variance:** the trader's earnings hold (3.7 / 3.0 gp a day). Reordering the goods reshuffles the seeded streams (rumours, cargo choices), so single runs move: one more 50 gp trader in 30 dips under 5 gp for a day (seed 2 hires, then provisions down to 1 gp, and recovers). The 30-day guard on 8 seeds now allows at most 2 broke (it was fewer than 2).
+
 ## Party upgrades (Plan 6c, 2026-11-13)
 
 The trader now buys party upgrades (`upgrades`, default on): in a town, while its gold is 200 gp (`UPGRADE_CAPITAL` in the policy, its trading capital) above the price, the cheapest next level for sale there; delving gear only when it delves. A new policy row, **trader, no upgrades**, is the old trader, and its numbers are the previous round's exactly (3.7 / 6.7 gp a day), so the comparison is like for like. The books gain a "Party upgrades" spend line and the levels bought.

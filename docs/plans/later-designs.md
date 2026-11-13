@@ -12,6 +12,7 @@ This is the "owned businesses" item of design §11, in a first, simple form.
   - costs about **300–500 gp**;
   - raises that service's quality by 1. Quality may go beyond 5: golden circles are drawn on top of the red ones;
   - adds about **50 gp of goods** to the shop's storage each week. The party picks them up free when it visits the town.
+  - raises the shop's **input demand** (its role's `inputs` in `service-roles.json`, e.g. a smith's metal): the data-driven demand that every service already adds where it is (designer call 2026-11-13) is the hook to scale, so an invested smithy pays more for metal.
 - **Dearer, valuable goods:** both the cost and the weekly value are higher for goods whose base price is above 25 gp, or which are light for their value (jewellery).
 - **Open:**
   - how storage caps (if it does) while the party is away;
