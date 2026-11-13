@@ -3403,12 +3403,12 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The king's dead close round her like a wall, and {actor} is thrown back bleeding.",
+                  "text": "The king's dead close round her like a wall and fall on all of you, and {actor} is thrown back bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
+                      "amount": -12,
+                      "target": "all"
                     }
                   ]
                 },
@@ -3448,12 +3448,12 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "{actor} gets the words wrong. The king turns his head and looks at {actor}, and the cold of it goes to the bone.",
+                  "text": "{actor} gets the words wrong. The king turns his head and looks at all of you, and the cold of it goes to the bone.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -5,
-                      "target": "actor"
+                      "amount": -10,
+                      "target": "all"
                     },
                     {
                       "effect": "position",
@@ -3491,7 +3491,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -10,
                       "target": "all"
                     }
                   ]
@@ -4844,12 +4844,12 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Wren is quicker than she looks. {actor} takes her point in the shoulder and goes back over the bench.",
+                  "text": "Wren is quicker than she looks. {actor} takes her point in the shoulder and goes back over the bench, and her blades fall on the rest of you.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
+                      "amount": -12,
+                      "target": "all"
                     }
                   ]
                 },
@@ -4889,12 +4889,12 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Wren cuts {actor} off from the brazier, and the will stays on the bench.",
+                  "text": "Wren cuts {actor} off from the brazier, and her hired blades set on all of you while the will stays on the bench.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -5,
-                      "target": "actor"
+                      "amount": -10,
+                      "target": "all"
                     },
                     {
                       "effect": "position",
@@ -4928,7 +4928,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "They take the silver and laugh, and one of them cuts {actor} for the cheek of it.",
+                  "text": "They take the silver and laugh, and then they draw on all of you for the cheek of it.",
                   "effects": [
                     {
                       "effect": "gold",
@@ -4936,8 +4936,8 @@
                     },
                     {
                       "effect": "hp",
-                      "amount": -4,
-                      "target": "actor"
+                      "amount": -10,
+                      "target": "all"
                     }
                   ]
                 },
@@ -6370,12 +6370,12 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Ashmaw's fire fills the cave mouth, and {actor} is driven back into the smoke, burned.",
+                  "text": "Ashmaw's fire fills the cave mouth and rolls over all of you, and {actor} is driven back into the smoke, burned.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -6,
-                      "target": "actor"
+                      "amount": -12,
+                      "target": "all"
                     }
                   ]
                 },
@@ -6416,12 +6416,12 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "{actor} misses, and Ashmaw does not.",
+                  "text": "{actor} misses, and Ashmaw does not: its fire sweeps the whole ledge.",
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -5,
-                      "target": "actor"
+                      "amount": -10,
+                      "target": "all"
                     },
                     {
                       "effect": "position",
@@ -6459,7 +6459,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -10,
                       "target": "all"
                     }
                   ]

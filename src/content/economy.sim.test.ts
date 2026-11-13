@@ -323,6 +323,7 @@ function simulate(
         run.spend.food -= gold
         break
       case 'rest':
+      case 'upkeep':
         run.spend.lodging -= gold
         break
       case 'rumours':

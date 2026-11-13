@@ -112,6 +112,8 @@ export function dungeonIssues(content: Content): string[] {
   for (const dungeon of sortedEntries(content.dungeons)) {
     const at = `dungeon ${dungeon.id}`
     if (dungeon.biomes.includes('sea')) issues.push(`${at}: dungeons lie on land, not "sea"`)
+    const last = dungeon.rooms.at(-1)
+    if (last?.milestone) issues.push(`${at}: room ${last.id}: the last room can't be a milestone`)
     for (const room of dungeon.rooms) {
       for (const id of room.situations) {
         const where = `${at}: room ${room.id}`

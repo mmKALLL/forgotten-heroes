@@ -17,12 +17,16 @@ import { exploreOption } from '../world/explore'
 import { siteStatus } from '../world/sites'
 import { gatherOptions, type GatherOption } from '../world/gather'
 import { recruitOffers } from '../town/recruits'
+import { roundOption } from '../town/services'
+import { delvePreview } from '../world/delve'
+import { dungeonOf } from '../world/dungeons'
 import { livingMembers } from '../town/camaraderie'
 import { accessorySales } from '../gear/accessories'
 import { statModifier } from '../rules/character'
 import { step, type Action } from '../state'
 import { actOpen, crisisDecided, crisisStatus } from '../crisis/status'
 import { crisisSites } from '../crisis/sites'
+import { runOver } from '../crisis/ending'
 import { siteLand } from '../crisis/text'
 import { routeOptions, type RouteOption } from './preview'
 import { poiReach, settlementReach } from './reach'
@@ -63,6 +67,10 @@ export type TraderWhy =
   | 'gear'
   /** The crusader resting until fit for a Crisis site. */
   | 'crusade'
+  /** Keeping the party together: a round at the inn, a night in a private room (Plan 6 B). */
+  | 'upkeep'
+  /** Pressing on or withdrawing in a dungeon (Plan 6 B). */
+  | 'delve'
 
 export type TraderOptions = {
   /** Buy cargo from the price book (default true). Off: a contracts-only adventurer. */
@@ -81,6 +89,17 @@ export type TraderOptions = {
   gear?: boolean
   /** Chase the Crisis (default false): the crusader policy (see `crusader`). */
   crusade?: boolean
+  /**
+   * Keep camaraderie up (default true): stand a round on arriving at an inn while it is below
+   * ROUND_BELOW, and take a private room for a night while it is below PRIVATE_BELOW.
+   */
+  upkeep?: boolean
+  /**
+   * Delve authored dungeons near the party's level (default: with `crusade`): go to a known one
+   * whose suggested level is at most the party's best + DELVE_LEVEL_LEAD, and press on room by
+   * room while the party is fit and the next room's risk is bearable.
+   */
+  delve?: boolean
   /** Stops before the next leg once this holds (e.g. a day reached). */
   until?: (state: GameState) => boolean
   /** Picks among equal choices (a road to scout, a site to visit) for leg `leg`. */
@@ -149,6 +168,22 @@ const CRUSADE_SITE_FOOD_DAYS = 1
  * (Plan 5b I1 added it for the crusader; Plan 6 found a trader stuck the same way.)
  */
 const MAX_STALLED_LEGS = 3
+/** Below this camaraderie the policy stands the party a round on arriving at an inn. */
+const ROUND_BELOW = 85
+/** Below this it also takes a private room for a night, where an inn has one. */
+const PRIVATE_BELOW = 65
+/** The delver goes to dungeons suggested for at most its best level + this. */
+const DELVE_LEVEL_LEAD = 1
+/** ...within this many steady days of the settlement it is in... */
+const MAX_DELVE_DAYS = 4
+/** ...and leaves a dungeon it withdrew from or was driven out of alone this many days. */
+const DELVE_AGAIN_DAYS = 14
+/** Between rooms it presses on while everyone standing has this share of their HP... */
+const DELVE_FIT_HP = 0.35
+/** ...and the next room's chance to drive the party out is at most this. */
+const DELVE_MAX_RISK = 0.7
+/** With upkeep in mind, a check that flees (tagged `retreat`) is worth this much less than its odds. */
+const FLEE_PENALTY = 0.2
 
 /** Exhausted or badly hurt, but alive (a member at MAX_EXHAUSTION is beyond resting). */
 const needsRest = (c: Character) =>
@@ -367,9 +402,11 @@ export function trader(
     hire: true,
     hireUpTo: 4,
     gear: true,
+    upkeep: true,
     pick: ((leg, count) => leg % count) as Pick,
     ...options,
   }
+  const delves = o.delve ?? o.crusade ?? false
   let state = start
   /** What each carried unit of cargo cost on average (loot and couriers' goods cost nothing). */
   const basis: Partial<Record<Good, number>> = {}
@@ -411,17 +448,26 @@ export function trader(
   }
 
   const resolveEncounter = () => {
-    for (let guard = 0; state.encounter && guard < 50; guard++) {
+    for (let guard = 0; state.encounter && guard < 50 && !runOver(state); guard++) {
       const all = encounterOptions(state).filter((x) => x.available)
       const poi = state.encounter.poi
-      const pressOn = o.crusade && poi != null && crisisSites(state.crisis).includes(poi)
+      // At a Crisis site, and in a dungeon room once in (between rooms it may withdraw), the
+      // crusader doesn't back out while it has another choice.
+      const pressOn =
+        o.crusade &&
+        poi != null &&
+        (crisisSites(state.crisis).includes(poi) || (delves && state.delve?.inRoom === true))
       const onward = pressOn ? all.filter((x) => !retreats(x)) : all
       const options = onward.length > 0 ? onward : all
-      const checks = options
-        .filter((x) => x.check !== null)
-        .sort((a, b) => b.check!.successChance - a.check!.successChance)
-      // A fixed option that costs coin (a toll, a healer's fee) is the last resort.
       const raw = state.encounter ? currentOptions(state.encounter) : []
+      // Fleeing costs camaraderie whatever the roll (Plan 6): with upkeep in mind, a flight is
+      // worth FLEE_PENALTY less than its odds.
+      const flees = (id: string) =>
+        o.upkeep && (raw.find((x) => x.id === id)?.tags?.includes('retreat') ?? false)
+      const worth = (x: (typeof options)[number]) =>
+        x.check!.successChance - (flees(x.id) ? FLEE_PENALTY : 0)
+      const checks = options.filter((x) => x.check !== null).sort((a, b) => worth(b) - worth(a))
+      // A fixed option that costs coin (a toll, a healer's fee) is the last resort.
       const costs = (id: string) => {
         const o = raw.find((x) => x.id === id)
         return (
@@ -429,8 +475,10 @@ export function trader(
         )
       }
       const fixed = options.filter((x) => x.kind === 'fixed')
-      const free = fixed.find((x) => !costs(x.id))
       const best = checks[0]
+      const free =
+        fixed.find((x) => !costs(x.id) && !flees(x.id)) ??
+        (best && worth(best) >= 0.4 ? undefined : fixed.find((x) => !costs(x.id)))
       // In a skill challenge (Plan 6 S), the round with the best chance of winning it.
       const round = challengePreview(state)?.best
       const inRound = round ? options.find((x) => x.id === round) : undefined
@@ -488,6 +536,8 @@ export function trader(
   const pickOffer = (here: string): Offer | null => {
     if (state.contracts.length >= MAX_CONTRACTS) return null
     if (o.crusade && crusadeStep(here).target !== null) return null
+    // A dungeon at the party's level waits: contracts after it.
+    if (dungeonTarget(here) !== null) return null
     const going = state.contracts.find((c) => !c.met)
     let best: { offer: Offer; perDay: number } | null = null
     const roads = routeOptions(state, content).filter((r) => r.available)
@@ -693,6 +743,79 @@ export function trader(
     }
   }
 
+  /** Gold kept back from upkeep: lodging and the next road's food. */
+  const upkeepReserve = () => RESERVE_PER_MEMBER * livingMembers(state).length + BROKE_GOLD
+
+  /**
+   * Keeping the party together, as a player watching the camaraderie bar would (Plan 6 B): a round
+   * on arriving at an inn while it is below ROUND_BELOW, and a night in a private room while it is
+   * below PRIVATE_BELOW, each when the purse keeps its reserve.
+   */
+  const upkeep = () => {
+    if (!o.upkeep || livingMembers(state).length < 2) return
+    const inn = serviceWith(state, content, 'round')
+    const round = roundOption(state)
+    if (
+      inn &&
+      state.camaraderie < ROUND_BELOW &&
+      round.available &&
+      state.gold - round.cost >= upkeepReserve()
+    ) {
+      act({ type: 'useService', service: inn, action: 'round' }, 'upkeep')
+    }
+    const room = restOption(state, content, 'private')
+    if (
+      state.camaraderie < PRIVATE_BELOW &&
+      room.room === 'private' &&
+      state.gold - room.lodgingCost >= upkeepReserve()
+    ) {
+      act({ type: 'rest', lodging: 'private' }, 'upkeep')
+    }
+  }
+
+  /** Visits to dungeons: the day the delver last left each. */
+  const delvedAt: Record<string, number> = {}
+  const bestLevel = () => Math.max(1, ...livingMembers(state).map((c) => c.level))
+
+  /**
+   * The dungeon the delver goes to from settlement `here`: the nearest known, inhabited authored
+   * dungeon within MAX_DELVE_DAYS whose suggested level is at most its best + DELVE_LEVEL_LEAD (or
+   * not yet known: one look inside tells it), not left within DELVE_AGAIN_DAYS. Only when fit,
+   * with no contract in hand and no Crisis site to go to.
+   */
+  const dungeonTarget = (here: string): string | null => {
+    if (!delves || state.contracts.length > 0 || !healthy(state)) return null
+    if (state.gold < crusadeGold()) return null
+    let best: { id: string; days: number } | null = null
+    for (const [id, poi] of Object.entries(state.world.pois)) {
+      if (!poi.discovered || !dungeonOf(content, poi)) continue
+      if (state.day - (delvedAt[id] ?? -Infinity) < DELVE_AGAIN_DAYS) continue
+      if (siteStatus(state.world.seed, id, poi, state.day)?.phase === 'empty') continue
+      const level = delvePreview(state, content, id)?.suggestedLevel ?? null
+      if (level !== null && level > bestLevel() + DELVE_LEVEL_LEAD) continue
+      const days = poiReach(state, content, here, id)?.days ?? null
+      if (days === null || days > MAX_DELVE_DAYS) continue
+      if (!best || days < best.days) best = { id, days }
+    }
+    return best?.id ?? null
+  }
+
+  /**
+   * In a dungeon between rooms: press on while everyone standing has DELVE_FIT_HP of their HP and
+   * the next room's risk is at most DELVE_MAX_RISK, else withdraw.
+   */
+  const delveOn = () => {
+    for (let guard = 0; state.delve && !state.delve.inRoom && guard < 12; guard++) {
+      const here = state.delve.poi
+      const preview = delvePreview(state, content, here)
+      const fit = livingMembers(state).every((c) => c.hp >= c.maxHp * DELVE_FIT_HP)
+      if (delves && preview && fit && (preview.risk ?? 1) <= DELVE_MAX_RISK) {
+        act({ type: 'pressOn' }, 'delve')
+        resolveEncounter()
+      } else act({ type: 'withdraw' }, 'delve')
+    }
+  }
+
   /** The gold the crusader wants in hand to go after the Crisis. */
   const crusadeGold = () => CRUSADE_GOLD_PER_MEMBER * livingMembers(state).length
 
@@ -786,7 +909,8 @@ export function trader(
     road: RouteOption
   ): { water: number; food: number; skins: number; fits: boolean } | null => {
     if (!o.crusade || !Object.hasOwn(state.world.pois, road.to)) return null
-    if (!crisisSites(state.crisis).includes(road.to)) return null
+    const dungeon = delves && dungeonOf(content, state.world.pois[road.to]) !== undefined
+    if (!dungeon && !crisisSites(state.crisis).includes(road.to)) return null
     const mouths = state.party.length + escortPassengers(state)
     const type = state.world.pois[road.to].type
     const spring = Object.hasOwn(content.poiTypes, type) && content.poiTypes[type].water
@@ -872,12 +996,18 @@ export function trader(
     if (o.crusade) eatFirst()
     wearGear()
     for (const c of [...state.contracts]) {
-      if (completeRefusal(state, content, c) === null) {
+      const refused = completeRefusal(state, content, c)
+      if (refused === null) {
         act({ type: 'completeContract', id: c.id, reward: 'gold' }, 'contract')
+      } else if (c.met && c.to === here) {
+        // Met but refused where it is due (its goods were lost on the way): give it up rather
+        // than carry it about for ever.
+        act({ type: 'abandonContract', id: c.id }, 'contract')
       }
     }
     // Sell first: the coin may pay for the inn.
     sellCargo()
+    upkeep()
     // Spare waterskins are refilled on arrival and weigh a lot: sell them back when laden
     // (provisioning buys them again for a dry road).
     if (state.waterskins > 0 && load(state, content).ratio > 0.8) {
@@ -967,7 +1097,9 @@ export function trader(
     const crusading = o.crusade ? crusadeStep(here).target : null
     if (crusading) plan = null
     let target: string | null =
-      crusading ?? (contract ? contractTarget(state, content, contract) : null)
+      crusading ??
+      (contract ? contractTarget(state, content, contract) : null) ??
+      dungeonTarget(here)
     const spare = () =>
       Math.max(0, state.gold - RESERVE_PER_MEMBER * state.party.length - BROKE_GOLD)
     if (!target && o.trade) {
@@ -990,7 +1122,7 @@ export function trader(
     if (!target && o.trade) target = scoutTarget(here)
     // Without a contract or a cargo run, passage money is better kept: walk where a road goes.
     const free = roads.filter((r) => r.fare === 0)
-    const errand = contract !== undefined || plan !== null || crusading !== null
+    const errand = contract !== undefined || plan !== null || crusading !== null || target !== null
     const toward = target ? roadToward(state, content, errand ? roads : free, target) : null
     let road =
       toward ??
@@ -1083,6 +1215,10 @@ export function trader(
       visitedAt[here] = state.day
       act({ type: 'visitPoi' }, 'site')
       resolveEncounter()
+      if (state.delve) {
+        delveOn()
+        delvedAt[here] = state.day
+      }
     }
     wearGear()
     lighten()
@@ -1123,7 +1259,7 @@ export function trader(
   let stalled = 0
   let lastDay = state.day
   for (let leg = 0; leg < legs && !o.until?.(state); leg++) {
-    if (!state.party.some((c) => c.exhaustion < MAX_EXHAUSTION)) break
+    if (runOver(state)) break
     if (state.encounter) resolveEncounter()
     stalled = state.day === lastDay ? stalled + 1 : 0
     lastDay = state.day

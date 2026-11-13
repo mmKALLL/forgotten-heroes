@@ -112,12 +112,12 @@
               "dc": {
                 "default": 13,
                 "description": "What \"dc\" means in the archetype",
-                "$ref": "#/$defs/__schema82"
+                "$ref": "#/$defs/__schema84"
               },
               "reward": {
                 "default": 1,
                 "description": "Multiplies every gold amount in the archetype",
-                "$ref": "#/$defs/__schema83"
+                "$ref": "#/$defs/__schema85"
               }
             },
             "required": [
@@ -793,20 +793,39 @@
               "effect": {
                 "$ref": "#/$defs/__schema74"
               },
-              "gold": {
+              "xp": {
                 "$ref": "#/$defs/__schema75"
               },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect",
+              "xp"
+            ],
+            "description": "A dungeon room's midway reward: XP, paid once per clearing. Engine-made only: the engine adds it to a milestone room's outcomes that end the room without driving the party out"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema76"
+              },
+              "gold": {
+                "$ref": "#/$defs/__schema77"
+              },
               "precious": {
-                "$ref": "#/$defs/__schema78"
-              },
-              "accessories": {
-                "$ref": "#/$defs/__schema79"
-              },
-              "tier": {
                 "$ref": "#/$defs/__schema80"
               },
-              "xp": {
+              "accessories": {
                 "$ref": "#/$defs/__schema81"
+              },
+              "tier": {
+                "$ref": "#/$defs/__schema82"
+              },
+              "xp": {
+                "$ref": "#/$defs/__schema83"
               },
               "if": {
                 "$ref": "#/$defs/__schema13"
@@ -1175,16 +1194,26 @@
     },
     "__schema74": {
       "type": "string",
-      "const": "hoard"
+      "const": "milestone"
     },
     "__schema75": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "XP for getting through the room"
+    },
+    "__schema76": {
+      "type": "string",
+      "const": "hoard"
+    },
+    "__schema77": {
       "type": "object",
       "properties": {
         "min": {
-          "$ref": "#/$defs/__schema76"
+          "$ref": "#/$defs/__schema78"
         },
         "max": {
-          "$ref": "#/$defs/__schema77"
+          "$ref": "#/$defs/__schema79"
         }
       },
       "required": [
@@ -1193,44 +1222,44 @@
       ],
       "description": "The gold, rolled in this range"
     },
-    "__schema76": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
-    },
-    "__schema77": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
-    },
     "__schema78": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema79": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema80": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "Precious goods"
     },
-    "__schema79": {
+    "__schema81": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "Accessories rolled into the gear"
     },
-    "__schema80": {
+    "__schema82": {
       "description": "The accessories' tier",
       "$ref": "#/$defs/__schema65"
     },
-    "__schema81": {
+    "__schema83": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "XP for clearing the dungeon"
     },
-    "__schema82": {
+    "__schema84": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema83": {
+    "__schema85": {
       "type": "number",
       "minimum": 0,
       "maximum": 10

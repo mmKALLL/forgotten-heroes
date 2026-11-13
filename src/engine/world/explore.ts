@@ -26,7 +26,7 @@ import { omenFactor } from '../crisis/clues'
 import { siteStatus } from './sites'
 import { dungeonOf, siteCr } from './dungeons'
 import { enterDungeon } from './delve'
-import { contractDc, crOffset } from '../rules/levels'
+import { contractDc, contractWound, crOffset, crWound } from '../rules/levels'
 import { rumourOption, type RumourOption } from '../town/rumours'
 import { siteContractsMet } from '../town/contract-hooks'
 import {
@@ -344,9 +344,14 @@ export function visitPoi(state: GameState, content: Content): GameState {
   const crisis = crisisVisit(state, content, id)
   // A lair (or any hostile site) plays at its CR, or a held contract's on it when higher.
   const cr = siteCr(state.world, content, id, state.day)
-  const jobs = state.contracts.filter((c) => c.poi === id && !c.met).map((c) => contractDc(c.level))
-  const dcBonus = Math.max(cr === null ? 0 : crOffset(cr), ...jobs)
-  const options = crisis.cr === undefined && dcBonus !== 0 ? { ...crisis, dcBonus } : crisis
+  const held = state.contracts.filter((c) => c.poi === id && !c.met)
+  const dcBonus = Math.max(cr === null ? 0 : crOffset(cr), ...held.map((c) => contractDc(c.level)))
+  // Its wounds go as deep as its CR (Plan 6 B), or a held contract's when higher.
+  const wound = Math.max(cr === null ? 1 : crWound(cr), ...held.map((c) => contractWound(c.level)))
+  const options =
+    crisis.cr === undefined && (dcBonus !== 0 || wound !== 1)
+      ? { ...crisis, dcBonus, wound }
+      : crisis
   const started = startEncounter(
     { ...state, rng, visited: true },
     content,

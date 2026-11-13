@@ -103,31 +103,31 @@
           "wonder": {
             "default": false,
             "description": "One click, flavour only, never a cost",
-            "$ref": "#/$defs/__schema83"
+            "$ref": "#/$defs/__schema85"
           },
           "followUpOnly": {
             "default": false,
             "description": "Never drawn at random; only queued by followUp",
-            "$ref": "#/$defs/__schema84"
+            "$ref": "#/$defs/__schema86"
           },
           "site": {
             "default": false,
             "description": "Only played at a point of interest; never drawn on the road",
-            "$ref": "#/$defs/__schema85"
+            "$ref": "#/$defs/__schema87"
           },
           "room": {
             "default": false,
             "description": "A dungeon room (with site: true): played only in a delve, never on the road or at an ordinary site",
-            "$ref": "#/$defs/__schema86"
+            "$ref": "#/$defs/__schema88"
           },
           "pursuit": {
             "description": "A follow-up that hunts the party down. When it comes due, the pace since it was queued decides: covered tracks lose it, a brisk or faster march outruns it, slower lets it catch up.",
-            "$ref": "#/$defs/__schema87"
+            "$ref": "#/$defs/__schema89"
           },
           "villains": {
             "default": [],
             "description": "Villain ids: an omen, drawn on the road only while one of these villains' Crisis is undecided",
-            "$ref": "#/$defs/__schema88"
+            "$ref": "#/$defs/__schema90"
           },
           "start": {
             "default": "start",
@@ -146,7 +146,7 @@
                 },
                 "archetype": {
                   "description": "Its options come first, then this stage's own",
-                  "$ref": "#/$defs/__schema89"
+                  "$ref": "#/$defs/__schema91"
                 },
                 "options": {
                   "default": [],
@@ -157,22 +157,22 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema92"
-                          },
-                          "label": {
-                            "$ref": "#/$defs/__schema93"
-                          },
-                          "description": {
                             "$ref": "#/$defs/__schema94"
                           },
-                          "tags": {
+                          "label": {
                             "$ref": "#/$defs/__schema95"
                           },
-                          "requires": {
+                          "description": {
+                            "$ref": "#/$defs/__schema96"
+                          },
+                          "tags": {
                             "$ref": "#/$defs/__schema97"
                           },
+                          "requires": {
+                            "$ref": "#/$defs/__schema99"
+                          },
                           "once": {
-                            "$ref": "#/$defs/__schema108"
+                            "$ref": "#/$defs/__schema110"
                           },
                           "kind": {
                             "type": "string",
@@ -186,22 +186,22 @@
                               },
                               "ability": {
                                 "description": "Overrides the skill's default ability, e.g. \"cha\" for Intimidation (CHA)",
-                                "$ref": "#/$defs/__schema110"
+                                "$ref": "#/$defs/__schema112"
                               },
                               "dc": {
                                 "anyOf": [
                                   {
-                                    "$ref": "#/$defs/__schema111"
+                                    "$ref": "#/$defs/__schema113"
                                   },
                                   {
-                                    "$ref": "#/$defs/__schema112"
+                                    "$ref": "#/$defs/__schema114"
                                   }
                                 ],
                                 "description": "A DC from 1 to 40, or inside an archetype \"dc\", \"dc+2\" or \"dc-1\""
                               },
                               "combat": {
                                 "description": "Combat checks never grant Inspiration on a natural 20",
-                                "$ref": "#/$defs/__schema113"
+                                "$ref": "#/$defs/__schema115"
                               }
                             },
                             "required": [
@@ -211,27 +211,27 @@
                           },
                           "highStakes": {
                             "description": "Force the slow, glowing dice roll",
-                            "$ref": "#/$defs/__schema114"
+                            "$ref": "#/$defs/__schema116"
                           },
                           "outcomes": {
                             "type": "object",
                             "properties": {
                               "critFail": {
                                 "description": "Defaults to the fail outcome",
-                                "$ref": "#/$defs/__schema115"
+                                "$ref": "#/$defs/__schema117"
                               },
                               "fail": {
-                                "$ref": "#/$defs/__schema115"
+                                "$ref": "#/$defs/__schema117"
                               },
                               "partial": {
-                                "$ref": "#/$defs/__schema115"
+                                "$ref": "#/$defs/__schema117"
                               },
                               "success": {
-                                "$ref": "#/$defs/__schema115"
+                                "$ref": "#/$defs/__schema117"
                               },
                               "critSuccess": {
                                 "description": "Defaults to the success outcome",
-                                "$ref": "#/$defs/__schema115"
+                                "$ref": "#/$defs/__schema117"
                               }
                             },
                             "required": [
@@ -253,29 +253,29 @@
                         "type": "object",
                         "properties": {
                           "id": {
-                            "$ref": "#/$defs/__schema92"
-                          },
-                          "label": {
-                            "$ref": "#/$defs/__schema93"
-                          },
-                          "description": {
                             "$ref": "#/$defs/__schema94"
                           },
-                          "tags": {
+                          "label": {
                             "$ref": "#/$defs/__schema95"
                           },
-                          "requires": {
+                          "description": {
+                            "$ref": "#/$defs/__schema96"
+                          },
+                          "tags": {
                             "$ref": "#/$defs/__schema97"
                           },
+                          "requires": {
+                            "$ref": "#/$defs/__schema99"
+                          },
                           "once": {
-                            "$ref": "#/$defs/__schema108"
+                            "$ref": "#/$defs/__schema110"
                           },
                           "kind": {
                             "type": "string",
                             "const": "fixed"
                           },
                           "outcome": {
-                            "$ref": "#/$defs/__schema115"
+                            "$ref": "#/$defs/__schema117"
                           }
                         },
                         "required": [
@@ -290,7 +290,7 @@
                 },
                 "challenge": {
                   "description": "Makes the stage a skill challenge: its options are rounds that mark a tally",
-                  "$ref": "#/$defs/__schema125"
+                  "$ref": "#/$defs/__schema127"
                 }
               },
               "required": [
@@ -970,20 +970,39 @@
             "effect": {
               "$ref": "#/$defs/__schema75"
             },
-            "gold": {
+            "xp": {
               "$ref": "#/$defs/__schema76"
             },
+            "if": {
+              "$ref": "#/$defs/__schema14"
+            }
+          },
+          "required": [
+            "effect",
+            "xp"
+          ],
+          "description": "A dungeon room's midway reward: XP, paid once per clearing. Engine-made only: the engine adds it to a milestone room's outcomes that end the room without driving the party out"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "$ref": "#/$defs/__schema77"
+            },
+            "gold": {
+              "$ref": "#/$defs/__schema78"
+            },
             "precious": {
-              "$ref": "#/$defs/__schema79"
-            },
-            "accessories": {
-              "$ref": "#/$defs/__schema80"
-            },
-            "tier": {
               "$ref": "#/$defs/__schema81"
             },
-            "xp": {
+            "accessories": {
               "$ref": "#/$defs/__schema82"
+            },
+            "tier": {
+              "$ref": "#/$defs/__schema83"
+            },
+            "xp": {
+              "$ref": "#/$defs/__schema84"
             },
             "if": {
               "$ref": "#/$defs/__schema14"
@@ -1351,16 +1370,26 @@
     },
     "__schema75": {
       "type": "string",
-      "const": "hoard"
+      "const": "milestone"
     },
     "__schema76": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "XP for getting through the room"
+    },
+    "__schema77": {
+      "type": "string",
+      "const": "hoard"
+    },
+    "__schema78": {
       "type": "object",
       "properties": {
         "min": {
-          "$ref": "#/$defs/__schema77"
+          "$ref": "#/$defs/__schema79"
         },
         "max": {
-          "$ref": "#/$defs/__schema78"
+          "$ref": "#/$defs/__schema80"
         }
       },
       "required": [
@@ -1369,43 +1398,37 @@
       ],
       "description": "The gold, rolled in this range"
     },
-    "__schema77": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
-    },
-    "__schema78": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
-    },
     "__schema79": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema80": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema81": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "Precious goods"
     },
-    "__schema80": {
+    "__schema82": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "Accessories rolled into the gear"
     },
-    "__schema81": {
+    "__schema83": {
       "description": "The accessories' tier",
       "$ref": "#/$defs/__schema66"
     },
-    "__schema82": {
+    "__schema84": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "XP for clearing the dungeon"
-    },
-    "__schema83": {
-      "type": "boolean"
-    },
-    "__schema84": {
-      "type": "boolean"
     },
     "__schema85": {
       "type": "boolean"
@@ -1417,12 +1440,18 @@
       "type": "boolean"
     },
     "__schema88": {
+      "type": "boolean"
+    },
+    "__schema89": {
+      "type": "boolean"
+    },
+    "__schema90": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema0"
       }
     },
-    "__schema89": {
+    "__schema91": {
       "type": "object",
       "properties": {
         "id": {
@@ -1431,43 +1460,43 @@
         "dc": {
           "default": 13,
           "description": "What \"dc\" means in the archetype",
-          "$ref": "#/$defs/__schema90"
+          "$ref": "#/$defs/__schema92"
         },
         "reward": {
           "default": 1,
           "description": "Multiplies every gold amount in the archetype",
-          "$ref": "#/$defs/__schema91"
+          "$ref": "#/$defs/__schema93"
         }
       },
       "required": [
         "id"
       ]
     },
-    "__schema90": {
+    "__schema92": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema91": {
+    "__schema93": {
       "type": "number",
       "minimum": 0,
       "maximum": 10
     },
-    "__schema92": {
+    "__schema94": {
       "description": "Unique within its stage",
       "$ref": "#/$defs/__schema0"
     },
-    "__schema93": {
-      "type": "string"
-    },
-    "__schema94": {
-      "type": "string"
-    },
     "__schema95": {
-      "description": "\"retreat\": fleeing or withdrawing from a hostile encounter; it costs camaraderie, more the bigger the party",
-      "$ref": "#/$defs/__schema96"
+      "type": "string"
     },
     "__schema96": {
+      "type": "string"
+    },
+    "__schema97": {
+      "description": "\"retreat\": fleeing or withdrawing from a hostile encounter; it costs camaraderie, more the bigger the party",
+      "$ref": "#/$defs/__schema98"
+    },
+    "__schema98": {
       "type": "array",
       "items": {
         "type": "string",
@@ -1476,7 +1505,7 @@
         ]
       }
     },
-    "__schema97": {
+    "__schema99": {
       "default": [],
       "type": "array",
       "items": {
@@ -1503,7 +1532,7 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema98"
+                "$ref": "#/$defs/__schema100"
               },
               "skill": {
                 "$ref": "#/$defs/__schema49"
@@ -1519,13 +1548,13 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema99"
+                "$ref": "#/$defs/__schema101"
               },
               "scope": {
-                "$ref": "#/$defs/__schema100"
+                "$ref": "#/$defs/__schema102"
               },
               "category": {
-                "$ref": "#/$defs/__schema102"
+                "$ref": "#/$defs/__schema104"
               }
             },
             "required": [
@@ -1537,7 +1566,7 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema103"
+                "$ref": "#/$defs/__schema105"
               }
             },
             "required": [
@@ -1549,13 +1578,13 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema104"
+                "$ref": "#/$defs/__schema106"
               },
               "good": {
                 "$ref": "#/$defs/__schema52"
               },
               "min": {
-                "$ref": "#/$defs/__schema105"
+                "$ref": "#/$defs/__schema107"
               }
             },
             "required": [
@@ -1569,10 +1598,10 @@
             "type": "object",
             "properties": {
               "req": {
-                "$ref": "#/$defs/__schema106"
+                "$ref": "#/$defs/__schema108"
               },
               "min": {
-                "$ref": "#/$defs/__schema107"
+                "$ref": "#/$defs/__schema109"
               }
             },
             "required": [
@@ -1584,48 +1613,48 @@
         ]
       }
     },
-    "__schema98": {
+    "__schema100": {
       "type": "string",
       "const": "untrained"
     },
-    "__schema99": {
+    "__schema101": {
       "type": "string",
       "const": "undiscovered"
     },
-    "__schema100": {
+    "__schema102": {
       "default": "domain",
       "description": "Where to look: the encounter's domain, or every domain of its land",
-      "$ref": "#/$defs/__schema101"
+      "$ref": "#/$defs/__schema103"
     },
-    "__schema101": {
+    "__schema103": {
       "type": "string",
       "enum": [
         "domain",
         "land"
       ]
     },
-    "__schema102": {
+    "__schema104": {
       "description": "Only sites of this category",
       "$ref": "#/$defs/__schema46"
     },
-    "__schema103": {
+    "__schema105": {
       "type": "string",
       "const": "siteReady"
     },
-    "__schema104": {
+    "__schema106": {
       "type": "string",
       "const": "goods"
     },
-    "__schema105": {
+    "__schema107": {
       "type": "integer",
       "minimum": 1,
       "maximum": 9007199254740991
     },
-    "__schema106": {
+    "__schema108": {
       "type": "string",
       "const": "standing"
     },
-    "__schema107": {
+    "__schema109": {
       "type": "string",
       "enum": [
         "hated",
@@ -1637,11 +1666,11 @@
         "honoured"
       ]
     },
-    "__schema108": {
+    "__schema110": {
       "description": "Can only be chosen once per encounter. A name instead of true makes a group: choosing any option of the group on a stage uses up all of them (a failed parley also ends slipping past)",
-      "$ref": "#/$defs/__schema109"
+      "$ref": "#/$defs/__schema111"
     },
-    "__schema109": {
+    "__schema111": {
       "anyOf": [
         {
           "type": "boolean"
@@ -1651,7 +1680,7 @@
         }
       ]
     },
-    "__schema110": {
+    "__schema112": {
       "type": "string",
       "enum": [
         "str",
@@ -1662,63 +1691,63 @@
         "cha"
       ]
     },
-    "__schema111": {
+    "__schema113": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema112": {
+    "__schema114": {
       "type": "string",
       "pattern": "^dc([+-][0-9]+)?$"
     },
-    "__schema113": {
-      "type": "boolean"
-    },
-    "__schema114": {
-      "type": "boolean"
-    },
     "__schema115": {
+      "type": "boolean"
+    },
+    "__schema116": {
+      "type": "boolean"
+    },
+    "__schema117": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema116"
-        },
-        "effects": {
-          "$ref": "#/$defs/__schema117"
-        },
-        "goto": {
           "$ref": "#/$defs/__schema118"
         },
-        "stay": {
+        "effects": {
+          "$ref": "#/$defs/__schema119"
+        },
+        "goto": {
           "$ref": "#/$defs/__schema120"
         },
-        "tally": {
+        "stay": {
           "$ref": "#/$defs/__schema122"
+        },
+        "tally": {
+          "$ref": "#/$defs/__schema124"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema124"
+          "$ref": "#/$defs/__schema126"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema116": {
+    "__schema118": {
       "type": "string"
     },
-    "__schema117": {
+    "__schema119": {
       "default": [],
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema11"
       }
     },
-    "__schema118": {
+    "__schema120": {
       "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema119"
+      "$ref": "#/$defs/__schema121"
     },
-    "__schema119": {
+    "__schema121": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -1729,18 +1758,18 @@
         }
       ]
     },
-    "__schema120": {
-      "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema121"
-    },
-    "__schema121": {
-      "type": "boolean"
-    },
     "__schema122": {
-      "description": "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed option adds nothing unless given (it must then be once). An outcome that tallies stays on the stage until the challenge is decided.",
+      "description": "Stay on the current stage",
       "$ref": "#/$defs/__schema123"
     },
     "__schema123": {
+      "type": "boolean"
+    },
+    "__schema124": {
+      "description": "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed option adds nothing unless given (it must then be once). An outcome that tallies stays on the stage until the challenge is decided.",
+      "$ref": "#/$defs/__schema125"
+    },
+    "__schema125": {
       "type": "object",
       "properties": {
         "successes": {
@@ -1757,30 +1786,30 @@
         }
       }
     },
-    "__schema124": {
+    "__schema126": {
       "type": "object",
       "properties": {
         "text": {
-          "$ref": "#/$defs/__schema116"
-        },
-        "effects": {
-          "$ref": "#/$defs/__schema117"
-        },
-        "goto": {
           "$ref": "#/$defs/__schema118"
         },
-        "stay": {
+        "effects": {
+          "$ref": "#/$defs/__schema119"
+        },
+        "goto": {
           "$ref": "#/$defs/__schema120"
         },
-        "tally": {
+        "stay": {
           "$ref": "#/$defs/__schema122"
+        },
+        "tally": {
+          "$ref": "#/$defs/__schema124"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema125": {
+    "__schema127": {
       "type": "object",
       "properties": {
         "successes": {
@@ -1797,11 +1826,11 @@
         },
         "win": {
           "description": "What winning does (no actor: no {actor}, no actor targets)",
-          "$ref": "#/$defs/__schema124"
+          "$ref": "#/$defs/__schema126"
         },
         "lose": {
           "description": "What losing does (no actor)",
-          "$ref": "#/$defs/__schema124"
+          "$ref": "#/$defs/__schema126"
         }
       },
       "required": [

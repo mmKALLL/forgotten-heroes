@@ -228,6 +228,16 @@ export const PoiStateSchema = z.object({
     .nullable()
     .default(null)
     .describe('The day its boon was last taken (a siteReady option); null if never'),
+  milestones: z
+    .object({
+      since: z.number().int().describe('The day the inhabited spell they were paid in began'),
+      rooms: z.array(z.number().int().min(0)).describe('Room indices whose milestone was paid'),
+    })
+    .optional()
+    .describe(
+      "An authored dungeon's milestone rooms already paid in this inhabited spell (Plan 6 B), so " +
+        'a midway reward is paid once per clearing; absent when none'
+    ),
   known: z
     .literal(true)
     .optional()

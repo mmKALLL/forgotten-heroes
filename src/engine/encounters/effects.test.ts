@@ -32,6 +32,19 @@ describe('applyEffects', () => {
     ])
   })
 
+  test('a wound that downs a member, or lands on one already down, adds exhaustion (Plan 6 B)', () => {
+    const ex = (s: ReturnType<typeof makeState>) => s.party.map((c) => c.exhaustion)
+    const grazed = applyEffects(state, fx({ effect: 'hp', amount: -2, target: 'all' }))
+    expect(ex(grazed)).toEqual(ex(state))
+    const downed = applyEffects(state, fx({ effect: 'hp', amount: -30, target: 'all' }))
+    expect(ex(downed).every((e, i) => e > ex(state)[i])).toBe(true)
+    const again = applyEffects(downed, fx({ effect: 'hp', amount: -1, target: 'all' }))
+    expect(ex(again).every((e, i) => e > ex(downed)[i])).toBe(true)
+    // Healing a downed member adds nothing.
+    const healed = applyEffects(downed, fx({ effect: 'hp', amount: 5, target: 'all' }))
+    expect(ex(healed)).toEqual(ex(downed))
+  })
+
   test('hp to a random member hits one conscious member, is seeded and advances the rng', () => {
     const effects = fx({ effect: 'hp', amount: -3, target: 'random' })
     const a = applyEffects(state, effects)

@@ -73,20 +73,24 @@ export function dangerInfo(state: DangerAt, content?: Content): DangerInfo {
 }
 
 /** How much harder an encounter is: a flat DC bonus (a site's power) and the danger share. */
-export type Hardening = { dcBonus: number; danger: number }
+/**
+ * `wound` (default 1) deepens wounds further: a site's or a job's challenge rating over standard
+ * difficulty (rules/levels.ts crWound; Plan 6 B), as `dcBonus` raises the DCs.
+ */
+export type Hardening = { dcBonus: number; danger: number; wound?: number }
 
 /**
  * The encounter snapshot made harder, every stage included (the twist table's joined stages too):
  * each check's DC becomes `dc + dcBonus + round(dc × danger)` (normalised), and each wound (a
- * negative `hp` effect, the twist's opening hit included) `−ceil(|amount| × (1 + danger))`.
+ * negative `hp` effect, the twist's opening hit included) `−ceil(|amount| × (1 + danger) × wound)`.
  * Healing, gold and goods are unchanged. With nothing to add, the situation itself is returned.
  */
-export function harden(situation: Situation, { dcBonus, danger }: Hardening): Situation {
-  if (dcBonus === 0 && danger === 0) return situation
+export function harden(situation: Situation, { dcBonus, danger, wound = 1 }: Hardening): Situation {
+  if (dcBonus === 0 && danger === 0 && wound === 1) return situation
   return mapChecks(
     situation,
     (base) => base + dcBonus + Math.round(base * danger + EPSILON),
-    (amount) => -Math.ceil(-amount * (1 + danger) - EPSILON)
+    (amount) => -Math.ceil(-amount * (1 + danger) * wound - EPSILON)
   )
 }
 

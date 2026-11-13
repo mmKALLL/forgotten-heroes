@@ -420,16 +420,16 @@ export const RECRUIT_LOCAL_ANCESTRY = 0.75
 // it on someone. Gains are flat, so a bigger party costs more to keep happy (designer, 2026-11-13).
 
 /** Camaraderie lost at the end of a day on which anyone went without food or water. */
-export const CAMARADERIE_HUNGER = 13
+export const CAMARADERIE_HUNGER = 8
 /** Camaraderie lost for each member who dies. */
 export const CAMARADERIE_DEATH = 25
 /**
  * Camaraderie lost for a failed encounter check, per living member beyond the first (the total is
  * rounded: 3 for a pair, 13 for six).
  */
-export const CAMARADERIE_FAIL = 2.5
+export const CAMARADERIE_FAIL = 1
 /** Camaraderie lost for a critically failed encounter check, per living member beyond the first. */
-export const CAMARADERIE_CRIT_FAIL = 5
+export const CAMARADERIE_CRIT_FAIL = 2
 /** Camaraderie lost for fleeing (an option tagged `retreat`), per living member beyond the first. */
 export const CAMARADERIE_RETREAT = 5
 /** Camaraderie gained for each contract completed. */
@@ -528,6 +528,11 @@ export const SKILL_USE_DAYS = 7
 
 /** Totals this far below the DC still count as a partial success. */
 export const PARTIAL_MARGIN = 3
+/**
+ * A wound that drops a living member to 0 HP, or lands on one already down, adds this much
+ * exhaustion (6 is death): the way risk kills until linear combat (Plan 6 B).
+ */
+export const DOWNED_EXHAUSTION = 2
 /** Success chances in this band are close calls (design §9: the dice slow down and glow). */
 export const HIGH_STAKES_BAND = [0.25, 0.75] as const
 /** A twist kind tagged with the land, or with the threat holding it, weighs this much more. */
@@ -560,13 +565,14 @@ export const PATH_DETOUR = 1.25
 // Progression and XP (rules/progression.ts; encounters/outcomes.ts, effects.ts; town/contracts.ts)
 
 /**
- * Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset): 150 × n × (n − 1). Levels
- * 1–10 were checked by the economy report (Plan 5a I1: about level 2 by day 15, 4 by day 60 and 5
- * by day 120); 11–20 continue the pattern provisionally (Plan 6 C1) until Track B tunes them.
+ * Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset). Set by Plan 6 Track B from
+ * the crusader's observed XP (crisis-report.md) toward the designer's median levels 4 / 7 / 13 /
+ * 19 on days 30 / 100 / 200 / 300: the income is nearly flat (about 45 XP a day), so from level 6
+ * every level costs the same 900.
  */
 export const XP_BY_LEVEL: readonly number[] = [
-  0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500, 16500, 19800, 23400, 27300, 31500, 36000,
-  40800, 45900, 51300, 57000,
+  0, 200, 500, 900, 1500, 2300, 3200, 4100, 5000, 5900, 6800, 7700, 8600, 9600, 10700, 11900, 13200,
+  14600, 16100, 17700,
 ]
 /** XP for a successful check, per point of its final DC (site power and danger included). */
 export const XP_PER_DC = 5
@@ -587,7 +593,7 @@ export const XP_DISCOVER = 25
 
 /** The base DC of a check against each CR 0–20 (provisional, Plan 6 C1). */
 export const CR_DC: readonly number[] = [
-  10, 11, 12, 13, 13, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22,
+  10, 11, 12, 13, 13, 14, 15, 15, 16, 16, 17, 17, 17, 18, 18, 19, 19, 19, 20, 20, 21,
 ]
 /** Past the table, the DC rises by 1 every this many CR. */
 export const CR_DC_BEYOND = 2
@@ -598,6 +604,11 @@ export const CR_LEVEL_OFFSET = 1
  * w plays at w + crDc(c) − crDc(this) (dungeons, lairs, levelled contracts; rules/levels.ts).
  */
 export const CR_STANDARD = 2
+/**
+ * Wounds in a dungeon room go this share deeper for each CR above CR_STANDARD (rules/levels.ts
+ * crWound, on top of DELVE_WOUND): a CR 8 dungeon's wounds are 1 + 6 × this as deep as written.
+ */
+export const CR_WOUND_STEP = 1 / 3
 
 // Levelled work (town/contracts.ts, rules/levels.ts; Plan 6 D1)
 
@@ -626,6 +637,17 @@ export const LAIR_CR_BY_THREAT: readonly number[] = [0, 2, 4, 6]
 
 /** Wounds in a dungeon room are this many times as deep as written (after the danger ramp). */
 export const DELVE_WOUND = 2
+/**
+ * Clearing an authored dungeon pays this share of the XP its level (crLevel of its CR) needs to
+ * level up (designer, 2026-11-13)...
+ */
+export const DUNGEON_XP_SHARE = 0.75
+/** ...of which each milestone room (a midway point) pays this share when passed, once a clearing... */
+export const DUNGEON_MILESTONE_SHARE = 0.25
+/** ...and the hoard at least this share (so a dungeon with two milestones pays 25/25/50%). */
+export const DUNGEON_END_SHARE = 0.5
+/** Clearing a lair (any other cycling site with a CR) pays this share of its level's XP to level up. */
+export const LAIR_XP_SHARE = 0.25
 /** A cleared dungeon's hoard pays a random share in this range of a same-level contract's pay. */
 export const DELVE_REWARD: readonly [number, number] = [1.5, 2]
 /** A hoard's accessories are of tier 2 from this CR (tier 1 below). */

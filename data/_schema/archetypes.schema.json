@@ -488,17 +488,17 @@
           "$ref": "#/$defs/__schema30"
         },
         "goto": {
-          "$ref": "#/$defs/__schema99"
-        },
-        "stay": {
           "$ref": "#/$defs/__schema101"
         },
-        "tally": {
+        "stay": {
           "$ref": "#/$defs/__schema103"
+        },
+        "tally": {
+          "$ref": "#/$defs/__schema105"
         },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema105"
+          "$ref": "#/$defs/__schema107"
         }
       },
       "required": [
@@ -1031,20 +1031,39 @@
               "effect": {
                 "$ref": "#/$defs/__schema91"
               },
-              "gold": {
+              "xp": {
                 "$ref": "#/$defs/__schema92"
               },
+              "if": {
+                "$ref": "#/$defs/__schema33"
+              }
+            },
+            "required": [
+              "effect",
+              "xp"
+            ],
+            "description": "A dungeon room's midway reward: XP, paid once per clearing. Engine-made only: the engine adds it to a milestone room's outcomes that end the room without driving the party out"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema93"
+              },
+              "gold": {
+                "$ref": "#/$defs/__schema94"
+              },
               "precious": {
-                "$ref": "#/$defs/__schema95"
-              },
-              "accessories": {
-                "$ref": "#/$defs/__schema96"
-              },
-              "tier": {
                 "$ref": "#/$defs/__schema97"
               },
-              "xp": {
+              "accessories": {
                 "$ref": "#/$defs/__schema98"
+              },
+              "tier": {
+                "$ref": "#/$defs/__schema99"
+              },
+              "xp": {
+                "$ref": "#/$defs/__schema100"
               },
               "if": {
                 "$ref": "#/$defs/__schema33"
@@ -1358,16 +1377,26 @@
     },
     "__schema91": {
       "type": "string",
-      "const": "hoard"
+      "const": "milestone"
     },
     "__schema92": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "XP for getting through the room"
+    },
+    "__schema93": {
+      "type": "string",
+      "const": "hoard"
+    },
+    "__schema94": {
       "type": "object",
       "properties": {
         "min": {
-          "$ref": "#/$defs/__schema93"
+          "$ref": "#/$defs/__schema95"
         },
         "max": {
-          "$ref": "#/$defs/__schema94"
+          "$ref": "#/$defs/__schema96"
         }
       },
       "required": [
@@ -1376,43 +1405,43 @@
       ],
       "description": "The gold, rolled in this range"
     },
-    "__schema93": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
-    },
-    "__schema94": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
-    },
     "__schema95": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema96": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema97": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "Precious goods"
     },
-    "__schema96": {
+    "__schema98": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "Accessories rolled into the gear"
     },
-    "__schema97": {
+    "__schema99": {
       "description": "The accessories' tier",
       "$ref": "#/$defs/__schema82"
     },
-    "__schema98": {
+    "__schema100": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "XP for clearing the dungeon"
     },
-    "__schema99": {
+    "__schema101": {
       "description": "Next stage. \"@twist\" (only in twist branches) goes to the twist's escalation stage. Without goto or stay, the encounter ends.",
-      "$ref": "#/$defs/__schema100"
+      "$ref": "#/$defs/__schema102"
     },
-    "__schema100": {
+    "__schema102": {
       "anyOf": [
         {
           "$ref": "#/$defs/__schema0"
@@ -1423,18 +1452,18 @@
         }
       ]
     },
-    "__schema101": {
-      "description": "Stay on the current stage",
-      "$ref": "#/$defs/__schema102"
-    },
-    "__schema102": {
-      "type": "boolean"
-    },
     "__schema103": {
-      "description": "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed option adds nothing unless given (it must then be once). An outcome that tallies stays on the stage until the challenge is decided.",
+      "description": "Stay on the current stage",
       "$ref": "#/$defs/__schema104"
     },
     "__schema104": {
+      "type": "boolean"
+    },
+    "__schema105": {
+      "description": "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed option adds nothing unless given (it must then be once). An outcome that tallies stays on the stage until the challenge is decided.",
+      "$ref": "#/$defs/__schema106"
+    },
+    "__schema106": {
       "type": "object",
       "properties": {
         "successes": {
@@ -1451,7 +1480,7 @@
         }
       }
     },
-    "__schema105": {
+    "__schema107": {
       "type": "object",
       "properties": {
         "text": {
@@ -1461,13 +1490,13 @@
           "$ref": "#/$defs/__schema30"
         },
         "goto": {
-          "$ref": "#/$defs/__schema99"
-        },
-        "stay": {
           "$ref": "#/$defs/__schema101"
         },
-        "tally": {
+        "stay": {
           "$ref": "#/$defs/__schema103"
+        },
+        "tally": {
+          "$ref": "#/$defs/__schema105"
         }
       },
       "required": [

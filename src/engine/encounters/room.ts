@@ -13,12 +13,20 @@ import { playsRound } from './challenge'
 // what is shown is what happens:
 // - wounds are `wound` times as deep;
 // - a failed or critically failed outcome that ends the room drives the party out (driveOut);
-// - in the last room, every other outcome that ends the room pays the hoard (`hoard`).
+// - in the last room, every other outcome that ends the room pays the hoard (`hoard`), and in a
+//   milestone room its share of the dungeon's XP (`milestone`, once per clearing; Plan 6 B).
 // In a skill challenge (challenge.ts) the rounds never end the room: its `lose` branch drives the
 // party out and its `win` branch pays the hoard (when they end it).
 
-/** How a room is played: the wound factor, and the hoard when it is the last room. */
-export type RoomRules = { wound: number; hoard: Extract<Effect, { effect: 'hoard' }> | null }
+/**
+ * How a room is played: the wound factor, the hoard when it is the last room, and a milestone
+ * room's XP (Plan 6 B) when it is still to be paid this clearing.
+ */
+export type RoomRules = {
+  wound: number
+  hoard: Extract<Effect, { effect: 'hoard' }> | null
+  milestone?: Extract<Effect, { effect: 'milestone' }> | null
+}
 
 /** A branch ends the room when it goes nowhere and doesn't stay. */
 const ends = (b: OutcomeBranch): boolean => b.goto === undefined && !b.stay
@@ -26,14 +34,15 @@ const ends = (b: OutcomeBranch): boolean => b.goto === undefined && !b.stay
 const DRIVE_OUT: Effect = { effect: 'driveOut' }
 
 /** The room's snapshot: deeper wounds, driven out on a failure that ends it, the hoard at the end. */
-export function asRoom(situation: Situation, { wound, hoard }: RoomRules): Situation {
+export function asRoom(situation: Situation, { wound, hoard, milestone }: RoomRules): Situation {
+  const reward = [...(hoard ? [hoard] : []), ...(milestone ? [milestone] : [])]
   const effect = (e: Effect): Effect =>
-    e.effect === 'hp' && e.amount < 0 ? { ...e, amount: e.amount * wound } : e
+    e.effect === 'hp' && e.amount < 0 ? { ...e, amount: -Math.ceil(-e.amount * wound) } : e
   const branch = <B extends OutcomeBranch>(b: B, failed: boolean): B => {
     const effects = b.effects.map(effect)
     if (!ends(b)) return { ...b, effects }
     if (failed) return { ...b, effects: [...effects, DRIVE_OUT] }
-    return { ...b, effects: hoard ? [...effects, hoard] : effects }
+    return { ...b, effects: [...effects, ...reward] }
   }
   const outcome = (o: Outcome, failed: boolean): Outcome => ({
     ...branch(o, failed),

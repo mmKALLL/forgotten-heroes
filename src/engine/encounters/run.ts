@@ -54,7 +54,7 @@ import { livingMembers } from '../town/camaraderie'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
 import { asRoom, type RoomRules } from './room'
-import { jobDc } from '../rules/levels'
+import { jobDc, jobWound } from '../rules/levels'
 import { POWER_DC, TWIST_PLACE_WEIGHT } from '../constants'
 
 export type EncounterAction =
@@ -175,6 +175,8 @@ export type StartOptions = {
    * challenge rating over standard difficulty (rules/levels.ts crOffset). Ignored with `cr`.
    */
   dcBonus?: number
+  /** Wounds this many times as deep, with `dcBonus` (rules/levels.ts crWound). Ignored with `cr`. */
+  wound?: number
   /** A dungeon room (world/delve.ts): deeper wounds, driven out on a failure, the hoard last. */
   room?: RoomRules
   position?: Position
@@ -223,13 +225,15 @@ export function startEncounter(
   const danger = atCr ? 0 : dangerLevel(state, content)
   const powerDc = atCr ? 0 : sitePowerDc(state, poi)
   // A hostile encounter on the road while the party works a levelled contract (rules/levels.ts).
-  const jobBonus =
-    !atCr && !poi && place?.pace && compiled.disposition === 'hostile' ? jobDc(state) : 0
+  const hostileJob =
+    !atCr && !poi && place?.pace !== undefined && compiled.disposition === 'hostile'
+  const jobBonus = hostileJob ? jobDc(state) : 0
   const extraDc = atCr ? 0 : (options.dcBonus ?? 0) + jobBonus
+  const wound = Math.max(options.wound ?? 1, hostileJob ? jobWound(state) : 1)
   const twisted = kind ? attachTwistKind(compiled, kind, content) : compiled
   const hardened = atCr
     ? atChallenge(twisted, options.cr!)
-    : harden(twisted, { dcBonus: powerDc + extraDc, danger })
+    : harden(twisted, { dcBonus: powerDc + extraDc, danger, wound })
   const joined = options.room ? asRoom(hardened, options.room) : hardened
   // The title and the twist are filled once, here; other text is filled as it is shown.
   const situation = {
