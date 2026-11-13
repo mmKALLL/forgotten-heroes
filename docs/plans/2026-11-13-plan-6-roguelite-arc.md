@@ -229,6 +229,38 @@ export function crLevel(cr: number): number
   - Everything goes in `data/claude/` (`villains.json`, `crisis-sites.json`, `crisis-situations.json`, `crisis-names.json`).
 - **K2. The endgame tracker panel** below the journal: permanent from act I's open day, and hidden before it. It shows each act's phase, the days left, the next step and the surge. One smoke test.
 
+## Wave 2b: designer feedback (2026-11-13, afternoon)
+
+**Calls:**
+- **Market.** The categories' vertical labels make the sections uneven in height, and the market's symmetry matters. Shorten the labels, with abbreviations if needed ("Consumables" especially; "Equipment" and "Materials" are a little long), so every section is the same height.
+- **Services** show their full text inline, with no ellipsis. The hover text is different.
+- **Shift** sells 5 at once.
+- **Recruit offers** don't mention the accessory's cost, and drop the word "Brings".
+- **World map** another 32 px taller, almost square.
+- **Kingdom names** are listed roughly by distance.
+- **Camaraderie** runs 0–100. Each week below 25 the party loses a member, and 0 is an instant game over. Firing or losing a member gives +5 at once.
+- **Lead sites** get +1 CR (3 / 9 / 15).
+  - Soft penalty: from day 50 / 150 / 250, while the act's lead is not yet won, overall danger rises by 1% a day.
+- **Dungeons:**
+  - Gaining information on a dungeon also tells the player the right party level for it.
+  - Panning between rooms is smooth, not a jump. It need not follow the corridors exactly.
+  - Dungeons of CR 10 and up may be longer when the map clearly has more rooms; the visuals decide.
+
+**Interpretations (Claude):**
+- **Camaraderie ×2.5.** The tiers, losses and gains are rescaled, and the "+5 for firing or losing a member" stays a flat +5 on the new scale.
+  - The weekly loss replaces Fractured desertion. It falls on day 7, 14, … of an unbroken spell below 25: a hired member if any (seeded), else a founder, never the last living member.
+  - Camaraderie 0 ends the run as "disbanded" (a new ending, in the Hall).
+- **The waiting penalty** grows by 1% a day from the act's day 50 until its lead is won, then drops away. It stacks with the ramp and the surge, and the tracker and the danger mark say why.
+- **The suggested party level** (`crLevel`) is shown once the dungeon is known by word: it was heard of in a rumour, or the party has entered it. A dungeon found only by exploring shows "unknown" until then. This adds to rumours' value against exploring.
+
+**Tracks:**
+- **E (engine):** camaraderie 0–100 with weekly losses and the game over, lead +1 CR, the waiting penalty, and the dungeon level knowledge (state and view model). Migration v14 → v15.
+- **V (UI):**
+  - market labels, services inline, shift-sell ×5, recruit offer text;
+  - the map +32 px, kingdoms by distance;
+  - the smooth delve pan, and the dungeon card showing the suggested level when known.
+- **R (dungeon content):** revisit the CR ≥ 10 dungeons (and any whose maps clearly show more): add rooms where the map has them, true to the image. The schema's room cap rises to 10.
+
 ## Wave 3
 
 ### Track B: balance (sims)
