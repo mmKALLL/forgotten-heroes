@@ -55,7 +55,6 @@ export const ja: Partial<Messages> = {
   'rumours.short': '金が足りない。',
   'board.heading': '掲示板',
   'board.empty': '今週の掲示板には何もない。',
-  'board.urgent': '急ぎ',
   'board.rep': '評判+{n}',
   'board.take': '受ける',
   'board.takeLabel': '「{title}」を受ける',

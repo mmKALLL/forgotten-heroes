@@ -307,7 +307,6 @@ export const en = {
   'rumours.short': 'Not enough gold.',
   'board.heading': 'Notice board',
   'board.empty': 'Nothing on the board this week.',
-  'board.urgent': 'urgent',
   'board.level': 'level {n}',
   'board.levelHint': 'The level of the work: its pay and the checks it brings scale with it.',
   'board.pay': '{gp} gp',

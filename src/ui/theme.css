@@ -2117,9 +2117,10 @@ h2[tabindex='-1']:focus {
 .offer.unavailable strong {
   color: var(--muted);
 }
-.badge.urgent {
+/* An urgent contract's days left (designer call: in place of an "urgent" badge). */
+.urgent-left {
   color: var(--bad);
-  border-color: var(--bad);
+  font-weight: 700;
 }
 .badge.contract-badge {
   color: var(--accent);

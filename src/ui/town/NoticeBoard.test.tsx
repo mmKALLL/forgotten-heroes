@@ -42,7 +42,8 @@ test('offers show their route, deadline and pay; Take dispatches, a locked one s
   expect(row.getByText(`${open.pay} gp`)).toBeTruthy()
   expect(row.getByText(`level ${open.level}`)).toBeTruthy()
   // A countdown to the deadline, not its day.
-  expect(row.getByText(new RegExp(`${open.km} km · ${open.days} days left · `))).toBeTruthy()
+  const route = row.getByText(`${open.days} days left`).closest('div')!
+  expect(route.textContent).toMatch(new RegExp(`${open.km} km · ${open.days} days left · `))
   // Every offer's text is shown in full, with no more/less toggle.
   expect(board.queryByRole('button', { name: /^(more|less)$/ })).toBeNull()
   expect(row.getByText(open.text)).toBeTruthy()
@@ -53,6 +54,24 @@ test('offers show their route, deadline and pay; Take dispatches, a locked one s
   const take = board.getByRole('button', { name: `Take “${locked.title}”` }) as HTMLButtonElement
   expect(take.disabled).toBe(true)
   expect(take.title).toBe(`needs standing ${locked.locked}`)
+})
+
+test('an urgent offer has no badge: its days left are bold red', () => {
+  const base = makeState({ location: 'greenvale-1', gold: 50 })
+  const state = Array.from({ length: 80 }, (_, week) => ({ ...base, day: week * 7 + 1 })).find(
+    (s) => noticeBoard(s, content, 'greenvale-1').some((o) => o.urgent)
+  )
+  if (!state) throw new Error('no week with an urgent offer')
+  const urgent = noticeBoard(state, content, 'greenvale-1').find((o) => o.urgent)!
+  render(
+    <I18nProvider content={content}>
+      <NoticeBoard content={content} state={state} onAction={() => {}} />
+    </I18nProvider>
+  )
+  const board = within(screen.getByRole('region', { name: 'Notice board' }))
+  const row = within(board.getByRole('button', { name: `Take “${urgent.title}”` }).closest('li')!)
+  expect(row.getByText(`${urgent.days} days left`).className).toBe('urgent-left')
+  expect(board.queryByText('urgent')).toBeNull()
 })
 
 test('a procurement names the shortage and the nearest maker', () => {

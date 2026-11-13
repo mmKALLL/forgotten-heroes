@@ -51,8 +51,10 @@ function OfferRow({
   const i18n = useI18n()
   const { t } = i18n
   const { title, text } = contractText(i18n, o)
-  // The countdown: days from today to the deadline if taken now.
+  // The countdown: days from today to the deadline if taken now. An urgent offer's is bold red
+  // (designer call: no separate urgent badge). A marker splits the line around it.
   const left = leftText(t, o.deadline - today)
+  const MARK = '\u0000'
   const why = o.locked
     ? t('board.locked', { standing: t(`standing.${o.locked}`) })
     : (o.reason ?? null)
@@ -62,15 +64,16 @@ function OfferRow({
       ? t('board.procure', {
           source: o.sourceName ?? '',
           km: o.km,
-          left,
+          left: MARK,
           steady: daysText(t, o.steadyDays),
         })
       : t('board.route', {
           to: o.poiName ?? o.toName,
           km: o.km,
-          left,
+          left: MARK,
           steady: daysText(t, o.steadyDays),
         })
+  const [beforeLeft, afterLeft = ''] = route.split(MARK)
   return (
     <li className={o.available ? 'offer' : 'offer unavailable'}>
       <div className="offer-head">
@@ -79,7 +82,6 @@ function OfferRow({
         <span className="badge level" title={t('board.levelHint')}>
           {t('board.level', { n: o.level })}
         </span>
-        {o.urgent && <span className="badge urgent">{t('board.urgent')}</span>}
         <span className="offer-pay">
           {t('board.pay', { gp: o.pay })}
           {rep > 0 && <span className="muted"> · {t('board.rep', { n: rep })}</span>}
@@ -95,7 +97,9 @@ function OfferRow({
       </div>
       <div className="offer-route muted">
         {why && <span className="tone-bad">{why} · </span>}
-        {route}
+        {beforeLeft}
+        <span className={o.urgent ? 'urgent-left' : undefined}>{left}</span>
+        {afterLeft}
       </div>
       {/* In full (designer call: almost every offer fits; no "more" toggle). */}
       <p className="contract-text">{text}</p>

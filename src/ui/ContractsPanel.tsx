@@ -86,12 +86,6 @@ function ContractItem({
     <li className="contract">
       <div>
         <strong>{title}</strong>
-        {c.urgent && (
-          <>
-            {' '}
-            <span className="badge urgent">{t('board.urgent')}</span>
-          </>
-        )}
       </div>
       <div className="muted">
         {c.kind === 'procurement' && c.good
@@ -104,7 +98,15 @@ function ContractItem({
             })
           : t('contracts.where', { to: where, patron: c.patronName })}{' '}
         ·{' '}
-        <span className={c.daysLeft !== null && c.daysLeft <= 1 ? 'tone-bad' : undefined}>
+        <span
+          className={
+            c.urgent
+              ? 'urgent-left'
+              : c.daysLeft !== null && c.daysLeft <= 1
+                ? 'tone-bad'
+                : undefined
+          }
+        >
           {left}
         </span>
       </div>
