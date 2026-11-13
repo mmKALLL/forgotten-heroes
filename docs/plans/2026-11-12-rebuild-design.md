@@ -113,7 +113,7 @@ There are 15 goods in 5 categories. They are tracked as quantities, never as ind
 
 | Category | Goods | Strategic role |
 |---|---|---|
-| Essentials | Food, Water, Fuel | Consumed daily. Water dominates in deserts, fuel in tundra and winter. Food spoils. |
+| Essentials | Food, Water, Fuel | Consumed daily. Water dominates in deserts, fuel in tundra and winter. Food spoils (each batch keeps 14 days). |
 | Consumables | Healing, Alchemicals, Arcana | Spent to unlock or boost encounter options |
 | Equipment | Arms, Armour, Gear | Demand spikes with war and raids. Gear unlocks terrain options. |
 | Materials | Timber, Stone, Metal | Heavy and cheap, but huge demand where regions are rebuilding |
@@ -132,7 +132,7 @@ There are 15 goods in 5 categories. They are tracked as quantities, never as ind
 
 All numbers below are in `src/engine/constants.ts` or the `data/claude/` files named (see `docs/notes/constants.md`). They were tuned against the economy simulation (`docs/notes/economy-report.md`).
 
-- **Goods** (`data/claude/goods.json`: weight in kg, base price in gp, spoilage, market depth, and what each is for):
+- **Goods** (`data/claude/goods.json`: weight in kg, base price in gp, shelf life, market depth, and what each is for):
 
   | Good | kg | gp | | Good | kg | gp |
   |---|---|---|---|---|---|---|
@@ -145,7 +145,11 @@ All numbers below are in `src/engine/constants.ts` or the `data/claude/` files n
   | Arms | 5 | 15 | | Relics | 1 | 60 |
   | | | | | Luxuries | 2 | 20 |
 
-  - Food spoils 2% a day (deterministic: the fraction carries over, and losses are logged).
+  - **Food keeps 14 days a batch** (designer call 2026-11-13; it rotted 2% a day before). Every batch the party gets (bought, gathered, foraged, looted, the starting food, a recruit's own) keeps the food's `shelfDays` (14, in `goods.json`; only food has one), then what is left of it spoils at once as the 14th day ends ("3 rations of food spoiled."). Food bought on day 1 feeds the party through day 14.
+    - **State** (`economy/food.ts`, the least invasive design): `goods.food` stays the quantity every reader uses; `GameState.foodLots` (`{ day, amount }`, oldest first) only says how old it is, and adds up to `goods.food` after every step. The lots follow the food rather than every writer keeping them (`syncFoodLots`): food that appears is a new batch dated the day it appeared, and food that goes goes **oldest first, everywhere**: eaten, sold, stolen, delivered or dropped. The step syncs after every action; a day syncs before the party eats (so food found that day is that day's) and again as it ends.
+    - **Shown only when near** (`SPOIL_SHOW_DAYS`, 7): the goods bar adds "3 spoil in 2d" after Food for the soonest batch within 7 days (all of them in its hint), and nothing further off. "1d" means as today ends.
+    - **Previews are exact:** the journey forecast (the roads-out preview, provisioning, the road's supply outlook) walks the lots day by day as the road does, so food that spoils before it is eaten isn't counted: the road says "1 spoil on the way", and a shortfall's "rations short" includes it.
+    - Save v19: the food carried becomes one batch, fresh on the save's day; the old fractional carry is dropped.
   - Water costs only weight. It is never traded, and refilling is free in every settlement. Waterskins are containers (5 gp each, selling back for 2; 2 days of water), not one of the goods. A waterskin is a lasting upgrade, so it is priced as a real decision for a 10–50 gp party (designer call 2026-11-13: it was 2 gp).
   - **Water refills automatically wherever it is free and doesn't encumber** (designer rule): there is never a manual "fill water" step. Provisioning only buys food and waterskins (and pours in the water a road needs, warning when that encumbers).
   - Consumables are spent by encounter options that need them (a gear line across the flooded ferry, healing kits, alchemist's fire, an arcana ward). Thieves and tolls take precious goods or gold, and dungeon vaults and lair clearings give relics and gems that must be carried home and sold where they are wanted.

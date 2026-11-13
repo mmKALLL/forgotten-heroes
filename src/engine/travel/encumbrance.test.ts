@@ -1,11 +1,9 @@
 import { describe, expect, test } from 'vitest'
-import { buildContent } from '../../content/build'
 import type { GameState } from '../../schema/state'
 import { step } from '../state'
-import { fixtureContent, makeState, testEconomy, testWorld } from '../test-fixtures'
+import { fixtureContent, makeState } from '../test-fixtures'
 import { load } from '../economy/capacity'
 import { routeOptions } from './preview'
-import { passDay } from './days'
 import { warningText } from './warnings'
 import { ENCUMBERED_SPEED, KM_PER_DAY } from '../constants'
 
@@ -68,45 +66,5 @@ describe('encumbrance on the road', () => {
     expect(sea.available).toBe(true)
     const sailing = step(port, { type: 'travel', routeId: sea.routeId }, content)
     expect(sailing.travel?.kmPerDay).toBe(KM_PER_DAY.sea)
-  })
-})
-
-describe('spoilage on the road', () => {
-  const goods = testEconomy['data/claude/goods.json'] as { entries: { id: string }[] }
-  const { content: spoiling } = buildContent({
-    ...testWorld,
-    'data/claude/goods.json': {
-      ...goods,
-      entries: goods.entries.map((e) => (e.id === 'food' ? { ...e, spoilPerDay: 0.1 } : e)),
-    },
-  })
-
-  test('a day on the road spoils food after the meal, and keeps the carry', () => {
-    const state = makeState({ goods: { food: 22, water: 8 } })
-    const after = passDay(state, 'plains', 'steady', spoiling)
-    // 22 − 2 eaten = 20; 10% of 20 = 2 spoiled.
-    expect(after.goods.food).toBe(18)
-    expect(after.log.at(-1)!.text).toBe('2 rations of food spoiled.')
-    const next = passDay({ ...state, goods: { food: 7, water: 8 } }, 'plains', 'steady', spoiling)
-    expect(next.goods.food).toBe(5)
-    expect(next.spoilage.food).toBeCloseTo(0.5)
-  })
-
-  test('the preview counts spoilage', () => {
-    const state = at('greenvale-1', { food: 6 })
-    const steady = (c: typeof content) =>
-      routeOptions(state, c, false)
-        .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
-        .paces.find((p) => p.pace === 'steady')!
-    expect(steady(content).food.runsOutOnDay).toBeNull()
-    // With 30% a day, 6 rations for 2 over 3 days run out early.
-    const { content: rotting } = buildContent({
-      ...testWorld,
-      'data/claude/goods.json': {
-        ...goods,
-        entries: goods.entries.map((e) => (e.id === 'food' ? { ...e, spoilPerDay: 0.3 } : e)),
-      },
-    })
-    expect(steady(rotting).food.runsOutOnDay).not.toBeNull()
   })
 })

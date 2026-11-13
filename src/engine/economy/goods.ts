@@ -1,12 +1,11 @@
 import type { Content } from '../../content/build'
 import type { GoodDef } from '../../schema/economy'
 import { GOODS, GOOD_CATEGORY, type Good, type GoodCategory } from '../../schema/types'
-import type { GameState, Goods } from '../../schema/state'
-import { appendLog } from '../log'
+import type { Goods } from '../../schema/state'
 
-// The 15 goods of design §4 as cargo: weight (kg), value at base price and spoilage. A good with
-// no definition in the content weighs nothing, is worth nothing and never spoils, so a world
-// without economy data still plays.
+// The 15 goods of design §4 as cargo: weight (kg) and value at base price (food's shelf life is
+// economy/food.ts). A good with no definition in the content weighs nothing, is worth nothing and
+// never spoils, so a world without economy data still plays.
 
 /** The content's definition of a good, or null when the data has none. */
 export const goodDef = (content: Content, good: Good): GoodDef | null =>
@@ -94,53 +93,4 @@ export function changeGoods(goods: Goods, content: Content, change: GoodsChange)
   }
   const amount = Math.trunc(change.amount ?? 0)
   return amount < 0 ? take(goods, targets, -amount) : give(goods, targets, amount)
-}
-
-/** Units lost to spoilage in one day, and the fractional carry left over. */
-export function spoil(
-  goods: Goods,
-  carry: Partial<Record<Good, number>>,
-  content: Content
-): { goods: Goods; spoilage: Partial<Record<Good, number>>; lost: Partial<Record<Good, number>> } {
-  const next = { ...goods }
-  const spoilage: Partial<Record<Good, number>> = {}
-  const lost: Partial<Record<Good, number>> = {}
-  for (const g of GOODS) {
-    const rate = goodDef(content, g)?.spoilPerDay ?? 0
-    const have = units(goods, g)
-    // Nothing carried, nothing to rot: any carry is dropped.
-    if (rate <= 0 || have === 0) continue
-    const due = have * rate + (carry[g] ?? 0)
-    const whole = Math.min(have, Math.floor(due))
-    const rest = due - Math.floor(due)
-    if (whole > 0) {
-      next[g] = have - whole
-      lost[g] = whole
-    }
-    if (rest > 0) spoilage[g] = Math.min(rest, 1 - Number.EPSILON)
-  }
-  return { goods: next, spoilage, lost }
-}
-
-const plural = (n: number, word: string) => (n === 1 ? word : `${word}s`)
-
-/**
- * A day's spoilage (design §4: food spoils): each good with `spoilPerDay` loses
- * floor(units × rate + carry) and keeps the remainder as carry. Logged, e.g. "2 rations of food
- * spoiled."
- */
-export function spoilDay(state: GameState, content: Content): GameState {
-  const { goods, spoilage, lost } = spoil(state.goods, state.spoilage, content)
-  let next: GameState = { ...state, goods, spoilage }
-  for (const g of GOODS) {
-    const n = lost[g] ?? 0
-    if (n === 0) continue
-    const def = goodDef(content, g)!
-    next = appendLog(
-      next,
-      `${n} ${plural(n, def.unit)} of ${def.name.toLowerCase()} spoiled.`,
-      'bad'
-    )
-  }
-  return next
 }

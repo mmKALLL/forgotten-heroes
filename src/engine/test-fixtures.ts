@@ -771,13 +771,12 @@ export const testWorld: Record<string, unknown> = {
   },
 }
 
-const good = (id: string, unit: string, weight: number, price: number, spoilPerDay = 0) => ({
+const good = (id: string, unit: string, weight: number, price: number) => ({
   id,
   name: id[0].toUpperCase() + id.slice(1),
   unit,
   weight,
   price,
-  spoilPerDay,
   uses: `Test ${id}.`,
 })
 
@@ -799,7 +798,8 @@ export const testEconomy: Record<string, unknown> = {
     kind: 'goods',
     source: 'claude',
     entries: [
-      // Food doesn't spoil here, so travel tests count rations exactly (spoilage tests set it).
+      // Food keeps forever here (no shelfDays), so travel tests count rations exactly (spoilage
+      // tests set it).
       good('food', 'ration', 1, 1),
       good('water', 'day', 2, 0),
       good('fuel', 'bundle', 5, 1),
@@ -1597,8 +1597,12 @@ export const lyra = makeCharacter({
   maxHp: 16,
 })
 
+/** A new game's state for Brom and Lyra; food given in `goods` is one batch got today. */
 export function makeState(overrides: Partial<GameState> = {}): GameState {
-  return { ...newGame(1, fixtureContent()), party: [brom, lyra], gold: 20, ...overrides }
+  const state = { ...newGame(1, fixtureContent()), party: [brom, lyra], gold: 20, ...overrides }
+  if (overrides.foodLots) return state
+  const food = state.goods.food ?? 0
+  return { ...state, foodLots: food > 0 ? [{ day: state.day, amount: food }] : [] }
 }
 
 export function makeEncounter(overrides: Partial<EncounterState> = {}): EncounterState {

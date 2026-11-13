@@ -17,6 +17,9 @@ export const en = {
   'top.dangerNext': 'next rise on day {day}',
   'goods.heading': 'Goods carried',
   'goods.none': '—',
+  'goods.spoilSoon': '{n} spoil in {days}d',
+  'goods.spoilHint':
+    'Each batch of food keeps {shelf}d, then what is left of it spoils. The party eats and sells the oldest first.',
   'goodCategory.essentials': 'Essentials',
   'goodCategory.consumables': 'Consumables',
   'goodCategory.equipment': 'Equipment',
@@ -490,6 +493,7 @@ export const en = {
   'route.water': 'Water: {carried} / {needed}',
   'route.waterMax': ' (max {capacity})',
   'route.perDay': ', +{n} per day',
+  'route.spoils': ', {n} spoil on the way',
   'route.forager': '{name} forages each day: {skill} {modifier} vs DC {dc}',
   'route.encounters': '{min}–{max} encounters',
   'route.hostile': '{pct} hostile ({parts})',

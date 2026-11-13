@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { Content } from '../content/build'
 import { load, type Load } from '../engine/economy/capacity'
 import { goodDef, goodsInCategory } from '../engine/economy/goods'
+import { shelfDays, spoilingSoon } from '../engine/economy/food'
 import { visibleWealth, type VisibleWealth } from '../engine/economy/wealth'
 import { formatPercent } from '../engine/format'
 import type { Action } from '../engine/state'
@@ -23,7 +24,8 @@ const units = (state: Pick<GameState, 'goods'>, good: Good) => state.goods[good]
 
 /**
  * The bottom bar (design §9): the goods carried by category (goods at 0 hidden, "—" for an empty
- * category; a contract's cargo marked), the capacity meter, and the visible-wealth pips.
+ * category; a contract's cargo marked; food spoiling within SPOIL_SHOW_DAYS days, e.g. "3 spoil in
+ * 2d"), the capacity meter, and the visible-wealth pips.
  * `children` adds controls at its end.
  */
 export function GoodsBar({
@@ -44,6 +46,14 @@ export function GoodsBar({
   // The units of each good that are a contract's cargo (reserved, and still carried).
   const lots = cargoInfo(state, content).lots
   const cargo = (g: Good) => lots.filter((l) => l.good === g).reduce((n, l) => n + l.carried, 0)
+  // Food spoiling soon: the soonest batch on the bar, every one in the hint.
+  const spoiling = spoilingSoon(state, content)
+  const spoilLine = (s: { amount: number; inDays: number }) =>
+    t('goods.spoilSoon', { n: s.amount, days: s.inDays })
+  const spoilHint = [
+    spoiling.map(spoilLine).join(', '),
+    t('goods.spoilHint', { shelf: shelfDays(content) ?? 0 }),
+  ].join('. ')
   return (
     <footer className="goods-bar" aria-label={t('goods.heading')}>
       <ul className="goods-groups" aria-label={t('goods.heading')}>
@@ -67,6 +77,11 @@ export function GoodsBar({
                     {cargo(g) > 0 && (
                       <span className="badge small cargo-badge">
                         {t('market.cargoShort', { n: cargo(g) })}
+                      </span>
+                    )}
+                    {g === 'food' && spoiling.length > 0 && (
+                      <span className="spoil-soon small" title={spoilHint}>
+                        {spoilLine(spoiling[0])}
                       </span>
                     )}
                   </span>

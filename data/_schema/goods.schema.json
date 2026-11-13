@@ -64,9 +64,8 @@
             "minimum": 0,
             "description": "Base price in gp per unit, before supply and demand"
           },
-          "spoilPerDay": {
-            "default": 0,
-            "description": "The share of the units carried that spoils each day (food), 0 for none",
+          "shelfDays": {
+            "description": "Days each batch keeps before what is left of it spoils at once (food only); absent: never spoils",
             "$ref": "#/$defs/__schema0"
           },
           "depth": {
@@ -97,9 +96,9 @@
   ],
   "$defs": {
     "__schema0": {
-      "type": "number",
-      "minimum": 0,
-      "maximum": 1
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 9007199254740991
     },
     "__schema1": {
       "type": "number",

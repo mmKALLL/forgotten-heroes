@@ -15,7 +15,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 18
+export const CURRENT_SAVE_VERSION = 19
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -471,6 +471,19 @@ export const v17ToV18 = (raw: Record<string, unknown>): Record<string, unknown> 
 })
 
 /**
+ * v18 → v19 (designer call 2026-11-13): food keeps 14 days per batch instead of rotting 2% a day.
+ * The food carried becomes one batch, fresh on the save's day (the kindest reading: nothing spoils
+ * the moment an old save loads), and the old fractional spoilage carry goes.
+ */
+export function v18ToV19(raw: Record<string, unknown>): Record<string, unknown> {
+  const { spoilage: _carry, ...rest } = raw
+  const goods = raw.goods as { food?: unknown } | undefined
+  const food = typeof goods?.food === 'number' ? Math.floor(goods.food + 1e-9) : 0
+  const day = typeof raw.day === 'number' ? raw.day : 1
+  return { ...rest, version: 19, foodLots: food > 0 ? [{ day, amount: food }] : [] }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -515,6 +528,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v16ToV17(raw as Record<string, unknown>), content)
     case 17:
       return migrate(v17ToV18(raw as Record<string, unknown>), content)
+    case 18:
+      return migrate(v18ToV19(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

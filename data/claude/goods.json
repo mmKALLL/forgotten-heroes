@@ -10,9 +10,9 @@
       "unit": "ration",
       "weight": 1,
       "price": 0.5,
-      "spoilPerDay": 0.02,
+      "shelfDays": 14,
       "depth": 3,
-      "uses": "Eaten every day on the road, one ration per member. It spoils slowly."
+      "uses": "Eaten every day on the road, one ration per member. Each batch keeps 14 days, then spoils."
     },
     {
       "id": "water",
