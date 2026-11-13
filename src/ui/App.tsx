@@ -33,6 +33,7 @@ import { PoiPanel } from './world/PoiPanel'
 import { DelveView } from './world/DelveView'
 import { useTravelPrefs } from './world/travelPrefs'
 import { WorldMap } from './world/WorldMap'
+import { useAutoTravel } from './world/autoTravel'
 
 const content = loadBundledContent()
 const mapImage = assetUrl(WORLD_MAP_IMAGE)
@@ -99,6 +100,9 @@ function Game() {
     : crisis?.showEnd && !shown.encounter
       ? crisis.ended!.outcome
       : null
+  // Auto-travel (design §7): the party walks on by itself; it waits while a roll animates or the
+  // run is over (an open encounter, a modal and a hidden tab are checked inside).
+  const auto = useAutoTravel(state, content, dispatch, rolling || final !== null)
   const newParty = () => {
     setSelected(null)
     restart(slot)
@@ -169,6 +173,7 @@ function Game() {
               setSelected(null)
             }}
             onClose={() => setSelected(null)}
+            glide={auto.glide}
           />
         </div>
         <div className="centre">
@@ -196,6 +201,7 @@ function Game() {
               state={shown}
               onAction={dispatch}
               autoRest={{ on: autoRest, set: setAutoRest }}
+              auto={auto}
             />
           ) : atSite ? (
             <PoiPanel

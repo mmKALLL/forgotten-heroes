@@ -14,15 +14,16 @@ const lerp = (a: MapPoint, b: MapPoint, t: number): MapPoint => ({
 
 /**
  * Where the party is on the map: its settlement or site, or on the road the share of the way it
- * has travelled. Null if it is nowhere on the map.
+ * has travelled, with `dayShare` of the day under way (auto-travel's glide; 0 at the day's
+ * start). Null if it is nowhere on the map.
  */
-export function partyPoint(state: GameState, content: Content): MapPoint | null {
+export function partyPoint(state: GameState, content: Content, dayShare = 0): MapPoint | null {
   const at = (id: string): MapPoint | null => nodeOf(state, content, id)?.at ?? null
   const travel = state.travel
   if (travel) {
     const from = at(travel.from)
     const to = at(travel.to)
-    return from && to ? lerp(from, to, journeyProgress(travel)) : null
+    return from && to ? lerp(from, to, journeyProgress(travel, dayShare)) : null
   }
   return state.location ? at(state.location) : null
 }

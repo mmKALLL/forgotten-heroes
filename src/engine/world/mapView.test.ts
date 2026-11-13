@@ -40,7 +40,9 @@ test('kingdoms are listed nearest first, by their nearest domain', () => {
 
 test('on the road the party is drawn part of the way along it', () => {
   const s = makeState({ location: null })
-  const travel = { from: 'greenvale-1', to: 'greenvale-2', km: 100, kmDone: 50 }
+  const travel = { from: 'greenvale-1', to: 'greenvale-2', km: 100, kmDone: 50, kmPerDay: 20 }
   const onRoad = { ...s, travel } as unknown as GameState
   expect(partyPoint(onRoad, content)).toEqual({ x: 1150, y: 1000 })
+  // Half of the day under way: 10 km further along the 100 km road.
+  expect(partyPoint(onRoad, content, 0.5)).toEqual({ x: 1180, y: 1000 })
 })

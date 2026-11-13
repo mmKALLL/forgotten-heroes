@@ -41,7 +41,7 @@ describe('Continue stops on a supply warning', () => {
       const next = step(out, { type: 'continueJourney' }, content)
       if (!/won’t last to/.test(lastLine(next))) continue
       warned += 1
-      expect(next.travel).not.toBeNull()
+      expect(next.travel!.halt).toBe('supplies')
       expect(suppliesLast(supplyOutlook(next, content))).toBe(false)
       expect(lastLine(next)).toMatch(/^At this rate the water won’t last to .+\.$/)
       // The next Continue walks on: the supplies already didn't last as it began.

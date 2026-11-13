@@ -1,0 +1,115 @@
+// @vitest-environment jsdom
+import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { useState } from 'react'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { inProgress } from '../../engine/encounters/run'
+import { step, type Action } from '../../engine/state'
+import { fixtureContent, makeState } from '../../engine/test-fixtures'
+import { nodeOf } from '../../engine/world/graph'
+import type { GameState } from '../../schema/state'
+import { autoTravelDayMs, autoTravelKmPerSecond, useAutoTravel } from './autoTravel'
+import { JourneyPanel } from './JourneyPanel'
+import { WorldMap } from './WorldMap'
+
+const content = fixtureContent()
+
+beforeEach(() => vi.useFakeTimers())
+afterEach(() => {
+  cleanup()
+  vi.useRealTimers()
+})
+
+/** On the 75 km plains road, with these encounter days and km per day (15: as in the mountains). */
+function onTheRoad(encounterDays: number[], kmPerDay = 30): GameState {
+  const out = step(
+    makeState({ location: 'greenvale-1', goods: { food: 20, water: 12 } }),
+    { type: 'travel', routeId: 'greenvale-1-greenvale-2', forage: false },
+    content
+  )
+  return { ...out, travel: { ...out.travel!, encounterDays, kmPerDay } }
+}
+
+/** The App's wiring: the engine's state, auto-travel, the journey panel and the map. */
+function Harness({ initial, sent }: { initial: GameState; sent: (a: Action) => void }) {
+  const [state, setState] = useState(initial)
+  const dispatch = (a: Action) => {
+    sent(a)
+    setState((s) => step(s, a, content))
+  }
+  const auto = useAutoTravel(state, content, dispatch)
+  return (
+    <>
+      {state.travel && !inProgress(state) && (
+        <JourneyPanel content={content} state={state} onAction={dispatch} auto={auto} />
+      )}
+      {inProgress(state) && <p>In an encounter</p>}
+      <WorldMap
+        content={content}
+        state={state}
+        selected={null}
+        onSelect={() => {}}
+        imageUrl={null}
+        glide={auto.glide}
+      />
+    </>
+  )
+}
+
+const walks = (sent: ReturnType<typeof vi.fn>) =>
+  sent.mock.calls.filter(([a]) => (a as Action).type === 'continueJourney')
+const markerX = () => Number(document.querySelector('.party-marker')!.getAttribute('data-x'))
+const wait = (ms: number) => act(() => vi.advanceTimersByTime(ms))
+
+test('each day takes its km at 5 km/s times the terrain speed, gliding, then walks one day', () => {
+  const plains = onTheRoad([])
+  const mountains = onTheRoad([], 15)
+  // Mountains crawl at half the plains speed, so a full day takes as long on either.
+  expect(autoTravelKmPerSecond(mountains.travel!)).toBe(autoTravelKmPerSecond(plains.travel!) / 2)
+  expect(autoTravelDayMs(plains.travel!)).toBe(6000)
+  expect(autoTravelDayMs(mountains.travel!)).toBe(6000)
+  // The last, shorter day is quicker: 15 km left on plains.
+  expect(autoTravelDayMs({ ...plains.travel!, kmDone: 60 })).toBe(3000)
+
+  const from = nodeOf(plains, content, 'greenvale-1')!.at.x
+  const to = nodeOf(plains, content, 'greenvale-2')!.at.x
+  const xAt = (km: number) => from + ((to - from) * km) / 75
+  for (const [state, kmPerSecond] of [
+    [plains, 5],
+    [mountains, 2.5],
+  ] as const) {
+    const sent = vi.fn()
+    render(<Harness initial={state} sent={sent} />)
+    wait(3000)
+    expect(markerX()).toBeCloseTo(xAt(3 * kmPerSecond), 0)
+    wait(2900)
+    expect(walks(sent)).toHaveLength(0)
+    wait(200)
+    expect(walks(sent)).toEqual([[{ type: 'continueJourney', days: 1 }]])
+    cleanup()
+  }
+})
+
+test('stops when an encounter opens', () => {
+  const sent = vi.fn()
+  render(<Harness initial={onTheRoad([1])} sent={sent} />)
+  wait(6100)
+  expect(walks(sent)).toHaveLength(1)
+  expect(screen.getByText('In an encounter')).toBeTruthy()
+  wait(20_000)
+  expect(walks(sent)).toHaveLength(1)
+})
+
+test('Pause holds the day where it is; Resume (or Space) walks on', () => {
+  const sent = vi.fn()
+  render(<Harness initial={onTheRoad([])} sent={sent} />)
+  wait(3000)
+  fireEvent.click(screen.getByRole('button', { name: 'Pause' }))
+  wait(20_000)
+  expect(walks(sent)).toHaveLength(0)
+  // Space resumes while nothing has focus; the day goes on from where it stopped.
+  ;(document.activeElement as HTMLElement | null)?.blur()
+  fireEvent.keyDown(document, { key: ' ' })
+  expect(screen.getByRole('button', { name: 'Pause' })).toBeTruthy()
+  wait(3100)
+  expect(walks(sent)).toHaveLength(1)
+})

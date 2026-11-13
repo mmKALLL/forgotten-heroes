@@ -437,10 +437,13 @@ describe('journeyInfo and suppliesInfo', () => {
   })
 
   test('progress is the share of the road travelled, from 0 to 1', () => {
-    expect(journeyProgress({ km: 75, kmDone: 0 })).toBe(0)
-    expect(journeyProgress({ km: 75, kmDone: 37.5 })).toBe(0.5)
-    expect(journeyProgress({ km: 75, kmDone: 90 })).toBe(1)
-    expect(journeyProgress({ km: 0, kmDone: 0 })).toBe(1)
+    expect(journeyProgress({ km: 75, kmDone: 0, kmPerDay: 30 })).toBe(0)
+    expect(journeyProgress({ km: 75, kmDone: 37.5, kmPerDay: 30 })).toBe(0.5)
+    expect(journeyProgress({ km: 75, kmDone: 90, kmPerDay: 30 })).toBe(1)
+    expect(journeyProgress({ km: 0, kmDone: 0, kmPerDay: 30 })).toBe(1)
+    // Part of the day under way (auto-travel's glide): the last day covers only what is left.
+    expect(journeyProgress({ km: 100, kmDone: 0, kmPerDay: 30 }, 0.5)).toBe(0.15)
+    expect(journeyProgress({ km: 100, kmDone: 90, kmPerDay: 30 }, 0.5)).toBe(0.95)
     const out = step(
       makeState({ location: 'greenvale-1' }),
       { type: 'travel', routeId: 'greenvale-1-greenvale-2' },

@@ -182,8 +182,34 @@ export const TravelStateSchema = z.object({
     .object({ animal: IdSchema, count: z.number().int().min(1) })
     .nullable()
     .default(null),
+  /**
+   * Why the last Continue stopped for the player (went without, a supply warning, no one fit),
+   * so auto-travel (design §7) pauses; cleared by the next Continue.
+   */
+  halt: z.enum(['short', 'supplies', 'unfit']).optional(),
+  /**
+   * The quiet days the journal's last line sums up, so a one-day Continue (auto-travel) adds to
+   * that line instead of writing another; used only while that line is still the last entry.
+   */
+  quiet: z
+    .object({
+      days: z.number().int().min(0),
+      line: z.string(),
+      forage: z
+        .object({
+          dc: z.number().int(),
+          foragers: z.array(z.string()),
+          food: z.number().int().min(0),
+          water: z.number().int().min(0),
+          full: z.boolean(),
+          inspired: z.boolean(),
+        })
+        .nullable(),
+    })
+    .optional(),
 })
 export type TravelState = z.infer<typeof TravelStateSchema>
+export type JourneyHalt = NonNullable<TravelState['halt']>
 
 /**
  * The party's net trades with one good in one market, as of `day`: sales positive, purchases
