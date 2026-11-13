@@ -101,6 +101,10 @@
 - **Sizes:** it must fit 1440 × 1050 and 412 × 915.
 - **Tests:** one smoke test and the critical interactions.
 
+### As built (Track U)
+- Built on branch `plan7-ui`: `src/ui/combat/CombatView.tsx` over `combatView` (`src/engine/combat/view.ts`); the details are in the combat design's §8 ("As built: Track U") and the rebuild design §9 ("The fight").
+- The Encounter Deck's Fight (test) and Ambush (test) start a bandit fight through `startCombat { fight }` until Track I offers Fight in encounters.
+
 ## Wave 2: classes, enemies and integration (parallel after wave 1)
 
 - **Track C (classes and gear):**

@@ -184,6 +184,15 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
   - The 1–9 keys select abilities and spells. Space or a click on a tile acts.
 - **Screen sizes:** it must fit 1440 × 1050 and 412 × 915 (Galaxy S26) with no sideways scroll.
 
+### As built: Track U (the combat UI)
+
+- `src/ui/combat/CombatView.tsx` draws `combatView(state)` (`src/engine/combat/view.ts`: the tiles with their units top to bottom, each unit's status and hit pips, the intents in action order, each ready member's legal targets from `combatPreview`) and dispatches `combatMove`, `combatAct` (with the previewed `target` and `full`), `combatRetreat`, `combatEndTurn` and `closeCombat`. It takes the centre column while a fight is open; auto-travel waits. The layout, controls and phone fit are in the rebuild design §9 ("The fight").
+- **Each fact once:** an intent's odds are on its arrow only (the intents panel says what it does and whom it would hit); an attack's hit %, damage and crit are in the Action panel only (the tiles just outline what can be targeted).
+- **Controls:** a click on a target or its tile, or Space, acts; ←/→ cycle the targets (focus follows), ↑/↓ the ready members, F the full action, 1–9 the slots (pressing again deselects; empty until Tracks C and S, and an empty slot selected blocks acting). Space on a focused button presses that button, and after End turn focus returns to the heading, so a second Space doesn't end the next turn.
+- **Phones:** the whole line fits the width rather than scrolling, so the enemies and intents stay on screen with the party (chosen over a sideways-scrolling line, which hid the enemies at first sight).
+- **Playtesting:** the Encounter Deck's Fight (test) and Ambush (test) open a bandit fight without an encounter: `startCombat` takes an optional `fight` (the open encounter's otherwise; with no encounter its branches apply to nothing).
+- **Decided while building (please review):** the action's preview shows "A hit now staggers it" or "stuns it" (the engine's `onHit`, which includes a mace's trait); the intents panel names a broken intent as "breaks (out of reach, or no one there) and will reposition".
+
 ## 9. Architecture
 
 - **The engine** lives in `src/engine/combat/`, pure as everywhere:

@@ -8,6 +8,7 @@ import { SOURCES, type Source } from '../../schema/common'
 import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
 import { SourceBadge } from '../SourceBadge'
+import { testFight } from './testFight'
 
 type Props = {
   content: Content
@@ -49,7 +50,12 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
     setSources(
       sources.includes(source) ? sources.filter((s) => s !== source) : [...sources, source]
     )
-  const busy = rolling || inProgress(state)
+  const busy = rolling || inProgress(state) || state.combat !== null
+  // Fights (Plan 7 U): the test fight, or the open encounter's own `fight`.
+  const fight = testFight(content, false)
+  const ambush = testFight(content, true)
+  const encounterFight =
+    state.combat === null && state.encounter?.stage != null && state.encounter.situation.fight
   const [expanded, setExpanded] = useState(loadExpanded)
   const toggleExpanded = () => {
     setExpanded(!expanded)
@@ -86,6 +92,23 @@ export function EncounterDeck({ content, state, rolling = false, onAction }: Pro
       >
         {t('deck.draw')}
       </button>
+      <div className="deck-fights" title={t('deck.fightHint')}>
+        {fight && (
+          <button disabled={busy} onClick={() => onAction({ type: 'startCombat', fight })}>
+            {t('deck.fight')}
+          </button>
+        )}
+        {ambush && (
+          <button disabled={busy} onClick={() => onAction({ type: 'startCombat', fight: ambush })}>
+            {t('deck.ambush')}
+          </button>
+        )}
+        {encounterFight && (
+          <button disabled={rolling} onClick={() => onAction({ type: 'startCombat' })}>
+            {t('deck.fightEncounter')}
+          </button>
+        )}
+      </div>
       {busy && <p className="muted small">{t('deck.busy')}</p>}
       {state.followUps.length > 0 && (
         <p className="muted small">

@@ -44,8 +44,11 @@ import {
 // clears it.
 
 export type CombatAction =
-  /** Open the fight of the encounter on hand (its situation's `fight`). */
-  | { type: 'startCombat' }
+  /**
+   * Open the fight of the encounter on hand (its situation's `fight`), or the given `fight` (the
+   * developer tools' test fight; with no encounter open, its branches apply to nothing).
+   */
+  | { type: 'startCombat'; fight?: Fight }
   /** A member steps one tile (free swings from enemies left behind). */
   | { type: 'combatMove'; unit: string; to: number }
   /** A member attacks a tile (its top enemy, or `target`); `full` stands still for the full action. */
@@ -634,10 +637,10 @@ function settle(s: GameState, content: Content): GameState {
 
 export function stepCombat(state: GameState, action: CombatAction, content: Content): GameState {
   if (action.type === 'startCombat') {
-    const fight = state.encounter?.stage != null ? state.encounter.situation.fight : undefined
+    const open = state.encounter?.stage != null ? state.encounter : null
+    const fight = action.fight ?? open?.situation.fight
     if (!fight || state.combat !== null) return state
-    const position = state.encounter!.position
-    return startCombat(state, content, fight, { footing: position })
+    return startCombat(state, content, fight, { footing: open?.position ?? 'normal' })
   }
   if (action.type === 'closeCombat')
     return state.combat && state.combat.result !== null ? { ...state, combat: null } : state
