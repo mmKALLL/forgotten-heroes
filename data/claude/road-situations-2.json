@@ -24,11 +24,11 @@
               "outcomes": {
                 "critFail": {
                   "text": "The rope parts and {actor} goes into the cistern with the camel. They come out retching, and nobody fills a skin from it after that.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }]
                 },
                 "fail": {
                   "text": "You get the camel out, but the water stays foul. {actor} has torn both palms on the rope.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
                 },
                 "partial": {
                   "text": "An afternoon of bailing leaves a few skins' worth clear enough to drink.",
@@ -222,7 +222,7 @@
                 "critFail": {
                   "text": "{actor} leads you in a long circle. When the storm drops you are back where you started, flayed raw and spent.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "hp", "amount": -4, "target": "all" },
                     { "effect": "exhaustion", "amount": 1, "target": "actor" },
                     { "effect": "days", "amount": 1 }
                   ]
@@ -230,13 +230,13 @@
                 "fail": {
                   "text": "You lose the road within the hour. It takes until the next evening to find it again, and the grit has taken the skin off every face.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "all" },
+                    { "effect": "hp", "amount": -4, "target": "all" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
                 "partial": {
                   "text": "You keep to the road, more or less, with sand in your teeth and your eyes swollen half shut.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
                 },
                 "success": {
                   "text": "{actor} keeps the line by the feel of the wind, and you walk out of the far side of the storm by dusk."
@@ -253,7 +253,7 @@
                 "fail": {
                   "text": "You reach the ruin as the storm does, and a beam comes down on {actor} in the dark. The walls hold, at least.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "days", "amount": 1 }
                   ]
                 },
@@ -301,15 +301,15 @@
               "outcomes": {
                 "critFail": {
                   "text": "There are more of them than you counted. You break the file at last, but not before every one of you has been cut.",
-                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -8, "target": "all" }]
                 },
                 "fail": {
                   "text": "You put them down one at a time, and each takes a piece of someone first.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
                 },
                 "partial": {
                   "text": "You break the file and the rest sink back into the sand. {actor} has a spearhead to pull out of a thigh.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
                 },
                 "success": {
                   "text": "{actor} cuts down their officer, and the rest fall apart into heaps of bone. The officer's purse still holds his last pay.",
@@ -335,7 +335,7 @@
                 "fail": {
                   "text": "They don't listen. By the time {actor} stops reciting, the spears are among the bedrolls.",
                   "effects": [
-                    { "effect": "hp", "amount": -2, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -438,13 +438,13 @@
                 "critFail": {
                   "text": "A slat gives under {actor}. You haul them up by the wrist, but their pack, and the purse in it, goes into the gorge.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "gold", "amount": -8 }
                   ]
                 },
                 "fail": {
                   "text": "{actor} drops through a gap to the armpit and wrenches a shoulder getting out.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "actor" }]
                 },
                 "partial": {
                   "text": "Everyone gets over, but {actor} lets a food sack go to keep their grip.",
@@ -467,7 +467,7 @@
                   "text": "The new lashings hold, mostly. You cross with your hearts in your mouths, and {actor} opens a palm on the old rope.",
                   "effects": [
                     { "effect": "goods", "good": "gear", "amount": -1 },
-                    { "effect": "hp", "amount": -1, "target": "actor" }
+                    { "effect": "hp", "amount": -4, "target": "actor" }
                   ]
                 },
                 "partial": {
@@ -492,7 +492,7 @@
                 "text": "A day of scrambling down, wading the cold current, and scrambling up again. Everyone comes out scraped and bruised.",
                 "effects": [
                   { "effect": "days", "amount": 1 },
-                  { "effect": "hp", "amount": -1, "target": "all" }
+                  { "effect": "hp", "amount": -3, "target": "all" }
                 ]
               }
             }
@@ -520,12 +520,12 @@
               "outcomes": {
                 "fail": {
                   "text": "You reach them through a hail of darts, and they scatter into the green. Everyone has been nicked somewhere, and {actor}'s arm has gone numb.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }],
                   "goto": "venom"
                 },
                 "partial": {
                   "text": "They break and run before you reach them, but a dart has found {actor}'s shoulder.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }],
                   "goto": "venom"
                 },
                 "success": {
@@ -545,7 +545,7 @@
                 "fail": {
                   "text": "A dart takes {actor} in the calf as you go. The masks follow for a while, laughing.",
                   "effects": [
-                    { "effect": "hp", "amount": -1, "target": "actor" },
+                    { "effect": "hp", "amount": -4, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "goto": "venom"
@@ -587,12 +587,12 @@
                   "text": "{actor} gets at it too late. The fever burns for a day before it breaks, and you go nowhere.",
                   "effects": [
                     { "effect": "days", "amount": 1 },
-                    { "effect": "hp", "amount": -2, "target": "all" }
+                    { "effect": "hp", "amount": -3, "target": "all" }
                   ]
                 },
                 "partial": {
                   "text": "{actor} gets most of it out. A bad night of sweats, and no worse.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
                 },
                 "success": {
                   "text": "{actor} knows this venom. A poultice of chewed leaves draws it out within the hour."
@@ -729,7 +729,7 @@
               "outcomes": {
                 "fail": {
                   "text": "The cold takes {actor}'s breath at the bottom. You haul them out blue and coughing.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
                 },
                 "partial": {
                   "text": "{actor} comes up with a rusted buckle and chattering teeth."
@@ -781,11 +781,11 @@
               "outcomes": {
                 "fail": {
                   "text": "The spears come from every side of the reeds. You drive them off at last, cut and soaked.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
                 },
                 "partial": {
                   "text": "They drag their wounded off into the water. {actor} has a spear-gash along the ribs.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }]
                 },
                 "success": {
                   "text": "{actor} cuts through the net and drops the first spear-carrier. The rest vanish, leaving a brace of marsh birds on a pole.",
@@ -936,11 +936,11 @@
               "outcomes": {
                 "fail": {
                   "text": "The fire catches you at the reeds. You wade out singed and choking.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
                 },
                 "partial": {
                   "text": "You reach the water with the heat on your backs and the hair singed off your arms.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
                 },
                 "success": {
                   "text": "{actor} sets the pace and takes the slowest one's pack. You stand waist-deep in the river and watch it burn past."
@@ -956,15 +956,15 @@
               "outcomes": {
                 "critFail": {
                   "text": "Your fire turns on the wind, and you are caught between two. Everyone is burned before {actor} finds a gap.",
-                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -7, "target": "all" }]
                 },
                 "fail": {
                   "text": "The break is too narrow. The fire jumps it and you run after all, too late.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
                 },
                 "partial": {
                   "text": "The break holds, just. You crouch in hot ash while the fire roars past a few yards off.",
-                  "effects": [{ "effect": "hp", "amount": -1, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
                 },
                 "success": {
                   "text": "{actor} lights the break in the right place. The fire splits round your patch of black earth and goes on without you."
@@ -1043,7 +1043,7 @@
                 "fail": {
                   "text": "They ride {actor} down in the grass and drag them back to the road by the collar.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "actor" },
                     { "effect": "position", "position": "exposed" }
                   ],
                   "stay": true
@@ -1067,18 +1067,18 @@
                 "critFail": {
                   "text": "They ride through you twice. You are left bleeding in the road while they help themselves to your packs.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "all" },
+                    { "effect": "hp", "amount": -6, "target": "all" },
                     { "effect": "gold", "amount": -10 },
                     { "effect": "goods", "category": "precious", "fraction": 0.5 }
                   ]
                 },
                 "fail": {
                   "text": "You drive them off in the end, but every one of you has felt a spear-butt or a hoof.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
                 },
                 "partial": {
                   "text": "{actor} drags one from the saddle, and the rest pull back to think about it. You don't wait for them to finish.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
                 },
                 "success": {
                   "text": "{actor} unhorses the leader. His men take him up and gallop off, and leave his saddlebags in the road.",
@@ -1176,7 +1176,7 @@
         "chance": 0.3,
         "what": "the dead man is not finished with his torc",
         "stage": "risen",
-        "opening": [{ "effect": "hp", "amount": -3, "target": "random" }]
+        "opening": [{ "effect": "hp", "amount": -6, "target": "random" }]
       },
       "stages": {
         "start": {
@@ -1299,14 +1299,14 @@
                 "fail": {
                   "text": "He is stronger than anything that thin should be. You break him apart in the end, and the torc is yours, but nobody walks away unbruised.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -6, "target": "all" },
                     { "effect": "accessory", "tier": 1 }
                   ]
                 },
                 "partial": {
                   "text": "{actor} wrestles him back into the trench and holds him there until the peat closes over. {actor} keeps the torc, and the marks of his fingers.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -5, "target": "actor" },
                     { "effect": "accessory", "tier": 1 }
                   ]
                 },
@@ -1350,7 +1350,7 @@
                 "fail": {
                   "text": "The trunk rolls back as you lift and catches {actor}'s foot. You get them both out in the end.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -7, "target": "actor" },
                     { "effect": "reputation", "amount": 1 }
                   ]
                 },
@@ -1479,11 +1479,11 @@
               "outcomes": {
                 "fail": {
                   "text": "You scatter them, but the sling-stones have found everyone at least once.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
                 },
                 "partial": {
                   "text": "They break and run. {actor} has a split lip and a club-shaped bruise.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
                 },
                 "success": {
                   "text": "{actor} knocks their leader flat, and the rest flee up the slope. Their snare-wire and rope are good kit, stolen from someone better off.",
@@ -1503,7 +1503,7 @@
               "outcomes": {
                 "fail": {
                   "text": "They chase you for a mile, and their slings are better than their legs.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
                 },
                 "partial": {
                   "text": "You outrun them, minus a pack they stop to fight over.",
@@ -1598,13 +1598,13 @@
                 "fail": {
                   "text": "They come over the side in numbers. You beat them back at last, bloodied, and they take what they had already grabbed.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "all" },
+                    { "effect": "hp", "amount": -6, "target": "all" },
                     { "effect": "goods", "category": "precious", "fraction": 0.25 }
                   ]
                 },
                 "partial": {
                   "text": "You hold the rail, though {actor} takes a boathook across the head doing it.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
                 },
                 "success": {
                   "text": "{actor} throws the first man back into his boat, and the rest lose heart. The captain shares out what they dropped on deck.",
@@ -1627,7 +1627,7 @@
                 },
                 "partial": {
                   "text": "She slides free as the first boat comes alongside, and two of them come with her. You throw them over, and get a knock or two doing it.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
                 },
                 "success": {
                   "text": "{actor} calls the swell, the crew shift the cargo, and she lifts off the rocks on the next wave. The boats fall behind, oars flailing."

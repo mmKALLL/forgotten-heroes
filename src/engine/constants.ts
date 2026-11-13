@@ -273,7 +273,7 @@ export const STOWAWAY_WORK_DAYS = 2
 /** …and the one who was caught gains this many levels of exhaustion. */
 export const STOWAWAY_WORK_EXHAUSTION = 1
 /** A brawl with no fitting situation (STOWAWAY_BRAWL_TAG): the one caught takes this damage (inclusive). */
-export const STOWAWAY_BRAWL_DAMAGE: readonly [number, number] = [3, 8]
+export const STOWAWAY_BRAWL_DAMAGE: readonly [number, number] = [5, 10]
 
 // Politics: kingdoms, garrisons and threats (politics.ts)
 
@@ -548,7 +548,7 @@ export const GATHER_DC_PER_OUTPUT = 1
  */
 export const GATHER_DEPTH_DAYS = 2
 /** HP the lead loses on a critical failure when no hostile situation fits the place. */
-export const GATHER_INJURY = 3
+export const GATHER_INJURY = 6
 
 // Rule hooks and accessories (gear/hooks.ts, gear/accessories.ts, economy/market.ts)
 

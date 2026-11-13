@@ -7697,7 +7697,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -2,
+                      "amount": -5,
                       "target": "actor"
                     }
                   ]
@@ -7777,7 +7777,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -5,
                       "target": "all"
                     }
                   ]
@@ -7787,7 +7787,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -2,
+                      "amount": -5,
                       "target": "actor"
                     }
                   ]
@@ -7818,7 +7818,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -3,
+                      "amount": -6,
                       "target": "actor"
                     },
                     {
@@ -7885,7 +7885,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -2,
+                      "amount": -5,
                       "target": "actor"
                     }
                   ]
@@ -7958,7 +7958,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -5,
                       "target": "all"
                     }
                   ]
@@ -7968,7 +7968,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -2,
+                      "amount": -5,
                       "target": "actor"
                     }
                   ]
@@ -8003,7 +8003,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -3,
+                      "amount": -6,
                       "target": "actor"
                     },
                     {
@@ -8151,7 +8151,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -4,
+                      "amount": -6,
                       "target": "all"
                     }
                   ]
@@ -8161,7 +8161,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -3,
+                      "amount": -5,
                       "target": "actor"
                     }
                   ]
@@ -8191,7 +8191,7 @@
                   "effects": [
                     {
                       "effect": "hp",
-                      "amount": -3,
+                      "amount": -6,
                       "target": "actor"
                     }
                   ]
