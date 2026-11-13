@@ -2,10 +2,11 @@
   "$schema": "../_schema/settlementTypes.schema.json",
   "kind": "settlementTypes",
   "source": "original",
-  "notes": "From the prototype's settlementTypeData. worldMapType/worldMapRadiuses dropped (fixed Altaeus geography); see tag v0.1.0-svelte-final.",
+  "notes": "From the prototype's settlementTypeData. worldMapType/worldMapRadiuses dropped (fixed Altaeus geography); see tag v0.1.0-svelte-final. Added by Claude (designer call 2026-11-13): `focus`, what a type is built for, which market rules read: camps, garrisons and forts attack (they want arms, most when not under threat), cities and capitals defend (they want armour, most under threat); the rest default to other.",
   "entries": [
     {
       "id": "military-camp",
+      "focus": "attack",
       "name": "Military camp",
       "category": "military",
       "minPopulation": 5,
@@ -39,6 +40,7 @@
     },
     {
       "id": "large-encampment",
+      "focus": "attack",
       "name": "Large encampment",
       "category": "military",
       "minPopulation": 50,
@@ -72,6 +74,7 @@
     },
     {
       "id": "stationed-garrison",
+      "focus": "attack",
       "name": "Stationed garrison",
       "category": "military",
       "minPopulation": 100,
@@ -83,6 +86,7 @@
     },
     {
       "id": "fort",
+      "focus": "attack",
       "name": "Fort",
       "category": "military",
       "minPopulation": 200,
@@ -105,6 +109,7 @@
     },
     {
       "id": "encamped-army",
+      "focus": "attack",
       "name": "Encamped Army",
       "category": "military",
       "minPopulation": 1000,
@@ -138,6 +143,7 @@
     },
     {
       "id": "city",
+      "focus": "defence",
       "name": "City",
       "category": "lifeplace",
       "minPopulation": 4000,
@@ -149,6 +155,7 @@
     },
     {
       "id": "capital",
+      "focus": "defence",
       "name": "Capital",
       "category": "lifeplace",
       "minPopulation": 12000,

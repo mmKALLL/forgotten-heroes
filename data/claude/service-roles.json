@@ -2,7 +2,7 @@
   "$schema": "../_schema/serviceRoles.schema.json",
   "kind": "serviceRoles",
   "source": "claude",
-  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Plan 5a: Magic Items sells 2–4 accessories a week up to tier 2 and the finesmith 1–2 of tier 1 (`accessories`); both buy the party's back at half their value. Plan 6: wages are gone, so the mercenaries' cheap sign-on (fee ×0.5, wage ×1.5) went with them; they now sign on at the usual fee. Recruit levels (designer, 2026-11-13): the inn 0–2 (level 0 is a level-1 recruit with two old wounds), the guild 1–4, the mercenaries 3–6; none joins above the party's lowest living member's level + 2. Quality (`picks`, the best of n sets of six 3d6 rolls by total): the inn 1, the guild 2, the mercenaries 3. Some recruits bring a tier-1 accessory, priced into the fee: 15% at the inn, 25% at the guild (`gear`) and 35% with the mercenaries. The inn's `round` stands the party a round, for camaraderie. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
+  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Plan 5a: Magic Items sells 2–4 accessories a week up to tier 2 and the finesmith 1–2 of tier 1 (`accessories`); both buy the party's back at half their value. Plan 6: wages are gone, so the mercenaries' cheap sign-on (fee ×0.5, wage ×1.5) went with them; they now sign on at the usual fee. Recruit levels (designer, 2026-11-13): the inn 0–2 (level 0 is a level-1 recruit with two old wounds), the guild 1–4, the mercenaries 3–6; none joins above the party's lowest living member's level + 2. Quality (`picks`, the best of n sets of six 3d6 rolls by total): the inn 1, the guild 2, the mercenaries 3. Some recruits bring a tier-1 accessory, priced into the fee: 15% at the inn, 25% at the guild (`gear`) and 35% with the mercenaries. The inn's `round` stands the party a round, for camaraderie. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded. Inputs (designer call 2026-11-13): the goods a service's work uses add that much demand wherever it is, shown under its name when a price is explained: smiths, weaponsmiths and armourers want metal (the blacksmith also fuel), finesmiths and jewellers gems, herbalists and healers healing, magic shops, scribes and universities arcana, necromancers and high temples relics, carpenters timber, masons and the workers' union stone, mercenaries arms. Investing in a shop will later raise them (docs/plans/later-designs.md, Store investments).",
   "entries": [
     {
       "id": "inn-tavern",
@@ -10,7 +10,10 @@
       "trades": ["food", "fuel"],
       "actions": ["lodging", "rumours", "board", "market", "recruit", "round"],
       "specialty": "A bed, a hot meal and the talk of the road.",
-      "recruits": { "offers": [0, 1], "levels": [0, 2] }
+      "recruits": {
+        "offers": [0, 1],
+        "levels": [0, 2]
+      }
     },
     {
       "id": "adventuring-supplies",
@@ -38,6 +41,9 @@
       "function": "trade",
       "trades": ["gems", "luxuries"],
       "buysOnly": ["relics"],
+      "inputs": {
+        "gems": 1
+      },
       "actions": ["market"],
       "specialty": "Loupes, scales and quiet voices."
     },
@@ -46,6 +52,9 @@
       "function": "trade",
       "trades": ["armour"],
       "buysOnly": ["metal"],
+      "inputs": {
+        "metal": 1
+      },
       "actions": ["market"],
       "specialty": "Mail, plate and shields, and a buyer for good iron."
     },
@@ -59,8 +68,14 @@
       "function": "trade",
       "trades": ["luxuries"],
       "buysOnly": ["gems", "metal"],
+      "inputs": {
+        "gems": 1
+      },
       "actions": ["market", "accessories"],
-      "accessories": { "offers": [1, 2], "maxTier": 1 },
+      "accessories": {
+        "offers": [1, 2],
+        "maxTier": 1
+      },
       "specialty": "Rings, brooches and fine work; buys stones and bright metal."
     },
     {
@@ -74,6 +89,9 @@
       "id": "potions-poisons-herbs",
       "function": "trade",
       "trades": ["healing", "alchemicals"],
+      "inputs": {
+        "healing": 1
+      },
       "actions": ["market"],
       "specialty": "Salves, tinctures and flasks best not opened indoors."
     },
@@ -96,6 +114,9 @@
       "function": "temple",
       "trades": ["healing"],
       "buysOnly": ["relics"],
+      "inputs": {
+        "relics": 1
+      },
       "actions": ["heal", "bless", "market"],
       "specialty": "Healing by the priesthood, blessings, and a reliquary that pays well."
     },
@@ -104,6 +125,9 @@
       "function": "temple",
       "trades": ["arcana"],
       "buysOnly": ["relics"],
+      "inputs": {
+        "arcana": 1
+      },
       "actions": ["market"],
       "specialty": "Scrolls, tomes and components, and buyers for anything that hums."
     },
@@ -120,6 +144,9 @@
       "function": "trade",
       "trades": ["arms"],
       "buysOnly": ["metal"],
+      "inputs": {
+        "metal": 1
+      },
       "actions": ["market"],
       "specialty": "Blades, bows and spears, and a buyer for good iron."
     },
@@ -136,15 +163,26 @@
       "buysOnly": ["relics", "arms"],
       "actions": ["board", "market", "recruit"],
       "specialty": "Bounties and errands, kit for members, and a buyer for dungeon finds.",
-      "recruits": { "offers": [1, 3], "levels": [1, 4], "picks": 2, "gear": 0.25 }
+      "recruits": {
+        "offers": [1, 3],
+        "levels": [1, 4],
+        "picks": 2,
+        "gear": 0.25
+      }
     },
     {
       "id": "magic-items",
       "function": "temple",
       "trades": ["arcana", "relics"],
       "buysOnly": ["gems"],
+      "inputs": {
+        "arcana": 1
+      },
       "actions": ["market", "accessories"],
-      "accessories": { "offers": [2, 4], "maxTier": 2 },
+      "accessories": {
+        "offers": [2, 4],
+        "maxTier": 2
+      },
       "specialty": "Curios, charms and old wonders, at a price."
     },
     {
@@ -152,6 +190,10 @@
       "function": "trade",
       "trades": ["metal", "arms", "armour", "gear"],
       "buysOnly": ["fuel"],
+      "inputs": {
+        "metal": 1,
+        "fuel": 1
+      },
       "actions": ["market"],
       "specialty": "Iron, tools, plain blades and mail; always short of charcoal."
     },
@@ -160,6 +202,9 @@
       "function": "underworld",
       "trades": ["alchemicals"],
       "buysOnly": ["relics", "gems"],
+      "inputs": {
+        "relics": 1
+      },
       "actions": ["market"],
       "specialty": "Bones, grave dust and reagents; pays well for the relics of the dead."
     },
@@ -183,6 +228,9 @@
       "id": "carpenter",
       "function": "trade",
       "trades": ["timber"],
+      "inputs": {
+        "timber": 1
+      },
       "actions": ["market"],
       "specialty": "Seasoned beams and planks, bought and sold by the load."
     },
@@ -195,6 +243,9 @@
       "id": "healer",
       "function": "rest",
       "trades": ["healing"],
+      "inputs": {
+        "healing": 1
+      },
       "actions": ["heal", "market"],
       "specialty": "Sets bones and draws fevers, so the party needn't rest a day to mend."
     },
@@ -210,6 +261,9 @@
       "id": "workers-union",
       "function": "hire",
       "buysOnly": ["timber", "stone"],
+      "inputs": {
+        "stone": 1
+      },
       "actions": ["market"],
       "specialty": "Buys building stock by the load; crews for hire come later."
     },
@@ -217,6 +271,9 @@
       "id": "stonemason",
       "function": "trade",
       "trades": ["stone"],
+      "inputs": {
+        "stone": 1
+      },
       "actions": ["market"],
       "specialty": "Dressed stone and lime by the load."
     },
@@ -225,12 +282,18 @@
       "function": "temple",
       "trades": ["arcana"],
       "buysOnly": ["relics"],
+      "inputs": {
+        "arcana": 1
+      },
       "actions": ["market"],
       "specialty": "Scholars who pay for curios."
     },
     {
       "id": "mercenaries",
       "function": "hire",
+      "inputs": {
+        "arms": 1
+      },
       "actions": ["recruit"],
       "specialty": "Swords for hire.",
       "recruits": {
