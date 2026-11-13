@@ -111,6 +111,7 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - **Cutting Words** (one enemy): −d6 to its telegraphed attack.
 - **Discord** (the enemies on one tile): their intents break. They reposition, or attack each other at −4 when they can't.
 - Some even levels let the bard **specialise** one of the four, for example Inspire becoming d8, or Discord reaching two tiles.
+- **Designer call (2026-11-14): healing songs.** In lieu of spells, the bard has a fifth and a sixth song: **individual healing** (one ally) and **party healing** (everyone, smaller). Each of the six songs has its **own long-rest use limit**, and a specialisation pick raises both that song's uses and its effect (a bigger die or heal). The specialisation picks include the healing songs.
 
 **Spells:**
 - A caster **knows one spell per spell level**. When a spell level opens, they pick 1 of 3 spells drawn from that level's pool.
@@ -242,3 +243,40 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - The surprise table: sneaking up, a success or better gives the party the free round and a critical failure leaves half the party flat-footed; walking into an ambush, a failure gives the enemies the free round, a partial half the party, a critical success the party's.
 - Retreating takes the member's move; a member can attack first and then leave.
 - A wipe by robbers takes all the gold and half of each good.
+
+## 11b. As built: Track C, classes and gear (Plan 7, wave 2)
+
+**Proficiencies** (`CLASS_PROFICIENCIES`, combat/gear.ts). Each class has the weapon families of §5 and a heaviest armour (fighters and paladins plate, rangers and clerics chain, rogues and bards leather, wizards cloth); every class with a casting ability (wizard, cleric, paladin, ranger, bard) can use a staff.
+- **An untrained weapon adds no proficiency bonus to hit** (5e's rule, chosen over a flat −4: it scales with level, so a wizard with a sword falls further behind as the fighter grows).
+- **Untrained armour puts the wearer's attacks at disadvantage** (5e's rule for attacks; it combines with the party's footing, so Edge cancels it). Spells in untrained armour wait for spell casting. The member's sheet warns of both.
+
+**Weapons and armour** (`data/claude/weapons.json`, `armours.json`). One weapon per family in the four qualities (32): dagger, longsword, battleaxe, mace, spear, shortbow, javelins, quarterstaff; plain at 5e-like prices (1–25 gp), fine about four times that, +1 at 250–450 gp and +2 at 1000–1800 gp; 0.5–2.5 kg. Armour: travelling clothes (1 gp, 1 kg), leather (10 gp, 4 kg), chain mail (60 gp, 8 kg), plate (600 gp, 12 kg). Weights are on the carrying scale (20 kg a member at STR 10), lighter than 5e's.
+
+**Arms shops** (`town/arms.ts`; `arms` on a service role). The weapons shop sells weapons, the armourer armour, the blacksmith both but only plain. A shop stocks every plain piece and armour, fine weapons from quality 3, +1 from 4 and +2 at 5 (`ARMS_QUALITY_AT`), without limit. Bought pieces go to the party's **stash** (`GameState.stash`); a shop buys back what it deals in at `ARMS_RESALE` (half). A purchase that would overload the party is refused. Members wear and take off pieces from their sheet (`equipArms`, `unequipArms`), outside encounters and fights. What living members wear and the stash weigh on the party's load. Recruits come with their class's plain kit (`STARTING_GEAR`), part of their fee; a dismissed member leaves with what they wear.
+
+**Ability uses** (combat/uses.ts). A member keeps the uses **spent** since the last long rest (`Character.spent`), so what is left follows from the level: an ability has 1 use from the level it is gained and 1 more at levels 6, 10, 14 and 18 (`ABILITY_USE_LEVELS`). A **long rest** (any day's rest, in camp or in town, `rest`) clears `spent`. Spell uses follow the plan's casts table (`spellCasts`: the newest spell level 1, each lower one 1 more up to 3, level 1 at least 2; full casters open spell level n at class level 2n − 1, half casters at 2, 5, 9, 13, 17); only Smite spends them so far.
+
+**Abilities** (`data/claude/class-abilities.json`, combat/abilities.ts). Played through the `combatAbility { unit, ability, tile?, target? }` action. `abilitySlots(state, content, unit)` is the 1–9 view model for the combat UI: each slot's key, the ability as held (specialised), uses left and max, action or free, whether it can be used now and why not, and every legal use with what it would do (`affects` with each unit's chance, `heal` range, Smite's `attack` spec). `useAbility` resolves from those same numbers: preview == actual.
+- **Fighter:** Second Wind (1, free: heal 1d10 + level), Action Surge (2, free, after acting: act again). Style picks at 4, 8, 12, 16: two-attack or single-blow, each pick +2 damage (`STYLE_DAMAGE`) on every attack of that kind of full action (two-attack: daggers, blades, thrown; single-blow: the rest). Picks stack.
+- **Rogue:** Cunning Action (1, free): the member's move becomes up to two tiles without free swings, past no enemy; they can still attack.
+- **Paladin:** Lay on Hands (1): a pool of 5 HP a level (the pool is its uses), healing exactly what an ally on the paladin's tile or the next lacks, up to what is left. Smite (2): a weapon attack (the member's single attack, at the odds shown) with 2d8 more, +1d8 per spell level above 1, spending the paladin's lowest spell use **only on a hit**.
+- **Ranger:** Mark (1, free, any foe on the line): the ranger's hits on it deal 1d6 more for the rest of the fight.
+- **Cleric:** Turn Undead (2): each undead on two tiles 1–3 away saves WIS (`dc`: 8 + proficiency + WIS) or is feared for 3 rounds: it steps away from the party each turn and never attacks. The preview shows each one's chance.
+- **Bard** (six songs, each with its own uses): Inspire (1, an ally up to 3 away: +1d6 to their attack rolls this round), Mending Song (1, an ally up to 3 away: heal 1d8 + level), Cutting Words (2, a foe up to 6 away: −1d6 on its attacks this round), Rallying Song (4, the party: +2 to hit this round), Song of Renewal (6, the party: one roll heals every member 1d6 + half the level), Discord (6, the enemies on a tile 1–4 away: each falls back a step; one that can't strikes another enemy on its tile at −4, `DISCORD_PENALTY`). Specialisation picks at 4, 8, 12, 16 and 20: one song not yet specialised, which gains `SPECIALISE_USES` (1) more use and its `specialised` effect (Inspire and Cutting Words d8, Rallying Song +2 damage too, Mending Song 2d8 + level, Song of Renewal 2d6 + half the level, Discord two tiles).
+- **Lasting effects** are stored on units (`CombatUnit.effects`: source, user, effect, last round) and cleared by the new round past them; "this round" lasts the party's turn and the enemies' turn after it, 10 rounds or more the whole fight. Attack specs read them: to-hit and damage bonuses as parts, roll dice (Inspire, Cutting Words) folded into the hit chance exactly, a mark's dice as `extraDice`. Fear and discord replan the enemy's intent at once and at every new round while they hold.
+- Abilities that take an action can't follow the member's action (and Smite needs it); free ones can. A heal needs someone hurt.
+
+**Level-up picks** (rules/progression.ts, save v24). A level that grants a pick (`CLASS_PICKS`) adds a choice to the member's waiting level-up (`choices`: kind, level, chosen). The dialog shows each in the member's card; `chooseLevelUp` makes or changes it (it joins `Character.picks` at once); `acknowledgeLevelUps` is refused while any is unchosen. Simulated players take the first option (`stepPastLevelUps`). TODO with spell casting: a spell's 1-of-3 pick is another choice kind.
+
+**Save v24** (v23 → v24): `uses` (uses left, never written in play) gives way to `spent` (everyone rested), `picks` start empty, waiting level-ups get no choices, and the stash is empty.
+
+**Decided while building (please review).**
+- Proficiency penalties: 5e's (no proficiency bonus; disadvantage in untrained armour), not flat penalties.
+- Staffs suit every class with a casting ability, bards included.
+- Fighter styles are +2 **damage** a pick (to hit would run away with four stacked picks).
+- Smite spends its spell use only on a hit (5e's smite is declared after hitting).
+- Inspire and Cutting Words last the round (all the ally's or foe's attacks then), not "the next roll", so the odds shown are exact.
+- Discord and Turn Undead's DC is 8 + proficiency + the casting ability; enemies save WIS with their morale modifier, other saves at +0.
+- The bard's picks start at level 4 (five picks for six songs); each song is specialised at most once.
+- Shops stock without limit, at fixed prices (no spread); armour comes in one quality.
+

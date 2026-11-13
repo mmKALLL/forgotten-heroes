@@ -146,7 +146,8 @@ export function restOption(
  * In camp (on the road or at a point of interest) it eats carried food, drinking as the terrain
  * there needs, and heals CAMP_HEAL of max HP (and CAMP_KIT_HEAL more per camp-kit level); at a site with a spring or well (`water`) the
  * waterskins are refilled after the day's drinking. Either way, everyone who ate and drank loses
- * a level of exhaustion. Resting is never a forced march.
+ * a level of exhaustion. Resting is never a forced march. Any day of rest is a long rest (Plan 7):
+ * ability and spell uses come back (combat/uses.ts).
  */
 export function rest(
   state: GameState,

@@ -133,6 +133,11 @@
   - Fuel per dark room, previewed in the delve, or every check Exposed. The darkvision rule: everyone but one member, or a lone member, has darkvision.
 - **Side task:** the camaraderie from standing a round scales with the best Performance.
 
+### As built (Track C)
+- Built on branch `plan7-classes`; the details and the calls made are in the combat design's §11b. Save v23 → v24 (`spent` replaces `uses`, `picks`, level-up `choices`, `stash`).
+- For Track U (the 1–9 keys): `abilitySlots(state, content, unit)` lists each slot with its legal uses and what each does; dispatch `combatAbility { unit, ability, tile?, target? }`. Track S can add spells as further slots and spend `spell-<level>` uses (combat/uses.ts `spellCasts`, `spellUsesLeft`).
+- Designer call (2026-11-14): the bard's fifth and sixth songs (Mending Song, Song of Renewal), each song with its own uses, specialisations raising uses and effect.
+
 ## Wave 3
 - **Track B (balance):**
   - **A fight simulation** of each class party against enemies by CR, aiming at the intended win rates: the intended-level party wins most fights, and a party 2 levels below loses most.
