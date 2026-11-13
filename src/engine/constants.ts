@@ -121,8 +121,15 @@ export const FORAGE_HOSTILE_BONUS = 0.1
 
 /** A new party carries this many days of food per member. */
 export const STARTING_FOOD_DAYS = 5
-/** A day in camp restores this share of max HP; a day in a settlement restores all of it. */
+/**
+ * A day in camp restores this share of max HP; so does a day in a settlement without a room (on
+ * the party's own food; designer 2026-11-13: it must not beat the common room).
+ */
 export const CAMP_HEAL = 0.2
+/** A night in an inn's common room restores this share of each member's max HP. */
+export const COMMON_ROOM_HEAL = 0.4
+/** A night in an inn's private room restores this share of each member's max HP. */
+export const PRIVATE_ROOM_HEAL = 0.8
 /** CON check DC for a day without food. */
 export const HUNGER_DC = 10
 /** CON check DC for a day without water. */
@@ -215,7 +222,7 @@ export const ELSEWHERE_MAX_AGE_DAYS = 20
 // Services and animals (town/services.ts, town/animals.ts)
 
 /** A private room per member per night (meals included), at an inn of PRIVATE_ROOM_MIN_QUALITY+. */
-export const PRIVATE_ROOM_PRICE = 3
+export const PRIVATE_ROOM_PRICE = 4
 /** Only inns of at least this quality have private rooms. */
 export const PRIVATE_ROOM_MIN_QUALITY = 3
 /** Strain stacks a night in a private room fades (a common room or camp fades 1). */
@@ -446,8 +453,8 @@ export const CAMARADERIE_CRIT_FAIL = 2
 export const CAMARADERIE_RETREAT = 5
 /** Camaraderie gained for each contract completed. */
 export const CAMARADERIE_CONTRACT = 13
-/** Camaraderie gained for a night in a private room, once per arrival. */
-export const CAMARADERIE_BOND = 13
+/** Camaraderie gained for a night in a private room, once per arrival (a common room: none). */
+export const CAMARADERIE_BOND = 4
 /** Camaraderie gained for standing the party a round at the inn, once per arrival. */
 export const CAMARADERIE_ROUND = 8
 /** A round at the inn, per living member (gp). */
@@ -646,6 +653,12 @@ export const CR_STANDARD = 2
  * crWound, on top of DELVE_WOUND): a CR 8 dungeon's wounds are 1 + 6 × this as deep as written.
  */
 export const CR_WOUND_STEP = 1 / 3
+/**
+ * Fixed written wounds scale with the party's average max HP (living members): × max(1, average /
+ * this), as the encounter starts (rules/levels.ts partyWound; designer 2026-11-13). Content was
+ * written for members of about this much max HP. Where a CR deepens wounds, the larger factor wins.
+ */
+export const WOUND_REFERENCE_HP = 25
 
 // Levelled work (town/contracts.ts, rules/levels.ts; Plan 6 D1)
 

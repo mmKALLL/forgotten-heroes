@@ -63,7 +63,7 @@ import { livingMembers } from '../town/camaraderie'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
 import { asRoom, type RoomRules } from './room'
-import { jobDc, jobWound } from '../rules/levels'
+import { jobDc, jobWound, partyWound } from '../rules/levels'
 import { POWER_DC, TWIST_PLACE_WEIGHT } from '../constants'
 
 export type EncounterAction =
@@ -184,7 +184,10 @@ export type StartOptions = {
    * challenge rating over standard difficulty (rules/levels.ts crOffset). Ignored with `cr`.
    */
   dcBonus?: number
-  /** Wounds this many times as deep, with `dcBonus` (rules/levels.ts crWound). Ignored with `cr`. */
+  /**
+   * Wounds this many times as deep, with `dcBonus` (rules/levels.ts crWound), or the party's HP
+   * factor (partyWound) when that is larger. Ignored with `cr`.
+   */
   wound?: number
   /** A dungeon room (world/delve.ts): deeper wounds, driven out on a failure, the hoard last. */
   room?: RoomRules
@@ -197,7 +200,8 @@ export type StartOptions = {
  * place, and on a journey a hostile encounter meets the party on the footing its pace gives
  * (ambushPositionForPace). The encounter happens in the place's domain (or, without a place,
  * where the party is), and at `poi` when visiting one. The snapshot is hardened once, here, by the
- * day's danger and the site's power (world/danger.ts harden), or set to its challenge rating
+ * day's danger, the site's power and the party's HP (fixed wounds: rules/levels.ts partyWound;
+ * world/danger.ts harden), or set to its challenge rating
  * (`options.cr`, atChallenge), so the previews and rolls agree and a save loaded later doesn't
  * change an open encounter.
  */
@@ -239,10 +243,13 @@ export function startEncounter(
   const jobBonus = hostileJob ? jobDc(state) : 0
   const extraDc = atCr ? 0 : (options.dcBonus ?? 0) + jobBonus
   const wound = Math.max(options.wound ?? 1, hostileJob ? jobWound(state) : 1)
+  // Fixed wounds go deeper for a party with more HP, or by the CR's factor when that is larger
+  // (never both; world/danger.ts harden).
+  const hp = partyWound(state.party)
   const twisted = kind ? attachTwistKind(compiled, kind, content) : compiled
   const hardened = atCr
     ? atChallenge(twisted, options.cr!)
-    : harden(twisted, { dcBonus: powerDc + extraDc, danger, wound })
+    : harden(twisted, { dcBonus: powerDc + extraDc, danger, wound, hp })
   const joined = options.room ? asRoom(hardened, options.room) : hardened
   // The title and the twist are filled once, here; other text is filled as it is shown.
   const situation = {
