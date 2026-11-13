@@ -20,6 +20,7 @@ import {
   CAMP_HEAL,
   DEFAULT_PACE,
   LODGING_PRICE,
+  PRIVATE_ROOM_EXHAUSTION,
   PRIVATE_ROOM_FADE,
   STARTING_FOOD_DAYS,
   WATERSKIN_PRICE,
@@ -139,7 +140,8 @@ export function restOption(
 /**
  * A day of rest. In a settlement: all HP back and the waterskins refilled. With an inn, the party
  * takes a room when it wants to and can pay (meals included, carried food untouched): a common
- * room fades one Strain stack, a private room PRIVATE_ROOM_FADE. Otherwise it eats its own food.
+ * room fades one Strain stack and lifts a level of exhaustion, a private room PRIVATE_ROOM_FADE and
+ * PRIVATE_ROOM_EXHAUSTION. Otherwise it eats its own food.
  * In camp (on the road or at a point of interest) it eats carried food, drinking as the terrain
  * there needs, and heals a quarter of max HP; at a site with a spring or well (`water`) the
  * waterskins are refilled after the day's drinking. Either way, everyone who ate and drank loses
@@ -156,6 +158,8 @@ export function rest(
   const terrain = option.inTown ? null : terrainHere(state, content)
   const spring = !state.travel && springAt(state, content, state.location)
   const fades = option.room === 'private' ? PRIVATE_ROOM_FADE : 1
+  // A private room lifts more exhaustion too (designer call 2026-11-13).
+  const lifts = option.room === 'private' ? PRIVATE_ROOM_EXHAUSTION : 1
   const { state: after, unfed } = option.lodging
     ? {
         state: endOfDay(
@@ -175,7 +179,7 @@ export function rest(
     const hp = option.inTown
       ? c.maxHp
       : Math.min(c.maxHp, c.hp + Math.ceil(c.maxHp * option.healShare) + option.kitHp)
-    const exhaustion = unfed.includes(c.id) ? c.exhaustion : Math.max(0, c.exhaustion - 1)
+    const exhaustion = unfed.includes(c.id) ? c.exhaustion : Math.max(0, c.exhaustion - lifts)
     return { ...c, hp, exhaustion }
   })
   const refill = option.inTown || spring

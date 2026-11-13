@@ -23,6 +23,7 @@ import {
   LODGING_PRICE,
   NEWS_PRICE,
   OFF_ROAD_WINDING,
+  PRIVATE_ROOM_EXHAUSTION,
   PRIVATE_ROOM_FADE,
   PRIVATE_ROOM_MIN_QUALITY,
   PRIVATE_ROOM_PRICE,
@@ -47,9 +48,15 @@ export type LodgingOption = {
   effect: string
 }
 
-/** A night's rest at the inn (supplies.ts `rest`): a day, all HP back, `fade` Strain stacks. */
-const roomEffect = (fade: number, camaraderie = 0): string =>
-  [`Rest 1d · full HP · −${fade} Strain`, camaraderie > 0 && `+${camaraderie} camaraderie`]
+/**
+ * A night's rest at the inn (supplies.ts `rest`): a day, all HP back, `lifts` exhaustion and
+ * `fade` Strain stacks.
+ */
+const roomEffect = (fade: number, lifts: number, camaraderie = 0): string =>
+  [
+    `Rest 1d · full HP · −${lifts} exhaustion · −${fade} Strain`,
+    camaraderie > 0 && `+${camaraderie} camaraderie`,
+  ]
     .filter(Boolean)
     .join(' · ')
 
@@ -62,7 +69,13 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
   if (!inn || state.location === null) return []
   const members = state.party.length
   const rooms: LodgingOption[] = [
-    { room: 'common', service: inn, cost: LODGING_PRICE * members, fade: 1, effect: roomEffect(1) },
+    {
+      room: 'common',
+      service: inn,
+      cost: LODGING_PRICE * members,
+      fade: 1,
+      effect: roomEffect(1, 1),
+    },
   ]
   if (serviceQuality(state, state.location, inn) >= PRIVATE_ROOM_MIN_QUALITY) {
     rooms.push({
@@ -71,7 +84,7 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
       cost: PRIVATE_ROOM_PRICE * members,
       fade: PRIVATE_ROOM_FADE,
       // A night in good rooms also brings the party closer, once per arrival (bond).
-      effect: roomEffect(PRIVATE_ROOM_FADE, bondGain(state)),
+      effect: roomEffect(PRIVATE_ROOM_FADE, PRIVATE_ROOM_EXHAUSTION, bondGain(state)),
     })
   }
   return rooms

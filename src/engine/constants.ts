@@ -222,6 +222,8 @@ export const PRIVATE_ROOM_PRICE = 3
 export const PRIVATE_ROOM_MIN_QUALITY = 3
 /** Strain stacks a night in a private room fades (a common room or camp fades 1). */
 export const PRIVATE_ROOM_FADE = 2
+/** Exhaustion levels a night in a private room lifts (a common room or camp lifts 1). */
+export const PRIVATE_ROOM_EXHAUSTION = 2
 /** A healer's fee per member treated: all HP back and one level of exhaustion off, no day spent. */
 export const HEALER_PRICE = 10
 /** A temple's blessing (1 Inspiration), once per arrival at each temple. */
@@ -233,7 +235,7 @@ export const COURIER_KM_PER_DAY = 40
 /** Animals sell back for this share of their price. */
 export const ANIMAL_RESALE = 0.5
 /** Ridden in rough terrain, mounts are only this much faster than walking. */
-export const MOUNT_ROUGH_SPEED = 1.25
+export const MOUNT_ROUGH_SPEED = 1.6
 /** The terrain where mounts manage only MOUNT_ROUGH_SPEED. */
 export const ROUGH_TERRAIN: readonly Biome[] = ['mountains', 'marsh', 'jungle']
 /** Each working vehicle (a cart or wagon: `vehicle` in animals.json) adds this to the hostile share. */

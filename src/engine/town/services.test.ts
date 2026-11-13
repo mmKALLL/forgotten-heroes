@@ -54,6 +54,16 @@ describe('lodging', () => {
     expect(strained.gold - private_.gold).toBe(restOption(strained, content, 'private').lodgingCost)
   })
 
+  test('a private room lifts more exhaustion than a common room, as its effect line says', () => {
+    const tired = at('greenvale-1', { party: [{ ...brom, exhaustion: 3 }, lyra] })
+    const rooms = lodgingOptions(tired, content)
+    const common = act(tired, { type: 'rest', lodging: 'common' })
+    const private_ = act(tired, { type: 'rest', lodging: 'private' })
+    expect(private_.party[0].exhaustion).toBeLessThan(common.party[0].exhaustion)
+    expect(rooms[0].effect).toContain(`−${3 - common.party[0].exhaustion} exhaustion`)
+    expect(rooms[1].effect).toContain(`−${3 - private_.party[0].exhaustion} exhaustion`)
+  })
+
   test('owned animals add nothing to the cost of a night (no upkeep)', () => {
     const withMule = at('greenvale-1', { animals: { mule: 1, 'riding-horse': 1 } })
     const option = restOption(withMule, content)
