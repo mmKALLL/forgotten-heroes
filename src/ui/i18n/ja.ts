@@ -152,7 +152,6 @@ export const ja: Partial<Messages> = {
   'market.sell': '売値',
   'market.shop': '店',
   'market.shopValue': '{name}、品質 {quality}／5',
-  'market.elsewhere': '他所',
   'market.each': '1つ{gp} gp',
   'market.eachRange': '1つ{first} → {last} gp',
   'market.paysElsewhere': '{name}の買取 {gp} gp · {age}',

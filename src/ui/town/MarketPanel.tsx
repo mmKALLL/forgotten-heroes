@@ -2,7 +2,13 @@ import { useState, type ReactNode } from 'react'
 import type { Content } from '../../content/build'
 import { load } from '../../engine/economy/capacity'
 import { MARKET_STALL, qualityEffects, quote, type Quote } from '../../engine/economy/market'
-import { marketView, type KnownElsewhere, type MarketRow } from '../../engine/economy/trade'
+import {
+  elsewhereCell,
+  marketView,
+  type ElsewhereMode,
+  type KnownElsewhere,
+  type MarketRow,
+} from '../../engine/economy/trade'
 import { formatGp } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import {
@@ -19,7 +25,12 @@ import { CapacityMeter } from '../GoodsBar'
 import { useI18n, type I18n } from '../i18n/I18n'
 import { Tip } from '../Tip'
 import { qualityTip } from './ServicesPanel'
-import { WATERSKIN_PRICE, WATERSKIN_SELL_PRICE, WATERSKIN_WATER } from '../../engine/constants'
+import {
+  ELSEWHERE_MAX_AGE_DAYS,
+  WATERSKIN_PRICE,
+  WATERSKIN_SELL_PRICE,
+  WATERSKIN_WATER,
+} from '../../engine/constants'
 
 /** The amounts the stepper offers; 'max' is all the party can buy, or all it carries. */
 export const AMOUNTS = [1, 5, 10, 'max'] as const
@@ -27,6 +38,25 @@ export type Amount = (typeof AMOUNTS)[number]
 
 /** Shift-clicking Sell sells this many at once, or all there is if fewer (designer call). */
 export const SHIFT_SELL = 5
+
+/** Where the Elsewhere column's mode (where to sell, or where to buy) is remembered. */
+export const ELSEWHERE_MODE_KEY = 'forgotten-heroes/ui/market-elsewhere'
+
+function loadElsewhereMode(): ElsewhereMode {
+  try {
+    return localStorage.getItem(ELSEWHERE_MODE_KEY) === 'buy' ? 'buy' : 'sell'
+  } catch {
+    return 'sell'
+  }
+}
+
+function saveElsewhereMode(mode: ElsewhereMode) {
+  try {
+    localStorage.setItem(ELSEWHERE_MODE_KEY, mode)
+  } catch {
+    // Storage unavailable (private mode, quota): the choice just won't persist.
+  }
+}
 
 type T = I18n['t']
 
@@ -119,6 +149,12 @@ export function MarketPanel({
   const i18n = useI18n()
   const { t, name, fields } = i18n
   const [amount, setAmount] = useState<Amount>(1)
+  const [elsewhere, setElsewhere] = useState<ElsewhereMode>(loadElsewhereMode)
+  const flipElsewhere = () => {
+    const next = elsewhere === 'sell' ? 'buy' : 'sell'
+    setElsewhere(next)
+    saveElsewhereMode(next)
+  }
   const rows = marketView(state, content).filter((r) => r.good !== 'water')
   const here = state.location
   if (rows.length === 0 || here === null) return null
@@ -172,7 +208,18 @@ export function MarketPanel({
                 {t('market.sell')}
               </th>
               <th scope="col">{t('market.shop')}</th>
-              <th scope="col">{t('market.elsewhere')}</th>
+              <th scope="col">
+                {/* Click to switch: the most a town pays you (Buys at), or the least it charges (Sells at). */}
+                <button
+                  className="elsewhere-toggle"
+                  title={t(elsewhere === 'sell' ? 'market.buysAtHint' : 'market.sellsAtHint', {
+                    days: ELSEWHERE_MAX_AGE_DAYS,
+                  })}
+                  onClick={flipElsewhere}
+                >
+                  {t(elsewhere === 'sell' ? 'market.buysAt' : 'market.sellsAt')} ⇄
+                </button>
+              </th>
               <th scope="col">
                 <span className="sr-only">{t('market.trade')}</span>
               </th>
@@ -212,6 +259,7 @@ export function MarketPanel({
                         : name('services', row.shop.service, row.shop.name))
                     }
                     cargoFor={cargoOf(row.good)}
+                    elsewhere={elsewhere}
                     onAction={onAction}
                   />
                 ))}
@@ -248,6 +296,7 @@ function MarketLine({
   uses,
   shopName,
   cargoFor,
+  elsewhere,
   onAction,
 }: {
   row: MarketRow
@@ -261,6 +310,8 @@ function MarketLine({
   shopName: string | null
   /** The cargo lots of this good, one per contract. */
   cargoFor: CargoSaleView[]
+  /** The Elsewhere column's mode: where to sell, or where to buy. */
+  elsewhere: ElsewhereMode
   onAction: (a: Action) => void
 }) {
   const { t } = useI18n()
@@ -285,22 +336,9 @@ function MarketLine({
   // the player's own arithmetic); both are in the tooltip.
   const buyWhy =
     short && row.buyLimit === 'weight' ? t('market.tooHeavyShort', { n: row.maxBuy }) : null
-  const known = row.known.sell ?? row.known.buy
-  const knownSide = row.known.sell ? 'sell' : 'buy'
-  // Whether the price there is higher or lower than the same price here (↑ or ↓).
-  const herePrice = knownSide === 'sell' ? row.sell : row.buy
-  const trend =
-    !known || !herePrice || formatGp(known.price) === formatGp(herePrice.unitFirst)
-      ? null
-      : known.price > herePrice.unitFirst
-        ? 'up'
-        : 'down'
-  const knownTitle = [
-    row.known.sell && knownText(t, 'sell', row.known.sell),
-    row.known.buy && knownText(t, 'buy', row.known.buy),
-  ]
-    .filter(Boolean)
-    .join('\n')
+  // The best price known elsewhere in the column's mode, and how it compares with here (↑ or ↓).
+  const known = elsewhereCell(row, elsewhere)
+  const trend = known?.trend ?? null
   const unit = (q: Quote | null) => (q ? formatGp(q.unitFirst) : '—')
   return (
     <tr className={row.carried > 0 ? 'carried' : undefined}>
@@ -354,13 +392,13 @@ function MarketLine({
       </td>
       <td
         className={`known${known?.stale ? ' stale' : ''}${known?.heard ? ' heard' : ''}`}
-        title={knownTitle || undefined}
+        title={known ? knownText(t, elsewhere, known) : undefined}
       >
         {known && (
           <>
             {trend && (
               <span
-                className={`trend ${trend}`}
+                className={`trend ${trend} ${known.better ? 'better' : 'worse'}`}
                 aria-label={t(trend === 'up' ? 'market.higherThere' : 'market.lowerThere')}
               >
                 {trend === 'up' ? '↑' : '↓'}

@@ -8,7 +8,7 @@ import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
 import type { GameState } from '../../schema/state'
 import { I18nProvider } from '../i18n/I18n'
-import { MarketPanel } from './MarketPanel'
+import { ELSEWHERE_MODE_KEY, MarketPanel } from './MarketPanel'
 
 const content = fixtureContent()
 afterEach(cleanup)
@@ -92,16 +92,16 @@ test('shift-clicking Sell sells 5 at once, or all there is if fewer', async () =
 test('prices known elsewhere show their age, stale and heard', () => {
   const state = town({
     day: 30,
-    priceBook: { 'greenvale-2': { day: 5, heard: true, prices: { food: { buy: 1, sell: 7 } } } },
+    priceBook: { 'greenvale-2': { day: 14, heard: true, prices: { food: { buy: 1, sell: 7 } } } },
   })
   market(state)
   const name = settlementName(state, 'greenvale-2')
   const row = screen.getByRole('rowheader', { name: /^Food/ }).closest('tr')!
   const known = within(row).getByText(name).closest('td')!
   // ↑: it pays more there than here.
-  expect(known.textContent).toBe(`↑7 ${name} 25d heard stale`)
+  expect(known.textContent).toBe(`↑7 ${name} 16d heard stale`)
   expect(known.className).toMatch(/stale/)
-  expect(known.getAttribute('title')).toMatch(`${name} pays 7 gp · 25 days ago heard stale`)
+  expect(known.getAttribute('title')).toMatch(`${name} pays 7 gp · 16 days ago heard stale`)
   cleanup()
   market(
     town({
@@ -112,6 +112,35 @@ test('prices known elsewhere show their age, stale and heard', () => {
   )
   const lower = screen.getByRole('rowheader', { name: /^Food/ }).closest('tr')!
   expect(within(lower).getByText(name).closest('td')!.textContent).toMatch(/^↓0\.1 /)
+})
+
+test('the Elsewhere header switches between Buys at and Sells at, and remembers it', async () => {
+  localStorage.removeItem(ELSEWHERE_MODE_KEY)
+  const state = town({
+    day: 30,
+    priceBook: {
+      'greenvale-2': { day: 25, heard: false, prices: { gems: { buy: 300, sell: 200 } } },
+      'greenvale-1': { day: 28, heard: false, prices: { gems: { buy: 20, sell: 10 } } },
+      // Too old to show, though it pays the most and asks the least.
+      'farisle-1': { day: 2, heard: false, prices: { gems: { buy: 1, sell: 999 } } },
+    },
+  })
+  market(state)
+  const gems = () => screen.getByRole('rowheader', { name: /^Gems/ }).closest('tr')!
+  const cell = () => gems().querySelector('td.known')!
+  const there = (id: string) => settlementName(state, id)
+  // Buys at: the most a town is known to pay.
+  const toggle = screen.getByRole('button', { name: /^Buys at/ })
+  expect(cell().textContent).toContain(`200 ${there('greenvale-2')}`)
+  await userEvent.click(toggle)
+  // Sells at: the least a town is known to charge.
+  expect(screen.getByRole('button', { name: /^Sells at/ })).toBeTruthy()
+  expect(cell().textContent).toContain(`20 ${there('greenvale-1')}`)
+  expect(cell().textContent).not.toContain(there('farisle-1'))
+  cleanup()
+  market(state)
+  expect(screen.getByRole('button', { name: /^Sells at/ })).toBeTruthy()
+  localStorage.removeItem(ELSEWHERE_MODE_KEY)
 })
 
 test('a buy that would overload is disabled with the reason', () => {

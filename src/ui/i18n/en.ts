@@ -434,7 +434,12 @@ export const en = {
   'market.sell': 'Sell',
   'market.shop': 'Shop',
   'market.shopValue': '{name}, quality {quality} of 5',
-  'market.elsewhere': 'Elsewhere',
+  'market.buysAt': 'Buys at',
+  'market.sellsAt': 'Sells at',
+  'market.buysAtHint':
+    'The most a town is known to pay you (prices up to {days}d old). Click: where it sells',
+  'market.sellsAtHint':
+    'The least a town is known to charge (prices up to {days}d old). Click: where it buys',
   'market.trade': 'Trade',
   'market.each': '{gp} gp each',
   'market.eachRange': '{first} → {last} gp each',

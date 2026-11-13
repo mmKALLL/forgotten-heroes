@@ -22,7 +22,7 @@ import {
 } from './market'
 import { production } from './supply'
 import type { Draw } from '../rng'
-import { OVERLOAD_RATIO, RUMOUR_SKEW, STALE_DAYS } from '../constants'
+import { ELSEWHERE_MAX_AGE_DAYS, OVERLOAD_RATIO, RUMOUR_SKEW, STALE_DAYS } from '../constants'
 
 // Buying and selling the 15 goods, and the price book: what the party knows of other markets.
 
@@ -283,7 +283,8 @@ export type KnownElsewhere = {
 
 /**
  * The best known prices for a good elsewhere: the highest a market pays (sell) and the lowest a
- * market asks (buy), from the price book, ignoring the settlement `except`.
+ * market asks (buy), from the price book, ignoring the settlement `except` and entries older than
+ * ELSEWHERE_MAX_AGE_DAYS.
  */
 export function knownElsewhere(
   state: GameState,
@@ -294,7 +295,7 @@ export function knownElsewhere(
   let buy: KnownElsewhere | null = null
   const entries = Object.entries(state.priceBook).sort(([a], [b]) => (a < b ? -1 : 1))
   for (const [id, entry] of entries) {
-    if (id === except) continue
+    if (id === except || priceAge(entry, state.day) > ELSEWHERE_MAX_AGE_DAYS) continue
     const price = entry.prices[good]
     if (!price) continue
     const known = (p: number): KnownElsewhere => ({
@@ -309,6 +310,44 @@ export function knownElsewhere(
     if (price.buy !== null && (buy === null || price.buy < buy.price)) buy = known(price.buy)
   }
   return { sell, buy }
+}
+
+/**
+ * The market's Elsewhere column has two modes (designer call 2026-11-13): where to sell (the
+ * highest price a known market pays) and where to buy (the lowest a known market asks), labelled
+ * from the town's side as "Buys at" and "Sells at" (designer wording). The mode names the party's
+ * side: `sell` is where the party sells (the town buys).
+ */
+export type ElsewhereMode = 'sell' | 'buy'
+
+/** One row's Elsewhere cell: the best known price in that mode, and how it compares with here. */
+export type ElsewhereCell = KnownElsewhere & {
+  /** Higher or lower than the same price here (what this market pays, or asks); null if equal. */
+  trend: 'up' | 'down' | null
+  /** Whether it beats here for the party: more paid there, or less asked. */
+  better: boolean
+}
+
+/**
+ * The Elsewhere cell of a market row in a mode: the highest known price paid (sell) or the lowest
+ * known price asked (buy) elsewhere, within ELSEWHERE_MAX_AGE_DAYS, against the same price here.
+ * Null when the price book knows none.
+ */
+export function elsewhereCell(
+  row: Pick<MarketRow, 'known' | 'buy' | 'sell'>,
+  mode: ElsewhereMode
+): ElsewhereCell | null {
+  const known = row.known[mode]
+  if (!known) return null
+  const here = row[mode]?.unitFirst ?? null
+  const trend =
+    here === null || formatGp(known.price) === formatGp(here)
+      ? null
+      : known.price > here
+        ? 'up'
+        : 'down'
+  const better = trend !== null && (trend === 'up') === (mode === 'sell')
+  return { ...known, trend, better }
 }
 
 /** One good in the market panel. */
