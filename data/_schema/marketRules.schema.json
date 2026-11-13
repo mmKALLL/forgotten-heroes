@@ -55,11 +55,17 @@
               "minWealth": {
                 "$ref": "#/$defs/__schema9"
               },
-              "threatAtLeast": {
+              "focus": {
                 "$ref": "#/$defs/__schema10"
               },
-              "nearPoi": {
+              "threatAtLeast": {
                 "$ref": "#/$defs/__schema12"
+              },
+              "threatAtMost": {
+                "$ref": "#/$defs/__schema14"
+              },
+              "nearPoi": {
+                "$ref": "#/$defs/__schema16"
               }
             },
             "description": "Every listed condition must hold"
@@ -67,7 +73,7 @@
           "demand": {
             "default": {},
             "description": "Good → −2 (unwanted) to +2 (sought after)",
-            "$ref": "#/$defs/__schema14"
+            "$ref": "#/$defs/__schema18"
           },
           "notes": {
             "type": "string"
@@ -144,19 +150,40 @@
       "maximum": 9007199254740991
     },
     "__schema10": {
-      "description": "The domain's threat level today",
+      "description": "What its settlement type is built for (settlementTypes' focus): attack or defence",
       "$ref": "#/$defs/__schema11"
     },
     "__schema11": {
+      "type": "string",
+      "enum": [
+        "attack",
+        "defence",
+        "other"
+      ]
+    },
+    "__schema12": {
+      "description": "The domain's threat level today",
+      "$ref": "#/$defs/__schema13"
+    },
+    "__schema13": {
       "type": "integer",
       "minimum": 0,
       "maximum": 3
     },
-    "__schema12": {
-      "description": "An inhabited site of one of these categories in the domain",
-      "$ref": "#/$defs/__schema13"
+    "__schema14": {
+      "description": "The domain's threat level today is at most this (0: held, not under threat)",
+      "$ref": "#/$defs/__schema15"
     },
-    "__schema13": {
+    "__schema15": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 3
+    },
+    "__schema16": {
+      "description": "An inhabited site of one of these categories in the domain",
+      "$ref": "#/$defs/__schema17"
+    },
+    "__schema17": {
       "type": "array",
       "items": {
         "type": "string",
@@ -171,7 +198,7 @@
         ]
       }
     },
-    "__schema14": {
+    "__schema18": {
       "type": "object",
       "propertyNames": {
         "type": "string",
@@ -182,15 +209,15 @@
           "healing",
           "alchemicals",
           "arcana",
+          "gear",
           "arms",
           "armour",
-          "gear",
           "timber",
           "stone",
           "metal",
+          "luxuries",
           "gems",
-          "relics",
-          "luxuries"
+          "relics"
         ]
       },
       "additionalProperties": {

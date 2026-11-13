@@ -27,7 +27,8 @@ import {
   SUPPLY_MIN,
 } from '../constants'
 import { shopKeeper } from '../town/reputation'
-import { supplyOf } from './supply'
+import { production, supplyOf } from './supply'
+import { domainThreatLevel } from '../world/pois'
 
 const content = fixtureContent()
 const base = makeState()
@@ -124,6 +125,88 @@ describe('marketLevels and midPrice', () => {
 
   test('water is never priced', () => {
     expect(midPrice(base, content, 'greenvale-1', 'water')).toBe(0)
+  })
+
+  test('a focus rule follows the settlement type, and threatAtMost holds only while calm', () => {
+    const type = base.world.settlements['greenvale-2'].type
+    const camp = {
+      ...content,
+      settlementTypes: {
+        ...content.settlementTypes,
+        [type]: { ...content.settlementTypes[type], focus: 'attack' as const },
+      },
+      marketRules: {
+        ...content.marketRules,
+        muster: {
+          id: 'muster',
+          label: 'Mustering',
+          when: { focus: 'attack' as const, threatAtMost: 0 },
+          demand: { arms: 1 },
+          source: 'claude' as const,
+          file: 'test.json',
+        },
+      },
+    }
+    const calm = { ...base, world: { ...base.world, lands: {} } }
+    expect(domainThreatLevel(calm.world, 'greenvale-2', calm.day)).toBe(0)
+    expect(marketLevels(calm, camp, 'greenvale-2').arms.demand).toBe(1)
+    expect(marketLevels(calm, content, 'greenvale-2').arms.demand).toBe(0)
+    // Under threat the muster stops; the raids want arms instead.
+    const threatened = rampant(calm, 'greenvale-2')
+    expect(priceFactors(threatened, camp, 'greenvale-2', 'arms').demand.map((d) => d.id)).toEqual([
+      'under-threat',
+    ])
+  })
+
+  test("a service's inputs add demand where it is, named by the service", () => {
+    const smiths = {
+      ...content,
+      serviceRoles: {
+        ...content.serviceRoles,
+        'jewelry-trader': { ...content.serviceRoles['jewelry-trader'], inputs: { gems: 2 } },
+      },
+    }
+    const without = marketLevels(base, smiths, 'greenvale-2').gems.demand
+    const s = withServices('greenvale-2', ['jewelry-trader'])
+    expect(marketLevels(s, smiths, 'greenvale-2').gems.demand).toBe(without + 2)
+    expect(priceFactors(s, smiths, 'greenvale-2', 'gems').demand).toContainEqual({
+      id: 'jewelry-trader',
+      label: 'Jewelry trader',
+      level: 2,
+    })
+  })
+})
+
+describe('worked goods (producers with services and inputs)', () => {
+  // Ashmoor's herb-gatherers make alchemicals at 2; a shop there turns them into arcana.
+  const worked = {
+    ...content,
+    producers: {
+      ...content.producers,
+      apothecary: {
+        id: 'apothecary',
+        label: 'Apothecaries',
+        when: { services: ['jewelry-trader'], supplyAtLeast: { alchemicals: 2 } },
+        output: { arcana: 3 },
+        source: 'claude' as const,
+        file: 'test.json',
+      },
+    },
+  }
+  const both = withServices(
+    'ashmoor-1',
+    ['jewelry-trader'],
+    withServices('greenvale-2', ['jewelry-trader'])
+  )
+
+  test('need the service and the input to hand', () => {
+    expect(supplyOf(both, worked, 'ashmoor-1', 'arcana')).toMatchObject({
+      from: 'ashmoor-1',
+      level: 3,
+    })
+    // Greenvale has the service but the herbs are days away; Ashmoor without it makes none.
+    expect(production(both, worked, 'greenvale-2').map((p) => p.good)).not.toContain('arcana')
+    expect(production(base, worked, 'ashmoor-1').map((p) => p.good)).not.toContain('arcana')
   })
 })
 

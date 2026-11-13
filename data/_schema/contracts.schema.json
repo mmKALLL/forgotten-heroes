@@ -201,15 +201,15 @@
         "healing",
         "alchemicals",
         "arcana",
+        "gear",
         "arms",
         "armour",
-        "gear",
         "timber",
         "stone",
         "metal",
+        "luxuries",
         "gems",
-        "relics",
-        "luxuries"
+        "relics"
       ]
     },
     "__schema17": {

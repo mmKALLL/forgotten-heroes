@@ -39,17 +39,20 @@
           "buysOnly": {
             "$ref": "#/$defs/__schema6"
           },
-          "actions": {
+          "inputs": {
             "$ref": "#/$defs/__schema8"
           },
-          "specialty": {
-            "$ref": "#/$defs/__schema9"
+          "actions": {
+            "$ref": "#/$defs/__schema10"
           },
-          "recruits": {
+          "specialty": {
             "$ref": "#/$defs/__schema11"
           },
+          "recruits": {
+            "$ref": "#/$defs/__schema13"
+          },
           "accessories": {
-            "$ref": "#/$defs/__schema21"
+            "$ref": "#/$defs/__schema23"
           }
         },
         "required": [
@@ -103,15 +106,15 @@
         "healing",
         "alchemicals",
         "arcana",
+        "gear",
         "arms",
         "armour",
-        "gear",
         "timber",
         "stone",
         "metal",
+        "luxuries",
         "gems",
-        "relics",
-        "luxuries"
+        "relics"
       ]
     },
     "__schema6": {
@@ -126,6 +129,22 @@
       }
     },
     "__schema8": {
+      "default": {},
+      "description": "Goods its work uses (designer call 2026-11-13): each adds this much demand wherever the service is, shown as the service on hover (a smith wants metal, a healer healing)",
+      "$ref": "#/$defs/__schema9"
+    },
+    "__schema9": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/__schema5"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 3
+      }
+    },
+    "__schema10": {
       "default": [],
       "type": "array",
       "items": {
@@ -146,36 +165,21 @@
         ]
       }
     },
-    "__schema9": {
-      "description": "A line of flavour shown with the service",
-      "$ref": "#/$defs/__schema10"
-    },
-    "__schema10": {
-      "type": "string"
-    },
     "__schema11": {
-      "description": "Who hires out here (Plan 5a); needs the \"recruit\" action",
+      "description": "A line of flavour shown with the service",
       "$ref": "#/$defs/__schema12"
     },
     "__schema12": {
+      "type": "string"
+    },
+    "__schema13": {
+      "description": "Who hires out here (Plan 5a); needs the \"recruit\" action",
+      "$ref": "#/$defs/__schema14"
+    },
+    "__schema14": {
       "type": "object",
       "properties": {
         "offers": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "$ref": "#/$defs/__schema13"
-            },
-            {
-              "$ref": "#/$defs/__schema14"
-            }
-          ],
-          "items": false,
-          "minItems": 2,
-          "maxItems": 2,
-          "description": "How many recruits it offers a week, [min, max]"
-        },
-        "levels": {
           "type": "array",
           "prefixItems": [
             {
@@ -188,25 +192,40 @@
           "items": false,
           "minItems": 2,
           "maxItems": 2,
+          "description": "How many recruits it offers a week, [min, max]"
+        },
+        "levels": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/__schema17"
+            },
+            {
+              "$ref": "#/$defs/__schema18"
+            }
+          ],
+          "items": false,
+          "minItems": 2,
+          "maxItems": 2,
           "description": "Their levels, [min, max]; 0 is a level-1 recruit with two old wounds. Above the lowest living member's level + 2 they won't join"
         },
         "picks": {
           "default": 1,
           "description": "Quality: how many sets of six 3d6 rolls a recruit makes; the best set by total is kept",
-          "$ref": "#/$defs/__schema17"
+          "$ref": "#/$defs/__schema19"
         },
         "classes": {
           "description": "Class ids it offers (default any)",
-          "$ref": "#/$defs/__schema18"
+          "$ref": "#/$defs/__schema20"
         },
         "fee": {
           "default": 1,
           "description": "Multiplies the sign-on fee",
-          "$ref": "#/$defs/__schema19"
+          "$ref": "#/$defs/__schema21"
         },
         "gear": {
           "description": "The chance an offer brings a tier-1 accessory (default RECRUIT_GEAR_CHANCE)",
-          "$ref": "#/$defs/__schema20"
+          "$ref": "#/$defs/__schema22"
         }
       },
       "required": [
@@ -214,62 +233,62 @@
         "levels"
       ]
     },
-    "__schema13": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 10
-    },
-    "__schema14": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 10
-    },
     "__schema15": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 20
+      "maximum": 10
     },
     "__schema16": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 20
+      "maximum": 10
     },
     "__schema17": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20
+    },
+    "__schema18": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 20
+    },
+    "__schema19": {
       "type": "integer",
       "minimum": 1,
       "maximum": 5
     },
-    "__schema18": {
+    "__schema20": {
       "minItems": 1,
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema1"
       }
     },
-    "__schema19": {
+    "__schema21": {
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "__schema20": {
+    "__schema22": {
       "type": "number",
       "minimum": 0,
       "maximum": 1
     },
-    "__schema21": {
+    "__schema23": {
       "description": "Accessories sold here (Plan 5a); needs the \"accessories\" action",
-      "$ref": "#/$defs/__schema22"
+      "$ref": "#/$defs/__schema24"
     },
-    "__schema22": {
+    "__schema24": {
       "type": "object",
       "properties": {
         "offers": {
           "type": "array",
           "prefixItems": [
             {
-              "$ref": "#/$defs/__schema23"
+              "$ref": "#/$defs/__schema25"
             },
             {
-              "$ref": "#/$defs/__schema24"
+              "$ref": "#/$defs/__schema26"
             }
           ],
           "items": false,
@@ -280,10 +299,10 @@
         "maxTier": {
           "anyOf": [
             {
-              "$ref": "#/$defs/__schema25"
+              "$ref": "#/$defs/__schema27"
             },
             {
-              "$ref": "#/$defs/__schema26"
+              "$ref": "#/$defs/__schema28"
             }
           ],
           "description": "The best tier it sells"
@@ -294,21 +313,21 @@
         "maxTier"
       ]
     },
-    "__schema23": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 10
-    },
-    "__schema24": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 10
-    },
     "__schema25": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema26": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema27": {
       "type": "number",
       "const": 1
     },
-    "__schema26": {
+    "__schema28": {
       "type": "number",
       "const": 2
     }

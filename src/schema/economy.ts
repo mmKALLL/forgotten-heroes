@@ -7,6 +7,7 @@ import {
   PoiCategorySchema,
   ServiceActionSchema,
   ServiceFunctionSchema,
+  SettlementFocusSchema,
   StandingSchema,
 } from './common'
 import { AccessoryTierSchema } from './gear'
@@ -60,6 +61,12 @@ export const ServiceRoleSchema = z
       .array(GoodSchema)
       .default([])
       .describe('Goods it buys but never sells, e.g. a necromancer buys relics'),
+    inputs: z
+      .partialRecord(GoodSchema, z.number().int().min(1).max(3))
+      .default({})
+      .describe(
+        'Goods its work uses (designer call 2026-11-13): each adds this much demand wherever the service is, shown as the service on hover (a smith wants metal, a healer healing)'
+      ),
     actions: z.array(ServiceActionSchema).default([]),
     specialty: z.string().optional().describe('A line of flavour shown with the service'),
     recruits: z
@@ -136,6 +143,9 @@ export const MarketRuleSchema = z.object({
   when: z
     .object({
       ...placeConditions,
+      focus: SettlementFocusSchema.optional().describe(
+        "What its settlement type is built for (settlementTypes' focus): attack or defence"
+      ),
       threatAtLeast: z
         .number()
         .int()
@@ -143,6 +153,13 @@ export const MarketRuleSchema = z.object({
         .max(3)
         .optional()
         .describe("The domain's threat level today"),
+      threatAtMost: z
+        .number()
+        .int()
+        .min(0)
+        .max(3)
+        .optional()
+        .describe("The domain's threat level today is at most this (0: held, not under threat)"),
       nearPoi: z
         .array(PoiCategorySchema)
         .optional()
@@ -169,6 +186,16 @@ export const ProducerRuleSchema = z.object({
         .array(PoiCategorySchema)
         .optional()
         .describe('A site of one of these categories in the domain (inhabited or not)'),
+      services: z
+        .array(IdSchema)
+        .optional()
+        .describe('It has one of these services (e.g. the smith who works the metal)'),
+      supplyAtLeast: z
+        .partialRecord(GoodSchema, z.number().int().min(-2).max(3))
+        .optional()
+        .describe(
+          "Its inputs are to hand: each good's supply here, from the producers within reach, is at least this level. Only rules without this condition count toward that supply (no chains)"
+        ),
     })
     .describe('Every listed condition must hold'),
   output: z

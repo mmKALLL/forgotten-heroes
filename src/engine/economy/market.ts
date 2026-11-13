@@ -1,6 +1,12 @@
 import { sortedEntries, type Content } from '../../content/build'
 import type { MarketRule } from '../../schema/economy'
-import { GOODS, GOOD_CATEGORY, type Good, type PoiCategory } from '../../schema/types'
+import {
+  GOODS,
+  GOOD_CATEGORY,
+  type Good,
+  type PoiCategory,
+  type SettlementFocus,
+} from '../../schema/types'
 import type { GameState, MarketTrade } from '../../schema/state'
 import { createRng, nextFloat } from '../rng'
 import { domainThreatLevel } from '../world/pois'
@@ -26,7 +32,7 @@ import {
 } from '../constants'
 
 // Settlement markets (design §4, §5). Nothing ticks: supply follows the nearby producers
-// (economy/supply.ts), demand the settlement and the market rules, prices drift by a seeded wave, and the party's bulk trades sag the price and
+// (economy/supply.ts), demand the settlement, the market rules and its services' inputs, prices drift by a seeded wave, and the party's bulk trades sag the price and
 // recover with a half-life. State only stores the party's net trades (GameState.markets).
 
 /** The pseudo-shop every settlement has: market stalls selling and buying the essentials. */
@@ -51,6 +57,8 @@ function seededFloat(seed: number, key: string): number {
 /** What the market rules look at in a settlement on a day. */
 export type MarketPlace = {
   type: string
+  /** What its type is built for: attack, defence or other (settlementTypes' focus). */
+  focus: SettlementFocus
   sizeTier: number
   biome: string | null
   coastal: boolean
@@ -78,6 +86,7 @@ export function marketPlace(
     .map(([, p]) => p.category)
   return {
     type: info.type,
+    focus: own(content.settlementTypes, info.type)?.focus ?? 'other',
     sizeTier: info.sizeTier,
     biome,
     coastal: site?.coastal ?? false,
@@ -92,11 +101,13 @@ export function ruleApplies(rule: MarketRule, place: MarketPlace): boolean {
   const w = rule.when
   return (
     (w.types === undefined || w.types.includes(place.type)) &&
+    (w.focus === undefined || w.focus === place.focus) &&
     (w.biomes === undefined || (place.biome !== null && w.biomes.some((b) => b === place.biome))) &&
     (w.coastal === undefined || w.coastal === place.coastal) &&
     (w.minSize === undefined || place.sizeTier >= w.minSize) &&
     (w.maxSize === undefined || place.sizeTier <= w.maxSize) &&
     (w.threatAtLeast === undefined || place.threat >= w.threatAtLeast) &&
+    (w.threatAtMost === undefined || place.threat <= w.threatAtMost) &&
     (w.nearPoi === undefined || w.nearPoi.some((c) => place.nearPoi.includes(c))) &&
     (w.minWealth === undefined || place.wealth >= w.minWealth)
   )
@@ -119,21 +130,43 @@ export const isShortage = (level: Pick<MarketLevel, 'supply' | 'demand'>): boole
 export const isGlut = (level: Pick<MarketLevel, 'supply' | 'demand'>): boolean =>
   level.supply - level.demand >= SHORTAGE_GAP
 
-/** The market rules that apply in a settlement on a day (their demand is summed). */
-export function demandRules(
+/** A reason for demand here: a market rule that applies, or a service that uses the good. */
+export type DemandSource = {
+  /** The market rule's id, or the service's. */
+  id: string
+  label: string
+  demand: Partial<Record<Good, number>>
+}
+
+/**
+ * What adds demand in a settlement on a day (it is summed): the market rules that apply, then
+ * each service there whose work uses goods (its role's `inputs`: a smith wants metal, a healer
+ * healing; designer call 2026-11-13), labelled with the service's name.
+ */
+export function demandSources(
   state: Pick<GameState, 'world'>,
   content: Content,
   settlementId: string,
   day: number
-): MarketRule[] {
+): DemandSource[] {
   const place = marketPlace(state, content, settlementId, day)
   if (!place) return []
-  return sortedEntries(content.marketRules).filter((rule) => ruleApplies(rule, place))
+  const rules = sortedEntries(content.marketRules)
+    .filter((rule) => ruleApplies(rule, place))
+    .map((rule) => ({ id: rule.id, label: rule.label, demand: rule.demand }))
+  const services = state.world.settlements[settlementId].services.flatMap((service) => {
+    const inputs = own(content.serviceRoles, service)?.inputs ?? {}
+    if (Object.keys(inputs).length === 0) return []
+    const label = own(content.services, service)?.name ?? service
+    return [{ id: service, label, demand: inputs }]
+  })
+  return [...rules, ...services]
 }
 
 /**
  * Supply and demand for every good in a settlement: supply from the nearby producers, demand the
- * sum of the market rules that apply, within ±MARKET_LEVEL_MAX.
+ * sum of the market rules that apply and the inputs of the services there, within
+ * ±MARKET_LEVEL_MAX.
  */
 export function marketLevels(
   state: Pick<GameState, 'world' | 'day'>,
@@ -141,13 +174,13 @@ export function marketLevels(
   settlementId: string,
   day = state.day
 ): Record<Good, MarketLevel> {
-  const rules = Object.hasOwn(state.world.settlements, settlementId)
-    ? demandRules(state, content, settlementId, day)
+  const sources = Object.hasOwn(state.world.settlements, settlementId)
+    ? demandSources(state, content, settlementId, day)
     : []
   return Object.fromEntries(
     GOODS.map((g) => {
       const demand = clamp(
-        rules.reduce((sum, r) => sum + (r.demand[g] ?? 0), 0),
+        sources.reduce((sum, r) => sum + (r.demand[g] ?? 0), 0),
         -MARKET_LEVEL_MAX,
         MARKET_LEVEL_MAX
       )
@@ -164,7 +197,7 @@ export function marketLevels(
 /** Why a good costs what it does here (shown on hover, design §4): the few factors behind it. */
 export type PriceFactors = {
   supply: SupplySource
-  /** The market rules adding demand (or taking it away) here today. */
+  /** The market rules and services adding demand (or taking it away) here today. */
   demand: { id: string; label: string; level: number }[]
   level: MarketLevel
   /** The drift today, and what is left of the party's own trades here, as factors on the price. */
@@ -180,7 +213,7 @@ export function priceFactors(
   day = state.day
 ): PriceFactors {
   const demand = Object.hasOwn(state.world.settlements, settlementId)
-    ? demandRules(state, content, settlementId, day)
+    ? demandSources(state, content, settlementId, day)
         .filter((r) => (r.demand[good] ?? 0) !== 0)
         .map((r) => ({ id: r.id, label: r.label, level: r.demand[good]! }))
     : []

@@ -7,16 +7,16 @@ import { settlementReach } from '../travel/reach'
 import { MARKET_LEVEL_MAX, SUPPLY_DAYS_PER_LEVEL, SUPPLY_MIN } from '../constants'
 
 // Geographic supply (design §4, designer decision): goods are made in particular settlements,
-// chosen by the producer rules (data/claude/producers.json) on land, type, size, wealth and the
-// sites in the domain. A market's supply of a good is the best producer within reach, less a
-// level for every SUPPLY_DAYS_PER_LEVEL steady days of road: near a producer it is cheap, far from
-// any it is scarce. Nothing here changes after the world is rolled, so the whole table is worked
+// chosen by the producer rules (data/claude/producers.json) on land, type, size, wealth, the
+// sites in the domain and its services (a smith makes arms only where metal is to hand). A
+// market's supply of a good is the best producer within reach, less a level for every
+// SUPPLY_DAYS_PER_LEVEL steady days of road: near a producer it is cheap, far from any it is scarce. Nothing here changes after the world is rolled, so the whole table is worked
 // out once per world and content (like territory) and kept.
 
 const own = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
 
-/** What a settlement offers a producer rule: its type, size, land, coast, wealth and sites. */
+/** What a settlement offers a producer rule: its type, size, land, coast, wealth, sites, services. */
 type ProducerPlace = {
   type: string
   sizeTier: number
@@ -25,10 +25,18 @@ type ProducerPlace = {
   wealth: number
   /** Categories of every site in its domain, inhabited or not. */
   pois: PoiCategory[]
+  services: string[]
 }
 
-/** Whether every condition of a producer rule holds in a settlement. */
-export function producerApplies(rule: ProducerRule, place: ProducerPlace): boolean {
+/**
+ * Whether every condition of a producer rule holds in a settlement. `supply` is the settlement's
+ * supply level of each good from the rules without inputs (for a rule's `supplyAtLeast`).
+ */
+export function producerApplies(
+  rule: ProducerRule,
+  place: ProducerPlace,
+  supply: (good: Good) => number = () => SUPPLY_MIN
+): boolean {
   const w = rule.when
   return (
     (w.types === undefined || w.types.includes(place.type)) &&
@@ -37,7 +45,12 @@ export function producerApplies(rule: ProducerRule, place: ProducerPlace): boole
     (w.minSize === undefined || place.sizeTier >= w.minSize) &&
     (w.maxSize === undefined || place.sizeTier <= w.maxSize) &&
     (w.minWealth === undefined || place.wealth >= w.minWealth) &&
-    (w.nearPoi === undefined || w.nearPoi.some((c) => place.pois.includes(c)))
+    (w.nearPoi === undefined || w.nearPoi.some((c) => place.pois.includes(c))) &&
+    (w.services === undefined || w.services.some((s) => place.services.includes(s))) &&
+    (w.supplyAtLeast === undefined ||
+      (Object.entries(w.supplyAtLeast) as [Good, number][]).every(
+        ([good, level]) => supply(good) >= level
+      ))
   )
 }
 
@@ -64,42 +77,15 @@ const NONE: SupplySource = { level: SUPPLY_MIN, from: null, days: null, output: 
 
 const memo = new WeakMap<Content, WeakMap<WorldState['settlements'], SupplyTable>>()
 
-function build(world: WorldState, content: Content): SupplyTable {
-  const rules = sortedEntries(content.producers)
-  const ids = Object.keys(world.settlements).sort(byCodeUnit)
-  const poisOf = new Map<string, Set<PoiCategory>>()
-  for (const poi of Object.values(world.pois)) {
-    if (!poisOf.has(poi.domain)) poisOf.set(poi.domain, new Set())
-    poisOf.get(poi.domain)!.add(poi.category)
-  }
-  const output: SupplyTable['output'] = {}
-  const why: SupplyTable['rules'] = {}
-  for (const id of ids) {
-    const info = world.settlements[id]
-    const site = own(content.settlements, id)
-    const place: ProducerPlace = {
-      type: info.type,
-      sizeTier: info.sizeTier,
-      biome: site ? (own(content.regions, site.region)?.biome ?? null) : null,
-      coastal: site?.coastal ?? false,
-      wealth: info.wealth,
-      pois: [...(poisOf.get(id) ?? [])],
-    }
-    const made: Partial<Record<Good, number>> = {}
-    const by: Partial<Record<Good, string[]>> = {}
-    for (const rule of rules) {
-      if (!producerApplies(rule, place)) continue
-      for (const [good, level] of Object.entries(rule.output) as [Good, number][]) {
-        made[good] = Math.min(MARKET_LEVEL_MAX, (made[good] ?? 0) + level)
-        by[good] = [...(by[good] ?? []), rule.id]
-      }
-    }
-    output[id] = made
-    why[id] = by
-  }
+/** The best producer of each good within reach of every settlement, given what each makes. */
+function supplyFrom(
+  ids: string[],
+  output: SupplyTable['output'],
+  reach: (id: string) => ReturnType<typeof settlementReach>
+): SupplyTable['supply'] {
   const supply: SupplyTable['supply'] = {}
   for (const id of ids) {
-    const roads = settlementReach(content, id)
+    const roads = reach(id)
     const row = Object.fromEntries(GOODS.map((g) => [g, NONE])) as Record<Good, SupplySource>
     for (const from of ids) {
       const days = from === id ? 0 : roads.get(from)?.days
@@ -122,7 +108,62 @@ function build(world: WorldState, content: Content): SupplyTable {
     }
     supply[id] = row
   }
-  return { output, rules: why, supply }
+  return supply
+}
+
+/**
+ * Two passes: the rules without inputs first (mines, fields, workshops), then the rules whose
+ * inputs must be to hand (`supplyAtLeast`, e.g. a smith making arms where metal is near), judged
+ * on the first pass's supply. A rule's inputs never come from another input rule, so it is exact.
+ */
+function build(world: WorldState, content: Content): SupplyTable {
+  const all = sortedEntries(content.producers)
+  const ids = Object.keys(world.settlements).sort(byCodeUnit)
+  const poisOf = new Map<string, Set<PoiCategory>>()
+  for (const poi of Object.values(world.pois)) {
+    if (!poisOf.has(poi.domain)) poisOf.set(poi.domain, new Set())
+    poisOf.get(poi.domain)!.add(poi.category)
+  }
+  const places = new Map<string, ProducerPlace>()
+  for (const id of ids) {
+    const info = world.settlements[id]
+    const site = own(content.settlements, id)
+    places.set(id, {
+      type: info.type,
+      sizeTier: info.sizeTier,
+      biome: site ? (own(content.regions, site.region)?.biome ?? null) : null,
+      coastal: site?.coastal ?? false,
+      wealth: info.wealth,
+      pois: [...(poisOf.get(id) ?? [])],
+      services: info.services,
+    })
+  }
+  const roads = new Map<string, ReturnType<typeof settlementReach>>()
+  const reach = (id: string) => {
+    if (!roads.has(id)) roads.set(id, settlementReach(content, id))
+    return roads.get(id)!
+  }
+  const output: SupplyTable['output'] = {}
+  const why: SupplyTable['rules'] = {}
+  const apply = (rules: ProducerRule[], supply?: SupplyTable['supply']) => {
+    for (const id of ids) {
+      const made = (output[id] ??= {})
+      const by = (why[id] ??= {})
+      const level = (good: Good) => supply?.[id][good].level ?? SUPPLY_MIN
+      for (const rule of rules) {
+        if (!producerApplies(rule, places.get(id)!, level)) continue
+        for (const [good, out] of Object.entries(rule.output) as [Good, number][]) {
+          made[good] = Math.min(MARKET_LEVEL_MAX, (made[good] ?? 0) + out)
+          by[good] = [...(by[good] ?? []), rule.id]
+        }
+      }
+    }
+  }
+  const raw = all.filter((rule) => rule.when.supplyAtLeast === undefined)
+  const worked = all.filter((rule) => rule.when.supplyAtLeast !== undefined)
+  apply(raw)
+  if (worked.length > 0) apply(worked, supplyFrom(ids, output, reach))
+  return { output, rules: why, supply: supplyFrom(ids, output, reach) }
 }
 
 function table(world: WorldState, content: Content): SupplyTable {

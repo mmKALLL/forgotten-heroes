@@ -19,7 +19,7 @@ describe('goods', () => {
   })
 
   test('categories in design order, and most valuable first', () => {
-    expect(goodsInCategory('precious')).toEqual(['gems', 'relics', 'luxuries'])
+    expect(goodsInCategory('precious')).toEqual(['luxuries', 'gems', 'relics'])
     expect(byValue(content, goodsInCategory('consumables'))).toEqual([
       'arcana',
       'alchemicals',

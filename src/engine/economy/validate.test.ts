@@ -13,7 +13,7 @@ import { economyIssues } from './validate'
 const sourced = <T>(entry: T): Sourced<T> => ({ ...entry, source: 'claude', file: 'test.json' })
 
 const role = (id: string, over: Partial<ServiceRole> = {}): Sourced<ServiceRole> =>
-  sourced({ id, function: 'trade', trades: [], buysOnly: [], actions: [], ...over })
+  sourced({ id, function: 'trade', trades: [], buysOnly: [], inputs: {}, actions: [], ...over })
 
 /** The fixture, completed so that it has no issues: every service gets a role. */
 function cleanContent(): Content {
@@ -204,5 +204,34 @@ describe('economyIssues', () => {
     expect(issues).toContain('goods: no producer makes "gems"')
     expect(issues).toContain('producers well: water is free and never traded')
     expect(issues).toContain('producers idle: makes nothing')
+  })
+
+  test('reports an empty threat range, an unknown producer service, and chained inputs', () => {
+    const content = cleanContent()
+    content.marketRules.odd = sourced<MarketRule>({
+      id: 'odd',
+      label: 'Odd',
+      when: { threatAtLeast: 2, threatAtMost: 1 },
+      demand: { arms: 1 },
+    })
+    content.producers.forge = sourced<ProducerRule>({
+      id: 'forge',
+      label: 'Forges',
+      when: { services: ['smithy'], supplyAtLeast: { timber: 1 } },
+      output: { arms: 1 },
+    })
+    content.producers.armoury = sourced<ProducerRule>({
+      id: 'armoury',
+      label: 'Armoury',
+      when: { supplyAtLeast: { arms: 1 } },
+      output: { armour: 1 },
+    })
+    const issues = economyIssues(content)
+    expect(issues).toContain('marketRules odd: threatAtLeast is above threatAtMost')
+    expect(issues).toContain('producers forge: unknown service "smithy"')
+    expect(issues).toContain('producers armoury: its input "arms" is made by a rule with inputs')
+    expect(issues).not.toContain(
+      'producers forge: its input "timber" is made by a rule with inputs'
+    )
   })
 })

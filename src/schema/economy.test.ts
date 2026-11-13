@@ -15,9 +15,9 @@ describe('vocabulary', () => {
     expect(GOODS).toHaveLength(15)
     expect(Object.keys(GOOD_CATEGORY).sort()).toEqual([...GOODS].sort())
     expect(GOODS.filter((g) => GOOD_CATEGORY[g] === 'precious')).toEqual([
+      'luxuries',
       'gems',
       'relics',
-      'luxuries',
     ])
   })
 })
@@ -59,6 +59,7 @@ describe('service roles', () => {
       function: 'temple',
       trades: [],
       buysOnly: [],
+      inputs: {},
       actions: [],
     })
   })

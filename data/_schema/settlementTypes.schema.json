@@ -69,6 +69,11 @@
           },
           "predominantAncestry": {
             "$ref": "#/$defs/__schema0"
+          },
+          "focus": {
+            "default": "other",
+            "description": "What it is built for: attack (camps, forts), defence (cities) or other; market rules may ask for it",
+            "$ref": "#/$defs/__schema1"
           }
         },
         "required": [
@@ -94,6 +99,14 @@
     "__schema0": {
       "type": "string",
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "attack",
+        "defence",
+        "other"
+      ]
     }
   }
 }
