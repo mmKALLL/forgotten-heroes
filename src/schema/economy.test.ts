@@ -132,6 +132,10 @@ describe('animals', () => {
       roadsOnly: false,
       waterPerDay: 1,
       stealable: false,
+      vehicle: false,
+      slow: false,
+      flies: false,
+      desertWater: false,
     })
   })
 

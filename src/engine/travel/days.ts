@@ -4,7 +4,7 @@ import type { Character, GameState, Goods } from '../../schema/state'
 import { formatModifier } from '../format'
 import { appendLog } from '../log'
 import { spoilDay } from '../economy/goods'
-import { animalWater } from '../town/animals'
+import { animalWater, camelWaterSaving } from '../town/animals'
 import type { Rng } from '../rng'
 import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { rollCheck } from '../rules/checks'
@@ -63,7 +63,9 @@ function endure(
  * party then eats its extra rations (what is left of them), and every member makes a CON check
  * (FORCED_MARCH_DC) or gains a level of exhaustion. Strain fades (faster with a `strainFade` hook),
  * except stacks gained today.
- * With `content`, goods then spoil (spoilDay). Returns the ids of those who went without, for rest.
+ * With `content`, goods then spoil (spoilDay), and camels save water in the desert
+ * (camelWaterSaving: the members drink that many units less, together). Returns the ids of those
+ * who went without, for rest.
  */
 export function consumeDay(
   state: GameState,
@@ -72,7 +74,11 @@ export function consumeDay(
   content?: Content
 ): { state: GameState; unfed: string[] } {
   let food = goodsOf(state.goods, 'food')
-  let water = goodsOf(state.goods, 'water')
+  const carried = goodsOf(state.goods, 'water')
+  // The camels' saving: the members drink from what is carried and the saving together, and
+  // whatever of the saving they don't use is not water to keep.
+  const saving = content ? camelWaterSaving(state, content, terrain) : 0
+  let water = carried + saving
   const need = waterNeed(terrain)
   let rng = state.rng
   const unfed: string[] = []
@@ -94,6 +100,7 @@ export function consumeDay(
     }
     return character
   })
+  water = Math.min(carried, water)
   // Escorted passengers eat and drink after the members, and go without quietly.
   const guests = escortPassengers(state)
   food = Math.max(0, food - guests)

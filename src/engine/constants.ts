@@ -231,6 +231,12 @@ export const ANIMAL_RESALE = 0.5
 export const MOUNT_ROUGH_SPEED = 1.25
 /** The terrain where mounts manage only MOUNT_ROUGH_SPEED. */
 export const ROUGH_TERRAIN: readonly Biome[] = ['mountains', 'marsh', 'jungle']
+/** Each working vehicle (a cart or wagon: `vehicle` in animals.json) adds this to the hostile share. */
+export const VEHICLE_HOSTILE = 0.1
+/** In the desert, each owned camel (`desertWater`) cuts the party's water by this share… */
+export const CAMEL_DESERT_WATER_SAVING = 0.125
+/** …up to this share in all (4 camels). */
+export const CAMEL_DESERT_WATER_MAX = 0.5
 
 // Visible wealth (economy/wealth.ts, routes.ts, run.ts)
 

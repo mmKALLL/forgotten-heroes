@@ -73,12 +73,13 @@ export function journeySupplies(
 }
 
 /**
- * True when today's food or water won't stretch to everyone's daily ration. (A forced march's
- * extra is eaten if it is there; going without it costs nothing more.)
+ * True when today's food or water won't stretch to everyone's daily ration, less the water camels
+ * save (`saving`, town/animals.ts camelWaterSaving). (A forced march's extra is eaten if it is
+ * there; going without it costs nothing more.)
  */
-export const runsShort = (state: GameState, terrain: Biome | null): boolean =>
+export const runsShort = (state: GameState, terrain: Biome | null, saving = 0): boolean =>
   goodsOf(state.goods, 'food') < state.party.length ||
-  goodsOf(state.goods, 'water') < waterNeed(terrain) * state.party.length
+  goodsOf(state.goods, 'water') + saving < waterNeed(terrain) * state.party.length
 
 /** A common room for the whole party for one night. */
 export const lodgingCost = (members: number): number => LODGING_PRICE * members

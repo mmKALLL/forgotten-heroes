@@ -177,8 +177,16 @@ export function forecastJourney(
     speed = 1,
     content,
     animalWater = 0,
+    waterSaving = 0,
     escorts = 0,
-  }: { speed?: number; content?: Content; animalWater?: number; escorts?: number } = {}
+  }: {
+    speed?: number
+    content?: Content
+    animalWater?: number
+    /** Whole units camels save the party each day (town/animals.ts camelWaterSaving). */
+    waterSaving?: number
+    escorts?: number
+  } = {}
 ): RouteForecast {
   const members = state.party.length
   const terrain: Biome = route.terrain
@@ -186,8 +194,12 @@ export function forecastJourney(
   // Escorted passengers eat and drink after the members (travel/days.ts).
   const party = dailyNeed(members + escorts, terrain, pace)
   // Animals drink from the carried water too; going short hurts no member, so only the total grows.
-  const need = { ...party, water: party.water + animalWater * waterNeed(terrain) }
-  const base = { food: members, water: waterNeed(terrain) * members }
+  // Camels' saving comes off the members' own water (travel/days.ts consumeDay).
+  const need = {
+    ...party,
+    water: Math.max(0, party.water - waterSaving) + animalWater * waterNeed(terrain),
+  }
+  const base = { food: members, water: Math.max(0, waterNeed(terrain) * members - waterSaving) }
   const found = forage ? expectedForage(state, terrain, pace) : { food: 0, water: 0 }
   const capacity = partyWaterCapacity(state)
   const carried = { food: goodsOf(state.goods, 'food'), water: goodsOf(state.goods, 'water') }

@@ -143,6 +143,7 @@ describe('hostileShare', () => {
       pace: 0,
       wealth: 0,
       escort: 0,
+      cargo: 0,
       ward: 0,
     })
     const share = hostileShare(2, 1, 'brisk', true)

@@ -163,9 +163,13 @@ describe('economyIssues', () => {
     const content = cleanContent()
     content.animals.mule = { ...content.animals.mule, hirePerDay: 1 }
     content.animals.cart = { ...content.animals.cart, needs: 'cart' }
+    content.animals['flying-carpet'] = { ...content.animals['flying-carpet'], needs: 'mule' }
     const issues = economyIssues(content)
     expect(issues).toContain('animals mule: only riding animals are hired (hirePerDay needs rider)')
     expect(issues).toContain('animals cart: cannot need itself')
+    expect(issues).toContain(
+      'animals flying-carpet: a flier carries the party itself (flies excludes needs, rider and slow)'
+    )
   })
 
   test('reports a rule whose size range is empty', () => {

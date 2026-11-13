@@ -24,7 +24,7 @@ export function JourneyPanel({
   const { t } = useI18n()
   const j = journeyInfo(state, content)
   if (!j) return null
-  const supplies = suppliesInfo(state, j.terrain)
+  const supplies = suppliesInfo(state, j.terrain, content)
   const sea = j.terrain === 'sea'
   return (
     <section className="panel journey" aria-label={t('journey.heading')}>
