@@ -540,11 +540,15 @@ export const EXPLORE_FINDS: Readonly<Record<Tier, { found: number; extraDays: nu
 
 // Gathering (world/gather.ts)
 
+/** Days a gathering takes, all at once: one member works (a rule's `yield` is for all of them). */
+export const GATHER_DAYS = 2
+/** Rations the gatherer eats a day of gathering (only theirs: the rest of the party waits). */
+export const GATHERER_RATIONS = 1
 /** A gather rule's DC is this much lower per output level of the good made in the domain (0–3). */
 export const GATHER_DC_PER_OUTPUT = 1
 /**
  * How much the land around a settlement yields before it is picked over, in fresh days' work (a
- * rule's success yield): the gathered units deplete it like a market of this depth.
+ * rule's success yield ÷ GATHER_DAYS a day): the gathered units deplete it like a market this deep.
  */
 export const GATHER_DEPTH_DAYS = 2
 /** HP the lead loses on a critical failure when no hostile situation fits the place. */

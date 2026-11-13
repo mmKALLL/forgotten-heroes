@@ -13,7 +13,7 @@ import { gatherOptions, type GatherOption } from '../engine/world/gather'
 import { isAlive, isHired, livingMembers } from '../engine/town/camaraderie'
 import { MAX_EXHAUSTION } from '../engine/rules/character'
 import { runOver } from '../engine/crisis/ending'
-import { STARTING_GOLD } from '../engine/constants'
+import { GATHER_DAYS, STARTING_GOLD } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { CONTRACT_KINDS, GOODS, type ContractKind, type Good } from '../schema/types'
 import { loadBundledContent } from './bundled'
@@ -235,6 +235,8 @@ function simulate(
 
   const onStep = (before: GameState, action: Action, after: GameState, why: TraderWhy) => {
     const gold = after.gold - before.gold
+    // The days this action took (not `days`, the run's length).
+    const spent = after.day - before.day
     const here = before.location
     if (action.type === 'chooseOption' && after.lastRoll && after.lastRoll !== before.lastRoll) {
       const b = (run.bands[Math.floor((before.day - 1) / BAND_DAYS)] ??= {
@@ -252,18 +254,18 @@ function simulate(
     if (action.type === 'gather' && here !== null) {
       const option = gatherOptions(before, content).find((x) => x.rule === action.rule)
       if (option) {
-        // Food gathered is partly eaten the same day: count what the party ate too.
-        const eaten = option.good === 'food' ? livingMembers(after).length : 0
+        // Food gathered is partly eaten by the gatherer: count what they ate too.
+        const eaten = option.good === 'food' ? option.food : 0
         const units = Math.max(
           0,
           (after.goods[option.good] ?? 0) - (before.goods[option.good] ?? 0) + eaten
         )
         const gp = units > 0 ? gatherValue(after, here, option.good, units) : 0
-        run.gather.days += days
+        run.gather.days += spent
         run.gather.gp += gp
         const week = Math.floor((before.day - 1) / 7)
         const w = (run.gather.byWeek[week] ??= { days: 0, gp: 0 })
-        w.days += days
+        w.days += spent
         w.gp += gp
       }
     }
@@ -277,10 +279,10 @@ function simulate(
       run.upgrades[action.upgrade] = (run.upgrades[action.upgrade] ?? 0) + 1
     }
     const inTown = here !== null && !before.travel && Object.hasOwn(before.world.settlements, here)
-    if (why === 'explore') run.time.explore += days
-    else if (action.type === 'rest' && inTown) run.time.town += days
-    else if (action.type === 'rest') run.time.camp += days
-    else run.time.road += days
+    if (why === 'explore') run.time.explore += spent
+    else if (action.type === 'rest' && inTown) run.time.town += spent
+    else if (action.type === 'rest') run.time.camp += spent
+    else run.time.road += spent
     // Goods gained or lost: cost basis and loot.
     for (const good of GOODS) {
       const was = before.goods[good] ?? 0
@@ -759,7 +761,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         const options = gatherOptions(at, content)
         for (const o of options) {
           const list = byRule.get(o.rule) ?? []
-          list.push(expectedGather(at, o))
+          list.push(expectedGather(at, o) / o.days)
           byRule.set(o.rule, list)
         }
         if (options.length > 0) domains.push({ state: at, id })
@@ -769,7 +771,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
     const mid = median(ruleMedians.map((r) => r.med))
     lines.push(
       '',
-      `## Gathering rules: a fresh day's expected value for the starting party (seeds 1–${PROBE_SEEDS.length}, every settlement)`,
+      `## Gathering rules: a fresh gathering's expected value a day (one gatherer, ${GATHER_DAYS}d) for the starting party (seeds 1–${PROBE_SEEDS.length}, every settlement)`,
       ''
     )
     row(['Rule', 'Places', 'gp (P10 / median / P90)', '× the median rule'])
@@ -778,20 +780,22 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
       row([rule, xs.length, spread(xs, 1), `${(med / mid).toFixed(2)}×`])
     }
 
-    // Saturation: the same party gathers the best option in one domain day after day, selling
-    // what it brings home (food topped up so no one goes hungry), in every third domain.
+    // Saturation: the same party gathers the best option in one domain gathering after gathering
+    // (GATHER_DAYS days each), selling what it brings home (food topped up so no one goes
+    // hungry), in every third domain. Values are a day's (a gathering's ÷ its days).
     const PROBE_DAYS = 14
-    const daily: number[][] = Array.from({ length: PROBE_DAYS }, () => [])
+    const PROBE_GATHERS = Math.ceil(PROBE_DAYS / GATHER_DAYS)
+    const daily: number[][] = Array.from({ length: PROBE_GATHERS }, () => [])
     const halfDay: number[] = []
     for (const { state: s0, id } of domains.filter((_, i) => i % 3 === 0)) {
       let st = s0
       const gp: number[] = []
-      for (let d = 0; d < PROBE_DAYS; d++) {
-        const ration = 2 * livingMembers(st).length
+      for (let d = 0; d < PROBE_GATHERS; d++) {
+        const ration = 2 * GATHER_DAYS
         st = { ...st, goods: { ...st.goods, food: ration } }
         const best = gatherOptions(st, content)
           .filter((x) => x.available)
-          .map((x) => ({ x, v: expectedGather(st, x) }))
+          .map((x) => ({ x, v: expectedGather(st, x) / x.days }))
           .sort((a, b) => b.v - a.v)[0]
         if (!best) break
         daily[d].push(best.v)
@@ -805,17 +809,17 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         }
       }
       const half = gp.findIndex((v) => v <= gp[0] / 2)
-      halfDay.push(half < 0 ? PROBE_DAYS + 1 : half + 1)
+      halfDay.push(half < 0 ? PROBE_DAYS + 1 : half * GATHER_DAYS + 1)
     }
     const first = median(daily[0])
     lines.push(
       '',
       `## Gathering saturation: one domain, ${PROBE_DAYS} days running (${halfDay.length} domains, seeds 1–${PROBE_SEEDS.length})`,
       '',
-      'Expected gp of the best option each day (median across domains), and its share of day 1:',
+      `Expected gp a day of the best option, each gathering (${GATHER_DAYS}d; median across domains), and its share of the first:`,
       ''
     )
-    row(['Day', ...daily.map((_, d) => d + 1)])
+    row(['From day', ...daily.map((_, d) => d * GATHER_DAYS + 1)])
     row(['---', ...daily.map(() => '---')])
     row(['gp', ...daily.map((xs) => f1(median(xs)))])
     row(['× day 1', ...daily.map((xs) => (median(xs) / first).toFixed(2))])

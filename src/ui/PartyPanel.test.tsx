@@ -107,14 +107,17 @@ test('each card shows its level and a bar to the next; the sheet has XP, hired a
   expect(toggle('Lyra').textContent).toMatch(/lv 2/)
   const bar = card('Lyra').getByRole('meter', { name: 'Lyra XP' })
   expect(bar.getAttribute('aria-valuetext')).toMatch(/to level 3$/)
+  // Beside it, total XP over the next level's threshold.
+  expect(card('Lyra').getByText(`${XP_BY_LEVEL[1]}/${XP_BY_LEVEL[2]} XP`)).toBeTruthy()
   await userEvent.click(toggle('Lyra'))
   expect(card('Lyra').getByText('Hired')).toBeTruthy()
   expect(card('Lyra').getByText('Old wound: A badly set leg (−2 DEX)')).toBeTruthy()
   expect(card('Lyra').getByText(/^Accessory:/)).toBeTruthy()
-  // At the cap there is no bar.
+  // At the cap the bar is full and says MAX.
   cleanup()
   render(<PartyPanel party={[{ ...brom, level: MAX_LEVEL, xp: XP_BY_LEVEL[MAX_LEVEL - 1] }]} />)
-  expect(screen.queryByRole('meter', { name: 'Brom XP' })).toBeNull()
+  expect(screen.getByRole('meter', { name: 'Brom XP' }).getAttribute('aria-valuenow')).toBe('100')
+  expect(card('Brom').getByText('MAX')).toBeTruthy()
 })
 
 test('dismissing a hired member asks first; founders have no Dismiss', async () => {

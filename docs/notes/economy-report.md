@@ -6,6 +6,26 @@ The economy simulation runs a scripted party through 30 worlds for 60 days each 
 
 Fixed wounds now scale with the party's average max HP (÷ 25, at least ×1), a common room heals 40% and a private room 80% of max HP (4 gp a member), and resting in town without a room heals as camp does. Over 60 days the parties are still mostly level 1–4, so the books barely move: the trader's gp/day by 60 (median) 2.4 → 2.8, lodging 11.0 → 12.4 gp a run, days resting in town (all runs) 286 → 302; contracts only 2.6 → 2.4 gp/day; wander deaths 19 → 18. Nothing was retuned.
 
+## Gathering: one gatherer, two days (2026-11-13)
+
+Designer call: a gathering takes `GATHER_DAYS` (2) days at once, done by the best-suited member alone on their own rations (one a day, refused without them); the rest of the party waits. The yields were doubled, so a gathering is worth what the old one-day, two-worker day was per day; `GATHER_DEPTH_DAYS` still counts days of work (a success's yield ÷ `GATHER_DAYS` a day). The options are listed by what a success would sell for here, biggest first. The trader now buys the gatherer's rations first when it is short. Both runs below use the committed data and the same sim; the sim's day counts were also fixed (every action had been counted as the run's 60 days, so the old "Time" and "gathering days" lines were wrong; the gp were right).
+
+| (seeds 1–30, 60 days) | before | after |
+| --- | --- | --- |
+| Trader, 50 gp: gp/day by 30 / 60 (median) | 1.4 / 3.0 | 1.6 / 2.9 |
+| Trader, 50 gp: broke by 30 / 60; deaths | 20% / 27%; 3 | 23% / 33%; 6 |
+| Trader, 10 gp start: gp/day by 30 / 60; broke by 30 / 60; deaths | 2.9 / 3.0; 17% / 27%; 2 | 2.2 / 3.0; 17% / 37%; 6 |
+| Gathering, 50 gp trader: runs; days a run; gp a run; gp a gathering day | 12/30; 1.0; 13.4; 13.4 | 9/30; 2.2; 18.6; 8.5 |
+| Gathering, 10 gp trader: runs; days a run; gp a run; gp a gathering day | 22/30; 2.6; 28.7; 10.9 | 20/30; 3.3; 36.5; 11.2 |
+| Fresh value a day (median): firewood, peat, scrub | 17.8, 17.9, 16.6 | 16.2, 16.5, 15.0 |
+| Fresh value a day (median): herbs, fish, game | 4.9, 4.9, 4.6 | 4.8, 4.9, 4.6 |
+| Fresh value a day (median): timber, stone | 1.9, 1.9 | 1.0, 1.0 |
+| Saturation: the best option first worth half on day (P10 / median / P90) | 3 / 3 / 7 | 3 / 3 / 7 |
+
+- **Per day, gathering is worth what it was** for every rule the party can carry (herbs, food, fuel within a few percent). Timber and stone halve a day: a starting party can carry only 1–2 units of them, so a two-day gathering brings home what a day did. They were already the weakest rules (0.4×, now 0.2× the median rule).
+- **Fuel is a clear outlier** since its base price rose from 0.3 to 5 gp: firewood, peat and scrub are worth 15–17 gp a day fresh, about 3.3× the median rule (the I1 target was no rule above 2×). A success of firewood (12 bundles) is worth about 33 gp at a typical market (12–72), against 18 for herbs and 12 for food. So fuel comes first wherever it can be gathered (firewood first in 59 of 63 places; herbs first in about half of theirs). The gathering yields were left alone; halving fuel's yields would bring it to about 1.7–2× (the carrying cap bites less).
+- **More broke deaths.** A broke party with under 2 rations can no longer gather food to get out of it (before, it went hungry that day and brought food home), and starves: the trader's deaths rose from 3 to 6 (50 gp) and 2 to 6 (10 gp start), almost all with 0 gp and 0 food. This follows from "refused without the food" and from "gathering is income, not a safety net"; a hunt that needs no rations would undo it.
+
 ## Demand by focus, size and services (2026-11-13)
 
 Designer calls: arms are wanted where places attack (camps and forts, most when their domain is held), armour where they defend (cities and capitals, most under threat); forges, weaponsmiths and armourers make arms and armour where metal is to hand; every service wants its inputs (a smith metal, a healer healing, a magic shop arcana); villages want timber, towns stone, cities stone and metal. Goods are now listed cheapest first within each category (gear before arms, luxuries before gems). Both runs below use the same engine, before (the old rules and goods order) and after:
