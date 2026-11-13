@@ -34,6 +34,15 @@ Visible wealth has an upside: people of high standing (aristocrats, guild master
 
 ## Dark dungeons need fuel → moved into Plan 7 (combat design §7b)
 
+## Relic accessories (designer, 2026-11-14)
+
+- **Common accessories** keep the minor passive boosts (today's tier 1).
+- **Uncommon and rare accessories** change the game's mechanics significantly, like the relics in Slay the Spire, rather than adding small numbers. They are valuable: usually rewards for clearing a dungeon, on a par with +2-or-better magic items.
+- **Rolling:**
+  - **Uncommon:** two common affixes (30%), or one uncommon affix (70%).
+  - **Rare:** two uncommon affixes (30%), or one rare affix (70%).
+- **Next step:** draft a list of uncommon and rare relic effects for review. The new hook targets from combat could carry them: attacks, armour, spell uses, saves, the line, and Parley. Some of Claude's earlier examples (Mule's Bell, Cartographer's Compass, Gambler's Die, Hungry Blade, Merchant's Ledger, Pilgrim's Token) are trade-off relics of this kind.
+
 ## Also listed for later
 
 - **Classes:** the Monk (ki: stunning, harrying) and the Barbarian (big single blows), from the combat design.
