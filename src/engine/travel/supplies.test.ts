@@ -30,6 +30,7 @@ import { load } from '../economy/capacity'
 import { step } from '../state'
 import {
   CAMP_HEAL,
+  COMMON_ROOM_HEAL,
   FORCED_MARCH_DC,
   LODGING_PRICE,
   OVERLOAD_RATIO,
@@ -199,7 +200,7 @@ describe('pace and supplies', () => {
 })
 
 describe('rest', () => {
-  test('a day at an inn heals fully, eases exhaustion, refills the water and feeds the party', () => {
+  test('a day at an inn heals a share of HP, eases exhaustion, refills the water and feeds the party', () => {
     // ashmoor-1 has an inn (greenvale-2 has none).
     const tired = base({
       location: 'ashmoor-1',
@@ -210,7 +211,11 @@ describe('rest', () => {
     const after = rest(tired, content)
     expect(after.day).toBe(2)
     expect(after.gold).toBe(5 - 2 * LODGING_PRICE)
-    expect(after.party[0]).toMatchObject({ hp: 20, exhaustion: 1, strain: {} })
+    expect(after.party[0]).toMatchObject({
+      hp: 3 + Math.ceil(brom.maxHp * COMMON_ROOM_HEAL),
+      exhaustion: 1,
+      strain: {},
+    })
     expect(after.goods).toEqual({ food: 10, water: 8 })
     expect(after.log.at(-1)!.text).toBe(
       `The party rests a day at an inn in ${settlementName(after, 'ashmoor-1')}: 2 gp, meals included.`
@@ -232,7 +237,9 @@ describe('rest', () => {
     })
     const after = rest(broke, content)
     expect(after.gold).toBe(1)
-    expect(after.party[0].hp).toBe(20)
+    // Without a room it heals as in camp, never more than a common room (designer 2026-11-13).
+    expect(after.party[0].hp).toBe(3 + Math.ceil(brom.maxHp * CAMP_HEAL))
+    expect(CAMP_HEAL).toBeLessThan(COMMON_ROOM_HEAL)
     expect(after.goods).toEqual({ food: 8, water: 8 })
     expect(after.log.at(-1)!.text).toBe(
       `The party rests a day in ${settlementName(after, 'ashmoor-1')}, eating its own food.`

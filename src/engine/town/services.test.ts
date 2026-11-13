@@ -64,6 +64,21 @@ describe('lodging', () => {
     expect(rooms[1].effect).toContain(`−${3 - private_.party[0].exhaustion} exhaustion`)
   })
 
+  test('a private room heals more than a common room, neither all of it, as the effect lines say', () => {
+    const hurt = at('greenvale-1', { party: [{ ...brom, hp: 1 }, lyra] })
+    const healed = (room: 'common' | 'private') =>
+      act(hurt, { type: 'rest', lodging: room }).party[0].hp - 1
+    const rooms = lodgingOptions(hurt, content)
+    expect(healed('private')).toBeGreaterThan(healed('common'))
+    expect(1 + healed('private')).toBeLessThan(brom.maxHp)
+    for (const room of rooms) {
+      expect(healed(room.room)).toBe(Math.ceil(brom.maxHp * room.heal))
+      expect(room.effect).toContain(`${Math.round(room.heal * 100)}% HP`)
+    }
+    // Only a private room brings the party closer.
+    expect(act(hurt, { type: 'rest', lodging: 'common' }).camaraderie).toBe(hurt.camaraderie)
+  })
+
   test('owned animals add nothing to the cost of a night (no upkeep)', () => {
     const withMule = at('greenvale-1', { animals: { mule: 1, 'riding-horse': 1 } })
     const option = restOption(withMule, content)

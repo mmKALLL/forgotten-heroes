@@ -28,7 +28,7 @@ import { RecruitsPanel } from './RecruitsPanel'
 import { UpgradeOffers } from './UpgradeOffers'
 import { upgradeOffers } from '../../engine/town/upgrades'
 import { daysText } from '../world/travelText'
-import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
+import { CAMP_HEAL, HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
@@ -159,7 +159,7 @@ export function ServicesPanel({ content, state, onAction }: Props) {
       <div className="zone-head">
         <h3>{t('ledger.services')}</h3>
         <button
-          title={t('place.restHint')}
+          title={t('place.restHint', { pct: Math.round(CAMP_HEAL * 100) })}
           onClick={() => onAction({ type: 'rest', lodging: false })}
         >
           {t('services.restOwn')}
@@ -359,7 +359,10 @@ function ServiceAction({
               key={room.room}
               label={t(`services.room.${room.room}`, { gp: room.cost })}
               effect={room.effect}
-              title={t(`services.roomHint.${room.room}`, { n: PRIVATE_ROOM_FADE })}
+              title={t(`services.roomHint.${room.room}`, {
+                n: PRIVATE_ROOM_FADE,
+                pct: Math.round(room.heal * 100),
+              })}
               reason={state.gold < room.cost ? NOT_ENOUGH_GOLD : null}
               disabled={state.gold < room.cost}
               onClick={() => onAction({ type: 'rest', lodging: room.room })}

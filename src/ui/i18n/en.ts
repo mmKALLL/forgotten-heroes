@@ -287,7 +287,7 @@ export const en = {
   'place.restInn': 'Rest a day at the inn ({gp} gp, meals included)',
   'place.restOwn': 'Rest a day, eating carried food',
   'place.restHint':
-    'A day in town restores all HP and refills the water; everyone fed loses a level of exhaustion.',
+    'A day in town without a room eats carried food and heals {pct}% of max HP, as in camp; the water is refilled and everyone fed loses a level of exhaustion.',
   'place.buyFood': 'Buy {n} rations ({gp} gp)',
   'place.buyWaterskin': 'Buy a waterskin ({gp} gp, holds {water} more)',
   'place.sellFood': 'Sell {n} rations (+{gp} gp)',
@@ -389,9 +389,9 @@ export const en = {
   'services.room.common': 'Common room · −{gp} gp',
   'services.room.private': 'Private room · −{gp} gp',
   'services.roomHint.common':
-    'A day’s rest in a common room: all HP back, meals included, one Strain stack fades',
+    'A day’s rest in a common room: {pct}% of max HP back, meals included, one Strain stack fades',
   'services.roomHint.private':
-    'A day’s rest in a private room: all HP back, meals included, {n} Strain stacks fade',
+    'A day’s rest in a private room: {pct}% of max HP back, meals included, {n} Strain stacks fade',
   'services.heal': 'Heal {n} · −{gp} gp',
   'services.healEach': 'Heal · −{gp} gp each',
   'services.healHint': 'All HP back and a level of exhaustion off for {names}, no day lost',
@@ -592,7 +592,7 @@ export const en = {
   'poi.visit': 'Visit',
   'poi.rest': 'Make camp (rest a day)',
   'poi.restHint':
-    'A day in camp eats carried food and heals a quarter of max HP; everyone fed loses a level of exhaustion.',
+    'A day in camp eats carried food and heals {pct}% of max HP; everyone fed loses a level of exhaustion.',
   /** Added to a camp-rest hint when the camp kit helps (Plan 6c). */
   'camp.kit': 'The camp kit adds +{hp} HP each.',
   'camp.kitCheer': 'The camp kit adds +{hp} HP each and +{n} camaraderie (once a stop).',
