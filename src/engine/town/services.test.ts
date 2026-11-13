@@ -79,6 +79,14 @@ describe('lodging', () => {
     expect(act(hurt, { type: 'rest', lodging: 'common' }).camaraderie).toBe(hurt.camaraderie)
   })
 
+  test('a rested party sees no exhaustion or strain on the room buttons', () => {
+    const fresh = at('greenvale-1')
+    for (const room of lodgingOptions(fresh, content)) {
+      expect(room.effect).not.toMatch(/exhaustion|strain/)
+      expect(room.effect).toMatch(/% HP/)
+    }
+  })
+
   test('owned animals add nothing to the cost of a night (no upkeep)', () => {
     const withMule = at('greenvale-1', { animals: { mule: 1, 'riding-horse': 1 } })
     const option = restOption(withMule, content)

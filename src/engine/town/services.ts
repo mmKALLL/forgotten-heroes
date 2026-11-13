@@ -60,13 +60,26 @@ export type LodgingOption = {
  * A night's rest at the inn (supplies.ts `rest`): a day, `heal` of each member's own max HP back,
  * `lifts` exhaustion and `fade` Strain stacks.
  */
-const roomEffect = (heal: number, fade: number, lifts: number, camaraderie = 0): string =>
-  [
-    `${Math.round(heal * 100)}% HP · −${lifts} exhaustion · −${fade} strain`,
+const roomEffect = (
+  state: GameState,
+  heal: number,
+  fade: number,
+  lifts: number,
+  camaraderie = 0
+): string => {
+  // Exhaustion and strain are named only when someone has some (designer call 2026-11-14).
+  const living = state.party.filter((c) => c.exhaustion < MAX_EXHAUSTION)
+  const tired = living.some((c) => c.exhaustion > 0)
+  const strained = living.some((c) => Object.values(c.strain ?? {}).some((n) => (n ?? 0) > 0))
+  return [
+    `${Math.round(heal * 100)}% HP`,
+    tired && `−${lifts} exhaustion`,
+    strained && `−${fade} strain`,
     camaraderie > 0 && `+${camaraderie} camaraderie`,
   ]
     .filter(Boolean)
     .join(' · ')
+}
 
 /**
  * The rooms of the inn here (a service whose role offers lodging): a common room, and a private
@@ -83,7 +96,7 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
       cost: LODGING_PRICE * members,
       fade: 1,
       heal: COMMON_ROOM_HEAL,
-      effect: roomEffect(COMMON_ROOM_HEAL, 1, 1),
+      effect: roomEffect(state, COMMON_ROOM_HEAL, 1, 1),
     },
   ]
   if (serviceQuality(state, state.location, inn) >= PRIVATE_ROOM_MIN_QUALITY) {
@@ -95,6 +108,7 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
       heal: PRIVATE_ROOM_HEAL,
       // A night in good rooms also brings the party closer, once per arrival (bond).
       effect: roomEffect(
+        state,
         PRIVATE_ROOM_HEAL,
         PRIVATE_ROOM_FADE,
         PRIVATE_ROOM_EXHAUSTION,
