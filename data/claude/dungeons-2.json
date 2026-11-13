@@ -1,0 +1,518 @@
+{
+  "$schema": "../_schema/dungeons.schema.json",
+  "kind": "dungeons",
+  "source": "claude",
+  "notes": "Authored dungeons, set 2 of 2 (Plan 6 D5): ten dungeons on maps from the _haunted, _coastal, __dungeon entrances and _epic (n-z) folders. Each map path is relative to ~/dnd5e and listed in assets.manifest.txt (local assets only). Rooms were marked by looking at each map: coordinates are [x, y] fractions of the image, in delve order, and every room's text and situations follow what is drawn there. The last room is the climax. Room situations live in dungeon-rooms-2.json. All descriptions are our own words. Written by Claude.",
+  "entries": [
+    {
+      "id": "ashgrave-mausoleum",
+      "name": "The Ashgrave Mausoleum",
+      "map": "tiles and battle maps/dungeon maps/_haunted/Afternoon Maps is creating RPG and DnD battlemaps _ Patreon.jpeg",
+      "mapSize": [1000, 1500],
+      "cr": 1,
+      "biomes": ["plains", "forest"],
+      "summary": "A family mausoleum below a ruined chapel, where the last of the line did not stay buried.",
+      "entrance": [0.5, 0.94],
+      "rooms": [
+        {
+          "id": "coffin-hall",
+          "name": "The Coffin Hall",
+          "at": [0.5, 0.8],
+          "text": "At the foot of the stair, a long vault of coffins on stone biers between two rows of pillars, with urn niches in the walls and doors to two side vaults.",
+          "situations": ["ashgrave-mausoleum-rats", "ashgrave-mausoleum-lid"]
+        },
+        {
+          "id": "east-vault",
+          "name": "The East Vault",
+          "at": [0.85, 0.8],
+          "text": "A side vault with coffins along its walls, a bronze seal in the floor, and iron-bound chests stacked by the far wall.",
+          "situations": ["ashgrave-mausoleum-chests"]
+        },
+        {
+          "id": "hall-of-niches",
+          "name": "The Hall of Niches",
+          "at": [0.5, 0.56],
+          "text": "Up a broad stair, a pillared hall walled with burial niches. On a red-draped dais at the back stands the family altar.",
+          "situations": ["ashgrave-mausoleum-widow", "ashgrave-mausoleum-niches"]
+        },
+        {
+          "id": "founders-tomb",
+          "name": "The Founder's Tomb",
+          "at": [0.78, 0.26],
+          "text": "At the end of a narrow passage, a chamber with a carved sarcophagus on a plinth and a shrine against the wall. Part of the ceiling has fallen in at the corner.",
+          "situations": ["ashgrave-mausoleum-founder"]
+        }
+      ],
+      "hoard": {
+        "text": "The founder's grave goods: a silver circlet, rings on bony fingers and a purse of old coin.",
+        "precious": 1
+      }
+    },
+    {
+      "id": "greyvein-mine",
+      "name": "The Greyvein Lead Mine",
+      "map": "tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/old_lead_mine_70_nogrid_by_zatnikotel_ddq2v99.jpg",
+      "mapSize": [1610, 2240],
+      "cr": 2,
+      "biomes": ["hills"],
+      "summary": "An old lead mine shut after a cave-in, now a den for what crawled up from below.",
+      "entrance": [0.48, 0.93],
+      "rooms": [
+        {
+          "id": "adit-mouth",
+          "name": "The Adit Mouth",
+          "at": [0.48, 0.79],
+          "text": "The mine's mouth: an ore cart tipped on its side, a rusted bucket, and a shovel left where it fell. Fresh tracks lead in.",
+          "situations": ["greyvein-mine-tripwire", "greyvein-mine-kobolds"]
+        },
+        {
+          "id": "flooded-gallery",
+          "name": "The Flooded Gallery",
+          "at": [0.2, 0.62],
+          "text": "A long channel of still green water fills the western gallery, with a rowboat tied at its foot below some plank steps.",
+          "situations": ["greyvein-mine-boat", "greyvein-mine-leeches"]
+        },
+        {
+          "id": "collapsed-face",
+          "name": "The Collapsed Face",
+          "at": [0.72, 0.1],
+          "text": "The northern working ends in a rockfall: a heap of boulders and snapped pit-props under a leaning timber hoist.",
+          "situations": ["greyvein-mine-rockfall"]
+        },
+        {
+          "id": "ore-pocket",
+          "name": "The Ore Pocket",
+          "at": [0.4, 0.51],
+          "text": "A side cave where yellow-crusted ore lies in heaps and the walls glitter.",
+          "situations": ["greyvein-mine-ore"]
+        },
+        {
+          "id": "sinkhole",
+          "name": "The Sinkhole",
+          "at": [0.78, 0.62],
+          "text": "The east gallery opens around a black sinkhole, its edge propped with old timbers and a ladder lashed to the far wall.",
+          "situations": ["greyvein-mine-crawler"]
+        }
+      ],
+      "hoard": {
+        "text": "The miners' strongbox, dragged down into the sinkhole: wages in silver and a few silver ingots from the last good seam.",
+        "precious": 1
+      }
+    },
+    {
+      "id": "wyrmprow-cove",
+      "name": "Wyrmprow Cove",
+      "map": "tiles and battle maps/dungeon maps/_coastal/abandoned pirate cove.jpg",
+      "mapSize": [1200, 927],
+      "cr": 3,
+      "biomes": ["plains", "marsh"],
+      "summary": "A smugglers' sea cave where a dragon-prowed ship broke on the rocks, and its captain never left.",
+      "entrance": [0.6, 0.93],
+      "rooms": [
+        {
+          "id": "wreck",
+          "name": "The Wreck",
+          "at": [0.86, 0.74],
+          "text": "A ship lies broken on the fang-like rocks of the cove, its carved dragon prow reaching for the sand.",
+          "situations": ["wyrmprow-cove-salvage", "wyrmprow-cove-crabs"]
+        },
+        {
+          "id": "strand",
+          "name": "The Candlelit Strand",
+          "at": [0.45, 0.48],
+          "text": "Broad sand flats split by a tidal channel, with stubs of black candles burning in the sand.",
+          "situations": ["wyrmprow-cove-candles", "wyrmprow-cove-tide"]
+        },
+        {
+          "id": "violet-grotto",
+          "name": "The Violet Grotto",
+          "at": [0.1, 0.53],
+          "text": "A side cave lit violet, with something small and pale at the heart of the light.",
+          "situations": ["wyrmprow-cove-grotto"]
+        },
+        {
+          "id": "bone-nest",
+          "name": "The Bone Nest",
+          "at": [0.17, 0.16],
+          "text": "Up the stream that feeds the cove, a heap of picked bones and stones makes a nest, with a clutch of pale eggs beside it.",
+          "situations": ["wyrmprow-cove-nest"]
+        },
+        {
+          "id": "captains-cache",
+          "name": "The Captain's Cache",
+          "at": [0.47, 0.12],
+          "text": "A ledge above the cove, reached along a ridge of kelp-hung roots. Chests and spilled coin lie heaped there, round an upright box like a coffin.",
+          "situations": ["wyrmprow-cove-captain"]
+        }
+      ],
+      "hoard": {
+        "text": "The captain's chests: salt-crusted coin, a box of pearls and a brass spyglass with a dragon on its barrel.",
+        "precious": 1,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "starfloor-crypt",
+      "name": "The Starfloor Crypt",
+      "map": "tiles and battle maps/dungeon maps/_haunted/crypt with traps.jpeg",
+      "mapSize": [2088, 1800],
+      "cr": 5,
+      "biomes": ["hills", "plains"],
+      "summary": "The trapped crypt of a star-reading priesthood, where every star in the floor is a trigger.",
+      "entrance": [0.4, 0.75],
+      "rooms": [
+        {
+          "id": "coffin-gallery",
+          "name": "The Coffin Gallery",
+          "at": [0.52, 0.78],
+          "text": "A long gallery with two rows of stone coffins, and a bronze star set in the floor of a side alcove.",
+          "situations": ["starfloor-crypt-darts", "starfloor-crypt-lids"]
+        },
+        {
+          "id": "offering-passage",
+          "name": "The Offering Passage",
+          "at": [0.73, 0.63],
+          "text": "A narrow passage lined with coffin niches, with a side chamber holding an offering table and steps up to a sealed annex.",
+          "situations": ["starfloor-crypt-offering"]
+        },
+        {
+          "id": "pit-hall",
+          "name": "The Pit Hall",
+          "at": [0.53, 0.5],
+          "text": "A hall whose floor is broken by four round shafts, with star sigils by its doors.",
+          "situations": ["starfloor-crypt-pits", "starfloor-crypt-ghouls"]
+        },
+        {
+          "id": "star-chapel",
+          "name": "The Star Chapel",
+          "at": [0.53, 0.25],
+          "text": "A chapel ringed with sarcophagi in wall alcoves around a great star sigil. The north wall has caved in.",
+          "situations": ["starfloor-crypt-sigil"]
+        },
+        {
+          "id": "great-vault",
+          "name": "The Great Vault",
+          "at": [0.22, 0.5],
+          "text": "A vast vault with a raised half-moon dais holding twin sarcophagi between two star sigils. Cracked green slabs lie strewn from a round iron grate in the floor.",
+          "situations": ["starfloor-crypt-priest"]
+        }
+      ],
+      "hoard": {
+        "text": "Star charts in silver cases, the priests' rings, and a golden astrolabe from the twin sarcophagi.",
+        "precious": 2
+      }
+    },
+    {
+      "id": "gilded-grottoes",
+      "name": "The Gilded Grottoes",
+      "map": "tiles and battle maps/dungeon maps/_coastal/cavern sea-trapped encampment.jpeg",
+      "mapSize": [2800, 4200],
+      "cr": 6,
+      "biomes": ["jungle"],
+      "summary": "Sea caves where a shipwrecked crew camped among glowing golden spawn, until the thing that laid them came back.",
+      "entrance": [0.62, 0.97],
+      "rooms": [
+        {
+          "id": "anchor-cove",
+          "name": "The Anchor Cove",
+          "at": [0.62, 0.9],
+          "text": "A lantern-lit nook of sand where a huge broken anchor lies half-buried, ringed with bones and scattered belongings.",
+          "situations": ["gilded-grottoes-anchor"]
+        },
+        {
+          "id": "stranded-camp",
+          "name": "The Stranded Camp",
+          "at": [0.22, 0.8],
+          "text": "Torn canvas lean-tos round cold fire pits: the camp of a crew that waited for a ship that never came.",
+          "situations": ["gilded-grottoes-survivor", "gilded-grottoes-drowned"]
+        },
+        {
+          "id": "golden-lagoon",
+          "name": "The Golden Lagoon",
+          "at": [0.22, 0.52],
+          "text": "A dark lagoon lit from within by heaps of round golden pods piled on its shallows.",
+          "situations": ["gilded-grottoes-pods", "gilded-grottoes-hatchlings"]
+        },
+        {
+          "id": "whale-ribs",
+          "name": "The Whale's Ribs",
+          "at": [0.8, 0.45],
+          "text": "At the end of a tidal channel lies the skeleton of a whale, its ribs a cage on the sand.",
+          "situations": ["gilded-grottoes-ribs"]
+        },
+        {
+          "id": "amber-grotto",
+          "name": "The Amber Grotto",
+          "at": [0.75, 0.24],
+          "text": "A carved stair, lit by lanterns set in the rock, runs down to a still black pool. At its head something glows through a web of cracks.",
+          "situations": ["gilded-grottoes-mother"]
+        }
+      ],
+      "hoard": {
+        "text": "The lantern-keepers' offerings round the cracked egg: gold rings, pearls, and a carved amber idol.",
+        "precious": 2,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "drowned-keep",
+      "name": "The Drowned Keep",
+      "map": "tiles and battle maps/dungeon maps/_haunted/abandoned dungeon overtaken by water and ghosts.jpeg",
+      "mapSize": [2100, 2100],
+      "cr": 8,
+      "biomes": ["marsh"],
+      "summary": "A sunken fortress the river broke into, where the garrison still keeps its watch as ghosts.",
+      "entrance": [0.42, 0.93],
+      "rooms": [
+        {
+          "id": "flooded-stair",
+          "name": "The Flooded Stair",
+          "at": [0.27, 0.84],
+          "text": "A rubble-choked guardroom at the foot of a stair, black water to the knee and stones fallen from the vault.",
+          "situations": ["drowned-keep-sentry", "drowned-keep-vault"]
+        },
+        {
+          "id": "cistern",
+          "name": "The Pillared Cistern",
+          "at": [0.41, 0.58],
+          "text": "A square hall of four pillars, its floor under still water.",
+          "situations": ["drowned-keep-cistern"]
+        },
+        {
+          "id": "pale-chapel",
+          "name": "The Pale Chapel",
+          "at": [0.15, 0.32],
+          "text": "A long pillared chamber lit pale and cold, with a side apse and steps down to the south.",
+          "situations": ["drowned-keep-chapel"]
+        },
+        {
+          "id": "high-hall",
+          "name": "The High Hall",
+          "at": [0.33, 0.18],
+          "text": "A raised hall of four pillars up a short stair, with a deep alcove behind it. Rubble has slid in through a broken wall.",
+          "situations": ["drowned-keep-armoury", "drowned-keep-knights"]
+        },
+        {
+          "id": "river-breach",
+          "name": "The River Breach",
+          "at": [0.53, 0.28],
+          "text": "The keep's great hall, two pillars standing in green water. Its east wall is burst open, and the roar of the underground river fills it.",
+          "situations": ["drowned-keep-castellan"]
+        }
+      ],
+      "hoard": {
+        "text": "The keep's pay chest, sunk in the great hall: coin of a dead kingdom, a silver seal and the castellan's ring.",
+        "precious": 2,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "stormwrack-manor",
+      "name": "Stormwrack Manor",
+      "map": "tiles and battle maps/dungeon maps/_haunted/manor of horrors 34x61.jpg",
+      "mapSize": [1360, 2440],
+      "cr": 10,
+      "biomes": ["forest", "hills"],
+      "summary": "A noble house on a storm-lashed crag, whose lady made a bargain with a chained fire-idol.",
+      "entrance": [0.5, 0.9],
+      "rooms": [
+        {
+          "id": "vestibule",
+          "name": "The Statue Vestibule",
+          "at": [0.5, 0.82],
+          "text": "A dark entry hall between carved guardian statues, a torn red runner leading to a short stair.",
+          "situations": ["stormwrack-manor-statues", "stormwrack-manor-butler"]
+        },
+        {
+          "id": "laboratory",
+          "name": "The Laboratory",
+          "at": [0.8, 0.7],
+          "text": "A side room where a long table on a red cloth is crowded with flasks, alembics and bottled things.",
+          "situations": ["stormwrack-manor-lab"]
+        },
+        {
+          "id": "hearth-hall",
+          "name": "The Hearth Hall",
+          "at": [0.5, 0.71],
+          "text": "The heart of the lower house: a great hearth carved as a snarling face, its fire burning without wood.",
+          "situations": ["stormwrack-manor-hearth"]
+        },
+        {
+          "id": "gallery-hall",
+          "name": "The Gallery Hall",
+          "at": [0.5, 0.3],
+          "text": "Across the covered bridge, a long hall ringed by a pillared gallery. Crates are piled round a sheet-draped shape, and a barred cell stands in one corner.",
+          "situations": ["stormwrack-manor-cell", "stormwrack-manor-cult"]
+        },
+        {
+          "id": "idol-apse",
+          "name": "The Idol Apse",
+          "at": [0.5, 0.1],
+          "text": "Up a stair, a round apse where a great horned idol glows like a furnace in a sunken ring, hung with chains and laid round with rugs.",
+          "situations": ["stormwrack-manor-idol"]
+        }
+      ],
+      "hoard": {
+        "text": "The family's treasure, laid as offerings at the idol's feet: jewelled cups, a casket of gems and a ring that is still warm.",
+        "precious": 3,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "skullmire",
+      "name": "The Skullmire",
+      "map": "tiles and battle maps/dungeon maps/__dungeon entrances/swamp black dragon lair.jpg",
+      "mapSize": [5740, 6300],
+      "cr": 13,
+      "biomes": ["marsh"],
+      "summary": "A black dragon's lair in the mire, behind a causeway that ends in a giant carved skull.",
+      "entrance": [0.5, 0.97],
+      "rooms": [
+        {
+          "id": "causeway",
+          "name": "The Drowned Causeway",
+          "at": [0.5, 0.82],
+          "text": "Stepping stones run through black water toward the skull, between tusks and ribs sticking up from the mire.",
+          "situations": ["skullmire-stones", "skullmire-thralls"]
+        },
+        {
+          "id": "boneyard",
+          "name": "The Boneyard",
+          "at": [0.82, 0.62],
+          "text": "A grassy hummock heaped with the bones of great beasts, beside a toppled rune-carved pillar.",
+          "situations": ["skullmire-pillar", "skullmire-crocodiles"]
+        },
+        {
+          "id": "jaw",
+          "name": "The Skull's Jaw",
+          "at": [0.5, 0.67],
+          "text": "The causeway ends at the jaw of a giant carved skull, its stone teeth dripping with slime.",
+          "situations": ["skullmire-jaw"]
+        },
+        {
+          "id": "brow",
+          "name": "The Burning Brow",
+          "at": [0.5, 0.31],
+          "text": "On the skull's brow, a golden sigil burns in a ring of carved stone beside the bones of two thieves.",
+          "situations": ["skullmire-sigil"]
+        },
+        {
+          "id": "lair-mouth",
+          "name": "The Lair Mouth",
+          "at": [0.48, 0.06],
+          "text": "Behind the skull, between two carved pillars, a cave opens in the rock. The air from it stings the eyes.",
+          "situations": ["skullmire-dragon"]
+        }
+      ],
+      "hoard": {
+        "text": "The dragon's hoard, half sunk in acid-etched mud: heaps of coin, gems gone dull, and a crown nobody has worn for an age.",
+        "precious": 3,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "ape-king-vault",
+      "name": "The Vault of the Ape King",
+      "map": "tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/_lost temple of the monkey king/map_2_puzzles_grid_by_zatnikotel_dd2b587.jpg",
+      "mapSize": [3500, 3500],
+      "cr": 15,
+      "biomes": ["jungle"],
+      "summary": "The buried temple of a forgotten ape king, built over a smoking gulf and guarded by puzzles.",
+      "entrance": [0.5, 0.97],
+      "rooms": [
+        {
+          "id": "smoking-rings",
+          "name": "The Smoking Rings",
+          "at": [0.68, 0.61],
+          "text": "A chain of round stone chambers joined by short bridges over a gulf of smoke and glowing cracks.",
+          "situations": ["ape-king-vault-fumes", "ape-king-vault-apes"]
+        },
+        {
+          "id": "golden-stair",
+          "name": "The Golden Stair",
+          "at": [0.14, 0.15],
+          "text": "At the top of a long stair, a hall lit gold by braziers, with four round pedestals round a lidded altar.",
+          "situations": ["ape-king-vault-pedestals"]
+        },
+        {
+          "id": "sphere-room",
+          "name": "The Sphere Room",
+          "at": [0.33, 0.3],
+          "text": "A narrow chamber with three great stone balls heaped in a corner, and grooves worn in the floor.",
+          "situations": ["ape-king-vault-spheres"]
+        },
+        {
+          "id": "knotted-floor",
+          "name": "The Knotted Floor",
+          "at": [0.76, 0.15],
+          "text": "Beyond a long hall of alcoves, a room whose floor is studded with stone knobs like a game board.",
+          "situations": ["ape-king-vault-board"]
+        },
+        {
+          "id": "blue-well",
+          "name": "The Blue Well",
+          "at": [0.5, 0.29],
+          "text": "An eight-sided chamber round a well of cold blue light, the heart of the temple.",
+          "situations": ["ape-king-vault-guardian"]
+        }
+      ],
+      "hoard": {
+        "text": "The King's tribute, drawn up from the well: a gold crown, carved jade, and a staff topped with a blue stone.",
+        "precious": 3,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "greenwyrm-falls",
+      "name": "The Greenwyrm Falls",
+      "map": "tiles and battle maps/dungeon maps/__dungeon entrances/forest green dragon lair.jpg",
+      "mapSize": [3360, 7560],
+      "cr": 18,
+      "biomes": ["forest", "jungle"],
+      "summary": "Overgrown ruins along a forest stream, climbing to the pool where an ancient green dragon sleeps.",
+      "entrance": [0.47, 0.98],
+      "rooms": [
+        {
+          "id": "broken-bridge",
+          "name": "The Broken Bridge",
+          "at": [0.48, 0.89],
+          "text": "A ruined stone bridge across the stream, its arches tumbled into the water and strangled by roots.",
+          "situations": ["greenwyrm-falls-ford", "greenwyrm-falls-thralls"]
+        },
+        {
+          "id": "fallen-shrine",
+          "name": "The Fallen Shrine",
+          "at": [0.38, 0.63],
+          "text": "A great roofless building beside the stream, its walls falling outward and moss over its floor.",
+          "situations": ["greenwyrm-falls-mist", "greenwyrm-falls-spiders"]
+        },
+        {
+          "id": "toppled-tower",
+          "name": "The Toppled Tower",
+          "at": [0.72, 0.45],
+          "text": "A tower that fell across the bank long ago, now a ramp of broken stone into the canopy.",
+          "situations": ["greenwyrm-falls-tower"]
+        },
+        {
+          "id": "falls",
+          "name": "The Falls",
+          "at": [0.45, 0.33],
+          "text": "The stream pours over a stone lip from the pool above in a white curtain of water.",
+          "situations": ["greenwyrm-falls-falls"]
+        },
+        {
+          "id": "wyrm-pool",
+          "name": "The Wyrm's Pool",
+          "at": [0.5, 0.18],
+          "text": "A wide green pool cupped in tiers of ancient stone, with dead branches sunk in its water.",
+          "situations": ["greenwyrm-falls-dragon"]
+        }
+      ],
+      "hoard": {
+        "text": "The wyrm's hoard, drowned among the roots of her pool: coin by the chestful, a jewelled harp, loose gems and an elven circlet.",
+        "precious": 4,
+        "accessory": 1
+      }
+    }
+  ]
+}
