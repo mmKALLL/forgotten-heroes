@@ -2,7 +2,7 @@
   "$schema": "../_schema/gatherRules.schema.json",
   "kind": "gatherRules",
   "source": "claude",
-  "notes": "What one member can gather in a settlement's domain over GATHER_DAYS (2) days (Plan 5a, design §10b; designer call 2026-11-13): one rule per good and kind of land. The best-suited member rolls the skill against the DC, lowered by 1 per output level where the domain makes the good (GATHER_DC_PER_OUTPUT), and works alone on their own rations while the rest of the party waits: `yield` is the units per tier for the whole gathering, lowered as the land is picked over (GATHER_DEPTH_DAYS). The yields were doubled from the old one-day, two-worker ones (2026-11-13), so a gathering is worth what the old day's work for two was per day: the choice is about time, not a nerf. Yields were set (I1 economy report) so a fresh day for two sold for about 4–6 gp in the domain, before depletion and bulk pressure: food sells at the 1 gp floor, healing herbs are the hardest, and timber and stone fetch less (about 1 gp a day): they are heavy (20–25 kg a unit, capped by what the party can carry) and cheap, and a small market sags under a few units. Fuel's base price rose from 0.3 to 5 gp (designer, 2026-11-13), so fuel gathering is now worth about 3.3× the median rule a day (15–17 gp); its yields are unchanged pending the designer's call. A partial success always brings home at least 1 unit (a content test checks this). Every land biome has at least one rule (a content test checks this). Written by Claude; tuned by the I1 economy report.",
+  "notes": "Fuel yields were cut to about a healing-herb gathering's value (designer call 2026-11-13: fuel's base price rose to 5 gp, which made firewood the best option almost everywhere), and firewood is gathered only in forest. What one member can gather in a settlement's domain over GATHER_DAYS (2) days (Plan 5a, design §10b; designer call 2026-11-13): one rule per good and kind of land. The best-suited member rolls the skill against the DC, lowered by 1 per output level where the domain makes the good (GATHER_DC_PER_OUTPUT), and works alone on their own rations while the rest of the party waits: `yield` is the units per tier for the whole gathering, lowered as the land is picked over (GATHER_DEPTH_DAYS). The yields were doubled from the old one-day, two-worker ones (2026-11-13), so a gathering is worth what the old day's work for two was per day: the choice is about time, not a nerf. Yields were set (I1 economy report) so a fresh day for two sold for about 4–6 gp in the domain, before depletion and bulk pressure: food sells at the 1 gp floor, healing herbs are the hardest, and timber and stone fetch less (about 1 gp a day): they are heavy (20–25 kg a unit, capped by what the party can carry) and cheap, and a small market sags under a few units. Fuel's base price rose from 0.3 to 5 gp (designer, 2026-11-13), so fuel gathering is now worth about 3.3× the median rule a day (15–17 gp); its yields are unchanged pending the designer's call. A partial success always brings home at least 1 unit (a content test checks this). Every land biome has at least one rule (a content test checks this). Written by Claude; tuned by the I1 economy report.",
   "entries": [
     {
       "id": "cut-timber",
@@ -29,10 +29,10 @@
       "good": "fuel",
       "label": "Gather firewood",
       "text": "Deadfall, windblown branches and the odd stump, bundled for the town's hearths.",
-      "biomes": ["forest", "plains"],
+      "biomes": ["forest"],
       "skill": "survival",
       "dc": 10,
-      "yield": { "critFail": 0, "fail": 4, "partial": 6, "success": 12, "critSuccess": 16 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 3, "critSuccess": 5 }
     },
     {
       "id": "cut-peat",
@@ -42,7 +42,7 @@
       "biomes": ["marsh"],
       "skill": "athletics",
       "dc": 11,
-      "yield": { "critFail": 0, "fail": 4, "partial": 6, "success": 12, "critSuccess": 16 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 3, "critSuccess": 5 }
     },
     {
       "id": "gather-scrub",
@@ -52,7 +52,7 @@
       "biomes": ["desert"],
       "skill": "survival",
       "dc": 12,
-      "yield": { "critFail": 0, "fail": 2, "partial": 6, "success": 10, "critSuccess": 14 }
+      "yield": { "critFail": 0, "fail": 1, "partial": 2, "success": 3, "critSuccess": 4 }
     },
     {
       "id": "hunt-game",
