@@ -1883,6 +1883,10 @@ h2[tabindex='-1']:focus {
   font-size: 0.72rem;
   padding: 0 0.35rem;
   margin-left: 0.2rem;
+  /* Fixed-width columns of buttons: a price gaining a digit doesn't shift its row (designer). */
+  min-width: 8.5em;
+  font-variant-numeric: tabular-nums;
+  text-align: left;
 }
 .explore-line,
 .gather-line {
