@@ -54,7 +54,7 @@ export function generateCharacter(
       strain: {},
       xp: 0,
       hired: false,
-      oldWound: null,
+      oldWounds: [],
       accessory: null,
     }
   })

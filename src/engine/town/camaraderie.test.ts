@@ -235,7 +235,7 @@ describe('setbacks scale with the party, gains are flat (Plan 6)', () => {
     expect(roundOption(after).available).toBe(false)
     const again = act(after, { type: 'useService', service: 'inn-tavern', action: 'round' })
     expect([again.gold, again.camaraderie]).toEqual([after.gold, after.camaraderie])
-    expect(roundOption(at({ gold: 0 })).reason).toMatch(/costs/)
+    expect(roundOption(at({ gold: 0 })).reason).toMatch(/gold/)
   })
 })
 

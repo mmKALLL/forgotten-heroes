@@ -2,7 +2,6 @@ import type { Content } from '../../content/build'
 import type { Biome } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import type { PoiState } from '../../schema/world'
-import { revealPois } from '../encounters/effects'
 
 export { NOTHING_TO_LEARN } from '../encounters/effects'
 import { allSituations } from '../encounters/compile'
@@ -16,9 +15,12 @@ import { TIERS, TIER_LABELS, rollCheck, tierOdds, type Tier } from '../rules/che
 import { useSkill } from '../rules/strain'
 import { forageDay } from '../travel/forage'
 import { passDay } from '../travel/supplies'
-import { settlementName } from './geo'
-import { domainAt, poisToDiscover } from './pois'
-import { crisisHidden } from '../crisis/sites'
+import { compass, settlementName } from './geo'
+import { poiPaths } from './graph'
+import { anyUndiscovered, domainAt, poisToDiscover } from './pois'
+import { crisisHidden, crisisSites } from '../crisis/sites'
+import { gainXp } from '../rules/progression'
+import { kmPerDay } from '../travel/routes'
 import { crisisRefusal, crisisVisit } from '../crisis/progress'
 import { omenFactor } from '../crisis/clues'
 import { siteStatus } from './sites'
@@ -33,6 +35,7 @@ import {
   EXPLORE_DC_BONUS,
   EXPLORE_FINDS,
   FORAGE_DC,
+  XP_DISCOVER,
 } from '../constants'
 
 // Visiting and exploring points of interest (design §6). A visit plays one of the site's
@@ -40,8 +43,8 @@ import {
 
 /** The skills a search can use; the better one rolls (Survival on a tie). */
 export const EXPLORE_SKILLS = ['survival', 'perception'] as const
-/** Logged when a successful search finds nothing: the domain has no sites left to find. */
-export const PICKED_CLEAN = 'This area seems picked clean.'
+/** Shown in place of Explore, and logged if tried, once the party knows the domain is bare. */
+export const FULLY_EXPLORED = 'This area is already fully explored.'
 
 const BUSY = 'Finish the current encounter first.'
 
@@ -60,6 +63,12 @@ export type ExploreOption = {
   outcomes: string[]
   /** The sites each tier finds and the days it takes, for previews in any language. */
   finds: Record<Tier, { found: number; days: number }>
+  /**
+   * True when the party knows the domain is fully explored (a search here came up short, and
+   * nothing new has appeared since): Explore is replaced by FULLY_EXPLORED and refused. Before
+   * that it is offered as usual, so the preview never tells what the party doesn't know.
+   */
+  explored: boolean
 }
 
 /** What each tier of a search leads to (English; in TIERS order in exploreOption). */
@@ -95,10 +104,22 @@ function placeHere(state: GameState, content: Content): Place | null {
   return biome ? { biome, land: site.region, domain } : null
 }
 
+/** The undiscovered sites a search of `domain` could find now (the Crisis's hidden ones aside). */
+const searchHidden = (state: GameState, domain: string) => crisisHidden(state, domain)
+
+/**
+ * Whether the party knows this domain is fully explored: it is in `state.explored` (a search here
+ * came up short) and there is still nothing to find. When something new appears (a Crisis lead
+ * the clues now point to, a site placed later) the record no longer counts, and Explore returns.
+ */
+export function knownExplored(state: GameState, domain: string): boolean {
+  if (!state.explored.includes(domain)) return false
+  return !anyUndiscovered(state.world, domain, { scope: 'domain' }, searchHidden(state, domain))
+}
+
 /**
  * Exploring the domain the party is in (a settlement or a POI): null on the road, during an
- * encounter, or when no one can act. It is offered even when nothing is left to find; only a
- * successful search then says so (PICKED_CLEAN).
+ * encounter, or when no one can act. Marked `explored` once the party knows nothing is left.
  */
 export function exploreOption(state: GameState, content: Content): ExploreOption | null {
   if (inProgress(state)) return null
@@ -130,7 +151,59 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
         { found: EXPLORE_FINDS[tier].found, days: EXPLORE_DAYS + EXPLORE_FINDS[tier].extraDays },
       ])
     ) as Record<Tier, { found: number; days: number }>,
+    explored: knownExplored(state, domain!),
   }
+}
+
+/** "half a day", "a day", "about 3 days": how far a site lies on foot from its settlement. */
+function howFar(days: number): string {
+  if (days < 0.75) return 'half a day'
+  if (days < 1.5) return 'a day'
+  return `about ${Math.round(days)} days`
+}
+
+/**
+ * "Old Mill (a ruin), half a day north of Greenvale": a found site, and where it lies on foot from
+ * its settlement (`of` false leaves out "of Greenvale").
+ */
+function foundText(state: GameState, content: Content, id: string, of: boolean): string {
+  const poi = state.world.pois[id]
+  const type = own(content.poiTypes, poi.type)
+  const kind = type
+    ? ` (${/^[aeiou]/i.test(type.name) ? 'an' : 'a'} ${type.name.toLowerCase()})`
+    : ''
+  const home = own(content.settlements, poi.domain)
+  const spot = own(content.landSpots, poi.spot)
+  const path = poiPaths(state, content, id).find((r) => r.to === poi.domain)
+  if (!home || !spot || !path) return `${poi.name}${kind}`
+  const where = `${howFar(path.km / kmPerDay(path.terrain))} ${compass(home.at, spot.at)}`
+  return `${poi.name}${kind}, ${where}${of ? ` of ${settlementName(state, poi.domain)}` : ''}`
+}
+
+/**
+ * The second half of a search's journal line: what it found and where (marked on the map, with
+ * the XP it pays), or plainly that nothing was found or nothing is left.
+ */
+function findsText(
+  state: GameState,
+  content: Content,
+  domain: string,
+  ids: readonly string[],
+  wanted: number
+): string {
+  const place = settlementName(state, domain)
+  if (wanted === 0) return ': nothing found.'
+  if (ids.length === 0) return `, but there is nothing more to find around ${place}.`
+  const xp = `+${XP_DISCOVER * ids.length} XP`
+  const found =
+    ids.length === 1
+      ? `: you find ${foundText(state, content, ids[0], true)}, marked on the map (${xp}).`
+      : `: you find ${ids.length} sites around ${place}, marked on the map (${xp}): ` +
+        `${ids.map((id) => foundText(state, content, id, false)).join('; ')}.`
+  const crisis = new Set(crisisSites(state.crisis))
+  const trail = ids.some((id) => crisis.has(id)) ? ' It is the place your clues pointed to.' : ''
+  const more = ids.length < wanted ? ` Nothing more is left to find around ${place}.` : ''
+  return found + trail + more
 }
 
 /**
@@ -152,24 +225,45 @@ export function explore(state: GameState, content: Content): GameState {
       'bad'
     )
   }
+  if (option.explored) return appendLog(state, FULLY_EXPLORED, 'bad')
   const name = state.party.find((c) => c.id === option.actorId)?.name ?? '?'
   const [roll, rng] = rollCheck(state.rng, option.modifier, option.dc)
   const { party, skillUses, strained } = useSkill(state, option.actorId, option.skill)
   const inspired = roll.tier === 'critSuccess'
   const finds = EXPLORE_FINDS[roll.tier]
   const days = option.days + finds.extraDays
+  // What it finds is settled as the search starts (the nearest sites the tier allows), and told
+  // in the same line as the roll: the sites are marked found then, and pay their XP.
+  const search = { count: finds.found, scope: 'domain' } as const
+  const ids =
+    finds.found > 0
+      ? poisToDiscover(state.world, content, domain, search, searchHidden(state, domain))
+      : []
+  const pois = { ...state.world.pois }
+  for (const id of ids) pois[id] = { ...pois[id], discovered: true }
+  // A search that should have found more and didn't tells the party the domain is bare.
+  const short = finds.found > 0 && ids.length < finds.found
+  const explored = short
+    ? [...state.explored.filter((d) => d !== domain), domain]
+    : state.explored.filter((d) => d !== domain)
   let next = appendLog(
-    {
-      ...state,
-      rng,
-      party,
-      skillUses,
-      inspiration: state.inspiration + (inspired ? 1 : 0),
-      lastRoll: { ...roll, stat: option.skill, actorId: option.actorId },
-    },
+    gainXp(
+      {
+        ...state,
+        rng,
+        party,
+        skillUses,
+        world: { ...state.world, pois },
+        explored,
+        inspiration: state.inspiration + (inspired ? 1 : 0),
+        lastRoll: { ...roll, stat: option.skill, actorId: option.actorId },
+      },
+      XP_DISCOVER * ids.length
+    ),
     `${name} leads a search around ${settlementName(state, domain)} for ${days} days: ` +
       `${statLabel(option.skill)} ${roll.kept} ${formatModifier(roll.modifier)} = ${roll.total} ` +
-      `vs DC ${option.dc}. ${TIER_LABELS[roll.tier]}.` +
+      `vs DC ${option.dc}. ${TIER_LABELS[roll.tier]}` +
+      findsText(state, content, domain, ids, finds.found) +
       (inspired ? ' Inspiration gained!' : ''),
     TIER_TONE[roll.tier]
   )
@@ -185,12 +279,7 @@ export function explore(state: GameState, content: Content): GameState {
     next = forageDay(next, terrain, DEFAULT_PACE).state
     next = passDay(next, terrain, DEFAULT_PACE, content)
   }
-  if (finds.found > 0) {
-    const search = { count: finds.found, scope: 'domain' } as const
-    const ids = poisToDiscover(next.world, content, domain, search, crisisHidden(next, domain))
-    return ids.length > 0 ? revealPois(next, content, ids) : appendLog(next, PICKED_CLEAN, 'info')
-  }
-  if (roll.tier !== 'critFail') return appendLog(next, 'The search turns up nothing.', 'info')
+  if (roll.tier !== 'critFail') return next
   return ambush(next, content)
 }
 

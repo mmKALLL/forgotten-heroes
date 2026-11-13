@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import { formatModifier, formatPercent } from '../../engine/format'
+import { formatModifier } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
 import type { Action } from '../../engine/state'
 import { peopleRows } from '../../engine/town/reputation'
@@ -54,8 +54,8 @@ export function StandingBadge({ standing, points }: { standing: Standing; points
 }
 
 /**
- * Listening for rumours at the tavern, in the style of Explore: who listens, with what, against
- * what DC and the chance to hear something, then the non-critical tiers as a list (always shown,
+ * Listening for rumours at the tavern, in the style of Explore: who listens, with what and against
+ * what DC, then the non-critical tiers with their chances as a list (always shown,
  * so they read without the button, which is disabled when the party can't pay). Nothing where
  * there is no tavern; a muted note once the talk here is heard.
  */
@@ -69,7 +69,6 @@ export function RumoursLine({ content, state, onAction }: Props) {
   }
   const name = state.party.find((c) => c.id === option.actorId)?.name ?? '?'
   const faces = tierFaces(option.modifier, option.dc)
-  const pct = formatPercent(1 - option.chances.fail - option.chances.critFail)
   const short = state.gold < option.cost
   const check = {
     name,
@@ -82,8 +81,8 @@ export function RumoursLine({ content, state, onAction }: Props) {
       <button disabled={short} onClick={() => onAction({ type: 'listenRumours' })}>
         {t('rumours.button', { gp: option.cost })}
       </button>{' '}
-      <span className="small">{t('rumours.line', { ...check, pct })}</span>
-      {short && <p className="tone-bad small">{t('rumours.short', { gp: option.cost })}</p>}
+      <span className="small">{t('rumours.line', check)}</span>
+      {short && <p className="tone-bad small">{t('rumours.short')}</p>}
       <TierOutcomes
         label={t('rumours.outcomes')}
         odds={option.chances}

@@ -63,7 +63,20 @@ export const ServiceRoleSchema = z
     recruits: z
       .object({
         offers: span(0, 10, 'How many recruits it offers a week, [min, max]'),
-        levels: span(1, MAX_LEVEL, "Their levels, [min, max] (never above the founders' best + 1)"),
+        levels: span(
+          0,
+          MAX_LEVEL,
+          "Their levels, [min, max]; 0 is a level-1 recruit with two old wounds. Above the lowest living member's level + 2 they won't join"
+        ),
+        picks: z
+          .number()
+          .int()
+          .min(1)
+          .max(5)
+          .default(1)
+          .describe(
+            'Quality: how many sets of six 3d6 rolls a recruit makes; the best set by total is kept'
+          ),
         classes: z.array(IdSchema).min(1).optional().describe('Class ids it offers (default any)'),
         fee: z.number().gt(0).default(1).describe('Multiplies the sign-on fee'),
         gear: z

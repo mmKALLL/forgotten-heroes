@@ -87,12 +87,13 @@ test("the sheet counts each skill's uses today", async () => {
   expect(b.getByText('Survival').closest('li')?.textContent).not.toMatch(/today/)
 })
 
-test('strain shows on the card, and per skill in the sheet', async () => {
+test('strain shows on the card, and per skill in the sheet (not both at once)', async () => {
   render(<PartyPanel party={[{ ...brom, strain: { athletics: 2 } }]} />)
   expect(screen.getByText('Athletics −2')).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: /Brom/ }))
   const athletics = screen.getAllByText('Athletics').find((e) => e.className === 'skill-name')!
   expect(athletics.parentElement?.textContent).toMatch(/strain −2/)
+  expect(screen.queryByText('Athletics −2')).toBeNull()
 })
 
 test('no strain, no strain badge', () => {
@@ -101,7 +102,7 @@ test('no strain, no strain badge', () => {
 })
 
 test('each card shows its level and a bar to the next; the sheet has XP, hired and accessory', async () => {
-  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], hired: true, oldWound: 'dex' as const }
+  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], hired: true, oldWounds: ['dex' as const] }
   render(<PartyPanel party={[brom, hired]} />)
   expect(toggle('Lyra').textContent).toMatch(/lv 2/)
   const bar = card('Lyra').getByRole('meter', { name: 'Lyra XP' })

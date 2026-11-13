@@ -399,7 +399,7 @@ function ServiceAction({
             disabled={chosen.buyReason !== null}
             onClick={() => onAction({ type: 'buyAnimal', animal: chosen.id })}
           >
-            {t('services.buyAnimal', { gp: chosen.price })}
+            {t('services.buyAnimal')}
           </button>
           <Why reason={chosen.buyReason} />
           {chosen.owned > 0 && (

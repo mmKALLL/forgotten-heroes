@@ -15,7 +15,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 15
+export const CURRENT_SAVE_VERSION = 16
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -433,6 +433,28 @@ export function v14ToV15(raw: Record<string, unknown>): Record<string, unknown> 
 }
 
 /**
+ * v15 → v16 (Plan 6, track P): a recruit may have more than one old wound ("level 0" has two), so
+ * each member's `oldWound` (an ability or null) becomes the list `oldWounds`. No domain is known
+ * to be fully explored yet (`explored`).
+ */
+export function v15ToV16(raw: Record<string, unknown>): Record<string, unknown> {
+  const party = Array.isArray(raw.party)
+    ? raw.party.map((c: Record<string, unknown>) => {
+        if (typeof c !== 'object' || c === null) return c
+        const { oldWound, ...rest } = c
+        const oldWounds = Array.isArray(rest.oldWounds)
+          ? rest.oldWounds
+          : typeof oldWound === 'string'
+            ? [oldWound]
+            : []
+        return { ...rest, oldWounds }
+      })
+    : raw.party
+  const explored = Array.isArray(raw.explored) ? raw.explored : []
+  return { ...raw, version: 16, party, explored }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -471,6 +493,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v13ToV14(raw as Record<string, unknown>, content), content)
     case 14:
       return migrate(v14ToV15(raw as Record<string, unknown>), content)
+    case 15:
+      return migrate(v15ToV16(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

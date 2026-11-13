@@ -3,7 +3,7 @@ import type { ClassDef } from '../../schema/content'
 import type { RecruitsBlock } from '../../schema/economy'
 import type { Accessory } from '../../schema/gear'
 import type { Character, GameState } from '../../schema/state'
-import type { Ability } from '../../schema/types'
+import { MAX_LEVEL, type Ability } from '../../schema/types'
 import { inProgress } from '../encounters/run'
 import { rollAccessory, wear } from '../gear/accessories'
 import { appendLog } from '../log'
@@ -15,12 +15,14 @@ import { inSettlement } from '../travel/where'
 import { isAlive, isHired, livingMembers, parting } from './camaraderie'
 import { boardWeek, keyedRng } from './contracts'
 import {
+  LEVEL0_WOUNDS,
   OLD_WOUND_CHANCE,
   OLD_WOUND_PENALTY,
   OLD_WOUND_QUALITY,
   PARTY_CAP,
   RECRUIT_GEAR_CHANCE,
   RECRUIT_GEAR_PRICE,
+  RECRUIT_LEVEL_LEAD,
   RECRUIT_LOCAL_ANCESTRY,
   RECRUIT_OFF_CLASS,
   RECRUIT_SIGNON,
@@ -32,8 +34,9 @@ import {
 // Recruits (Plan 5a, B1; Plan 6, A2): taverns, the adventurers' guild and mercenaries hire out.
 // Nothing ticks: a service's offers are derived from the world seed, the settlement, the week and
 // the service, like a notice board. State keeps only the members hired and the offer ids taken.
-// A recruit rolls 3d6 for each ability and pays no wage: a one-time sign-on fee by level, placed
-// in the level's range by the rolls and any old wound, plus the price of any accessory they bring.
+// A recruit rolls 3d6 for each ability (the best of the service's `picks` sets) and pays no wage:
+// a one-time sign-on fee by level, placed in the level's range by the rolls and any old wound, plus
+// the price of any accessory they bring. "Level 0" is a level-1 recruit with two old wounds.
 
 const own = <T>(table: Record<string, T>, id: string): T | undefined =>
   Object.hasOwn(table, id) ? table[id] : undefined
@@ -47,6 +50,7 @@ export type RecruitOffer = {
   service: string
   /** The recruit as they would join: levelled, and marked hired. */
   character: Character
+  /** The level offered: the character's, or 0 for a level-1 recruit with two old wounds. */
   level: number
   /** gp, the sign-on fee (gear included): paid once on hiring. There are no wages (Plan 6). */
   fee: number
@@ -54,7 +58,7 @@ export type RecruitOffer = {
   gear: Accessory | null
   /** The part of the fee that is the accessory's (RECRUIT_GEAR_PRICE of its price); 0 without. */
   gearPrice: number
-  /** Their old wound ("A badly set leg (−2 DEX)"), or null. */
+  /** Their old wounds ("A badly set leg (−2 DEX)"; two joined by "; "), or null. */
   wound: string | null
   available: boolean
   /** Why not (English), or null. */
@@ -68,9 +72,11 @@ export type RecruitAction =
 
 /** What sets a recruit's place in their level's fee range. */
 export type FeeBasis = {
+  /** The level offered, 0–20. */
   level: number
   /** Their six 3d6 ability rolls added up, before any wound. */
   total: number
+  /** An old wound beyond what the level implies (level 0's two are priced into its range). */
   wounded: boolean
 }
 
@@ -80,7 +86,7 @@ export type FeeBasis = {
  * the low end with an old wound (OLD_WOUND_QUALITY); then × the service's `fee`.
  */
 export function signOnFee(basis: FeeBasis, block?: Pick<RecruitsBlock, 'fee'>): number {
-  const [low, high] = RECRUIT_SIGNON[Math.min(RECRUIT_SIGNON.length, Math.max(1, basis.level)) - 1]
+  const [low, high] = RECRUIT_SIGNON[Math.min(RECRUIT_SIGNON.length - 1, Math.max(0, basis.level))]
   const place = Math.max(
     0,
     Math.min(1, 0.5 + (basis.total - RECRUIT_STAT_MEAN) / RECRUIT_STAT_SPAN)
@@ -103,9 +109,11 @@ const WOUNDS: Readonly<Record<Ability, string>> = {
   cha: 'A scarred face',
 }
 
-/** "A badly set leg (−2 DEX)"; null without a wound. */
-export const oldWoundText = (c: Pick<Character, 'oldWound'>): string | null =>
-  c.oldWound ? `${WOUNDS[c.oldWound]} (−${OLD_WOUND_PENALTY} ${statLabel(c.oldWound)})` : null
+/** "A badly set leg (−2 DEX)", two joined by "; "; null without a wound. */
+export const oldWoundText = (c: Pick<Character, 'oldWounds'>): string | null =>
+  c.oldWounds.length === 0
+    ? null
+    : c.oldWounds.map((a) => `${WOUNDS[a]} (−${OLD_WOUND_PENALTY} ${statLabel(a)})`).join('; ')
 
 /** A class's two key abilities: the two highest of its spread (in ability order on ties). */
 const keyAbilities = (cls: ClassDef): Ability[] =>
@@ -121,13 +129,24 @@ function shuffled<T>(d: Draw, items: readonly T[]): T[] {
   return out
 }
 
+/** Six 3d6 rolls, best first. */
+const rollSet = (d: Draw): number[] =>
+  ABILITIES.map(() => d.int(1, 6) + d.int(1, 6) + d.int(1, 6)).sort((a, b) => b - a)
+const sum = (xs: readonly number[]) => xs.reduce((t, x) => t + x, 0)
+
 /**
- * A recruit's abilities: 3d6 each, the two best on the class's key abilities (unless, with
- * RECRUIT_OFF_CLASS, they fall anywhere), the rest in a random order. With OLD_WOUND_CHANCE one
- * ability is OLD_WOUND_PENALTY lower (never below 3). `total` is the rolls' sum before the wound.
+ * A recruit's abilities: six 3d6 rolls (the best by total of `picks` such sets: the service's
+ * quality), the two best on the class's key abilities (unless, with RECRUIT_OFF_CLASS, they fall
+ * anywhere), the rest in a random order. Level 0 has LEVEL0_WOUNDS old wounds on different
+ * abilities; any other recruit one with OLD_WOUND_CHANCE. Each is OLD_WOUND_PENALTY lower (never
+ * below 3). `total` is the rolls' sum before any wound.
  */
-function rollAbilities(d: Draw, cls: ClassDef) {
-  const rolls = ABILITIES.map(() => d.int(1, 6) + d.int(1, 6) + d.int(1, 6)).sort((a, b) => b - a)
+function rollAbilities(d: Draw, cls: ClassDef, picks: number, levelZero: boolean) {
+  let rolls = rollSet(d)
+  for (let p = 1; p < picks; p++) {
+    const other = rollSet(d)
+    if (sum(other) > sum(rolls)) rolls = other
+  }
   const keys = d.float() < RECRUIT_OFF_CLASS ? [] : keyAbilities(cls)
   const rest = shuffled(
     d,
@@ -136,48 +155,51 @@ function rollAbilities(d: Draw, cls: ClassDef) {
   const abilities = Object.fromEntries(
     [...keys, ...rest].map((a, i) => [a, rolls[i]])
   ) as Character['abilities']
-  const wound: Ability | null = d.float() < OLD_WOUND_CHANCE ? d.pick(ABILITIES) : null
-  if (wound) abilities[wound] = Math.max(3, abilities[wound] - OLD_WOUND_PENALTY)
-  return { abilities, wound, total: rolls.reduce((sum, r) => sum + r, 0) }
+  const wounds: Ability[] = levelZero
+    ? shuffled(d, ABILITIES).slice(0, LEVEL0_WOUNDS)
+    : d.float() < OLD_WOUND_CHANCE
+      ? [d.pick(ABILITIES)]
+      : []
+  for (const w of wounds) abilities[w] = Math.max(3, abilities[w] - OLD_WOUND_PENALTY)
+  return { abilities, wounds, total: sum(rolls) }
 }
 
-/** A recruit as made: the character and what sets their fee. */
-type Made = { character: Character; total: number }
+/** A recruit as made: the character, the level offered (0 or theirs) and what sets their fee. */
+type Made = { character: Character; level: number; total: number }
 
 /**
- * One recruit, from its own keyed stream: class, ancestry, rolled abilities (and any old wound),
- * then a level within the block's `levels`, clamped to `cap`. The level is drawn before the
- * clamp, so the same stream gives the same recruit whatever the cap (only the levels above it
- * are cut).
+ * One recruit, from its own keyed stream: class, ancestry, a level within the block's `levels`,
+ * then rolled abilities (and any old wounds: level 0 is a level-1 recruit with two). The party
+ * plays no part, so an offer never changes within its week.
  */
 function makeRecruit(
   rng: Rng,
   content: Content,
   localAncestry: string,
-  block: RecruitsBlock,
-  cap: number
+  block: RecruitsBlock
 ): Made {
   const known = (block.classes ?? []).filter((id) => Object.hasOwn(content.classes, id))
   const classes = known.length > 0 ? known : sortedEntries(content.classes).map((c) => c.id)
   const playable = sortedEntries(content.ancestries).filter((a) => a.playable)
-  const [{ classId, ancestryId, rolled }, afterPick] = withRng(rng, (d) => {
+  const [{ classId, ancestryId, level, rolled }, afterPick] = withRng(rng, (d) => {
     const classId = d.pick(classes)
     const local = playable.some((a) => a.id === localAncestry)
     const others = playable.filter((a) => a.id !== localAncestry)
     const stays = local && (others.length === 0 || d.float() < RECRUIT_LOCAL_ANCESTRY)
     const ancestryId = stays ? localAncestry : d.pick(others).id
-    return { classId, ancestryId, rolled: rollAbilities(d, content.classes[classId]) }
+    const level = d.int(block.levels[0], block.levels[1])
+    const rolled = rollAbilities(d, content.classes[classId], block.picks, level === 0)
+    return { classId, ancestryId, level, rolled }
   })
   const [fresh, afterGen] = generateCharacter(afterPick, content, {
     classId,
     ancestryId,
     abilities: rolled.abilities,
   })
-  const [character] = withRng(afterGen, (d) => {
-    const drawn = d.int(block.levels[0], block.levels[1])
-    return levelTo({ ...fresh, oldWound: rolled.wound }, Math.max(1, Math.min(drawn, cap)), d)
-  })
-  return { character, total: rolled.total }
+  const [character] = withRng(afterGen, (d) =>
+    levelTo({ ...fresh, oldWounds: rolled.wounds }, Math.max(1, level), d)
+  )
+  return { character, level, total: rolled.total }
 }
 
 /**
@@ -193,22 +215,39 @@ function recruitGear(rng: Rng, content: Content, block: RecruitsBlock, id: strin
   return gear
 }
 
+/**
+ * The highest level that will sign on: the lowest living member's level + RECRUIT_LEVEL_LEAD
+ * (seasoned hands won't join a green party), and the lowest level itself.
+ */
+export function recruitCap(state: GameState): { lowest: number; cap: number } {
+  const lowest = Math.min(...livingMembers(state).map((c) => c.level), MAX_LEVEL)
+  return { lowest, cap: lowest + RECRUIT_LEVEL_LEAD }
+}
+
 /** Why an offer can't be taken now (English), or null. */
-function hireRefusal(state: GameState, settlementId: string, fee: number): string | null {
+function hireRefusal(
+  state: GameState,
+  settlementId: string,
+  level: number,
+  fee: number
+): string | null {
   if (inProgress(state)) return 'finish the current encounter first'
   if (!inSettlement(state) || state.location !== settlementId) return 'only in person'
   if (livingMembers(state).length >= PARTY_CAP) return `the party is full (${PARTY_CAP})`
-  if (state.gold < fee) return `costs ${fee} gp`
+  const { lowest, cap } = recruitCap(state)
+  if (level > cap) return `won't join a party with a level ${lowest} member`
+  if (state.gold < fee) return 'not enough gold'
   return null
 }
 
 /**
  * Who is looking for work in a settlement this week: each service here with a `recruits` block
  * offers a seeded number in its `offers` range, of its `classes` (or any), mostly of the
- * settlement's ancestry (RECRUIT_LOCAL_ANCESTRY). Levels are seeded within the block's `levels`,
- * but never above the founders' highest level + 1. Only founders set the cap (alive or dead), so
- * hiring, a recruit's level-up or a death doesn't reshuffle the week's offers, and a level-1 party
- * can't climb the ladder by hiring. Offers already hired are left out.
+ * settlement's ancestry (RECRUIT_LOCAL_ANCESTRY). Levels are seeded within the block's `levels`
+ * and don't depend on the party, so the week's offers never reshuffle. An offer above the lowest
+ * living member's level + RECRUIT_LEVEL_LEAD is listed but refused (recruitCap): it opens when
+ * the party's weakest levels up, leaves or dies, and closes again if a green recruit joins.
+ * Offers already hired are left out.
  */
 export function recruitOffers(
   state: GameState,
@@ -219,7 +258,6 @@ export function recruitOffers(
   if (!info) return []
   const week = boardWeek(state.day)
   const seed = state.world.seed
-  const cap = Math.max(1, ...state.party.filter((c) => !isHired(c)).map((c) => c.level)) + 1
   const offers: RecruitOffer[] = []
   for (const service of info.services) {
     const block = own(content.serviceRoles, service)?.recruits
@@ -229,20 +267,19 @@ export function recruitOffers(
     for (let n = 0; n < count; n++) {
       const id = `r-${settlementId}-w${week}-${service}-${n}`
       if (state.recruitsTaken.includes(id)) continue
-      const made = makeRecruit(keyedRng(seed, `${key}/${n}`), content, info.ancestry, block, cap)
+      const made = makeRecruit(keyedRng(seed, `${key}/${n}`), content, info.ancestry, block)
       const c = made.character
       const gear = recruitGear(keyedRng(seed, `${key}/${n}/gear`), content, block, id)
       const extra = gear ? gearPrice(gear) : 0
-      const fee =
-        signOnFee({ level: c.level, total: made.total, wounded: c.oldWound !== null }, block) +
-        extra
-      const reason = hireRefusal(state, settlementId, fee)
+      const wounded = made.level > 0 && c.oldWounds.length > 0
+      const fee = signOnFee({ level: made.level, total: made.total, wounded }, block) + extra
+      const reason = hireRefusal(state, settlementId, made.level, fee)
       const joined = { ...c, id, hired: true }
       offers.push({
         id,
         service,
         character: gear ? wear(joined, gear) : joined,
-        level: c.level,
+        level: made.level,
         fee,
         gear,
         gearPrice: extra,
@@ -282,7 +319,7 @@ export function hireRecruit(state: GameState, content: Content, offerId: string)
   }
   return appendLog(
     next,
-    `${c.name}, ${describe(content, c)} (level ${c.level}), signs on for ${offer.fee} gp` +
+    `${c.name}, ${describe(content, c)} (level ${offer.level}), signs on for ${offer.fee} gp` +
       (offer.gear ? `, bringing a ${offer.gear.name}.` : '.'),
     'good'
   )

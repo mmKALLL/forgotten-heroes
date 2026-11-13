@@ -128,6 +128,7 @@ export function newGame(
     lowSpell: null,
     gathered: {},
     recruitsTaken: [],
+    explored: [],
     gearTaken: [],
     luckUsed: {},
     crisis: crisis?.crisis ?? null,

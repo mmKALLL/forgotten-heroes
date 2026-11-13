@@ -71,13 +71,13 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
         // A Crisis site where nothing more happens: the engine's words (crisis/progress.ts).
         <p className="muted small">{visit?.reason}</p>
       ) : (
-        reason && (
+        // A cleared site's summary already says it lies empty: no second line.
+        reason &&
+        reason !== 'cleared' && (
           <p className="tone-bad small">
-            {reason === 'cleared'
-              ? t('poi.clearedReason', { name: info.name })
-              : reason === 'visited'
-                ? t('poi.visitedReason', { name: info.name })
-                : t('roadReason.busy')}
+            {reason === 'visited'
+              ? t('poi.visitedReason', { name: info.name })
+              : t('roadReason.busy')}
           </p>
         )
       )}

@@ -339,7 +339,9 @@ export const PICKPOCKET_GP: readonly [number, number] = [1, 6]
 // Contracts and notice boards (town/contracts.ts)
 
 /** Offers on a notice board each week, by size tier (outpost first). */
-export const BOARD_SIZE: readonly number[] = [1, 2, 2, 3, 3, 4]
+export const BOARD_SIZE: readonly number[] = [1, 2, 2, 3, 3, 3]
+/** A board shows at most this many offers, a rumour's lead included (designer, 2026-11-13). */
+export const BOARD_MAX = 3
 /** Contracts the party may hold at once. */
 export const MAX_CONTRACTS = 3
 /** gp per steady day to the destination, before the template's pay and urgency. */
@@ -373,12 +375,14 @@ export const ESCORT_HOSTILE = 0.1
 /** Living members a party can have: hiring stops here (the dead don't count). */
 export const PARTY_CAP = 6
 /**
- * A recruit's one-time sign-on fee range (gp) by level 1–20, [low, high], before the service's
- * `fee`: a recruit's rolled stats and any old wound place them in it (designer, 2026-11-13, to
- * level 5; ×1.35 a level beyond).
+ * A recruit's one-time sign-on fee range (gp) by level 0–20 (index = level), [low, high], before
+ * the service's `fee`: a recruit's rolled stats and any old wound place them in it (designer,
+ * 2026-11-13, to level 5; ×1.35 a level beyond). Level 0, a level-1 recruit with two old wounds,
+ * sits below level 1.
  */
 // prettier-ignore
 export const RECRUIT_SIGNON: readonly (readonly [number, number])[] = [
+  [8, 25],
   [20, 60], [40, 100], [75, 150], [140, 200], [200, 280],
   [270, 380], [360, 510], [490, 690], [660, 930], [900, 1250],
   [1200, 1700], [1650, 2300], [2200, 3100], [3000, 4150], [4000, 5650],
@@ -392,6 +396,13 @@ export const RECRUIT_STAT_SPAN = 29
 export const RECRUIT_OFF_CLASS = 0.15
 /** The share of recruits with an old wound (founders have none). */
 export const OLD_WOUND_CHANCE = 0.2
+/** Old wounds a "level 0" recruit has, on two different abilities (it is level 1 otherwise). */
+export const LEVEL0_WOUNDS = 2
+/**
+ * Recruits join only up to the lowest living member's level + this: seasoned hands won't sign on
+ * with a green party (designer, 2026-11-13).
+ */
+export const RECRUIT_LEVEL_LEAD = 2
 /** An old wound lowers one ability by this much (never below 3). */
 export const OLD_WOUND_PENALTY = 2
 /** A wounded recruit's place in the fee range is multiplied by this: near the low end. */

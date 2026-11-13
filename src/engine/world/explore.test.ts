@@ -11,7 +11,7 @@ import { createRng } from '../rng'
 import { rollCheck, TIERS, type Tier } from '../rules/checks'
 import { availableActions, step } from '../state'
 import { brom, fixtureContent, lyra, makeEncounter, makeState } from '../test-fixtures'
-import { NOTHING_TO_LEARN, PICKED_CLEAN, exploreOption } from './explore'
+import { FULLY_EXPLORED, NOTHING_TO_LEARN, exploreOption } from './explore'
 import { edgeById, pathId } from './graph'
 import { domainThreatLevel } from './pois'
 import { territory } from './territory'
@@ -545,17 +545,66 @@ describe('explore', () => {
     expect(after.log.some((e) => e.text.includes('inn'))).toBe(false)
   })
 
-  test('in a picked-clean domain only a successful search says so', () => {
-    const empty = (tier: Tier) => {
-      const state = rolling(tier)
-      return step({ ...state, world: { ...state.world, pois: {} } }, { type: 'explore' }, content)
+  test('the search line names what it found, where, and the XP; a failure says nothing was found', () => {
+    const line = (tier: Tier) => {
+      const after = step(rolling(tier), { type: 'explore' }, content)
+      return { after, text: after.log.find((e) => e.text.includes('leads a search'))!.text }
     }
-    const texts = (s: GameState) => s.log.map((e) => e.text)
-    expect(texts(empty('success'))).toContain(PICKED_CLEAN)
-    expect(texts(empty('critSuccess'))).toContain(PICKED_CLEAN)
-    expect(texts(empty('partial'))).toContain(PICKED_CLEAN)
-    expect(texts(empty('fail'))).not.toContain(PICKED_CLEAN)
-    // Up front, the option is offered as usual.
-    expect(exploreOption(withPois({}, { location: 'greenvale-1' }), content)).not.toBeNull()
+    const one = line('success')
+    const [found] = discovered(one.after)
+    const name = one.after.world.pois[found].name
+    expect(one.text).toContain(`Success: you find ${name} (a war camp), `)
+    expect(one.text).toMatch(/(half a day|a day|about \d+ days) (north|south|east|west)/)
+    expect(one.text).toContain(`of ${one.after.world.settlements['greenvale-1'].name}`)
+    expect(one.text).toContain(`marked on the map (+${XP_DISCOVER} XP)`)
+    // No separate "You learn of" or XP line: it is all in the one line.
+    expect(one.after.log.some((e) => e.text.startsWith('You learn of'))).toBe(false)
+    const two = line('critSuccess')
+    for (const id of discovered(two.after)) {
+      expect(two.text).toContain(two.after.world.pois[id].name)
+    }
+    expect(two.text).toContain(`+${2 * XP_DISCOVER} XP`)
+    expect(line('fail').text).toMatch(/Failure: nothing found\.$/)
+  })
+
+  test('a search that comes up short says so; from then on the domain is known fully explored', () => {
+    const bare = (tier: Tier) => {
+      const state = rolling(tier)
+      return { ...state, world: { ...state.world, pois: {} } }
+    }
+    // Before the party knows, Explore is offered as usual: the preview tells nothing hidden.
+    expect(exploreOption(bare('success'), content)!.explored).toBe(false)
+    // A failure teaches nothing.
+    const failed = step(bare('fail'), { type: 'explore' }, content)
+    expect(failed.explored).toEqual([])
+    // A success that finds nothing says so in its line, and the domain is known bare.
+    const before = bare('success')
+    const after = step(before, { type: 'explore' }, content)
+    const home = after.world.settlements['greenvale-1'].name
+    expect(after.log.find((e) => e.text.includes('leads a search'))!.text).toContain(
+      `Success, but there is nothing more to find around ${home}.`
+    )
+    expect(after.explored).toEqual(['greenvale-1'])
+    expect(after.day).toBeGreaterThan(before.day)
+    // Preview == outcome: the option is replaced, and a search is refused with no day spent.
+    expect(exploreOption(after, content)!.explored).toBe(true)
+    const again = step(after, { type: 'explore' }, content)
+    expect(again.day).toBe(after.day)
+    expect(again.goods).toEqual(after.goods)
+    expect(again.log.at(-1)!.text).toBe(FULLY_EXPLORED)
+    // Something new to find (a site placed later) makes the record lapse.
+    const fresh = { ...after, world: { ...after.world, pois: { 'poi-1': poi('greenvale-1', 0) } } }
+    expect(exploreOption(fresh, content)!.explored).toBe(false)
+  })
+
+  test('a critical success that finds one of two marks the domain explored too', () => {
+    const state = rolling('critSuccess')
+    const one = { ...state, world: { ...state.world, pois: { 'poi-1': poi('greenvale-1', 0) } } }
+    const after = step(one, { type: 'explore' }, content)
+    expect(discovered(after)).toEqual(['poi-1'])
+    expect(after.explored).toEqual(['greenvale-1'])
+    expect(after.log.find((e) => e.text.includes('leads a search'))!.text).toMatch(
+      /Nothing more is left to find around/
+    )
   })
 })

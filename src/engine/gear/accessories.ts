@@ -167,7 +167,7 @@ export function accessoryOffers(
     .filter(({ accessory }) => !state.gearTaken.includes(accessory.id))
     .map(({ service, accessory }) => {
       const price = accessory.value
-      const reason = refused ?? (state.gold < price ? `costs ${price} gp` : null)
+      const reason = refused ?? (state.gold < price ? 'not enough gold' : null)
       return { id: accessory.id, service, accessory, price, available: reason === null, reason }
     })
 }

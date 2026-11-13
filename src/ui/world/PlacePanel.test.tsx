@@ -156,7 +156,9 @@ test('a crossing the party can’t afford says why, and offers to stow away with
   const state = makeState({ location: 'ashmoor-1', gold: 5 })
   const { onAction } = panel(state, 'farisle-1')
   const group = road(settlementName(state, 'farisle-1'))
-  expect(group.getByText('Passage costs 16 gp.')).toBeTruthy()
+  // The fare is listed once ("Passage: 16 gp"); the refusal doesn't repeat it.
+  expect(group.getByText('Passage: 16 gp')).toBeTruthy()
+  expect(group.getByText('Not enough gold for the passage.')).toBeTruthy()
   expect((group.getByRole('button', { name: 'Travel' }) as HTMLButtonElement).disabled).toBe(true)
   const pacePicker = within(group.getByRole('group', { name: 'Pace' }))
   expect(pacePicker.getAllByRole('button').map((b) => b.textContent)).toEqual(['Steady'])

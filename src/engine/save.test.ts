@@ -16,6 +16,7 @@ import {
   v12ToV13,
   v13ToV14,
   v14ToV15,
+  v15ToV16,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -141,6 +142,7 @@ function migrated() {
     ...PLAN_5A_DEFAULTS,
     crisis,
     delve: null,
+    explored: [],
   }
 }
 
@@ -162,7 +164,7 @@ function withDungeons(world: GameState['world'], start: string | null): GameStat
 }
 
 /** What every character from before Plan 5a loads with: no XP, a founder, unwounded, nothing worn. */
-const CHARACTER_5A_DEFAULTS = { xp: 0, hired: false, oldWound: null, accessory: null }
+const CHARACTER_5A_DEFAULTS = { xp: 0, hired: false, oldWounds: [], accessory: null }
 
 /** What a save from before Plan 5a loads with (camaraderie Steady: 5 of 8 then, 63 of 100 now). */
 const PLAN_5A_DEFAULTS = {
@@ -189,7 +191,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(15)
+  expect(CURRENT_SAVE_VERSION).toBe(16)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -617,7 +619,7 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
       ...rest
     } = structuredClone(state)
     const party = rest.party.map(
-      ({ xp: _xp, hired: _hired, oldWound: _wound, accessory: _accessory, ...c }) => c
+      ({ xp: _xp, hired: _hired, oldWounds: _wounds, accessory: _accessory, ...c }) => c
     )
     const encounter = rest.encounter && (({ danger: _danger, ...e }) => e)(rest.encounter)
     return { ...rest, version: 9, party, encounter, world: withoutCrisis(state) }
@@ -648,8 +650,10 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v14ToV15(
-          v13ToV14(v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content), content)
+        v15ToV16(
+          v14ToV15(
+            v13ToV14(v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content), content)
+          )
         )
       ).toEqual(state)
       expect(state.party.every((c) => c.xp === 0 && !c.hired && c.accessory === null)).toBe(true)
@@ -738,7 +742,7 @@ describe('v11 → v12 (Plan 6, track A: no wages)', () => {
    * camaraderie on the 0–8 scale.
    */
   function asV11(state: GameState, owed = 0): Record<string, unknown> {
-    const party = structuredClone(state.party).map(({ hired, oldWound: _wound, ...c }) => ({
+    const party = structuredClone(state.party).map(({ hired, oldWounds: _wounds, ...c }) => ({
       ...c,
       wage: hired ? 1.5 : 0,
     }))
@@ -912,6 +916,28 @@ describe('v14 → v15 (Plan 6 wave 2b, track E: camaraderie 0–100, dungeons kn
     const once = v14ToV15(structuredClone(raw))
     expect(v14ToV15({ ...once, version: 14 }).world).toEqual(once.world)
     expect(raw).toEqual(asV14(cleared, 25))
+  })
+})
+
+describe('v15 → v16 (Plan 6, track P: a list of old wounds)', () => {
+  test("a member's single old wound becomes a list of one; none becomes empty", () => {
+    const wounded = makeCharacter({ id: 'h1', name: 'Hand', hired: true, oldWounds: ['dex'] })
+    const state = makeState({ party: [brom, wounded] })
+    const party = state.party.map(({ oldWounds, ...c }) => ({
+      ...c,
+      oldWound: oldWounds[0] ?? null,
+    }))
+    const { explored: _explored, ...rest } = structuredClone(state)
+    const v15 = { ...rest, version: 15, party }
+    const loaded = deserialize(JSON.stringify(v15), content)!
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
+    expect(loaded.party.map((c) => c.oldWounds)).toEqual([[], ['dex']])
+    expect(loaded.party).toEqual(state.party)
+    expect(loaded.explored).toEqual([])
+    const raw = structuredClone(v15)
+    const once = v15ToV16(raw)
+    expect(v15ToV16({ ...once, version: 15 })).toEqual(once)
+    expect(raw).toEqual(v15)
   })
 })
 

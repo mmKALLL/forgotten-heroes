@@ -35,8 +35,11 @@ export const CharacterSchema = z.object({
   xp: z.number().int().min(0).default(0),
   /** Signed on at a service (Plan 5a): may be dismissed and may desert. Founders are not. */
   hired: z.boolean().default(false),
-  /** An old wound a recruit came with (Plan 6): this ability is OLD_WOUND_PENALTY lower. */
-  oldWound: AbilitySchema.nullable().default(null),
+  /**
+   * Old wounds a recruit came with (Plan 6): each lowers its ability by OLD_WOUND_PENALTY. Most
+   * have none, some one; a "level 0" recruit has two (save v16; earlier a single `oldWound`).
+   */
+  oldWounds: z.array(AbilitySchema).default([]),
   /** The accessory worn (one slot), or null. */
   accessory: AccessorySchema.nullable().default(null),
 })
@@ -262,7 +265,7 @@ export const DelveStateSchema = z.object({
 export type DelveState = z.infer<typeof DelveStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(15),
+  version: z.literal(16),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -317,6 +320,11 @@ export const GameStateSchema = z.object({
   gathered: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
   /** Recruit offer ids hired, so they are never offered again. */
   recruitsTaken: z.array(z.string()).default([]),
+  /**
+   * Domains the party knows are fully explored (save v16): a search there succeeded but came up
+   * short. It counts only while nothing new is there to find (world/explore.ts).
+   */
+  explored: z.array(IdSchema).default([]),
   /** Accessory offer ids bought, so they are never offered again. */
   gearTaken: z.array(z.string()).default([]),
   /** The day each wearer's `lucky` hook was last spent, by character id. */

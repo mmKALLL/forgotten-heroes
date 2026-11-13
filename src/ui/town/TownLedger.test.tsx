@@ -43,7 +43,8 @@ test('the ledger shows the header line, its zones, Explore before the roads, tal
   const explore = within(exploreGroup)
   expect(explore.queryByRole('img')).toBeNull()
   expect(explore.getByRole('list', { name: 'What the search finds' })).toBeTruthy()
-  expect(exploreGroup.textContent).toMatch(/vs DC \d+ · \d+% to find a site/)
+  expect(exploreGroup.textContent).toMatch(/vs DC \d+/)
+  expect(exploreGroup.textContent).not.toMatch(/to find a site/)
   const roads = within(zones[2]).getByRole('list', { name: 'Roads from here' })
   expect(
     exploreGroup.compareDocumentPosition(roads) & Node.DOCUMENT_POSITION_FOLLOWING

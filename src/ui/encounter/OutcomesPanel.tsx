@@ -67,7 +67,8 @@ export function OutcomesPanel({
               )}
             </p>
             {shown.length === 0 ? (
-              <p className="muted small">{option.unmet.join(', ') || t('outcomes.nothing')}</p>
+              // Unmet requirements are on the option's card: not repeated here.
+              <p className="muted small">{t('outcomes.nothing')}</p>
             ) : (
               <ul className="outcomes">
                 {[...shown].reverse().map((o) => (

@@ -49,7 +49,7 @@
             "$ref": "#/$defs/__schema11"
           },
           "accessories": {
-            "$ref": "#/$defs/__schema20"
+            "$ref": "#/$defs/__schema21"
           }
         },
         "required": [
@@ -188,20 +188,25 @@
           "items": false,
           "minItems": 2,
           "maxItems": 2,
-          "description": "Their levels, [min, max] (never above the founders' best + 1)"
+          "description": "Their levels, [min, max]; 0 is a level-1 recruit with two old wounds. Above the lowest living member's level + 2 they won't join"
+        },
+        "picks": {
+          "default": 1,
+          "description": "Quality: how many sets of six 3d6 rolls a recruit makes; the best set by total is kept",
+          "$ref": "#/$defs/__schema17"
         },
         "classes": {
           "description": "Class ids it offers (default any)",
-          "$ref": "#/$defs/__schema17"
+          "$ref": "#/$defs/__schema18"
         },
         "fee": {
           "default": 1,
           "description": "Multiplies the sign-on fee",
-          "$ref": "#/$defs/__schema18"
+          "$ref": "#/$defs/__schema19"
         },
         "gear": {
           "description": "The chance an offer brings a tier-1 accessory (default RECRUIT_GEAR_CHANCE)",
-          "$ref": "#/$defs/__schema19"
+          "$ref": "#/$defs/__schema20"
         }
       },
       "required": [
@@ -221,45 +226,50 @@
     },
     "__schema15": {
       "type": "integer",
-      "minimum": 1,
+      "minimum": 0,
       "maximum": 20
     },
     "__schema16": {
       "type": "integer",
-      "minimum": 1,
+      "minimum": 0,
       "maximum": 20
     },
     "__schema17": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "__schema18": {
       "minItems": 1,
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema1"
       }
     },
-    "__schema18": {
+    "__schema19": {
       "type": "number",
       "exclusiveMinimum": 0
     },
-    "__schema19": {
+    "__schema20": {
       "type": "number",
       "minimum": 0,
       "maximum": 1
     },
-    "__schema20": {
-      "description": "Accessories sold here (Plan 5a); needs the \"accessories\" action",
-      "$ref": "#/$defs/__schema21"
-    },
     "__schema21": {
+      "description": "Accessories sold here (Plan 5a); needs the \"accessories\" action",
+      "$ref": "#/$defs/__schema22"
+    },
+    "__schema22": {
       "type": "object",
       "properties": {
         "offers": {
           "type": "array",
           "prefixItems": [
             {
-              "$ref": "#/$defs/__schema22"
+              "$ref": "#/$defs/__schema23"
             },
             {
-              "$ref": "#/$defs/__schema23"
+              "$ref": "#/$defs/__schema24"
             }
           ],
           "items": false,
@@ -270,10 +280,10 @@
         "maxTier": {
           "anyOf": [
             {
-              "$ref": "#/$defs/__schema24"
+              "$ref": "#/$defs/__schema25"
             },
             {
-              "$ref": "#/$defs/__schema25"
+              "$ref": "#/$defs/__schema26"
             }
           ],
           "description": "The best tier it sells"
@@ -284,21 +294,21 @@
         "maxTier"
       ]
     },
-    "__schema22": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 10
-    },
     "__schema23": {
       "type": "integer",
       "minimum": 0,
       "maximum": 10
     },
     "__schema24": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema25": {
       "type": "number",
       "const": 1
     },
-    "__schema25": {
+    "__schema26": {
       "type": "number",
       "const": 2
     }

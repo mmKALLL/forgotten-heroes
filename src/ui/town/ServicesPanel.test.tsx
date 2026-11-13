@@ -110,7 +110,8 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
 
   const stable = within(screen.getByRole('region', { name: 'Animals & mounts' }))
   expect(stable.getByText('+100 kg · 1 gp a day')).toBeTruthy()
-  await userEvent.click(stable.getByRole('button', { name: 'Buy · 10 gp' }))
+  // The price is in the picker ("Mule · 10 gp"); the button doesn't repeat it.
+  await userEvent.click(stable.getByRole('button', { name: 'Buy' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyAnimal', animal: 'mule' })
   await userEvent.click(stable.getByRole('button', { name: /^Sell \(1\)/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'sellAnimal', animal: 'mule' })
@@ -161,14 +162,20 @@ test('with no one looking for work, the inn leaves out its Recruits opener', () 
 })
 
 test("a recruit's old wound and the gear they bring are shown", async () => {
-  const day = Array.from({ length: 80 }, (_, w) => w * 7 + 1).find((d) =>
-    recruitOffers(town({ day: d }), content, 'greenvale-1').some((o) => o.wound || o.gear)
-  )!
-  const offer = recruitOffers(town({ day }), content, 'greenvale-1').find((o) => o.wound || o.gear)!
+  // An offer with a wound or gear, whose name no other offer that week shares.
+  const pick = (d: number) => {
+    const all = recruitOffers(town({ day: d }), content, 'greenvale-1')
+    const named = (o: (typeof all)[number]) =>
+      all.filter((x) => x.character.name === o.character.name).length === 1
+    return all.find((o) => (o.wound || o.gear) && named(o))
+  }
+  const day = Array.from({ length: 80 }, (_, w) => w * 7 + 1).find((d) => pick(d))!
+  const offer = pick(day)!
   panel(town({ day }))
   await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))
   const row = within(screen.getByRole('listitem', { name: offer.character.name }))
-  if (offer.wound) expect(row.getByText(`Old wound: ${offer.wound}`)).toBeTruthy()
+  const label = offer.character.oldWounds.length > 1 ? 'Old wounds' : 'Old wound'
+  if (offer.wound) expect(row.getByText(`${label}: ${offer.wound}`)).toBeTruthy()
   // The accessory alone: no "Brings", no price (designer call).
   if (offer.gear) {
     expect(row.getByText(describeAccessory(offer.gear))).toBeTruthy()
@@ -185,7 +192,8 @@ test('a recruit the party cannot afford is disabled with the reason inline', asy
   expect(hire.getAttribute('aria-disabled')).toBe('true')
   // The reason is inline and announced with the button.
   const why = document.getElementById(hire.getAttribute('aria-describedby') ?? '')
-  expect(why?.textContent).toMatch(/costs \d+ gp/)
+  // The price is on the button: the reason doesn't repeat it.
+  expect(why?.textContent).toBe('not enough gold')
 })
 
 test('the accessory shop lists offers with their hooks and the gear to sell', async () => {
@@ -217,4 +225,13 @@ test('quality pips explain what quality does there on hover or focus', async () 
   const jeweller = screen.getByRole('region', { name: 'Jewelry trader' })
   const tip = within(jeweller).getByRole('tooltip', { hidden: true })
   expect(tip.textContent).toMatch(/narrows the gap between buying and selling by 3 points/)
+})
+
+test('a service the party can’t afford names its price once: on the button, not again below', () => {
+  panel(town({ gold: 0 }))
+  const bless = screen.getByRole('button', { name: /^Blessing · \d+ gp$/ })
+  const temple = within(bless.closest('section')!)
+  expect((bless as HTMLButtonElement).disabled).toBe(true)
+  expect(temple.queryByText(/costs \d+ gp/)).toBeNull()
+  expect(temple.getAllByText('not enough gold').length).toBeGreaterThan(0)
 })

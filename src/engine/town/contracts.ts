@@ -33,6 +33,7 @@ import {
 } from './reputation'
 import { RUMOUR_LEAD } from './rumours'
 import {
+  BOARD_MAX,
   BOARD_SIZE,
   CAMARADERIE_CONTRACT,
   CONTRACT_LEVEL_SPREAD,
@@ -422,8 +423,9 @@ function offerRefusal(state: GameState, content: Content, offer: Offer): string 
  * The offers on a settlement's notice board this week (derived from the world seed, the
  * settlement and the week): BOARD_SIZE[size] slots from the templates posted here (a template
  * with a `service` only where that service is; the rest where a board is), plus a rumour's lead
- * when the party has one here. Offers already taken are left out. Templates the party lacks the
- * standing for show as locked.
+ * when the party has one here, first. At most BOARD_MAX are posted, the lead included (it takes
+ * the last slot's place). Offers already taken are left out (the board isn't refilled). Templates
+ * the party lacks the standing for show as locked.
  */
 export function noticeBoard(state: GameState, content: Content, settlementId: string): Offer[] {
   const info = own(state.world.settlements, settlementId)
@@ -465,9 +467,10 @@ export function noticeBoard(state: GameState, content: Content, settlementId: st
   }
   if (state.location === settlementId && state.doneHere.includes(RUMOUR_LEAD)) {
     const lead = draw(`lead/${settlementId}/${week}`, `${prefix}-lead`, true)
-    if (lead) offers.push(lead)
+    if (lead) offers.unshift(lead)
   }
   return offers
+    .slice(0, BOARD_MAX)
     .filter((o) => !state.contractsTaken.includes(o.id))
     .map((o) => {
       const reason = offerRefusal(state, content, o)
