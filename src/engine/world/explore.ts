@@ -43,9 +43,8 @@ import {
 
 /** The skills a search can use; the better one rolls (Survival on a tie). */
 export const EXPLORE_SKILLS = ['survival', 'perception'] as const
-/** Why a search is refused when the domain has no undiscovered site left (English). */
-export const nothingLeftText = (place: string): string =>
-  `There is nothing left to find around ${place}.`
+/** Shown in place of Explore, and logged if tried, once the party knows the domain is bare. */
+export const FULLY_EXPLORED = 'This area is already fully explored.'
 
 const BUSY = 'Finish the current encounter first.'
 
@@ -65,10 +64,11 @@ export type ExploreOption = {
   /** The sites each tier finds and the days it takes, for previews in any language. */
   finds: Record<Tier, { found: number; days: number }>
   /**
-   * True when the domain has no undiscovered site left to find: the search is refused (no days
-   * are spent), and the preview says so.
+   * True when the party knows the domain is fully explored (a search here came up short, and
+   * nothing new has appeared since): Explore is replaced by FULLY_EXPLORED and refused. Before
+   * that it is offered as usual, so the preview never tells what the party doesn't know.
    */
-  nothingLeft: boolean
+  explored: boolean
 }
 
 /** What each tier of a search leads to (English; in TIERS order in exploreOption). */
@@ -108,9 +108,18 @@ function placeHere(state: GameState, content: Content): Place | null {
 const searchHidden = (state: GameState, domain: string) => crisisHidden(state, domain)
 
 /**
+ * Whether the party knows this domain is fully explored: it is in `state.explored` (a search here
+ * came up short) and there is still nothing to find. When something new appears (a Crisis lead
+ * the clues now point to, a site placed later) the record no longer counts, and Explore returns.
+ */
+export function knownExplored(state: GameState, domain: string): boolean {
+  if (!state.explored.includes(domain)) return false
+  return !anyUndiscovered(state.world, domain, { scope: 'domain' }, searchHidden(state, domain))
+}
+
+/**
  * Exploring the domain the party is in (a settlement or a POI): null on the road, during an
- * encounter, or when no one can act. When nothing is left to find it is still listed, marked
- * `nothingLeft`, and explore refuses it without spending a day.
+ * encounter, or when no one can act. Marked `explored` once the party knows nothing is left.
  */
 export function exploreOption(state: GameState, content: Content): ExploreOption | null {
   if (inProgress(state)) return null
@@ -142,12 +151,7 @@ export function exploreOption(state: GameState, content: Content): ExploreOption
         { found: EXPLORE_FINDS[tier].found, days: EXPLORE_DAYS + EXPLORE_FINDS[tier].extraDays },
       ])
     ) as Record<Tier, { found: number; days: number }>,
-    nothingLeft: !anyUndiscovered(
-      state.world,
-      domain,
-      { scope: 'domain' },
-      searchHidden(state, domain!)
-    ),
+    explored: knownExplored(state, domain!),
   }
 }
 
@@ -221,9 +225,7 @@ export function explore(state: GameState, content: Content): GameState {
       'bad'
     )
   }
-  if (option.nothingLeft) {
-    return appendLog(state, nothingLeftText(settlementName(state, domain)), 'bad')
-  }
+  if (option.explored) return appendLog(state, FULLY_EXPLORED, 'bad')
   const name = state.party.find((c) => c.id === option.actorId)?.name ?? '?'
   const [roll, rng] = rollCheck(state.rng, option.modifier, option.dc)
   const { party, skillUses, strained } = useSkill(state, option.actorId, option.skill)
@@ -239,6 +241,11 @@ export function explore(state: GameState, content: Content): GameState {
       : []
   const pois = { ...state.world.pois }
   for (const id of ids) pois[id] = { ...pois[id], discovered: true }
+  // A search that should have found more and didn't tells the party the domain is bare.
+  const short = finds.found > 0 && ids.length < finds.found
+  const explored = short
+    ? [...state.explored.filter((d) => d !== domain), domain]
+    : state.explored.filter((d) => d !== domain)
   let next = appendLog(
     gainXp(
       {
@@ -247,6 +254,7 @@ export function explore(state: GameState, content: Content): GameState {
         party,
         skillUses,
         world: { ...state.world, pois },
+        explored,
         inspiration: state.inspiration + (inspired ? 1 : 0),
         lastRoll: { ...roll, stat: option.skill, actorId: option.actorId },
       },

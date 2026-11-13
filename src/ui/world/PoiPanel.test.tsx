@@ -168,16 +168,18 @@ test('the explore preview shows the searcher, DC, days and the non-critical tier
   expect(onAction).toHaveBeenCalledWith({ type: 'explore' })
 })
 
-test('with nothing left to find, Explore says so and does nothing', async () => {
+test('a domain known to be fully explored shows only that, no search', () => {
   const state = world('poi-1', ['poi-1'])
   for (const p of Object.values(state.world.pois)) p.discovered = true
-  const { onAction } = show(state)
+  // Known only once a search came up short: until then Explore is offered as usual.
+  show(state)
+  expect(screen.getByRole('button', { name: 'Explore (2 days)' })).toBeTruthy()
+  cleanup()
+  show({ ...state, explored: ['ashmoor-1'] })
   const box = within(screen.getByRole('group', { name: 'Explore the domain' }))
-  expect(box.getByText('Nothing left to find here.')).toBeTruthy()
-  const button = box.getByRole('button', { name: 'Explore (2 days)' })
-  expect(button.getAttribute('aria-disabled')).toBe('true')
-  await userEvent.click(button)
-  expect(onAction).not.toHaveBeenCalled()
+  expect(box.getByText('This area is already fully explored.')).toBeTruthy()
+  expect(box.queryByRole('button')).toBeNull()
+  expect(box.queryByRole('list')).toBeNull()
 })
 
 test('the paths out are listed with their previews, and Travel takes the chosen one', async () => {

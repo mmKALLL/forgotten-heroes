@@ -141,6 +141,7 @@ function migrated() {
     ...PLAN_5A_DEFAULTS,
     crisis,
     delve: null,
+    explored: [],
   }
 }
 

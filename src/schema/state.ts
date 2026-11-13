@@ -312,6 +312,11 @@ export const GameStateSchema = z.object({
   gathered: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
   /** Recruit offer ids hired, so they are never offered again. */
   recruitsTaken: z.array(z.string()).default([]),
+  /**
+   * Domains the party knows are fully explored (save v15): a search there succeeded but came up
+   * short. It counts only while nothing new is there to find (world/explore.ts).
+   */
+  explored: z.array(IdSchema).default([]),
   /** Accessory offer ids bought, so they are never offered again. */
   gearTaken: z.array(z.string()).default([]),
   /** The day each wearer's `lucky` hook was last spent, by character id. */

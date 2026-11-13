@@ -406,7 +406,8 @@ export function v13ToV14(raw: Record<string, unknown>, content: Content): Record
 
 /**
  * v14 → v15 (Plan 6, track P): a recruit may have more than one old wound ("level 0" has two), so
- * each member's `oldWound` (an ability or null) becomes the list `oldWounds`.
+ * each member's `oldWound` (an ability or null) becomes the list `oldWounds`. No domain is known
+ * to be fully explored yet (`explored`).
  */
 export function v14ToV15(raw: Record<string, unknown>): Record<string, unknown> {
   const party = Array.isArray(raw.party)
@@ -421,7 +422,8 @@ export function v14ToV15(raw: Record<string, unknown>): Record<string, unknown> 
         return { ...rest, oldWounds }
       })
     : raw.party
-  return { ...raw, version: 15, party }
+  const explored = Array.isArray(raw.explored) ? raw.explored : []
+  return { ...raw, version: 15, party, explored }
 }
 
 /**

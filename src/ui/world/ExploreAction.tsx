@@ -6,7 +6,6 @@ import type { GameState } from '../../schema/state'
 import { useI18n } from '../i18n/I18n'
 import { TierOutcomes } from './TierOutcomes'
 import { daysText } from './travelText'
-import { ReasonButton } from '../ReasonButton'
 
 /**
  * Exploring the domain the party is in: who searches, with what, against what DC, the days it
@@ -29,6 +28,14 @@ export function ExploreAction({
   const action = availableActions(state, content).find((a) => a.type === 'explore')
   if (!action) return null
   const { option } = action
+  // Once the party knows the domain is bare, the text replaces the search (no button, no odds).
+  if (option.explored) {
+    return (
+      <p className="muted small explore-line" role="group" aria-label={t('explore.heading')}>
+        {t('explore.fullyExplored')}
+      </p>
+    )
+  }
   const name = state.party.find((c) => c.id === option.actorId)?.name ?? '?'
   const faces = tierFaces(option.modifier, option.dc)
   const finds = (tier: Tier) => {
@@ -45,17 +52,12 @@ export function ExploreAction({
     modifier: formatModifier(option.modifier),
     dc: option.dc,
   })
-  // With nothing left to find the search is refused (no days spent): the button says why.
   const button = (
-    <ReasonButton
-      available={!option.nothingLeft}
-      reason={option.nothingLeft ? t('explore.nothingLeft') : null}
-      onClick={() => onAction({ type: 'explore' })}
-    >
+    <button onClick={() => onAction({ type: 'explore' })}>
       {t('explore.button', { days: daysText(t, option.days) })}
-    </ReasonButton>
+    </button>
   )
-  const outcomes = option.nothingLeft ? null : (
+  const outcomes = (
     <TierOutcomes label={t('explore.outcomes')} odds={option.chances} faces={faces} text={finds} />
   )
   if (compact) {

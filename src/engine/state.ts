@@ -127,6 +127,7 @@ export function newGame(
     camaraderie: CAMARADERIE_START,
     gathered: {},
     recruitsTaken: [],
+    explored: [],
     gearTaken: [],
     luckUsed: {},
     crisis: crisis?.crisis ?? null,

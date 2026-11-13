@@ -587,7 +587,7 @@ export const en = {
   'explore.foundLate': 'Finds a site, after {days}',
   'explore.nothing': 'Finds nothing',
   'explore.line': '{name}, {skill} {modifier} vs DC {dc}',
-  'explore.nothingLeft': 'Nothing left to find here.',
+  'explore.fullyExplored': 'This area is already fully explored.',
   'explore.button': 'Explore ({days})',
   'gather.heading': 'Gather local goods',
   'gather.what': 'What to gather',
