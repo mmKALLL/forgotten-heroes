@@ -224,7 +224,8 @@ export type DelvePreview = {
   level: number
   /**
    * The party level it calls for as the party knows it: `level` once heard of in a rumour or
-   * entered (Plan 6 wave 2b), else null (found only by exploring: the level is unknown).
+   * entered (Plan 6 wave 2b), else null (found only by exploring: the level is unknown). While
+   * null the UI shows neither `hoard` nor `risk`: both come from the CR and would give it away.
    */
   suggestedLevel: number | null
   /** The best level among the living members. */

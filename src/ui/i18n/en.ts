@@ -605,6 +605,8 @@ export const en = {
   'delve.hoardPrecious': ', {n} precious goods',
   'delve.hoardAccessory': ', an accessory',
   'delve.hoardAccessories': ', {n} accessories',
+  'delve.hoardUnknown': 'The hoard at the end: ? gp, and ? XP.',
+  'delve.riskUnknown': 'About ?% that the next room drives you out: no word of this place yet.',
   'delve.rule':
     'Each room is about twice as risky as the road: wounds are doubled, and a failed room drives you out with no hoard. Between rooms you may withdraw with what you found.',
   'delve.risk': 'About {pct}% that the next room drives you out, with your best opening choice.',

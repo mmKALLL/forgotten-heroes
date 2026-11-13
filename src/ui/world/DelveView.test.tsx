@@ -60,6 +60,11 @@ test('a dungeon found only by exploring shows its level as unknown', () => {
   panel(atVault(false))
   expect(screen.getByText(/Level unknown/)).toBeTruthy()
   expect(screen.queryByText(/meant for a party of level/)).toBeNull()
+  // The hoard and the risk come from the CR: they would give the level away.
+  expect(screen.getByText('The hoard at the end: ? gp, and ? XP.')).toBeTruthy()
+  expect(screen.queryByText(/\d+–\d+ gp/)).toBeNull()
+  expect(screen.queryByText(/\d+% that the next room/)).toBeNull()
+  expect(screen.queryByText(/needs no roll/)).toBeNull()
 })
 
 test('between rooms, the schematic marks the way, and Press on and Withdraw dispatch', async () => {
