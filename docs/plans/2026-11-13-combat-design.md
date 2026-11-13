@@ -202,6 +202,8 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 
 ## 10. Open questions
 
+- **Medicine and lasting injuries** (designer idea, 2026-11-14, to think over): the party's best Medicine could lower the chance of a lasting injury, and other skills could get similar uses. Track E leaves a named hook for it.
+
 - The spell lists for each pool (arcane and divine, levels 1–9) and the summon tiers.
 - The role stat tables by CR, and the road CR budget.
 - The even-level schedule of abilities and uses per class.
