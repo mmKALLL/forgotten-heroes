@@ -450,26 +450,26 @@ function ServiceAction({
       const chosen = offers.find((o) => o.id === animal) ?? offers[0]
       if (!chosen) return null
       const animalName = (o: (typeof offers)[number]) => name('animals', o.id, o.name)
-      const info = [
-        t('services.animalInfo', { kg: chosen.capacity }),
-        chosen.rides !== null && t('services.animalRider', { speed: chosen.rides }),
-      ]
+      // The kg is in the picker ("Mule · 20 gp · 90 kg"); beside it, only how fast it rides.
+      const rider = chosen.rides !== null ? t('services.animalRider', { speed: chosen.rides }) : ''
+      const info = [t('services.animalInfo', { kg: chosen.capacity }), rider]
         .filter(Boolean)
         .join(' · ')
       return (
         <span className="inline-pick">
           <select
+            className="animal-pick"
             aria-label={t('services.animal')}
             value={chosen.id}
             onChange={(e) => setAnimal(e.target.value)}
           >
             {offers.map((o) => (
               <option key={o.id} value={o.id}>
-                {t('services.animalOption', { name: animalName(o), gp: o.price })}
+                {t('services.animalOption', { name: animalName(o), gp: o.price, kg: o.capacity })}
               </option>
             ))}
           </select>
-          <span className="muted small">{info}</span>
+          {rider && <span className="muted small">{rider}</span>}
           <BuyButton
             label={t('services.buyAnimal')}
             effect={null}

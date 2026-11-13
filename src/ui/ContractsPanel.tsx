@@ -3,6 +3,7 @@ import type { Content } from '../content/build'
 import type { Action } from '../engine/state'
 import { contractRows, type ContractRow } from '../engine/town/contracts'
 import type { GameState } from '../schema/state'
+import { ContractRewardDialog } from './ContractRewardDialog'
 import { contractText } from './contractText'
 import { useI18n } from './i18n/I18n'
 import { leftText } from './world/travelText'
@@ -11,17 +12,16 @@ type Props = { content: Content; state: GameState; onAction: (a: Action) => void
 
 /**
  * The contracts the party holds, under the party (design §8): each with where it goes, the days
- * left, and its text (clamped to two lines, the rest on "more"). Where one can be completed it
- * offers the choice of reward, saying what each gives: the pay (with standing for the patron and
- * their town) or a good word across their kingdom. It can be abandoned, after a second click;
- * focus then moves to the next contract, or the heading.
+ * left, and its text (clamped to two lines, the rest on "more"). Where one can be completed,
+ * "Claim reward" opens the reward dialog (the pay or a good word). It can be abandoned, after a
+ * second click; after either, focus moves to the next contract, or the heading.
  */
 export function ContractsPanel({ content, state, onAction }: Props) {
   const { t } = useI18n()
   const rows = contractRows(state, content)
   const list = useRef<HTMLUListElement>(null)
   const heading = useRef<HTMLHeadingElement>(null)
-  // After an abandon, the contract at this index (or the last one, or the heading) takes focus.
+  // After an abandon or a completion, the contract at this index (or the last one, or the heading) takes focus.
   const [refocus, setRefocus] = useState<number | null>(null)
   useEffect(() => {
     if (refocus === null) return
@@ -43,7 +43,7 @@ export function ContractsPanel({ content, state, onAction }: Props) {
             contract={c}
             here={state.location}
             onAction={onAction}
-            onAbandoned={() => setRefocus(i)}
+            onDone={() => setRefocus(i)}
           />
         ))}
       </ul>
@@ -55,19 +55,21 @@ function ContractItem({
   contract: c,
   here,
   onAction,
-  onAbandoned,
+  onDone,
 }: {
   contract: ContractRow
   /** Where the party is: at the destination, it says why it can't complete yet. */
   here: string | null
   onAction: (a: Action) => void
-  onAbandoned: () => void
+  /** Abandoned or completed: focus moves on. */
+  onDone: () => void
 }) {
   const i18n = useI18n()
   const { t, name } = i18n
   const goodName = (g: string) => name('goods', g, g)
   const [abandoning, setAbandoning] = useState(false)
   const [open, setOpen] = useState(false)
+  const [claiming, setClaiming] = useState(false)
   const abandonLink = useRef<HTMLButtonElement>(null)
   const keep = useRef<HTMLButtonElement>(null)
   const asked = useRef(false)
@@ -80,8 +82,6 @@ function ContractItem({
   const { title, text } = contractText(i18n, c)
   const where = c.poiName ?? c.toName
   const left = c.daysLeft === null ? t('contracts.met', { to: c.toName }) : leftText(t, c.daysLeft)
-  const gold = c.rewards.gold
-  const word = c.rewards.goodWord
   return (
     <li className="contract">
       <div>
@@ -115,26 +115,23 @@ function ContractItem({
         <div className="contract-rewards">
           <button
             className="primary"
-            onClick={() => onAction({ type: 'completeContract', id: c.id, reward: 'gold' })}
+            aria-label={t('contracts.claimLabel', { title })}
+            onClick={() => setClaiming(true)}
           >
-            {t('contracts.takeGold', { gp: gold.gold })}
+            {t('contracts.claim')}
           </button>
-          <span className="muted">
-            {t('contracts.goldGives', { patron: gold.patron, town: gold.settlement })}
-          </span>
-          <button
-            onClick={() => onAction({ type: 'completeContract', id: c.id, reward: 'goodWord' })}
-          >
-            {t('contracts.goodWord')}
-          </button>
-          <span className="muted">
-            {t('contracts.goodWordGives', {
-              points: word.points,
-              n: word.settlements,
-              kingdom: word.kingdom ?? '—',
-              patron: word.patron,
-            })}
-          </span>
+          {claiming && (
+            <ContractRewardDialog
+              contract={c}
+              title={title}
+              onChoose={(reward) => {
+                setClaiming(false)
+                onAction({ type: 'completeContract', id: c.id, reward })
+                onDone()
+              }}
+              onClose={() => setClaiming(false)}
+            />
+          )}
         </div>
       ) : (
         here === c.to && c.reason && <div className="tone-bad">{c.reason}</div>
@@ -147,7 +144,7 @@ function ContractItem({
               <button
                 onClick={() => {
                   onAction({ type: 'abandonContract', id: c.id })
-                  onAbandoned()
+                  onDone()
                 }}
               >
                 {t('contracts.abandonYes')}
