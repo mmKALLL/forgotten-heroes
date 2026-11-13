@@ -12,98 +12,122 @@ export const currentAct = (info: CrisisInfo | null): CrisisActInfo | null =>
   info?.current != null ? (info.acts[info.current] ?? null) : null
 
 /**
- * The Crisis under the contracts (design §10b, Plan 5b U2), from the engine's `crisisInfo` (and the
- * next step from `crisisTracker`; Track K's endgame tracker replaces this). Hidden until the plan
- * is learned, unless act I's lead site is known. Then the villain and its three acts: thwarted
- * ones with their day, the open one with its next step, where it is, its clues and its due day,
- * later ones by name and goal. Once the Crisis ends, one line.
+ * The endgame tracker (design §10b, Plan 6 K2), below the journal: shown from act I's open day
+ * and kept from then on, also once the Crisis is decided. It renders `crisisTracker` (each act's
+ * phase, days left, next step, challenge against the party's level, foe and surge), with the
+ * villain, its summary and the open act's clues from `crisisInfo` once the plan is known.
  */
-export function CrisisPanel({ content, state }: { content: Content; state: GameState }) {
+export function CrisisTracker({ content, state }: { content: Content; state: GameState }) {
   const { t } = useI18n()
-  const info = crisisInfo(state, content)
-  if (!info) return null
   const tracker = crisisTracker(state, content)
-  const body = panelBody(t, info, tracker?.acts ?? [])
-  if (!body) return null
+  const info = crisisInfo(state, content)
+  if (!tracker?.visible || !info) return null
   return (
     <section className="panel crisis" aria-label={t('crisis.heading')}>
-      {body}
+      <h2>{info.name ?? t('crisis.heading')}</h2>
+      {info.summary && <p className="muted small crisis-summary">{info.summary}</p>}
+      {info.ended && <EndedLine t={t} info={info} />}
+      <ol className="crisis-acts small">
+        {tracker.acts.map((act) => (
+          <ActRow
+            key={act.n}
+            t={t}
+            act={act}
+            info={info.acts[act.n - 1] ?? null}
+            current={tracker.current === act.n - 1}
+            partyLevel={tracker.partyLevel}
+          />
+        ))}
+      </ol>
     </section>
   )
 }
 
-function panelBody(t: T, info: CrisisInfo, tracked: TrackerAct[]) {
-  if (info.ended) {
-    const { outcome, day, text } = info.ended
-    const line =
-      info.short === null
-        ? t('crisis.lostUnknown', { day })
-        : t(outcome === 'won' ? 'crisis.won' : 'crisis.lost', { name: info.short, day })
-    return (
-      <p className={`small crisis-ended ${outcome === 'won' ? 'tone-good' : 'tone-bad'}`}>
-        {info.short === null ? line : <Tip tip={text}>{line}</Tip>}
-      </p>
-    )
-  }
-  if (info.acts.length === 0) {
-    return info.reveal ? (
-      <p className="small">{t('crisis.stirs', { site: info.reveal.name })}</p>
-    ) : null
-  }
+function EndedLine({ t, info }: { t: T; info: CrisisInfo }) {
+  const { outcome, day, text } = info.ended!
+  const line =
+    info.short === null
+      ? t('crisis.lostUnknown', { day })
+      : t(outcome === 'won' ? 'crisis.won' : 'crisis.lost', { name: info.short, day })
   return (
-    <>
-      <h2>{info.name}</h2>
-      {info.summary && <p className="muted small crisis-summary">{info.summary}</p>}
-      <ol className="crisis-acts small">
-        {info.acts.map((act) => (
-          <ActRow key={act.n} t={t} act={act} next={tracked[act.n - 1]?.next ?? null} />
-        ))}
-      </ol>
-    </>
+    <p className={`small crisis-ended ${outcome === 'won' ? 'tone-good' : 'tone-bad'}`}>
+      {info.short === null ? line : <Tip tip={text}>{line}</Tip>}
+    </p>
   )
 }
 
-function ActRow({ t, act, next }: { t: T; act: CrisisActInfo; next: string | null }) {
-  const done = act.thwartedDay !== null
-  const future = !done && !act.current
+function ActRow(props: {
+  t: T
+  act: TrackerAct
+  info: CrisisActInfo | null
+  current: boolean
+  partyLevel: number
+}) {
+  const { t, act, info, current, partyLevel } = props
+  const done = act.phase === 'thwarted' || act.phase === 'failed'
+  const title = act.name
+    ? t('crisis.act', { numeral: act.numeral, name: act.name })
+    : t('crisis.actUnknown', { numeral: act.numeral })
   return (
-    <li className={act.current ? 'current' : future ? 'future muted' : 'done'}>
+    <li className={current ? 'current' : done ? 'done' : 'future muted'}>
       <div>
-        <strong>{t('crisis.act', { numeral: act.numeral, name: act.name })}</strong>
-        {done && (
-          <>
-            {' '}
-            <span className="tone-good">{t('crisis.thwarted', { day: act.thwartedDay! })}</span>
-          </>
-        )}
-        {/* A thwarted or later act takes one line: its goal follows its name. */}
-        {!act.current && <span className="muted"> · {act.goal}</span>}
+        <strong>{title}</strong> <PhaseMark t={t} act={act} info={info} />
+        {/* A thwarted or later act stays short: its goal follows its name. */}
+        {!current && info && <span className="muted"> · {info.goal}</span>}
       </div>
-      {act.current && <div className="muted">{act.goal}</div>}
-      {act.current && (
-        <>
-          {next && <div>{next}</div>}
-          <div>
-            {act.poi
-              ? act.where
-              : act.where
-                ? t('crisis.somewhere', { land: act.where })
-                : t('crisis.whereUnknown')}
-            {' · '}
-            <Tip tip={t('crisis.cluesHint', { needs: act.needs, at: act.weaknessAt })}>
-              {act.weakness
-                ? t('crisis.cluesWeakness', { n: act.clues })
-                : t('crisis.clues', { n: act.clues, needs: act.needs, at: act.weaknessAt })}
-            </Tip>
-          </div>
-          <div className={act.pressing ? 'tone-bad' : undefined}>
-            {act.daysLeft === 0
-              ? t('crisis.dueToday', { due: act.due })
-              : t('crisis.due', { due: act.due, days: act.daysLeft })}
-          </div>
-        </>
+      {current && info && <div className="muted">{info.goal}</div>}
+      {act.next && <div className={current ? 'crisis-next' : undefined}>{act.next}</div>}
+      {current && info && (
+        <div>
+          <Tip tip={t('crisis.cluesHint', { needs: info.needs, at: info.weaknessAt })}>
+            {info.weakness
+              ? t('crisis.cluesWeakness', { n: info.clues })
+              : t('crisis.clues', { n: info.clues, needs: info.needs, at: info.weaknessAt })}
+          </Tip>
+        </div>
       )}
+      {current && <Challenge t={t} act={act} partyLevel={partyLevel} />}
+      {current && act.phase === 'prevention' && act.foe && (
+        <div>{t('crisis.foe', { name: act.foe })}</div>
+      )}
+      {!current && act.phase === 'dormant' && act.next && (
+        <div>{t('crisis.challenges', { lead: act.leadCr, key: act.keyCr })}</div>
+      )}
+      {current && act.daysLeft !== null && (
+        <div className={act.pressing ? 'tone-bad' : undefined}>
+          {act.daysLeft === 0
+            ? t('crisis.dueToday', { due: act.due })
+            : t('crisis.due', { due: act.due, days: act.daysLeft })}
+        </div>
+      )}
+      {act.surge > 0 && <div className="tone-bad">{t('crisis.surge', { percent: act.surge })}</div>}
     </li>
+  )
+}
+
+/** The act's phase: a word while it stands, the day it was thwarted, or that it failed. */
+function PhaseMark({ t, act, info }: { t: T; act: TrackerAct; info: CrisisActInfo | null }) {
+  if (act.phase === 'thwarted') {
+    return (
+      <span className="tone-good">{t('crisis.thwarted', { day: info?.thwartedDay ?? '' })}</span>
+    )
+  }
+  if (act.phase === 'failed') return <span className="tone-bad">{t('crisis.failed')}</span>
+  return <span className="badge crisis-phase">{t(`crisis.phase.${act.phase}`)}</span>
+}
+
+/** The challenge the open act points to (its lead, then its key site) against the party's level. */
+function Challenge({ t, act, partyLevel }: { t: T; act: TrackerAct; partyLevel: number }) {
+  const key = act.phase === 'prevention'
+  const cr = key ? act.keyCr : act.leadCr
+  const level = key ? act.keyLevel : act.leadLevel
+  return (
+    <div>
+      <Tip tip={t('crisis.challengeHint')}>{t('crisis.challenge', { cr, level })}</Tip>
+      {act.tooStrong && (
+        <span className="tone-bad"> · {t('crisis.tooStrong', { level: partyLevel })}</span>
+      )}
+    </div>
   )
 }
 

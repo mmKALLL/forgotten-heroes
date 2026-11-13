@@ -4,9 +4,9 @@ import type { CrisisActPhase } from '../../schema/types'
 import { canAct } from '../rules/character'
 import { crLevel } from '../rules/challenge'
 import { actCalendar } from './calendar'
-import { crisisStatus, planKnown } from './status'
+import { actOpen, crisisStatus, planKnown } from './status'
 import { crisisSurge } from './surge'
-import { actNumeral, siteWhere, villainOf } from './text'
+import { actNumeral, shortName, siteWhere, villainOf } from './text'
 
 // The endgame tracker's view model (Plan 6 C5, design §10b): each act's phase, its days, the next
 // step, its challenge against the party's level, and the surge. Track K renders it below the
@@ -24,10 +24,12 @@ export type TrackerAct = {
   due: number
   /** Days until it is due (0 on the day) while it stands; null once thwarted or failed. */
   daysLeft: number | null
+  /** The open act is past its hurry day (the journal's note). */
+  pressing: boolean
   /**
    * What to do next, in English, for the open act: "Ask in the towns", "Find the lead in Tradal",
    * "Follow the lead at the Burned Chapel", "Strike at the Opened Barrows"; for a dormant act,
-   * "Stirs from day 130". Null once thwarted or failed.
+   * "Stirs from day 130". Null once thwarted or failed, and for every act once the Crisis is decided.
    */
   next: string | null
   leadCr: number
@@ -37,6 +39,11 @@ export type TrackerAct = {
   keyLevel: number
   /** The encounter the open act points to is meant for a higher level than the party's best. */
   tooStrong: boolean
+  /**
+   * Who holds the key site, once the plan is known: a finale villain's lieutenant (the act's
+   * `boss`), else the villain itself (its act III, or every act of a recurring villain).
+   */
+  foe: string | null
   /** The act's danger surge now, in percent (0 when none), and whether its data surges at all (told once the plan is known). */
   surge: number
   surges: boolean
@@ -62,6 +69,7 @@ export function crisisTracker(state: GameState, content: Content): CrisisTracker
   const known = planKnown(crisis)
   const partyLevel = Math.max(1, ...state.party.filter(canAct).map((c) => c.level))
   const surge = crisisSurge(state, content)
+  const decided = status.phase === 'won' || status.phase === 'lost'
   const pois = state.world.pois
   const found = (id: string) => Object.hasOwn(pois, id) && pois[id].discovered
   const acts = crisis.acts.map((a, i): TrackerAct => {
@@ -72,6 +80,7 @@ export function crisisTracker(state: GameState, content: Content): CrisisTracker
     const leadLevel = crLevel(act.leadCr)
     const keyLevel = crLevel(act.keyCr)
     const next = (): string | null => {
+      if (decided) return null
       switch (phase) {
         case 'dormant':
           return `Stirs from day ${days.opens}`
@@ -98,6 +107,7 @@ export function crisisTracker(state: GameState, content: Content): CrisisTracker
       expected: days.expected,
       due: days.due,
       daysLeft: standing ? Math.max(0, days.due - state.day) : null,
+      pressing: status.act === i && actOpen(status.phase) && state.day >= days.hurry,
       next: next(),
       leadCr: act.leadCr,
       keyCr: act.keyCr,
@@ -106,16 +116,17 @@ export function crisisTracker(state: GameState, content: Content): CrisisTracker
       tooStrong:
         (phase === 'investigation' && partyLevel < leadLevel) ||
         (phase === 'prevention' && partyLevel < keyLevel),
+      foe: known ? (act.boss ?? shortName(crisis.name)) : null,
       surge: surge?.act === i ? Math.round(surge.share * 100) : 0,
       surges: known && act.surge,
     }
   })
-  const open = status.phase === 'investigation' || status.phase === 'prevention'
+  const open = actOpen(status.phase)
   return {
     visible: state.day >= actCalendar(crisis, 0).opens,
     partyLevel,
     current: open ? status.act : null,
-    outcome: status.phase === 'won' || status.phase === 'lost' ? status.phase : null,
+    outcome: decided ? (status.phase as 'won' | 'lost') : null,
     acts,
   }
 }

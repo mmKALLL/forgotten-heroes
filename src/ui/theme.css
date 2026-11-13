@@ -2127,7 +2127,7 @@ h2[tabindex='-1']:focus {
   padding: 0 0.35rem;
   font-size: 0.75rem;
 }
-/* The Crisis (Plan 5b U2): under the contracts, compact; its mark after the day in the top bar. */
+/* The Crisis: the endgame tracker below the journal (Plan 6 K2); its mark after the day in the top bar. */
 .crisis h2 {
   margin-bottom: 0.15rem;
 }
@@ -2156,6 +2156,14 @@ h2[tabindex='-1']:focus {
 }
 .crisis-ended {
   margin: 0;
+}
+.badge.crisis-phase {
+  margin-left: 0.15rem;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.crisis-next {
+  font-weight: bold;
 }
 .crisis-note p {
   margin: 0.15rem 0;

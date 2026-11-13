@@ -56,4 +56,21 @@ describe('crisisTracker', () => {
     expect(acts[1].surges).toBe(true)
     expect(acts[0]).toMatchObject({ phase: 'thwarted', next: null, daysLeft: null, surge: 0 })
   })
+
+  test('names who holds each key site once the plan is known: a lieutenant, else the villain', () => {
+    const before = crisisTracker(withCrisis({}, { day: 40 }), content)!
+    expect(before.acts.map((a) => a.foe)).toEqual([null, null, null])
+    const known = crisisTracker(withCrisis({ leads: [35, null, null] }, { day: 40 }), content)!
+    expect(known.acts.map((a) => a.foe)).toEqual(['Captain Test, the Hand', 'Morvaine', 'Morvaine'])
+  })
+
+  test('presses from the hurry day, and has no next step once the Crisis is lost', () => {
+    const calm = crisisTracker(withCrisis({ leads: [35, null, null] }, { day: 79 }), content)!
+    expect(calm.acts[0].pressing).toBe(false)
+    const hurry = crisisTracker(withCrisis({ leads: [35, null, null] }, { day: 80 }), content)!
+    expect(hurry.acts[0].pressing).toBe(true)
+    const lost = crisisTracker(withCrisis({ leads: [35, null, null] }, { day: 101 }), content)!
+    expect(lost.outcome).toBe('lost')
+    expect(lost.acts.map((a) => a.next)).toEqual([null, null, null])
+  })
 })

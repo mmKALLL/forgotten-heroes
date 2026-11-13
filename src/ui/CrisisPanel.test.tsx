@@ -4,7 +4,7 @@ import { afterEach, expect, test, vi } from 'vitest'
 import { fixtureContent, makeState } from '../engine/test-fixtures'
 import type { CrisisState } from '../schema/crisis'
 import type { GameState } from '../schema/state'
-import { CrisisPanel } from './CrisisPanel'
+import { CrisisTracker } from './CrisisPanel'
 import { DayMark } from './DayMark'
 import { crisisInfo } from '../engine/crisis/status'
 import { I18nProvider } from './i18n/I18n'
@@ -23,27 +23,35 @@ function withCrisis(crisis: Partial<CrisisState> = {}, state: Partial<GameState>
 const wrap = (node: React.ReactNode) =>
   render(<I18nProvider content={content}>{node}</I18nProvider>)
 
-test('the panel shows the open act’s next step, due day and clues, and a thwarted act’s day', () => {
-  wrap(<CrisisPanel content={content} state={withCrisis({ clues: [1, 0, 0] }, { day: 63 })} />)
+test('the tracker shows each act’s phase, days, next step, challenge and foe', () => {
+  wrap(<CrisisTracker content={content} state={withCrisis({ clues: [1, 0, 0] }, { day: 63 })} />)
   const panel = within(screen.getByRole('region', { name: 'Crisis' }))
   expect(panel.getByRole('heading', { name: 'Morvaine, the Test Prophet' })).toBeTruthy()
   expect(panel.getByText('I. The Test Act 1')).toBeTruthy()
-  expect(panel.getByText(/^somewhere in /)).toBeTruthy()
+  expect(panel.getByText('prevention')).toBeTruthy()
   expect(panel.getByText('clues 1 / 2 · weakness at 3')).toBeTruthy()
   expect(panel.getByText('due day 100 · 37d left')).toBeTruthy()
   expect(panel.getByText(/^Strike at /)).toBeTruthy()
-  // A future act is its name and goal only.
+  // The fixture's party is level 1: act I's key site (CR 6) is beyond it.
+  expect(panel.getByText('CR 6, meant for level 7')).toBeTruthy()
+  expect(panel.getByText(/too strong for you \(level 1\)/)).toBeTruthy()
+  expect(panel.getByText('Holding it: Captain Test, the Hand')).toBeTruthy()
+  // A later act: its name, goal, when it stirs and its challenges.
   expect(panel.getByText('II. The Test Act 2')).toBeTruthy()
+  expect(panel.getByText('Stirs from day 130')).toBeTruthy()
+  expect(panel.getByText('lead CR 8 · key CR 12')).toBeTruthy()
   expect(panel.queryByText(/due day 200/)).toBeNull()
   cleanup()
 
-  // Act I thwarted on day 74; act II's investigation under way.
-  const later = withCrisis({ thwarted: [74, null, null], clues: [3, 1, 0] }, { day: 150 })
-  wrap(<CrisisPanel content={content} state={later} />)
+  // Act I thwarted on day 74; act II's investigation under way, its surge on near its due day.
+  const later = withCrisis({ thwarted: [74, null, null], clues: [3, 1, 0] }, { day: 185 })
+  wrap(<CrisisTracker content={content} state={later} />)
   const again = within(screen.getByRole('region', { name: 'Crisis' }))
   expect(again.getByText('✓ day 74')).toBeTruthy()
-  expect(again.getByText('due day 200 · 50d left')).toBeTruthy()
+  expect(again.getByText('investigation')).toBeTruthy()
+  expect(again.getByText('due day 200 · 15d left')).toBeTruthy()
   expect(again.getByText(/^Find the lead in /)).toBeTruthy()
+  expect(again.getByText(/^⚠ the roads are 10% more dangerous/)).toBeTruthy()
   cleanup()
 
   // The top bar's mark.
@@ -51,15 +59,19 @@ test('the panel shows the open act’s next step, due day and clues, and a thwar
   expect(screen.getByText('Act I · 37d')).toBeTruthy()
 })
 
-test('the panel is hidden before the plan is known, and act I’s lead is named once found', () => {
-  const unknown = withCrisis({ leads: [null, null, null] }, { day: 40 })
-  wrap(<CrisisPanel content={content} state={unknown} />)
+test('the tracker is hidden before act I opens, then names nothing before the plan', () => {
+  const unknown = withCrisis({ leads: [null, null, null] }, { day: 29 })
+  wrap(<CrisisTracker content={content} state={unknown} />)
   expect(screen.queryByRole('region', { name: 'Crisis' })).toBeNull()
   cleanup()
   const id = unknown.crisis!.acts[0].lead
   const pois = { ...unknown.world.pois, [id]: { ...unknown.world.pois[id], discovered: true } }
-  wrap(<CrisisPanel content={content} state={{ ...unknown, world: { ...unknown.world, pois } }} />)
-  expect(screen.getByText(`Something stirs. ${pois[id].name} may hold answers.`)).toBeTruthy()
+  const open = { ...unknown, day: 40, world: { ...unknown.world, pois } }
+  wrap(<CrisisTracker content={content} state={open} />)
+  const panel = within(screen.getByRole('region', { name: 'Crisis' }))
+  expect(panel.getByRole('heading', { name: 'Crisis' })).toBeTruthy()
+  expect(panel.getByText('Act I')).toBeTruthy()
+  expect(panel.getByText(`Follow the lead at ${pois[id].name}`)).toBeTruthy()
 })
 
 test('a road to the open act’s site shows its arrival against the due day', () => {

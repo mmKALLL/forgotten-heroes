@@ -10,7 +10,7 @@ import { nodeOf } from '../engine/world/graph'
 import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
 import { ContractsPanel } from './ContractsPanel'
-import { CrisisPanel } from './CrisisPanel'
+import { CrisisTracker } from './CrisisPanel'
 import { EncounterDeck } from './deck/EncounterDeck'
 import { DevArea } from './DevArea'
 import { EndDialog } from './EndDialog'
@@ -152,7 +152,6 @@ function Game() {
             onAction={inProgress(state) ? undefined : dispatch}
           />
           <ContractsPanel content={content} state={shown} onAction={dispatch} />
-          <CrisisPanel content={content} state={shown} />
           <WorldMap
             content={content}
             state={shown}
@@ -205,6 +204,7 @@ function Game() {
         </div>
         <div className="side">
           <LogPanel log={shown.log} />
+          <CrisisTracker content={content} state={shown} />
           <DevArea>
             <EncounterDeck content={content} state={shown} rolling={rolling} onAction={dispatch} />
             <CheckPanel state={state} onAction={dispatch} />

@@ -1142,7 +1142,8 @@ const testActSituation = (n: number) => ({
  * The Crisis (Plans 5b and 6): one villain, favoured by the bog cult. Act I's lead is the burned
  * chapel (where the plan is learned), acts II and III share a lead type that finds the key site,
  * and each act has its own key site (weight-0 quest types, never drawn as ordinary POIs). Act II
- * favours marsh and surges near its due day, and act III lies in a kingdom seat's domain. One
+ * favours marsh and surges near its due day, and act III lies in a kingdom seat's domain. Act I's
+ * key site is held by a lieutenant (a finale villain's `boss`). One
  * road omen names the villain and gives a clue.
  */
 export const testCrisis: Record<string, unknown> = {
@@ -1166,6 +1167,7 @@ export const testCrisis: Record<string, unknown> = {
           site: `test-act-${n}-site`,
           leadCr: 6 * n - 4,
           keyCr: 6 * n,
+          ...(n === 1 ? { boss: 'Captain Test, the Hand' } : {}),
           ...(n === 2 ? { biomes: ['marsh'], surge: true } : {}),
           ...(n === 3 ? { seat: true } : {}),
           clue: "{villain}'s servants have been seen in {land}.",
