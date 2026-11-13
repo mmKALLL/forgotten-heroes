@@ -3,7 +3,7 @@ import type { Content } from '../../content/build'
 import { fixtureContent } from '../test-fixtures'
 import { components, otherEnd, routesFrom, straightKm } from './geo'
 import { PX_PER_KM } from '../../schema/world'
-import { poiTypeIssues, villainIssues, worldIssues } from './validate'
+import { dungeonIssues, poiTypeIssues, villainIssues, worldIssues } from './validate'
 import { SPOT_LINK_KM, SPOT_SPACING_PX } from '../constants'
 
 const content = fixtureContent()
@@ -261,6 +261,41 @@ describe('villainIssues', () => {
     expect(villainIssues(broken)).toEqual([
       'villain test-villain: poi type "test-act-2-site" needs weight 0',
       'villain test-villain: poi type "test-act-3-site" needs category quest',
+    ])
+  })
+})
+
+describe('dungeonIssues', () => {
+  test('the test dungeon is valid', () => {
+    expect(dungeonIssues(content)).toEqual([])
+  })
+
+  test('every room situation exists and is a room site situation', () => {
+    const broken = edit((c) => {
+      c.dungeons['test-vault'].rooms[0].situations = ['nowhere']
+      c.situations['test-room-sluice'].room = false
+      c.situations['test-room-vault'].site = false
+    })
+    expect(dungeonIssues(broken)).toEqual([
+      'dungeon test-vault: room hall: unknown situation "nowhere"',
+      'dungeon test-vault: room sluice: "test-room-sluice" needs room: true',
+      'dungeon test-vault: room vault: "test-room-vault" needs site: true',
+    ])
+  })
+
+  test('dungeons lie on land', () => {
+    const wet = edit((c) => {
+      c.dungeons['test-vault'].biomes = ['hills', 'sea']
+    })
+    expect(dungeonIssues(wet)).toEqual(['dungeon test-vault: dungeons lie on land, not "sea"'])
+  })
+
+  test('an ordinary POI type never plays a dungeon room', () => {
+    const broken = edit((c) => {
+      c.poiTypes['orc-war-camp'].situations.push('test-room-hall')
+    })
+    expect(poiTypeIssues(broken)).toEqual([
+      'poi type orc-war-camp: "test-room-hall" is a dungeon room, played only in a delve',
     ])
   })
 })

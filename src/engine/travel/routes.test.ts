@@ -231,6 +231,13 @@ test('site situations never make a route eventful', () => {
   expect(canMeetEncounters(roadAtSea, sea)).toBe(true)
 })
 
+test('dungeon rooms are never met on the road', () => {
+  const sea = content.routes['ashmoor-1-farisle-1']
+  const roomAtSea = structuredClone(content)
+  roomAtSea.situations['test-room-hall'].biomes = ['sea']
+  expect(canMeetEncounters(roomAtSea, sea)).toBe(false)
+})
+
 test('only sea crossings cost a fare: 2 gp per member per day', () => {
   expect(fareFor(content.routes['ashmoor-1-farisle-1'], 2)).toBe(16)
   expect(fareFor(content.routes['greenvale-1-greenvale-2'], 2)).toBe(0)

@@ -18,6 +18,7 @@ import {
   TwistKindSchema,
 } from './encounter'
 import { VillainSchema } from './crisis'
+import { DungeonSchema } from './dungeon'
 import { AccessoryPartSchema } from './gear'
 import { GatherRuleSchema } from './gather'
 import {
@@ -172,6 +173,7 @@ export const CONTENT_KINDS = {
   accessoryParts: AccessoryPartSchema,
   gatherRules: GatherRuleSchema,
   villains: VillainSchema,
+  dungeons: DungeonSchema,
   translations: TranslationEntrySchema,
 } as const
 export type ContentKind = keyof typeof CONTENT_KINDS

@@ -185,6 +185,7 @@ export function validateSituation(situation: Situation, content: Content): strin
   for (const form of playableForms(compiled, content))
     issues.push(...validateCompiled(form, content))
   issues.push(...unknownRegions(compiled.regions ?? [], content))
+  if (compiled.room && !compiled.site) issues.push('a dungeon room needs site: true')
   return [...new Set(issues)]
 }
 
@@ -361,6 +362,7 @@ const twistKindAsSituation = (kind: TwistKind): Situation => ({
   wonder: false,
   followUpOnly: true,
   site: false,
+  room: false,
   villains: [],
   start: kind.start,
   stages: kind.stages,

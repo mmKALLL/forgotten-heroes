@@ -93,7 +93,34 @@ export function worldIssues(content: Content): string[] {
       pins.set(town.site, town.id)
     }
   }
-  issues.push(...landSpotIssues(content), ...poiTypeIssues(content), ...villainIssues(content))
+  issues.push(
+    ...landSpotIssues(content),
+    ...poiTypeIssues(content),
+    ...villainIssues(content),
+    ...dungeonIssues(content)
+  )
+  return issues
+}
+
+/**
+ * Problems with the authored dungeons (Plan 6): a room situation that is missing or not a room
+ * site situation, and a dungeon set at sea. The schema checks the rest (coordinates, CR, room ids).
+ */
+export function dungeonIssues(content: Content): string[] {
+  const issues: string[] = []
+  const { situations } = content
+  for (const dungeon of sortedEntries(content.dungeons)) {
+    const at = `dungeon ${dungeon.id}`
+    if (dungeon.biomes.includes('sea')) issues.push(`${at}: dungeons lie on land, not "sea"`)
+    for (const room of dungeon.rooms) {
+      for (const id of room.situations) {
+        const where = `${at}: room ${room.id}`
+        if (!Object.hasOwn(situations, id)) issues.push(`${where}: unknown situation "${id}"`)
+        else if (!situations[id].room) issues.push(`${where}: "${id}" needs room: true`)
+        else if (!situations[id].site) issues.push(`${where}: "${id}" needs site: true`)
+      }
+    }
+  }
   return issues
 }
 
@@ -132,6 +159,8 @@ export function poiTypeIssues(content: Content): string[] {
     for (const id of type.situations) {
       if (!Object.hasOwn(situations, id)) issues.push(`${at}: unknown situation "${id}"`)
       else if (!situations[id].site) issues.push(`${at}: "${id}" is not a site situation`)
+      else if (situations[id].room)
+        issues.push(`${at}: "${id}" is a dungeon room, played only in a delve`)
       else if (type.category === 'wonder' && !situations[id].wonder) {
         issues.push(`${at}: a wonder plays only wonders, and "${id}" is not one`)
       }

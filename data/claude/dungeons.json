@@ -1,0 +1,45 @@
+{
+  "$schema": "../_schema/dungeons.schema.json",
+  "kind": "dungeons",
+  "source": "claude",
+  "notes": "Authored dungeons (Plan 6, Track D): each is drawn on one dungeon map image (the path is relative to ~/dnd5e and listed in assets.manifest.txt) and delved room by room in order. Coordinates are [x, y] fractions of the image. Room situations live in dungeon-rooms.json (room: true, site: true). PLACEHOLDER: 'placeholder-crypt' only exercises validation; its map path is fictional. Replace it with the real dungeons (Plan 6 D5).",
+  "entries": [
+    {
+      "id": "placeholder-crypt",
+      "name": "The Placeholder Crypt",
+      "map": "tiles and battle maps/dungeon maps/_dungeon/placeholder-crypt.jpg",
+      "mapSize": [2048, 1536],
+      "cr": 1,
+      "biomes": ["hills", "plains"],
+      "summary": "A small family crypt under a hill, robbed long ago and not empty since.",
+      "entrance": [0.1, 0.5],
+      "rooms": [
+        {
+          "id": "stair",
+          "name": "The Broken Stair",
+          "at": [0.3, 0.5],
+          "text": "Worn steps lead down into the dark; several have fallen away.",
+          "situations": ["placeholder-crypt-stair"]
+        },
+        {
+          "id": "ossuary",
+          "name": "The Ossuary",
+          "at": [0.55, 0.4],
+          "text": "Shelves of skulls line a low vault. Something has been moving them.",
+          "situations": ["placeholder-crypt-rats", "placeholder-crypt-bones"]
+        },
+        {
+          "id": "tomb",
+          "name": "The Founder's Tomb",
+          "at": [0.85, 0.5],
+          "text": "A carved sarcophagus with its lid pushed half aside.",
+          "situations": ["placeholder-crypt-tomb"]
+        }
+      ],
+      "hoard": {
+        "text": "Grave goods the robbers missed, under a loose flagstone.",
+        "precious": 1
+      }
+    }
+  ]
+}

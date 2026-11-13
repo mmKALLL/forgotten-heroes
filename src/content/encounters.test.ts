@@ -8,7 +8,7 @@ import { encounterOptions } from '../engine/encounters/preview'
 import { encounterOver, fitsPlace } from '../engine/encounters/run'
 import { rollTable } from '../engine/encounters/slots'
 import { createRng, withRng } from '../engine/rng'
-import { poiTypeIssues } from '../engine/world/validate'
+import { dungeonIssues, poiTypeIssues } from '../engine/world/validate'
 import { lintSituation, validateSituation, validateTwistKind } from '../engine/encounters/validate'
 import { newGame, step } from '../engine/state'
 import { brawlCandidates } from '../engine/travel/stowaway'
@@ -307,12 +307,18 @@ describe('points of interest', () => {
       expect(`${t.id} ${t.name}`).toMatch(/spring|well/i)
   })
 
-  test('every site situation is played by some POI type', () => {
-    const played = new Set(types.flatMap((t) => t.situations))
+  test('every site situation is played by some POI type, or in a dungeon room', () => {
+    const rooms = Object.values(content.dungeons).flatMap((d) => d.rooms)
+    const played = new Set([...types, ...rooms].flatMap((t) => t.situations))
     const unused = Object.values(content.situations)
       .filter((s) => s.site && !played.has(s.id))
       .map((s) => s.id)
     expect(unused).toEqual([])
+  })
+
+  test('the dungeons pass the validator', () => {
+    expect(Object.keys(content.dungeons).length).toBeGreaterThan(0)
+    expect(dungeonIssues(content)).toEqual([])
   })
 
   test('every threat has a hostile lair keyed to it', () => {
@@ -649,7 +655,8 @@ describe('goods in encounters (Plan 4)', () => {
 
   test('every dungeon vault and lair chief can pay out precious goods', () => {
     const hoards = all.filter(
-      (s) => s.site && (s.tags.includes('dungeon') || s.tags.includes('lair'))
+      // A delve's hoard is paid by the engine, not by its rooms.
+      (s) => s.site && !s.room && (s.tags.includes('dungeon') || s.tags.includes('lair'))
     )
     expect(hoards.length).toBeGreaterThan(0)
     for (const s of hoards) {

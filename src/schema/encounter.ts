@@ -469,6 +469,13 @@ export const SituationSchema = z.object({
     .boolean()
     .default(false)
     .describe('Only played at a point of interest; never drawn on the road'),
+  room: z
+    .boolean()
+    .default(false)
+    .describe(
+      'A dungeon room (with site: true): played only in a delve, never on the road or at an ' +
+        'ordinary site'
+    ),
   pursuit: z
     .boolean()
     .optional()

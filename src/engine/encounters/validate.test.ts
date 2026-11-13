@@ -236,6 +236,12 @@ describe('validateSituation', () => {
     expect(issues(stages, { site: true })).toEqual([])
   })
 
+  test('a dungeon room is also a site situation', () => {
+    const stages = { start: { text: '', options: [fixed('a'), fixed('b')] } }
+    expect(issues(stages, { room: true })).toEqual(['a dungeon room needs site: true'])
+    expect(issues(stages, { room: true, site: true })).toEqual([])
+  })
+
   test('requirements: an option that needs a good spends it in every outcome', () => {
     const spend = { effect: 'goods', good: 'healing', amount: -1 }
     const needs = [{ req: 'goods', good: 'healing', min: 1 }]

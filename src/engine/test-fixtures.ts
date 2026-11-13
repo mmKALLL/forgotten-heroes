@@ -1264,6 +1264,88 @@ export const testCrisis: Record<string, unknown> = {
   },
 }
 
+/** A dungeon room situation (Plan 6): a site situation played only in a delve. */
+const testRoom = (id: string) => ({
+  id,
+  title: `Room ${id}`,
+  disposition: 'hostile',
+  site: true,
+  room: true,
+  stages: {
+    start: {
+      text: 'Something waits in the dark.',
+      options: [
+        {
+          id: 'fight',
+          kind: 'check',
+          label: 'Fight it',
+          check: { skill: 'athletics', dc: 12 },
+          outcomes: {
+            fail: { text: 'It bites.', effects: [{ effect: 'hp', amount: -3, target: 'actor' }] },
+            partial: { text: 'It flees.' },
+            success: { text: 'It falls.' },
+          },
+        },
+        { id: 'sneak', kind: 'fixed', label: 'Creep past', outcome: { text: 'You slip by.' } },
+      ],
+    },
+  },
+})
+
+/**
+ * One authored dungeon (Plan 6, Track D) of three rooms in the hills; the middle room has two
+ * possible encounters. The map path is fictional: no image is needed.
+ */
+export const testDungeons: Record<string, unknown> = {
+  'data/claude/dungeons.json': {
+    kind: 'dungeons',
+    source: 'claude',
+    entries: [
+      {
+        id: 'test-vault',
+        name: 'The Test Vault',
+        map: 'tiles and battle maps/dungeon maps/_dungeon/test-vault.jpg',
+        mapSize: [2000, 1000],
+        cr: 2,
+        biomes: ['hills'],
+        summary: 'A drowned treasury.',
+        entrance: [0.1, 0.5],
+        rooms: [
+          {
+            id: 'hall',
+            name: 'Hall',
+            at: [0.3, 0.5],
+            text: 'A hall.',
+            situations: ['test-room-hall'],
+          },
+          {
+            id: 'sluice',
+            name: 'Sluice',
+            at: [0.6, 0.4],
+            text: 'A sluice.',
+            situations: ['test-room-sluice', 'test-room-eels'],
+          },
+          {
+            id: 'vault',
+            name: 'Vault',
+            at: [0.9, 0.5],
+            text: 'A vault.',
+            situations: ['test-room-vault'],
+          },
+        ],
+        hoard: { text: 'A chest of coins.', precious: 1 },
+      },
+    ],
+  },
+  'data/claude/dungeon-rooms.json': {
+    kind: 'situations',
+    source: 'claude',
+    entries: ['test-room-hall', 'test-room-sluice', 'test-room-eels', 'test-room-vault'].map(
+      testRoom
+    ),
+  },
+}
+
 export function fixtureContent(): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
@@ -1373,6 +1455,7 @@ export function fixtureContent(): Content {
     ...testEconomy,
     ...testProgression,
     ...testCrisis,
+    ...testDungeons,
   })
   if (errors.length > 0) throw new Error(JSON.stringify(errors, null, 2))
   return content

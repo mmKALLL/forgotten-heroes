@@ -145,6 +145,10 @@ describe('templates', () => {
       'test-act-3',
       'test-omen',
       'test-reveal',
+      'test-room-eels',
+      'test-room-hall',
+      'test-room-sluice',
+      'test-room-vault',
     ])
     expect(all.find((s) => s.id === 'plea')?.source).toBe('procedural')
   })

@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "dungeons"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "name": {
+            "$ref": "#/$defs/__schema1"
+          },
+          "notes": {
+            "$ref": "#/$defs/__schema2"
+          },
+          "map": {
+            "$ref": "#/$defs/__schema3"
+          },
+          "mapSize": {
+            "$ref": "#/$defs/__schema4"
+          },
+          "cr": {
+            "$ref": "#/$defs/__schema7"
+          },
+          "biomes": {
+            "$ref": "#/$defs/__schema8"
+          },
+          "summary": {
+            "$ref": "#/$defs/__schema10"
+          },
+          "entrance": {
+            "$ref": "#/$defs/__schema11"
+          },
+          "rooms": {
+            "$ref": "#/$defs/__schema14"
+          },
+          "hoard": {
+            "$ref": "#/$defs/__schema16"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "map",
+          "mapSize",
+          "cr",
+          "biomes",
+          "summary",
+          "entrance",
+          "rooms",
+          "hoard"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "string",
+      "description": "e.g. \"The Sunken Vault\""
+    },
+    "__schema2": {
+      "type": "string"
+    },
+    "__schema3": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The map image, relative to ~/dnd5e (listed in assets.manifest.txt)"
+    },
+    "__schema4": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/__schema5"
+        },
+        {
+          "$ref": "#/$defs/__schema6"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "The image's [width, height] in pixels"
+    },
+    "__schema5": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema6": {
+      "type": "integer",
+      "exclusiveMinimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema7": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 30,
+      "description": "The fixed challenge rating"
+    },
+    "__schema8": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema9"
+      },
+      "description": "Where it may be placed"
+    },
+    "__schema9": {
+      "type": "string",
+      "enum": [
+        "plains",
+        "forest",
+        "hills",
+        "mountains",
+        "marsh",
+        "desert",
+        "jungle",
+        "sea"
+      ]
+    },
+    "__schema10": {
+      "type": "string",
+      "description": "One line on the map card"
+    },
+    "__schema11": {
+      "description": "Where the party enters, as [x, y] fractions of the image",
+      "$ref": "#/$defs/__schema13"
+    },
+    "__schema12": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "__schema13": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "$ref": "#/$defs/__schema12"
+        },
+        {
+          "$ref": "#/$defs/__schema12"
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "__schema14": {
+      "minItems": 3,
+      "maxItems": 6,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema15"
+      },
+      "description": "In delve order"
+    },
+    "__schema15": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "Unique within its dungeon",
+          "$ref": "#/$defs/__schema0"
+        },
+        "name": {
+          "type": "string",
+          "description": "e.g. \"The Flooded Hall\""
+        },
+        "at": {
+          "description": "Where the room is on the map, as [x, y] fractions of the image",
+          "$ref": "#/$defs/__schema13"
+        },
+        "text": {
+          "type": "string",
+          "description": "What is here, from the map (in our own words)"
+        },
+        "situations": {
+          "minItems": 1,
+          "maxItems": 3,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          },
+          "description": "The possible encounters (situations with room: true and site: true); one is drawn"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "at",
+        "text",
+        "situations"
+      ]
+    },
+    "__schema16": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "$ref": "#/$defs/__schema17"
+        },
+        "precious": {
+          "$ref": "#/$defs/__schema18"
+        },
+        "accessory": {
+          "$ref": "#/$defs/__schema20"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "description": "Paid when the last room is cleared"
+    },
+    "__schema17": {
+      "type": "string",
+      "description": "What the party finds at the end"
+    },
+    "__schema18": {
+      "default": 0,
+      "description": "Precious goods in the hoard",
+      "$ref": "#/$defs/__schema19"
+    },
+    "__schema19": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema20": {
+      "default": 0,
+      "description": "Accessories in the hoard",
+      "$ref": "#/$defs/__schema21"
+    },
+    "__schema21": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    }
+  }
+}
