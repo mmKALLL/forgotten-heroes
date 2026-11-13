@@ -70,3 +70,15 @@ town maps/Torjhi - drow treetop city - NE.jpeg
 town maps/White Hill - declining cliff city - TN.jpeg
 town maps/Winnowing Reach - swamp town - CE.webp
 town maps/Xiousing District - temperate town - LN.jpg
+
+# Dungeon maps (Plan 6 D5, set 2)
+tiles and battle maps/dungeon maps/_haunted/Afternoon Maps is creating RPG and DnD battlemaps _ Patreon.jpeg
+tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/old_lead_mine_70_nogrid_by_zatnikotel_ddq2v99.jpg
+tiles and battle maps/dungeon maps/_coastal/abandoned pirate cove.jpg
+tiles and battle maps/dungeon maps/_haunted/crypt with traps.jpeg
+tiles and battle maps/dungeon maps/_coastal/cavern sea-trapped encampment.jpeg
+tiles and battle maps/dungeon maps/_haunted/abandoned dungeon overtaken by water and ghosts.jpeg
+tiles and battle maps/dungeon maps/_haunted/manor of horrors 34x61.jpg
+tiles and battle maps/dungeon maps/__dungeon entrances/swamp black dragon lair.jpg
+tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/_lost temple of the monkey king/map_2_puzzles_grid_by_zatnikotel_dd2b587.jpg
+tiles and battle maps/dungeon maps/__dungeon entrances/forest green dragon lair.jpg
