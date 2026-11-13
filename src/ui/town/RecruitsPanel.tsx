@@ -118,11 +118,7 @@ function RecruitRow({
         </div>
       )}
       {o.wound && <div className="small tone-bad">{t('recruits.wound', { wound: o.wound })}</div>}
-      {o.gear && (
-        <div className="small">
-          {t('recruits.gear', { gear: describeAccessory(o.gear), gp: o.gearPrice })}
-        </div>
-      )}
+      {o.gear && <div className="small">{describeAccessory(o.gear)}</div>}
       <div className="recruit-hire">
         <ReasonButton
           available={o.available}

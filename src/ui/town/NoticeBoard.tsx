@@ -3,9 +3,7 @@ import type { Action } from '../../engine/state'
 import { noticeBoard, type Offer } from '../../engine/town/contracts'
 import { serviceRows } from '../../engine/town/services'
 import type { GameState } from '../../schema/state'
-import { useState } from 'react'
 import { contractText } from '../contractText'
-import { ContractBlurb } from '../ContractsPanel'
 import { useI18n } from '../i18n/I18n'
 import { daysText, leftText } from '../world/travelText'
 
@@ -18,7 +16,7 @@ export const hasBoard = (state: GameState, content: Content): boolean =>
 /**
  * The notice board here (design §5, §8): each offer with its kind, destination, distance, the
  * days left to its deadline (and the days it takes at a steady pace), pay and reputation, urgent
- * ones badged, and its text (two lines, "more" for the rest). Offers the party lacks the standing
+ * ones badged, and its text in full. Offers the party lacks the standing
  * for, or can't take now, are disabled with the reason.
  */
 export function NoticeBoard({ content, state, onAction }: Props) {
@@ -52,7 +50,6 @@ function OfferRow({
 }) {
   const i18n = useI18n()
   const { t } = i18n
-  const [open, setOpen] = useState(false)
   const { title, text } = contractText(i18n, o)
   // The countdown: days from today to the deadline if taken now.
   const left = leftText(t, o.deadline - today)
@@ -100,7 +97,8 @@ function OfferRow({
         {why && <span className="tone-bad">{why} · </span>}
         {route}
       </div>
-      <ContractBlurb text={text} open={open} onToggle={() => setOpen(!open)} />
+      {/* In full (designer call: almost every offer fits; no "more" toggle). */}
+      <p className="contract-text">{text}</p>
     </li>
   )
 }

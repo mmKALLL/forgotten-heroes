@@ -25,6 +25,9 @@ import { WATERSKIN_PRICE, WATERSKIN_SELL_PRICE, WATERSKIN_WATER } from '../../en
 export const AMOUNTS = [1, 5, 10, 'max'] as const
 export type Amount = (typeof AMOUNTS)[number]
 
+/** Shift-clicking Sell sells this many at once, or all there is if fewer (designer call). */
+export const SHIFT_SELL = 5
+
 type T = I18n['t']
 
 /** Supply or demand as arrows: ▲ per level above 0, ▼ per level below, a dash at 0. */
@@ -188,8 +191,14 @@ export function MarketPanel({
                     goodName={name('goods', row.good, row.name)}
                     head={
                       i === 0 ? (
-                        <th scope="rowgroup" rowSpan={span} className="market-cat">
-                          <span>{t(`goodCategory.${category}`)}</span>
+                        <th
+                          scope="rowgroup"
+                          rowSpan={span}
+                          className="market-cat"
+                          title={t(`goodCategory.${category}`)}
+                          aria-label={t(`goodCategory.${category}`)}
+                        >
+                          <span aria-hidden="true">{t(`goodCategoryShort.${category}`)}</span>
                         </th>
                       ) : null
                     }
@@ -262,6 +271,9 @@ function MarketLine({
   const sellN = amount === 'max' ? forSale : Math.min(amount, forSale)
   const buyQuote = row.buy && buyN > 0 ? quoteFor('buy', buyN) : null
   const sellQuote = row.sell && sellN > 0 ? quoteFor('sell', sellN) : null
+  // Shift sells up to SHIFT_SELL whatever the amount picked.
+  const shiftN = Math.min(SHIFT_SELL, forSale)
+  const shiftQuote = row.sell && shiftN > 0 ? quoteFor('sell', shiftN) : null
   // Why the buy can't go ahead: too heavy, or not enough gold.
   const short = row.buy !== null && (buyN === 0 || buyN > row.maxBuy)
   const buyReason = !short
@@ -388,11 +400,21 @@ function MarketLine({
             className={forSale === 0 ? 'idle' : undefined}
             title={
               sellQuote
-                ? t('market.sellQuote', {
-                    n: sellN,
-                    gp: sellQuote.total,
-                    each: eachText(t, sellQuote),
-                  })
+                ? [
+                    t('market.sellQuote', {
+                      n: sellN,
+                      gp: sellQuote.total,
+                      each: eachText(t, sellQuote),
+                    }),
+                    shiftQuote &&
+                      t('market.shiftSell', {
+                        n: shiftN,
+                        gp: shiftQuote.total,
+                        each: eachText(t, shiftQuote),
+                      }),
+                  ]
+                    .filter(Boolean)
+                    .join('\n')
                 : undefined
             }
             aria-label={t('market.sellLabel', {
@@ -400,7 +422,13 @@ function MarketLine({
               good: goodName,
               gp: sellQuote?.total ?? 0,
             })}
-            onClick={() => onAction({ type: 'sellGoods', good: row.good, amount: sellN })}
+            onClick={(e) =>
+              onAction({
+                type: 'sellGoods',
+                good: row.good,
+                amount: e.shiftKey ? shiftN : sellN,
+              })
+            }
           >
             {t('market.sellButton', { n: sellN, gp: sellQuote?.total ?? '—' })}
           </button>
@@ -470,6 +498,7 @@ function WaterskinLine({
   const affordable = maxWaterskins(state, content).units
   const buyN = amount === 'max' ? affordable : amount
   const sellN = amount === 'max' ? state.waterskins : Math.min(amount, state.waterskins)
+  const shiftN = Math.min(SHIFT_SELL, state.waterskins)
   const label = t('market.waterskins')
   const water = state.goods.water ?? 0
   return (
@@ -505,7 +534,12 @@ function WaterskinLine({
             good: label,
             gp: sellN * WATERSKIN_SELL_PRICE,
           })}
-          onClick={() => onAction({ type: 'sellWaterskin', count: sellN })}
+          title={
+            shiftN > 0
+              ? t('market.shiftSellSkins', { n: shiftN, gp: shiftN * WATERSKIN_SELL_PRICE })
+              : undefined
+          }
+          onClick={(e) => onAction({ type: 'sellWaterskin', count: e.shiftKey ? shiftN : sellN })}
         >
           {t('market.sellButton', { n: sellN, gp: sellN * WATERSKIN_SELL_PRICE })}
         </button>

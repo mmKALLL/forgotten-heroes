@@ -1674,6 +1674,11 @@ h2[tabindex='-1']:focus {
 .market-table tbody + tbody {
   border-top: 1px solid var(--line);
 }
+/* Every row the same height, and the category labels short enough to fit three rows, so every
+   category is the same height (designer call: the market's symmetry). */
+.market-table tbody tr {
+  height: 1.3rem;
+}
 .market-table .num {
   text-align: right;
 }
@@ -1899,16 +1904,15 @@ h2[tabindex='-1']:focus {
 .ledger .service-actions button {
   font-size: 0.72rem;
   padding: 0 0.3rem;
-  white-space: nowrap;
+  max-width: 100%;
+  text-align: left;
 }
 .service-actions .small {
   font-size: 0.72rem;
 }
+/* What a shop trades wraps in full (designer decision: no ellipsis; the hover text differs). */
 .service-actions .trades {
-  display: -webkit-box;
-  -webkit-line-clamp: 1;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 .inline-pick {
   display: flex;
@@ -2319,6 +2323,9 @@ h2[tabindex='-1']:focus {
   }
   .market-table .trade button.idle {
     display: none;
+  }
+  .market-table tbody tr {
+    height: 1.6rem;
   }
   .goods-bar {
     gap: 0.3rem 0.8rem;
