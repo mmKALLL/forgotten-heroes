@@ -2,7 +2,13 @@ import { describe, expect, test } from 'vitest'
 import type { Content } from '../../content/build'
 import { SituationSchema, SituationTemplateSchema } from '../../schema/encounter'
 import { fixtureContent } from '../test-fixtures'
-import { contentIssues, lintSituation, validateSituation, validateTwistKind } from './validate'
+import {
+  NEEDS_DESCRIPTION,
+  contentIssues,
+  lintSituation,
+  validateSituation,
+  validateTwistKind,
+} from './validate'
 
 const content = fixtureContent()
 const situation = (stages: object, extra: object = {}) =>
@@ -17,6 +23,7 @@ const check = (id: string, outcomes: object, dc: number | string = 12) => ({
   id,
   kind: 'check',
   label: id,
+  description: 'Give it a go.',
   check: { skill: 'athletics', dc },
   outcomes: {
     fail: { text: 'No.' },
@@ -333,6 +340,19 @@ describe('lintSituation', () => {
     expect(
       lintSituation(
         situation({ start: { text: '', options: [{ ...fixed('a'), once: true }, fixed('b')] } }),
+        content
+      )
+    ).toEqual([])
+  })
+
+  test('every check option needs a description; fixed options need none', () => {
+    const { description: _, ...bare } = check('climb', {})
+    expect(
+      lintSituation(situation({ start: { text: '', options: [bare, fixed('leave')] } }), content)
+    ).toEqual([`stage start/climb: ${NEEDS_DESCRIPTION}`])
+    expect(
+      lintSituation(
+        situation({ start: { text: '', options: [check('climb', {}), fixed('leave')] } }),
         content
       )
     ).toEqual([])

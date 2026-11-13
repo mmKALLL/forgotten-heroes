@@ -1,5 +1,10 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
-import { challengePreview, encounterOptions, twistInfo } from '../../engine/encounters/preview'
+import {
+  challengePreview,
+  encounterOptions,
+  outcomeTextShown,
+  twistInfo,
+} from '../../engine/encounters/preview'
 import { currentOptions, encounterOver } from '../../engine/encounters/run'
 import type { Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
@@ -200,7 +205,12 @@ export function EncounterView({
               )
             })}
           </div>
-          <OutcomesPanel id={outcomesId} option={previewed} twist={twist} />
+          <OutcomesPanel
+            id={outcomesId}
+            option={previewed}
+            twist={twist}
+            showText={outcomeTextShown(state)}
+          />
         </>
       )}
     </section>

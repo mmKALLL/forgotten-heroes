@@ -604,6 +604,13 @@ export const HIGH_STAKES_BAND = [0.25, 0.75] as const
 /** A twist kind tagged with the land, or with the threat holding it, weighs this much more. */
 export const TWIST_PLACE_WEIGHT = 2
 /**
+ * Whether an option's preview shows its outcomes' story text ("Lyra slips…") beside their chips
+ * (preview.ts outcomeTextShown). Off (designer call 2026-11-14): the story isn't spoiled before
+ * choosing; it shows in the encounter's log after the roll. Later this may become a setting, or
+ * a skill threshold (e.g. a good enough Insight reads how each approach would play out).
+ */
+export const SHOW_OUTCOME_TEXT: boolean = false
+/**
  * What each tier of a check marks on a skill challenge's tally (challenge.ts, Plan 6 S): a
  * critical counts twice, and a partial holds the line without gaining ground.
  */

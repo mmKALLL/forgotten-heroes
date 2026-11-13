@@ -119,6 +119,7 @@
               "id": "swim",
               "kind": "check",
               "label": "Swim for it",
+              "description": "Keep your packs and fight the current for the far bank.",
               "check": { "skill": "athletics", "dc": 13 },
               "outcomes": {
                 "fail": {
@@ -381,6 +382,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight",
+              "description": "Stand your ground against their hooked nails.",
               "check": { "skill": "athletics", "dc": 13, "combat": true },
               "outcomes": {
                 "fail": {
@@ -401,6 +403,7 @@
               "id": "flee",
               "kind": "check",
               "label": "Grab what you can and run",
+              "description": "Snatch up what you can and run for the dark. Something may be left behind.",
               "check": { "skill": "acrobatics", "dc": 12 },
               "outcomes": {
                 "fail": {
@@ -622,6 +625,7 @@
               "id": "apologise",
               "kind": "check",
               "label": "Apologise, and mean it",
+              "description": "Words instead of coin or cudgels. They may want more than words.",
               "once": true,
               "check": { "skill": "persuasion", "dc": 14 },
               "outcomes": {
@@ -642,6 +646,7 @@
               "tags": ["retreat"],
               "kind": "check",
               "label": "Take the ford instead",
+              "description": "Avoid the bridge by the slippery stones downstream. You lose them, or a day.",
               "check": { "skill": "acrobatics", "dc": 11 },
               "outcomes": {
                 "fail": {
@@ -726,6 +731,7 @@
               "id": "search",
               "kind": "check",
               "label": "Search for the herb",
+              "description": "Comb the wet dark for the herb. The jungle charges by the day.",
               "check": { "skill": "nature", "dc": 14 },
               "outcomes": {
                 "critFail": {
@@ -834,6 +840,7 @@
               "id": "nurse",
               "kind": "check",
               "label": "Nurse it yourselves",
+              "description": "Find the right herb yourselves. No coin spent, if it works.",
               "check": { "skill": "medicine", "dc": 13 },
               "outcomes": {
                 "fail": {
@@ -921,6 +928,7 @@
               "id": "talk",
               "kind": "check",
               "label": "Talk your way out",
+              "description": "Convince the captain you were fooled like everyone else.",
               "once": true,
               "check": { "skill": "persuasion", "dc": 14 },
               "outcomes": {
@@ -946,6 +954,7 @@
               "tags": ["retreat"],
               "kind": "check",
               "label": "Make a run for it",
+              "description": "Splash across the ford before they turn their horses.",
               "check": { "skill": "athletics", "dc": 13 },
               "outcomes": {
                 "fail": {
@@ -968,6 +977,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them",
+              "description": "Trained riders, and the duke will hear of it.",
               "check": { "skill": "athletics", "dc": 15, "combat": true },
               "outcomes": {
                 "fail": {
@@ -1767,6 +1777,7 @@
               "id": "goat-track",
               "kind": "check",
               "label": "Find a way round by the goat tracks",
+              "description": "Go round the wall by the herders' paths. Slow, if they are hard to find.",
               "once": "get-past",
               "check": { "skill": "survival", "dc": 13 },
               "outcomes": {
@@ -1804,6 +1815,7 @@
               "id": "fight-fire",
               "kind": "check",
               "label": "Join the bucket line, and go in for the horse",
+              "description": "Into the smoke for the horse. The farm won't forget it, either way.",
               "check": { "skill": "athletics", "dc": 13 },
               "outcomes": {
                 "fail": {

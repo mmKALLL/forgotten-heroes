@@ -247,6 +247,7 @@
               "id": "rush",
               "kind": "check",
               "label": "Rush them before they open the cages",
+              "description": "Speed against blades and teeth. Too slow, and you face both.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -365,6 +366,7 @@
               "id": "stamp",
               "kind": "check",
               "label": "Stamp and swing",
+              "description": "Beat back the swarm by hand. If it breaks you, it bites everyone.",
               "check": {
                 "skill": "athletics",
                 "dc": 12,
@@ -455,6 +457,7 @@
               "id": "pick",
               "kind": "check",
               "label": "Pick the lock",
+              "description": "Quiet work, if your fingers stay steady.",
               "check": {
                 "skill": "sleightOfHand",
                 "dc": 13
@@ -500,6 +503,7 @@
               "id": "wrench",
               "kind": "check",
               "label": "Wrench the door off its hinges",
+              "description": "Faster than a pick, and loud however it goes.",
               "check": {
                 "skill": "athletics",
                 "dc": 12
@@ -674,6 +678,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight her at the table",
+              "description": "Steel against her two knives, straight up.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -849,6 +854,7 @@
               "id": "push",
               "kind": "check",
               "label": "Duck and push through",
+              "description": "Quicker than cutting. One wrong step and the hollow wakes.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 11
@@ -917,6 +923,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Cut them down",
+              "description": "Meet them blade first as they drop.",
               "check": {
                 "skill": "athletics",
                 "dc": 12,
@@ -1161,6 +1168,7 @@
               "id": "smash",
               "kind": "check",
               "label": "Stamp and smash",
+              "description": "Hold the floor against the tide. Everyone stands in it.",
               "check": {
                 "skill": "athletics",
                 "dc": 12,
@@ -1196,6 +1204,7 @@
               "id": "run",
               "kind": "check",
               "label": "Run for the far tunnel",
+              "description": "Leave the tide behind, if the sticky floor lets you.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 13
@@ -1270,6 +1279,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Hold the mouth of the funnel",
+              "description": "Meet her head-on as she comes out of the hole.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -1478,6 +1488,7 @@
               "id": "rubble",
               "kind": "check",
               "label": "Climb round it over the rubble",
+              "description": "The long way round, over loose stone.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 12
@@ -1541,6 +1552,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Break them apart",
+              "description": "Steel and muscle against gilded armour.",
               "check": {
                 "skill": "athletics",
                 "dc": 12,
@@ -1670,6 +1682,7 @@
               "id": "smash",
               "kind": "check",
               "label": "Smash them before they stand",
+              "description": "Strike fast, while they are still lying down.",
               "check": {
                 "skill": "athletics",
                 "dc": 12,
@@ -1760,6 +1773,7 @@
               "id": "break",
               "kind": "check",
               "label": "Break up the rite",
+              "description": "Charge in while they kneel. Fanatics fight hard.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -1889,6 +1903,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Cut through his guards",
+              "description": "Steel through spears to reach the priest.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -2074,6 +2089,7 @@
               "id": "study",
               "kind": "check",
               "label": "Study the pebble sun",
+              "description": "The pattern may tell you how the dead were honoured. Careless hands could wake something.",
               "check": {
                 "skill": "religion",
                 "dc": 12
@@ -2128,6 +2144,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight it in the drift",
+              "description": "Stand and fight in shifting sand, sting and all.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -2163,6 +2180,7 @@
               "id": "high",
               "kind": "check",
               "label": "Keep to the high ground of the drift",
+              "description": "Stay on the ridge above it, if the sand stays put.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 13
@@ -2233,6 +2251,7 @@
               "id": "shade",
               "kind": "check",
               "label": "Shade your eyes and feel your way",
+              "description": "Cross half-blind, reading what the glare leaves you.",
               "check": {
                 "skill": "perception",
                 "dc": 13
@@ -2271,6 +2290,7 @@
               "id": "cover",
               "kind": "check",
               "label": "Throw a cloak over the stone",
+              "description": "Smother the light at its source, if your throw is true.",
               "check": {
                 "skill": "sleightOfHand",
                 "dc": 12
@@ -2354,6 +2374,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the fire",
+              "description": "Steel against living flame. Expect burns.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -2473,6 +2494,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Cut him down",
+              "description": "Hew at him directly, curse and all.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -2647,6 +2669,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Take them at the fire",
+              "description": "Strike while they eat. The rest of the warren may hear.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -2746,6 +2769,7 @@
               "id": "cross",
               "kind": "check",
               "label": "Cross by the planks",
+              "description": "Trust the boards, and choose which ones.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 13
@@ -2783,6 +2807,7 @@
               "id": "wade",
               "kind": "check",
               "label": "Wade the shallow edge of the pit",
+              "description": "Slow and filthy, but there are no boards to break.",
               "check": {
                 "skill": "athletics",
                 "dc": 12
@@ -2859,6 +2884,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Charge the fire",
+              "description": "Hit the whole pack at once, before they arm.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -2989,6 +3015,7 @@
               "id": "jump",
               "kind": "check",
               "label": "Jump it",
+              "description": "One long leap each. Quick, if nobody falls short.",
               "check": {
                 "skill": "athletics",
                 "dc": 13
@@ -3016,6 +3043,7 @@
               "id": "rope",
               "kind": "check",
               "label": "Rig a rope across",
+              "description": "Safer than leaping, but it takes work.",
               "check": {
                 "skill": "survival",
                 "dc": 12
@@ -3080,6 +3108,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight her and her hyenas",
+              "description": "Through the pack and at her, the hard way.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -3267,6 +3296,7 @@
               "id": "dash",
               "kind": "check",
               "label": "Hold your breath and run",
+              "description": "One breath, one dash. Nothing spent but nerve.",
               "check": {
                 "skill": "athletics",
                 "dc": 13
@@ -3370,6 +3400,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight it",
+              "description": "Kill it in its own muck. It hits hard.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -3460,6 +3491,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Rush them",
+              "description": "Close in before the ladle swings.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -3536,6 +3568,7 @@
               "id": "hatch",
               "kind": "check",
               "label": "Slip through the hatch behind them",
+              "description": "Skip the fight, if the hatch keeps quiet. Their stores lie that way.",
               "check": {
                 "skill": "stealth",
                 "dc": 14
@@ -3588,6 +3621,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them",
+              "description": "Blades against stone. Expect bruises.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -3678,6 +3712,7 @@
               "id": "ledge",
               "kind": "check",
               "label": "Edge along the rim",
+              "description": "Backs to the wall, inches from the pull.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 14
@@ -3712,6 +3747,7 @@
               "id": "rubble",
               "kind": "check",
               "label": "Fill the gap with rubble",
+              "description": "Build your own way across. Heavy work.",
               "check": {
                 "skill": "athletics",
                 "dc": 13
@@ -3788,6 +3824,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Hack the ooze apart",
+              "description": "Cut it down piece by piece. It burns what it touches.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -3963,6 +4000,7 @@
               "id": "spread",
               "kind": "check",
               "label": "Spread out and walk light",
+              "description": "Read the ice and share the weight.",
               "check": {
                 "skill": "survival",
                 "dc": 12
@@ -3995,6 +4033,7 @@
               "id": "run",
               "kind": "check",
               "label": "Run for the stair",
+              "description": "Speed over care, before the ice decides.",
               "check": {
                 "skill": "athletics",
                 "dc": 12
@@ -4063,6 +4102,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them in the doorway",
+              "description": "Fight from the doorway, where they cannot all reach you.",
               "check": {
                 "skill": "athletics",
                 "dc": 12,
@@ -4169,6 +4209,7 @@
               "id": "time",
               "kind": "check",
               "label": "Time the breaths",
+              "description": "Count the rhythm and move between the gusts.",
               "check": {
                 "skill": "perception",
                 "dc": 13
@@ -4209,6 +4250,7 @@
               "id": "push",
               "kind": "check",
               "label": "Push straight through",
+              "description": "Take the cold and keep moving. Fast, and hard on everyone.",
               "check": {
                 "skill": "athletics",
                 "dc": 12
@@ -4341,6 +4383,7 @@
               "id": "loot",
               "kind": "check",
               "label": "Search the dead quickly",
+              "description": "Rob the dead quickly. The ice under them is thin.",
               "check": {
                 "skill": "investigation",
                 "dc": 11
@@ -4407,6 +4450,7 @@
               "id": "force",
               "kind": "check",
               "label": "Break it open",
+              "description": "Hammer at the ice until it gives. Tiring work.",
               "check": {
                 "skill": "athletics",
                 "dc": 13
@@ -4494,6 +4538,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the keeper",
+              "description": "Face it blade to blade in the cold.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -4668,6 +4713,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight for the tomb",
+              "description": "Charge their crossbows. No shares, no talk.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -4792,6 +4838,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them on the paving",
+              "description": "Meet the jaws on dry stone.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -4827,6 +4874,7 @@
               "id": "columns",
               "kind": "check",
               "label": "Run between the columns",
+              "description": "Dodge past on the wet stone, using the columns for cover.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 13
@@ -4904,6 +4952,7 @@
               "id": "run",
               "kind": "check",
               "label": "Run for the far door",
+              "description": "Outrun the swarm, if you can find a gap.",
               "check": {
                 "skill": "athletics",
                 "dc": 13
@@ -5060,6 +5109,7 @@
               "id": "rite",
               "kind": "check",
               "label": "Recite the funeral rite",
+              "description": "Speak the words it was made to hear. Stumble, and it judges you all.",
               "check": {
                 "skill": "religion",
                 "dc": 14
@@ -5148,6 +5198,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the king",
+              "description": "Steel against the dead king and his spear-bearers.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -5322,6 +5373,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight it in the water",
+              "description": "Battle it among the crystal spikes.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -5357,6 +5409,7 @@
               "id": "climb",
               "kind": "check",
               "label": "Haul out onto the rocks",
+              "description": "Get out of the water before it reaches you.",
               "check": {
                 "skill": "athletics",
                 "dc": 13
@@ -5559,6 +5612,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the fire",
+              "description": "Stand and beat down the blaze, if you can bear the heat.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -5594,6 +5648,7 @@
               "id": "hide",
               "kind": "check",
               "label": "Hide behind the stalagmites",
+              "description": "Wait among the stone teeth while it rages. Your heat may give you away.",
               "check": {
                 "skill": "stealth",
                 "dc": 14
@@ -5676,6 +5731,7 @@
               "id": "pattern",
               "kind": "check",
               "label": "Learn the pattern",
+              "description": "Read the rhythm of the lines and walk in step with it.",
               "check": {
                 "skill": "arcana",
                 "dc": 14
@@ -5720,6 +5776,7 @@
               "id": "leap",
               "kind": "check",
               "label": "Leap from pillar to pillar",
+              "description": "Stay off the floor altogether. A slip is costly.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 14
@@ -5789,6 +5846,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight it",
+              "description": "Meet its violet blade head-on. The lightning joins in.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -6010,6 +6068,7 @@
               "id": "quiet",
               "kind": "check",
               "label": "Keep them quiet with threats",
+              "description": "Fear keeps mouths shut, for a while. They will not thank you.",
               "check": {
                 "skill": "intimidation",
                 "dc": 13
@@ -6077,6 +6136,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them among the tables",
+              "description": "Two giants, two hammers. A brutal fight.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -6112,6 +6172,7 @@
               "id": "bribe",
               "kind": "check",
               "label": "Offer to 'count' with them",
+              "description": "Talk your way to the table. Fire giants hate a thief.",
               "check": {
                 "skill": "deception",
                 "dc": 15
@@ -6145,6 +6206,7 @@
               "id": "barrels",
               "kind": "check",
               "label": "Roll the barrels into them",
+              "description": "Knock them off their feet before they swing.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -6200,6 +6262,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them at the vats",
+              "description": "Hand to hand with living flame.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -6276,6 +6339,7 @@
               "id": "slag",
               "kind": "check",
               "label": "Creep round behind the slag heaps",
+              "description": "Slip past in the heat and shadow. Your warmth may betray you.",
               "check": {
                 "skill": "stealth",
                 "dc": 14
@@ -6334,6 +6398,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Kill it before the noise carries",
+              "description": "Fast and bloody, before the forge hears.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -6445,6 +6510,7 @@
               "id": "run",
               "kind": "check",
               "label": "Run it",
+              "description": "Dash through the heat. Quick, if the stones hold.",
               "check": {
                 "skill": "athletics",
                 "dc": 14
@@ -6479,6 +6545,7 @@
               "id": "endure",
               "kind": "check",
               "label": "Walk it slowly, testing every stone",
+              "description": "Careful steps, slow and exhausting in the heat.",
               "check": {
                 "skill": "survival",
                 "dc": 14
@@ -6555,6 +6622,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the dragon",
+              "description": "Stand on the island and trade blows with it.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -6730,6 +6798,7 @@
               "id": "time",
               "kind": "check",
               "label": "Time the beat and go through",
+              "description": "Watch the rhythm and step between the strikes.",
               "check": {
                 "skill": "perception",
                 "dc": 14
@@ -6770,6 +6839,7 @@
               "id": "leap",
               "kind": "check",
               "label": "Leap the bands",
+              "description": "Jump both bands. Not everyone jumps well.",
               "check": {
                 "skill": "athletics",
                 "dc": 13
@@ -6841,6 +6911,7 @@
               "id": "free",
               "kind": "check",
               "label": "Break the runes and free it",
+              "description": "Trust it and break its prison. The runes bite.",
               "check": {
                 "skill": "religion",
                 "dc": 14
@@ -6889,6 +6960,7 @@
               "id": "question",
               "kind": "check",
               "label": "Question it from outside the circle",
+              "description": "Talk, but keep your distance. It lies.",
               "check": {
                 "skill": "insight",
                 "dc": 14
@@ -6951,6 +7023,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the shadows",
+              "description": "Steel against shadow. It may not cut.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -6986,6 +7059,7 @@
               "id": "snuff",
               "kind": "check",
               "label": "Snuff the braziers one by one",
+              "description": "Kill the light and you kill the shadows. Each flame is a long reach.",
               "check": {
                 "skill": "sleightOfHand",
                 "dc": 14
@@ -7068,6 +7142,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight through the hatchlings",
+              "description": "Cut a path through the brood.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -7103,6 +7178,7 @@
               "id": "wall",
               "kind": "check",
               "label": "Creep round the rim",
+              "description": "Quiet steps past a pit of teeth.",
               "check": {
                 "skill": "stealth",
                 "dc": 14
@@ -7143,6 +7219,7 @@
               "id": "egg",
               "kind": "check",
               "label": "Snatch an egg on the way",
+              "description": "A dragon egg is worth a fortune. Its brood knows it.",
               "check": {
                 "skill": "sleightOfHand",
                 "dc": 15
@@ -7201,6 +7278,7 @@
               "id": "rush",
               "kind": "check",
               "label": "Rush them before they pour",
+              "description": "Close the gap before the pole swings round.",
               "check": {
                 "skill": "athletics",
                 "dc": 15,
@@ -7236,6 +7314,7 @@
               "id": "bluff",
               "kind": "check",
               "label": "Say the counters sent you to check the weights",
+              "description": "A made-up errand. The azers know their own.",
               "check": {
                 "skill": "deception",
                 "dc": 14
@@ -7317,6 +7396,7 @@
               "id": "ward",
               "kind": "check",
               "label": "Read the ward and slip it",
+              "description": "Turn the ward aside, and take your time with the gold.",
               "check": {
                 "skill": "arcana",
                 "dc": 15
@@ -7361,6 +7441,7 @@
               "id": "grab",
               "kind": "check",
               "label": "Grab a fistful and run",
+              "description": "Quick hands, a smaller purse, and a race against the rune.",
               "check": {
                 "skill": "acrobatics",
                 "dc": 14

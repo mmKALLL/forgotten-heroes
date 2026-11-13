@@ -54,13 +54,15 @@ test("hovering an option's card shows its outcome tiers, and its twist, in the s
   const state = started('roadside')
   render(<Harness initial={{ ...state, encounter: { ...state.encounter!, twist: false } }} />)
   await userEvent.hover(card('Read them'))
-  expect(outcomes().getAllByText(/Lyra reads them\./)).toHaveLength(1)
+  expect(outcomes().getAllByText('Edge')).toHaveLength(1)
+  // The story text stays hidden until the roll (SHOW_OUTCOME_TEXT is off): only the chips show.
+  expect(outcomes().queryByText(/Lyra reads them\./)).toBeNull()
   // The colour marks the tier; its name stays in the tooltip and for screen readers.
   expect(outcomes().getByTitle('Success')).toBeTruthy()
   expect(outcomes().getByText('Partial success:', { selector: '.sr-only' })).toBeTruthy()
   expect(outcomes().queryByText(/continues|ends/)).toBeNull()
   await userEvent.hover(card('Help them'))
-  expect(outcomes().queryByText(/Lyra reads them\./)).toBeNull()
+  expect(outcomes().queryByText('Edge')).toBeNull()
   expect(outcomes().getByText(/If it is a trap:/)).toBeTruthy()
   expect(outcomes().getByText('−20 gp')).toBeTruthy()
   // The last option stays shown once the pointer leaves.
@@ -85,13 +87,13 @@ test('focusing anything in a card shows its outcomes, and its choose target is d
   const read = choose('Read them')
   act(() => read.focus())
   expect(read.tabIndex).toBe(0)
-  expect(outcomes().getAllByText(/Lyra reads them\./)).toHaveLength(1)
+  expect(outcomes().getAllByText('Edge')).toHaveLength(1)
   const ids = read.getAttribute('aria-describedby')!.split(' ')
   const panel = document.getElementById(ids[ids.length - 1])!
-  expect(panel.textContent).toMatch(/Lyra reads them\./)
+  expect(panel.textContent).toMatch(/Edge/)
   act(() => screen.getByRole('combobox', { name: 'Actor for Rob them' }).focus())
-  expect(outcomes().getAllByText(/Their purse\./)).toHaveLength(1)
-  expect(panel.textContent).toMatch(/Their purse\./)
+  expect(outcomes().getAllByText('consequences later')).toHaveLength(1)
+  expect(panel.textContent).toMatch(/consequences later/)
 })
 
 test('clicking anywhere on a card chooses it', async () => {
@@ -346,7 +348,6 @@ test('the player can pick who acts, which changes the preview', async () => {
   expect(read.getByRole('img', { name: /Success: 10–19/ })).toBeTruthy()
   await userEvent.selectOptions(read.getByRole('combobox', { name: 'Actor for Read them' }), 'brom')
   expect(read.getByRole('img', { name: /Success: 11–19/ })).toBeTruthy()
-  expect(outcomes().getAllByText(/Brom reads them\./)).toHaveLength(1)
   expect(outcomes().getByText(/Brom acts/)).toBeTruthy()
 })
 
@@ -520,7 +521,7 @@ test('the actor picker shows strain', () => {
   expect(within(picker).getByRole('option', { name: /^Lyra [+−]\d+$/ })).toBeTruthy()
 })
 
-test('a skill challenge shows its tally, the chance of winning, and what each outcome marks', () => {
+test('a skill challenge shows its tally and what each outcome marks, but no chance of winning', () => {
   const round = (text: string) => ({ text })
   const situation = SituationSchema.parse({
     id: 'duel',
@@ -556,7 +557,8 @@ test('a skill challenge shows its tally, the chance of winning, and what each ou
   const tally = within(screen.getByRole('region', { name: 'Challenge' }))
   expect(tally.getByText('1 of 3')).toBeTruthy()
   expect(tally.getByText('0 of 2')).toBeTruthy()
-  expect(tally.getByText(/^≈\d+% to win/)).toBeTruthy()
+  // No overall prediction (designer call 2026-11-14): only each option's own odds.
+  expect(screen.queryByText(/to win|%/, { selector: '.challenge-tally *' })).toBeNull()
   expect(tally.getByText('+10 gp')).toBeTruthy()
   // The first card is focused: its rows say what each tier marks.
   expect(outcomes().getByText('+1 success')).toBeTruthy()
