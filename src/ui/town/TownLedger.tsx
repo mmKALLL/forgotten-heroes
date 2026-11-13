@@ -10,7 +10,7 @@ import {
 } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
-import { settlementStanding } from '../../engine/town/reputation'
+import { settlementPoints } from '../../engine/town/reputation'
 import { placeInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
@@ -22,7 +22,7 @@ import { realmText, sizeText, threatLine } from '../world/travelText'
 import type { TravelPrefs } from '../world/travelPrefs'
 import { MarketPanel } from './MarketPanel'
 import { NoticeBoard } from './NoticeBoard'
-import { PeoplePanel, RumoursLine, StandingBadge } from './PeoplePanel'
+import { PeoplePanel, ReputationValue, RumoursLine } from './PeoplePanel'
 
 type Props = {
   content: Content
@@ -38,7 +38,7 @@ type Props = {
 
 /**
  * The town ledger (design §5): the settlement on one screen with no modals. A one-line header
- * (town · land · kingdom · threat · the party's standing here), then two tabs (designer, Plan 6):
+ * (town · land · kingdom · threat · the party's reputation points here), then two tabs (designer, Plan 6):
  * **Market** (the market beside the services; recruits stay with their inn or guild) and
  * **Travel** (rumours, people and the notice board, beside Explore, Gather and the roads out with
  * the chosen journey's card; designer call: talk on the left). Each tab has two columns on wide screens and stacks on narrow
@@ -146,7 +146,10 @@ export function TownLedger({
         </span>
         <span className="small">{threatLine(t, here)}</span>
         <span className="small">
-          {t('ledger.standing')} <StandingBadge standing={settlementStanding(state, here.id)} />
+          <ReputationValue
+            points={settlementPoints(state, here.id)}
+            label={t('ledger.reputation')}
+          />
         </span>
       </header>
       <div

@@ -15,6 +15,7 @@ import {
   settlementStanding,
   standingOf,
   standingSpreadModifier,
+  standingView,
   tradeReputation,
 } from './reputation'
 
@@ -34,6 +35,22 @@ describe('standing tiers', () => {
       expect(standingOf(min - 1)).toBe(STANDINGS[i - 1])
     }
     expect(standingOf(0)).toBe('stranger')
+  })
+
+  test('the view of some points gives its tier, range and what it does, as the rules apply it', () => {
+    const known = standingView(STANDING_POINTS.known)
+    expect(known).toMatchObject({ standing: 'known', min: STANDING_POINTS.known })
+    expect(known.max).toBe(STANDING_POINTS.liked - 1)
+    expect(known.spread).toBeCloseTo(
+      -standingSpreadModifier(withPoints({ [here]: STANDING_POINTS.known }), here) * 100
+    )
+    expect(known.rumourDc).toBeGreaterThan(0)
+    const disliked = standingView(STANDING_POINTS.disliked)
+    expect(disliked.spread).toBeLessThan(0)
+    expect(disliked.rumourDc).toBeLessThan(0)
+    expect(standingView(0)).toMatchObject({ spread: 0, rumourDc: 0 })
+    expect(standingView(-100)).toMatchObject({ standing: 'hated', min: null })
+    expect(standingView(1000)).toMatchObject({ standing: 'honoured', max: null })
   })
 })
 
@@ -87,7 +104,7 @@ describe('encounters', () => {
   test('the standing requirement gates on the domain settlement', () => {
     const requires = [RequirementSchema.parse({ req: 'standing', min: 'known' })]
     expect(unmetRequirements(inEncounter, requires)).toEqual([
-      `needs standing known in ${base.world.settlements[domain].name}`,
+      `needs reputation ${STANDING_POINTS.known} in ${base.world.settlements[domain].name}`,
     ])
     const known = {
       ...inEncounter,
