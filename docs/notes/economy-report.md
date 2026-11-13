@@ -2,6 +2,22 @@
 
 The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 6 Track B) comes first; Plan 5a and the Plan 4 rounds follow.
 
+## Party upgrades (Plan 6c, 2026-11-13)
+
+The trader now buys party upgrades (`upgrades`, default on): in a town, while its gold is 200 gp (`UPGRADE_CAPITAL` in the policy, its trading capital) above the price, the cheapest next level for sale there; delving gear only when it delves. A new policy row, **trader, no upgrades**, is the old trader, and its numbers are the previous round's exactly (3.7 / 6.7 gp a day), so the comparison is like for like. The books gain a "Party upgrades" spend line and the levels bought.
+
+| Policy (50 gp start) | gp/day by 30 / 60 (median) | Broke by 30 / 60 | Deaths | Upgrades (mean gp a run; runs that bought any) |
+| --- | --- | --- | --- | --- |
+| trader | 3.3 / 3.2 | 7% / 10% | 3 | 302; 20 of 30 |
+| trader, no upgrades | 3.7 / 6.7 | 7% / 10% | 3 | – |
+| contracts only | 4.7 / 3.1 | 3% / 7% | 1 | 423; 22 of 30 |
+| The game's 10 gp start, trader | 4.0 / 4.0 | 13% / 17% | 1 | (not tallied) |
+
+- **What it buys** (levels, all 30 runs): camp kit 43, surveyor's maps 12, smuggler's compartment 8, company banner 4. The camp kit leads because it is the cheapest (75 gp a level).
+- **gp a day counts net worth** (gold and cargo), so an upgrade bought is money spent: the day-60 median halves (6.7 → 3.2) for about 300 gp of upgrades a run. Within 60 days the trader's upgrades don't earn their price back in coin (they pay in HP, camaraderie and safer cargo, which the trader's books don't count). Going broke and deaths are unchanged, since it only spends what is above its capital.
+- **The poor start** buys too once it is past its capital: its day-60 median falls 10.6 → 4.0 for the same reason as the trader's, while going broke is unchanged (13% / 17%).
+- **Levels and danger** are unchanged within the runs' variance (best level 6 by day 60; 120-day runs: no deaths in 10).
+
 ## Permanent purchases dearer, no animal upkeep (2026-11-13)
 
 Designer calls: waterskins 2 → 5 gp (resale 1 → 2); animals have no upkeep and cost more instead (donkey 5 → 12, mule 8 → 20, camel 50 → 90, draft horse 50 → 80, riding horse 75 → 120, cart 15 → 30, wagon 35 → 60). The sim's trader no longer sells its spare waterskins when laden and rebuys them for the next dry road (that churn cost about 30 gp a run at the new price); it pours out their water instead. The report's "Animals' upkeep" spend row is gone (what it also caught, other gold lost on the road, now counts as encounter losses).

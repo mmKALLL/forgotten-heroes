@@ -11,7 +11,8 @@ import {
   SkillSchema,
   SourceSchema,
 } from './common'
-import { ABILITIES, CAMARADERIE_MAX, MAX_LEVEL, SKILLS, TIERS } from './types'
+import { ABILITIES, CAMARADERIE_MAX, MAX_LEVEL, SKILLS, TIERS, UPGRADE_MAX_LEVEL } from './types'
+import { UpgradeIdSchema } from './upgrades'
 import { SituationSchema } from './encounter'
 import { CrisisStateSchema } from './crisis'
 import { AccessorySchema } from './gear'
@@ -273,7 +274,7 @@ export const DelveStateSchema = z.object({
 export type DelveState = z.infer<typeof DelveStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(17),
+  version: z.literal(18),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -339,5 +340,12 @@ export const GameStateSchema = z.object({
   crisis: CrisisStateSchema.nullable().default(null),
   /** The dungeon being delved, room by room (Plan 6 D3, world/delve.ts); null otherwise. */
   delve: DelveStateSchema.nullable().default(null),
+  /**
+   * The party's upgrades by id, each at level 1–UPGRADE_MAX_LEVEL (Plan 6c, town/upgrades.ts;
+   * save v18). An upgrade not bought yet is missing (level 0).
+   */
+  upgrades: z
+    .partialRecord(UpgradeIdSchema, z.number().int().min(0).max(UPGRADE_MAX_LEVEL))
+    .default({}),
 })
 export type GameState = z.infer<typeof GameStateSchema>

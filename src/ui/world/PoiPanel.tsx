@@ -12,6 +12,8 @@ import { useI18n } from '../i18n/I18n'
 import { ExploreAction } from './ExploreAction'
 import { PoiSummary } from './PoiSummary'
 import { RoadsOut } from './RoadsOut'
+import { campHint } from './travelText'
+import { restOption } from '../../engine/travel/supplies'
 import type { TravelPrefs } from './travelPrefs'
 
 type Props = {
@@ -90,7 +92,7 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
           skins: state.waterskins,
         })}
       </p>
-      <div className="actions" title={t('poi.restHint')}>
+      <div className="actions" title={campHint(t, restOption(state, content, false))}>
         <button onClick={() => onAction({ type: 'rest', lodging: false })}>{t('poi.rest')}</button>
       </div>
       <p className="muted small">{t('poi.noTrade')}</p>

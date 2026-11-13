@@ -20,7 +20,7 @@ import { loadBundledContent } from './bundled'
 
 // The economy simulation (design §10, Plan 4 I1). The guard tests below run a few seeds with
 // generous bounds; they never pin tuning values. The full report runs seeds 1–30 for 60 days under
-// six policies (plus the game's 10 gp start, 120-day runs for levels and danger, and gathering
+// seven policies (plus the game's 10 gp start, 120-day runs for levels and danger, and gathering
 // probes) and writes markdown to the path in ECONOMY_REPORT:
 //
 //   ECONOMY_REPORT=/tmp/economy.md pnpm vitest run src/content/economy.sim.test.ts
@@ -54,6 +54,7 @@ type Policy =
   | 'trader'
   | 'trader, one recruit at most'
   | 'trader, no recruits'
+  | 'trader, no upgrades'
   | 'contracts only'
   | 'trade only'
   | 'wander'
@@ -62,6 +63,7 @@ const POLICY_OPTIONS: Record<Exclude<Policy, 'wander'>, TraderOptions> = {
   trader: {},
   'trader, one recruit at most': { hireUpTo: 3 },
   'trader, no recruits': { hire: false },
+  'trader, no upgrades': { upgrades: false },
   'contracts only': { trade: false },
   'trade only': { contracts: false },
 }
@@ -93,7 +95,12 @@ type Run = {
     lootSold: number
     gearSold: number
   }
-  spend: Record<'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'hiring', number>
+  spend: Record<
+    'food' | 'lodging' | 'fares' | 'rumours' | 'animals' | 'losses' | 'hiring' | 'upgrades',
+    number
+  >
+  /** Party upgrade levels bought (Plan 6c), by upgrade. */
+  upgrades: Partial<Record<string, number>>
   /** Gathering days and what they brought home (at the local sell price), by week of play too. */
   gather: { days: number; gp: number; byWeek: { days: number; gp: number }[] }
   /** The party's best level and its living members on LEVEL_DAYS (null when not reached). */
@@ -180,7 +187,9 @@ function simulate(
       animals: 0,
       losses: 0,
       hiring: 0,
+      upgrades: 0,
     },
+    upgrades: {},
     gather: { days: 0, gp: 0, byWeek: [] },
     level: LEVEL_DAYS.map(() => null),
     members: LEVEL_DAYS.map(() => null),
@@ -263,6 +272,10 @@ function simulate(
       run.spend.hiring -= gold
     }
     if (action.type === 'sellAccessory') run.income.gearSold += gold
+    if (action.type === 'buyUpgrade' && gold < 0) {
+      run.spend.upgrades -= gold
+      run.upgrades[action.upgrade] = (run.upgrades[action.upgrade] ?? 0) + 1
+    }
     const inTown = here !== null && !before.travel && Object.hasOwn(before.world.settlements, here)
     if (why === 'explore') run.time.explore += days
     else if (action.type === 'rest' && inTown) run.time.town += days
@@ -450,13 +463,14 @@ describe('the economy (guards with generous bounds)', () => {
 })
 
 describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
-  test('seeds 1–30, 60 days, six policies', { timeout: 600_000 }, () => {
+  test('seeds 1–30, 60 days, seven policies', { timeout: 600_000 }, () => {
     const SEEDS = Array.from({ length: 30 }, (_, i) => i + 1)
     const DAYS = 60
     const policies: Policy[] = [
       'trader',
       'trader, one recruit at most',
       'trader, no recruits',
+      'trader, no upgrades',
       'contracts only',
       'trade only',
       'wander',
@@ -534,6 +548,7 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         ['Animals', sum((r) => r.spend.animals)],
         ['Encounter losses', sum((r) => r.spend.losses)],
         ['Hiring fees', sum((r) => r.spend.hiring)],
+        ['Party upgrades', sum((r) => r.spend.upgrades)],
       ]
       for (let i = 0; i < Math.max(income.length, spend.length); i++) {
         row([
@@ -543,6 +558,20 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
           spend[i] ? f1(spend[i][1]) : '',
         ])
       }
+      // Party upgrades (Plan 6c): how many runs bought any, and the levels bought of each.
+      const bought = Object.entries(
+        runs.reduce<Record<string, number>>((all, r) => {
+          for (const [id, n] of Object.entries(r.upgrades)) all[id] = (all[id] ?? 0) + (n ?? 0)
+          return all
+        }, {})
+      )
+        .sort(([a], [b]) => (a < b ? -1 : 1))
+        .map(([id, n]) => `${id} ${n}`)
+      const buyers = runs.filter((r) => Object.keys(r.upgrades).length > 0).length
+      lines.push(
+        '',
+        `Party upgrades: bought in ${buyers} of ${n} runs; levels bought, all runs: ${bought.join(', ') || 'none'}.`
+      )
       lines.push('', 'Contracts (taken / done / failed, all runs):', '')
       row(['Kind', 'Taken', 'Done', 'Failed'])
       row(['---', '---', '---', '---'])

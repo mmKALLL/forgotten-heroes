@@ -10,6 +10,7 @@ import { withRng } from '../rng'
 import { MAX_EXHAUSTION } from '../rules/character'
 import { inSettlement } from '../travel/where'
 import { setbackCamaraderie } from '../encounters/outcomes'
+import { softenLoss } from '../rules/upgrades'
 import {
   CAMARADERIE_BOND,
   CAMARADERIE_DEATH,
@@ -66,9 +67,12 @@ export function shiftCamaraderie(
   return { value: next, line: { text, tone: next < value ? 'bad' : 'good' } }
 }
 
-/** Changes camaraderie by `amount`, logging a tier crossing with `why`. */
+/**
+ * Changes camaraderie by `amount`, logging a tier crossing with `why`. A loss is softened by the
+ * company banner (rules/upgrades.ts softenLoss).
+ */
 export function changeCamaraderie(state: GameState, amount: number, why?: string): GameState {
-  const { value, line } = shiftCamaraderie(state.camaraderie, amount, why)
+  const { value, line } = shiftCamaraderie(state.camaraderie, softenLoss(state, amount), why)
   const next = value === state.camaraderie ? state : { ...state, camaraderie: value }
   return line ? appendLog(next, line.text, line.tone) : next
 }
@@ -180,7 +184,10 @@ export type CamaraderieInfo = {
   disbandAt: number
   /** What a living member leaving (dismissed or lost) gives the rest. */
   parting: number
-  /** What a failed encounter check costs this party now (more the bigger it is), positive. */
+  /**
+   * What a failed encounter check costs this party now (more the bigger it is), positive. These
+   * three are after the company banner (softenLoss).
+   */
   failCost: number
   /** What a critically failed check costs this party now, positive. */
   critCost: number
@@ -200,7 +207,7 @@ export function camaraderieInfo(state: GameState): CamaraderieInfo {
     state.camaraderie >= LOW_BELOW ? null : (state.lowSpell ?? { since: state.day, losses: 0 })
   const nextLoss = nextLossDay(spell)
   const setback = (option: { tags?: 'retreat'[] }, tier: 'fail' | 'critFail' | null) =>
-    -setbackCamaraderie(living, { wonder: false }, option, tier)
+    -softenLoss(state, setbackCamaraderie(living, { wonder: false }, option, tier))
   return {
     value: state.camaraderie,
     max: CAMARADERIE_MAX,

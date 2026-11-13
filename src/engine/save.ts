@@ -15,7 +15,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 17
+export const CURRENT_SAVE_VERSION = 18
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -463,6 +463,13 @@ export function v16ToV17(raw: Record<string, unknown>): Record<string, unknown> 
   return { ...rest, version: 17 }
 }
 
+/** v17 → v18 (Plan 6c): party upgrades arrive; an older party owns none (every level 0). */
+export const v17ToV18 = (raw: Record<string, unknown>): Record<string, unknown> => ({
+  ...raw,
+  version: 18,
+  upgrades: {},
+})
+
 /**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
@@ -506,6 +513,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v15ToV16(raw as Record<string, unknown>), content)
     case 16:
       return migrate(v16ToV17(raw as Record<string, unknown>), content)
+    case 17:
+      return migrate(v17ToV18(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

@@ -24,6 +24,7 @@ import type { QualityEffect } from '../../engine/economy/market'
 import { StandingBadge } from './PeoplePanel'
 import { AccessoryShop } from './AccessoryShop'
 import { RecruitsPanel } from './RecruitsPanel'
+import { UpgradeOffers } from './UpgradeOffers'
 import { daysText } from '../world/travelText'
 import { HEALER_PRICE, PRIVATE_ROOM_FADE } from '../../engine/constants'
 
@@ -260,6 +261,7 @@ function ServiceTile({
         )}
         {passage && <span className="muted small">{t('services.passage')}</span>}
         {row.later && <span className="muted small">{t('services.later')}</span>}
+        <UpgradeOffers {...{ content, state, onAction }} service={row.service} />
       </div>
     </section>
   )

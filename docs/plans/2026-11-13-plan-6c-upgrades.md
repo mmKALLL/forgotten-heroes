@@ -53,3 +53,18 @@
   - Prices rise level by level, and the banner costs about 2× the others.
   - The migration.
   - A UI smoke test.
+
+## As built (2026-11-13)
+
+- **State and data:** `GameState.upgrades` (a partial record, missing = level 0; save v17 → v18 adds `{}`), the `upgrades` content kind (`src/schema/upgrades.ts`, `data/claude/upgrades.json`: `name`, `description`, `basePrice`, `soldBy`), validated by `economyIssues` (every type defined, `soldBy` services exist). What each level does is code (`src/engine/rules/upgrades.ts`, numbers in the constants' "Party upgrades" section), so the odds stay computable and the effect lines are always true.
+- **Buying:** `upgradeOffers(state, content)` lists the next level of each type sold here (on the first present `soldBy` service's tile), and `buyUpgrade` buys it (`town/upgrades.ts`). Prices are base × level everywhere; the "±25 gp by quality or wealth" was left out.
+- **Sold by:** camp kit at adventuring supplies and tailors; smuggler's compartment at thieving supplies and ports; surveyor's maps at books and maps and universities; delving gear at adventuring supplies and the adventurers' guild; company banner at tailors.
+- **Effects, each previewed by the function that applies it:**
+  - Camp kit: `restOption` gains `kitHp` and `cheer`; the camp buttons' tooltips say what the kit adds. **Interpretation:** nights in the wild cost no camaraderie in the rules as built, so level III's "a night in the wild costs no camaraderie" became **+5 camaraderie for a rest in camp, once per arrival or journey** (`CAMP_KIT_CHEER`). Please review.
+  - Smuggler's compartment: in a `thieves` or `toll` situation the effects apply to the goods in sight, the hidden ones are added back after, and the chip says "(2 hidden)". Hidden goods don't count toward visible wealth either (Claude's addition: hidden from the eyes that pick a target too).
+  - Surveyor's maps: `exploreOption.maps`, folded into its modifier and odds (the line's tooltip names it).
+  - Delving gear: `delvingBonus` in the option preview (`upgradeModifier`, shown as "+2 delving gear"), the roll, the challenge's odds of winning (`roundChoices` takes a bonus) and the delve preview's risk.
+  - Company banner: `softenLoss` in `changeCamaraderie` (hunger, deaths), on encounter `camaraderie` effects and the setback (via `upgradedEffect`, for chips and application alike), and in `camaraderieInfo`'s costs. The setback (a failed check plus fleeing) counts as one loss.
+- **UI:** `src/ui/town/UpgradeOffers.tsx` on each service tile (one line in `ServicesPanel`), the owned list in the party panel. English only.
+- **Sims:** the trader policy's `upgrades` option (default on) buys the cheapest next level while it keeps 200 gp of capital, delving gear only when it delves. Economy report: a new "trader, no upgrades" row; the trader spends about 300 gp a run on upgrades, so its net-worth gp/day falls (6.7 → 3.2 by day 60) with going broke and deaths unchanged. The Crisis report moves within its noise. See the notes.
+- **Tests:** `src/engine/rules/upgrades.test.ts` (each effect, preview == actual), `src/engine/town/upgrades.test.ts` (prices, buying, refusals), the v17 → v18 migration in `save.test.ts`, and `src/ui/town/UpgradeOffers.test.tsx` (the tile and the party panel).

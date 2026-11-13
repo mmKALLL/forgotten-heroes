@@ -52,6 +52,9 @@ export function ExploreAction({
     modifier: formatModifier(option.modifier),
     dc: option.dc,
   })
+  // The modifier already includes the surveyor's maps; the tooltip says how much.
+  const lineTitle =
+    option.maps > 0 ? t('explore.mapsHint', { bonus: formatModifier(option.maps) }) : undefined
   const button = (
     <button onClick={() => onAction({ type: 'explore' })}>
       {t('explore.button', { days: daysText(t, option.days) })}
@@ -63,7 +66,10 @@ export function ExploreAction({
   if (compact) {
     return (
       <div className="explore-line" role="group" aria-label={t('explore.heading')}>
-        {button} <span className="small">{line}</span>
+        {button}{' '}
+        <span className="small" title={lineTitle}>
+          {line}
+        </span>
         {outcomes}
       </div>
     )
@@ -71,7 +77,9 @@ export function ExploreAction({
   return (
     <div className="check-preview explore" role="group" aria-label={t('explore.heading')}>
       <h3>{t('explore.heading')}</h3>
-      <p className="small">{line}</p>
+      <p className="small" title={lineTitle}>
+        {line}
+      </p>
       {outcomes}
       {button}
     </div>

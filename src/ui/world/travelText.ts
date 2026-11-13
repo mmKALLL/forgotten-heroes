@@ -2,6 +2,7 @@ import { formatPercent } from '../../engine/format'
 import type { PaceOption, PlaceInfo, RoadReason } from '../../engine/travel/preview'
 import type { StowawayTierOutcome } from '../../engine/travel/stowaway'
 import type { TravelWarning } from '../../engine/travel/warnings'
+import type { RestOption } from '../../engine/travel/supplies'
 import type { Biome } from '../../schema/types'
 import { en, type MessageKey } from '../i18n/en'
 import type { I18n } from '../i18n/I18n'
@@ -212,4 +213,15 @@ export function roadReasonMessage(t: T, r: RoadReason): string {
     case 'hire':
       return t('roadReason.hire', { gp: r.params.gold })
   }
+}
+
+/** A day's rest in camp, for the camp buttons' tooltip: the rule, then what the camp kit adds. */
+export function campHint(t: T, option: Pick<RestOption, 'kitHp' | 'cheer'>): string {
+  const kit =
+    option.cheer > 0
+      ? t('camp.kitCheer', { hp: option.kitHp, n: option.cheer })
+      : option.kitHp > 0
+        ? t('camp.kit', { hp: option.kitHp })
+        : ''
+  return [t('poi.restHint'), kit].filter(Boolean).join(' ')
 }

@@ -2479,3 +2479,25 @@ h2[tabindex='-1']:focus {
 .dungeon-card p {
   margin: 0.25rem 0;
 }
+
+/* Party upgrades for sale on a service tile (Plan 6c): a full-width block per offer, the
+   button and then what that level does, on its own line. */
+.upgrade-offers {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  margin-top: 0.1rem;
+}
+.upgrade-offer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+.upgrade-effect {
+  overflow-wrap: anywhere;
+}
+.upgrades-owned {
+  margin: 0.3rem 0 0;
+}
