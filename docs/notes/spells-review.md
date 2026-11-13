@@ -195,3 +195,21 @@
 - Spells needn't be in full balance: variance and adapting to the situation are fun.
 - **Casts per long rest** (replacing the plan's provisional table): one cast per known spell level, plus one more cast for the level two below the best. From caster level 6, even levels add lower-level casts. Per improvement point, by spell level (1st/2nd/3rd/4th…):
   1/0/0/0 → 1/1/0/0 → 1/1/1/0 → 2/1/1/0 → 2/1/1/1 → 2/2/1/1 → … (the pattern continues to 9th).
+
+## Designer review notes (2026-11-14, being applied)
+
+- **Ranges:**
+  - Arcane spells mostly reach 4 at most; rays, arrows and magic missiles 5; heavy area spells (Fireball, firewall) 3.
+  - Divine spells are lower: 4 is long range, 1–3 typical. Spiritual Weapon reaches 1.
+- **Damage** doesn't scale with caster level.
+- **Shield** becomes "Mage Armor" and lasts until the fight ends.
+- **More push and pull:**
+  - a level-2 push or pull on a single friend or foe, with no damage;
+  - a level 4–5 group push or pull;
+  - push and pull with damage at levels 6–9. Pull is especially valuable.
+- **Hazards:** they deal damage only at the start of an affected unit's turn. Enemies sometimes flee the tile, even at the cost of free swings.
+- **Maze** deals damage too.
+- **Dominate Monster** becomes Mass Dominate: discord on a group for 1 turn.
+- **Demiplane:** the ally gets a 4-round buff on return.
+- **Bless** is a single ally for 3 rounds. Party-wide buffs belong at higher levels.
+- **Heat Metal** gives −4 to hit.
