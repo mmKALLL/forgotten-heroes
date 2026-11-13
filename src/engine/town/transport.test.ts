@@ -8,7 +8,7 @@ import { routeOptions } from '../travel/preview'
 import { placeOnRoute } from '../travel/journey'
 import { passDay } from '../travel/supplies'
 import { animalOffers, camelWaterSaving } from './animals'
-import { KM_PER_DAY, MOUNT_ROUGH_SPEED } from '../constants'
+import { KM_PER_DAY } from '../constants'
 
 // Transport rules (designer calls 2026-11-13): vehicles are slow and draw attention, camels save
 // water in the desert, and the flying carpet flies.
@@ -130,7 +130,7 @@ describe('the flying carpet', () => {
     const option = road(flying, 'ashmoor-1')
     expect(option.terrain).toBe('marsh')
     const out = act(flying, { type: 'travel', routeId: option.routeId })
-    expect(out.travel!.kmPerDay).toBeGreaterThan(KM_PER_DAY.marsh * MOUNT_ROUGH_SPEED)
+    expect(out.travel!.kmPerDay).toBeGreaterThan(KM_PER_DAY.marsh)
     expect(out.travel!.days).toBe(option.days)
     expect(option.days).toBeLessThan(road(at('greenvale-2'), 'ashmoor-1').days)
     // Whatever the members' strength.

@@ -232,10 +232,6 @@ export const NEWS_PRICE = 5
 export const COURIER_KM_PER_DAY = 40
 /** Animals sell back for this share of their price. */
 export const ANIMAL_RESALE = 0.5
-/** Ridden in rough terrain, mounts are only this much faster than walking. */
-export const MOUNT_ROUGH_SPEED = 1.6
-/** The terrain where mounts manage only MOUNT_ROUGH_SPEED. */
-export const ROUGH_TERRAIN: readonly Biome[] = ['mountains', 'marsh', 'jungle']
 /** Each working vehicle (a cart or wagon: `vehicle` in animals.json) adds this to the hostile share. */
 export const VEHICLE_HOSTILE = 0.1
 /** In the desert, each owned camel (`desertWater`) cuts the party's water by this share… */

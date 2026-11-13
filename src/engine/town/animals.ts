@@ -8,13 +8,7 @@ import { appendLog } from '../log'
 import { animalDef, flyingCarpets, workingAnimals, type Hired } from '../economy/capacity'
 import { inSettlement, notHere } from '../travel/where'
 import { MAX_EXHAUSTION } from '../rules/character'
-import {
-  ANIMAL_RESALE,
-  CAMEL_DESERT_WATER_MAX,
-  CAMEL_DESERT_WATER_SAVING,
-  MOUNT_ROUGH_SPEED,
-  ROUGH_TERRAIN,
-} from '../constants'
+import { ANIMAL_RESALE, CAMEL_DESERT_WATER_MAX, CAMEL_DESERT_WATER_SAVING } from '../constants'
 
 // Pack animals, carts and mounts (design §3, §5, §7): bought once and kept at no further cost (no
 // upkeep: designer call 2026-11-13, their price is higher instead), or riding animals hired for one
@@ -38,9 +32,11 @@ export function serviceWith(
   )
 }
 
-/** A mount's speed on this terrain: its own (2 for horses), but MOUNT_ROUGH_SPEED in rough land. */
-export const riderSpeed = (def: Pick<AnimalDef, 'speed'>, terrain: Biome): number =>
-  ROUGH_TERRAIN.includes(terrain) ? Math.min(def.speed, MOUNT_ROUGH_SPEED) : def.speed
+/**
+ * A mount's speed on this terrain: its own (2 for horses) everywhere. Rough land already slows
+ * everyone through its km a day (designer call 2026-11-13: no separate rough-terrain cap).
+ */
+export const riderSpeed = (def: Pick<AnimalDef, 'speed'>, _terrain: Biome): number => def.speed
 
 /**
  * The land speed multiplier mounts give. The party travels at its slowest traveller (designer

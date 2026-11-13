@@ -10,7 +10,7 @@ import { routeOptions } from '../travel/preview'
 import { restOption } from '../travel/supplies'
 import { animalOffers } from './animals'
 import { lodgingOptions, newsTargets, serviceRows } from './services'
-import { KM_PER_DAY, MOUNT_ROUGH_SPEED } from '../constants'
+import { KM_PER_DAY } from '../constants'
 
 /** The fixture with a temple that heals and blesses, and a courier, in every settlement. */
 const content: Content = (() => {
@@ -230,9 +230,9 @@ describe('hired horses', () => {
     expect(carryCapacity(out, content)).toBeGreaterThan(carryCapacity(s, content))
   })
 
-  test('only 1.25× in rough land (marsh)', () => {
+  test('mounts keep their speed in rough land (marsh) too', () => {
     const { mounted, out } = ride(at('ashmoor-1'), 'ashmoor-1-greenvale-2')
-    expect(out.travel!.kmPerDay).toBe(KM_PER_DAY.marsh * MOUNT_ROUGH_SPEED)
+    expect(out.travel!.kmPerDay).toBe(KM_PER_DAY.marsh * 2)
     expect(out.travel!.days).toBe(mounted.days)
   })
 
