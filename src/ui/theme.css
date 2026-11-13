@@ -2502,3 +2502,8 @@ h2[tabindex='-1']:focus {
 .upgrades-owned {
   margin: 0.3rem 0 0;
 }
+
+/* An accessory's effects, one per line under its name (designer call 2026-11-13). */
+.shop-text .shop-effect {
+  display: block;
+}

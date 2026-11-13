@@ -91,7 +91,7 @@ export function AccessoryShop({ content, state, service, onAction, onClose }: Pr
   )
 }
 
-/** One line: its name, "fine" for tier 2, what its hooks do, then the button and any reason. */
+/** Its name, "fine" for tier 2, each hook's effect on a line of its own, then the button. */
 function ShopRow({ accessory: a, children }: { accessory: Accessory; children: ReactNode }) {
   const { t } = useI18n()
   return (
@@ -99,9 +99,11 @@ function ShopRow({ accessory: a, children }: { accessory: Accessory; children: R
       <span className="shop-text">
         <strong>{a.name}</strong>
         {a.tier === 2 && <span className="muted small"> {t('shop.fine')}</span>}
-        {a.hooks.length > 0 && (
-          <span className="small"> · {a.hooks.map(describeHook).join(' · ')}</span>
-        )}
+        {a.hooks.map((h, i) => (
+          <span key={i} className="small shop-effect">
+            {describeHook(h)}
+          </span>
+        ))}
       </span>
       {children}
     </li>
