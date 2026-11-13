@@ -72,6 +72,6 @@ export function setbackCamaraderie(
   const failed =
     tier === 'critFail' ? CAMARADERIE_CRIT_FAIL : tier === 'fail' ? CAMARADERIE_FAIL : 0
   const fled = option.tags?.includes('retreat') ? CAMARADERIE_RETREAT : 0
-  // Whole points: half a point rounds up (CAMARADERIE_FAIL is 2.5 a member).
+  // Whole points, in case a per-member cost is ever fractional (half a point rounds up).
   return -Math.round((failed + fled) * others)
 }
