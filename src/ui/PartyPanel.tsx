@@ -225,7 +225,7 @@ function CharacterCard({
         />
       </div>
       {!expanded && (
-        <p className="muted small">
+        <p className="muted small best-skills">
           {t('party.best', {
             list: best.map((b) => `${stat(b.s)} ${formatModifier(b.m)}`).join(' · '),
           })}

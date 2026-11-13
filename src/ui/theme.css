@@ -2537,3 +2537,7 @@ h2[tabindex='-1']:focus {
 .abilities.glance {
   margin-bottom: 0;
 }
+/* A closed card's best skills: half the paragraph margin, to keep cards short. */
+.best-skills {
+  margin: 0.5em 0;
+}
