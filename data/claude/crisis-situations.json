@@ -458,10 +458,18 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} does what can be done, which is not much. He tells you everything before the fever takes him.",
+                  "text": "{actor} does what can be done, which is not much. He lingers through the night and tells you everything before the fever takes him, and you lose the day burying him. Nobody speaks much afterwards.",
                   "effects": [
                     {
                       "effect": "learnPlan"
+                    },
+                    {
+                      "effect": "days",
+                      "amount": 1
+                    },
+                    {
+                      "effect": "camaraderie",
+                      "amount": -8
                     }
                   ]
                 },
