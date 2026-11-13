@@ -107,7 +107,8 @@ function targetViewBox(p: DelvePreview, zoomed: boolean): string {
  * A delve (Plan 6 D4): the dungeon's map zoomed to where the party is, with the rooms behind it,
  * its marker and the room ahead; "Whole dungeon" shows all of it. Without the image (no local
  * assets) the rooms are dots on parchment, joined in order. Between rooms: the rooms left, the
- * hoard, the chance the next room drives the party out, and Press on or Withdraw.
+ * hoard and Press on or Withdraw. No chance that the next room drives the party out: aggregate
+ * predictions stay off the screen (designer call 2026-11-14); each option shows its own odds.
  */
 export function DelveView({ content, state, onAction, imageUrl }: Props) {
   const { t } = useI18n()
@@ -193,7 +194,6 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
           <p className="small">
             <HoardLine preview={p} />
           </p>
-          <Risk preview={p} />
           <div className="actions">
             <button className="primary" onClick={() => onAction({ type: 'pressOn' })}>
               {t('delve.pressOn', { name: nextRoom.name })}
@@ -228,18 +228,6 @@ function HoardLine({ preview: p }: { preview: DelvePreview }) {
   )
 }
 
-/** The next room's risk line; "?" while the level is unknown (the risk comes from the CR). */
-function Risk({ preview: p }: { preview: DelvePreview }) {
-  const { t } = useI18n()
-  if (p.risk === null) return null
-  if (p.suggestedLevel === null) return <p className="small muted">{t('delve.riskUnknown')}</p>
-  return (
-    <p className={`small ${p.risk >= 0.5 ? 'tone-bad' : 'muted'}`}>
-      <RiskLine risk={p.risk} />
-    </p>
-  )
-}
-
 /**
  * What a site panel says of an authored dungeon before entering: its summary, CR against the
  * party's level, its rooms, the hoard and the rule that a failed room drives the party out.
@@ -261,7 +249,6 @@ export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
         <HoardLine preview={p} />
       </p>
       <p className="muted small">{t('delve.rule')}</p>
-      <Risk preview={p} />
     </div>
   )
 }
@@ -278,11 +265,4 @@ export function SiteCr({ cr, level, party }: { cr: number; level: number; party:
       {gap !== 'ok' && <> {t('site.crHard')}</>}
     </p>
   )
-}
-
-/** The chance the next room drives the party out, or that it has a way through with no roll. */
-function RiskLine({ risk }: { risk: number }) {
-  const { t } = useI18n()
-  const pct = Math.round(risk * 100)
-  return <>{pct === 0 ? t('delve.riskNone') : t('delve.risk', { pct })}</>
 }

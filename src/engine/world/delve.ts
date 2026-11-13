@@ -242,7 +242,7 @@ export type DelvePreview = {
   /**
    * The party level it calls for as the party knows it: `level` once heard of in a rumour or
    * entered (Plan 6 wave 2b), else null (found only by exploring: the level is unknown). While
-   * null the UI shows neither `hoard` nor `risk`: both come from the CR and would give it away.
+   * null the UI doesn't show `hoard`: it comes from the CR and would give it away.
    */
   suggestedLevel: number | null
   /** The best level among the living members. */
@@ -258,6 +258,7 @@ export type DelvePreview = {
   /**
    * The chance the next room drives the party out with its best opening choice (an estimate from
    * the first stage of each situation the room may draw); null when the room is being played.
+   * For the trader sim only: no UI shows an aggregate prediction (designer call 2026-11-14).
    */
   risk: number | null
 }

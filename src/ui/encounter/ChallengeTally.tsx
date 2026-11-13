@@ -1,5 +1,4 @@
 import type { BranchPreview, ChallengePreview } from '../../engine/encounters/preview'
-import { formatPercent } from '../../engine/format'
 import { useI18n } from '../i18n/I18n'
 
 /** n marks, `filled` of them filled: e.g. ●●○○. */
@@ -24,8 +23,10 @@ function Ending({ label, branch }: { label: string; branch: BranchPreview }) {
 
 /**
  * A skill challenge's tally (Plan 6 S): successes and failures so far against what wins and
- * loses it, the chance of winning with the best choice each round, and what winning and losing do. What each tier marks is
- * on the outcome rows; only the hidden critical tiers' rule is said here.
+ * loses it, and what winning and losing do. What each tier marks is on the outcome rows; only
+ * the hidden critical tiers' rule is said here. No overall chance of winning (designer call
+ * 2026-11-14: each option's tier spread is all the player sees; the engine's `chance` is for
+ * sims and tests).
  */
 export function ChallengeTally({ challenge }: { challenge: ChallengePreview }) {
   const { t } = useI18n()
@@ -43,9 +44,6 @@ export function ChallengeTally({ challenge }: { challenge: ChallengePreview }) {
         {t('challenge.failures')}{' '}
         <span aria-hidden="true">{pips(failures, need.failures, '✕', '○')}</span>
         <span className="sr-only">{t('challenge.of', { n: failures, of: need.failures })}</span>
-      </span>
-      <span className="challenge-chance">
-        {t('challenge.chance', { percent: formatPercent(challenge.chance) })}
       </span>
       <span className="small challenge-endings">
         <Ending label={t('challenge.win')} branch={challenge.win} />

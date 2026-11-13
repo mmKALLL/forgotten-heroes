@@ -60,11 +60,9 @@ test('a dungeon found only by exploring shows its level as unknown', () => {
   panel(atVault(false))
   expect(screen.getByText(/Level unknown/)).toBeTruthy()
   expect(screen.queryByText(/meant for a party of level/)).toBeNull()
-  // The hoard and the risk come from the CR: they would give the level away.
+  // The hoard comes from the CR: it would give the level away.
   expect(screen.getByText('The hoard at the end: ? gp, and ? XP.')).toBeTruthy()
   expect(screen.queryByText(/\d+–\d+ gp/)).toBeNull()
-  expect(screen.queryByText(/\d+% that the next room/)).toBeNull()
-  expect(screen.queryByText(/needs no roll/)).toBeNull()
 })
 
 test('between rooms, the schematic marks the way, and Press on and Withdraw dispatch', async () => {
@@ -80,7 +78,8 @@ test('between rooms, the schematic marks the way, and Press on and Withdraw disp
   expect(container.querySelector('.delve-room.visited')).toBeTruthy()
   expect(container.querySelector('.delve-room.next')?.textContent).toBe('2. Sluice')
   expect(screen.getByText('2 of 3 rooms left.')).toBeTruthy()
-  expect(screen.getByText('The next room has a way through that needs no roll.')).toBeTruthy()
+  // No aggregate prediction of the next room (designer call 2026-11-14).
+  expect(screen.queryByText(/drives you out|needs no roll/)).toBeNull()
   await userEvent.click(screen.getByRole('button', { name: 'Press on to Sluice' }))
   await userEvent.click(screen.getByRole('button', { name: 'Withdraw' }))
   expect(onAction.mock.calls.map(([a]) => a.type)).toEqual(['pressOn', 'withdraw'])

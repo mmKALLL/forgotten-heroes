@@ -193,7 +193,6 @@ export const en = {
   'challenge.successes': 'Successes',
   'challenge.failures': 'Failures',
   'challenge.of': '{n} of {of}',
-  'challenge.chance': '≈{percent} to win, choosing the best each round',
   'challenge.rule': 'A critical counts twice.',
   'challenge.win': 'Win:',
   'challenge.lose': 'Lose:',
@@ -224,6 +223,8 @@ export const en = {
   'outcomes.if': 'If {what}: ',
   'outcomes.someTwist': 'there is a twist',
   'outcomes.escalates': 'it escalates',
+  'outcomes.noEffect': 'no effect',
+  'outcomes.movesOn': 'the scene moves on',
 
   'map.heading': 'Altaeus',
   'map.label': 'Map of Altaeus',
@@ -624,11 +625,8 @@ export const en = {
   'delve.hoardAccessory': ', an accessory',
   'delve.hoardAccessories': ', {n} accessories',
   'delve.hoardUnknown': 'The hoard at the end: ? gp, and ? XP.',
-  'delve.riskUnknown': 'About ?% that the next room drives you out: no word of this place yet.',
   'delve.rule':
     'Each room is about twice as risky as the road: wounds are doubled, and a failed room drives you out with no hoard. Between rooms you may withdraw with what you found.',
-  'delve.risk': 'About {pct}% that the next room drives you out, with your best opening choice.',
-  'delve.riskNone': 'The next room has a way through that needs no roll.',
   'delve.pressOn': 'Press on to {name}',
   'delve.withdraw': 'Withdraw',
   'delve.withdrawHint': 'Leave with what you found; the dungeon can be tried again another time.',
