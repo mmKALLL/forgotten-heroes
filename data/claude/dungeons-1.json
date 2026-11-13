@@ -448,6 +448,27 @@
           "situations": ["lichs-gauntlet-furnace"]
         },
         {
+          "id": "spikes",
+          "name": "The Spiked Passage",
+          "at": [0.38, 0.13],
+          "text": "West of the cave, a short passage crossed by two bands of iron spikes set in slots in the floor, with bones between them.",
+          "situations": ["lichs-gauntlet-spikes"]
+        },
+        {
+          "id": "glyph",
+          "name": "The Violet Glyph",
+          "at": [0.21, 0.13],
+          "text": "A hall turning south, its far corner a quarter-circle of glowing violet runes round a body wrapped in grave-cloth.",
+          "situations": ["lichs-gauntlet-glyph"]
+        },
+        {
+          "id": "braziers",
+          "name": "The Hall of Braziers",
+          "at": [0.23, 0.34],
+          "text": "A wide hall lit by six braziers on iron stands, three down each wall, burning with a steady yellow flame.",
+          "situations": ["lichs-gauntlet-braziers"]
+        },
+        {
           "id": "frost",
           "name": "The Frost Hall",
           "at": [0.23, 0.52],
@@ -493,11 +514,11 @@
           "situations": ["drakescale-forge-giants"]
         },
         {
-          "id": "smelter",
-          "name": "The Smelting Floor",
-          "at": [0.3, 0.42],
-          "text": "Great copper vats sit on roaring furnaces, stirred by long poles on cranks. Barrels of ore and slag crowd the floor.",
-          "situations": ["drakescale-forge-salamanders"]
+          "id": "brood",
+          "name": "The Brood Pit",
+          "at": [0.63, 0.64],
+          "text": "A sunken dirt floor pocked with round scorched hollows and scattered bones. Pale eggs lie heaped in two of its corners.",
+          "situations": ["drakescale-forge-brood"]
         },
         {
           "id": "pens",
@@ -505,6 +526,27 @@
           "at": [0.87, 0.58],
           "text": "A timber stockade holds a red drake on a heavy chain, with a water trough beside it.",
           "situations": ["drakescale-forge-drake"]
+        },
+        {
+          "id": "east-furnace",
+          "name": "The East Furnace",
+          "at": [0.74, 0.43],
+          "text": "A second furnace, its great vat joined by long poles to a line of smaller crucibles along the wall, among barrels of fuel and slag.",
+          "situations": ["drakescale-forge-pour"]
+        },
+        {
+          "id": "smelter",
+          "name": "The Smelting Floor",
+          "at": [0.3, 0.42],
+          "text": "Great copper vats sit on roaring furnaces, stirred by long poles on cranks. Barrels of ore and slag crowd the floor.",
+          "situations": ["drakescale-forge-salamanders"]
+        },
+        {
+          "id": "gold-cave",
+          "name": "The Tithe Heap",
+          "at": [0.11, 0.15],
+          "text": "A side cave knee-deep in coin, where blackened shapes of men stand half sunk in the gold. A clerk's desk heaped with ledgers stands at its mouth.",
+          "situations": ["drakescale-forge-heap"]
         },
         {
           "id": "bridges",

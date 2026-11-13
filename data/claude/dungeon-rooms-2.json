@@ -6949,6 +6949,569 @@
           ]
         }
       }
+    },
+    {
+      "id": "stormwrack-manor-sheets",
+      "title": "The dust sheets",
+      "disposition": "hostile",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "Sofas and chairs stand under grey dust sheets, and someone has lit the candles in the sconces. Then the sheets rise off the furniture, empty, and drift toward you with their hems dragging.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Cut them apart",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A sheet wraps {actor}'s head and pulls tight. You tear them free, choking, and flee back to the vestibule.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You slash the sheets to rags, but not before they have smothered and bruised you all.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} cuts the first in two, and the rest fall limp over the chairs."
+                }
+              }
+            },
+            {
+              "id": "window",
+              "kind": "check",
+              "label": "Go round by the garden window",
+              "check": {
+                "skill": "stealth",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The sheets follow you to the window and pin {actor} against the glass. You break free and fall back to the vestibule.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You climb out into the rain and in again by the next window, soaked and chilled.",
+                  "effects": [
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} eases you out and back in further along. The sheets settle behind you.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "burn",
+              "kind": "fixed",
+              "label": "Set them alight with lamp oil",
+              "description": "Uses 1 fuel.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "fuel",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "The sheets go up like dry leaves and fly burning round the room. You beat the sparks out of your cloaks and go on.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "fuel",
+                    "amount": -1
+                  },
+                  {
+                    "effect": "hp",
+                    "amount": -1,
+                    "target": "all"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "stormwrack-manor-drowned-lord",
+      "title": "The drowned lord",
+      "disposition": "neutral",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "In the west rooms a lord in a sodden coat sits at the writing desk, water dripping from his hair onto the page. He doesn't look up. 'She gave the fire my name,' he says. 'Everything she has, she bought with mine.'",
+          "options": [
+            {
+              "id": "letters",
+              "kind": "check",
+              "label": "Read her letters over his shoulder",
+              "check": {
+                "skill": "investigation",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} leans in, and the drowned lord turns. Cold water fills their mouth. You drag them out of the wing, coughing.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You read enough to learn that the idol is held by its chains, not by its ring of stone.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} finds the pact itself among the letters: what the idol was promised, and what breaks it.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    },
+                    {
+                      "effect": "inspiration",
+                      "amount": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "speak",
+              "kind": "check",
+              "label": "Speak to him gently",
+              "check": {
+                "skill": "persuasion",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "He looks up, and his grief turns to rage at the living. Icy water floods the room to the knees, and you flee the wing.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "He weeps, and fades, and leaves his seal ring on the desk. It is worth something.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 15
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "He listens, and nods, and presses his seal ring into {actor}'s hand. 'Show it to the fire,' he says, 'and it will remember me.'",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 15
+                    },
+                    {
+                      "effect": "inspiration",
+                      "amount": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leave",
+              "kind": "fixed",
+              "label": "Leave the dead man to his letters",
+              "outcome": {
+                "text": "You close the door softly on the scratch of his pen."
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "stormwrack-manor-bridge",
+      "title": "The storm bridge",
+      "disposition": "neutral",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "The covered bridge to the gallery hall has lost half its roof. Rain drives through the gap, the stones shiver underfoot, and lightning strikes its iron fittings again and again.",
+          "options": [
+            {
+              "id": "dash",
+              "kind": "check",
+              "label": "Dash across between strikes",
+              "check": {
+                "skill": "acrobatics",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "Lightning hits the rail as {actor} passes it. You carry them back into the lower house, smoking.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You run it with the thunder in your teeth, and a strike close by throws you down at the far end.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} counts the strikes and calls the run. You are across between one and the next.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "crawl",
+              "kind": "check",
+              "label": "Crawl along the sheltered side",
+              "check": {
+                "skill": "athletics",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "A gust tears the last of the roof away above {actor}, and a beam comes down. You haul them back to the near end.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "It is slow, cold, soaking work, but the lightning finds only the rails.",
+                  "effects": [
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} finds the line the rain does not reach, and you cross wet but whole."
+                }
+              }
+            },
+            {
+              "id": "rope",
+              "kind": "fixed",
+              "label": "Rope yourselves to the far door",
+              "description": "Uses 1 gear.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "gear",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "You throw an iron-hooked line to the far door and cross on it, and leave it behind to draw the lightning.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "gear",
+                    "amount": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ape-king-vault-ring",
+      "title": "The tilting ring",
+      "disposition": "neutral",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "The great ring at the west end stands on nothing. As you step onto it the whole floor tilts toward the gulf with a groan of stone, and smoke curls up through the cracks.",
+          "options": [
+            {
+              "id": "balance",
+              "kind": "check",
+              "label": "Spread out and balance it",
+              "check": {
+                "skill": "acrobatics",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The floor swings. {actor} slides over the edge and is caught by the rope at the last. You scramble back onto the bridge you came by.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You inch round the rim with the floor rocking under you, all the way to the stair.",
+                  "effects": [
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} calls each step, and the ring hangs level while you cross.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "run",
+              "kind": "check",
+              "label": "Run for the stair",
+              "check": {
+                "skill": "athletics",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The floor tips sharply under {actor}, and you all slide toward the gulf and claw your way back out the way you came.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You run uphill on a tilting floor and leap the last stretch to the stair.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} reaches the stair first and hauls the others up before the ring swings back."
+                }
+              }
+            },
+            {
+              "id": "irons",
+              "kind": "fixed",
+              "label": "Throw your heaviest irons down on the high side",
+              "description": "Uses 1 gear.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "gear",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "A sack of irons thumps onto the high side. The ring settles, and you cross.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "gear",
+                    "amount": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ape-king-vault-spouts",
+      "title": "The spouting hall",
+      "disposition": "neutral",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "Halfway down the long hall the doors grind shut behind you. Water bursts from the holes in both walls, the trench down the middle overflows, and the level climbs fast toward the ceiling.",
+          "options": [
+            {
+              "id": "grate",
+              "kind": "check",
+              "label": "Swim for the far grate and force it",
+              "check": {
+                "skill": "athletics",
+                "dc": 15
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The grate will not give. {actor} is half drowned before the doors behind grind open and the water drains, and you stagger back the way you came.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The grate gives at the third heave, and the water roars out with you in it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} wrenches the grate open, and you ride the water out of the hall."
+                }
+              }
+            },
+            {
+              "id": "release",
+              "kind": "check",
+              "label": "Search the alcoves for the release",
+              "check": {
+                "skill": "investigation",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} turns the wrong carving, and the spouts gush harder. You beat on the doors until they open, and fall back half drowned.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You find it with the water at your chins. The spouts stop, and the hall drains slowly.",
+                  "effects": [
+                    {
+                      "effect": "exhaustion",
+                      "amount": 1,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} finds a carved ape's hand in an alcove that turns. The water stops and drains away.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "plug",
+              "kind": "fixed",
+              "label": "Hammer timber into the spouts",
+              "description": "Uses 1 timber.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "timber",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "You drive wooden plugs into the nearest spouts, and the rest cannot fill the hall before you have the grate open.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "timber",
+                    "amount": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }
