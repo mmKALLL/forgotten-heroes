@@ -2,7 +2,7 @@
   "$schema": "../_schema/producers.schema.json",
   "kind": "producers",
   "source": "claude",
-  "notes": "Where goods are made (design §4, geographic supply, designer decision). A settlement makes a good at the sum of the output levels (1–3, at most 3) of every rule whose conditions all hold; nearPoi counts every site in its domain. A market's supply of a good is the best producer within reach, at its output less a level per 3 steady days of road (SUPPLY_DAYS_PER_LEVEL), down to −2 (scarce) when none is near enough. Common goods (food, fuel, timber, stone) have many producers; specialised goods (metal, gear, arms, armour, healing, alchemicals, arcana) come from fewer towns and cities; luxuries only from the great harbours and the capitals; relics barely anywhere (the antiquities dealers of the greatest cities): most come out of dungeons and ruins as loot. The label names the producer when the market explains a price.",
+  "notes": "Where goods are made (design §4, geographic supply, designer decision). A settlement makes a good at the sum of the output levels (1–3, at most 3) of every rule whose conditions all hold; nearPoi counts every site in its domain. A market's supply of a good is the best producer within reach, at its output less a level per 3 steady days of road (SUPPLY_DAYS_PER_LEVEL), down to −2 (scarce) when none is near enough. Common goods (food, fuel, timber, stone) have many producers; specialised goods (metal, gear, arms, armour, healing, alchemicals, arcana) come from fewer towns and cities; luxuries only from the great harbours and the capitals; relics barely anywhere (the antiquities dealers of the greatest cities): most come out of dungeons and ruins as loot. The label names the producer when the market explains a price. Worked goods (designer call 2026-11-13): a rule may need a service there (`services`) and its inputs to hand (`supplyAtLeast`: the supply level of each input good, from the rules without inputs). Arms and armour come mostly from forges, weaponsmiths and armourers where metal is mined within a few days, on top of a little from every city.",
   "entries": [
     {
       "id": "farmland",
@@ -130,10 +130,9 @@
         "types": ["town"]
       },
       "output": {
-        "arms": 1,
         "gear": 1
       },
-      "notes": "Where the iron is mined, the smiths are close by."
+      "notes": "Tools for the mines. Their arms now come from the forges (metal to hand and a smith)."
     },
     {
       "id": "town-crafts",
@@ -153,10 +152,52 @@
       },
       "output": {
         "gear": 2,
-        "arms": 2,
-        "armour": 2
+        "arms": 1,
+        "armour": 1
       },
-      "notes": "Armourers, weaponsmiths and chandlers."
+      "notes": "A city makes some of everything; its forges, weaponsmiths and armourers make more where metal is to hand."
+    },
+    {
+      "id": "forges",
+      "label": "Forges",
+      "when": {
+        "services": ["blacksmith"],
+        "minSize": 2,
+        "supplyAtLeast": {
+          "metal": 1
+        }
+      },
+      "output": {
+        "arms": 1,
+        "armour": 1
+      },
+      "notes": "Designer call 2026-11-13: arms and armour are made where metal is to hand (supply 1 or more: mined here or close by) and a smith works it. A hamlet smith only shoes horses."
+    },
+    {
+      "id": "weaponsmiths",
+      "label": "Weaponsmiths",
+      "when": {
+        "services": ["weapons-shop"],
+        "supplyAtLeast": {
+          "metal": 1
+        }
+      },
+      "output": {
+        "arms": 1
+      }
+    },
+    {
+      "id": "armourers",
+      "label": "Armourers",
+      "when": {
+        "services": ["armourer"],
+        "supplyAtLeast": {
+          "metal": 1
+        }
+      },
+      "output": {
+        "armour": 1
+      }
     },
     {
       "id": "alchemists",

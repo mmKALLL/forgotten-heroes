@@ -87,7 +87,10 @@ export const ALIGNMENTS = ['LG', 'NG', 'CG', 'LN', 'TN', 'CN', 'LE', 'NE', 'CE']
 export type Alignment = (typeof ALIGNMENTS)[number]
 
 /**
- * The 15 goods of design §4, in design order. Goods are tracked as quantities, never as items;
+ * The 15 goods of design §4, in market order: by category, and within a category cheapest first
+ * by base price (designer call 2026-11-13: gear before arms, luxuries before gems), except that
+ * food leads the essentials. Saves store goods by id, so the order is only for display.
+ * Goods are tracked as quantities, never as items;
  * a good that is missing from a save counts as 0. Their weight and price are content
  * (`goods`), but the list and its categories are fixed by the design.
  */
@@ -98,15 +101,15 @@ export const GOODS = [
   'healing',
   'alchemicals',
   'arcana',
+  'gear',
   'arms',
   'armour',
-  'gear',
   'timber',
   'stone',
   'metal',
+  'luxuries',
   'gems',
   'relics',
-  'luxuries',
 ] as const
 export type Good = (typeof GOODS)[number]
 
@@ -128,16 +131,24 @@ export const GOOD_CATEGORY: Readonly<Record<Good, GoodCategory>> = {
   healing: 'consumables',
   alchemicals: 'consumables',
   arcana: 'consumables',
+  gear: 'equipment',
   arms: 'equipment',
   armour: 'equipment',
-  gear: 'equipment',
   timber: 'materials',
   stone: 'materials',
   metal: 'materials',
+  luxuries: 'precious',
   gems: 'precious',
   relics: 'precious',
-  luxuries: 'precious',
 }
+
+/**
+ * What a settlement is built for (designer call 2026-11-13), from its type: camps and forts
+ * attack (they want arms, most of all when they are not under threat: they project force), cities
+ * defend (they want armour, most of all under threat). Market rules may ask for a focus.
+ */
+export const SETTLEMENT_FOCI = ['attack', 'defence', 'other'] as const
+export type SettlementFocus = (typeof SETTLEMENT_FOCI)[number]
 
 /** What a service is for: the groups of design §5. */
 export const SERVICE_FUNCTIONS = ['trade', 'rest', 'hire', 'temple', 'underworld'] as const

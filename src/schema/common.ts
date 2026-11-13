@@ -14,6 +14,7 @@ import {
   POSITIONS,
   SERVICE_ACTIONS,
   SERVICE_FUNCTIONS,
+  SETTLEMENT_FOCI,
   SIZE_TIERS,
   SKILLS,
   STANDINGS,
@@ -44,6 +45,7 @@ export const PaceSchema = z.enum(PACES)
 export const DispositionSchema = z.enum(DISPOSITIONS)
 export const PoiCategorySchema = z.enum(POI_CATEGORIES)
 export const TierSchema = z.enum(TIERS)
+export const SettlementFocusSchema = z.enum(SETTLEMENT_FOCI)
 
 const score = z.number().int().min(1).max(30)
 export const AbilityScoresSchema = z.object({

@@ -57,6 +57,12 @@
               },
               "nearPoi": {
                 "$ref": "#/$defs/__schema10"
+              },
+              "services": {
+                "$ref": "#/$defs/__schema12"
+              },
+              "supplyAtLeast": {
+                "$ref": "#/$defs/__schema14"
               }
             },
             "description": "Every listed condition must hold"
@@ -64,10 +70,10 @@
           "output": {
             "type": "object",
             "propertyNames": {
-              "$ref": "#/$defs/__schema12"
+              "$ref": "#/$defs/__schema16"
             },
             "additionalProperties": {
-              "$ref": "#/$defs/__schema13"
+              "$ref": "#/$defs/__schema17"
             },
             "description": "Good → output level, 1 (a little) to 3 (a great centre of it)"
           },
@@ -166,6 +172,31 @@
       }
     },
     "__schema12": {
+      "description": "It has one of these services (e.g. the smith who works the metal)",
+      "$ref": "#/$defs/__schema13"
+    },
+    "__schema13": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema0"
+      }
+    },
+    "__schema14": {
+      "description": "Its inputs are to hand: each good's supply here, from the producers within reach, is at least this level. Only rules without this condition count toward that supply (no chains)",
+      "$ref": "#/$defs/__schema15"
+    },
+    "__schema15": {
+      "type": "object",
+      "propertyNames": {
+        "$ref": "#/$defs/__schema16"
+      },
+      "additionalProperties": {
+        "type": "integer",
+        "minimum": -2,
+        "maximum": 3
+      }
+    },
+    "__schema16": {
       "type": "string",
       "enum": [
         "food",
@@ -174,18 +205,18 @@
         "healing",
         "alchemicals",
         "arcana",
+        "gear",
         "arms",
         "armour",
-        "gear",
         "timber",
         "stone",
         "metal",
+        "luxuries",
         "gems",
-        "relics",
-        "luxuries"
+        "relics"
       ]
     },
-    "__schema13": {
+    "__schema17": {
       "type": "integer",
       "minimum": 1,
       "maximum": 3

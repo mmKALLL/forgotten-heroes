@@ -1,5 +1,12 @@
 import { z } from 'zod'
-import { AbilitySchema, AbilityScoresSchema, IdSchema, SkillSchema, SourceSchema } from './common'
+import {
+  AbilitySchema,
+  AbilityScoresSchema,
+  IdSchema,
+  SettlementFocusSchema,
+  SkillSchema,
+  SourceSchema,
+} from './common'
 import {
   AnimalDefSchema,
   ContractTemplateSchema,
@@ -69,6 +76,9 @@ export const SettlementTypeDefSchema = z.object({
   ratio: z.number().min(0).describe('Relative frequency among settlements in a country'),
   hostileChance: z.number().min(0).max(1),
   predominantAncestry: IdSchema,
+  focus: SettlementFocusSchema.default('other').describe(
+    'What it is built for: attack (camps, forts), defence (cities) or other; market rules may ask for it'
+  ),
 })
 export type SettlementTypeDef = z.infer<typeof SettlementTypeDefSchema>
 

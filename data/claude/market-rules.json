@@ -2,7 +2,7 @@
   "$schema": "../_schema/marketRules.schema.json",
   "kind": "marketRules",
   "source": "claude",
-  "notes": "Local demand (design §4; geographic supply, designer decision). A settlement sums the demand of every rule whose conditions all hold (−3..3). Supply comes from the producers (producers.json), not from these rules. A price is base × 1.25^(demand − supply), with demand − supply kept within ±3 (about ½× to 2× the base price), before drift (±10%) and bulk pressure. Each rule's label is shown when the market explains a price, so rules are few, big and legible. Water is free and never traded.",
+  "notes": "Local demand (design §4; geographic supply, designer decision). A settlement sums the demand of every rule whose conditions all hold, plus the inputs of its services (service-roles.json `inputs`), within −3..3. Supply comes from the producers (producers.json), not from these rules. A price is base × 1.25^(demand − supply), with demand − supply kept within ±3 (about ½× to 2× the base price), before drift (±10%) and bulk pressure. Each rule's label is shown when the market explains a price, so rules are few, big and legible. Water is free and never traded. Designer calls 2026-11-13: arms are wanted where places are built to attack (settlement types with focus \"attack\": camps and forts), most when not under threat; armour where they are built to defend (focus \"defence\": cities, and the great walled towns), most under threat; timber most in villages, stone in towns and cities, metal in cities.",
   "entries": [
     {
       "id": "coastal-shipwrights",
@@ -41,14 +41,61 @@
       "id": "garrison",
       "label": "Garrison",
       "when": {
-        "types": ["fort", "stationed-garrison", "large-encampment", "encamped-army"]
+        "focus": "attack"
       },
       "demand": {
-        "arms": 2,
-        "armour": 2,
+        "arms": 1,
+        "armour": 1,
         "food": 1
       },
-      "notes": "Soldiers to arm and feed."
+      "notes": "Soldiers to arm and feed: every camp, garrison and fort (settlement types with focus \"attack\")."
+    },
+    {
+      "id": "mustering",
+      "label": "Mustering to march",
+      "when": {
+        "focus": "attack",
+        "threatAtMost": 0
+      },
+      "demand": {
+        "arms": 2
+      },
+      "notes": "Designer call 2026-11-13: places built to attack want arms most when nothing threatens them at home: they are projecting force. Under threat they dig in instead."
+    },
+    {
+      "id": "city-watch",
+      "label": "Watch and walls",
+      "when": {
+        "focus": "defence"
+      },
+      "demand": {
+        "armour": 1
+      },
+      "notes": "Designer call 2026-11-13: places built to defend (cities and capitals) want armour, most of all under threat."
+    },
+    {
+      "id": "manning-walls",
+      "label": "Manning the walls",
+      "when": {
+        "focus": "defence",
+        "threatAtLeast": 1
+      },
+      "demand": {
+        "armour": 1
+      }
+    },
+    {
+      "id": "town-walls",
+      "label": "Manning the walls",
+      "when": {
+        "types": ["town"],
+        "minSize": 4,
+        "threatAtLeast": 1
+      },
+      "demand": {
+        "armour": 1
+      },
+      "notes": "The great walled towns defend like cities."
     },
     {
       "id": "capital-court",
@@ -69,22 +116,22 @@
         "types": ["city", "capital"]
       },
       "demand": {
-        "timber": 1,
         "stone": 1,
         "metal": 1,
         "fuel": 1
       },
-      "notes": "Workshops turn raw materials into finished goods, and the city keeps growing."
+      "notes": "Designer call 2026-11-13: cities build in stone and work metal (timber is wanted most in villages). Smiths and masons add their own demand (service inputs)."
     },
     {
-      "id": "town-smithies",
-      "label": "Smithies",
+      "id": "town-building",
+      "label": "Building in stone",
       "when": {
         "types": ["town"]
       },
       "demand": {
-        "metal": 1
-      }
+        "stone": 1
+      },
+      "notes": "Designer call 2026-11-13: towns want stone (halls, walls, bridges). Their smiths want metal through their own inputs."
     },
     {
       "id": "village-tools",
@@ -95,6 +142,17 @@
       "demand": {
         "gear": 1
       }
+    },
+    {
+      "id": "village-building",
+      "label": "Barns and fences",
+      "when": {
+        "types": ["village", "hamlet", "cottage"]
+      },
+      "demand": {
+        "timber": 1
+      },
+      "notes": "Designer call 2026-11-13: villages build in wood."
     },
     {
       "id": "remote-outposts",
@@ -160,10 +218,10 @@
         "threatAtLeast": 2
       },
       "demand": {
-        "arms": 1,
         "armour": 1,
         "healing": 1
-      }
+      },
+      "notes": "Raided places want armour and bandages; Unrest already wants arms."
     },
     {
       "id": "threat-rampant",

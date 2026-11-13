@@ -50,7 +50,7 @@ export function economyIssues(content: Content): string[] {
     const market = role.actions.includes('market')
     if (dealsInGoods && !market) issues.push(`${at}: trades goods but has no "market" action`)
     if (market && !dealsInGoods) issues.push(`${at}: has a "market" action but no goods`)
-    if (role.trades.includes(FREE) || role.buysOnly.includes(FREE)) {
+    if (role.trades.includes(FREE) || role.buysOnly.includes(FREE) || FREE in role.inputs) {
       issues.push(`${at}: water is free and never traded`)
     }
   }
@@ -80,8 +80,14 @@ export function economyIssues(content: Content): string[] {
       issues.push(`${at}: changes no demand`)
     }
     if (FREE in rule.demand) issues.push(`${at}: water is free and never traded`)
+    const { threatAtLeast, threatAtMost } = rule.when
+    if (threatAtLeast !== undefined && threatAtMost !== undefined && threatAtLeast > threatAtMost) {
+      issues.push(`${at}: threatAtLeast is above threatAtMost`)
+    }
   }
   const made = new Set<Good>()
+  // Goods made by rules that need inputs: no rule's inputs may come from one (no chains).
+  const worked = new Set<Good>()
   for (const rule of sortedEntries(producers)) {
     const at = `producers ${rule.id}`
     placeIssues(at, rule.when)
@@ -89,6 +95,17 @@ export function economyIssues(content: Content): string[] {
     if (goods.length === 0) issues.push(`${at}: makes nothing`)
     if (FREE in rule.output) issues.push(`${at}: water is free and never traded`)
     for (const good of goods) made.add(good)
+    if (rule.when.supplyAtLeast !== undefined) for (const good of goods) worked.add(good)
+    for (const service of rule.when.services ?? []) {
+      if (!Object.hasOwn(services, service)) issues.push(`${at}: unknown service "${service}"`)
+    }
+  }
+  for (const rule of sortedEntries(producers)) {
+    for (const good of Object.keys(rule.when.supplyAtLeast ?? {}) as Good[]) {
+      if (worked.has(good)) {
+        issues.push(`producers ${rule.id}: its input "${good}" is made by a rule with inputs`)
+      }
+    }
   }
   for (const good of GOODS) {
     if (good !== FREE && !made.has(good)) issues.push(`goods: no producer makes "${good}"`)

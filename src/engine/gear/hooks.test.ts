@@ -193,7 +193,7 @@ describe('carrying and Strain', () => {
 test('describeHook says what a hook does in a line', () => {
   expect(describeHook({ hook: 'skill', skill: 'perception', amount: 1 })).toBe('+1 Perception')
   expect(describeHook({ hook: 'sellBonus', category: 'precious', share: 0.1 })).toBe(
-    'Sells gems, relics and luxuries for 10% more'
+    'Sells luxuries, gems and relics for 10% more'
   )
   expect(describeHook({ hook: 'ward', share: 0.03 })).toBe('−3% hostile on the road')
 })

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { midPrice } from '../engine/economy/market'
+import { marketLevels, midPrice } from '../engine/economy/market'
 import { production, producersOf, supplyOf } from '../engine/economy/supply'
 import { economyIssues } from '../engine/economy/validate'
 import { newGame } from '../engine/state'
@@ -8,7 +8,14 @@ import { domainThreatLevel } from '../engine/world/pois'
 import { siteEmpty } from '../engine/world/sites'
 import { straightKm } from '../engine/world/geo'
 import type { ContractTemplate, MarketRule } from '../schema/economy'
-import { CONTRACT_KINDS, GOOD_CATEGORY, GOODS, type Good, type PoiCategory } from '../schema/types'
+import {
+  CONTRACT_KINDS,
+  GOOD_CATEGORIES,
+  GOOD_CATEGORY,
+  GOODS,
+  type Good,
+  type PoiCategory,
+} from '../schema/types'
 import type { WorldState } from '../schema/world'
 import { loadBundledContent } from './bundled'
 
@@ -57,11 +64,13 @@ function places(world: WorldState, day: number): Place[] {
 
 const applies = ({ when }: MarketRule, p: Place): boolean =>
   (when.types === undefined || when.types.includes(p.type)) &&
+  (when.focus === undefined || when.focus === content.settlementTypes[p.type].focus) &&
   (when.biomes === undefined || (when.biomes as string[]).includes(p.biome)) &&
   (when.coastal === undefined || when.coastal === p.coastal) &&
   (when.minSize === undefined || p.size >= when.minSize) &&
   (when.maxSize === undefined || p.size <= when.maxSize) &&
   (when.threatAtLeast === undefined || p.threat >= when.threatAtLeast) &&
+  (when.threatAtMost === undefined || p.threat <= when.threatAtMost) &&
   (when.nearPoi === undefined || when.nearPoi.some((c) => p.near.has(c))) &&
   (when.minWealth === undefined || p.wealth >= when.minWealth)
 
@@ -86,6 +95,15 @@ describe('the economy data', () => {
       const { weight } = content.goods[good]
       if (GOOD_CATEGORY[good] === 'precious') expect(weight, good).toBeLessThanOrEqual(2)
       if (GOOD_CATEGORY[good] === 'materials') expect(weight, good).toBeGreaterThanOrEqual(10)
+    }
+  })
+
+  test('goods are listed cheapest first within each category (food leads the essentials)', () => {
+    for (const category of GOOD_CATEGORIES) {
+      const prices = GOODS.filter((g) => GOOD_CATEGORY[g] === category && g !== 'food').map(
+        (g) => content.goods[g].price
+      )
+      expect(prices, category).toEqual([...prices].sort((a, b) => a - b))
     }
   })
 
@@ -249,5 +267,132 @@ describe('the economy data', () => {
       .filter((role) => role.service !== undefined && !present.has(role.service))
       .map((role) => role.id)
     expect(absent).toEqual([])
+  })
+})
+
+/**
+ * The designer's calls of 2026-11-13 on demand and supply, as relationships between averages over
+ * seeds 1–5 and three days (not pinned values): who wants arms, armour and materials, and where
+ * arms and armour are made.
+ */
+describe('demand by focus, size and services (seeds 1–5, days 1, 60 and 120)', () => {
+  type Row = {
+    type: string
+    focus: string
+    calm: boolean
+    services: string[]
+    levels: ReturnType<typeof marketLevels>
+    metal: number
+  }
+  const rows: Row[] = worlds.flatMap((world) =>
+    [1, 60, 120].flatMap((day) =>
+      Object.entries(world.settlements).map(([id, s]) => ({
+        type: s.type,
+        focus: content.settlementTypes[s.type].focus,
+        calm: domainThreatLevel(world, id, day) === 0,
+        services: s.services,
+        levels: marketLevels({ world, day }, content, id, day),
+        metal: supplyOf({ world }, content, id, 'metal').level,
+      }))
+    )
+  )
+  const mean = (xs: Row[], f: (r: Row) => number) => {
+    expect(xs.length).toBeGreaterThan(5)
+    return xs.reduce((sum, r) => sum + f(r), 0) / xs.length
+  }
+  const demand = (good: Good) => (r: Row) => r.levels[good].demand
+  const supply = (good: Good) => (r: Row) => r.levels[good].supply
+  const where = (f: (r: Row) => boolean) => rows.filter(f)
+
+  test('arms are wanted where places attack, most when they are not under threat', () => {
+    const attackCalm = mean(
+      where((r) => r.focus === 'attack' && r.calm),
+      demand('arms')
+    )
+    const attackThreat = mean(
+      where((r) => r.focus === 'attack' && !r.calm),
+      demand('arms')
+    )
+    const defenceCalm = mean(
+      where((r) => r.focus === 'defence' && r.calm),
+      demand('arms')
+    )
+    expect(attackCalm).toBeGreaterThan(defenceCalm + 1)
+    expect(attackCalm).toBeGreaterThan(attackThreat)
+  })
+
+  test('armour is wanted where places defend, most under threat', () => {
+    const defenceCalm = mean(
+      where((r) => r.focus === 'defence' && r.calm),
+      demand('armour')
+    )
+    const defenceThreat = mean(
+      where((r) => r.focus === 'defence' && !r.calm),
+      demand('armour')
+    )
+    const attackThreat = mean(
+      where((r) => r.focus === 'attack' && !r.calm),
+      demand('armour')
+    )
+    const otherCalm = mean(
+      where((r) => r.focus === 'other' && r.calm),
+      demand('armour')
+    )
+    expect(defenceThreat).toBeGreaterThan(defenceCalm)
+    expect(defenceThreat).toBeGreaterThan(attackThreat)
+    expect(defenceCalm).toBeGreaterThan(otherCalm)
+  })
+
+  test('arms and armour are made where metal is to hand and a smith works it', () => {
+    const smith = (r: Row) =>
+      ['blacksmith', 'weapons-shop', 'armourer'].some((s) => r.services.includes(s))
+    const towns = (r: Row) => r.type === 'town' || r.type === 'village'
+    const worked = where((r) => towns(r) && smith(r) && r.metal >= 1)
+    const unworked = where((r) => towns(r) && (!smith(r) || r.metal < 1))
+    for (const good of ['arms', 'armour'] as const) {
+      expect(mean(worked, supply(good)), good).toBeGreaterThan(mean(unworked, supply(good)))
+    }
+  })
+
+  test('services want their inputs: metal where smiths are, healing where healers are', () => {
+    const has =
+      (...ids: string[]) =>
+      (r: Row) =>
+        ids.some((s) => r.services.includes(s))
+    const smiths = has('blacksmith', 'weapons-shop', 'armourer')
+    const healers = has('healer', 'potions-poisons-herbs')
+    expect(mean(where(smiths), demand('metal'))).toBeGreaterThan(
+      mean(
+        where((r) => !smiths(r)),
+        demand('metal')
+      )
+    )
+    expect(mean(where(healers), demand('healing'))).toBeGreaterThan(
+      mean(
+        where((r) => !healers(r)),
+        demand('healing')
+      )
+    )
+  })
+
+  test('villages want timber, towns and cities stone, cities and capitals metal', () => {
+    const villages = where((r) => r.type === 'village' || r.type === 'hamlet')
+    const towns = where((r) => r.type === 'town')
+    const cities = where((r) => r.type === 'city' || r.type === 'capital')
+    expect(mean(villages, demand('timber'))).toBeGreaterThan(mean(towns, demand('timber')))
+    expect(mean(villages, demand('timber'))).toBeGreaterThan(mean(cities, demand('timber')))
+    expect(mean(towns, demand('stone'))).toBeGreaterThan(mean(villages, demand('stone')))
+    expect(mean(cities, demand('stone'))).toBeGreaterThan(mean(villages, demand('stone')))
+    expect(mean(cities, demand('metal'))).toBeGreaterThan(mean(towns, demand('metal')))
+    expect(mean(cities, demand('metal'))).toBeGreaterThan(mean(villages, demand('metal')))
+  })
+
+  test('materials are the heaviest goods for their value (gp per kg)', () => {
+    const perKg = (g: Good) => content.goods[g].price / content.goods[g].weight
+    const materials = GOODS.filter((g) => GOOD_CATEGORY[g] === 'materials')
+    const others = GOODS.filter(
+      (g) => GOOD_CATEGORY[g] !== 'materials' && GOOD_CATEGORY[g] !== 'essentials'
+    )
+    expect(Math.max(...materials.map(perKg))).toBeLessThan(Math.min(...others.map(perKg)))
   })
 })
