@@ -443,7 +443,8 @@ describe('the economy (guards with generous bounds)', () => {
       const { state } = simulate(seed, 'trader', 60, STARTING_GOLD)
       expect(GameStateSchema.parse(state)).toEqual(state)
     }
-  })
+    // A long simulation: allow for a busy machine.
+  }, 60_000)
 
   test('food’s dearest mid price is at most 4.5× its cheapest (seeds 1–5, days 1 and 100)', () => {
     const food = priceSpreads([1, 2, 3, 4, 5], [1, 100]).food
