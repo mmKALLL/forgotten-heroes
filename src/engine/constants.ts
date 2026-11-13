@@ -122,7 +122,7 @@ export const FORAGE_HOSTILE_BONUS = 0.1
 /** A new party carries this many days of food per member. */
 export const STARTING_FOOD_DAYS = 5
 /** A day in camp restores this share of max HP; a day in a settlement restores all of it. */
-export const CAMP_HEAL = 0.25
+export const CAMP_HEAL = 0.2
 /** CON check DC for a day without food. */
 export const HUNGER_DC = 10
 /** CON check DC for a day without water. */
@@ -147,7 +147,7 @@ export const CARRY_PER_STR = 0.1
 /** The STR factor never drops below this… */
 export const CARRY_MIN = 0.5
 /** …nor rises above this. */
-export const CARRY_MAX = 2.25
+export const CARRY_MAX = 2.5
 /** A member at this level of exhaustion or worse carries only CARRY_EXHAUSTED_SHARE. */
 export const CARRY_EXHAUSTED_AT = 3
 /** The share of their capacity an exhausted member carries. */

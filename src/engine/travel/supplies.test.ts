@@ -29,6 +29,7 @@ import { buyGoods, sellGoods } from '../economy/trade'
 import { load } from '../economy/capacity'
 import { step } from '../state'
 import {
+  CAMP_HEAL,
   FORCED_MARCH_DC,
   LODGING_PRICE,
   OVERLOAD_RATIO,
@@ -244,7 +245,7 @@ describe('rest', () => {
     })
   })
 
-  test('a day in camp heals a quarter of max HP and stays on the road', () => {
+  test('a day in camp heals CAMP_HEAL of max HP and stays on the road', () => {
     const camp = base({ location: null, travel: onTheRoad, party: [{ ...brom, hp: 0 }, lyra] })
     expect(restOption(camp, content)).toMatchObject({
       inTown: false,
@@ -253,7 +254,7 @@ describe('rest', () => {
     })
     const after = rest(camp, content)
     expect(after.gold).toBe(camp.gold)
-    expect(after.party[0].hp).toBe(5)
+    expect(after.party[0].hp).toBe(Math.floor(brom.maxHp * CAMP_HEAL))
     expect(after.travel).toEqual(onTheRoad)
     expect(after.goods).toEqual({ food: 8, water: 6 })
     expect(after.log.at(-1)!.text).toBe('The party makes camp and rests a day.')

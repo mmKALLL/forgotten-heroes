@@ -1,18 +1,18 @@
 import { describe, expect, test } from 'vitest'
 import { fixtureContent, makeCharacter, makeState } from '../test-fixtures'
 import { carryCapacity, load, memberCapacity, overloadExcess } from './capacity'
-import { CARRY_BASE_KG, OVERLOAD_RATIO } from '../constants'
+import { CARRY_BASE_KG, CARRY_MAX, OVERLOAD_RATIO } from '../constants'
 
 const content = fixtureContent()
 const withStr = (str: number, exhaustion = 0) =>
   makeCharacter({ abilities: { str, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, exhaustion })
 
 describe('memberCapacity', () => {
-  test('STR 8, 10 and 18 carry 0.8×, 1× and 1.8×; STR 30 caps at 2.25×', () => {
+  test('STR 8, 10 and 18 carry 0.8×, 1× and 1.8×; STR 30 caps at CARRY_MAX', () => {
     expect(memberCapacity(withStr(8))).toBeCloseTo(0.8 * CARRY_BASE_KG)
     expect(memberCapacity(withStr(10))).toBe(CARRY_BASE_KG)
     expect(memberCapacity(withStr(18))).toBeCloseTo(1.8 * CARRY_BASE_KG)
-    expect(memberCapacity(withStr(30))).toBeCloseTo(2.25 * CARRY_BASE_KG)
+    expect(memberCapacity(withStr(30))).toBeCloseTo(CARRY_MAX * CARRY_BASE_KG)
   })
 
   test('an exhausted member (level 3+) carries half', () => {
