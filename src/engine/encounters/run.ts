@@ -35,6 +35,8 @@ import { branchFor, defaultXp, isHighStakes, setbackCamaraderie, tierOutcome } f
 import { livingMembers } from '../town/camaraderie'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
+import { asRoom, type RoomRules } from './room'
+import { jobDc } from '../rules/levels'
 import { POWER_DC, TWIST_PLACE_WEIGHT } from '../constants'
 
 export type EncounterAction =
@@ -150,6 +152,13 @@ function sitePowerDc(state: GameState, poi: string | undefined): number {
  */
 export type StartOptions = {
   cr?: number
+  /**
+   * Added to every check's DC with the site's power (and hardened with it): a site's or a job's
+   * challenge rating over standard difficulty (rules/levels.ts crOffset). Ignored with `cr`.
+   */
+  dcBonus?: number
+  /** A dungeon room (world/delve.ts): deeper wounds, driven out on a failure, the hoard last. */
+  room?: RoomRules
   position?: Position
   lines?: { text: string; tone: LogTone }[]
 }
@@ -195,10 +204,15 @@ export function startEncounter(
   const atCr = options.cr !== undefined
   const danger = atCr ? 0 : dangerLevel(state, content)
   const powerDc = atCr ? 0 : sitePowerDc(state, poi)
+  // A hostile encounter on the road while the party works a levelled contract (rules/levels.ts).
+  const jobBonus =
+    !atCr && !poi && place?.pace && compiled.disposition === 'hostile' ? jobDc(state) : 0
+  const extraDc = atCr ? 0 : (options.dcBonus ?? 0) + jobBonus
   const twisted = kind ? attachTwistKind(compiled, kind, content) : compiled
-  const joined = atCr
+  const hardened = atCr
     ? atChallenge(twisted, options.cr!)
-    : harden(twisted, { dcBonus: powerDc, danger })
+    : harden(twisted, { dcBonus: powerDc + extraDc, danger })
+  const joined = options.room ? asRoom(hardened, options.room) : hardened
   // The title and the twist are filled once, here; other text is filled as it is shown.
   const situation = {
     ...joined,
@@ -234,6 +248,14 @@ export function startEncounter(
         ? [
             {
               text: `It has grown stronger since it was taken: every check here is DC +${powerDc}.`,
+              tone: 'bad' as const,
+            },
+          ]
+        : []),
+      ...(jobBonus > 0
+        ? [
+            {
+              text: `The work you carry draws harder trouble: every check here is DC +${jobBonus}.`,
               tone: 'bad' as const,
             },
           ]

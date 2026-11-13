@@ -29,6 +29,8 @@ import { applyLevelUps } from './rules/progression'
 import { mournTheDead } from './town/camaraderie'
 import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { gather } from './world/gather'
+import { placeDungeons } from './world/dungeons'
+import { DELVE_ACTIONS, settleDelve, stepDelve, withdraw, type DelveAction } from './world/delve'
 import { generateCrisis } from './crisis/generate'
 import { acknowledgeEnd, crisisNews } from './crisis/status'
 import { FALLEN_LINE, partyWiped } from './crisis/ending'
@@ -68,6 +70,8 @@ export type Action =
   | { type: 'gather'; rule: string }
   /** "Keep playing" after the Crisis is won or lost: dismiss its end screen (crisis/status.ts). */
   | { type: 'acknowledgeEnd' }
+  /** Press on into a dungeon's next room, or withdraw (world/delve.ts). */
+  | DelveAction
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -85,7 +89,10 @@ export function newGame(
   const location = startingSettlement(rolled, content, start)
   // The world's Crisis (crisis/generate.ts): its own stream, so the rest of the world is unchanged.
   const crisis = generateCrisis(rolled, content, { startDay: 1, start: location })
-  const world = crisis?.world ?? rolled
+  const withCrisis = crisis?.world ?? rolled
+  // The authored dungeons (world/dungeons.ts): their own stream, low ones near the start.
+  const dungeons = placeDungeons(withCrisis, content, location)
+  const world = { ...withCrisis, pois: { ...withCrisis.pois, ...dungeons } }
   const names = party.map((c) => c.name).join(' and ')
   const from = location ? ` from ${settlementName({ world }, location)}` : ''
   const state: GameState = {
@@ -123,6 +130,7 @@ export function newGame(
     gearTaken: [],
     luckUsed: {},
     crisis: crisis?.crisis ?? null,
+    delve: null,
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state
@@ -140,7 +148,13 @@ export function newGame(
 export function step(state: GameState, action: Action, content: Content): GameState {
   // A fallen party's run is over for good (crisis/ending.ts): nothing more happens.
   if (partyWiped(state)) return state
-  const acted = crisisNews(state, siteNews(state.day, act(state, action, content)), content)
+  // Anything but a room's choices, pressing on and a few chores leaves a dungeon first.
+  const ready =
+    state.delve && !state.delve.inRoom && !DELVE_ACTIONS.includes(action.type)
+      ? withdraw(state, content)
+      : state
+  const delved = settleDelve(act(ready, action, content), content)
+  const acted = crisisNews(state, siteNews(state.day, delved), content)
   const settled = expireContracts(voidBounties(acted, content), content)
   const done = applyLevelUps(mournTheDead(state, settled))
   return partyWiped(done) ? appendLog(done, FALLEN_LINE, 'crit') : done
@@ -233,6 +247,9 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return gather(state, content, action.rule)
     case 'acknowledgeEnd':
       return acknowledgeEnd(state)
+    case 'pressOn':
+    case 'withdraw':
+      return stepDelve(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

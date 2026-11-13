@@ -24,6 +24,7 @@ const escort = (overrides: Partial<ContractState> = {}): ContractState => ({
   accepted: 1,
   deadline: 9,
   pay: 30,
+  level: 1,
   urgent: false,
   reputation: { patron: 5, settlement: 3 },
   met: false,

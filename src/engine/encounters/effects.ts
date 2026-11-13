@@ -22,6 +22,7 @@ import { gainXp, xpLine } from '../rules/progression'
 import { XP_CLEAR, XP_DISCOVER } from '../constants'
 import { shiftCamaraderie } from '../town/camaraderie'
 import { describeAccessory, lootAccessory } from '../gear/accessories'
+import { describeHoard, payHoard } from '../world/hoard'
 
 export { MAX_EXHAUSTION }
 
@@ -266,6 +267,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
       return ctx.content ? crisisClue(state, ctx.content, effect.amount) : state
     case 'thwartAct':
       return ctx.content ? thwartAct(state, ctx.content) : state
+    // Delving (Plan 6 D3, world/delve.ts): the room's end, written into its snapshot.
+    case 'driveOut':
+      return state.delve ? { ...state, delve: { ...state.delve, ended: 'driven' } } : state
+    case 'hoard':
+      return payHoard(state, ctx.content, effect)
   }
 }
 
@@ -380,5 +386,9 @@ export function describeEffect(
         : `+${effect.amount} clue: Act ${actNumeral(act - 1)}`
     case 'thwartAct':
       return act === null ? 'Thwart the act' : `Thwart Act ${actNumeral(act - 1)}`
+    case 'driveOut':
+      return 'driven out: the delve ends'
+    case 'hoard':
+      return describeHoard(effect)
   }
 }

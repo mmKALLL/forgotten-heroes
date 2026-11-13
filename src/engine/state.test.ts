@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { generateParty } from './party'
+import { placeDungeons } from './world/dungeons'
 import { createRng } from './rng'
 import { tierOdds } from './rules/checks'
 import { newGame, previewCheck, step } from './state'
@@ -25,7 +26,10 @@ describe('newGame', () => {
     const world = generateWorld(worldSeed(99), content)
     expect(state.location).toBe(startingSettlement(world, content))
     const crisis = generateCrisis(world, content, { startDay: 1, start: state.location })!
-    expect(state.world).toEqual(crisis.world)
+    // Then the authored dungeons, from the start too (world/dungeons.ts).
+    const dungeons = placeDungeons(crisis.world, content, state.location)
+    expect(Object.keys(dungeons).length).toBeGreaterThan(0)
+    expect(state.world).toEqual({ ...crisis.world, pois: { ...crisis.world.pois, ...dungeons } })
     expect(state.crisis).toEqual(crisis.crisis)
     expect(state.travel).toBeNull()
     expect(state.goods).toEqual({ food: 10, water: 8 })

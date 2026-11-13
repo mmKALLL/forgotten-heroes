@@ -392,6 +392,7 @@ test('a contract bound for a road’s end shows its deadline, and marks the pace
     accepted: base.day,
     deadline,
     pay: 30,
+    level: 1,
     urgent: false,
     reputation: { patron: 5, settlement: 3 },
     met: false,

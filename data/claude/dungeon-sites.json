@@ -1,0 +1,18 @@
+{
+  "$schema": "../_schema/poiTypes.schema.json",
+  "kind": "poiTypes",
+  "source": "claude",
+  "notes": "The site type of the authored dungeons (Plan 6 D2; dungeons-1.json, dungeons-2.json). Weight 0: never drawn as an ordinary POI; world generation places each authored dungeon at most once as a POI of this type that names its dungeon, and its name, rooms and hoard come from there. Not hostile: a dungeon is a danger of its own and feeds no domain threat, but it cycles like any dungeon (cleared, empty, re-inhabited). Its one situation is only a fallback, played if its dungeon has gone from the content. Written by Claude.",
+  "entries": [
+    {
+      "id": "authored-dungeon",
+      "category": "dungeon",
+      "name": "Delved room by room",
+      "weight": 0,
+      "pathDanger": 2,
+      "names": "poi-name-ruin",
+      "situations": ["ruined-keep-delve"],
+      "icon": "crypt-entrance"
+    }
+  ]
+}

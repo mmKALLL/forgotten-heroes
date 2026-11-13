@@ -29,6 +29,7 @@ import { useGame } from './useGame'
 import { JourneyPanel } from './world/JourneyPanel'
 import { PlacePanel } from './world/PlacePanel'
 import { PoiPanel } from './world/PoiPanel'
+import { DelveView } from './world/DelveView'
 import { useTravelPrefs } from './world/travelPrefs'
 import { WorldMap } from './world/WorldMap'
 
@@ -167,7 +168,19 @@ function Game() {
           />
         </div>
         <div className="centre">
-          {state.encounter ? (
+          {shown.delve ? (
+            // A delve (Plan 6 D4): the dungeon's map, then the room being played.
+            <>
+              <DelveView content={content} state={shown} onAction={dispatch} />
+              {state.encounter && (
+                <EncounterView
+                  state={state}
+                  onAction={dispatch}
+                  onRevealed={() => setRevealed(state)}
+                />
+              )}
+            </>
+          ) : state.encounter ? (
             <EncounterView
               state={state}
               onAction={dispatch}

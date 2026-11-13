@@ -22,6 +22,9 @@ import { crisisHidden } from '../crisis/sites'
 import { crisisRefusal, crisisVisit } from '../crisis/progress'
 import { omenFactor } from '../crisis/clues'
 import { siteStatus } from './sites'
+import { dungeonOf, siteCr } from './dungeons'
+import { enterDungeon } from './delve'
+import { contractDc, crOffset } from '../rules/levels'
 import { rumourOption, type RumourOption } from '../town/rumours'
 import { siteContractsMet } from '../town/contract-hooks'
 import {
@@ -239,6 +242,8 @@ export function visitPoi(state: GameState, content: Content): GameState {
   }
   const refused = visitRefusal(state, id, poi)
   if (refused) return appendLog(state, refused.text, 'bad')
+  // An authored dungeon is delved room by room (world/delve.ts).
+  if (dungeonOf(content, poi)) return enterDungeon(state, content, id)
   const type = own(content.poiTypes, poi.type)
   const known = new Set(allSituations(content).map((s) => s.id))
   const situations = type?.situations.filter((s) => known.has(s)) ?? []
@@ -247,7 +252,12 @@ export function visitPoi(state: GameState, content: Content): GameState {
   const place = placeHere(state, content) ?? undefined
   // The current Crisis act's site is played at its challenge rating, with the Edge once the
   // villain's weakness is known.
-  const options = crisisVisit(state, content, id)
+  const crisis = crisisVisit(state, content, id)
+  // A lair (or any hostile site) plays at its CR, or a held contract's on it when higher.
+  const cr = siteCr(state.world, content, id, state.day)
+  const jobs = state.contracts.filter((c) => c.poi === id && !c.met).map((c) => contractDc(c.level))
+  const dcBonus = Math.max(cr === null ? 0 : crOffset(cr), ...jobs)
+  const options = crisis.cr === undefined && dcBonus !== 0 ? { ...crisis, dcBonus } : crisis
   const started = startEncounter(
     { ...state, rng, visited: true },
     content,

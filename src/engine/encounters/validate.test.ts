@@ -205,6 +205,25 @@ describe('validateSituation', () => {
     expect(issues(stages, { site: true })).toEqual([])
   })
 
+  test('effects: driveOut only in a dungeon room, and hoard never in content', () => {
+    const hoard = { effect: 'hoard', gold: { min: 1, max: 2 }, precious: 0, accessories: 0 }
+    const stages = {
+      start: {
+        text: '',
+        options: [
+          fixed('a', { text: '', effects: [{ effect: 'driveOut' }, { ...hoard, tier: 1, xp: 0 }] }),
+          fixed('b'),
+        ],
+      },
+    }
+    expect(issues(stages, { site: true, room: true })).toEqual([
+      'start/a outcome: hoard is added by the engine only',
+    ])
+    expect(issues(stages, { site: true })).toContain(
+      'start/a outcome: driveOut only works in a dungeon room'
+    )
+  })
+
   test('effects: learnPlan and thwartAct only in a site situation; omens name real villains', () => {
     const stages = {
       start: {

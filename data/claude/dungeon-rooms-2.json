@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "claude",
-  "notes": "Dungeon room situations for dungeons-2.json (Plan 6 D5, set 2): site situations with room: true, played only in a delve and never on the road or at an ordinary site. Ids start with their dungeon's id. DCs are written at standard difficulty (10-16); the engine rebases them to the dungeon's CR and doubles wounds. Climax rooms are high-stakes, and their failures are costly victories, since the delve pays the hoard when the last room is played. Options that need a good spend it in every outcome. Written by Claude.",
+  "notes": "Dungeon room situations for dungeons-2.json (Plan 6 D5, set 2): site situations with room: true, played only in a delve and never on the road or at an ordinary site. Ids start with their dungeon's id. DCs are written at standard difficulty (10-16); the engine rebases them to the dungeon's CR and doubles wounds. Climax rooms are high-stakes. Options that need a good spend it in every outcome. Written by Claude. A failed or critically failed room that ends the encounter drives the party out of the dungeon (no hoard; the site can be retried another time), so failure texts describe being driven back.",
   "entries": [
     {
       "id": "ashgrave-mausoleum-rats",
@@ -25,7 +25,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The rats run up legs and under cloaks before they break. Everyone is bitten.",
+                  "text": "The rats run up legs and under cloaks. Everyone is bitten, and you flee the mausoleum.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -67,7 +67,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The smoke rolls the wrong way. You cough through it while the rats nip at your heels.",
+                  "text": "The smoke rolls the wrong way. You stumble back out, coughing, the rats nipping at your heels.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -118,7 +118,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A coffin lid slides off with a crash, and the swarm is on {actor}.",
+                  "text": "A coffin lid slides off with a crash, and the swarm is on {actor}. You run.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -166,7 +166,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A spring-loaded blade snaps out of the lid and opens {actor}'s arm.",
+                  "text": "A spring-loaded blade snaps out of the lid and opens {actor}'s arm. You go back out to bind it.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -237,7 +237,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A needle jabs {actor}'s thumb. The poison is weak, but it leaves them shaking.",
+                  "text": "A needle jabs {actor}'s thumb. The poison is weak, but it leaves them too shaky to go on.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -286,7 +286,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The lid snaps back on {actor}'s fingers, and the needle finds them too.",
+                  "text": "The lid snaps back on {actor}'s fingers, and the needle finds them too. You lead them out, sickening.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -347,7 +347,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "She turns, and her grief pours into {actor} like cold water.",
+                  "text": "She turns, and her grief pours into {actor} like cold water. You flee her wailing.",
                   "effects": [
                     {
                       "effect": "exhaustion",
@@ -380,7 +380,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The words only wake her anger, and the cold bites everyone.",
+                  "text": "The words only wake her anger, and the cold bites everyone and drives you from the tomb.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -443,7 +443,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They are many and do not tire. You smash the last of them, battered.",
+                  "text": "They are many and do not tire. You fall back out of the mausoleum, battered.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -477,7 +477,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They come on regardless, and {actor} is caught in the front.",
+                  "text": "They come on regardless, and {actor} is caught in the front. You are pushed back out the door.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -527,7 +527,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Its claws numb {actor}, and it takes everyone to drag it down.",
+                  "text": "Its claws numb {actor}, and it takes everyone to drag them back out of the crypt.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -568,7 +568,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The words mean nothing to it. It lunges, and {actor} takes the worst.",
+                  "text": "The words mean nothing to it. It lunges, {actor} takes the worst, and you flee the crypt.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -611,7 +611,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The ward is drawn crooked. It claws through it, though weaker.",
+                  "text": "The ward is drawn crooked. It claws through, and you run while it is still tangled in the chalk.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -676,7 +676,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} misses the second wire. Rock comes down on them.",
+                  "text": "{actor} misses the second wire. Rock comes down on them and seals the way, and you dig them out and turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -710,7 +710,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Someone catches the wire. The rockfall bruises everyone.",
+                  "text": "Someone catches the wire. The rockfall bruises everyone, and you retreat.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -759,7 +759,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They fight like cornered rats and stab at everyone before they flee.",
+                  "text": "They fight like cornered rats and stab at everyone, and you are driven back up the shaft.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -793,7 +793,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They are more scared of their chief than of you. The spears come at {actor}.",
+                  "text": "They are more scared of their chief than of you. The spears come at {actor}, and you back out of the mine.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -835,7 +835,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They take the food and stab anyway.",
+                  "text": "They take the food and stab anyway, and you run.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -895,7 +895,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The boat ships water and rolls over. You swim the rest, frozen.",
+                  "text": "The boat ships water and rolls over. You swim back to the near shore, frozen.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -964,7 +964,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They latch on before you cut them away, and drink deep.",
+                  "text": "They latch on and drink deep. You cut them away and stagger back out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1006,7 +1006,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The powder sprays wide. The leeches still feed before they drop.",
+                  "text": "The powder sprays wide. The leeches still feed, and you flee the water.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -1071,7 +1071,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The heap shifts and a boulder rolls onto {actor}'s leg.",
+                  "text": "The heap shifts and a boulder rolls onto {actor}'s leg. You carry them back out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1123,7 +1123,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The props are rotten. A day's work, and the heap still comes down on {actor}.",
+                  "text": "The props are rotten. A day's work, and the heap still comes down on {actor}. You give up the dig.",
                   "effects": [
                     {
                       "effect": "days",
@@ -1205,7 +1205,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The fumes get into {actor}. They stagger out sick and empty-handed.",
+                  "text": "The fumes get into {actor}. You all stagger out of the mine, sick and empty-handed.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1280,7 +1280,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The feelers numb {actor}, and you kill it while they lie stiff.",
+                  "text": "The feelers numb {actor}. You drag them back up the shaft, stiff as a board, with it clattering behind.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1321,7 +1321,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "{actor} slips on the rungs, and it catches them hanging.",
+                  "text": "{actor} slips on the rungs, and it catches them hanging. You pull them free and climb for daylight.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1364,7 +1364,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "It ignores the meat and comes for you.",
+                  "text": "It ignores the meat and comes for you. You flee back up the mine.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -1429,7 +1429,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A wave slams {actor} against the timbers, and they come out with nothing.",
+                  "text": "A wave slams {actor} against the timbers, and they come out with nothing. You give up the cove for now.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1503,7 +1503,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The claws close on legs and arms before the last shell cracks.",
+                  "text": "The claws close on legs and arms, and more shells keep coming. You retreat up the shore.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1537,7 +1537,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} slips on the weed into a waiting claw.",
+                  "text": "{actor} slips on the weed into a waiting claw. You pull them free and fall back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1585,7 +1585,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} bends too close. A cold wind off the water blows the candles out and the cold into you.",
+                  "text": "{actor} bends too close. A cold wind off the water blows the candles out and the cold into you, and you flee the dark.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1655,7 +1655,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The current takes {actor} off their feet and rolls them over the stones.",
+                  "text": "The current takes {actor} off their feet and rolls them over the stones, and you turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1718,7 +1718,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "It stings {actor} and scuttles into a crack. The hand swells and burns.",
+                  "text": "It stings {actor} and scuttles into a crack. The hand swells and burns, and you go back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1769,7 +1769,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The humming gets into {actor}'s head and will not leave.",
+                  "text": "The humming gets into {actor}'s head and will not leave. You lead them out, dazed.",
                   "effects": [
                     {
                       "effect": "exhaustion",
@@ -1824,7 +1824,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A stone clatters. She is on {actor} in two strides.",
+                  "text": "A stone clatters. She is on {actor} in two strides, and you drag them out of reach and run.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1859,7 +1859,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "She fights for her eggs like a fury, and leaves all of you bleeding.",
+                  "text": "She fights for her eggs like a fury and drives you all out of the cave, bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -1900,7 +1900,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "She is not afraid of fire. She is afraid for her eggs.",
+                  "text": "She is not afraid of fire. She is afraid for her eggs, and she drives you off.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -1967,7 +1967,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "His cutlass and the cold of the deep follow every blow. You win, barely.",
+                  "text": "His cutlass and the cold of the deep follow every blow. You are driven back up the beach, barely alive.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2090,7 +2090,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} presses the wrong stone. Darts hiss from the walls.",
+                  "text": "{actor} presses the wrong stone. Darts hiss from the walls, and you retreat, bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2124,7 +2124,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Every plate clicks. The darts sting everyone.",
+                  "text": "Every plate clicks. The darts sting everyone, and you fall back out of the crypt.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2173,7 +2173,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They come from both sides. You break them all, but not cleanly.",
+                  "text": "They come from both sides, and you are forced back up the stair.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2208,7 +2208,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} gets a sword in the side for their trouble.",
+                  "text": "{actor} gets a sword in the side for their trouble. You retreat.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2282,7 +2282,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The moment the star leaves the bowl, {actor} is struck by a cold that does not lift.",
+                  "text": "The moment the star leaves the bowl, {actor} is struck by a cold that does not lift. You drop it and flee the crypt.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2355,7 +2355,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A slab tips under {actor}, who slides to the lip and is dragged back torn.",
+                  "text": "A slab tips under {actor}, who slides to the lip and is dragged back torn. You turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2389,7 +2389,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "It takes hours, and the floor tips in the end anyway.",
+                  "text": "It takes hours, and the floor tips in the end anyway. You climb back out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2435,7 +2435,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The rope saves a life and is lost to the pit, along with some skin.",
+                  "text": "The rope saves a life and is lost to the pit, along with some skin. You go no further.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -2496,7 +2496,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Their claws numb whoever they touch. You win, stiff and bleeding.",
+                  "text": "Their claws numb whoever they touch. You are driven out, stiff and bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2542,7 +2542,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "One flask misses its shaft. The rest work, too late for {actor}.",
+                  "text": "One flask misses its shaft, and the ghouls come up it onto {actor}. You flee.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -2607,7 +2607,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The ward bites back, and the light burns everyone.",
+                  "text": "The ward bites back, and the light burns everyone and drives you back up the stair.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2648,7 +2648,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} brushes the star, and it flares.",
+                  "text": "{actor} brushes the star, and it flares. The blast throws you all back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2698,7 +2698,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "His touch drains the warmth out of {actor}, and the sigils burn the rest. He falls at last.",
+                  "text": "His touch drains the warmth out of {actor}, and the sigils burn the rest. You flee the vault before he can finish you.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2739,7 +2739,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The sigils hold and blaze. {actor} is thrown across the vault.",
+                  "text": "The sigils hold and blaze. {actor} is thrown across the vault, and you carry them out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2781,7 +2781,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The ward breaks. He comes through it weakened.",
+                  "text": "The ward breaks, and he comes through it. You run while it still slows him.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -2846,7 +2846,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} turns a skull over, and a sea-snake curled inside it bites.",
+                  "text": "{actor} turns a skull over, and a sea-snake curled inside it bites. You turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2880,7 +2880,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A sea-snake in a boot bites {actor}. The poison aches for hours.",
+                  "text": "A sea-snake in a boot bites {actor}. The poison aches for hours, and you go no deeper.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -2951,7 +2951,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "He screams and flails. It takes {actor} a bloody nose to quiet him.",
+                  "text": "He screams and flails, and his cries wake the grotto. You flee with him, {actor} bleeding from the nose.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3033,7 +3033,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "There are more of them than tents. You win, battered.",
+                  "text": "There are more of them than tents. You are driven back, battered.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3074,7 +3074,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The canvas is damp. The fire smokes, and they come through it.",
+                  "text": "The canvas is damp. The fire smokes, and they come through it and drive you out.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -3139,7 +3139,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A pod bursts in {actor}'s face. The spores burn the throat and the eyes.",
+                  "text": "A pod bursts in {actor}'s face. The spores burn the throat and the eyes, and you stagger back out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3190,7 +3190,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The pods pulse faster as you pass, and one bursts against {actor}.",
+                  "text": "The pods pulse faster as you pass, and one bursts against {actor}. You turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3232,7 +3232,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They swarm up everyone's legs before the last is crushed.",
+                  "text": "They swarm up everyone's legs, and you flee the shallows.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3266,7 +3266,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They catch {actor} in the shallows.",
+                  "text": "They catch {actor} in the shallows. You drag them back out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3314,7 +3314,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The ribs shift, and one pins {actor}.",
+                  "text": "The ribs shift, and one pins {actor}. You lever it off and leave.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3355,7 +3355,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A rib snaps under {actor}, who falls among the bones.",
+                  "text": "A rib snaps under {actor}, who falls among the bones. You haul them out and turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3405,7 +3405,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Her claws crush and her feelers numb. When she dies, you can barely stand.",
+                  "text": "Her claws crush and her feelers numb. You drag each other out of her lair, barely standing.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3441,7 +3441,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "She does not bargain. She charges.",
+                  "text": "She does not bargain. She charges, and you flee the grotto.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3484,7 +3484,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The flask bursts on the stair. She comes through the flames.",
+                  "text": "The flask bursts on the stair. She comes through the flames, and you run.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -3622,7 +3622,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "His spear is cold as winter. You scatter him at last, numbed.",
+                  "text": "His spear is cold as winter. You fall back out of the keep, numbed.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3670,7 +3670,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The vault comes down behind you, and a stone catches {actor}.",
+                  "text": "The vault comes down ahead of you, and a stone catches {actor}. The way is blocked.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3704,7 +3704,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The prop slips. The crack opens over {actor}.",
+                  "text": "The prop slips. The crack opens over {actor}, and you pull them out and turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3754,7 +3754,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They drag {actor} under twice before you haul them out half-drowned.",
+                  "text": "They drag {actor} under twice before you haul them back out, half-drowned.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3793,7 +3793,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} slips from a capital into the water, and the hands are waiting.",
+                  "text": "{actor} slips from a capital into the water, and the hands are waiting. You pull them free and retreat.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3842,7 +3842,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The prayer is not for the living. It drinks the warmth out of you.",
+                  "text": "The prayer is not for the living. It drinks the warmth out of you, and you flee the chapel.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3876,7 +3876,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A ghost turns its head at {actor}'s step. Its stare is like a knife of ice.",
+                  "text": "A ghost turns its head at {actor}'s step. Its stare is like a knife of ice, and you back out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3924,7 +3924,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The rack comes down, and {actor} under it.",
+                  "text": "The rack comes down, and {actor} under it. You dig them out and leave.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -3988,7 +3988,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Their blades cut cold and deep. You scatter them, but at a price.",
+                  "text": "Their blades cut cold and deep, and drive you out of the hall.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4023,7 +4023,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Your salute is a mockery to them. They charge.",
+                  "text": "Your salute is a mockery to them. They charge, and you run.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4079,7 +4079,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Every blow he lands drains you. When he falls, you are frozen to the bone.",
+                  "text": "Every blow he lands drains you. You flee the keep frozen to the bone, and he lets you go.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4164,7 +4164,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The circle cracks under him. He comes through weakened.",
+                  "text": "The circle cracks under him. He comes through it, and you flee while it still slows him.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -4230,7 +4230,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Stone fists are hard on flesh. You break them, aching.",
+                  "text": "Stone fists are hard on flesh. You retreat, aching.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4264,7 +4264,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A stone hand closes on {actor}'s ankle.",
+                  "text": "A stone hand closes on {actor}'s ankle. You tear them loose and run.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4312,7 +4312,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "He sees through you, and his smile opens wider than a mouth should.",
+                  "text": "He sees through you, and his smile opens wider than a mouth should. You flee the manor.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4358,7 +4358,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "He is quicker than any servant. His teeth find {actor}'s throat before he falls.",
+                  "text": "He is quicker than any servant. His teeth find {actor}'s throat, and you drag them out of the house.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4406,7 +4406,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A flask cracks in {actor}'s hand and the fumes fill the room.",
+                  "text": "A flask cracks in {actor}'s hand and the fumes fill the room. You flee, choking.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4458,7 +4458,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The glass breaks and the bottled things writhe on the floor, and one of them bites.",
+                  "text": "The glass breaks and the bottled things writhe on the floor, and one of them bites. You get out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4569,7 +4569,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A gout of flame catches {actor}.",
+                  "text": "A gout of flame catches {actor}, and you pull back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4617,7 +4617,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The lock is trapped. A needle drives into {actor}'s hand.",
+                  "text": "The lock is trapped. A needle drives into {actor}'s hand, and the poison sends you back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4660,7 +4660,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "She is not what she seems. She strikes through the bars with long nails.",
+                  "text": "She is not what she seems. She strikes through the bars with long nails, and you flee the cellar.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4708,7 +4708,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "There are many of them, and they do not care if they die. You win, cut deep.",
+                  "text": "There are many of them, and they do not care if they die. You are driven out, cut deep.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4743,7 +4743,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The crates tumble the wrong way, onto {actor}.",
+                  "text": "The crates tumble the wrong way, onto {actor}. The cult closes in, and you run.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4793,7 +4793,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The idol's fire burns through her into you. She falls, and you are scorched black.",
+                  "text": "The idol's fire burns through her into you, and you flee the manor scorched black.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4830,7 +4830,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The chains are red-hot. {actor} breaks them with burned hands, and the idol topples.",
+                  "text": "The chains are red-hot and will not break. {actor}'s hands are burned to the bone, and you flee the hall.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4872,7 +4872,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The banishing goes wild. The fire is spent, and so are you.",
+                  "text": "The banishing goes wild. The fire throws you back out of the manor, spent.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -4937,7 +4937,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} slips, and the black water eats at their legs.",
+                  "text": "{actor} slips, and the black water eats at their legs. You turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -4971,7 +4971,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Slow, and the fumes still get into everyone.",
+                  "text": "Slow, and the fumes still get into everyone. You give up and go back.",
                   "effects": [
                     {
                       "effect": "exhaustion",
@@ -5025,7 +5025,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They come from both sides. You hold, at a cost in blood.",
+                  "text": "They come from both sides and drive you back into the mire, bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5059,7 +5059,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They laugh at you, in their way, and close in.",
+                  "text": "They laugh at you, in their way, and close in. You run.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5107,7 +5107,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The runes are a curse, and {actor} reads it aloud.",
+                  "text": "The runes are a curse, and {actor} reads it aloud. You flee the stones.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5145,7 +5145,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A great jawbone shifts and closes on {actor}'s arm like a trap.",
+                  "text": "A great jawbone shifts and closes on {actor}'s arm like a trap. You pry it open and leave.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5204,7 +5204,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "One gets its jaws round {actor} and rolls.",
+                  "text": "One gets its jaws round {actor} and rolls. You drag them free and flee.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5238,7 +5238,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} is last up and the jaws close on a leg.",
+                  "text": "{actor} is too slow up the bank, and the jaws close on a leg. You pull them free and go back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5286,7 +5286,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The teeth slam down. {actor} is caught by the leg.",
+                  "text": "The teeth slam down. {actor} is caught by the leg, and you pry them free and turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5320,7 +5320,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The slime is slick. {actor} falls onto the teeth.",
+                  "text": "The slime is slick. {actor} falls onto the teeth, and you haul them off and turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5368,7 +5368,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The sigil bursts with light. Everyone is burned.",
+                  "text": "The sigil bursts with light. Everyone is burned and thrown back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5462,7 +5462,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Its acid breath catches you all. When it falls, you are burned raw.",
+                  "text": "Its acid breath catches you all. You flee the mire, burned raw.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5498,7 +5498,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "It smells you. {actor} is the first it finds.",
+                  "text": "It smells you. {actor} is the first it finds, and you flee into the reeds.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5545,7 +5545,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The flask breaks on the pillar. The dragon breathes through the smoke.",
+                  "text": "The flask breaks on the pillar. The dragon breathes through the smoke, and you run.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -5611,7 +5611,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The fumes drop {actor} on a bridge. You drag them on, choking.",
+                  "text": "The fumes drop {actor} on a bridge. You drag them back, choking.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5687,7 +5687,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "One hurls {actor} against a wall before you beat them off.",
+                  "text": "One hurls {actor} against a wall, and the troop drives you out.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5733,7 +5733,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They take the food and come on anyway.",
+                  "text": "They take the food and come on anyway, and you run.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -5784,7 +5784,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The leader takes it as a challenge, and answers it.",
+                  "text": "The leader takes it as a challenge, and answers it. You flee the vault.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5832,7 +5832,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The wrong pedestal sinks. The braziers spit fire across the hall.",
+                  "text": "The wrong pedestal sinks. The braziers spit fire across the hall, and you flee it.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5874,7 +5874,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The braziers roar the moment the lid shifts.",
+                  "text": "The braziers roar the moment the lid shifts, and you are driven back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5937,7 +5937,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A ball catches {actor} against the wall.",
+                  "text": "A ball catches {actor} against the wall. You turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -5971,7 +5971,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} reads the grooves wrong and the balls come straight at you.",
+                  "text": "{actor} reads the grooves wrong and the balls come straight at you. You flee back the way you came.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6012,7 +6012,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The wedges slip. You dive aside, and the irons are lost.",
+                  "text": "The wedges slip. You dive aside, the irons are lost, and you go back.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -6072,7 +6072,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "{actor} steps on the wrong knob. Darts fly from every wall.",
+                  "text": "{actor} steps on the wrong knob. Darts fly from every wall, and you retreat.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6106,7 +6106,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Every step is wrong. The darts sting you all.",
+                  "text": "Every step is wrong. The darts sting you all, and you go back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6161,7 +6161,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Stone fists, each like a falling wall. When it breaks, you are broken too.",
+                  "text": "Stone fists, each like a falling wall. You flee the vault broken and bleeding.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6270,7 +6270,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "A stone rolls under {actor}, who goes into the stream and is battered down it.",
+                  "text": "A stone rolls under {actor}, who goes into the stream and is battered down it, back the way you came.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6304,7 +6304,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The current is stronger than it looked. You lose time and strength.",
+                  "text": "The current is stronger than it looked. You lose time and strength, and give up the crossing.",
                   "effects": [
                     {
                       "effect": "exhaustion",
@@ -6358,7 +6358,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Their arrows find you from every side before you close.",
+                  "text": "Their arrows find you from every side, and you never close. You fall back into the forest.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6434,7 +6434,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "They see you at once. Arrows hiss into the water around {actor}.",
+                  "text": "They see you at once. Arrows hiss into the water around {actor}, and you fall back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6483,7 +6483,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The mist burns {actor}'s lungs. They come out coughing blood.",
+                  "text": "The mist burns {actor}'s lungs. They stumble back out coughing blood.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6544,7 +6544,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The thorns are poisoned too.",
+                  "text": "The thorns are poisoned too, and you turn back.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6593,7 +6593,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "Their bites burn with poison. You kill them, sick and shaking.",
+                  "text": "Their bites burn with poison. You flee, sick and shaking.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6639,7 +6639,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The webs are damp and smoke. The spiders come through.",
+                  "text": "The webs are damp and smoke. The spiders come through and drive you back.",
                   "effects": [
                     {
                       "effect": "goods",
@@ -6704,7 +6704,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The stone crumbles. {actor} falls through the canopy.",
+                  "text": "The stone crumbles. {actor} falls through the canopy, and you turn back to tend them.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6759,7 +6759,7 @@
               },
               "outcomes": {
                 "fail": {
-                  "text": "The rock is slick. {actor} falls the height of three men.",
+                  "text": "The rock is slick. {actor} falls the height of three men, and you give up the climb.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6824,7 +6824,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "Her poison breath rolls over you all. When she falls, you are barely breathing.",
+                  "text": "Her poison breath rolls over you all. You flee the falls, barely breathing.",
                   "effects": [
                     {
                       "effect": "hp",
@@ -6905,7 +6905,7 @@
               "highStakes": true,
               "outcomes": {
                 "fail": {
-                  "text": "The antidote blunts the poison, but her teeth are just as sharp.",
+                  "text": "The antidote blunts the poison, but her teeth are just as sharp. You are driven back down the falls.",
                   "effects": [
                     {
                       "effect": "goods",

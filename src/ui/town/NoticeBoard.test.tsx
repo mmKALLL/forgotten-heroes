@@ -40,6 +40,7 @@ test('offers show their route, deadline and pay; Take dispatches, a locked one s
   const open = offers.find((o) => o.available)!
   const row = within(board.getByRole('button', { name: `Take “${open.title}”` }).closest('li')!)
   expect(row.getByText(`${open.pay} gp`)).toBeTruthy()
+  expect(row.getByText(`level ${open.level}`)).toBeTruthy()
   // A countdown to the deadline, not its day.
   expect(row.getByText(new RegExp(`${open.km} km · ${open.days} days left · `))).toBeTruthy()
   await userEvent.click(row.getByRole('button', { name: `Take “${open.title}”` }))

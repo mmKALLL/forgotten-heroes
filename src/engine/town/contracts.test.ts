@@ -48,6 +48,7 @@ function contract(s: GameState, overrides: Partial<ContractState> = {}): Contrac
     accepted: s.day,
     deadline: s.day + 5,
     pay: 30,
+    level: 1,
     urgent: false,
     reputation: { patron: 5, settlement: 3 },
     met: false,
@@ -168,6 +169,7 @@ describe('noticeBoard', () => {
       kind: 'procurement',
       deadline: state.day + offer.days,
       pay: offer.pay,
+      level: offer.level,
       good: 'timber',
       amount: offer.amount,
     })
@@ -445,5 +447,46 @@ describe('on the road', () => {
     expect(gone.goods.luxuries).toBe(0)
     expect(gone.gold).toBe(100 - content.goods.luxuries.price)
     expect(gone.reputation.people[patron(s)]).toBe(-FAIL_REP)
+  })
+})
+
+describe('levelled work (Plan 6 D1)', () => {
+  const levelled = (s: GameState, level: number): GameState => ({
+    ...s,
+    party: s.party.map((c) => ({ ...c, level })),
+  })
+
+  test('offers sit at the founders’ best level ± 1, and pay more the higher they are', () => {
+    const base = at(HERE)
+    const novice = noticeBoard(base, content, HERE)
+    const veteran = noticeBoard(levelled(base, 8), content, HERE)
+    expect(novice.length).toBeGreaterThan(0)
+    for (const o of novice) expect(o.level).toBeGreaterThanOrEqual(1)
+    for (const o of novice) expect(o.level).toBeLessThanOrEqual(2)
+    for (const o of veteran) expect(Math.abs(o.level - 8)).toBeLessThanOrEqual(1)
+    // The same offers (a level draws from its own stream), paid by their level.
+    expect(veteran.map((o) => o.id)).toEqual(novice.map((o) => o.id))
+    veteran.forEach((o, i) => expect(o.pay).toBeGreaterThan(novice[i].pay))
+    const taken = act(levelled(base, 8), { type: 'acceptContract', offerId: veteran[0].id })
+    expect(taken.contracts[0].level).toBe(veteran[0].level)
+  })
+
+  test('a contract’s site plays harder at a high level; low-level work is as written', () => {
+    const base = at(HERE)
+    const poi = Object.keys(base.world.pois).find(
+      (p) => base.world.pois[p].type === 'orc-war-camp'
+    )!
+    const site = { ...base.world.pois[poi], discovered: true, clearedDay: base.day - 31 }
+    const there = { ...base, location: poi, world: { ...base.world, pois: { [poi]: site } } }
+    const firstDc = (s: GameState) => {
+      const options = act(s, { type: 'visitPoi' }).encounter!.situation.stages.start.options
+      const check = options.find((o) => o.kind === 'check')
+      return check?.kind === 'check' ? Number(check.check.dc) : NaN
+    }
+    const job = (level: number) => contract(there, { kind: 'bounty', poi, to: HERE, level })
+    const plain = firstDc(there)
+    expect(plain).not.toBeNaN()
+    expect(firstDc({ ...there, contracts: [job(1)] })).toBe(plain)
+    expect(firstDc({ ...there, contracts: [job(12)] })).toBeGreaterThan(plain)
   })
 })

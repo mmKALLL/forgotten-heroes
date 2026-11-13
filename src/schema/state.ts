@@ -223,6 +223,13 @@ export const ContractStateSchema = z.object({
   accepted: z.number().int().min(1).describe('The day it was accepted'),
   deadline: z.number().int().min(1).describe('The last day it can be completed'),
   pay: z.number().int().min(0).describe('gp on completion'),
+  level: z
+    .number()
+    .int()
+    .min(1)
+    .max(MAX_LEVEL)
+    .default(1)
+    .describe('The level of the work (Plan 6 D1): its pay and DCs scale with it'),
   urgent: z.boolean(),
   reputation: z.object({ patron: z.number().int(), settlement: z.number().int() }),
   /**
@@ -233,8 +240,29 @@ export const ContractStateSchema = z.object({
 })
 export type ContractState = z.infer<typeof ContractStateSchema>
 
+/**
+ * A delve through an authored dungeon (world/delve.ts): the room being played, or between rooms
+ * the next one, and how the room being played ended (set by its outcome's effects).
+ */
+export const DelveStateSchema = z.object({
+  poi: IdSchema.describe('The dungeon site (a POI id)'),
+  dungeon: IdSchema.describe('A dungeons id'),
+  room: z
+    .number()
+    .int()
+    .min(0)
+    .describe("The room being played, or between rooms the next one's index"),
+  inRoom: z.boolean().describe("A room's encounter is open"),
+  ended: z
+    .enum(['driven', 'cleared'])
+    .nullable()
+    .default(null)
+    .describe('Set by the room: driven out (driveOut), or the hoard paid (hoard)'),
+})
+export type DelveState = z.infer<typeof DelveStateSchema>
+
 export const GameStateSchema = z.object({
-  version: z.literal(13),
+  version: z.literal(14),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -287,5 +315,7 @@ export const GameStateSchema = z.object({
   luckUsed: z.record(z.string(), z.number().int().min(1)).default({}),
   /** This world's Crisis (Plan 5b): null only when no villain fits the content. */
   crisis: CrisisStateSchema.nullable().default(null),
+  /** The dungeon being delved, room by room (Plan 6 D3, world/delve.ts); null otherwise. */
+  delve: DelveStateSchema.nullable().default(null),
 })
 export type GameState = z.infer<typeof GameStateSchema>

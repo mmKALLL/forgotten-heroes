@@ -8,13 +8,14 @@ import { startingGoods } from './travel/supplies'
 import { generateWorld, mainlandSettlements, startingSettlement, worldSeed } from './world/generate'
 import { straightKm } from './world/geo'
 import { domainAt } from './world/pois'
+import { placeDungeons } from './world/dungeons'
 
 export const SAVE_KEY = 'forgotten-heroes/save/v1'
 /** Where a save that no longer loads is copied, so a new game doesn't destroy it. */
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 13
+export const CURRENT_SAVE_VERSION = 14
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -376,6 +377,34 @@ export function v11ToV12(raw: Record<string, unknown>): Record<string, unknown> 
 }
 
 /**
+ * v13 → v14 (Plan 6, track D): levelled work and authored dungeons. Contracts already taken are
+ * level 1 (as they were paid), no delve is under way, and the authored dungeons are placed in the
+ * old world as for a new one (world/dungeons.ts), near where the party is (on the road, the
+ * journey's start): an old run gains them too. Its generic dungeons stay as they were.
+ */
+export function v13ToV14(raw: Record<string, unknown>, content: Content): Record<string, unknown> {
+  const contracts = Array.isArray(raw.contracts)
+    ? raw.contracts.map((c: Record<string, unknown>) =>
+        typeof c === 'object' && c !== null ? { level: 1, ...c } : c
+      )
+    : raw.contracts
+  const base = { ...raw, version: 14, contracts, delve: null }
+  const world = WorldStateSchema.safeParse(raw.world)
+  if (!world.success) return base
+  const travel = raw.travel as { from?: unknown } | null | undefined
+  const here =
+    typeof raw.location === 'string'
+      ? raw.location
+      : typeof travel?.from === 'string'
+        ? travel.from
+        : null
+  const start = domainAt(world.data, here)
+  const placed = placeDungeons(world.data, content, start)
+  const pois = (raw.world as { pois: Record<string, unknown> }).pois
+  return { ...base, world: { ...(raw.world as object), pois: { ...pois, ...placed } } }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -410,6 +439,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v11ToV12(raw as Record<string, unknown>), content)
     case 12:
       return migrate(v12ToV13(raw as Record<string, unknown>, content), content)
+    case 13:
+      return migrate(v13ToV14(raw as Record<string, unknown>, content), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

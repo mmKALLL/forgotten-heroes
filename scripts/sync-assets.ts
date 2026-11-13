@@ -36,6 +36,13 @@ export function readManifests(root: string): string[] {
   return [...new Set(paths)]
 }
 
+/**
+ * Where a manifest path is copied to under assets/: the same path with each colon made a hyphen,
+ * since Vite refuses file names with a colon (e.g. "_cave : lava"). src/ui/assets.ts looks images
+ * up the same way.
+ */
+export const assetPath = (path: string): string => path.replaceAll(':', '-')
+
 export function syncAssets(paths: string[], fromDir: string, toDir: string) {
   const copied: string[] = []
   const missing: string[] = []
@@ -45,7 +52,7 @@ export function syncAssets(paths: string[], fromDir: string, toDir: string) {
       missing.push(path)
       continue
     }
-    cpSync(source, join(toDir, path), { recursive: true, dereference: true })
+    cpSync(source, join(toDir, assetPath(path)), { recursive: true, dereference: true })
     copied.push(path)
   }
   return { copied, missing }

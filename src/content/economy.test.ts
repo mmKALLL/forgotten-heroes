@@ -4,7 +4,6 @@ import { production, producersOf, supplyOf } from '../engine/economy/supply'
 import { economyIssues } from '../engine/economy/validate'
 import { newGame } from '../engine/state'
 import { noticeBoard } from '../engine/town/contracts'
-import { generateWorld, worldSeed } from '../engine/world/generate'
 import { domainThreatLevel } from '../engine/world/pois'
 import { siteEmpty } from '../engine/world/sites'
 import { straightKm } from '../engine/world/geo'
@@ -20,7 +19,8 @@ const DAYS = [1, 100]
 /** Water is refilled free in settlements, so it is never bought or sold. */
 const TRADED = GOODS.filter((good) => good !== 'water')
 
-const worlds = SEEDS.map((seed) => generateWorld(worldSeed(seed), content))
+// New games' worlds: the authored dungeons are placed once the start is known (world/dungeons.ts).
+const worlds = SEEDS.map((seed) => newGame(seed, content).world)
 
 /** What a market rule's conditions look at, for one settlement on one day. */
 type Place = {

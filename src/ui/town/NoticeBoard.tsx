@@ -79,6 +79,9 @@ function OfferRow({
       <div className="offer-head">
         <span className="badge kind">{t(`contractKind.${o.kind}`)}</span>
         <strong>{title}</strong>
+        <span className="badge level" title={t('board.levelHint')}>
+          {t('board.level', { n: o.level })}
+        </span>
         {o.urgent && <span className="badge urgent">{t('board.urgent')}</span>}
         <span className="offer-pay">
           {t('board.pay', { gp: o.pay })}

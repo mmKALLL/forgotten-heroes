@@ -112,12 +112,12 @@
               "dc": {
                 "default": 13,
                 "description": "What \"dc\" means in the archetype",
-                "$ref": "#/$defs/__schema71"
+                "$ref": "#/$defs/__schema82"
               },
               "reward": {
                 "default": 1,
                 "description": "Multiplies every gold amount in the archetype",
-                "$ref": "#/$defs/__schema72"
+                "$ref": "#/$defs/__schema83"
               }
             },
             "required": [
@@ -713,7 +713,7 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema66"
+                "$ref": "#/$defs/__schema68"
               },
               "if": {
                 "$ref": "#/$defs/__schema13"
@@ -728,7 +728,7 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema67"
+                "$ref": "#/$defs/__schema69"
               },
               "if": {
                 "$ref": "#/$defs/__schema13"
@@ -743,10 +743,10 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema68"
+                "$ref": "#/$defs/__schema70"
               },
               "amount": {
-                "$ref": "#/$defs/__schema69"
+                "$ref": "#/$defs/__schema71"
               },
               "if": {
                 "$ref": "#/$defs/__schema13"
@@ -761,7 +761,7 @@
             "type": "object",
             "properties": {
               "effect": {
-                "$ref": "#/$defs/__schema70"
+                "$ref": "#/$defs/__schema72"
               },
               "if": {
                 "$ref": "#/$defs/__schema13"
@@ -771,6 +771,56 @@
               "effect"
             ],
             "description": "Thwarts the current act. Only works at its key site, once it has been found"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema73"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "In a dungeon room: the party is driven out, and the delve ends without the hoard. The engine adds it to every failed room outcome that ends the room"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
+                "$ref": "#/$defs/__schema74"
+              },
+              "gold": {
+                "$ref": "#/$defs/__schema75"
+              },
+              "precious": {
+                "$ref": "#/$defs/__schema78"
+              },
+              "accessories": {
+                "$ref": "#/$defs/__schema79"
+              },
+              "tier": {
+                "$ref": "#/$defs/__schema80"
+              },
+              "xp": {
+                "$ref": "#/$defs/__schema81"
+              },
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect",
+              "gold",
+              "precious",
+              "accessories",
+              "tier",
+              "xp"
+            ],
+            "description": "A dungeon's hoard: clears the site and pays it. Engine-made only: the engine adds it to the last room's outcomes that end the room without driving the party out"
           }
         ]
       }
@@ -1082,43 +1132,105 @@
     "__schema65": {
       "anyOf": [
         {
-          "type": "number",
-          "const": 1
+          "$ref": "#/$defs/__schema66"
         },
         {
-          "type": "number",
-          "const": 2
+          "$ref": "#/$defs/__schema67"
         }
       ]
     },
     "__schema66": {
-      "type": "string",
-      "const": "learnPlan"
+      "type": "number",
+      "const": 1
     },
     "__schema67": {
-      "type": "string",
-      "const": "revealKeySite"
+      "type": "number",
+      "const": 2
     },
     "__schema68": {
       "type": "string",
-      "const": "crisisClue"
+      "const": "learnPlan"
     },
     "__schema69": {
+      "type": "string",
+      "const": "revealKeySite"
+    },
+    "__schema70": {
+      "type": "string",
+      "const": "crisisClue"
+    },
+    "__schema71": {
       "default": 1,
       "type": "integer",
       "minimum": 1,
       "maximum": 2
     },
-    "__schema70": {
+    "__schema72": {
       "type": "string",
       "const": "thwartAct"
     },
-    "__schema71": {
+    "__schema73": {
+      "type": "string",
+      "const": "driveOut"
+    },
+    "__schema74": {
+      "type": "string",
+      "const": "hoard"
+    },
+    "__schema75": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "$ref": "#/$defs/__schema76"
+        },
+        "max": {
+          "$ref": "#/$defs/__schema77"
+        }
+      },
+      "required": [
+        "min",
+        "max"
+      ],
+      "description": "The gold, rolled in this range"
+    },
+    "__schema76": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema77": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "__schema78": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "Precious goods"
+    },
+    "__schema79": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "Accessories rolled into the gear"
+    },
+    "__schema80": {
+      "description": "The accessories' tier",
+      "$ref": "#/$defs/__schema65"
+    },
+    "__schema81": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "XP for clearing the dungeon"
+    },
+    "__schema82": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema72": {
+    "__schema83": {
       "type": "number",
       "minimum": 0,
       "maximum": 10
