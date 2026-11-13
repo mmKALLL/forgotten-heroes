@@ -33,7 +33,8 @@ type Props = {
  * People under them; Explore, then the roads out with the pace chooser; then
  * talk and work: rumours and the notice board. In the DOM the zones run market, services, people,
  * roads, talk (for the keyboard and narrow screens); on wide screens they make two columns: market,
- * services and people, then roads and talk.
+ * services and people, then roads and talk. The town's map, when synced, is shown large below both
+ * columns at their full width (it may run below the fold; Plan 6 U1).
  */
 export function TownLedger({
   content,
@@ -58,9 +59,6 @@ export function TownLedger({
   return (
     <section className="panel place ledger" aria-label={t('place.heading')}>
       <header className="ledger-head">
-        {banner && (
-          <img className="banner-thumb" src={banner} alt={t('place.banner', { name: here.name })} />
-        )}
         <h2>{here.name}</h2>
         <span className="small" title={t('place.size', { size: sizeText(t, here.sizeTier) })}>
           {t('place.summary', { type: here.typeName, population: here.population })}
@@ -102,6 +100,11 @@ export function TownLedger({
           <NoticeBoard content={content} state={state} onAction={onAction} />
         </section>
       </div>
+      {banner && (
+        <figure className="town-picture">
+          <img src={banner} alt={t('place.banner', { name: here.name })} loading="lazy" />
+        </figure>
+      )}
     </section>
   )
 }

@@ -100,6 +100,12 @@ export const ZOOM = { width: 840, height: 630 }
  * whole map, which is drawn at about a fifth of its size, so markers stay easy to see and hit.
  */
 const MARKER = { full: 38, zoomed: 26 }
+/**
+ * Half a marker's outline width, as a share of `MARKER` (theme.css draws the outlines about a
+ * fifth of it wide). A marker's invisible hit target starts at its outline's outer edge and
+ * reaches 4 screen px past it (a non-scaling stroke, theme.css `.hit`; Plan 6 U3).
+ */
+const HIT_EDGE = 0.2
 const ARROWS: Record<string, MapPoint> = {
   ArrowLeft: { x: -1, y: 0 },
   ArrowRight: { x: 1, y: 0 },
@@ -197,6 +203,7 @@ export function WorldMap({
   const [overlay, setOverlay] = useState(loadOverlay)
   const svg = useRef<SVGSVGElement>(null)
   const marker = zoomed ? MARKER.zoomed : MARKER.full
+  const edge = marker * HIT_EDGE
   const at = (id: string): MapPoint | null => nodeOf(state, content, id)?.at ?? null
   const travel = state.travel
   const from = travel ? at(travel.from) : null
@@ -389,6 +396,15 @@ export function WorldMap({
               >
                 <title>{name}</title>
                 <rect
+                  className="hit"
+                  x={s.at.x - marker - edge}
+                  y={s.at.y - marker - edge}
+                  width={(marker + edge) * 2}
+                  height={(marker + edge) * 2}
+                  rx={s.capital ? 4 : 10}
+                  aria-hidden="true"
+                />
+                <rect
                   x={s.at.x - marker}
                   y={s.at.y - marker}
                   width={marker * 2}
@@ -444,6 +460,13 @@ export function WorldMap({
                 onKeyDown={onKey(id, p)}
               >
                 <title>{label}</title>
+                <circle
+                  className="hit"
+                  cx={p.x}
+                  cy={p.y}
+                  r={(crisis ? r * 1.45 : r) + edge}
+                  aria-hidden="true"
+                />
                 {crisis && <circle className="crisis-ring" cx={p.x} cy={p.y} r={r * 1.45} />}
                 <circle
                   className="poi-disc"
