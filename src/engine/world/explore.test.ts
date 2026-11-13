@@ -504,14 +504,14 @@ describe('explore', () => {
     expect(step(hungry, { type: 'explore' }, content).day).toBe(hungry.day)
   })
 
-  test('at a POI it searches that POI’s domain; on the road or in an encounter it is unavailable', () => {
+  test('only from a settlement: not at a POI, on the road or in an encounter (designer call)', () => {
     const atPoi = withPois(
       { ...pois, 'poi-9': poi('ashmoor-1', 0, { discovered: true }) },
       {
         location: 'poi-9',
       }
     )
-    expect(exploreOption(atPoi, content)!.dc).toBe(FORAGE_DC.marsh + EXPLORE_DC_BONUS)
+    expect(exploreOption(atPoi, content)).toBeNull()
     expect(exploreOption(here({ location: null }), content)).toBeNull()
     const busy = step(here(), { type: 'startEncounter', situationId: 'cliff' }, content)
     expect(exploreOption(busy, content)).toBeNull()

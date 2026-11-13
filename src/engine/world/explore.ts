@@ -97,6 +97,10 @@ export const EXPLORE_OUTCOMES: Readonly<Record<Tier, string>> = {
 const own = <T>(table: Record<string, T>, id: string | null | undefined): T | undefined =>
   id != null && Object.hasOwn(table, id) ? table[id] : undefined
 
+/** True when the party stands in a settlement (not on the road, not at a point of interest). */
+const inSettlementHere = (state: GameState): boolean =>
+  state.location !== null && Object.hasOwn(state.world.settlements, state.location)
+
 /** The domain the party is in (a settlement's own, or a POI's owner), when not on the road. */
 const domainHere = (state: GameState): string | null =>
   state.travel ? null : domainAt(state.world, state.location)
@@ -162,6 +166,8 @@ export function forgetExplored(before: GameState, after: GameState): GameState {
  */
 export function exploreOption(state: GameState, content: Content): ExploreOption | null {
   if (inProgress(state)) return null
+  // Only from a settlement (designer call 2026-11-14): not at a point of interest.
+  if (state.travel || !inSettlementHere(state)) return null
   const domain = domainHere(state)
   const terrain = domain ? domainTerrain(content, domain) : null
   if (!terrain || terrain === 'sea') return null

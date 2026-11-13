@@ -11,6 +11,7 @@ import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import type { GameState } from '../../schema/state'
 import { PlacePanel } from './PlacePanel'
 import { PoiPanel } from './PoiPanel'
+import { ExploreAction } from './ExploreAction'
 import { DEFAULT_TRAVEL_PREFS } from './travelPrefs'
 import { POWER_STEP_DAYS, REINHABIT_DAYS } from '../../engine/constants'
 
@@ -145,10 +146,22 @@ test('rest at a site is camp only, and there is nothing to buy or sell', async (
   expect(onAction).toHaveBeenCalledWith({ type: 'rest', lodging: false })
 })
 
+/** Explore as a settlement shows it (exploring is only from settlements: designer call). */
+function showExplore(state: GameState) {
+  const onAction = vi.fn()
+  render(<ExploreAction content={content} state={state} onAction={onAction} />)
+  return { onAction }
+}
+
+test('a site offers no exploring: only settlements do', () => {
+  show(world('poi-1', ['poi-1']))
+  expect(screen.queryByRole('group', { name: 'Explore the domain' })).toBeNull()
+})
+
 test('the explore preview shows the searcher, DC, days and the non-critical tiers with their chances', async () => {
-  const state = world('poi-1', ['poi-1'])
+  const state = world('ashmoor-1', ['poi-1'])
   const option = exploreOption(state, content)!
-  const { onAction } = show(state)
+  const { onAction } = showExplore(state)
   const box = within(screen.getByRole('group', { name: 'Explore the domain' }))
   const name = state.party.find((c) => c.id === option.actorId)!.name
   expect(box.getByText(new RegExp(`^${name}, \\w+ [+−]\\d+ vs DC ${option.dc}$`))).toBeTruthy()
@@ -171,13 +184,13 @@ test('the explore preview shows the searcher, DC, days and the non-critical tier
 })
 
 test('a domain known to be fully explored shows only that, no search', () => {
-  const state = world('poi-1', ['poi-1'])
+  const state = world('ashmoor-1', ['poi-1'])
   for (const p of Object.values(state.world.pois)) p.discovered = true
   // Known only once a search came up short: until then Explore is offered as usual.
-  show(state)
+  showExplore(state)
   expect(screen.getByRole('button', { name: /^Explore \(2 days · −\d+ food\)$/ })).toBeTruthy()
   cleanup()
-  show({ ...state, explored: ['ashmoor-1'] })
+  showExplore({ ...state, explored: ['ashmoor-1'] })
   const box = within(screen.getByRole('group', { name: 'Explore the domain' }))
   expect(box.getByText('This area is already fully explored.')).toBeTruthy()
   expect(box.queryByRole('button')).toBeNull()
