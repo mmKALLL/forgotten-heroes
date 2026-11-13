@@ -624,8 +624,8 @@ export const XP_BY_LEVEL: readonly number[] = [
 export const XP_PER_DC = 5
 /** A critical success pays this many times a success's XP. */
 export const XP_CRIT = 1.5
-/** A partial success pays this share of a success's XP. */
-export const XP_PARTIAL = 0.5
+/** A partial success pays this share of a success's XP (a quarter: designer call 2026-11-14). */
+export const XP_PARTIAL = 0.25
 /** A failure (critical or not) pays this share of a success's XP: none (designer call 2026-11-14). */
 export const XP_FAIL = 0
 /** A completed contract pays this much XP per gp of its pay (a good word too). */
@@ -634,6 +634,14 @@ export const CONTRACT_XP_PER_GP = 2
 export const XP_CLEAR = 150
 /** Each point of interest discovered (exploring, rumours, clues, contracts) pays this much XP. */
 export const XP_DISCOVER = 25
+/** XP an explore pays by its tier when it finds something (low stakes: designer call 2026-11-14). */
+export const EXPLORE_XP: Readonly<Record<Tier, number>> = {
+  critFail: 0,
+  fail: 0,
+  partial: 10,
+  success: 20,
+  critSuccess: 30,
+}
 
 // Challenge ratings (rules/challenge.ts)
 

@@ -35,7 +35,7 @@ import {
   EXPLORE_DC_BONUS,
   EXPLORE_FINDS,
   FORAGE_DC,
-  XP_DISCOVER,
+  EXPLORE_XP,
 } from '../constants'
 
 // Visiting and exploring points of interest (design §6). A visit plays one of the site's
@@ -234,12 +234,13 @@ function findsText(
   content: Content,
   domain: string,
   ids: readonly string[],
-  wanted: number
+  wanted: number,
+  gained: number
 ): string {
   const place = settlementName(state, domain)
   if (wanted === 0) return ': nothing found.'
   if (ids.length === 0) return `, but there is nothing more to find around ${place}.`
-  const xp = `+${XP_DISCOVER * ids.length} XP`
+  const xp = `+${gained} XP`
   const found =
     ids.length === 1
       ? `: you find ${foundText(state, content, ids[0], true)}, marked on the map (${xp}).`
@@ -293,6 +294,8 @@ export function explore(state: GameState, content: Content): GameState {
   const explored = short
     ? [...state.explored.filter((d) => d !== domain), domain]
     : state.explored.filter((d) => d !== domain)
+  // A search pays by its tier, if it found anything (EXPLORE_XP: low stakes, low pay).
+  const gained = ids.length > 0 ? EXPLORE_XP[roll.tier] : 0
   let next = appendLog(
     gainXp(
       {
@@ -305,12 +308,12 @@ export function explore(state: GameState, content: Content): GameState {
         inspiration: state.inspiration + (inspired ? 1 : 0),
         lastRoll: { ...roll, stat: option.skill, actorId: option.actorId },
       },
-      XP_DISCOVER * ids.length
+      gained
     ),
     `${name} leads a search around ${settlementName(state, domain)} for ${days} days: ` +
       `${statLabel(option.skill)} ${roll.kept} ${formatModifier(roll.modifier)} = ${roll.total} ` +
       `vs DC ${option.dc}. ${TIER_LABELS[roll.tier]}` +
-      findsText(state, content, domain, ids, finds.found) +
+      findsText(state, content, domain, ids, finds.found, gained) +
       (inspired ? ' Inspiration gained!' : ''),
     TIER_TONE[roll.tier]
   )

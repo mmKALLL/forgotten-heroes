@@ -24,6 +24,7 @@ import {
   POWER_STEP_DAYS,
   REINHABIT_DAYS,
   XP_DISCOVER,
+  EXPLORE_XP,
 } from '../constants'
 
 const content = fixtureContent()
@@ -585,14 +586,14 @@ describe('explore', () => {
     expect(one.text).toContain(`Success: you find ${name} (a war camp), `)
     expect(one.text).toMatch(/(half a day|a day|about \d+ days) (north|south|east|west)/)
     expect(one.text).toContain(`of ${one.after.world.settlements['greenvale-1'].name}`)
-    expect(one.text).toContain(`marked on the map (+${XP_DISCOVER} XP)`)
+    expect(one.text).toContain(`marked on the map (+${EXPLORE_XP.success} XP)`)
     // No separate "You learn of" or XP line: it is all in the one line.
     expect(one.after.log.some((e) => e.text.startsWith('You learn of'))).toBe(false)
     const two = line('critSuccess')
     for (const id of discovered(two.after)) {
       expect(two.text).toContain(two.after.world.pois[id].name)
     }
-    expect(two.text).toContain(`+${2 * XP_DISCOVER} XP`)
+    expect(two.text).toContain(`+${EXPLORE_XP.critSuccess} XP`)
     expect(line('fail').text).toMatch(/Failure: nothing found\.$/)
   })
 
