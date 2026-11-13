@@ -212,6 +212,13 @@ export function crLevel(cr: number): number
   - Content validation.
   - The migration if `GameState` changes.
   - One smoke test for the delve view.
+- **As built (D1–D4; details in design §6, "Authored dungeons and levelled work"):**
+  - **Shared interface:** uses only `crDc` and `crLevel` (Track C's `rules/challenge.ts`). Content is standard at CR 2 (`CR_STANDARD`, where `crDc` = 12 = `CRISIS_DC_BASE`); `rules/levels.ts` holds `crOffset`, `levelCr`, `founderLevel`, `levelPay`, `typicalPay`, `contractDc` and `jobDc`. Dungeon rooms are hardened (danger ramp, power) with the CR offset as a flat bonus rather than played with `atChallenge`, since only the Crisis skips the ramp.
+  - **D1:** an offer's level is the founders' best ± 1 from its own keyed stream (the offers themselves don't change as the party levels); pay × `1 + 0.5 × (level − 1)`. Contracts have no checks of their own, so their DCs are read as: the contract's offset (never negative) on hostile road encounters while it is held, and at its bounty/errand site when higher than the site's CR.
+  - **D2:** dungeons are placed in `newGame` after the Crisis (the near rule needs the start), from their own salt; all 20 fit on seeds 1–20. Authored dungeon sites are not hostile (no threat; the Rampant share is unchanged) but cycle. The generic dungeon types go to weight 0 (kept for old saves). Lairs get CR `LAIR_CR_BY_THREAT[threat] + domain threat level`.
+  - **D3:** the drive-out rule is an effect: `driveOut` is written into every ending fail/critFail branch of a room's snapshot, and `hoard` into the last room's other ending branches, so the previews show them and preview == actual. Any action other than a room's choices, Press on, Withdraw and a few chores withdraws first. The room failure texts of both content sets were rewritten (about 250) to describe being driven back.
+  - **D4:** `DelveView` heads the centre column while delving (a 2.4:1 strip during a room, 4:3 between rooms; "Whole dungeon"); `DungeonCard` and `SiteCr` in the site panel; the board's level badge. `pnpm sync-assets` writes colon paths with hyphens so the `_cave : lava` maps load (re-run it).
+  - **Save v14** (after Track C's v13): contracts gain `level` (1), `delve` is null, and the authored dungeons are placed in old worlds from where the party is.
 
 ### Track K: Crisis content and the tracker UI
 - **K1. Per villain:**
