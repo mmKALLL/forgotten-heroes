@@ -261,6 +261,21 @@ export function crLevel(cr: number): number
   - the smooth delve pan, and the dungeon card showing the suggested level when known.
 - **R (dungeon content):** revisit the CR ≥ 10 dungeons (and any whose maps clearly show more): add rooms where the map has them, true to the image. The schema's room cap rises to 10.
 
+### Track S: climaxes as skill challenges (after track E)
+**Designer call:** climaxes (the Crisis key sites and the dungeon boss rooms) should be hard for a low-level party to overcome: several tough enemies, or a multi-stage encounter or skill challenge. One d20 barely tells a level-2 party from a level-6 one.
+
+- **Engine.** A situation can be a **skill challenge**: `challenge: { successes: n, failures: m }`.
+  - Each round the player picks one of the stage's options (different members, skills and resources) and rolls.
+  - Successes and failures are tallied, and the challenge ends at n successes (win) or m failures (lose). A critical success counts as 2 successes, a critical failure as 2 failures.
+  - Several foes can be modelled as a challenge whose options name the foe each round faces.
+  - **The preview** shows the tally, each option's odds this round, and the overall chance of winning if the best option is picked every round (computed exactly; shown as "≈"). This keeps input randomness and visible odds.
+  - Per-round wounds and costs apply as written. The outcome of the whole is the situation's win or lose ending (`thwartAct`, `hoard`, `driveOut` …).
+- **Content.**
+  - Convert the 9 Crisis key finales and the 20 dungeon boss rooms to challenges, sized by CR: about 3/2 at CR ≤ 5, 4/3 at CR 6–12, 5/3 above.
+  - Optionally convert the multi-stage leads too.
+  - With crDc, a novice party should almost always lose act I's key challenge.
+- **Tests:** the preview's overall chance equals the exact computation, and a simulated challenge run matches it statistically; preview == actual per round; determinism.
+
 ## Wave 3
 
 ### Track B: balance (sims)
