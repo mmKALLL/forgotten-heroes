@@ -10,11 +10,12 @@ import { TierOutcomes } from './TierOutcomes'
 import { daysText } from './travelText'
 
 /**
- * Gathering a local good for a day (Plan 5a U3), under Explore in the town ledger: who leads, the
- * check and DC, how picked over the land is, what each non-critical tier brings home (on one
- * compact line, never an odds bar: design §9), and what a natural 1 brings (the engine's mishap).
- * Several goods share one row with a picker, so the ledger stays on one screen. Nothing when the
- * engine offers no gathering here.
+ * Gathering a local good (Plan 5a U3), under Explore in the town ledger: the days it takes and the
+ * gatherer's rations (on the button), who works, the check and DC, how picked over the land is,
+ * what each non-critical tier brings home (on one compact line, never an odds bar: design §9), and
+ * what a natural 1 brings (the engine's mishap). Several goods share one row with a picker, in the
+ * engine's order (what a success would sell for here, biggest first), so the ledger stays on one
+ * screen. Nothing when the engine offers no gathering here.
  */
 export function GatherAction({
   content,
@@ -49,9 +50,10 @@ export function GatherAction({
     <div className="gather-line" role="group" aria-label={t('gather.heading')}>
       <button
         disabled={!option.available}
+        title={t('gather.foodHint')}
         onClick={() => onAction({ type: 'gather', rule: option.rule })}
       >
-        {t('gather.button', { days: daysText(t, 1) })}
+        {t('gather.button', { days: daysText(t, option.days), food: option.food })}
       </button>{' '}
       {options.length > 1 ? (
         <select

@@ -693,9 +693,9 @@ export function trader(
   }
 
   /**
-   * Poor and without work: a day gathering the local good worth the most here, then selling it
-   * (food is kept for the road). Not once the land is picked over to half its yield. True when
-   * the day was spent.
+   * Poor and without work: a gathering of the local good worth the most here (buying the
+   * gatherer's rations first when short), then selling it (food is kept for the road). Not once
+   * the land is picked over to half its yield. True when the days were spent.
    */
   const gatherWhenPoor = (): boolean => {
     if (!o.gather || state.contracts.length > 0) return false
@@ -703,10 +703,16 @@ export function trader(
     const reserve = Math.max(GATHER_BELOW, 2 * livingMembers(state).length * ration)
     if (state.gold >= reserve) return false
     const best = gatherOptions(state, content)
-      .filter((x) => x.available && x.depleted < GATHER_DEPLETED)
+      .filter((x) => (x.available || (x.hungry && x.room > 0)) && x.depleted < GATHER_DEPLETED)
       .map((x) => ({ x, value: gatherValue(x) }))
       .sort((a, b) => b.value - a.value)[0]
     if (!best || best.value <= 0) return false
+    const short = best.x.food - goodsOf(state.goods, 'food')
+    if (short > 0) {
+      const cost = quote(state, content, state.location!, 'food', 'buy', short)?.total
+      if (cost === undefined || cost > state.gold) return false
+      act({ type: 'buyGoods', good: 'food', amount: short }, 'provision')
+    }
     act({ type: 'gather', rule: best.x.rule }, 'gather')
     if (state.encounter) {
       resolveEncounter()

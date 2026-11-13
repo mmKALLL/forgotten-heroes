@@ -9,7 +9,7 @@ import { GatherAction } from './GatherAction'
 const content = fixtureContent()
 afterEach(cleanup)
 
-test('the gather row shows its lead, DC and outcome lines, and dispatches gather', async () => {
+test('the gather row shows its days, food, gatherer, DC and outcome lines, and dispatches gather', async () => {
   // farisle-1 is forest with sawmills in the fixture: one rule, cut timber.
   const state = makeState({ location: 'farisle-1', goods: { food: 10, water: 2 } })
   const [option] = gatherOptions(state, content)
@@ -17,12 +17,15 @@ test('the gather row shows its lead, DC and outcome lines, and dispatches gather
   render(<GatherAction content={content} state={state} onAction={onAction} />)
   const row = within(screen.getByRole('group', { name: 'Gather local goods' }))
   expect(row.getByText(new RegExp(`^${option.actorName}, .* vs DC ${option.dc}`))).toBeTruthy()
-  const lines = row.getByRole('list', { name: 'What a day brings home' })
+  const lines = row.getByRole('list', { name: 'What it brings home' })
   const success = option.outcomes.find((o) => o.tier === 'success')!
   expect(lines.textContent).toContain(`${success.units} timber`)
   // The critical failure is previewed too, from the engine's mishap.
   expect(row.getByText(/^A natural 1 \(\d+%\) (brings trouble|hurts)/)).toBeTruthy()
-  await userEvent.click(row.getByRole('button', { name: /^Gather/ }))
+  // The button says the days and the gatherer's rations.
+  const button = row.getByRole('button', { name: /^Gather/ })
+  expect(button.textContent).toBe(`Gather (${option.days} days · −${option.food} food)`)
+  await userEvent.click(button)
   expect(onAction).toHaveBeenCalledWith({ type: 'gather', rule: option.rule })
 })
 
