@@ -12,7 +12,7 @@
   - *damage*, *heal*, ✱*temp HP*, ✱*revive* (a downed member gets up with that many HP);
   - *to hit*, *damage*, ✱*AC* (signed: −2 on a foe is a curse), ✱*ward N* (each hit taken is N lower), ✱*vulnerable N* (each hit taken is N higher);
   - *move*, *push*, *pull*, *stagger*, *stun*, *extra action*, *summon*;
-  - ✱*blind* (attacks at disadvantage, reach only the next tile), ✱*slow* (can't move: no step, charge or hit and run), ✱*fear* (won't come closer or attack; steps away), ✱*discord* (its intent turns on its own side), ✱*conceal* (attacks against it at disadvantage), ✱*banish* (off the line, can't act or be hit, then returns);
+  - ✱*blind* (attacks at disadvantage, reach only the next tile), ✱*rooted* (can't move: no step, charge or hit and run), ✱*fear* (won't come closer or attack; steps away), ✱*discord* (its intent turns on its own side), ✱*conceal* (attacks against it at disadvantage), ✱*banish* (off the line, can't act or be hit, then returns);
   - ✱*wall* (no unit enters or crosses the tile, no attack passes it), ✱*hazard* (the tile hurts whoever is on it when cast, enters it, or starts a turn on it), ✱*escape* (the whole party leaves at once, as a retreat, without free swings).
 - **Callings:** each divine level has one summoning spell. A good or neutral caster calls the beast or celestial, an evil one the undead of the same level (the summon effect's `evil`).
 - **Casts per rest** follow the plan's "Decided by Claude" table (not in the data yet).
@@ -31,7 +31,7 @@
 | 1 | Chromatic Orb | foe (1–5) | attack | 3d8 | yes |
 | 1 | Shield | self | auto | AC +5 (free action) |  |
 | 1 | Sleep | tile (2–5) | WIS save | stun |  |
-| 1 | Grease | tile (1–5) | DEX save | slow, 2 rds |  |
+| 1 | Grease | tile (1–5) | DEX save | rooted, 2 rds |  |
 | 1 | Fog Cloud | tile (0–5) | auto | conceal, 3 rds |  |
 | 2 | Scorching Ray | foe (1–5) | attack | 6d6 | yes |
 | 2 | Shatter | tile (2–6) | CON save (half) | 3d8 | yes |
@@ -44,14 +44,14 @@
 | 3 | Fireball | 2 tiles (2–6) | DEX save (half) | 6d6 | yes |
 | 3 | Lightning Bolt | tile (1–6) | DEX save (half) | 8d6 | yes |
 | 3 | Hungry Dark | 2 tiles (1–5) | auto | hazard 2d6/rd, blind, 2 rds | yes |
-| 3 | Slow | 2 tiles (1–5) | WIS save | slow, to hit -2, AC -2, 2 rds |  |
+| 3 | Slow | 2 tiles (1–5) | WIS save | rooted, to hit -2, AC -2, 2 rds |  |
 | 3 | Haste | ally (0–3) | auto | extra action, AC +2, 3 rds |  |
 | 3 | Fear | tile (1–4) | WIS save | fear, 2 rds |  |
 | 3 | Bestow Curse | foe (1–1) | WIS save | vulnerable 4, 5 rds |  |
-| 4 | Ice Storm | 2 tiles (2–6) | DEX save (half) | 4d8, slow | yes |
+| 4 | Ice Storm | 2 tiles (2–6) | DEX save (half) | 4d8, rooted | yes |
 | 4 | Blight | foe (1–5) | CON save (half) | 8d8 | yes |
 | 4 | Wall of Fire | tile (1–5) | DEX save (half) | wall, hazard 3d8/rd, 3 rds | yes |
-| 4 | Black Tentacles | tile (2–5) | STR save | pull 2, slow, 2 rds |  |
+| 4 | Black Tentacles | tile (2–5) | STR save | pull 2, rooted, 2 rds |  |
 | 4 | Greater Invisibility | ally (0–3) | auto | conceal, to hit +2, 3 rds |  |
 | 4 | Banishment | foe (1–4) | CHA save | banish, 3 rds |  |
 | 4 | Stoneskin | ally (0–1) | auto | ward 4, whole fight |  |
@@ -187,3 +187,11 @@
 8. **Out-of-combat uses.** None yet. Candidates: Revivify or True Resurrection raising a member who just died, Regenerate mending a lasting injury, Word of Recall as travel, healing spells between fights.
 9. **Damage kinds** (fire, radiant…) are not modelled. Do you want undead to be weak to radiant, or kept for Turn Undead only?
 10. **An evil cleric** differs only in its summons. Should the evil divine pool swap some spells too (e.g. Inflict Wounds for Healing Word)?
+
+
+## Designer notes (2026-11-14)
+
+- The effect "slow" is renamed **rooted** (it can't move).
+- Spells needn't be in full balance: variance and adapting to the situation are fun.
+- **Casts per long rest** (replacing the plan's provisional table): one cast per known spell level, plus one more cast for the level two below the best. From caster level 6, even levels add lower-level casts. Per improvement point, by spell level (1st/2nd/3rd/4th…):
+  1/0/0/0 → 1/1/0/0 → 1/1/1/0 → 2/1/1/0 → 2/1/1/1 → 2/2/1/1 → … (the pattern continues to 9th).

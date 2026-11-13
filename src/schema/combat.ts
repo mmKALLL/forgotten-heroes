@@ -136,7 +136,7 @@ export const CombatEffectSchema = z.discriminatedUnion('effect', [
   /** Its attacks are at disadvantage and reach only the next tile. */
   z.object({ effect: z.literal('blind') }),
   /** It can't move: no step, charge or hit and run; an intent that needs a move breaks. */
-  z.object({ effect: z.literal('slow') }),
+  z.object({ effect: z.literal('rooted') }),
   /** It won't come closer or attack: on its turn it moves a tile away from the other side. */
   z.object({ effect: z.literal('fear') }),
   /** Its intent turns on its own side (the nearest one it can reach), or it repositions. */

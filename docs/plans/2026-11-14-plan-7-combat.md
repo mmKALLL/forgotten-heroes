@@ -151,7 +151,7 @@
 ## Decided by Claude (please review)
 - **Fuel:** 1 fuel per dark room; a lit fight lights the whole line.
 - **Parley DC:** `crDc(cr)`, so the same scale as the checks.
-- **Casts per rest** (slots by caster level): levels 1–2: 2 casts at spell level 1. Each new spell level starts at 1 cast, and the lower ones gain one at each new spell level, up to 3.
+- **Casts per rest:** superseded by the designer's progression (2026-11-14, `docs/notes/spells-review.md`, "Designer notes"): 1/0/0/0 → 1/1/0/0 → 1/1/1/0 → 2/1/1/0 → 2/1/1/1 → 2/2/1/1 …, with even levels from 6 adding lower-level casts. Previous provisional idea: levels 1–2: 2 casts at spell level 1. Each new spell level starts at 1 cast, and the lower ones gain one at each new spell level, up to 3.
 - **Ability uses:** 1 at the level gained, +1 at levels 6, 10, 14 and 18.
 - **Cleric alignment:** picked when a cleric is created. Recruits roll good 45%, neutral 35%, evil 20%.
 - **Starting gear:** a class-appropriate plain weapon and armour (Plate for fighters and paladins is too dear, so they start in Chain).
