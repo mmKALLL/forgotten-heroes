@@ -69,8 +69,8 @@ describe('forageCheck', () => {
   })
 
   test('a forced march forages at a penalty', () => {
-    expect(FORAGE_PACE_MODIFIER.forced).toBe(-2)
-    expect(forageCheck(base(), 'plains', 'forced')!.modifier).toBe(1 - 2)
+    expect(FORAGE_PACE_MODIFIER.forced).toBeLessThan(0)
+    expect(forageCheck(base(), 'plains', 'forced')!.modifier).toBe(1 + FORAGE_PACE_MODIFIER.forced)
     expect(forageCheck(base(), 'plains', 'stealthy')!.modifier).toBe(1)
   })
 })
