@@ -17,6 +17,7 @@ import {
   twistKindsFor,
 } from './compile'
 import { slotNames } from './slots'
+import { playsRound } from './challenge'
 
 /** Slots every check outcome may use without declaring them. */
 export const BUILT_IN_SLOTS = ['actor'] as const
@@ -61,27 +62,52 @@ function textsOf(situation: Situation): Text[] {
         }
       }
     }
+    for (const [name, branch] of challengeBranches(stage)) {
+      const where = `${stageId} challenge ${name}`
+      texts.push({ text: branch.text, where, actorAllowed: false })
+      for (const effect of branch.effects)
+        if (effect.effect === 'log')
+          texts.push({ text: effect.text, where: `${where} log`, actorAllowed: false })
+    }
   }
   return texts
 }
 
+/** A challenge stage's win and lose branches (none for another stage). */
+const challengeBranches = (stage: Stage): [string, OutcomeBranch][] =>
+  stage.challenge
+    ? [
+        ['win', stage.challenge.win],
+        ['lose', stage.challenge.lose],
+      ]
+    : []
+
+/** Every effect of a situation; `option` is null for a challenge's win and lose branches. */
 const allEffects = (
   situation: Situation
-): { effect: Effect; option: Option; where: string; inTwist: boolean }[] =>
-  Object.entries(situation.stages).flatMap(([stageId, stage]) =>
-    stage.options.flatMap((option) =>
+): { effect: Effect; option: Option | null; where: string; inTwist: boolean }[] =>
+  Object.entries(situation.stages).flatMap(([stageId, stage]) => [
+    ...stage.options.flatMap((option) =>
       branches(option).flatMap(([name, outcome]) =>
         withTwist(outcome).flatMap(([suffix, branch]) =>
           branch.effects.map((effect) => ({
             effect,
-            option,
+            option: option as Option | null,
             where: `${stageId}/${option.id} ${name}${suffix}`,
             inTwist: suffix !== '',
           }))
         )
       )
-    )
-  )
+    ),
+    ...challengeBranches(stage).flatMap(([name, branch]) =>
+      branch.effects.map((effect) => ({
+        effect,
+        option: null,
+        where: `${stageId} challenge ${name}`,
+        inTwist: false,
+      }))
+    ),
+  ])
 
 /** Problems an archetype expansion would throw on, so they are reported before compiling. */
 function stageIssues(stages: Record<string, Stage>, content: Content, at = ''): string[] {
@@ -225,6 +251,15 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
         }
       }
     }
+    for (const [name, branch] of challengeBranches(stage)) {
+      const where = `${stageId} challenge ${name}`
+      if (branch.stay) issues.push(`${where}: can't stay; the challenge is decided`)
+      if (branch.tally) issues.push(`${where}: tally only works in a round's outcome`)
+      if (!branch.goto) continue
+      if (stageIds.has(branch.goto)) targets.push(branch.goto)
+      else issues.push(`${where}: goto unknown stage "${branch.goto}"`)
+    }
+    issues.push(...challengeIssues(stageId, stage))
     edges.set(stageId, targets)
   }
   const reached = new Set<string>()
@@ -276,9 +311,13 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
         effect.effect === 'healFraction' ||
         effect.effect === 'exhaustion') &&
       effect.target === 'actor' &&
-      option.kind === 'fixed'
+      (option === null || option.kind === 'fixed')
     ) {
-      issues.push(`${where}: fixed options have no actor; use "all" or "random"`)
+      issues.push(
+        option === null
+          ? `${where}: a challenge's win and lose have no actor; use "all" or "random"`
+          : `${where}: fixed options have no actor; use "all" or "random"`
+      )
     }
     if (effect.effect === 'revealTwist' && !compiled.twist)
       issues.push(`${where}: revealTwist but the situation has no twist`)
@@ -324,6 +363,33 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
       for (const option of stage.options)
         if (option.requires.some((r) => r.req === 'siteReady'))
           issues.push(`${stageId}/${option.id}: siteReady only works in a site situation`)
+  }
+  return issues
+}
+
+/**
+ * A skill challenge's rounds (challenge.ts): they stay on the stage until the tally decides, so
+ * they have no goto or stay, nor a hidden twist; a fixed option that tallies is once only (or it
+ * would win for free); `tally` means nothing outside a challenge.
+ */
+function challengeIssues(stageId: string, stage: Stage): string[] {
+  const issues: string[] = []
+  for (const option of stage.options) {
+    const round = stage.challenge !== undefined && playsRound(option)
+    for (const [name, outcome] of branches(option)) {
+      const where = `${stageId}/${option.id} ${name}`
+      if (!stage.challenge) {
+        if (outcome.tally || outcome.twist?.tally)
+          issues.push(`${where}: tally only works in a challenge stage`)
+        continue
+      }
+      if (!round) continue
+      if (outcome.goto || outcome.stay)
+        issues.push(`${where}: a challenge round can't goto or stay; the tally decides`)
+      if (outcome.twist) issues.push(`${where}: a challenge round can't have a twist branch`)
+    }
+    if (round && option.kind === 'fixed' && !option.once)
+      issues.push(`${stageId}/${option.id}: a fixed option that tallies must be once`)
   }
   return issues
 }
@@ -395,6 +461,21 @@ function dispositionIssues(situation: Situation): string[] {
   return []
 }
 
+/**
+ * A challenge offers a choice every round: at least 2 options that play a round, one of them
+ * never used up (not once, no requirements), so the tally can always go on.
+ */
+function challengeLint(id: string, stage: Stage): string[] {
+  if (!stage.challenge) return []
+  const rounds = stage.options.filter(playsRound)
+  const issues: string[] = []
+  if (rounds.length < 2)
+    issues.push(`stage ${id}: a challenge needs at least 2 options that play a round`)
+  if (!rounds.some((o) => !o.once && o.requires.length === 0))
+    issues.push(`stage ${id}: a challenge needs a round option that is never used up`)
+  return issues
+}
+
 function lintCompiled(compiled: Situation): string[] {
   const stages = Object.entries(compiled.stages)
   if (!compiled.wonder) {
@@ -410,6 +491,7 @@ function lintCompiled(compiled: Situation): string[] {
         : [
             `stage ${id}: every option is once or has requirements, so the stage can become a dead end`,
           ]),
+      ...challengeLint(id, stage),
     ])
   }
   const issues: string[] = []

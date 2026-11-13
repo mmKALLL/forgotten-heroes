@@ -4,6 +4,7 @@ import type { DelveState, GameState } from '../../schema/state'
 import { allSituations, compileSituation } from '../encounters/compile'
 import { tierOutcome } from '../encounters/outcomes'
 import { asRoom, type RoomRules } from '../encounters/room'
+import { NO_TALLY, challengeOdds, roundChoices, type Footing } from '../encounters/challenge'
 import { encounterOver, inProgress, startEncounter, unmetRequirements } from '../encounters/run'
 import { appendLog } from '../log'
 import { withRng } from '../rng'
@@ -237,7 +238,8 @@ export type DelvePreview = {
 /**
  * The chance a room drives the party out: for each of its situations, the opening stage's
  * available option with the least chance of an outcome that drives out (by the best actor's
- * odds), averaged over the situations it may draw.
+ * odds), or for a skill challenge the chance of losing it (challengeOdds), averaged over the
+ * situations it may draw.
  */
 function roomRisk(
   state: GameState,
@@ -261,20 +263,29 @@ function roomRisk(
     )
     const drives = (effects: readonly { effect: string }[]) =>
       effects.some((e) => e.effect === 'driveOut')
-    const options = played.stages[played.start]?.options ?? []
-    const each = options
-      .filter((o) => unmetRequirements(state, o.requires).length === 0)
-      .map((o) => {
-        if (o.kind === 'fixed') return drives(o.outcome.effects) ? 1 : 0
-        const actor = chooseActor(state.party, o.check.skill, undefined, o.check.ability)
-        if (!actor) return 1
-        const odds = tierOdds(actor.modifier, Number(o.check.dc))
-        return TIERS.reduce((sum, t) => sum + (drives(tierOutcome(o, t).effects) ? odds[t] : 0), 0)
-      })
+    const stage = played.stages[played.start]
+    const options = (stage?.options ?? []).filter(
+      (o) => unmetRequirements(state, o.requires).length === 0
+    )
+    // A skill challenge (a boss room): the chance of losing it with the best option every round.
+    if (stage?.challenge) {
+      const choices = roundChoices(state, options, played.start)
+      return 1 - challengeOdds(choices, stage.challenge, START).chance
+    }
+    const each = options.map((o) => {
+      if (o.kind === 'fixed') return drives(o.outcome.effects) ? 1 : 0
+      const actor = chooseActor(state.party, o.check.skill, undefined, o.check.ability)
+      if (!actor) return 1
+      const odds = tierOdds(actor.modifier, Number(o.check.dc))
+      return TIERS.reduce((sum, t) => sum + (drives(tierOutcome(o, t).effects) ? odds[t] : 0), 0)
+    })
     return each.length === 0 ? 1 : Math.min(...each)
   })
   return risks.reduce((a, b) => a + b, 0) / risks.length
 }
+
+/** A challenge as a room starts it: no tally, on a normal footing. */
+const START: Footing = { tally: NO_TALLY, position: 'normal', modifier: 0, used: [] }
 
 /** The preview of the dungeon at a POI; null when it is not an authored dungeon. */
 export function delvePreview(

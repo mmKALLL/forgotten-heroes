@@ -287,6 +287,10 @@
                       }
                     ]
                   }
+                },
+                "challenge": {
+                  "description": "Makes the stage a skill challenge: its options are rounds that mark a tally",
+                  "$ref": "#/$defs/__schema125"
                 }
               },
               "required": [
@@ -1688,9 +1692,12 @@
         "stay": {
           "$ref": "#/$defs/__schema120"
         },
+        "tally": {
+          "$ref": "#/$defs/__schema122"
+        },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema122"
+          "$ref": "#/$defs/__schema124"
         }
       },
       "required": [
@@ -1730,6 +1737,27 @@
       "type": "boolean"
     },
     "__schema122": {
+      "description": "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed option adds nothing unless given (it must then be once). An outcome that tallies stays on the stage until the challenge is decided.",
+      "$ref": "#/$defs/__schema123"
+    },
+    "__schema123": {
+      "type": "object",
+      "properties": {
+        "successes": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "failures": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        }
+      }
+    },
+    "__schema124": {
       "type": "object",
       "properties": {
         "text": {
@@ -1743,10 +1771,44 @@
         },
         "stay": {
           "$ref": "#/$defs/__schema120"
+        },
+        "tally": {
+          "$ref": "#/$defs/__schema122"
         }
       },
       "required": [
         "text"
+      ]
+    },
+    "__schema125": {
+      "type": "object",
+      "properties": {
+        "successes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "Successes that win it"
+        },
+        "failures": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "Failures that lose it"
+        },
+        "win": {
+          "description": "What winning does (no actor: no {actor}, no actor targets)",
+          "$ref": "#/$defs/__schema124"
+        },
+        "lose": {
+          "description": "What losing does (no actor)",
+          "$ref": "#/$defs/__schema124"
+        }
+      },
+      "required": [
+        "successes",
+        "failures",
+        "win",
+        "lose"
       ]
     }
   }

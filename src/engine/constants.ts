@@ -521,6 +521,17 @@ export const PARTIAL_MARGIN = 3
 export const HIGH_STAKES_BAND = [0.25, 0.75] as const
 /** A twist kind tagged with the land, or with the threat holding it, weighs this much more. */
 export const TWIST_PLACE_WEIGHT = 2
+/**
+ * What each tier of a check marks on a skill challenge's tally (challenge.ts, Plan 6 S): a
+ * critical counts twice, and a partial holds the line without gaining ground.
+ */
+export const CHALLENGE_MARKS: Record<Tier, { successes: number; failures: number }> = {
+  critFail: { successes: 0, failures: 2 },
+  fail: { successes: 0, failures: 1 },
+  partial: { successes: 0, failures: 0 },
+  success: { successes: 1, failures: 0 },
+  critSuccess: { successes: 2, failures: 0 },
+}
 
 // Territory and paths (territory.ts, graph.ts)
 

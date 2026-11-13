@@ -8,6 +8,13 @@ import {
   HIGH_STAKES_BAND,
 } from '../constants'
 
+/**
+ * The `used` key of a `once` option on a stage: its own id, or its group's (`once: "name"`), so
+ * choosing any option of a group uses up all of them.
+ */
+export const onceKey = (stageId: string, option: Pick<Option, 'id' | 'once'>): string =>
+  typeof option.once === 'string' ? `${stageId}/@${option.once}` : `${stageId}/${option.id}`
+
 /** The outcome for a tier; critical tiers fall back to fail and success. */
 export function tierOutcome(option: CheckOption, tier: Tier): Outcome {
   const { outcomes } = option

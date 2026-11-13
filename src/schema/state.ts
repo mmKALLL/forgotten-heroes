@@ -107,6 +107,14 @@ export const EncounterStateSchema = z.object({
   danger: z.number().min(0).default(0),
   /** "stage/option" keys of `once` options already chosen. */
   used: z.array(z.string()),
+  /**
+   * A challenge stage's tally (Plan 6 S): set to 0/0 on entering one, null on any other stage.
+   * When the challenge ends the encounter, the final tally stays.
+   */
+  tally: z
+    .object({ successes: z.number().int().min(0), failures: z.number().int().min(0) })
+    .nullable()
+    .default(null),
   log: z.array(EncounterLogEntrySchema),
 })
 export type EncounterState = z.infer<typeof EncounterStateSchema>
