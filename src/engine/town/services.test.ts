@@ -9,7 +9,7 @@ import { carryCapacity } from '../economy/capacity'
 import { routeOptions } from '../travel/preview'
 import { restOption } from '../travel/supplies'
 import { animalOffers } from './animals'
-import { lodgingOptions, newsTargets, serviceRows } from './services'
+import { lodgingOptions, newsOptions, serviceRows } from './services'
 import { KM_PER_DAY, MOUNT_ROUGH_SPEED } from '../constants'
 
 /** The fixture with a temple that heals and blesses, and a courier, in every settlement. */
@@ -104,22 +104,35 @@ describe('healers, temples and couriers', () => {
     ).toBe(blessed.inspiration + 1)
   })
 
-  test('news writes a heard entry, dated by the courier’s road', () => {
+  test('news updates exactly the towns its option lists, dated by the courier’s road', () => {
     const s = at('greenvale-1', { day: 20, priceBook: {} })
-    const target = newsTargets(s, content)[0]
-    expect(target.age).toBeGreaterThan(0)
-    const after = act(s, {
-      type: 'useService',
-      service: 'couriers',
-      action: 'news',
-      settlement: target.id,
-    })
-    expect(after.priceBook[target.id]).toMatchObject({ heard: true, day: 20 - target.age })
-    expect(after.gold).toBeLessThan(s.gold)
-    // Far Isle is across the sea: no courier news from there.
-    expect(newsTargets(s, content).map((t) => t.id)).not.toContain('farisle-1')
-    // Prices known as fresh as the news would be: no longer a target.
-    expect(newsTargets(after, content).map((t) => t.id)).not.toContain(target.id)
+    const [neighbours, all] = newsOptions(s, content)
+    // One route away; Far Isle is no neighbour of Greenvale, but every town includes it.
+    expect(neighbours.towns.map((t) => t.id).sort()).toEqual(['ashmoor-1', 'greenvale-2'])
+    expect(all.towns.map((t) => t.id)).toContain('farisle-1')
+    // Every town's news travels faster: never older than a neighbour's.
+    for (const t of neighbours.towns) {
+      expect(all.towns.find((a) => a.id === t.id)!.age).toBeLessThanOrEqual(t.age)
+    }
+    const news = (state: GameState, reach: 'neighbours' | 'all') =>
+      act(state, { type: 'useService', service: 'couriers', action: 'news', reach })
+    const after = news(s, 'neighbours')
+    expect(after.gold).toBe(s.gold - neighbours.cost)
+    expect(Object.keys(after.priceBook).sort()).toEqual(neighbours.towns.map((t) => t.id).sort())
+    for (const t of neighbours.towns) {
+      expect(after.priceBook[t.id]).toMatchObject({ heard: true, day: 20 - t.age })
+    }
+    // Nothing fresher from the neighbours now: refused, and nothing is paid.
+    const again = newsOptions(after, content)[0]
+    expect(again).toMatchObject({ available: false, towns: [] })
+    expect(news(after, 'neighbours').gold).toBe(after.gold)
+    // Every town: only those it makes fresher, as previewed.
+    const wide = newsOptions(after, content)[1]
+    const later = news(after, 'all')
+    for (const t of wide.towns) expect(later.priceBook[t.id].day).toBe(t.day)
+    // A sea route makes Far Isle Ashmoor's neighbour.
+    const coast = newsOptions(at('ashmoor-1', { day: 20 }), content)[0]
+    expect(coast.towns.map((t) => t.id)).toContain('farisle-1')
   })
 
   test('each service’s short effect says what using it does', () => {

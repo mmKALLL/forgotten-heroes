@@ -226,10 +226,14 @@ export const PRIVATE_ROOM_EXHAUSTION = 2
 export const HEALER_PRICE = 10
 /** A temple's blessing (1 Inspiration), once per arrival at each temple. */
 export const BLESSING_PRICE = 10
-/** A courier's news of one market on the same island. */
-export const NEWS_PRICE = 5
+/** A courier's news of every neighbouring settlement (one route away, sea routes included). */
+export const COURIER_NEIGHBOURS_PRICE = 10
+/** A courier's news of every settlement in the world, carried faster (COURIER_ALL_SPEED). */
+export const COURIER_ALL_PRICE = 25
 /** How far news travels in a day: a heard price is a day older per this many km between towns. */
 export const COURIER_KM_PER_DAY = 40
+/** The every-town news travels this many times COURIER_KM_PER_DAY (relays of riders and ships). */
+export const COURIER_ALL_SPEED = 1.5
 /** Animals sell back for this share of their price. */
 export const ANIMAL_RESALE = 0.5
 /** Ridden in rough terrain, mounts are only this much faster than walking. */

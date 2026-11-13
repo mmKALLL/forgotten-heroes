@@ -9,7 +9,8 @@ import {
   lodgingOptions,
   needsHealer,
   NOT_ENOUGH_GOLD,
-  newsTargets,
+  newsOptions,
+  type NewsOption,
   serviceRows,
   type ServiceActionView,
   type ServiceRow,
@@ -75,16 +76,12 @@ export function QualityPips({ quality, effects }: { quality: number; effects: Qu
   )
 }
 
-/** Why a service's button is disabled, shown under it (not only in its tooltip). */
-function Why({ reason }: { reason: string | null | undefined }) {
-  return reason ? <span className="service-why muted small">{reason}</span> : null
-}
-
 /**
  * A service's purchase button: its name and price ("Blessing · −10 gp"), then on a second line the
  * engine's short effect ("+1 Inspiration"); the longer description is its tooltip. A refusal is
  * linked to it for screen readers and shown under it, except for want of gold, which the disabled
- * button says enough (designer): that one is only in the tooltip and the accessible description.
+ * button says enough (designer): that one is only in the tooltip and the accessible description,
+ * as is any refusal where `quiet` (the courier's "nothing fresher", beside its other option).
  */
 function BuyButton({
   label,
@@ -93,6 +90,7 @@ function BuyButton({
   reason,
   disabled,
   onClick,
+  quiet = false,
 }: {
   label: ReactNode
   effect: string | null
@@ -100,9 +98,10 @@ function BuyButton({
   reason: string | null
   disabled: boolean
   onClick: () => void
+  quiet?: boolean
 }) {
   const id = useId()
-  const poor = reason === NOT_ENOUGH_GOLD
+  const poor = reason === NOT_ENOUGH_GOLD || quiet
   return (
     <>
       <button
@@ -198,12 +197,12 @@ export function ServicesPanel({ content, state, onAction }: Props) {
 
 /**
  * The tiles in reading order (designer call): places described only, then shops that open a list
- * (recruits, accessories), then shops with a picker (news, animals), then places with buttons.
+ * (recruits, accessories), then shops with a picker (animals), then places with buttons.
  */
 const TILE_KINDS = ['info', 'list', 'picker', 'buttons'] as const
 type TileKind = (typeof TILE_KINDS)[number]
 const LIST_ACTIONS = ['recruit', 'accessories']
-const PICKER_ACTIONS = ['news', 'animals']
+const PICKER_ACTIONS = ['animals']
 
 /** The actions a tile shows (rumours, the board, the market and passage live elsewhere). */
 function tileActions(row: ServiceRow, state: GameState, content: Content): ServiceActionView[] {
@@ -298,6 +297,27 @@ function TradesLine({ content, service }: { content: Content; service: string })
   return <span className="muted small trades">{parts.join('; ')}</span>
 }
 
+/**
+ * A courier option's tooltip: the towns it brings news of, with how old each is (neighbours), or
+ * how many and how old (every town).
+ */
+function newsTitle(t: I18n['t'], option: NewsOption): string {
+  const hint = t(`services.newsHint.${option.reach}`)
+  if (option.towns.length === 0) return hint
+  const ages = option.towns.map((town) => town.age)
+  const [young, old] = [Math.min(...ages), Math.max(...ages)]
+  const towns =
+    option.reach === 'neighbours'
+      ? option.towns
+          .map((town) => t('services.newsTarget', { name: town.name, days: daysText(t, town.age) }))
+          .join(', ')
+      : t('services.newsTowns', {
+          n: option.towns.length,
+          days: young === old ? daysText(t, old) : `${daysText(t, young)}–${daysText(t, old)}`,
+        })
+  return `${hint}\n${towns}`
+}
+
 function ServiceAction({
   view,
   row,
@@ -307,7 +327,6 @@ function ServiceAction({
   opener,
 }: Props & { view: ServiceActionView; row: ServiceRow; opener: Opener }) {
   const { t, name } = useI18n()
-  const [target, setTarget] = useState<string | null>(null)
   const [animal, setAnimal] = useState<string | null>(null)
   switch (view.action) {
     case 'recruit': {
@@ -398,42 +417,31 @@ function ServiceAction({
         />
       )
     }
-    case 'news': {
-      // Only towns whose prices the courier's news would make fresher (the engine filters them).
-      const targets = newsTargets(state, content)
-      const chosen = targets.find((s) => s.id === target) ?? targets[0]
-      if (!chosen) return <Why reason={t('services.newsFresh')} />
+    case 'news':
+      // Two options (neighbours, every town), each updating exactly the towns the engine lists.
       return (
-        <span className="inline-pick">
-          <select
-            aria-label={t('services.newsFrom')}
-            value={chosen?.id ?? ''}
-            onChange={(e) => setTarget(e.target.value)}
-          >
-            {targets.map((s) => (
-              <option key={s.id} value={s.id}>
-                {t('services.newsTarget', { name: s.name, days: daysText(t, s.age) })}
-              </option>
-            ))}
-          </select>
-          <BuyButton
-            label={t('services.news', { gp: view.cost ?? 0 })}
-            effect={view.effect}
-            title={t('services.newsHint')}
-            reason={view.reason}
-            disabled={!view.available}
-            onClick={() =>
-              onAction({
-                type: 'useService',
-                service: row.service,
-                action: 'news',
-                settlement: chosen.id,
-              })
-            }
-          />
-        </span>
+        <>
+          {newsOptions(state, content).map((option) => (
+            <BuyButton
+              key={option.reach}
+              label={t(`services.news.${option.reach}`, { gp: option.cost })}
+              effect={option.effect}
+              title={newsTitle(t, option)}
+              reason={option.reason}
+              disabled={!option.available}
+              quiet
+              onClick={() =>
+                onAction({
+                  type: 'useService',
+                  service: row.service,
+                  action: 'news',
+                  reach: option.reach,
+                })
+              }
+            />
+          ))}
+        </>
       )
-    }
     case 'animals': {
       const offers = animalOffers(state, content)
       const chosen = offers.find((o) => o.id === animal) ?? offers[0]
