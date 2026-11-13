@@ -203,7 +203,7 @@ export type AccessoryAction =
  * Puts an accessory on: its `maxHp` hooks raise max HP only. HP isn't raised, so taking it off and
  * on again can never heal; the extra room fills by resting like any other.
  */
-function wear(c: Character, a: Accessory): Character {
+export function wear(c: Character, a: Accessory): Character {
   return { ...c, accessory: a, maxHp: c.maxHp + maxHpBonus(a.hooks) }
 }
 

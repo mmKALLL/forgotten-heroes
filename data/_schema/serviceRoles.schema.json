@@ -49,7 +49,7 @@
             "$ref": "#/$defs/__schema11"
           },
           "accessories": {
-            "$ref": "#/$defs/__schema19"
+            "$ref": "#/$defs/__schema20"
           }
         },
         "required": [
@@ -195,8 +195,12 @@
         },
         "fee": {
           "default": 1,
-          "description": "Multiplies the hiring fee",
+          "description": "Multiplies the sign-on fee",
           "$ref": "#/$defs/__schema18"
+        },
+        "gear": {
+          "description": "The chance an offer brings a tier-1 accessory (default RECRUIT_GEAR_CHANCE)",
+          "$ref": "#/$defs/__schema19"
         }
       },
       "required": [
@@ -236,20 +240,25 @@
       "exclusiveMinimum": 0
     },
     "__schema19": {
-      "description": "Accessories sold here (Plan 5a); needs the \"accessories\" action",
-      "$ref": "#/$defs/__schema20"
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
     },
     "__schema20": {
+      "description": "Accessories sold here (Plan 5a); needs the \"accessories\" action",
+      "$ref": "#/$defs/__schema21"
+    },
+    "__schema21": {
       "type": "object",
       "properties": {
         "offers": {
           "type": "array",
           "prefixItems": [
             {
-              "$ref": "#/$defs/__schema21"
+              "$ref": "#/$defs/__schema22"
             },
             {
-              "$ref": "#/$defs/__schema22"
+              "$ref": "#/$defs/__schema23"
             }
           ],
           "items": false,
@@ -260,10 +269,10 @@
         "maxTier": {
           "anyOf": [
             {
-              "$ref": "#/$defs/__schema23"
+              "$ref": "#/$defs/__schema24"
             },
             {
-              "$ref": "#/$defs/__schema24"
+              "$ref": "#/$defs/__schema25"
             }
           ],
           "description": "The best tier it sells"
@@ -274,21 +283,21 @@
         "maxTier"
       ]
     },
-    "__schema21": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 10
-    },
     "__schema22": {
       "type": "integer",
       "minimum": 0,
       "maximum": 10
     },
     "__schema23": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    },
+    "__schema24": {
       "type": "number",
       "const": 1
     },
-    "__schema24": {
+    "__schema25": {
       "type": "number",
       "const": 2
     }

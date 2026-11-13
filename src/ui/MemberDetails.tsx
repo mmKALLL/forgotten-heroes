@@ -3,6 +3,7 @@ import { describeAccessory } from '../engine/gear/accessories'
 import { describeHook } from '../engine/gear/hooks'
 import { xpProgress } from '../engine/rules/progression'
 import { isAlive, isHired, type CamaraderieInfo } from '../engine/town/camaraderie'
+import { oldWoundText } from '../engine/town/recruits'
 import type { Action } from '../engine/state'
 import type { Accessory } from '../schema/gear'
 import type { Character } from '../schema/state'
@@ -70,6 +71,7 @@ export function MemberDetails({
           ? t('party.xpCap', { xp: p.xp })
           : t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })}
       </p>
+      {c.oldWound && <p className="tone-bad">{t('party.wound', { wound: oldWoundText(c)! })}</p>}
       <AccessorySlot character={c} gear={gear} onAction={onAction} />
       {hired ? (
         <div className="member-hire">

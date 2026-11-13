@@ -3,9 +3,10 @@ import type { GameState } from '../../schema/state'
 import { step, type Action } from '../state'
 import { brom, fixtureContent, lyra, makeCharacter, makeState } from '../test-fixtures'
 import { levelFor } from '../rules/progression'
-import { PARTY_CAP, STARTING_FOOD_DAYS, XP_BY_LEVEL } from '../constants'
+import { ABILITIES } from '../rules/abilities'
+import { PARTY_CAP, RECRUIT_SIGNON, STARTING_FOOD_DAYS, XP_BY_LEVEL } from '../constants'
 import { serviceRows } from './services'
-import { recruitOffers, type RecruitOffer } from './recruits'
+import { gearPrice, recruitOffers, signOnFee, type RecruitOffer } from './recruits'
 
 const content = fixtureContent()
 const HERE = 'greenvale-1'
@@ -85,6 +86,53 @@ describe('recruit offers', () => {
     const broke = at({ gold: 0 })
     expect(row(broke).available).toBe(false)
     expect(offers(broke).every((o) => !o.available && o.reason)).toBe(true)
+  })
+})
+
+describe('sign-on fees and rolled recruits (Plan 6)', () => {
+  test("the fee lies within its level's range; better stats never cost less; a wound lowers it", () => {
+    for (let level = 1; level <= RECRUIT_SIGNON.length; level++) {
+      const [low, high] = RECRUIT_SIGNON[level - 1]
+      let last = 0
+      for (let total = 18; total <= 108; total++) {
+        const fee = signOnFee({ level, total, wounded: false })
+        expect(fee).toBeGreaterThanOrEqual(Math.max(low, last))
+        expect(fee).toBeLessThanOrEqual(high)
+        expect(signOnFee({ level, total, wounded: true })).toBeLessThanOrEqual(fee)
+        last = fee
+      }
+      const typical = { level, total: 63 }
+      expect(signOnFee({ ...typical, wounded: true })).toBeLessThan(
+        signOnFee({ ...typical, wounded: false })
+      )
+    }
+  })
+
+  test('offers roll 3d6, some carry an old wound, and some bring gear priced into the fee', () => {
+    const all = overWeeks(at(), 60)
+    const novices = all.filter((o) => o.level === 1)
+    for (const o of novices) {
+      for (const a of ABILITIES) expect(o.character.abilities[a]).toBeLessThanOrEqual(18)
+      expect(o.character.abilities.str).toBeGreaterThanOrEqual(3)
+      const [low, high] = RECRUIT_SIGNON[0]
+      expect(o.fee - o.gearPrice).toBeGreaterThanOrEqual(low)
+      expect(o.fee - o.gearPrice).toBeLessThanOrEqual(high)
+    }
+    const wounded = all.filter((o) => o.character.oldWound !== null)
+    expect(wounded.length / all.length).toBeGreaterThan(0.05)
+    expect(wounded.length / all.length).toBeLessThan(0.4)
+    expect(wounded.every((o) => o.wound !== null && /−2 [A-Z]{3}\)$/.test(o.wound))).toBe(true)
+    const geared = all.filter((o) => o.gear !== null)
+    expect(geared.length).toBeGreaterThan(0)
+    for (const o of geared) {
+      expect(o.character.accessory).toEqual(o.gear)
+      expect(o.gearPrice).toBe(gearPrice(o.gear!))
+    }
+    expect(all.filter((o) => o.gear === null).every((o) => o.gearPrice === 0)).toBe(true)
+    // The best rolls usually go to the class's key abilities: a fighter's STR beats its CHA.
+    const fighters = all.filter((o) => o.character.classId === 'fighter' && o.level === 1)
+    const strong = fighters.filter((o) => o.character.abilities.str > o.character.abilities.cha)
+    expect(strong.length / fighters.length).toBeGreaterThan(0.7)
   })
 })
 

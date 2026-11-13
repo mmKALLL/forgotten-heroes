@@ -101,13 +101,14 @@ test('no strain, no strain badge', () => {
 })
 
 test('each card shows its level and a bar to the next; the sheet has XP, hired and accessory', async () => {
-  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], hired: true }
+  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], hired: true, oldWound: 'dex' as const }
   render(<PartyPanel party={[brom, hired]} />)
   expect(toggle('Lyra').textContent).toMatch(/lv 2/)
   const bar = card('Lyra').getByRole('meter', { name: 'Lyra XP' })
   expect(bar.getAttribute('aria-valuetext')).toMatch(/to level 3$/)
   await userEvent.click(toggle('Lyra'))
   expect(card('Lyra').getByText('Hired')).toBeTruthy()
+  expect(card('Lyra').getByText('Old wound: A badly set leg (−2 DEX)')).toBeTruthy()
   expect(card('Lyra').getByText(/^Accessory:/)).toBeTruthy()
   // At the cap there is no bar.
   cleanup()

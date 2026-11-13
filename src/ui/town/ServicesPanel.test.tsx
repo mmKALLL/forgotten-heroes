@@ -152,6 +152,19 @@ test('with no one looking for work, the inn leaves out its Recruits opener', () 
   expect(inn.queryByRole('button', { name: /^Recruits/ })).toBeNull()
 })
 
+test("a recruit's old wound and the gear they bring are shown", async () => {
+  const day = Array.from({ length: 80 }, (_, w) => w * 7 + 1).find((d) =>
+    recruitOffers(town({ day: d }), content, 'greenvale-1').some((o) => o.wound || o.gear)
+  )!
+  const offer = recruitOffers(town({ day }), content, 'greenvale-1').find((o) => o.wound || o.gear)!
+  panel(town({ day }))
+  await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))
+  const row = within(screen.getByRole('listitem', { name: offer.character.name }))
+  if (offer.wound) expect(row.getByText(`Old wound: ${offer.wound}`)).toBeTruthy()
+  if (offer.gear)
+    expect(row.getByText(new RegExp(`^Brings .* \\(\\+${offer.gearPrice} gp\\)$`))).toBeTruthy()
+})
+
 test('a recruit the party cannot afford is disabled with the reason inline', async () => {
   const onAction = panel(town({ gold: 0 }))
   await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))

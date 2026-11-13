@@ -367,8 +367,34 @@ export const ESCORT_HOSTILE = 0.1
 
 /** Living members a party can have: hiring stops here (the dead don't count). */
 export const PARTY_CAP = 6
-/** A recruit's hiring fee per level (gp), before the service's `fee` multiplier; rounded up. */
-export const RECRUIT_FEE_PER_LEVEL = 10
+/**
+ * A recruit's one-time sign-on fee range (gp) by level 1–20, [low, high], before the service's
+ * `fee`: a recruit's rolled stats and any old wound place them in it (designer, 2026-11-13, to
+ * level 5; ×1.35 a level beyond).
+ */
+// prettier-ignore
+export const RECRUIT_SIGNON: readonly (readonly [number, number])[] = [
+  [20, 60], [40, 100], [75, 150], [140, 200], [200, 280],
+  [270, 380], [360, 510], [490, 690], [660, 930], [900, 1250],
+  [1200, 1700], [1650, 2300], [2200, 3100], [3000, 4150], [4000, 5650],
+  [5450, 7600], [7350, 10250], [9900, 13850], [13350, 18700], [18050, 25250],
+]
+/** The 3d6 ability total that puts a recruit in the middle of the fee range (6 × 10.5). */
+export const RECRUIT_STAT_MEAN = 63
+/** The span of ability totals that runs from the low end of the fee range to the high (±2 SD). */
+export const RECRUIT_STAT_SPAN = 29
+/** The chance a recruit's two best rolls don't go to their class's two key abilities. */
+export const RECRUIT_OFF_CLASS = 0.15
+/** The share of recruits with an old wound (founders have none). */
+export const OLD_WOUND_CHANCE = 0.2
+/** An old wound lowers one ability by this much (never below 3). */
+export const OLD_WOUND_PENALTY = 2
+/** A wounded recruit's place in the fee range is multiplied by this: near the low end. */
+export const OLD_WOUND_QUALITY = 0.3
+/** The chance a recruit brings a tier-1 accessory, unless the service's `gear` says otherwise. */
+export const RECRUIT_GEAR_CHANCE = 0.15
+/** A recruit's accessory adds this share of its shop price to the sign-on fee. */
+export const RECRUIT_GEAR_PRICE = 0.75
 /** The share of recruits of the settlement's own ancestry; the rest are any playable one. */
 export const RECRUIT_LOCAL_ANCESTRY = 0.75
 

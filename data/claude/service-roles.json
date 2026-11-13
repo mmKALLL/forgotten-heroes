@@ -2,7 +2,7 @@
   "$schema": "../_schema/serviceRoles.schema.json",
   "kind": "serviceRoles",
   "source": "claude",
-  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Plan 5a: Magic Items sells 2–4 accessories a week up to tier 2 and the finesmith 1–2 of tier 1 (`accessories`); both buy the party's back at half their value. Plan 6: wages are gone, so the mercenaries' cheap sign-on (fee ×0.5, wage ×1.5) went with them; they now sign on at the usual fee. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
+  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Plan 5a: Magic Items sells 2–4 accessories a week up to tier 2 and the finesmith 1–2 of tier 1 (`accessories`); both buy the party's back at half their value. Plan 6: wages are gone, so the mercenaries' cheap sign-on (fee ×0.5, wage ×1.5) went with them; they now sign on at the usual fee. Some recruits bring a tier-1 accessory, priced into the fee: 15% at the inn, 25% at the guild (`gear`) and 35% with the mercenaries. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded.",
   "entries": [
     {
       "id": "inn-tavern",
@@ -136,7 +136,7 @@
       "buysOnly": ["relics", "arms"],
       "actions": ["board", "market", "recruit"],
       "specialty": "Bounties and errands, kit for members, and a buyer for dungeon finds.",
-      "recruits": { "offers": [1, 3], "levels": [1, 3] }
+      "recruits": { "offers": [1, 3], "levels": [1, 3], "gear": 0.25 }
     },
     {
       "id": "magic-items",
@@ -236,7 +236,8 @@
       "recruits": {
         "offers": [1, 2],
         "levels": [2, 4],
-        "classes": ["fighter", "ranger", "paladin"]
+        "classes": ["fighter", "ranger", "paladin"],
+        "gear": 0.35
       }
     },
     {
