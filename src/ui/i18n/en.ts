@@ -548,8 +548,7 @@ export const en = {
   'pace.steady': 'Steady',
   'pace.brisk': 'Brisk',
   'pace.forced': 'Forced march',
-  'paceHint.stealthy':
-    'Half speed; covers your tracks so pursuers lose the trail, avoids some hostile encounters, and ambushes give Edge (unless the party forages)',
+  'paceHint.stealthy': 'Half speed; covers your tracks; Edge in ambushes unless foraging',
   'paceHint.steady': 'Normal speed',
   'paceHint.brisk': '1.25× speed; more hostile encounters, ambushes find you Exposed',
   'paceHint.forced': '1.5× speed; more supplies and a CON check against exhaustion each day',
