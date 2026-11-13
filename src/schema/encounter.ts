@@ -366,7 +366,8 @@ const optionFields = {
     .optional()
     .describe(
       '"retreat": fleeing or withdrawing from a hostile encounter; it costs camaraderie, more ' +
-        'the bigger the party'
+        'the bigger the party. "surprise": a check about an ambush or being caught unawares ' +
+        "(spotting it, reacting in time, or springing one); the scout's kit adds to it"
     ),
   requires: z.array(RequirementSchema).default([]),
   once: z

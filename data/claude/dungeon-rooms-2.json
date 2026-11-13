@@ -5642,6 +5642,7 @@
             },
             {
               "id": "ambush",
+              "tags": ["surprise"],
               "kind": "check",
               "label": "Strike from the shadows",
               "description": "A blow from where it does not expect one. Fail, and you are open.",

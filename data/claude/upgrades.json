@@ -2,7 +2,7 @@
   "$schema": "../_schema/upgrades.schema.json",
   "kind": "upgrades",
   "source": "claude",
-  "notes": "Party upgrades (Plan 6c, design §4 \"Party upgrades\"): lasting purchases owned by the party, bought level by level (I–V) wherever a service in `soldBy` is. Level n costs basePrice × n gp (designer call 2026-11-13: a normal base is 100, the company banner's 200). What each level does is the engine's (src/engine/rules/upgrades.ts, numbers in the constants' \"Party upgrades\" section); `description` is flavour, and the game adds what each level does. Guild membership was dropped (designer call 2026-11-13).",
+  "notes": "Party upgrades (Plan 6c, design §4 \"Party upgrades\"): lasting purchases owned by the party, bought level by level (I–V) wherever a service in `soldBy` is. Level n costs basePrice × n gp (designer call 2026-11-13: a normal base is 100, the company banner's 200). What each level does is the engine's (src/engine/rules/upgrades.ts, numbers in the constants' \"Party upgrades\" section); `description` is flavour, and the game adds what each level does. Guild membership was dropped (designer call 2026-11-13). The scout's kit (base 150) is a designer call of 2026-11-13 too.",
   "entries": [
     {
       "id": "camp-kit",
@@ -38,6 +38,13 @@
       "description": "A banner, matching cloaks and a name sewn on both: something to stand under when it goes badly.",
       "basePrice": 200,
       "soldBy": ["tailor"]
+    },
+    {
+      "id": "scouts-kit",
+      "name": "Scout's kit",
+      "description": "A good glass, soft boots, a hooded cloak, trail signs learned the hard way and a whistle that sounds like a bird.",
+      "basePrice": 150,
+      "soldBy": ["adventurers-guild", "adventuring-supplies", "mercenaries"]
     }
   ]
 }

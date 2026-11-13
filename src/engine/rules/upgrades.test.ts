@@ -9,6 +9,9 @@ import { visibleWealth } from '../economy/wealth'
 import { wentWithout } from '../town/camaraderie'
 import { restOption } from '../travel/supplies'
 import { exploreOption } from '../world/explore'
+import { routeOptions } from '../travel/preview'
+import { placeOnRoute } from '../travel/journey'
+import { SCOUT_CHECK_BONUS, SCOUT_HOSTILE_PER_LEVEL } from '../constants'
 import { tierOdds } from './checks'
 
 // Each upgrade's effect as its preview shows it and as it happens (Plan 6c: preview == actual).
@@ -227,5 +230,69 @@ describe('company banner', () => {
     expect(flown.camaraderie - wentWithout(flown).camaraderie).toBe(plainLoss - 3)
     const huge = { ...state, upgrades: { 'company-banner': 5 } }
     expect(wentWithout(huge).camaraderie).toBeLessThanOrEqual(state.camaraderie)
+  })
+})
+
+describe("scout's kit", () => {
+  const ambush = {
+    id: 'ambush',
+    title: 'Ambush',
+    disposition: 'hostile',
+    stages: {
+      start: {
+        text: 'Shapes in the trees.',
+        options: [
+          { ...check('spot', 'perception'), tags: ['surprise'] },
+          check('fight', 'athletics'),
+        ],
+      },
+    },
+  }
+  const exposed = (state: GameState): GameState => ({
+    ...state,
+    encounter: { ...state.encounter!, position: 'exposed' },
+  })
+
+  test('adds to a surprise check as the preview shows, and the roll uses it', () => {
+    const scouted = meeting(ambush, { upgrades: { 'scouts-kit': 3 } })
+    const [spot, fight] = encounterOptions(scouted)
+    expect(spot.check!.upgradeParts).toEqual({ delving: 0, scout: 3 * SCOUT_CHECK_BONUS })
+    expect(spot.check!.upgradeModifier).toBe(3 * SCOUT_CHECK_BONUS)
+    expect(fight.check!.upgradeModifier).toBe(0)
+    const rolled = choose(scouted, 'spot')
+    expect(rolled.lastRoll!.modifier).toBe(spot.check!.modifier + 3 * SCOUT_CHECK_BONUS)
+    expect(spot.check!.odds).toEqual(tierOdds(rolled.lastRoll!.modifier, 13))
+    expect(encounterOptions(meeting(ambush))[0].check!.upgradeModifier).toBe(0)
+  })
+
+  test('adds to any check rolled Exposed, once on an exposed surprise check', () => {
+    const state = exposed(meeting(ambush, { upgrades: { 'scouts-kit': 2 } }))
+    const [spot, fight] = encounterOptions(state)
+    expect(fight.check!.mode).toBe('disadvantage')
+    expect(fight.check!.upgradeParts.scout).toBe(2 * SCOUT_CHECK_BONUS)
+    expect(spot.check!.upgradeParts.scout).toBe(2 * SCOUT_CHECK_BONUS)
+    const rolled = choose(state, 'fight')
+    expect(rolled.lastRoll!.modifier).toBe(fight.check!.modifier + 2 * SCOUT_CHECK_BONUS)
+    expect(fight.check!.odds).toEqual(tierOdds(rolled.lastRoll!.modifier, 13, 'disadvantage'))
+  })
+
+  test('fewer hostile encounters on the road, as the road preview shows and the journey draws', () => {
+    const at = makeState({ location: 'greenvale-1', goods: { food: 20, water: 8 } })
+    const scouted = { ...at, upgrades: { 'scouts-kit': 1 } }
+    const steady = (s: GameState) =>
+      routeOptions(s, content)
+        .find((o) => o.routeId === 'greenvale-1-greenvale-2')!
+        .paces.find((p) => p.pace === 'steady')!
+    expect(steady(at).hostile.scout).toBe(0)
+    expect(steady(scouted).hostile.scout).toBeCloseTo(-SCOUT_HOSTILE_PER_LEVEL)
+    expect(steady(scouted).hostile.drawn).toBeLessThan(steady(at).hostile.drawn)
+    const out = step(
+      scouted,
+      { type: 'travel', routeId: 'greenvale-1-greenvale-2', pace: 'steady' },
+      content
+    )
+    expect(placeOnRoute(out, content, out.travel!)!.hostileShare).toBe(
+      steady(scouted).hostile.drawn
+    )
   })
 })

@@ -14,6 +14,8 @@ import {
   DELVING_GEAR_BONUS,
   DELVING_GEAR_CHALLENGE_LEVEL,
   MAPS_EXPLORE,
+  SCOUT_CHECK_BONUS,
+  SCOUT_HOSTILE_PER_LEVEL,
   SMUGGLE_SHARE,
 } from '../constants'
 
@@ -55,6 +57,8 @@ export function upgradeEffect(id: UpgradeId, level: number): string {
     }
     case 'company-banner':
       return `Every camaraderie loss is ${BANNER_SOFTEN * level} smaller`
+    case 'scouts-kit':
+      return `+${SCOUT_CHECK_BONUS * level} to surprise and Exposed checks; ${Math.round(SCOUT_HOSTILE_PER_LEVEL * level * 100)}% fewer hostile road encounters`
   }
 }
 
@@ -72,6 +76,8 @@ export function upgradeGrowth(id: UpgradeId): string {
       return `${top}: +${DELVING_GEAR_BONUS} per level to Athletics, Perception and Acrobatics checks in dungeon rooms; at ${levelNumeral(DELVING_GEAR_CHALLENGE_LEVEL)} also +1 to every skill-challenge round there.`
     case 'company-banner':
       return `${top}: every camaraderie loss is ${BANNER_SOFTEN} smaller per level (never below 0).`
+    case 'scouts-kit':
+      return `${top}: +${SCOUT_CHECK_BONUS} per level to checks against an ambush or being caught unawares, and to any check rolled with disadvantage (once, if both); ${Math.round(SCOUT_HOSTILE_PER_LEVEL * 100)}% fewer of the road's encounters are hostile per level.`
   }
 }
 

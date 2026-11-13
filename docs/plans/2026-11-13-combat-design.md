@@ -19,6 +19,7 @@
 - **Start positions.**
   - The party starts at one end in its formation: front and back rank, set in the party panel. The enemies start at the other end.
   - A **surprise** roll, driven by alertness, the party's stealth and its scouting, can give one side a free round, or let only half the party act in round 1.
+    - The **scout's kit** (a party upgrade, design §4) adds its level to the party's surprise roll, the same bonus it gives surprise checks in encounters (`scoutBonus` in `src/engine/rules/upgrades.ts`).
   - An **ambush** adds 1–3 enemies, either a little apart from the main group or on the party's far side, so the party is caught in the middle and its casters need protecting.
 - **Reach.**
   - Melee weapons hit the next tile (range 1).

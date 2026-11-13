@@ -79,10 +79,16 @@ export function OptionCard({
     check && check.situationalModifier !== 0
       ? ` · ${formatModifier(check.situationalModifier)} ${check.situationalReason ?? t('option.situational')}`
       : ''
-  const gear =
-    check && check.upgradeModifier !== 0
-      ? ` · ${formatModifier(check.upgradeModifier)} ${t('option.delvingGear')}`
-      : ''
+  // What the party's upgrades add, each by name (their sum is in the check's odds).
+  const gear = check
+    ? [
+        [check.upgradeParts.delving, t('option.delvingGear')] as const,
+        [check.upgradeParts.scout, t('option.scoutsKit')] as const,
+      ]
+        .filter(([n]) => n !== 0)
+        .map(([n, name]) => ` · ${formatModifier(n)} ${name}`)
+        .join('')
+    : ''
   const position =
     check && check.mode !== 'normal'
       ? ` · ${t(check.mode === 'advantage' ? 'position.edge' : 'position.exposed')}`

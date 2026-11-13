@@ -948,6 +948,7 @@ export const testEconomy: Record<string, unknown> = {
       upgrade('surveyors-maps', "Surveyor's maps", 100, ['inn-tavern']),
       upgrade('delving-gear', 'Delving gear', 100, ['adventuring-supplies', 'inn-tavern']),
       upgrade('company-banner', 'Company banner', 200, ['inn-tavern']),
+      upgrade('scouts-kit', "Scout's kit", 150, ['inn-tavern']),
     ],
   },
   'data/claude/person-roles.json': {

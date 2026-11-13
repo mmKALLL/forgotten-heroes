@@ -1,7 +1,7 @@
 import type { Content } from '../../content/build'
 import type { Dungeon, DungeonRoom } from '../../schema/dungeon'
 import type { DelveState, GameState } from '../../schema/state'
-import { delvingBonus } from '../rules/upgrades'
+import { checkUpgrades } from '../rules/upgrades'
 import { allSituations, compileSituation } from '../encounters/compile'
 import { tierOutcome } from '../encounters/outcomes'
 import { asRoom, type RoomRules } from '../encounters/room'
@@ -278,8 +278,11 @@ function roomRisk(
     )
     // A skill challenge (a boss room): the chance of losing it with the best option every round.
     if (stage?.challenge) {
-      const choices = roundChoices(state, options, played.start, (skill) =>
-        delvingBonus(state, played, skill, true)
+      const choices = roundChoices(
+        state,
+        options,
+        played.start,
+        (option, mode) => checkUpgrades(state, played, option, mode, true).total
       )
       return 1 - challengeOdds(choices, stage.challenge, START).chance
     }
@@ -287,7 +290,7 @@ function roomRisk(
       if (o.kind === 'fixed') return drives(o.outcome.effects) ? 1 : 0
       const actor = chooseActor(state.party, o.check.skill, undefined, o.check.ability)
       if (!actor) return 1
-      const gear = delvingBonus(state, played, o.check.skill, false)
+      const gear = checkUpgrades(state, played, o, 'normal', false).total
       const odds = tierOdds(actor.modifier + gear, Number(o.check.dc))
       return TIERS.reduce((sum, t) => sum + (drives(tierOutcome(o, t).effects) ? odds[t] : 0), 0)
     })

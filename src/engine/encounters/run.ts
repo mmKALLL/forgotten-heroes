@@ -34,7 +34,7 @@ import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from 
 import { applyEffects, describeEffect, prepareEffects } from './effects'
 import {
   addGoods,
-  delvingBonus,
+  checkUpgrades,
   hiddenGoods,
   hiddenNote,
   smugglesPast,
@@ -599,12 +599,12 @@ export function chooseOption(
   if (!actor) return appendLog(state, 'No one is able to act.', 'bad')
   const dc = normalizeDc(Number(option.check.dc))
   const mode = POSITION_MODE[encounter.position]
-  // A challenge round in a dungeon room, or a check there, may gain from delving gear.
+  // Upgrades: delving gear in a dungeon room, the scout's kit on a surprise check or when Exposed.
   const round = challengeOf(encounter) !== null
   const modifier =
     actor.modifier +
     encounter.nextCheckModifier +
-    delvingBonus(state, encounter.situation, skill, round)
+    checkUpgrades(state, encounter.situation, option, mode, round).total
   // A `lucky` hook rerolls a natural 1 once a day (gear/hooks.ts); the preview's odds include it.
   const lucky = hasLuck(state, actor.characterId)
   const [roll, rng, rerolled] = rollCheck(state.rng, modifier, dc, mode, lucky)

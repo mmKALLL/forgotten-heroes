@@ -773,6 +773,7 @@
           "options": [
             {
               "id": "fight",
+              "tags": ["surprise"],
               "kind": "check",
               "label": "Cut free and fight",
               "description": "Knee-deep water, and they are at home in it.",
@@ -1410,6 +1411,7 @@
           "options": [
             {
               "id": "cut",
+              "tags": ["surprise"],
               "kind": "check",
               "label": "Cut them down and run",
               "description": "Quick hands and a quick exit, before the bells bring company.",
@@ -1430,6 +1432,7 @@
             },
             {
               "id": "bait",
+              "tags": ["surprise"],
               "kind": "check",
               "label": "Leave them hanging, and wait in the bracken",
               "description": "Stealth. Goblins come to check a snare in a hurry. If they see you first, it's their ambush.",
