@@ -303,30 +303,10 @@
       "minimum": 0
     },
     "__schema29": {
-      "type": "object",
-      "properties": {
-        "patron": {
-          "$ref": "#/$defs/__schema30"
-        },
-        "settlement": {
-          "$ref": "#/$defs/__schema31"
-        }
-      },
-      "required": [
-        "patron",
-        "settlement"
-      ],
-      "description": "Reputation points on completion"
-    },
-    "__schema30": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 9007199254740991
-    },
-    "__schema31": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
+      "maximum": 9007199254740991,
+      "description": "Reputation points with the board's settlement on completion for the gold"
     }
   }
 }

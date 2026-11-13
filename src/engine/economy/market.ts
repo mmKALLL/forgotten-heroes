@@ -11,7 +11,7 @@ import type { GameState, MarketTrade } from '../../schema/state'
 import { createRng, nextFloat } from '../rng'
 import { domainThreatLevel } from '../world/pois'
 import { siteStatus } from '../world/sites'
-import { shopKeeper, standingSpreadModifier } from '../town/reputation'
+import { standingSpreadModifier } from '../town/reputation'
 import { goodDef } from './goods'
 import { sellBonus } from '../gear/hooks'
 import { supplyOf, type SupplySource } from './supply'
@@ -369,20 +369,13 @@ export function qualityEffects(
 type ShopState = Pick<GameState, 'world'> & Partial<Pick<GameState, 'reputation'>>
 
 /**
- * How standing moves a shop's spread (design §8, Plan 4 B2): the settlement's standing, or its
- * keeper's (the notable person whose role keeps that service) when that is better. The market
- * stalls have no keeper. 0 for a state without reputation.
+ * How standing moves a shop's spread (design §8, Plan 4 B2): the settlement's standing, the same
+ * for every shop there (designer call 2026-11-14: no keeper's own). 0 for a state without
+ * reputation.
  */
-export function spreadModifier(
-  state: ShopState,
-  content: Content,
-  settlementId: string,
-  service: string
-): number {
+export function spreadModifier(state: ShopState, settlementId: string): number {
   if (!state.reputation) return 0
-  const rep = { reputation: state.reputation }
-  const keeper = service === MARKET_STALL ? null : shopKeeper(state, content, settlementId, service)
-  return standingSpreadModifier(rep, settlementId, keeper)
+  return standingSpreadModifier({ reputation: state.reputation }, settlementId)
 }
 
 /** True for goods a market trades at all: defined, and worth something (water is free). */
@@ -414,11 +407,7 @@ export function shopsFor(
         service,
         name: own(content.services, service)?.name ?? service,
         quality,
-        spread: shopSpread(
-          info.sizeTier,
-          quality,
-          spreadModifier(state, content, settlementId, service)
-        ),
+        spread: shopSpread(info.sizeTier, quality, spreadModifier(state, settlementId)),
         sells,
         buys,
       },
@@ -429,11 +418,7 @@ export function shopsFor(
       service: MARKET_STALL,
       name: 'Market stalls',
       quality: STALL_QUALITY,
-      spread: shopSpread(
-        info.sizeTier,
-        STALL_QUALITY,
-        spreadModifier(state, content, settlementId, MARKET_STALL)
-      ),
+      spread: shopSpread(info.sizeTier, STALL_QUALITY, spreadModifier(state, settlementId)),
       sells: true,
       buys: true,
     })

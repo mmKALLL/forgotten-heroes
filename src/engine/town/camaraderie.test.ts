@@ -98,7 +98,7 @@ describe('camaraderie', () => {
       pay: 30,
       level: 1,
       urgent: false,
-      reputation: { patron: 5, settlement: 3 },
+      reputation: 8,
       met: true,
     }
     const done = act(

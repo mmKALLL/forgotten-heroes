@@ -27,7 +27,6 @@ import {
   atLeast,
   goodWord,
   kingdomOf,
-  personStanding,
   settlementStanding,
   standingFloor,
   shopKeeper,
@@ -121,14 +120,15 @@ export type Offer = {
   level: number
   /** Only met at a brisk pace or on a forced march. */
   urgent: boolean
-  reputation: { patron: number; settlement: number }
+  /** Reputation points with the board's settlement when it is done for the gold. */
+  reputation: number
   /** The service that posted it (a template's `service`), or null for the plain board. */
   service: string | null
   /** From a rumour's lead (rumours.ts). */
   lead: boolean
   /**
-   * The standing it needs, when the party doesn't have it yet (with the board's settlement or the
-   * patron, whichever is better); null otherwise. The UI shows its floor (standingFloor) in points.
+   * The standing it needs with the board's settlement, when the party doesn't have it yet; null
+   * otherwise. The UI shows its floor (standingFloor) in points.
    */
   locked: Standing | null
   available: boolean
@@ -230,9 +230,9 @@ function patronFor(
   return people.length > 0 ? d.pick(people) : null
 }
 
-/** The better of the settlement's and the patron's standing reaches `min`. */
-const standingMet = (state: GameState, here: string, patron: string, min: Standing) =>
-  atLeast(settlementStanding(state, here), min) || atLeast(personStanding(state, patron), min)
+/** The settlement's standing reaches `min`. */
+const standingMet = (state: GameState, here: string, min: Standing) =>
+  atLeast(settlementStanding(state, here), min)
 
 /**
  * Deadline days from acceptance: the steady days × DEADLINE_SLACK plus DEADLINE_GRACE_DAYS (for
@@ -357,7 +357,7 @@ function makeOffer(
   const poiName = site ? state.world.pois[site].name : null
   const values = { patronName, toName: site ? poiName! : toName, poiName, good, amount, sourceName }
   const locked =
-    template.minStanding && !standingMet(state, here, patron, template.minStanding)
+    template.minStanding && !standingMet(state, here, template.minStanding)
       ? template.minStanding
       : null
   return {
@@ -386,7 +386,7 @@ function makeOffer(
     pay,
     level,
     urgent,
-    reputation: { ...template.reputation },
+    reputation: template.reputation,
     service: template.service ?? null,
     lead,
     locked,
@@ -410,7 +410,7 @@ export function offerLevel(state: Pick<GameState, 'party' | 'world'>, offerId: s
 function offerRefusal(state: GameState, content: Content, offer: Offer): string | null {
   if (offer.locked) {
     const town = settlementName(state, offer.from)
-    return `needs reputation ${standingFloor(offer.locked)} in ${town} or with ${offer.patronName}`
+    return `needs reputation ${standingFloor(offer.locked)} in ${town}`
   }
   if (offer.kind === 'bounty' && offer.poi && bountyEmptied(state, offer.poi)) {
     return 'someone has cleared the site already'
@@ -495,7 +495,7 @@ export type ContractAction =
    */
   | { type: 'sellCargo'; contractId: string; shop?: string }
 
-/** Gold (and standing with the patron and their town), or a good word across their kingdom. */
+/** Gold (and standing with the board's town), or a good word across its kingdom. */
 export type ContractReward = 'gold' | 'goodWord'
 
 const days = (n: number) => (n === 1 ? '1 day' : `${n} days`)
@@ -577,7 +577,7 @@ export function contractTitle(state: GameState, content: Content, c: ContractSta
 
 /**
  * A contract fails (its deadline passed, or the party gave it up): FAIL_REP standing lost with the
- * patron and their settlement. A courier's cargo goes back; what is missing is paid for at its
+ * board's settlement. A courier's cargo goes back; what is missing is paid for at its
  * base price, as far as the gold goes, and each DEBT_REP_GP left unpaid costs a point more. When
  * the party sold the cargo (sellCargo), all of it is missing and the loss is SOLD_CARGO_REP.
  */
@@ -615,8 +615,7 @@ function failContract(
   }[why]
   next = appendLog(next, opening + cargo, 'bad')
   const amount = -((why === 'sold' ? SOLD_CARGO_REP : FAIL_REP) + Math.ceil(debt / DEBT_REP_GP))
-  next = addReputation(next, { person: c.patron, amount, reason: 'a broken contract' }, content)
-  return addReputation(next, { settlement: c.from, amount, reason: 'a broken contract' }, content)
+  return addReputation(next, { settlement: c.from, amount, reason: 'a broken contract' })
 }
 
 /** One courier's or freight contract's cargo: the goods it reserves, and how many are carried. */
@@ -672,7 +671,7 @@ export type CargoSale = {
   gold: number
   /** The patron's goods paid for at base price (all of the lot), as far as the gold goes. */
   owed: number
-  /** Standing lost with the patron and with the board's settlement. */
+  /** Standing lost with the board's settlement. */
   standing: number
   patronName: string
   fromName: string
@@ -732,7 +731,7 @@ export function sellCargoPreview(
     text:
       `Selling the ${lot.carried} ${name} breaks "${lot.title}": the market pays ${q.total} gp, ` +
       `${lot.patronName} is owed ${owed} gp for the goods, and you lose ${standing} reputation ` +
-      `with ${lot.patronName} and with ${fromName}.`,
+      `in ${fromName}.`,
   }
 }
 
@@ -740,7 +739,7 @@ export function sellCargoPreview(
  * Sells a courier's or freight contract's cargo at the best shop here (or `shop`), deliberately:
  * the contract fails at once (failContract, 'sold'): the patron is owed the cargo's base value,
  * paid as far as the gold goes, and the party loses SOLD_CARGO_REP standing (and a point per
- * DEBT_REP_GP unpaid) with the patron and the board's settlement. No trade standing is earned.
+ * DEBT_REP_GP unpaid) with the board's settlement. No trade standing is earned.
  */
 export function sellCargo(
   state: GameState,
@@ -843,9 +842,9 @@ export function completeRefusal(
 }
 
 /**
- * Completes a contract here: goods are handed over, and the reward is either the pay (plus
- * standing with the patron and their settlement) or a good word (GOOD_WORD_POINTS with every
- * settlement of the patron's kingdom, plus the patron's standing) instead of the gold.
+ * Completes a contract here: goods are handed over, and the reward is either the pay (plus the
+ * contract's reputation with the board's settlement) or a good word (GOOD_WORD_POINTS with every
+ * settlement of that settlement's kingdom, or with it alone outside a kingdom) instead of the gold.
  */
 export function completeContract(
   state: GameState,
@@ -873,20 +872,14 @@ export function completeContract(
       'good'
     )
     next = grantXp(next, xp, `"${title}"`)
-    next = addReputation(next, { person: c.patron, amount: c.reputation.patron, reason }, content)
-    return addReputation(
-      next,
-      { settlement: c.from, amount: c.reputation.settlement, reason },
-      content
-    )
+    return addReputation(next, { settlement: c.from, amount: c.reputation, reason })
   }
   next = appendLog(next, `"${title}" is done. ${patron} puts in a good word for you.`, 'good')
   next = grantXp(next, xp, `"${title}"`)
-  next = addReputation(next, { person: c.patron, amount: c.reputation.patron, reason }, content)
   const kingdom = kingdomOf(state, c.from)
   return kingdom
     ? goodWord(next, kingdom.id, GOOD_WORD_POINTS)
-    : addReputation(next, { settlement: c.from, amount: GOOD_WORD_POINTS, reason }, content)
+    : addReputation(next, { settlement: c.from, amount: GOOD_WORD_POINTS, reason })
 }
 
 /**
@@ -962,8 +955,10 @@ export type ContractRow = ContractState & {
   reason: string | null
   /** What each reward would give. */
   rewards: {
-    gold: { gold: number; patron: number; settlement: number }
-    goodWord: { kingdom: string | null; settlements: number; points: number; patron: number }
+    /** The pay, and the reputation with the board's settlement. */
+    gold: { gold: number; reputation: number }
+    /** The points with each settlement of the kingdom (or the board's alone, outside one). */
+    goodWord: { kingdom: string | null; settlements: number; points: number }
   }
 }
 
@@ -999,12 +994,11 @@ export function contractRows(state: GameState, content: Content): ContractRow[] 
       canComplete: reason === null,
       reason,
       rewards: {
-        gold: { gold: c.pay, patron: c.reputation.patron, settlement: c.reputation.settlement },
+        gold: { gold: c.pay, reputation: c.reputation },
         goodWord: {
           kingdom: kingdom?.name ?? null,
           settlements: kingdom?.domains.length ?? 1,
           points: GOOD_WORD_POINTS,
-          patron: c.reputation.patron,
         },
       },
     }

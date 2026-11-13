@@ -10,6 +10,7 @@ import {
   addReputation,
   encounterSettlementName,
   goodWord,
+  kingdomReputation,
   peopleRows,
   settlementPoints,
   settlementStanding,
@@ -22,9 +23,9 @@ import {
 const content = fixtureContent()
 const base = makeState()
 const here = base.location!
-const withPoints = (settlements: Record<string, number>, people: Record<string, number> = {}) => ({
+const withPoints = (settlements: Record<string, number>) => ({
   ...base,
-  reputation: { settlements, people },
+  reputation: { settlements },
 })
 
 describe('standing tiers', () => {
@@ -56,20 +57,19 @@ describe('standing tiers', () => {
 
 describe('addReputation', () => {
   test('adds points and logs only when the tier changes', () => {
-    const person = Object.keys(base.world.people)[0]
     const known = STANDING_POINTS.known
-    const a = addReputation(base, { settlement: here, person, amount: known - 1 }, content)
+    const a = addReputation(base, { settlement: here, amount: known - 1 })
     expect(a.log).toEqual(base.log)
-    const b = addReputation(a, { settlement: here, amount: 1 }, content)
+    const b = addReputation(a, { settlement: here, amount: 1 })
     expect(settlementStanding(b, here)).toBe('known')
     expect(b.log.at(-1)).toMatchObject({ tone: 'good' })
     expect(b.log.at(-1)!.text).toContain(base.world.settlements[here].name)
-    expect(b.reputation.people[person]).toBe(known - 1)
+    expect(Object.keys(b.reputation)).toEqual(['settlements'])
   })
 })
 
 describe('standingSpreadModifier', () => {
-  test('liked narrows the spread, disliked widens it, a keeper counts if better', () => {
+  test('liked narrows the spread, disliked widens it', () => {
     expect(standingSpreadModifier(base, here)).toBe(0)
     expect(
       standingSpreadModifier(withPoints({ [here]: STANDING_POINTS.liked }), here)
@@ -77,14 +77,6 @@ describe('standingSpreadModifier', () => {
     expect(
       standingSpreadModifier(withPoints({ [here]: STANDING_POINTS.disliked }), here)
     ).toBeGreaterThan(0)
-    const keeper = 'p-keeper'
-    const state = withPoints(
-      { [here]: STANDING_POINTS.disliked },
-      { [keeper]: STANDING_POINTS.liked }
-    )
-    expect(standingSpreadModifier(state, here, keeper)).toBe(
-      standingSpreadModifier(withPoints({ [here]: STANDING_POINTS.liked }), here)
-    )
   })
 })
 
@@ -108,7 +100,7 @@ describe('encounters', () => {
     ])
     const known = {
       ...inEncounter,
-      reputation: { settlements: { [domain]: STANDING_POINTS.known }, people: {} },
+      reputation: { settlements: { [domain]: STANDING_POINTS.known } },
     }
     expect(unmetRequirements(known, requires)).toEqual([])
   })
@@ -140,8 +132,31 @@ describe('goodWord', () => {
   })
 })
 
+describe('kingdomReputation', () => {
+  test('is the average of its settlements’ points, derived from them alone', () => {
+    const kingdom = base.world.kingdoms.find((k) => k.domains.length > 1)!
+    const [first, second] = kingdom.domains
+    expect(kingdomReputation(base, first)).toMatchObject({ id: kingdom.id, points: 0 })
+    const n = kingdom.domains.length
+    const state = withPoints({ [first]: 4 * n, [second]: -2 * n })
+    const view = kingdomReputation(state, second)!
+    expect(view).toMatchObject({ name: kingdom.name, points: 2, settlements: n })
+    expect(view.standing).toBe(settlementStanding(withPoints({ [here]: 2 }), here))
+    // A good word moves the kingdom by its points.
+    expect(kingdomReputation(goodWord(state, kingdom.id, 3), first)!.points).toBe(5)
+  })
+
+  test('is null for a settlement outside any kingdom', () => {
+    const outside = Object.keys(base.world.settlements).find(
+      (id) => !base.world.kingdoms.some((k) => k.domains.includes(id))
+    )
+    if (outside) expect(kingdomReputation(base, outside)).toBeNull()
+    expect(kingdomReputation(base, 'nowhere')).toBeNull()
+  })
+})
+
 describe('peopleRows', () => {
-  test('lists the people here with titles from their role, and their standing', () => {
+  test('lists the people here with titles from their role, and no reputation', () => {
     const rows = peopleRows(base, content)
     expect(rows.length).toBeGreaterThan(0)
     const ids = Object.keys(base.world.people).filter(
@@ -153,7 +168,7 @@ describe('peopleRows', () => {
       const titles = content.personRoles[person.role].titles
       expect(row.name.endsWith(person.name)).toBe(true)
       if (titles.length > 0) expect(titles).toContain(row.name.slice(0, -person.name.length - 1))
-      expect(row).toMatchObject({ standing: 'stranger', points: 0 })
+      expect(row).not.toHaveProperty('points')
       expect(personDisplayName(base.world, content, row.id)).toBe(row.name)
     }
   })

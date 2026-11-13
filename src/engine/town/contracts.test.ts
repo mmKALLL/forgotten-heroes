@@ -7,7 +7,14 @@ import { step, type Action } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { passDay } from '../travel/days'
 import { routeOptions } from '../travel/preview'
-import { BOARD_MAX, FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS, SOLD_CARGO_REP } from '../constants'
+import {
+  BOARD_MAX,
+  FAIL_REP,
+  GOOD_WORD_POINTS,
+  MAX_CONTRACTS,
+  SOLD_CARGO_REP,
+  STANDING_POINTS,
+} from '../constants'
 import { RUMOUR_LEAD } from './rumours'
 import { maxSell } from '../economy/trade'
 import { kingdomOf } from './reputation'
@@ -51,7 +58,7 @@ function contract(s: GameState, overrides: Partial<ContractState> = {}): Contrac
     pay: 30,
     level: 1,
     urgent: false,
-    reputation: { patron: 5, settlement: 3 },
+    reputation: 8,
     met: false,
     ...overrides,
   }
@@ -147,6 +154,19 @@ describe('noticeBoard', () => {
         expect(o.deadline).toBe(w * 7 + 1 + o.days)
       }
     }
+  })
+
+  test('a locked offer needs the town’s reputation, and opens once the town has it', () => {
+    // Every plain-board template locked behind "known".
+    const locked = structuredClone(content)
+    for (const t of Object.values(locked.contracts)) t.minStanding = 'known'
+    const { state, offer } = boardWith('courier', at(HERE), locked)
+    const floor = STANDING_POINTS.known
+    expect(offer.locked).toBe('known')
+    expect(offer.reason).toBe(`needs reputation ${floor} in ${state.world.settlements[HERE].name}`)
+    const known = { ...state, reputation: { settlements: { [HERE]: floor } } }
+    const open = noticeBoard(known, locked, HERE).find((o) => o.id === offer.id)!
+    expect(open).toMatchObject({ locked: null, reason: null, available: true })
   })
 
   test('a taken offer is not offered again; a courier’s goods are handed over', () => {
@@ -245,7 +265,7 @@ describe('deadlines', () => {
     const slow = journey(s, ROAD, 'steady')
     expect(slow.day).toBe(steady.deadlines[0].arrivesDay)
     expect(slow.contracts).toEqual([])
-    expect(slow.reputation.people[patron(s)]).toBe(-FAIL_REP)
+    expect(slow.reputation.settlements[HERE]).toBe(-FAIL_REP)
 
     const fast = journey(s, ROAD, 'forced')
     expect(fast.day).toBe(forced.deadlines[0].arrivesDay)
@@ -344,8 +364,6 @@ describe('completing each kind', () => {
     expect(sold.contracts).toEqual([])
     expect(sold.goods.food).toBe(own)
     expect(sold.gold).toBe(taken.gold + sale.gold - sale.owed)
-    const lost = taken.reputation.people[offer.patron] ?? 0
-    expect(sold.reputation.people[offer.patron]).toBe(lost - sale.standing)
     expect(sale.standing).toBe(SOLD_CARGO_REP)
     expect(sold.reputation.settlements[HERE]).toBe(
       (taken.reputation.settlements[HERE] ?? 0) - SOLD_CARGO_REP
@@ -425,7 +443,16 @@ describe('completing each kind', () => {
     for (const id of kingdom.domains) {
       expect(done.reputation.settlements[id]).toBe(GOOD_WORD_POINTS)
     }
-    expect(done.reputation.people[patron(s)]).toBe(5)
+    // The board's own town gets the good word too, not the contract's points on top.
+    expect(done.reputation.settlements[HERE]).toBe(GOOD_WORD_POINTS)
+  })
+
+  test('the gold gives the board’s town the contract’s reputation, and no one else any', () => {
+    const s = at('greenvale-2', { contracts: [contract(at(HERE), { met: true })] })
+    const done = act(s, { type: 'completeContract', id: 'c-test', reward: 'gold' })
+    expect(done.reputation.settlements).toEqual({ [HERE]: s.contracts[0].reputation })
+    const [row] = contractRows(s, content)
+    expect(row.rewards.gold).toEqual({ gold: 30, reputation: s.contracts[0].reputation })
   })
 })
 
@@ -463,7 +490,7 @@ describe('on the road', () => {
     const gone = act(s, { type: 'abandonContract', id: 'c-test' })
     expect(gone.goods.luxuries).toBe(0)
     expect(gone.gold).toBe(100 - content.goods.luxuries.price)
-    expect(gone.reputation.people[patron(s)]).toBe(-FAIL_REP)
+    expect(gone.reputation.settlements[HERE]).toBe(-FAIL_REP)
   })
 })
 

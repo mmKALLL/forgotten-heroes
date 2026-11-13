@@ -375,15 +375,15 @@ export const DEADLINE_SLACK: readonly [number, number] = [1.25, 1.6]
 export const DEADLINE_GRACE_DAYS = 1
 /** ...or in this one for an urgent offer (never less than a forced march, always less than steady). */
 export const URGENT_SLACK: readonly [number, number] = [0.75, 0.9]
-/** "A good word": standing gained with every settlement of the patron's kingdom, instead of the gold. */
+/** "A good word": standing gained with every settlement of the board's kingdom, instead of the gold. */
 export const GOOD_WORD_POINTS = 3
-/** A failed or abandoned contract costs this much standing with the patron and their settlement. */
+/** A failed or abandoned contract costs this much standing with the board's settlement. */
 export const FAIL_REP = 5
 /** Each this many gp of a lost cargo the party can't pay costs one more point of standing. */
 export const DEBT_REP_GP = 10
 /**
  * Selling a courier's or freight contract's cargo (sellCargo) breaks the contract on the spot:
- * this much standing lost with the patron and the board's settlement (instead of FAIL_REP).
+ * this much standing lost with the board's settlement (instead of FAIL_REP).
  */
 export const SOLD_CARGO_REP = 15
 /** Escorted passengers draw attention: added to the hostile share on the road. */

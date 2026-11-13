@@ -64,7 +64,7 @@ describe('rumourOption', () => {
   test('standing here lowers the DC', () => {
     const plain = rumourOption(here(), content)!
     const liked = rumourOption(
-      here({ reputation: { settlements: { [HERE]: STANDING_POINTS.liked }, people: {} } }),
+      here({ reputation: { settlements: { [HERE]: STANDING_POINTS.liked } } }),
       content
     )!
     expect(liked.dc).toBe(plain.dc - 2)

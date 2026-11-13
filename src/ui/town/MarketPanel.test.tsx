@@ -214,7 +214,7 @@ test('selling a contract’s cargo asks first, says what it costs, and dispatche
         pay: 30,
         level: 1,
         urgent: false,
-        reputation: { patron: 5, settlement: 3 },
+        reputation: 8,
         met: false,
       },
     ],

@@ -2,7 +2,7 @@
   "$schema": "../_schema/contracts.schema.json",
   "kind": "contracts",
   "source": "claude",
-  "notes": "Contract templates for notice boards (Plan 4, B5; design §8). Plain boards (no service) post courier, freight, procurement and escort work. The adventurers' guild posts bounties and the riskier errands, and its best work needs standing 'known' or better. Temples post errands to shrines, and a few shops post their own errands and deliveries. km is how far the destination or site lies from the board; for procurement, how far the nearest producer of the good may be. A courier's goods are handed over at acceptance and are mostly light and precious, so a courier run draws thieves. Freight (designer decision, the supply split) is the heavy counterpart: the patron hands over goods made here or close by (timber, stone, grain, ironwork) for a place where they are scarcer; the party needs the room (a mule, mostly), the goods are cargo it can't sell, and losing them costs their base value and standing. Procurement is posted only where a good is short (demand 3+ levels over supply, design §4): the party must find the goods (buy them elsewhere, or loot them) and bring them in; carrying them at the board doesn't count. It pays the goods' base value plus the usual pay per steady day of the round trip to the nearest producer, with no advance. urgentChance is high where the story has a clock (fever, a wedding, raiders, a trial): urgent deadlines are only met at a brisk pace or on a forced march. reputation is the points gained with the patron and the settlement on completion; the engine offers 'a good word' (standing across the patron's kingdom) instead of the gold on every contract, so no template needs to opt in. Tuned in Plan 4 I1 (docs/notes/economy-report.md); 'Letters and a parcel' is cheap, light work for any board.",
+  "notes": "Contract templates for notice boards (Plan 4, B5; design §8). Plain boards (no service) post courier, freight, procurement and escort work. The adventurers' guild posts bounties and the riskier errands, and its best work needs standing 'known' or better. Temples post errands to shrines, and a few shops post their own errands and deliveries. km is how far the destination or site lies from the board; for procurement, how far the nearest producer of the good may be. A courier's goods are handed over at acceptance and are mostly light and precious, so a courier run draws thieves. Freight (designer decision, the supply split) is the heavy counterpart: the patron hands over goods made here or close by (timber, stone, grain, ironwork) for a place where they are scarcer; the party needs the room (a mule, mostly), the goods are cargo it can't sell, and losing them costs their base value and standing. Procurement is posted only where a good is short (demand 3+ levels over supply, design §4): the party must find the goods (buy them elsewhere, or loot them) and bring them in; carrying them at the board doesn't count. It pays the goods' base value plus the usual pay per steady day of the round trip to the nearest producer, with no advance. urgentChance is high where the story has a clock (fever, a wedding, raiders, a trial): urgent deadlines are only met at a brisk pace or on a forced march. reputation is the points gained with the board's settlement on completion for the gold (designer call 2026-11-14: settlements and kingdoms only, no per-person reputation; the old patron and settlement points were summed); the engine offers 'a good word' (standing across the settlement's kingdom) instead of the gold on every contract, so no template needs to opt in. Tuned in Plan 4 I1 (docs/notes/economy-report.md); 'Letters and a parcel' is cheap, light work for any board.",
   "entries": [
     {
       "id": "letters-and-parcels",
@@ -21,10 +21,7 @@
       },
       "urgentChance": 0.1,
       "pay": 0.8,
-      "reputation": {
-        "patron": 2,
-        "settlement": 1
-      }
+      "reputation": 3
     },
     {
       "id": "sealed-strongbox",
@@ -44,10 +41,7 @@
       },
       "urgentChance": 0.2,
       "pay": 1.1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 1
-      }
+      "reputation": 4
     },
     {
       "id": "wedding-silks",
@@ -67,10 +61,7 @@
       },
       "urgentChance": 0.45,
       "pay": 1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 2
-      }
+      "reputation": 5
     },
     {
       "id": "fever-medicine",
@@ -89,10 +80,7 @@
       },
       "urgentChance": 0.65,
       "pay": 1.2,
-      "reputation": {
-        "patron": 4,
-        "settlement": 3
-      }
+      "reputation": 7
     },
     {
       "id": "alchemists-order",
@@ -112,10 +100,7 @@
       },
       "urgentChance": 0.2,
       "pay": 1.1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 1
-      }
+      "reputation": 4
     },
     {
       "id": "reliquary-transfer",
@@ -136,10 +121,7 @@
       },
       "urgentChance": 0.1,
       "pay": 1.2,
-      "reputation": {
-        "patron": 5,
-        "settlement": 2
-      }
+      "reputation": 7
     },
     {
       "id": "scrolls-and-reagents",
@@ -159,10 +141,7 @@
       },
       "urgentChance": 0.15,
       "pay": 1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 1
-      }
+      "reputation": 4
     },
     {
       "id": "timber-for-the-builders",
@@ -181,10 +160,7 @@
       },
       "urgentChance": 0.1,
       "pay": 1,
-      "reputation": {
-        "patron": 2,
-        "settlement": 1
-      }
+      "reputation": 3
     },
     {
       "id": "wall-stone",
@@ -204,10 +180,7 @@
       },
       "urgentChance": 0.25,
       "pay": 1.1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 2
-      }
+      "reputation": 5
     },
     {
       "id": "grain-for-the-lean-months",
@@ -226,10 +199,7 @@
       },
       "urgentChance": 0.2,
       "pay": 0.9,
-      "reputation": {
-        "patron": 3,
-        "settlement": 3
-      }
+      "reputation": 6
     },
     {
       "id": "ironwork-for-the-garrison",
@@ -249,10 +219,7 @@
       },
       "urgentChance": 0.2,
       "pay": 1.1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 2
-      }
+      "reputation": 5
     },
     {
       "id": "rebuild-timber",
@@ -271,10 +238,7 @@
       },
       "urgentChance": 0.15,
       "pay": 1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 2
-      }
+      "reputation": 5
     },
     {
       "id": "arms-for-the-militia",
@@ -293,10 +257,7 @@
       },
       "urgentChance": 0.25,
       "pay": 1.1,
-      "reputation": {
-        "patron": 4,
-        "settlement": 3
-      }
+      "reputation": 7
     },
     {
       "id": "iron-for-the-forge",
@@ -315,10 +276,7 @@
       },
       "urgentChance": 0.1,
       "pay": 1,
-      "reputation": {
-        "patron": 2,
-        "settlement": 1
-      }
+      "reputation": 3
     },
     {
       "id": "remedies-for-the-sick",
@@ -337,10 +295,7 @@
       },
       "urgentChance": 0.35,
       "pay": 1,
-      "reputation": {
-        "patron": 4,
-        "settlement": 3
-      }
+      "reputation": 7
     },
     {
       "id": "outfit-the-delvers",
@@ -359,10 +314,7 @@
       },
       "urgentChance": 0.1,
       "pay": 0.9,
-      "reputation": {
-        "patron": 2,
-        "settlement": 2
-      }
+      "reputation": 4
     },
     {
       "id": "a-collectors-wants",
@@ -382,10 +334,7 @@
       },
       "urgentChance": 0.05,
       "pay": 1,
-      "reputation": {
-        "patron": 4,
-        "settlement": 1
-      }
+      "reputation": 5
     },
     {
       "id": "pilgrims-to-escort",
@@ -403,10 +352,7 @@
       },
       "urgentChance": 0.05,
       "pay": 0.9,
-      "reputation": {
-        "patron": 2,
-        "settlement": 2
-      }
+      "reputation": 4
     },
     {
       "id": "merchants-heir",
@@ -425,10 +371,7 @@
       },
       "urgentChance": 0.3,
       "pay": 1.2,
-      "reputation": {
-        "patron": 4,
-        "settlement": 1
-      }
+      "reputation": 5
     },
     {
       "id": "witness-for-the-assizes",
@@ -448,10 +391,7 @@
       },
       "urgentChance": 0.55,
       "pay": 1.5,
-      "reputation": {
-        "patron": 5,
-        "settlement": 3
-      }
+      "reputation": 8
     },
     {
       "id": "bounty-on-the-lair",
@@ -467,10 +407,7 @@
       "poiCategories": ["lair"],
       "urgentChance": 0.15,
       "pay": 1.5,
-      "reputation": {
-        "patron": 4,
-        "settlement": 4
-      }
+      "reputation": 8
     },
     {
       "id": "bounty-on-the-warlord",
@@ -488,10 +425,7 @@
       "poiCategories": ["lair"],
       "urgentChance": 0.3,
       "pay": 2,
-      "reputation": {
-        "patron": 6,
-        "settlement": 5
-      }
+      "reputation": 11
     },
     {
       "id": "scour-the-dungeon",
@@ -508,10 +442,7 @@
       "poiCategories": ["dungeon"],
       "urgentChance": 0.1,
       "pay": 1.8,
-      "reputation": {
-        "patron": 5,
-        "settlement": 4
-      }
+      "reputation": 9
     },
     {
       "id": "offering-at-the-shrine",
@@ -527,10 +458,7 @@
       "poiCategories": ["shrine"],
       "urgentChance": 0.1,
       "pay": 0.8,
-      "reputation": {
-        "patron": 3,
-        "settlement": 2
-      }
+      "reputation": 5
     },
     {
       "id": "temple-pilgrimage",
@@ -546,10 +474,7 @@
       "poiCategories": ["shrine"],
       "urgentChance": 0.2,
       "pay": 1,
-      "reputation": {
-        "patron": 4,
-        "settlement": 2
-      }
+      "reputation": 6
     },
     {
       "id": "question-for-the-sage",
@@ -565,10 +490,7 @@
       "poiCategories": ["expert"],
       "urgentChance": 0.1,
       "pay": 1,
-      "reputation": {
-        "patron": 4,
-        "settlement": 1
-      }
+      "reputation": 5
     },
     {
       "id": "survey-the-landmark",
@@ -584,10 +506,7 @@
       "poiCategories": ["landmark", "wonder"],
       "urgentChance": 0.05,
       "pay": 0.9,
-      "reputation": {
-        "patron": 3,
-        "settlement": 1
-      }
+      "reputation": 4
     },
     {
       "id": "guild-reconnaissance",
@@ -603,10 +522,7 @@
       "poiCategories": ["dungeon", "lair", "quest"],
       "urgentChance": 0.2,
       "pay": 1.1,
-      "reputation": {
-        "patron": 3,
-        "settlement": 2
-      }
+      "reputation": 5
     }
   ]
 }

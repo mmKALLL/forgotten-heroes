@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
 import type { Action } from '../../engine/state'
-import { peopleRows } from '../../engine/town/reputation'
+import { kingdomOf, peopleRows } from '../../engine/town/reputation'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import { placeInfo } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
@@ -55,8 +55,11 @@ test('the ledger opens on its Market tab; the Travel tab holds Explore, the road
   render(<Ledger state={state} onAction={onAction} />)
   const info = placeInfo(state, content, 'ashmoor-1')!
   expect(screen.getByRole('heading', { name: info.name })).toBeTruthy()
-  // The header shows the reputation points here, not the tier (designer, 2026-11-14).
-  expect(screen.getByText('Reputation 0')).toBeTruthy()
+  // The header shows the reputation points here, not the tier (designer, 2026-11-14); its tooltip
+  // has the tier and the kingdom's average.
+  const rep = screen.getByText('Reputation 0')
+  expect(rep.title).toMatch(/^Stranger \(/)
+  expect(rep.title).toContain(`\n${kingdomOf(state, 'ashmoor-1')!.name}: 0 on average`)
   expect(screen.queryByText(/stranger/)).toBeNull()
   // Market: the market and the services, side by side.
   expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Market', 'Travel'])

@@ -7,8 +7,9 @@ import { domainAt } from '../world/pois'
 import { personDisplayName } from './people'
 
 /**
- * Reputation (design §8, Plan 4 B2): points with each settlement and each notable person, read
- * as a standing tier. Nothing decays; points change only through what the party does.
+ * Reputation (design §8, Plan 4 B2): points with each settlement, read as a standing tier. Nothing
+ * decays; points change only through what the party does. A kingdom's reputation is derived from
+ * its settlements' (kingdomReputation); notable people have none (designer call 2026-11-14).
  */
 
 const STRANGER = STANDINGS.indexOf('stranger')
@@ -39,17 +40,9 @@ export const settlementPoints = (state: RepState, id: string | null): number =>
     ? state.reputation.settlements[id]
     : 0
 
-/** Points with a notable person. */
-export const personPoints = (state: RepState, id: string): number =>
-  Object.hasOwn(state.reputation.people, id) ? state.reputation.people[id] : 0
-
 /** The party's standing with a settlement; a stranger where there is none (e.g. at sea). */
 export const settlementStanding = (state: RepState, id: string | null): Standing =>
   standingOf(settlementPoints(state, id))
-
-/** The party's standing with a notable person. */
-export const personStanding = (state: RepState, id: string): Standing =>
-  standingOf(personPoints(state, id))
 
 /**
  * The settlement an encounter's reputation and standing refer to: its domain, else where the party
@@ -70,7 +63,7 @@ export function encounterSettlementName(
   return id ? settlementName(state, id) : undefined
 }
 
-/** What someone thinks of the party at each tier, after their name: "Avarus trusts you now." */
+/** What a settlement thinks of the party at each tier, after its name: "Avarus trusts you now." */
 const TIER_VERB: Record<Standing, string> = {
   hated: 'hates you',
   disliked: 'dislikes you',
@@ -90,20 +83,18 @@ function note(state: GameState, text: string, tone: LogTone): GameState {
 
 export type ReputationChange = {
   settlement?: string | null
-  person?: string | null
   amount: number
   /** Why, appended to the tier-change line, e.g. "for the courier run". */
   reason?: string
 }
 
 /**
- * Adds points with a settlement and/or a person, logging "Avarus knows your name now." whenever a
- * tier changes. `content` gives people their titles in that line. Pure.
+ * Adds points with a settlement, logging "Avarus knows your name now." whenever a tier changes.
+ * Pure.
  */
 export function addReputation(
   state: GameState,
   change: ReputationChange,
-  content?: Content,
   { quiet = false }: { quiet?: boolean } = {}
 ): GameState {
   const amount = Math.trunc(change.amount)
@@ -125,22 +116,6 @@ export function addReputation(
     if (!quiet && was !== now)
       next = note(next, `${settlementName(next, id)} ${TIER_VERB[now]} now${suffix}.`, tone)
   }
-  if (change.person) {
-    const id = change.person
-    const before = personPoints(next, id)
-    next = {
-      ...next,
-      reputation: {
-        ...next.reputation,
-        people: { ...next.reputation.people, [id]: before + amount },
-      },
-    }
-    const [was, now] = [standingOf(before), standingOf(before + amount)]
-    if (!quiet && was !== now) {
-      const who = content ? personDisplayName(next.world, content, id) : next.world.people[id]?.name
-      next = note(next, `${who ?? id} ${TIER_VERB[now]} now${suffix}.`, tone)
-    }
-  }
   return next
 }
 
@@ -157,7 +132,7 @@ export function goodWord(state: GameState, kingdomId: string, amount: number): G
   if (!kingdom || amount === 0) return state
   let next = state
   for (const id of kingdom.domains)
-    next = addReputation(next, { settlement: id, amount }, undefined, { quiet: true })
+    next = addReputation(next, { settlement: id, amount }, { quiet: true })
   const text =
     amount > 0
       ? `Word of you spreads through ${kingdom.name}: ${formatSigned(amount)} reputation in each of its settlements.`
@@ -168,18 +143,46 @@ export function goodWord(state: GameState, kingdomId: string, amount: number): G
 const formatSigned = (n: number) => (n > 0 ? `+${n}` : `−${-n}`)
 
 /**
- * How standing moves a market's buy/sell spread (a fraction, added to the spread): −STANDING_SPREAD
- * per tier above stranger, + per tier below. A shop kept by a notable person (`personId`) uses the
- * better of the settlement's and the keeper's standing.
+ * How the settlement's standing moves its markets' buy/sell spread (a fraction, added to the
+ * spread): −STANDING_SPREAD per tier above stranger, + per tier below.
  */
-export function standingSpreadModifier(
-  state: RepState,
-  settlementId: string,
-  personId?: string | null
-): number {
-  let steps = standingSteps(settlementStanding(state, settlementId))
-  if (personId) steps = Math.max(steps, standingSteps(personStanding(state, personId)))
+export function standingSpreadModifier(state: RepState, settlementId: string): number {
+  const steps = standingSteps(settlementStanding(state, settlementId))
   return steps === 0 ? 0 : -steps * STANDING_SPREAD
+}
+
+/**
+ * A kingdom's reputation (design §8, designer call 2026-11-14): derived, never stored. It is the
+ * average of the points with each of its settlements (0 where the party has none), rounded to a
+ * whole point; for tooltips now, and for favours later.
+ */
+export type KingdomReputation = {
+  id: string
+  name: string
+  /** The average of its settlements' points, rounded. */
+  points: number
+  standing: Standing
+  /** How many settlements it holds. */
+  settlements: number
+}
+
+/** The reputation of the kingdom holding a settlement's domain; null outside any kingdom. */
+export function kingdomReputation(
+  state: Pick<GameState, 'world' | 'reputation'>,
+  settlementId: string
+): KingdomReputation | null {
+  const kingdom = kingdomOf(state, settlementId)
+  if (!kingdom || kingdom.domains.length === 0) return null
+  const total = kingdom.domains.reduce((sum, id) => sum + settlementPoints(state, id), 0)
+  // + 0 turns a rounded −0 into 0.
+  const points = Math.round(total / kingdom.domains.length) + 0
+  return {
+    id: kingdom.id,
+    name: kingdom.name,
+    points,
+    standing: standingOf(points),
+    settlements: kingdom.domains.length,
+  }
 }
 
 /** The notable person who keeps a service in a settlement (their role's service), if any. */
@@ -230,11 +233,9 @@ export type PersonRow = {
   name: string
   /** The role's name, e.g. "innkeeper". */
   role: string
-  standing: Standing
-  points: number
 }
 
-/** The notable people of the settlement the party is in, with the party's standing with each. */
+/** The notable people of the settlement the party is in (flavour and roles: no reputation). */
 export function peopleRows(state: GameState, content: Content): PersonRow[] {
   const here = state.location
   if (!here) return []
@@ -245,8 +246,6 @@ export function peopleRows(state: GameState, content: Content): PersonRow[] {
       id,
       name: personDisplayName(state.world, content, id),
       role: Object.hasOwn(content.personRoles, p.role) ? content.personRoles[p.role].name : p.role,
-      standing: personStanding(state, id),
-      points: personPoints(state, id),
     }))
 }
 

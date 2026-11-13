@@ -11,8 +11,9 @@ import { TierOutcomes } from '../world/TierOutcomes'
 type Props = { content: Content; state: GameState; onAction: (a: Action) => void }
 
 /**
- * The notable people here (design §8): each with their title and name, their role and the
- * party's reputation points with them. Always open (designer decision): the list is compact.
+ * The notable people here (design §8): each with their title and name and their role. They are
+ * flavour and roles (patrons, keepers): reputation is with the settlement (designer call
+ * 2026-11-14). Always open (designer decision): the list is compact.
  */
 export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
   const { t, name } = useI18n()
@@ -29,8 +30,7 @@ export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
               <span className="person-name">{p.name}</span>{' '}
               <span className="muted">
                 · {name('personRoles', state.world.people[p.id]?.role ?? '', p.role)}
-              </span>{' '}
-              <ReputationValue points={p.points} label={t('people.rep')} />
+              </span>
             </li>
           ))}
         </ul>
@@ -40,27 +40,24 @@ export function PeoplePanel({ content, state }: Omit<Props, 'onAction'>) {
 }
 
 /**
- * Reputation points as plain text after a label ("Reputation 3", "rep −4"; designer, 2026-11-14:
- * the points, not the tier), negative ones in the bad tone. The tooltip names the tier, its range
- * and what it does; `whom` names who it is with, where the text doesn't.
+ * Reputation points as plain text after a label ("Reputation 3", "Reputation −4"; designer,
+ * 2026-11-14: the points, not the tier), negative ones in the bad tone. The tooltip names the
+ * tier, its range and what it does, then any `note` on a line of its own (the kingdom's average).
  */
 export function ReputationValue({
   points,
   label,
-  whom,
+  note,
 }: {
   points: number
   label: string
-  whom?: string
+  note?: string | null
 }) {
   const i18n = useI18n()
   const hint = reputationHint(i18n.t, points)
   const tone = points < 0 ? 'tone-bad' : points > 0 ? 'tone-good' : 'muted'
   return (
-    <span
-      className={`rep ${tone}`}
-      title={whom ? i18n.t('reputation.with', { name: whom, hint }) : hint}
-    >
+    <span className={`rep ${tone}`} title={note ? `${hint}\n${note}` : hint}>
       {label} {formatPoints(points)}
     </span>
   )

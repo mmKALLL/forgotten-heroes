@@ -26,7 +26,7 @@ const escort = (overrides: Partial<ContractState> = {}): ContractState => ({
   pay: 30,
   level: 1,
   urgent: false,
-  reputation: { patron: 5, settlement: 3 },
+  reputation: 8,
   met: false,
   ...overrides,
 })
@@ -73,13 +73,12 @@ test('at its destination, Claim reward opens a dialog with each reward’s total
   const claim = list.getByRole('button', { name: /^Claim the reward for / })
   await userEvent.click(claim)
   const dialog = within(screen.getByRole('dialog', { name: 'Contract fulfilled' }))
-  // The pay's total (patron 5 + town 3), and the good word's reach.
+  // The town's points with the pay, and the good word's reach: nothing with the patron.
   expect(dialog.getByText('+8 reputation')).toBeTruthy()
   expect(
-    dialog.getByText(
-      /^\+\d+ reputation (in each of .+’s \d+ settlements|in .+), \+5 with the patron$/
-    )
+    dialog.getByText(/^\+\d+ reputation (in each of .+’s \d+ settlements|in .+)$/)
   ).toBeTruthy()
+  expect(dialog.queryByText(/patron/)).toBeNull()
   // Focus starts on the pay; Escape closes without choosing, and focus returns to the button.
   expect(document.activeElement?.textContent).toBe('Take 30 gp')
   await userEvent.keyboard('{Escape}')

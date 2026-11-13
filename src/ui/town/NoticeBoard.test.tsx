@@ -54,8 +54,8 @@ test('offers show their route, deadline and pay; Take dispatches, a locked one s
   const locked = offers.find((o) => o.locked)!
   const take = board.getByRole('button', { name: `Take “${locked.title}”` }) as HTMLButtonElement
   expect(take.disabled).toBe(true)
-  // The need in points, from the tier's floor: with the town or the patron, whichever is better.
-  const needs = `needs reputation ${STANDING_POINTS.known} (town or patron)`
+  // The need in points, from the tier's floor: the town's reputation (design §8).
+  const needs = `needs reputation ${STANDING_POINTS.known}`
   expect(take.title).toBe(needs)
   const lockedRow = within(take.closest('li')!)
   expect(lockedRow.getByText(`${needs} ·`, { exact: false })).toBeTruthy()

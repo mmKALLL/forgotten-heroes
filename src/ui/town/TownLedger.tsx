@@ -10,11 +10,12 @@ import {
 } from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
-import { settlementPoints } from '../../engine/town/reputation'
+import { kingdomReputation, settlementPoints } from '../../engine/town/reputation'
+import { formatPoints } from '../../engine/format'
 import { placeInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
-import { useI18n } from '../i18n/I18n'
+import { useI18n, type I18n } from '../i18n/I18n'
 import { ExploreAction } from '../world/ExploreAction'
 import { GatherAction } from '../world/GatherAction'
 import { RoadsOut } from '../world/RoadsOut'
@@ -149,6 +150,7 @@ export function TownLedger({
           <ReputationValue
             points={settlementPoints(state, here.id)}
             label={t('ledger.reputation')}
+            note={kingdomNote(t, state, here.id)}
           />
         </span>
       </header>
@@ -212,6 +214,17 @@ export function TownLedger({
       )}
     </section>
   )
+}
+
+/**
+ * The kingdom's reputation for the header's tooltip ("Duchy of Draville: 4 on average", design
+ * §8: the average of its settlements' points); null outside any kingdom.
+ */
+function kingdomNote(t: I18n['t'], state: GameState, settlementId: string): string | null {
+  const kingdom = kingdomReputation(state, settlementId)
+  return kingdom
+    ? t('reputation.kingdom', { kingdom: kingdom.name, points: formatPoints(kingdom.points) })
+    : null
 }
 
 const LEDGER_TABS = ['market', 'travel'] as const
