@@ -137,12 +137,19 @@ function LevelUpCardView({
       <ul className="levelup-gains small">
         <li>
           {t('levelUp.maxHp', { n: card.gains.maxHp })}{' '}
-          <span className="muted">{t('levelUp.now', { value: card.maxHpNow })}</span>
+          <span className="muted">
+            {t('levelUp.fromTo', { from: card.maxHpNow - card.gains.maxHp, to: card.maxHpNow })}
+          </span>
         </li>
         {raised.map((a) => (
           <li key={a}>
             {t('levelUp.ability', { n: card.gains.abilities[a]!, ability: t(`ability.${a}`) })}{' '}
-            <span className="muted">{t('levelUp.now', { value: card.scores[a] })}</span>
+            <span className="muted">
+              {t('levelUp.fromTo', {
+                from: card.scores[a] - card.gains.abilities[a]!,
+                to: card.scores[a],
+              })}
+            </span>
           </li>
         ))}
         {card.proficiencyTo > card.proficiencyFrom && (

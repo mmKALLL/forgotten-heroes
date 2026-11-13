@@ -42,7 +42,7 @@ test('pending level-ups open the dialog: who, which levels and what they gained'
   expect(dialog().getByRole('heading', { name: hero.name })).toBeTruthy()
   expect(dialog().getByText('Level 1 → 5')).toBeTruthy()
   expect(dialog().getByText(`+${up.gains.maxHp} max HP`)).toBeTruthy()
-  expect(dialog().getByText(`→ ${hero.maxHp}`)).toBeTruthy()
+  expect(dialog().getByText(`(${hero.maxHp - up.gains.maxHp} → ${hero.maxHp})`)).toBeTruthy()
   expect(dialog().getByText('Proficiency bonus +2 → +3')).toBeTruthy()
   // Only the member who levelled has a card.
   expect(dialog().getAllByRole('listitem', { name: /./ })).toHaveLength(1)

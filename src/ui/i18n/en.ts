@@ -839,7 +839,7 @@ export const en = {
   'levelUp.levels': 'Level {from} → {to}',
   'levelUp.maxHp': '+{n} max HP',
   'levelUp.ability': '+{n} {ability}',
-  'levelUp.now': '→ {value}',
+  'levelUp.fromTo': '({from} → {to})',
   'levelUp.proficiency': 'Proficiency bonus +{from} → +{to}',
   'levelUp.continue': 'Continue',
   'levelUp.choose': 'Make every pick to go on.',
