@@ -1510,16 +1510,30 @@ h2[tabindex='-1']:focus {
 .goods-grid {
   flex: 1 1 16rem;
   display: grid;
-  /* Wide fixed columns: the rows don't move as a line grows (designer call 2026-11-14). */
-  grid-template-columns: minmax(17rem, auto) minmax(17rem, auto);
+  /*
+   * Two columns, each a label track (as wide as its widest label) and an items track, so each
+   * column's lists start at the same x. Wide fixed columns: the rows don't move as a line grows
+   * (designer call 2026-11-14). The gap between the columns is the second label's padding.
+   */
+  grid-template-columns: auto minmax(11rem, auto) auto minmax(11rem, auto);
   justify-content: start;
-  gap: 0.15rem 1.1rem;
+  gap: 0.15rem 0;
   list-style: none;
   margin: 0;
   padding: 0;
   font-size: 0.85rem;
 }
+.goods-grid > li {
+  grid-column: span 2;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+}
+.goods-grid > li:nth-child(even) > .goods-cat {
+  padding-left: 1.1rem;
+}
 .goods-cat {
+  padding-right: 0.35rem;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
@@ -2698,8 +2712,11 @@ h2[tabindex='-1']:focus {
   }
   .goods-grid {
     flex-basis: 100%;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    gap: 0.1rem 0.8rem;
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr);
+    gap: 0.1rem 0;
+  }
+  .goods-grid > li:nth-child(even) > .goods-cat {
+    padding-left: 0.8rem;
   }
   html {
     scroll-padding-top: 14rem;

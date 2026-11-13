@@ -102,19 +102,22 @@ export function TopInventory({
           return (
             <li key={category}>
               <span className="goods-cat muted">{full}:</span>{' '}
-              {held.length === 0 ? (
-                <span className="muted">{t('goods.none')}</span>
-              ) : (
-                held.map((g, i) => (
-                  <Fragment key={g}>
-                    {i > 0 && ', '}
-                    <span className="goods-item" title={goodUses(g)}>
-                      {goodName(g)} <b>{units(state, g)}</b>
-                      <CargoBadge n={cargo(g)} />
-                    </span>
-                  </Fragment>
-                ))
-              )}
+              {/* One grid cell, so each column's lists start at the same x. */}
+              <span className="goods-items">
+                {held.length === 0 ? (
+                  <span className="muted">{t('goods.none')}</span>
+                ) : (
+                  held.map((g, i) => (
+                    <Fragment key={g}>
+                      {i > 0 && ', '}
+                      <span className="goods-item" title={goodUses(g)}>
+                        {goodName(g)} <b>{units(state, g)}</b>
+                        <CargoBadge n={cargo(g)} />
+                      </span>
+                    </Fragment>
+                  ))
+                )}
+              </span>
             </li>
           )
         })}
