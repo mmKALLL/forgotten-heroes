@@ -140,8 +140,9 @@ function leadLand(state: GameState): string | null {
  * the lead's own domain alone.
  */
 export function forgetExplored(before: GameState, after: GameState): GameState {
+  if (after.explored.length === 0) return after
   const key = leadLand(after)
-  if (key === null || key === leadLand(before) || after.explored.length === 0) return after
+  if (key === null || key === leadLand(before)) return after
   const land = key.slice(key.indexOf(':') + 1)
   const explored = after.explored.filter((d) => own(after.world.domains, d)?.land !== land)
   return explored.length === after.explored.length ? after : { ...after, explored }
