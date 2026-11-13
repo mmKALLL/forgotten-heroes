@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "original",
-  "notes": "The prototype's six events (src/lib/data.ts at tag v0.1.0-svelte-final), ported as faithfully as possible. The first two were handwritten by the designer; the last four were generated with ChatGPT for the prototype. Each entry's notes list its prototype participants and secret, how prose odds became checks, and any additions. Plan 3 added metadata only, text unchanged: a disposition (hostile, neutral or pleasant) on each event, for travel pace.",
+  "notes": "Designer call 2026-11-14: every wound here was tripled (written for 3e HP; 5e has about 3–4× more). The prototype's six events (src/lib/data.ts at tag v0.1.0-svelte-final), ported as faithfully as possible. The first two were handwritten by the designer; the last four were generated with ChatGPT for the prototype. Each entry's notes list its prototype participants and secret, how prose odds became checks, and any additions. Plan 3 added metadata only, text unchanged: a disposition (hostile, neutral or pleasant) on each event, for travel pace.",
   "entries": [
     {
       "id": "fishermen-at-the-pond",
@@ -84,12 +84,12 @@
               "outcomes": {
                 "fail": {
                   "text": "Oars and fists. You win in the end, but it hurts.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -12, "target": "all" }]
                 },
                 "partial": {
                   "text": "They break and run, but not before {actor} takes an oar to the head.",
                   "effects": [
-                    { "effect": "hp", "amount": -4, "target": "actor" },
+                    { "effect": "hp", "amount": -12, "target": "actor" },
                     { "effect": "gold", "amount": 4 }
                   ]
                 },
@@ -218,7 +218,7 @@
               "outcomes": {
                 "critFail": {
                   "text": "A rotten prop gives way, and rubble comes down on {actor}.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -12, "target": "actor" }]
                 },
                 "fail": {
                   "text": "The party finds nothing out of the ordinary, just rubble and old equipment scattered throughout the mine."
@@ -253,16 +253,16 @@
               "outcomes": {
                 "critFail": {
                   "text": "{actor} misses the pressure plate. Darts hiss out of the walls.",
-                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -18, "target": "actor" }]
                 },
                 "fail": {
                   "text": "A trap springs on {actor}, and you retreat bleeding and empty-handed.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -12, "target": "actor" }]
                 },
                 "partial": {
                   "text": "You reach the treasure room past one trap too many. There is still gold in the chest.",
                   "effects": [
-                    { "effect": "hp", "amount": -3, "target": "actor" },
+                    { "effect": "hp", "amount": -9, "target": "actor" },
                     { "effect": "gold", "amount": 15 }
                   ]
                 },
@@ -323,15 +323,15 @@
               "outcomes": {
                 "critFail": {
                   "text": "The lizardfolk call upon their deity and a powerful elemental is summoned to defend the artifact.",
-                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -18, "target": "all" }]
                 },
                 "fail": {
                   "text": "The party is detected and must fight their way out.",
-                  "effects": [{ "effect": "hp", "amount": -4, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -12, "target": "all" }]
                 },
                 "partial": {
                   "text": "The party is detected at the last moment and fights its way out.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "all" }]
                 },
                 "success": {
                   "text": "The party is able to steal the artifact without being detected.",
@@ -386,13 +386,13 @@
               "outcomes": {
                 "fail": {
                   "text": "You lose the fight and scramble back down the path.",
-                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -15, "target": "all" }]
                 },
                 "partial": {
                   "text": "You save the goats, but the wolves maul {actor} before they break.",
                   "effects": [
-                    { "effect": "hp", "amount": -5, "target": "actor" },
-                    { "effect": "hp", "amount": -2, "target": "all" }
+                    { "effect": "hp", "amount": -15, "target": "actor" },
+                    { "effect": "hp", "amount": -6, "target": "all" }
                   ]
                 },
                 "success": { "text": "You defeat the wolves and save the goats." },
@@ -417,11 +417,11 @@
               "outcomes": {
                 "fail": {
                   "text": "You get detected and attacked.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -9, "target": "all" }]
                 },
                 "partial": {
                   "text": "The wolves notice you at the last moment and snap at your heels as you go.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "random" }]
                 },
                 "success": { "text": "You sneak past the wolves and continue on your journey." }
               }
@@ -435,15 +435,15 @@
               "outcomes": {
                 "fail": {
                   "text": "The wolves become aggressive and attack the party, losing the goats. You lose the fight.",
-                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -15, "target": "all" }]
                 },
                 "partial": {
                   "text": "The wolves become aggressive and attack the party, losing the goats. You beat them off, bloodied.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -9, "target": "all" }]
                 },
                 "success": {
                   "text": "The wolves become aggressive and attack the party, losing the goats. You defeat the wolves.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "random" }]
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "random" }]
                 }
               }
             }
@@ -472,7 +472,7 @@
               "outcomes": {
                 "critFail": {
                   "text": "{actor} leans too far over the edge and catches a spike climbing back.",
-                  "effects": [{ "effect": "hp", "amount": -2, "target": "actor" }],
+                  "effects": [{ "effect": "hp", "amount": -6, "target": "actor" }],
                   "stay": true
                 },
                 "fail": { "text": "It's too dark to see the bottom.", "stay": true },
@@ -496,11 +496,11 @@
               "outcomes": {
                 "fail": {
                   "text": "You fail to jump and fall into the spikes, taking damage.",
-                  "effects": [{ "effect": "hp", "amount": -5, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -15, "target": "actor" }]
                 },
                 "partial": {
                   "text": "You make the jump, barely, and scrape a shin on the far edge.",
-                  "effects": [{ "effect": "hp", "amount": -1, "target": "actor" }]
+                  "effects": [{ "effect": "hp", "amount": -3, "target": "actor" }]
                 },
                 "success": { "text": "You successfully jump over the pit." }
               }
@@ -528,11 +528,11 @@
               "outcomes": {
                 "fail": {
                   "text": "You lose the fight and are driven back out of the cave.",
-                  "effects": [{ "effect": "hp", "amount": -5, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -15, "target": "all" }]
                 },
                 "partial": {
                   "text": "You defeat the goblins, bloodied.",
-                  "effects": [{ "effect": "hp", "amount": -3, "target": "all" }]
+                  "effects": [{ "effect": "hp", "amount": -9, "target": "all" }]
                 },
                 "success": { "text": "You successfully defeat the goblins." }
               }
