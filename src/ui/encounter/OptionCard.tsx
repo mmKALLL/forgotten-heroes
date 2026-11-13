@@ -139,6 +139,15 @@ export function OptionCard({
             {option.unmet.length > 0 && <p className="tone-bad small">{option.unmet.join(', ')}</p>}
           </div>
         </div>
+        {option.fight && (
+          <div className="card-side">
+            <span className="small check-line">
+              {t('option.onTheLine')}
+              {option.fight.footing !== 'normal' &&
+                ` · ${t(option.fight.footing === 'edge' ? 'position.edge' : 'position.exposed')}`}
+            </span>
+          </div>
+        )}
         {check && (
           <div className="card-side">
             <span className="small check-line">

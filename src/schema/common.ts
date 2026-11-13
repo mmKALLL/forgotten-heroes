@@ -47,6 +47,18 @@ export const PoiCategorySchema = z.enum(POI_CATEGORIES)
 export const TierSchema = z.enum(TIERS)
 export const SettlementFocusSchema = z.enum(SETTLEMENT_FOCI)
 
+/**
+ * Who a climax's Fight is against (Plan 7 Track I): a dungeon's boss room or a Crisis act's key.
+ * The boss is fought as `boss`; as many henchmen as the CR budget allows join it.
+ */
+export const ClimaxSchema = z.object({
+  boss: IdSchema.describe('A creatures id with a signature move: the boss'),
+  henchmen: IdSchema.optional().describe(
+    'A creatures id: as many as a hard CR budget for the climax level allows (0 or more) join the boss'
+  ),
+})
+export type Climax = z.infer<typeof ClimaxSchema>
+
 const score = z.number().int().min(1).max(30)
 export const AbilityScoresSchema = z.object({
   str: score,

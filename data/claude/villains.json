@@ -16,6 +16,7 @@
       "acts": [
         {
           "id": "opened-graves",
+          "climax": { "boss": "ilse-marrow", "henchmen": "zombie" },
           "name": "The Opened Graves",
           "goal": "open the old barrow-field and wake the kings buried there",
           "lead": "burned-chapel",
@@ -32,6 +33,7 @@
         },
         {
           "id": "bone-choir",
+          "climax": { "boss": "anselm-crake", "henchmen": "skeleton" },
           "name": "The Bone Choir",
           "goal": "teach the risen dead to march as one",
           "lead": "bone-buyers-yard",
@@ -49,6 +51,7 @@
         },
         {
           "id": "ashen-crowning",
+          "climax": { "boss": "ashen-prophet", "henchmen": "mummy" },
           "name": "The Ashen Crowning",
           "goal": "crown a barrow-king in the crypt beneath a living lord's seat",
           "lead": "pilgrims-hostel",
@@ -77,6 +80,7 @@
       "acts": [
         {
           "id": "stolen-seal",
+          "climax": { "boss": "agathe-wren", "henchmen": "thug" },
           "name": "The Stolen Seal",
           "goal": "copy the old king's seal onto a forged will",
           "lead": "waylaid-courier-camp",
@@ -92,6 +96,7 @@
         },
         {
           "id": "bought-garrison",
+          "climax": { "boss": "ulrika-hask", "henchmen": "veteran" },
           "name": "The Bought Garrison",
           "goal": "buy a border garrison with stolen silver",
           "lead": "robbers-counting-house",
@@ -109,6 +114,7 @@
         },
         {
           "id": "false-coronation",
+          "climax": { "boss": "pretenders-hand", "henchmen": "knight" },
           "name": "The False Coronation",
           "goal": "be crowned in a seat's own chapel before the true lords can ride",
           "lead": "bishops-summer-house",
@@ -137,6 +143,7 @@
       "acts": [
         {
           "id": "stolen-clutch",
+          "climax": { "boss": "drake-speaker-brood", "henchmen": "hill-drake" },
           "name": "The Stolen Clutch",
           "goal": "steal a drake clutch and hatch the wyrm's heralds",
           "lead": "scorched-shepherds-hut",
@@ -152,6 +159,7 @@
         },
         {
           "id": "burning-beacons",
+          "climax": { "boss": "drake-speaker-beacons", "henchmen": "hill-drake" },
           "name": "The Burning Beacons",
           "goal": "light the old watch-fires that once called the wyrm to feed",
           "lead": "giants-woodcamp",
@@ -168,6 +176,7 @@
         },
         {
           "id": "the-waking",
+          "climax": { "boss": "drake-speaker-waking", "henchmen": "ashmaw" },
           "name": "The Waking",
           "goal": "wake the old wyrm in the hall under the mountain",
           "lead": "dry-springs",

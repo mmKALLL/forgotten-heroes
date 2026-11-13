@@ -1223,3 +1223,18 @@ export const FIGHT_SMALL_PARTY = 3
 export const FIGHT_LARGE_PARTY = 6
 /** A road fight fields at most this many of its creature (the line has room for about this many). */
 export const ROAD_FIGHT_MAX = 8
+
+// ---------------------------------------------------------------------------------------------
+// Combat: Fight and Parley in encounters (Plan 7 Track I; encounters/fights.ts)
+// ---------------------------------------------------------------------------------------------
+
+/** A road Fight's difficulty; an ambush or a twist's fight is HARD (the group is bigger). */
+export const ROAD_FIGHT_DIFFICULTY = 'medium'
+/** A lair's (or other hostile site's) Fight: its budget is a party of the site's level. */
+export const SITE_FIGHT_DIFFICULTY = 'medium'
+/** A climax's Fight (a boss room, a Crisis key): the boss and henchmen up to this budget. */
+export const CLIMAX_FIGHT_DIFFICULTY = 'hard'
+/** A Parley's partial (a toll) costs this share of a same-level contract's pay (typicalPay). */
+export const PARLEY_TOLL_SHARE = 0.25
+/** A Parley's toll is at least this many gold. */
+export const PARLEY_TOLL_MIN = 5

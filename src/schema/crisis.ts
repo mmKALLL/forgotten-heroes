@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { BiomeSchema, IdSchema } from './common'
+import { BiomeSchema, ClimaxSchema, IdSchema } from './common'
 import { CRISIS_ACTS, CRISIS_BOSS_STYLES, MAX_LEVEL, RUN_ENDINGS } from './types'
 
 // ---------------------------------------------------------------------------------------------
@@ -33,6 +33,9 @@ export const VillainActSchema = z.object({
       'Who is met at the key site, e.g. "Captain Hask, the Prophet\'s Hand": a finale ' +
         "villain's lieutenant; absent for the villain itself"
     ),
+  climax: ClimaxSchema.optional().describe(
+    "Who the key site's Fight is against (Plan 7): the act's boss and its henchmen"
+  ),
   surge: z
     .boolean()
     .default(false)

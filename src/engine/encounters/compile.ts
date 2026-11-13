@@ -51,6 +51,8 @@ function resolveOption(option: Option, base: number, reward: number): Option {
   const requires = scaleRequirements(option.requires, reward)
   if (option.kind === 'fixed')
     return { ...option, requires, outcome: scaleBranch(option.outcome, reward) }
+  // Engine-made (Plan 7): never in content, so never in an archetype.
+  if (option.kind === 'fight') return { ...option, requires }
   const outcomes = Object.fromEntries(
     Object.entries(option.outcomes).map(([tier, outcome]) => [
       tier,
@@ -115,14 +117,16 @@ function twistStages(kind: TwistKind, content: Content): Record<string, Stage> {
     return renamed
   }
   const renameOption = (option: Option): Option =>
-    option.kind === 'fixed'
-      ? { ...option, outcome: renameBranch(option.outcome) }
-      : {
-          ...option,
-          outcomes: Object.fromEntries(
-            Object.entries(option.outcomes).map(([tier, o]) => [tier, o && renameBranch(o)])
-          ) as typeof option.outcomes,
-        }
+    option.kind === 'fight'
+      ? option
+      : option.kind === 'fixed'
+        ? { ...option, outcome: renameBranch(option.outcome) }
+        : {
+            ...option,
+            outcomes: Object.fromEntries(
+              Object.entries(option.outcomes).map(([tier, o]) => [tier, o && renameBranch(o)])
+            ) as typeof option.outcomes,
+          }
   return Object.fromEntries(
     Object.entries(kind.stages).map(([id, stage]) => {
       const compiled = compileStage(stage, content)

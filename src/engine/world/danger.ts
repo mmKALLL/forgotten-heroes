@@ -4,6 +4,7 @@ import type { GameState } from '../../schema/state'
 import { crisisSurge, crisisWait } from '../crisis/surge'
 import { crDc } from '../rules/challenge'
 import { scaledWound } from '../rules/levels'
+import { fightBranches } from '../encounters/outcomes'
 import { normalizeDc } from '../rules/checks'
 import { CRISIS_DC_BASE, DANGER_RAMP_DAYS, DANGER_RAMP_MAX, DANGER_RAMP_STEP } from '../constants'
 
@@ -130,6 +131,7 @@ function mapChecks(
   })
   const option = (o: Option): Option => {
     if (o.kind === 'fixed') return { ...o, outcome: outcome(o.outcome) }
+    if (o.kind === 'fight') return { ...o, fight: fightBranches(o.fight, branch) }
     const { critFail, fail, partial, success, critSuccess } = o.outcomes
     return {
       ...o,

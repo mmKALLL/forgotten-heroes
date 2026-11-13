@@ -2,7 +2,7 @@
   "$schema": "../_schema/situations.schema.json",
   "kind": "situations",
   "source": "original",
-  "notes": "Designer call 2026-11-14: every wound here was tripled (written for 3e HP; 5e has about 3–4× more). The prototype's six events (src/lib/data.ts at tag v0.1.0-svelte-final), ported as faithfully as possible. The first two were handwritten by the designer; the last four were generated with ChatGPT for the prototype. Each entry's notes list its prototype participants and secret, how prose odds became checks, and any additions. Plan 3 added metadata only, text unchanged: a disposition (hostile, neutral or pleasant) on each event, for travel pace.",
+  "notes": "Plan 7 Track I added a `foe` (who a Fight on the line is against) to wolves-and-goats, nothing else. Designer call 2026-11-14: every wound here was tripled (written for 3e HP; 5e has about 3–4× more). The prototype's six events (src/lib/data.ts at tag v0.1.0-svelte-final), ported as faithfully as possible. The first two were handwritten by the designer; the last four were generated with ChatGPT for the prototype. Each entry's notes list its prototype participants and secret, how prose odds became checks, and any additions. Plan 3 added metadata only, text unchanged: a disposition (hostile, neutral or pleasant) on each event, for travel pace.",
   "entries": [
     {
       "id": "fishermen-at-the-pond",
@@ -368,6 +368,7 @@
     },
     {
       "id": "wolves-and-goats",
+      "foe": "wolf",
       "title": "Wolves on the mountain path",
       "disposition": "hostile",
       "weight": 0.5,

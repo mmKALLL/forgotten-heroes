@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { roleStats } from '../engine/combat/start'
-import { classIssues, combatIssues } from '../engine/combat/validate'
+import { classIssues, combatIssues, fightCoverageIssues } from '../engine/combat/validate'
 import type { Dice } from '../schema/combat'
 import type { Creature } from '../schema/encounter'
 import { ENEMY_ROLES, type EnemyRole } from '../schema/types'
@@ -11,6 +11,10 @@ const content = loadBundledContent()
 describe('combat content (Plan 7)', () => {
   test('every reference resolves: roles, starting gear, fight creatures, classes, summons', () => {
     expect(combatIssues(content)).toEqual([])
+  })
+
+  test('Fight on the line (Track I): every climax names its boss, every fight-like scene its foes', () => {
+    expect(fightCoverageIssues(content)).toEqual([])
   })
 
   test('classes and gear (Track C): priced, weighted, playable abilities, enough to pick', () => {

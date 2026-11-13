@@ -565,6 +565,7 @@
     },
     {
       "id": "orc-war-camp-raid",
+      "foe": "orc",
       "title": "Orc war camp",
       "disposition": "hostile",
       "site": true,
@@ -793,6 +794,7 @@
     },
     {
       "id": "goblin-warren-raid",
+      "foe": "goblin",
       "title": "Goblin warren",
       "disposition": "hostile",
       "site": true,
@@ -1052,6 +1054,7 @@
     },
     {
       "id": "bandit-hideout-raid",
+      "foe": "bandit",
       "title": "Bandit hideout",
       "disposition": "hostile",
       "site": true,
@@ -1277,6 +1280,7 @@
     },
     {
       "id": "rebel-muster-raid",
+      "foe": "thug",
       "title": "Rebel muster",
       "disposition": "hostile",
       "site": true,
@@ -1504,6 +1508,7 @@
     },
     {
       "id": "restless-graveyard-raid",
+      "foe": "ghoul",
       "title": "Restless graveyard",
       "disposition": "hostile",
       "site": true,
@@ -1730,6 +1735,7 @@
     },
     {
       "id": "cult-manor-raid",
+      "foe": "cultist",
       "title": "Cult hideaway",
       "disposition": "hostile",
       "site": true,
@@ -1956,6 +1962,7 @@
     },
     {
       "id": "serpent-temple-raid",
+      "foe": "cultist",
       "title": "Serpent temple",
       "disposition": "hostile",
       "site": true,
@@ -2178,6 +2185,7 @@
     },
     {
       "id": "hag-hollow-raid",
+      "foe": "cult-fanatic",
       "title": "Hag's hollow",
       "disposition": "hostile",
       "site": true,
@@ -2415,6 +2423,7 @@
     },
     {
       "id": "drake-roost-raid",
+      "foe": "hill-drake",
       "title": "Drake roost",
       "disposition": "hostile",
       "site": true,
@@ -2644,6 +2653,7 @@
     },
     {
       "id": "giant-steading-raid",
+      "foe": "ogre",
       "title": "Giant's steading",
       "disposition": "hostile",
       "site": true,
@@ -2866,6 +2876,7 @@
     },
     {
       "id": "haunted-barrow-delve",
+      "foe": "skeleton",
       "title": "Haunted barrow",
       "disposition": "hostile",
       "site": true,
@@ -3155,6 +3166,7 @@
     },
     {
       "id": "kobold-mine-delve",
+      "foe": "kobold",
       "title": "Kobold-held mine",
       "disposition": "hostile",
       "site": true,

@@ -7767,6 +7767,7 @@
     },
     {
       "id": "ash-faced-mourners",
+      "foe": "cultist",
       "title": "Ash-faced mourners",
       "disposition": "hostile",
       "tags": ["road", "omen", "dark-cult"],
@@ -7949,6 +7950,7 @@
     },
     {
       "id": "press-gang",
+      "foe": "thug",
       "title": "Recruiters with new silver",
       "disposition": "hostile",
       "tags": ["road", "omen", "bandit-lord"],
@@ -8142,6 +8144,7 @@
     },
     {
       "id": "harnessed-drake",
+      "foe": "hill-drake",
       "title": "A drake in harness",
       "disposition": "hostile",
       "tags": ["road", "omen", "drake-brood"],

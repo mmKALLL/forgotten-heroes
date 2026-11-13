@@ -65,6 +65,7 @@ import { wealthWeight } from '../economy/wealth'
 import { asRoom, type RoomRules } from './room'
 import { darkMode, roomUnlit } from '../world/dark'
 import { jobDc, jobWound, partyWound } from '../rules/levels'
+import { payFights, withFights, type FightSetup } from './fights'
 import { POWER_DC, TWIST_PLACE_WEIGHT } from '../constants'
 
 export type EncounterAction =
@@ -192,6 +193,12 @@ export type StartOptions = {
   wound?: number
   /** A dungeon room (world/delve.ts): deeper wounds, driven out on a failure, the hoard last. */
   room?: RoomRules
+  /**
+   * How its Fights on the line are built (Plan 7, encounters/fights.ts): on the road by default;
+   * at a hostile site for its CR; at a climax against its boss; none in other dungeon rooms and
+   * Crisis leads.
+   */
+  fights?: FightSetup
   position?: Position
   lines?: { text: string; tone: LogTone }[]
 }
@@ -223,8 +230,10 @@ export function startEncounter(
     return appendLog(state, `${compiled.title} has no stage "${compiled.start}".`, 'bad')
   }
   // Slots, then the hidden twist, then (for a table twist) its kind and the kind's own slots.
+  // The creatures the creature slots drew, for a Fight's foes (no draws of their own).
+  const creatures: Record<string, string> = {}
   const [{ slots, twist, kind }, rng] = withRng(state.rng, (d) => {
-    const slots = rollSlots(d, content, compiled.slots)
+    const slots = rollSlots(d, content, compiled.slots, creatures)
     const twist = compiled.twist ? d.float() < compiled.twist.chance : false
     const kinds = compiled.twist?.table ? twistKindsFor(content, compiled.twist) : []
     if (kinds.length === 0) return { slots, twist, kind: null as TwistKind | null }
@@ -233,7 +242,7 @@ export function startEncounter(
     const own = Object.fromEntries(
       Object.entries(kind.slots).filter(([name]) => !Object.hasOwn(compiled.slots, name))
     )
-    return { slots: { ...slots, ...rollSlots(d, content, own) }, twist, kind }
+    return { slots: { ...slots, ...rollSlots(d, content, own, creatures) }, twist, kind }
   })
   const atCr = options.cr !== undefined
   const danger = atCr ? 0 : dangerLevel(state, content)
@@ -248,10 +257,18 @@ export function startEncounter(
   // (never both; world/danger.ts harden).
   const hp = partyWound(state.party)
   const twisted = kind ? attachTwistKind(compiled, kind, content) : compiled
+  // Fight and Parley join before hardening, so they play at the same danger and CR (Plan 7).
+  const armed = withFights(twisted, {
+    setup: options.fights ?? (atCr || options.room ? { kind: 'none' } : { kind: 'road' }),
+    content,
+    party: state.party,
+    creatures,
+    kind,
+  })
   const hardened = atCr
-    ? atChallenge(twisted, options.cr!)
-    : harden(twisted, { dcBonus: powerDc + extraDc, danger, wound, hp })
-  const joined = options.room ? asRoom(hardened, options.room) : hardened
+    ? atChallenge(armed, options.cr!)
+    : harden(armed, { dcBonus: powerDc + extraDc, danger, wound, hp })
+  const joined = payFights(options.room ? asRoom(hardened, options.room) : hardened)
   // The title and the twist are filled once, here; other text is filled as it is shown.
   const situation = {
     ...joined,
@@ -616,6 +633,8 @@ export function chooseOption(
     return round ? markRound(resolved, round, marksOf(branch, null), content) : resolved
   }
 
+  // A Fight on the line opens through the step (combat/offer.ts chooseInEncounter).
+  if (option.kind === 'fight') return state
   const { skill, ability, combat } = option.check
   const actor = chooseActor(state.party, skill, actorId, ability)
   if (!actor) return appendLog(state, 'No one is able to act.', 'bad')

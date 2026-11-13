@@ -153,7 +153,10 @@ export function startCombat(
     )
     const enemies = units.filter((u) => u.side === 'enemy')
     const preview = surprisePreview(state, content, enemies, fight.ambush)
-    const surprise = rollSurprise(draw, preview, fight.ambush)
+    // A surprise decided before the fight (a Parley gone wrong) takes no roll.
+    const surprise = options.surprise
+      ? { kept: 0, tier: 'fail' as const, result: options.surprise }
+      : rollSurprise(draw, preview, fight.ambush)
     // With `half`, only the quickest half (by DEX, rounded up) act in round 1.
     const members = rolled.party.map((p) => p.unit)
     const dex = (id: string) => state.party.find((c) => c.id === id)?.abilities.dex ?? 0
@@ -183,8 +186,10 @@ export function startCombat(
     let s: GameState = setCombat(state, combat)
     s = log(
       s,
-      `${who} rolls ${statLabel(preview.skill)} for surprise: ${surprise.kept} ` +
-        `${formatModifier(preview.modifier)} vs DC ${preview.dc}. ${SURPRISE_LINES[surprise.result]}`,
+      options.surprise
+        ? SURPRISE_LINES[surprise.result]
+        : `${who} rolls ${statLabel(preview.skill)} for surprise: ${surprise.kept} ` +
+            `${formatModifier(preview.modifier)} vs DC ${preview.dc}. ${SURPRISE_LINES[surprise.result]}`,
       surprise.result === 'enemy' || surprise.result === 'half' ? 'bad' : 'info'
     )
     // An enemy free round: they act before the party's first turn, without telegraphing.

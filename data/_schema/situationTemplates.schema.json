@@ -100,6 +100,10 @@
               "what"
             ]
           },
+          "foe": {
+            "description": "A creatures id: who a Fight on the line here is against (Plan 7), scaled by the CR budget. Without it, the first creature slot names them",
+            "$ref": "#/$defs/__schema0"
+          },
           "text": {
             "type": "string"
           },
@@ -112,12 +116,12 @@
               "dc": {
                 "default": 13,
                 "description": "What \"dc\" means in the archetype",
-                "$ref": "#/$defs/__schema84"
+                "$ref": "#/$defs/__schema85"
               },
               "reward": {
                 "default": 1,
                 "description": "Multiplies every gold amount in the archetype",
-                "$ref": "#/$defs/__schema85"
+                "$ref": "#/$defs/__schema86"
               }
             },
             "required": [
@@ -812,20 +816,35 @@
               "effect": {
                 "$ref": "#/$defs/__schema76"
               },
-              "gold": {
+              "if": {
+                "$ref": "#/$defs/__schema13"
+              }
+            },
+            "required": [
+              "effect"
+            ],
+            "description": "The stage's Fight on the line starts at once, and the enemies strike first. Engine-made only: a Parley's critical failure"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "effect": {
                 "$ref": "#/$defs/__schema77"
               },
-              "precious": {
-                "$ref": "#/$defs/__schema80"
+              "gold": {
+                "$ref": "#/$defs/__schema78"
               },
-              "accessories": {
+              "precious": {
                 "$ref": "#/$defs/__schema81"
               },
-              "tier": {
+              "accessories": {
                 "$ref": "#/$defs/__schema82"
               },
-              "xp": {
+              "tier": {
                 "$ref": "#/$defs/__schema83"
+              },
+              "xp": {
+                "$ref": "#/$defs/__schema84"
               },
               "if": {
                 "$ref": "#/$defs/__schema13"
@@ -1204,16 +1223,20 @@
     },
     "__schema76": {
       "type": "string",
-      "const": "hoard"
+      "const": "fight"
     },
     "__schema77": {
+      "type": "string",
+      "const": "hoard"
+    },
+    "__schema78": {
       "type": "object",
       "properties": {
         "min": {
-          "$ref": "#/$defs/__schema78"
+          "$ref": "#/$defs/__schema79"
         },
         "max": {
-          "$ref": "#/$defs/__schema79"
+          "$ref": "#/$defs/__schema80"
         }
       },
       "required": [
@@ -1221,11 +1244,6 @@
         "max"
       ],
       "description": "The gold, rolled in this range"
-    },
-    "__schema78": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 9007199254740991
     },
     "__schema79": {
       "type": "integer",
@@ -1235,31 +1253,36 @@
     "__schema80": {
       "type": "integer",
       "minimum": 0,
-      "maximum": 9007199254740991,
-      "description": "Precious goods"
+      "maximum": 9007199254740991
     },
     "__schema81": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
-      "description": "Accessories rolled into the gear"
+      "description": "Precious goods"
     },
     "__schema82": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991,
+      "description": "Accessories rolled into the gear"
+    },
+    "__schema83": {
       "description": "The accessories' tier",
       "$ref": "#/$defs/__schema65"
     },
-    "__schema83": {
+    "__schema84": {
       "type": "integer",
       "minimum": 0,
       "maximum": 9007199254740991,
       "description": "XP for clearing the dungeon"
     },
-    "__schema84": {
+    "__schema85": {
       "type": "integer",
       "minimum": 1,
       "maximum": 40
     },
-    "__schema85": {
+    "__schema86": {
       "type": "number",
       "minimum": 0,
       "maximum": 10

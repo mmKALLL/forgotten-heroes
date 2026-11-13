@@ -6,6 +6,7 @@
   "entries": [
     {
       "id": "cutpurse-hollow",
+      "climax": { "boss": "cutpurse-captain", "henchmen": "bandit" },
       "name": "Cutpurse Hollow",
       "map": "tiles and battle maps/dungeon maps/_dungeon/_dice grimorium maps/Bandit-Den-Gridded-22x33-Map1.jpg",
       "mapSize": [3080, 4620],
@@ -57,6 +58,7 @@
     },
     {
       "id": "weavers-hollow",
+      "climax": { "boss": "weaver-mother", "henchmen": "giant-wolf-spider" },
       "name": "Weaver's Hollow",
       "map": "tiles and battle maps/dungeon maps/_cave : lava/300dpi_cave_spider_day_grid.jpg",
       "mapSize": [6300, 6300],
@@ -112,6 +114,7 @@
     },
     {
       "id": "axe-temple",
+      "climax": { "boss": "horned-priest", "henchmen": "cultist" },
       "name": "the Axe Temple",
       "map": "tiles and battle maps/dungeon maps/_dungeon/theros crypt.jpg",
       "mapSize": [5600, 7000],
@@ -165,6 +168,7 @@
     },
     {
       "id": "sun-drowned-temple",
+      "climax": { "boss": "priest-king", "henchmen": "zombie" },
       "name": "the Sun-Drowned Temple",
       "map": "tiles and battle maps/dungeon maps/_desert/temple of the sun.jpeg",
       "mapSize": [1330, 1540],
@@ -217,6 +221,7 @@
     },
     {
       "id": "gnawbone-warren",
+      "climax": { "boss": "gnoll-matriarch", "henchmen": "gnoll" },
       "name": "Gnawbone Warren",
       "map": "tiles and battle maps/dungeon maps/_cave : lava/cavern with chasm.jpeg",
       "mapSize": [2520, 2520],
@@ -270,6 +275,7 @@
     },
     {
       "id": "green-undercroft",
+      "climax": { "boss": "sludge-mother", "henchmen": "swarm-of-insects" },
       "name": "the Green Undercroft",
       "map": "tiles and battle maps/dungeon maps/_dungeon/sewer temple toxic.jpg",
       "mapSize": [4200, 6440],
@@ -325,6 +331,7 @@
     },
     {
       "id": "rime-heart",
+      "climax": { "boss": "rime-keeper", "henchmen": "winter-wolf" },
       "name": "the Rime Heart",
       "map": "tiles and battle maps/dungeon maps/_arctic/temple of the frozen heart.jpeg",
       "mapSize": [2160, 2880],
@@ -377,6 +384,7 @@
     },
     {
       "id": "jackal-kings-tomb",
+      "climax": { "boss": "jackal-king", "henchmen": "mummy" },
       "name": "the Jackal King's Tomb",
       "map": "tiles and battle maps/dungeon maps/_desert/pharaohs tomb.jpg",
       "mapSize": [3500, 10640],
@@ -431,6 +439,7 @@
     },
     {
       "id": "lichs-gauntlet",
+      "climax": { "boss": "last-champion", "henchmen": "specter" },
       "name": "the Lich's Gauntlet",
       "map": "tiles and battle maps/dungeon maps/_epic/gauntlet of the lich.jpeg",
       "mapSize": [1500, 2250],
@@ -505,6 +514,7 @@
     },
     {
       "id": "drakescale-forge",
+      "climax": { "boss": "forge-dragon", "henchmen": "azer" },
       "name": "Drakescale Forge",
       "map": "tiles and battle maps/dungeon maps/_cave : lava/lava drakescale peak.jpg",
       "mapSize": [4900, 7000],

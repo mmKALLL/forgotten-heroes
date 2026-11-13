@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { BiomeSchema, IdSchema } from './common'
+import { BiomeSchema, ClimaxSchema, IdSchema } from './common'
 
 // ---------------------------------------------------------------------------------------------
 // Authored dungeons (Plan 6, Track D): each is drawn on one dungeon map image and delved room by
@@ -67,6 +67,9 @@ export const DungeonSchema = z
       .max(10)
       .describe('In delve order (most have 5; longer where the map has more, from CR 10 up)'),
     hoard: DungeonHoardSchema.describe('Paid when the last room is cleared'),
+    climax: ClimaxSchema.optional().describe(
+      "Who the last room's Fight is against (Plan 7): the boss and its henchmen"
+    ),
   })
   .refine((d) => new Set(d.rooms.map((r) => r.id)).size === d.rooms.length, {
     message: 'room ids must be distinct',

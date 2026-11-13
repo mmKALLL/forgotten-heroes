@@ -7,6 +7,7 @@ import { generateParty } from './party'
 import { previewCheck, type CheckPreview } from './preview'
 import { createRng } from './rng'
 import { stepEncounter, type EncounterAction } from './encounters/run'
+import { chooseInEncounter } from './combat/offer'
 import { CURRENT_SAVE_VERSION } from './save'
 import { statLabel, type CheckStat } from './rules/abilities'
 import { chooseActor } from './rules/character'
@@ -326,6 +327,9 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'equipArms':
     case 'unequipArms':
       return stepArms(state, action, content)
+    case 'chooseOption':
+      // Fight on the line and a Parley gone wrong open a fight (Plan 7, combat/offer.ts).
+      return chooseInEncounter(state, action.optionId, action.actorId, content)
     default:
       return stepEncounter(state, action, content)
   }

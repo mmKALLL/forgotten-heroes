@@ -284,6 +284,7 @@
     },
     {
       "id": "buried-column",
+      "foe": "skeleton",
       "title": "The buried column",
       "disposition": "hostile",
       "biomes": ["desert"],
@@ -503,10 +504,11 @@
     },
     {
       "id": "darts-from-the-green",
+      "foe": "scout",
       "title": "Darts from the green",
       "disposition": "hostile",
       "biomes": ["jungle"],
-      "tags": ["road", "toll", "serpent-cult"],
+      "tags": ["ambush", "road", "toll", "serpent-cult"],
       "notes": "The serpent cult's toll-takers. A failed charge or a failed slip leaves a dart's poison working: a second stage that a Medicine check, a healing kit or a hard day's march (a level of exhaustion for everyone) gets you through. Paying hands over half the precious goods and half the medicine.",
       "stages": {
         "start": {
@@ -764,10 +766,11 @@
     },
     {
       "id": "nets-in-the-reeds",
+      "foe": "lizardfolk",
       "title": "Nets in the reeds",
       "disposition": "hostile",
       "biomes": ["marsh", "jungle"],
-      "tags": ["road", "lizardfolk"],
+      "tags": ["ambush", "road", "lizardfolk"],
       "notes": "Lizardfolk hunters who netted the wrong game. They want meat or good steel more than a fight: 4 food, or a blade (1 arms, and they share their catch), or make yourselves look like poor eating; fighting knee-deep is the hard way.",
       "stages": {
         "start": {
@@ -993,6 +996,7 @@
     },
     {
       "id": "riders-in-the-grass",
+      "foe": "bandit",
       "title": "Riders in the grass",
       "disposition": "hostile",
       "biomes": ["plains"],
@@ -1403,10 +1407,11 @@
     },
     {
       "id": "snare-line",
+      "foe": "goblin",
       "title": "The snare line",
       "disposition": "hostile",
       "biomes": ["forest", "hills"],
-      "tags": ["road", "goblin-raiders"],
+      "tags": ["ambush", "road", "goblin-raiders"],
       "notes": "A goblin snare catches one of the party. Cut them down and run (Acrobatics), or leave them hanging as bait and ambush the goblins (Stealth: a success gives the Edge in the fight), or leave coin under the snare. A failure brings the goblins down on you.",
       "stages": {
         "start": {
@@ -1585,6 +1590,7 @@
     },
     {
       "id": "false-lights",
+      "foe": "bandit",
       "title": "False lights",
       "disposition": "hostile",
       "biomes": ["sea"],

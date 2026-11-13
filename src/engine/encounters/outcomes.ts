@@ -1,4 +1,11 @@
-import type { CheckOption, Option, Outcome, OutcomeBranch, Situation } from '../../schema/encounter'
+import type {
+  CheckOption,
+  Fight,
+  Option,
+  Outcome,
+  OutcomeBranch,
+  Situation,
+} from '../../schema/encounter'
 import { TIERS, successChance, type Tier } from '../rules/checks'
 import { checkXp } from '../rules/progression'
 import {
@@ -74,4 +81,17 @@ export function setbackCamaraderie(
   const fled = option.tags?.includes('retreat') ? CAMARADERIE_RETREAT : 0
   // Whole points, in case a per-member cost is ever fractional (half a point rounds up).
   return -Math.round((failed + fled) * others)
+}
+
+/** A fight's ending branches, each mapped (a Fight option's win, flee and lose; Plan 7). */
+export function fightBranches(
+  fight: Fight,
+  map: (branch: OutcomeBranch, ending: 'win' | 'flee' | 'lose') => OutcomeBranch
+): Fight {
+  return {
+    ...fight,
+    ...(fight.win && { win: map(fight.win, 'win') }),
+    ...(fight.flee && { flee: map(fight.flee, 'flee') }),
+    ...(fight.lose && { lose: map(fight.lose, 'lose') }),
+  }
 }

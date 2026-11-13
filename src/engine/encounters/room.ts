@@ -7,6 +7,7 @@ import type {
   Stage,
 } from '../../schema/encounter'
 import { playsRound } from './challenge'
+import { fightBranches } from './outcomes'
 
 // A dungeon room's snapshot (Plan 6 D3; world/delve.ts). The room is played like any situation,
 // with its rules written into the snapshot when it starts, so the previews show them as chips and
@@ -50,7 +51,14 @@ export function asRoom(situation: Situation, { wound, hoard, milestone }: RoomRu
   })
   // A challenge round only deepens its wounds: it stays on the stage until the tally decides.
   const round = (o: Outcome): Outcome => ({ ...o, effects: o.effects.map(effect) })
+  // A Fight (Plan 7) ends the room as its branch says: a win as a success, a retreat or a
+  // wipe as a failure (driven out).
+  const fightOption = (o: Extract<Option, { kind: 'fight' }>): Option => ({
+    ...o,
+    fight: fightBranches(o.fight, (b, end) => branch(b, end !== 'win')),
+  })
   const roundOption = (o: Option): Option => {
+    if (o.kind === 'fight') return fightOption(o)
     if (o.kind === 'fixed') return { ...o, outcome: round(o.outcome) }
     const { critFail, fail, partial, success, critSuccess } = o.outcomes
     return {
@@ -65,6 +73,7 @@ export function asRoom(situation: Situation, { wound, hoard, milestone }: RoomRu
     }
   }
   const option = (o: Option): Option => {
+    if (o.kind === 'fight') return fightOption(o)
     if (o.kind === 'fixed') return { ...o, outcome: outcome(o.outcome, false) }
     const { critFail, fail, partial, success, critSuccess } = o.outcomes
     return {

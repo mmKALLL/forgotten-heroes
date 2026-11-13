@@ -6,6 +6,7 @@
   "entries": [
     {
       "id": "ashgrave-mausoleum",
+      "climax": { "boss": "ashgrave-founder", "henchmen": "ghoul" },
       "name": "the Ashgrave Mausoleum",
       "map": "tiles and battle maps/dungeon maps/_haunted/Afternoon Maps is creating RPG and DnD battlemaps _ Patreon.jpeg",
       "mapSize": [1000, 1500],
@@ -51,6 +52,7 @@
     },
     {
       "id": "greyvein-mine",
+      "climax": { "boss": "sinkhole-crawler", "henchmen": "kobold" },
       "name": "the Greyvein Lead Mine",
       "map": "tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/old_lead_mine_70_nogrid_by_zatnikotel_ddq2v99.jpg",
       "mapSize": [1610, 2240],
@@ -106,6 +108,7 @@
     },
     {
       "id": "wyrmprow-cove",
+      "climax": { "boss": "drowned-captain", "henchmen": "zombie" },
       "name": "Wyrmprow Cove",
       "map": "tiles and battle maps/dungeon maps/_coastal/abandoned pirate cove.jpg",
       "mapSize": [1200, 927],
@@ -158,6 +161,7 @@
     },
     {
       "id": "starfloor-crypt",
+      "climax": { "boss": "star-priest", "henchmen": "skeleton" },
       "name": "the Starfloor Crypt",
       "map": "tiles and battle maps/dungeon maps/_haunted/crypt with traps.jpeg",
       "mapSize": [2088, 1800],
@@ -212,6 +216,7 @@
     },
     {
       "id": "gilded-grottoes",
+      "climax": { "boss": "brood-mother", "henchmen": "giant-crab" },
       "name": "the Gilded Grottoes",
       "map": "tiles and battle maps/dungeon maps/_coastal/cavern sea-trapped encampment.jpeg",
       "mapSize": [2800, 4200],
@@ -264,6 +269,7 @@
     },
     {
       "id": "drowned-keep",
+      "climax": { "boss": "drowned-castellan", "henchmen": "zombie" },
       "name": "the Drowned Keep",
       "map": "tiles and battle maps/dungeon maps/_haunted/abandoned dungeon overtaken by water and ghosts.jpeg",
       "mapSize": [2100, 2100],
@@ -318,6 +324,7 @@
     },
     {
       "id": "stormwrack-manor",
+      "climax": { "boss": "lady-of-stormwrack", "henchmen": "cult-fanatic" },
       "name": "Stormwrack Manor",
       "map": "tiles and battle maps/dungeon maps/_haunted/manor of horrors 34x61.jpg",
       "mapSize": [1360, 2440],
@@ -393,6 +400,7 @@
     },
     {
       "id": "skullmire",
+      "climax": { "boss": "skullmire-wyrm", "henchmen": "lizardfolk" },
       "name": "the Skullmire",
       "map": "tiles and battle maps/dungeon maps/__dungeon entrances/swamp black dragon lair.jpg",
       "mapSize": [5740, 6300],
@@ -446,6 +454,7 @@
     },
     {
       "id": "ape-king-vault",
+      "climax": { "boss": "stone-ape", "henchmen": "giant-ape" },
       "name": "the Vault of the Ape King",
       "map": "tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/_lost temple of the monkey king/map_2_puzzles_grid_by_zatnikotel_dd2b587.jpg",
       "mapSize": [3500, 3500],
@@ -515,6 +524,7 @@
     },
     {
       "id": "greenwyrm-falls",
+      "climax": { "boss": "greenwyrm" },
       "name": "the Greenwyrm Falls",
       "map": "tiles and battle maps/dungeon maps/__dungeon entrances/forest green dragon lair.jpg",
       "mapSize": [3360, 7560],

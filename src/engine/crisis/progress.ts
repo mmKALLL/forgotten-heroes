@@ -236,5 +236,7 @@ export function crisisVisit(state: GameState, content: Content, poiId: string): 
       tone: 'good',
     })
   }
-  return { cr, ...(weakness && { position: 'edge' as const }), lines }
+  // The key's finale offers a Fight against the act's boss beside its challenge (Plan 7).
+  const fights = key && act.climax ? { kind: 'climax' as const, cr, climax: act.climax } : undefined
+  return { cr, ...(weakness && { position: 'edge' as const }), ...(fights && { fights }), lines }
 }

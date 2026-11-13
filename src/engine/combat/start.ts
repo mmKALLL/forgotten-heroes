@@ -219,6 +219,8 @@ export function rollSurprise(draw: Draw, preview: SurprisePreview, ambush: boole
 export type StartOptions = {
   /** The party's footing for the fight (an Exposed parley, a dark room). */
   footing?: Position
+  /** A surprise decided before the fight, with no roll (a Parley gone wrong: `enemy`). */
+  surprise?: SurpriseResult
 }
 
 /** The fight's units before placement, and the ambushers (drawn here). */

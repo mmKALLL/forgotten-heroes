@@ -1,5 +1,6 @@
 import { TWIST_STAGE, type Effect, type Outcome, type OutcomeBranch } from '../../schema/encounter'
 import type { EncounterState, GameState } from '../../schema/state'
+import type { Position } from '../../schema/types'
 import { previewCheck, type CheckPreview } from '../preview'
 import { checkLabel } from '../rules/abilities'
 import { canAct, rankActors } from '../rules/character'
@@ -31,6 +32,7 @@ import { darkMode, roomUnlit } from '../world/dark'
 import { fillText } from './slots'
 import { SHOW_OUTCOME_TEXT } from '../constants'
 import { crisisActNumber } from '../crisis/status'
+import { darkFooting } from '../world/dark'
 import { crisisFailsDuring, tooLateChip } from '../crisis/progress'
 import {
   NO_TALLY,
@@ -48,6 +50,9 @@ import {
  * What effect chips name: the settlement a reputation effect changes, and the Crisis's current act.
  * `failsAct` tells which Crisis act a branch's effects run out the time of (crisisFailsDuring).
  */
+/** A retreat from the line costs what any flight does (combat/fight.ts finish). */
+const RETREAT = { tags: ['retreat' as const] }
+
 type ChipContext = {
   place?: string
   act: number | null
@@ -124,16 +129,33 @@ export type OptionCheckPreview = CheckPreview & {
   autoActorName: string
 }
 
+/**
+ * A Fight on the line (Plan 7): how each ending would apply to the encounter, as the fight's end
+ * applies it (no actor): a win, a retreat (with the flight's camaraderie, as any flight), and a
+ * wipe (after the wipe's choice, which shows its own costs). No odds: the line has no overall
+ * chance (designer call 2026-11-14).
+ */
+export type FightPreview = {
+  win: BranchPreview
+  flee: BranchPreview
+  lose: BranchPreview
+  /** The footing the party fights on, the whole fight: the encounter's Edge or Exposed. */
+  footing: Position
+  ambush: boolean
+}
+
 export type OptionPreview = {
   id: string
   label: string
   description?: string
-  kind: 'check' | 'fixed'
+  kind: 'check' | 'fixed' | 'fight'
   available: boolean
   /** Why it isn't available, e.g. "needs 15 gp". */
   unmet: string[]
   check: OptionCheckPreview | null
   outcomes: OutcomePreview[]
+  /** A Fight on the line's endings; null for any other option. */
+  fight?: FightPreview | null
 }
 
 /** What the twist would be is always shown (its outcome branches are); the odds only once revealed. */
@@ -281,6 +303,37 @@ export function encounterOptions(
       label: fillText(option.label, encounter.slots),
       description: option.description && fillText(option.description, encounter.slots),
       kind: option.kind,
+    }
+    if (option.kind === 'fight') {
+      const ending = (branch: OutcomeBranch | undefined, setback = 0) =>
+        branchPreview(
+          branch ?? { text: '', effects: [] },
+          encounter,
+          encounter.slots,
+          'someone',
+          ctx,
+          () => 0,
+          setback
+        )
+      const fight: FightPreview = {
+        win: ending(option.fight.win),
+        flee: ending(
+          option.fight.flee,
+          softenLoss(state, setbackCamaraderie(members, encounter.situation, RETREAT, null))
+        ),
+        lose: ending(option.fight.lose),
+        // As startCombat will set it: the encounter's footing, and an unlit room's dark.
+        footing: darkFooting(encounter.position, roomUnlit(state)),
+        ambush: option.fight.ambush,
+      }
+      return {
+        ...base,
+        available: optionAvailable(state, option),
+        unmet,
+        check: null,
+        outcomes: [],
+        fight,
+      }
     }
     if (option.kind === 'fixed') {
       const outcomes = [

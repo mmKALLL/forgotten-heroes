@@ -253,6 +253,10 @@ export const en = {
   'outcomes.escalates': 'it escalates',
   'outcomes.noEffect': 'no effect',
   'outcomes.movesOn': 'the scene moves on',
+  'outcomes.fightWin': 'Win',
+  'outcomes.fightFlee': 'Retreat',
+  'outcomes.fightLose': 'Wiped out (after the way out you choose)',
+  'option.onTheLine': 'On the line',
 
   'map.heading': 'Altaeus',
   'map.label': 'Map of Altaeus',
