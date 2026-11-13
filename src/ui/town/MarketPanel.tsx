@@ -489,6 +489,8 @@ function MarketLine({
             {t('market.sellButton', { n: sellN, gp: sellQuote?.total ?? '—' })}
           </button>
         )}
+        {/* No sale here: an empty slot keeps the Buy button in its column. */}
+        {!row.sell && <span className="trade-gap" aria-hidden="true" />}
         {buyWhy && <div className="trade-why tone-bad">{buyWhy}</div>}
         {CARGO_SALE &&
           cargoFor

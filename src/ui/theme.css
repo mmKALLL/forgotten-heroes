@@ -1888,6 +1888,12 @@ h2[tabindex='-1']:focus {
   font-variant-numeric: tabular-nums;
   text-align: left;
 }
+.market-table .trade .trade-gap {
+  display: inline-block;
+  width: 8.5em;
+  margin-left: 0.2rem;
+  font-size: 0.72rem;
+}
 .explore-line,
 .gather-line {
   margin: 0.25rem 0 0.5rem;
@@ -2453,7 +2459,8 @@ h2[tabindex='-1']:focus {
     display: block;
     margin: 0.1rem 0 0.1rem auto;
   }
-  .market-table .trade button.idle {
+  .market-table .trade button.idle,
+  .market-table .trade .trade-gap {
     display: none;
   }
   .market-table tbody tr {
