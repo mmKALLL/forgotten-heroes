@@ -152,21 +152,66 @@ export function crLevel(cr: number): number
 
 ## Wave 2 (after A and C merge)
 
-### Track D: levelled work and dungeons
+### Track D: levelled work and authored dungeons
+
+**Designer calls (2026-11-13, later):**
+- Each dungeon is built on one of the **dungeon maps in `~/dnd5e/tiles and battle maps/dungeon maps/`**. The delve shows the party's place on it in a zoomed-in view, like the world map.
+- The **content of each dungeon is fixed** (authored). About **20 dungeons**, placed at random around each world.
+- A room's possible encounters are based on **what is actually drawn on the map** there.
+
+**Data (new kind `dungeons`, `data/claude/dungeons*.json`):**
+
+```jsonc
+{
+  "id": "sunken-vault",
+  "name": "The Sunken Vault",
+  "map": "tiles and battle maps/dungeon maps/_dungeon/<file>.jpg", // relative to ~/dnd5e; listed in assets.manifest.txt
+  "mapSize": [4096, 2304],     // the image's pixel size (aspect for the view)
+  "cr": 4,                     // fixed; spread over CR 1–18 across the 20
+  "biomes": ["hills", "mountains"], // where it may be placed
+  "summary": "One line on the map card",
+  "entrance": [0.08, 0.52],    // fractions of the image
+  "rooms": [                   // in delve order, 3–6
+    { "id": "flooded-hall", "name": "The Flooded Hall", "at": [0.31, 0.47],
+      "text": "What is here, from the map (in our own words)",
+      "situations": ["sunken-vault-eels", "sunken-vault-sluice"] }   // 1–3 possible encounters, one drawn
+  ],
+  "hoard": { "text": "...", "precious": 1, "accessory": 1 }
+}
+```
+
+- **Room situations** are ordinary situations with `site: true` and `room: true` in `data/claude/dungeon-rooms*.json`. They are never drawn on the road or at an ordinary site.
+- **DCs** are written at standard difficulty (DC 10–15 as usual). The engine rebases them to the dungeon's CR: `dc + crDc(cr) − crDc(CR_STANDARD)`.
+
+**Tasks:**
+- **D0. Schema and loading.** The `dungeons` schema and content kind, validation (every room's situations exist and are `room: true`, coordinates in 0–1, a known biome), and `pnpm schemas`. Commit this first: the content agents branch from it.
 - **D1. Contracts get a level** (the party's best founder level ± 1, seeded with the board). Their pay and check DCs scale with it (`crDc`), and the board shows the level.
-- **D2. Dungeons and lairs get a CR** at placement (by type, domain threat and distance from the start) that rises with power. The site panel shows it against the party's level.
+- **D2. Placement.** World generation places up to `DUNGEON_COUNT` (≈20) authored dungeons, each at most once, on free land spots of their biomes (category `dungeon` POIs that point at their dungeon id).
+  - They replace the generic dungeon-category POI types. Lairs, camps and the rest stay generic, as one-encounter sites with a CR from their type and domain threat.
+  - At least 2 dungeons of CR ≤ 3 lie within about 10 steady days of the start.
+  - The site cycle (empty, then re-inhabited) still applies. Re-inhabited rooms draw again from their situations.
+  - Adjust `src/content/world.test.ts`'s POI bounds if the totals move.
 - **D3. Delving.**
-  - Enter starts a **delve**: 3–5 rooms (by type and size), each one a site situation, played in a row without leaving.
-  - Every room is at the dungeon's CR, with about 2× an overworld encounter's risk (DCs from `crDc`, wounds ×2: `DELVE_RISK`).
-  - Between rooms the party may **press on** or **withdraw**, keeping what it has found. Withdrawing costs no camaraderie: it is not fleeing.
-  - The last room clears the site and pays the hoard, a random 1.5–2× (`DELVE_REWARD`) of a same-level contract's pay, in gold, precious goods and sometimes an accessory, plus `XP_CLEAR`.
+  - Enter starts a **delve** through the rooms in order, each room one drawn situation, in a row without leaving.
+  - Each room carries about 2× an overworld encounter's risk: rebased DCs, and wounds × `DELVE_WOUND` (2).
+  - Between rooms the party may **press on** or **withdraw**, keeping what it has found. Withdrawing is not fleeing, so it costs no camaraderie.
+  - The last room clears the site and pays the hoard: a random 1.5–2× (`DELVE_REWARD`) of a same-level contract's pay, in gold, precious goods and sometimes an accessory, plus `XP_CLEAR`.
   - The preview shows the rooms left, the CR and the hoard range.
-- **D4. Content.** Room situations for the dungeon and lair types in `data/claude/poi-situations.json` (or a new `dungeon-rooms.json`): about 3–4 rooms per type family, plus a few generic ones.
+- **D4. The delve view.** It shows the dungeon's map image zoomed to the current room, with the rooms visited, the party's marker and the next room (pan and zoom like the world map).
+  - Without the image (no local assets, e.g. a public build), it shows a plain schematic: the rooms as dots on parchment, joined in order.
+  - The site panel shows the dungeon's name, CR against the party's level, its summary and the room count.
+- **D5. Content (separate agents, after D0).** The 20 dungeons, written by agents who **look at each map image** (downscaled copies in the scratchpad) and mark the room coordinates. Each dungeon has 3–6 rooms and 1–3 situations per room, true to what the map shows there (a flooded hall, a collapsed bridge, a ritual circle).
+  - Pick maps from the themed folders (`_dungeon`, `_cave : lava`, `_desert`, `_haunted`, `_mountain`, `_aquatic`, `_arctic`, `_coastal`, `_epic`), one floor per dungeon, and spread them over the biomes and CRs.
+  - Add each map file to `assets.manifest.txt`, run `pnpm sync-assets`, and add a `CREDITS.md` row for each (map makers from filenames and watermarks; "(guess)" where unsure).
+  - The text is our own words: no copyrighted prose in `data/claude/`.
 - **Tests:**
   - Preview == actual for withdrawing and pressing on.
   - The hoard lies within its range.
   - A delve's determinism.
+  - Placement: count, at most once each, the near low-CR rule.
+  - Content validation.
   - The migration if `GameState` changes.
+  - One smoke test for the delve view.
 
 ### Track K: Crisis content and the tracker UI
 - **K1. Per villain:**
