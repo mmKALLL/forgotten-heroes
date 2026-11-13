@@ -196,7 +196,7 @@ function Game() {
             // A fight (Plan 7 U): the line in place of the encounter; its outcome shows on Close.
             <>
               {shown.delve && <DelveView content={content} state={shown} onAction={dispatch} />}
-              <CombatView state={state} onAction={dispatch} />
+              <CombatView state={state} content={content} onAction={dispatch} />
             </>
           ) : shown.delve ? (
             // A delve (Plan 6 D4): the dungeon's map, then the room being played.

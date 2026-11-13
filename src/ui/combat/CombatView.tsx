@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
+import type { Content } from '../../content/build'
+import { abilitySlots, type AbilitySlot, type AbilityUse } from '../../engine/combat/abilities'
 import type { AttackSpec } from '../../engine/combat/attack'
 import type { DownedRisk, WipeOptions } from '../../engine/combat/defeat'
 import {
@@ -19,7 +21,8 @@ import { useI18n, type I18n } from '../i18n/I18n'
 // and dispatches the combat actions; every number comes from `combatPreview`.
 // Controls: pick a member (its card, ↑/↓, or the next ready one by default), aim at a target
 // (hover, focus, or ←/→), then click it or press Space. F toggles the full action; 1–9 select an
-// ability or spell slot (none is playable yet), the same key again deselects it.
+// ability slot (Track C's `abilitySlots`; spells join later), the same key again deselects it: the
+// Action panel then lists the slot's uses, each with what it does, and Space uses the only one.
 
 const SLOTS = 9
 
@@ -39,9 +42,12 @@ function foreign(e: KeyboardEvent): boolean {
 
 export function CombatView({
   state,
+  content,
   onAction,
 }: {
   state: GameState
+  /** The content, for the class abilities in slots 1–9; without it the slots are empty. */
+  content?: Content
   onAction: (a: Action) => void
 }) {
   const i18n = useI18n()
@@ -69,6 +75,22 @@ export function CombatView({
       : (targets.find((x) => keyOf(x) === aimKey) ?? null)
   const canFull = targets.some((x) => x.kind === 'attack' && x.full !== null)
   const useFull = full && canFull
+  // The acting member's abilities in slots 1–9 (combat/abilities.ts).
+  const slots = active && content && !over ? abilitySlots(state, content, active.id) : []
+  const chosen = slots.find((s) => s.key === slot) ?? null
+
+  const useAbility = (use: AbilityUse) => {
+    if (!active || !chosen || !chosen.available) return
+    onAction({
+      type: 'combatAbility',
+      unit: active.id,
+      ability: chosen.ability.id,
+      ...(use.tile !== null ? { tile: use.tile } : {}),
+      ...(use.target !== null ? { target: use.target } : {}),
+    })
+    setSlot(null)
+    reset()
+  }
 
   // A new fight (or its end) starts with the heading, then Close, focused.
   useEffect(() => {
@@ -154,6 +176,11 @@ export function CombatView({
       // A focused button takes Space itself (it clicks).
       if (el?.closest('button')) return
       e.preventDefault()
+      // With a slot chosen, Space uses its only use (several are picked in the Action panel).
+      if (chosen) {
+        if (chosen.available && chosen.uses.length === 1) useAbility(chosen.uses[0])
+        return
+      }
       act(aim)
     }
   }
@@ -247,17 +274,32 @@ export function CombatView({
                 aria-label={t('combat.slots')}
                 title={t('combat.slotsHint')}
               >
-                {Array.from({ length: SLOTS }, (_, i) => i + 1).map((n) => (
-                  <button
-                    key={n}
-                    className="slot"
-                    aria-disabled="true"
-                    aria-pressed={slot === n}
-                    aria-label={t('combat.slot', { n })}
-                  >
-                    {n}
-                  </button>
-                ))}
+                {Array.from({ length: SLOTS }, (_, i) => i + 1).map((n) => {
+                  const s = slots.find((x) => x.key === n)
+                  return (
+                    <button
+                      key={n}
+                      className={s ? 'slot filled' : 'slot'}
+                      aria-disabled={s?.available ? undefined : 'true'}
+                      aria-pressed={slot === n}
+                      aria-label={
+                        s
+                          ? t('combat.slotAbility', {
+                              n,
+                              name: s.ability.name,
+                              left: s.left,
+                              max: s.max,
+                            })
+                          : t('combat.slot', { n })
+                      }
+                      title={s ? (s.reason ?? s.ability.description) : undefined}
+                      onClick={() => setSlot(slot === n ? null : n)}
+                    >
+                      {n}
+                      {s && <span className="slot-uses">{s.left}</span>}
+                    </button>
+                  )
+                })}
               </div>
               <Preview
                 view={view}
@@ -266,6 +308,8 @@ export function CombatView({
                 aim={aim}
                 full={useFull}
                 slot={slot}
+                chosen={chosen}
+                onUse={useAbility}
               />
               <p className="muted small combat-keys">{t('combat.keys')}</p>
             </div>
@@ -647,6 +691,8 @@ function Preview({
   aim,
   full,
   slot,
+  chosen,
+  onUse,
 }: {
   view: View
   i18n: I18n
@@ -654,9 +700,13 @@ function Preview({
   aim: Aim | null
   full: boolean
   slot: number | null
+  chosen: AbilitySlot | null
+  onUse: (use: AbilityUse) => void
 }) {
   const { t } = i18n
   const body = () => {
+    if (chosen && active)
+      return <AbilityPreview slot={chosen} view={view} i18n={i18n} onUse={onUse} />
     if (slot !== null) return <p className="muted">{t('combat.slotChosen', { n: slot })}</p>
     if (!active || !aim) return <p className="muted">{t('combat.previewNone')}</p>
     if (aim === RETREAT) {
@@ -699,6 +749,74 @@ function Preview({
     >
       {body()}
     </div>
+  )
+}
+
+/**
+ * A chosen ability slot: what it does, its uses left, and each legal use as a button with what
+ * it would do (the heal, the attack's odds, each unit's chance), from `abilitySlots`.
+ */
+function AbilityPreview({
+  slot,
+  view,
+  i18n,
+  onUse,
+}: {
+  slot: AbilitySlot
+  view: View
+  i18n: I18n
+  onUse: (use: AbilityUse) => void
+}) {
+  const { t } = i18n
+  const units = view.tiles.flatMap((x) => x.units)
+  const nameOf = (id: string) => units.find((u) => u.id === id)?.name ?? id
+  const label = (use: AbilityUse): string => {
+    const where =
+      use.target !== null && slot.ability.target !== 'self'
+        ? nameOf(use.target)
+        : use.tile !== null && slot.ability.target !== 'self'
+          ? t('combat.abilityTile', { n: use.tile + 1 })
+          : use.tile !== null && slot.ability.effects.some((e) => e.effect === 'move')
+            ? t('combat.abilityTile', { n: use.tile + 1 })
+            : t('combat.abilityUse')
+    const parts: string[] = []
+    if (use.heal) parts.push(t('combat.abilityHeal', { min: use.heal[0], max: use.heal[1] }))
+    if (use.attack)
+      parts.push(
+        t('combat.abilityAttack', {
+          pct: formatPercent(use.attack.hit),
+          min: use.attack.damage[0],
+          max: use.attack.damage[1],
+        })
+      )
+    else if (use.affects.length > 0 && !use.heal)
+      parts.push(
+        use.affects
+          .map((a) =>
+            a.chance < 1 ? `${nameOf(a.unit)} ${formatPercent(a.chance)}` : nameOf(a.unit)
+          )
+          .join(', ')
+      )
+    return parts.length > 0 ? `${where}: ${parts.join(' · ')}` : where
+  }
+  return (
+    <>
+      <h3>
+        {t('combat.abilityHeading', { name: slot.ability.name, left: slot.left, max: slot.max })}
+      </h3>
+      <p className="small">{slot.ability.description}</p>
+      {slot.reason ? (
+        <p className="muted small">{slot.reason}</p>
+      ) : (
+        <div className="ability-uses">
+          {slot.uses.map((use, i) => (
+            <button key={i} onClick={() => onUse(use)}>
+              {label(use)}
+            </button>
+          ))}
+        </div>
+      )}
+    </>
   )
 }
 

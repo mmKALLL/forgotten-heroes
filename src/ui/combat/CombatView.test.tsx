@@ -7,7 +7,7 @@ import { combatPreview } from '../../engine/combat/preview'
 import { unitOf, withFight } from '../../engine/combat/test-fixtures'
 import { formatPercent } from '../../engine/format'
 import { step, type Action } from '../../engine/state'
-import { combatFixtureContent } from '../../engine/test-fixtures'
+import { brom, classFixtureContent, combatFixtureContent } from '../../engine/test-fixtures'
 import type { GameState } from '../../schema/state'
 import { CombatView } from './CombatView'
 
@@ -152,4 +152,44 @@ test('a wipe offers surrender, struggle and sacrifice with their costs; a choice
   expect(screen.getByRole('button', { name: 'Leave Brom behind' })).toBeTruthy()
   await userEvent.click(screen.getByRole('button', { name: 'Surrender' }))
   expect(screen.getByText('closed')).toBeTruthy()
+})
+
+test('an ability slot (Track C): its uses in the Action panel, and using one spends it', async () => {
+  const classes = classFixtureContent()
+  const state = withFight(
+    [
+      unitOf({ id: 'brom', side: 'party', tile: 1, name: 'Brom', hp: 5, maxHp: 20 }),
+      unitOf({ id: 'e1', side: 'enemy', tile: 4, name: 'Cutthroat' }),
+    ],
+    {},
+    1,
+    { party: [{ ...brom, hp: 5 }] }
+  )
+  const spy = vi.fn()
+  function WithContent() {
+    const [s, setS] = useState(state)
+    return (
+      <CombatView
+        state={s}
+        content={classes}
+        onAction={(a) => {
+          spy(a)
+          setS((x) => step(x, a, classes))
+        }}
+      />
+    )
+  }
+  render(<WithContent />)
+  await userEvent.keyboard('1')
+  expect(screen.getByRole('button', { name: 'Slot 1: Second Wind (1/1)' })).toBeTruthy()
+  expect(preview().getByText('Second Wind · 1/1 until a long rest')).toBeTruthy()
+  await userEvent.click(preview().getByRole('button', { name: 'Use: heals 2–11' }))
+  expect(spy).toHaveBeenLastCalledWith({
+    type: 'combatAbility',
+    unit: 'brom',
+    ability: 'second-wind',
+    tile: 1,
+    target: 'brom',
+  })
+  expect(screen.getByRole('button', { name: 'Slot 1: Second Wind (0/1)' })).toBeTruthy()
 })

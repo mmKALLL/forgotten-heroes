@@ -2486,6 +2486,25 @@ h2[tabindex='-1']:focus {
   padding: 0;
   line-height: 1.45;
 }
+.combat-slots .slot.filled {
+  font-weight: 700;
+}
+.combat-slots .slot-uses {
+  margin-left: 0.15rem;
+  font-size: 0.7em;
+  vertical-align: super;
+  color: var(--accent);
+}
+.ability-uses {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+.ability-uses button {
+  overflow-wrap: anywhere;
+  text-align: left;
+}
 .levelup-choice {
   margin: 0.45rem 0 0;
   padding: 0.3rem 0.45rem 0.4rem;
