@@ -53,8 +53,8 @@ export const RUMOUR_OUTCOMES: Readonly<Record<Tier, string>> = {
   critFail: 'Trouble: a pickpocket, or a fight',
   fail: 'Nothing worth hearing',
   partial: 'Idle gossip and old news, of no use',
-  success: "Two nearby towns' prices, and word of a site (of a dungeon, the level it calls for)",
-  critSuccess: "Three towns' prices, word of a site, and a lead on work",
+  success: "A nearby town's prices, and word of a site (of a dungeon, the level it calls for)",
+  critSuccess: "Two towns' prices, word of a site, and a lead on work",
 }
 
 /** One outcome row of the preview; `text` is null for a critical tier (a surprise). */

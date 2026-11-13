@@ -7,7 +7,7 @@ import { rollCheck, type Tier } from '../rules/checks'
 import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { nearestSettlements } from '../travel/reach'
-import { STANDING_POINTS } from '../constants'
+import { RUMOUR_PRICES, STANDING_POINTS } from '../constants'
 import { RUMOUR_LEAD, RUMOUR_TROUBLE_TAG, RUMOURS_DONE, rumourOption, rumourPrice } from './rumours'
 import { serviceRows } from './services'
 import { delvePreview } from '../world/delve'
@@ -93,8 +93,8 @@ describe('listenRumours', () => {
     ['critFail', 0],
     ['fail', 0],
     ['partial', 0],
-    ['success', 2],
-    ['critSuccess', 3],
+    ['success', RUMOUR_PRICES.success],
+    ['critSuccess', RUMOUR_PRICES.critSuccess],
   ] as const)('a %s hears %i towns’ prices, dated by the road', (tier, count) => {
     const state = rolling(tier)
     const after = listen(state)

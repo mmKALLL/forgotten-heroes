@@ -40,8 +40,8 @@ type Props = {
  * The town ledger (design §5): the settlement on one screen with no modals. A one-line header
  * (town · land · kingdom · threat · the party's standing here), then two tabs (designer, Plan 6):
  * **Market** (the market beside the services; recruits stay with their inn or guild) and
- * **Travel** (Explore, Gather and the roads out with the chosen journey's card, beside rumours,
- * the people and the notice board). Each tab has two columns on wide screens and stacks on narrow
+ * **Travel** (rumours, people and the notice board, beside Explore, Gather and the roads out with
+ * the chosen journey's card; designer call: talk on the left). Each tab has two columns on wide screens and stacks on narrow
  * ones. The town's map, when synced, is shown large below the tabs at their full width.
  */
 export function TownLedger({
@@ -164,6 +164,11 @@ export function TownLedger({
         </section>
       </div>
       <div {...panel('travel')}>
+        <section className="ledger-col zone zone-talk" aria-label={t('ledger.talk')}>
+          <RumoursLine content={content} state={state} onAction={onAction} />
+          <PeoplePanel content={content} state={state} />
+          <NoticeBoard content={content} state={state} onAction={onAction} />
+        </section>
         <section className="ledger-col zone zone-roads" aria-label={t('ledger.roads')}>
           {/* Explore sits above the roads (designer decision). */}
           <ExploreAction content={content} state={state} onAction={onAction} compact />
@@ -177,11 +182,6 @@ export function TownLedger({
             onPrefs={onPrefs}
             onAction={onAction}
           />
-        </section>
-        <section className="ledger-col zone zone-talk" aria-label={t('ledger.talk')}>
-          <RumoursLine content={content} state={state} onAction={onAction} />
-          <PeoplePanel content={content} state={state} />
-          <NoticeBoard content={content} state={state} onAction={onAction} />
         </section>
       </div>
       {banner && (

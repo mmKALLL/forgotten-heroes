@@ -338,8 +338,8 @@ export const RUMOUR_PRICES: Readonly<Record<Tier, number>> = {
   critFail: 0,
   fail: 0,
   partial: 0,
-  success: 2,
-  critSuccess: 3,
+  success: 1,
+  critSuccess: 2,
 }
 /** Heard prices (rumours and couriers) are off by up to ±this share (seeded). */
 export const RUMOUR_SKEW = 0.1
