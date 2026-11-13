@@ -1,0 +1,531 @@
+{
+  "$schema": "../_schema/dungeons.schema.json",
+  "kind": "dungeons",
+  "source": "claude",
+  "notes": "Authored dungeons, set 1 of 2 (Plan 6 D5). Each is drawn on one dungeon map image (the path is relative to ~/dnd5e and listed in assets.manifest.txt) and delved room by room in order. Coordinates are [x, y] fractions of the image, read off downscaled copies; room texts and their situations follow what the map shows there, in our own words. Room situations live in dungeon-rooms-1.json.",
+  "entries": [
+    {
+      "id": "cutpurse-hollow",
+      "name": "Cutpurse Hollow",
+      "map": "tiles and battle maps/dungeon maps/_dungeon/_dice grimorium maps/Bandit-Den-Gridded-22x33-Map1.jpg",
+      "mapSize": [3080, 4620],
+      "cr": 1,
+      "biomes": ["forest", "hills"],
+      "summary": "A stream cave where a bandit crew has built plank halls to hide its loot.",
+      "entrance": [0.05, 0.93],
+      "rooms": [
+        {
+          "id": "stream",
+          "name": "The Stream Passage",
+          "at": [0.1, 0.6],
+          "text": "An underground stream runs fast along the west wall and out of the cave mouth. The crew's path follows its bank, under a rocky ledge.",
+          "situations": ["cutpurse-hollow-lookout", "cutpurse-hollow-ford"]
+        },
+        {
+          "id": "store",
+          "name": "The Storehouse",
+          "at": [0.42, 0.82],
+          "text": "A plank-floored store crowded with crates, kegs and small iron cages. A tray of cheap rings and buttons waits on a crate to be sorted.",
+          "situations": ["cutpurse-hollow-store"]
+        },
+        {
+          "id": "sorting",
+          "name": "The Sorting Floor",
+          "at": [0.3, 0.55],
+          "text": "Sacks of stolen grain and cloth lie heaped on a plank floor. Gnawed bones are piled in one corner, an iron cage stands by the wall, and a trapdoor gapes open.",
+          "situations": ["cutpurse-hollow-rats", "cutpurse-hollow-cage"]
+        },
+        {
+          "id": "bunks",
+          "name": "The Bunk Hall",
+          "at": [0.7, 0.75],
+          "text": "Bedrolls lie in a row down a long plank hall. A table by the door holds a knife, a few coins and a half-eaten supper.",
+          "situations": ["cutpurse-hollow-bunks"]
+        },
+        {
+          "id": "captain",
+          "name": "The Captain's Table",
+          "at": [0.72, 0.42],
+          "text": "A table spread with food, coin and a stolen map, kegs stacked along the wall. Behind it a webbed cleft runs off into the rock.",
+          "situations": ["cutpurse-hollow-captain"]
+        }
+      ],
+      "hoard": {
+        "text": "The captain's strongbox under the table, and the best of the season's take.",
+        "precious": 1
+      }
+    },
+    {
+      "id": "weavers-hollow",
+      "name": "Weaver's Hollow",
+      "map": "tiles and battle maps/dungeon maps/_cave : lava/300dpi_cave_spider_day_grid.jpg",
+      "mapSize": [6300, 6300],
+      "cr": 2,
+      "biomes": ["forest"],
+      "summary": "Red-walled caverns under the roots, strung wall to wall with web.",
+      "entrance": [0.45, 0.97],
+      "rooms": [
+        {
+          "id": "throat",
+          "name": "The Web Throat",
+          "at": [0.45, 0.86],
+          "text": "A narrow passage climbs into the hill, its walls already furred with web. Strands cross it at knee and neck height.",
+          "situations": ["weavers-hollow-throat"]
+        },
+        {
+          "id": "cocoons",
+          "name": "The Cocoon Cavern",
+          "at": [0.57, 0.68],
+          "text": "A wide cavern hung with sheets of web. Wrapped bundles dangle among the strands, and a clutch of pale eggs sits by the west wall.",
+          "situations": ["weavers-hollow-drop", "weavers-hollow-bundle"]
+        },
+        {
+          "id": "orb",
+          "name": "The Orb-Web Chamber",
+          "at": [0.11, 0.74],
+          "text": "A round chamber at the end of a thin tunnel, filled wall to wall by one great wheel of web. Something is caught at its hub.",
+          "situations": ["weavers-hollow-orb"]
+        },
+        {
+          "id": "eggs",
+          "name": "The Egg Gallery",
+          "at": [0.2, 0.43],
+          "text": "A long cavern whose west end is heaped with hundreds of pale eggs. Bundled shapes lie in a hollow by the east wall.",
+          "situations": ["weavers-hollow-hatch"]
+        },
+        {
+          "id": "funnel",
+          "name": "The Brood Mother's Funnel",
+          "at": [0.75, 0.2],
+          "text": "The largest cavern. Its north wall is drawn into a thick white funnel of web around a black hole in the rock.",
+          "situations": ["weavers-hollow-mother"]
+        }
+      ],
+      "hoard": {
+        "text": "Coins, buckles and rings from the brood's victims, picked out of the old cocoons in the funnel.",
+        "precious": 1
+      }
+    },
+    {
+      "id": "axe-temple",
+      "name": "The Axe Temple",
+      "map": "tiles and battle maps/dungeon maps/_dungeon/theros crypt.jpg",
+      "mapSize": [5600, 7000],
+      "cr": 3,
+      "biomes": ["plains", "hills"],
+      "summary": "A forgotten war god's temple under the turf, taken over by a horned cult.",
+      "entrance": [0.5, 0.98],
+      "rooms": [
+        {
+          "id": "vestibule",
+          "name": "The Pillared Vestibule",
+          "at": [0.5, 0.85],
+          "text": "Four squat black pillars hold up a low hall. A great rune is cut into the floor between them, and rubble spills from the corners.",
+          "situations": ["axe-temple-rune"]
+        },
+        {
+          "id": "gallery",
+          "name": "The Gallery of Champions",
+          "at": [0.5, 0.55],
+          "text": "A long gallery lined with six gilded statues of armoured champions on plinths, facing inward.",
+          "situations": ["axe-temple-champions"]
+        },
+        {
+          "id": "tomb",
+          "name": "The Scorched Tomb",
+          "at": [0.13, 0.72],
+          "text": "An eight-sided tomb blackened by old fire. Two of its stone coffins lie open, a skeleton still stretched out in each.",
+          "situations": ["axe-temple-skeletons"]
+        },
+        {
+          "id": "shrine",
+          "name": "The Horned Shrine",
+          "at": [0.1, 0.07],
+          "text": "An oval chamber where a horned red idol squats on an altar above a blood-red fur. Fresh offerings lie before it.",
+          "situations": ["axe-temple-cult"]
+        },
+        {
+          "id": "axe",
+          "name": "The Hall of the Axe",
+          "at": [0.5, 0.17],
+          "text": "A vast eight-sided hall. A double-headed axe of pale blue light, long as three men, is set into the floor, and it hums.",
+          "situations": ["axe-temple-priest"]
+        }
+      ],
+      "hoard": {
+        "text": "The tithes heaped below the axe: the old god's offerings and the cult's stolen coin.",
+        "precious": 2
+      }
+    },
+    {
+      "id": "sun-drowned-temple",
+      "name": "The Sun-Drowned Temple",
+      "map": "tiles and battle maps/dungeon maps/_desert/temple of the sun.jpeg",
+      "mapSize": [1330, 1540],
+      "cr": 4,
+      "biomes": ["desert"],
+      "summary": "A sun temple swallowed by the dunes, its halls half full of sand, where a priest-king still lies in gold.",
+      "entrance": [0.8, 0.96],
+      "rooms": [
+        {
+          "id": "landing",
+          "name": "The Round Landing",
+          "at": [0.81, 0.77],
+          "text": "The stair comes up into a round chamber. A shallow stone bowl sits in the middle, ringed with pebbles, its fire long dead.",
+          "situations": ["sun-drowned-temple-bowl"]
+        },
+        {
+          "id": "drift",
+          "name": "The Drift Hall",
+          "at": [0.55, 0.87],
+          "text": "Sand has poured in through a broken roof and drifted waist-deep across this hall.",
+          "situations": ["sun-drowned-temple-burrower"]
+        },
+        {
+          "id": "court",
+          "name": "The Sunstone Court",
+          "at": [0.2, 0.85],
+          "text": "Four pillars stand round a star-shaped stone on a pedestal. It glows with light from nowhere.",
+          "situations": ["sun-drowned-temple-sunstone"]
+        },
+        {
+          "id": "altar",
+          "name": "The Altar of Twin Flames",
+          "at": [0.2, 0.6],
+          "text": "A long hall ends at an altar between two braziers that still burn. A blue crystal lies across the altar.",
+          "situations": ["sun-drowned-temple-flames"]
+        },
+        {
+          "id": "rotunda",
+          "name": "The Golden Rotunda",
+          "at": [0.15, 0.15],
+          "text": "A round tomb ringed by eight pillars. In its heart a golden coffin stands upright among jars and lamps.",
+          "situations": ["sun-drowned-temple-king"]
+        }
+      ],
+      "hoard": {
+        "text": "The priest-king's grave goods: gold masks, jars of scented oil and a sun disc of beaten gold.",
+        "precious": 2,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "gnawbone-warren",
+      "name": "Gnawbone Warren",
+      "map": "tiles and battle maps/dungeon maps/_cave : lava/cavern with chasm.jpeg",
+      "mapSize": [2520, 2520],
+      "cr": 5,
+      "biomes": ["hills", "mountains"],
+      "summary": "A maze of caves round a bottomless chasm, held by a gnoll pack and its bone-crowned matriarch.",
+      "entrance": [0.02, 0.42],
+      "rooms": [
+        {
+          "id": "roast",
+          "name": "The Roasting Cave",
+          "at": [0.1, 0.9],
+          "text": "A side cave lit by a cookfire. Something large turns on a spit, and crates and sacks are stacked round the walls.",
+          "situations": ["gnawbone-warren-cooks"]
+        },
+        {
+          "id": "planks",
+          "name": "The Plank Walks",
+          "at": [0.42, 0.78],
+          "text": "A sunken pit of black, sucking mud, crossed by a rickety lattice of planks lashed together on posts.",
+          "situations": ["gnawbone-warren-mud"]
+        },
+        {
+          "id": "camp",
+          "name": "The Tent Camp",
+          "at": [0.42, 0.45],
+          "text": "A firelit hollow ringed by hide tents, crates and sacks. Bones lie everywhere.",
+          "situations": ["gnawbone-warren-pack"]
+        },
+        {
+          "id": "chasm",
+          "name": "The Chasm",
+          "at": [0.75, 0.55],
+          "text": "A black crack splits the cave floor from wall to wall, too deep for any torch to find the bottom.",
+          "situations": ["gnawbone-warren-leap"]
+        },
+        {
+          "id": "tomb",
+          "name": "The Bone-Lidded Coffin",
+          "at": [0.82, 0.07],
+          "text": "At the end of the far gallery stands a stone coffin, its lid carved with a skull and crossed bones. The pack's matriarch has made it her throne.",
+          "situations": ["gnawbone-warren-matriarch"]
+        }
+      ],
+      "hoard": {
+        "text": "The coffin holds the pack's plunder: rings, coins and trinkets torn from a season of travellers.",
+        "precious": 2
+      }
+    },
+    {
+      "id": "green-undercroft",
+      "name": "The Green Undercroft",
+      "map": "tiles and battle maps/dungeon maps/_dungeon/sewer temple toxic.jpg",
+      "mapSize": [4200, 6440],
+      "cr": 7,
+      "biomes": ["plains"],
+      "summary": "A temple-sized sewer under a dead town, where poisoned sludge pours out of a sealed door.",
+      "entrance": [0.47, 0.98],
+      "rooms": [
+        {
+          "id": "drain",
+          "name": "The Drain Hall",
+          "at": [0.47, 0.74],
+          "text": "A cross-shaped chamber with an iron drain grate at its heart. Four pipes in the walls leak a green, stinging fume.",
+          "situations": ["green-undercroft-fumes", "green-undercroft-grate"]
+        },
+        {
+          "id": "vats",
+          "name": "The Vat Room",
+          "at": [0.12, 0.75],
+          "text": "Four round vats steam green in a long room, and a red-banded hatch is set in the wall between them.",
+          "situations": ["green-undercroft-brewers"]
+        },
+        {
+          "id": "spouts",
+          "name": "The Spout Gallery",
+          "at": [0.25, 0.53],
+          "text": "A many-sided chamber where stone gargoyle heads spit into a sludge channel, and pipes leak fumes across the floor.",
+          "situations": ["green-undercroft-gargoyles"]
+        },
+        {
+          "id": "sinkhole",
+          "name": "The Sinkhole",
+          "at": [0.38, 0.34],
+          "text": "The sludge channel loops round a hollow block. In one bend the floor has fallen in, and the green flood pours into a hole ringed with rubble.",
+          "situations": ["green-undercroft-sinkhole"]
+        },
+        {
+          "id": "falls",
+          "name": "The Sludge Falls",
+          "at": [0.47, 0.1],
+          "text": "Sludge pours down a chute from the town above, over a red-barred door. Six pipe-mouths in the side halls breathe green fog.",
+          "situations": ["green-undercroft-mother"]
+        }
+      ],
+      "hoard": {
+        "text": "Behind the red-barred door: the cult's coffers and the dead town's long-lost treasury.",
+        "precious": 2,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "rime-heart",
+      "name": "The Rime Heart",
+      "map": "tiles and battle maps/dungeon maps/_arctic/temple of the frozen heart.jpeg",
+      "mapSize": [2160, 2880],
+      "cr": 9,
+      "biomes": ["mountains"],
+      "summary": "An ice-locked temple in the high passes, built round a heart that will not thaw.",
+      "entrance": [0.5, 0.97],
+      "rooms": [
+        {
+          "id": "mere",
+          "name": "The Frozen Mere",
+          "at": [0.5, 0.87],
+          "text": "A lake frozen hard below the temple's stair, with a path cut across it and broken ice heaped along the rocky shores.",
+          "situations": ["rime-heart-ice"]
+        },
+        {
+          "id": "tower",
+          "name": "The Corner Tower",
+          "at": [0.81, 0.78],
+          "text": "A round tower stands at the corner of the stair, its doorway choked with drifted snow and its floor scattered with gnawed bones.",
+          "situations": ["rime-heart-wolves"]
+        },
+        {
+          "id": "heads",
+          "name": "The Hall of Breathing Heads",
+          "at": [0.5, 0.43],
+          "text": "Iron grates bridge black, half-frozen pools. Huge stone heads set in the walls breathe out a freezing mist over the water.",
+          "situations": ["rime-heart-breath"]
+        },
+        {
+          "id": "galleries",
+          "name": "The Drain Galleries",
+          "at": [0.89, 0.4],
+          "text": "Narrow grated halls run off the main hall, where meltwater drains away through pipes in the end walls.",
+          "situations": ["rime-heart-frozen", "rime-heart-ice-gate"]
+        },
+        {
+          "id": "heart",
+          "name": "The Chained Heart",
+          "at": [0.5, 0.08],
+          "text": "Up a short stair, a domed apse: a blue heart glows in a chained casket, held up by two clawed stone guardians.",
+          "situations": ["rime-heart-keeper"]
+        }
+      ],
+      "hoard": {
+        "text": "The offerings frozen into the ice round the casket: gems, silver and old blades.",
+        "precious": 3,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "jackal-kings-tomb",
+      "name": "The Jackal King's Tomb",
+      "map": "tiles and battle maps/dungeon maps/_desert/pharaohs tomb.jpg",
+      "mapSize": [3500, 10640],
+      "cr": 11,
+      "biomes": ["desert"],
+      "summary": "A river-side royal tomb behind an avenue of ram-headed sphinxes, watched by a colossal jackal god.",
+      "entrance": [0.38, 0.94],
+      "rooms": [
+        {
+          "id": "avenue",
+          "name": "The Avenue of Rams",
+          "at": [0.5, 0.79],
+          "text": "A paved road climbs from the river landing between two rows of ram-headed sphinxes to a pair of great sphinxes at the doors.",
+          "situations": ["jackal-kings-tomb-robbers"]
+        },
+        {
+          "id": "pools",
+          "name": "The Hall of Pools",
+          "at": [0.5, 0.58],
+          "text": "A hall of tall columns with long green pools on either side, still and thick with weed.",
+          "situations": ["jackal-kings-tomb-crocodiles"]
+        },
+        {
+          "id": "scarab",
+          "name": "The Scarab Hall",
+          "at": [0.5, 0.4],
+          "text": "A wide hall whose floor is a great painted scarab under a winged sun, flanked by round pillars.",
+          "situations": ["jackal-kings-tomb-swarm"]
+        },
+        {
+          "id": "jackal",
+          "name": "The Jackal Throne",
+          "at": [0.5, 0.23],
+          "text": "A colossal statue of a jackal-headed god sits enthroned, a staff across its knees, before the doors of the burial chamber.",
+          "situations": ["jackal-kings-tomb-judge"]
+        },
+        {
+          "id": "burial",
+          "name": "The Burial Chamber",
+          "at": [0.5, 0.08],
+          "text": "A low chamber crowded with urns, scrolls and braziers. The king's gilded coffin stands upright under a wall of carved signs, with lesser coffins at either end.",
+          "situations": ["jackal-kings-tomb-king"]
+        }
+      ],
+      "hoard": {
+        "text": "The king's burial treasure: gold, lapis, scented oils and his jewelled death masks.",
+        "precious": 3,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "lichs-gauntlet",
+      "name": "The Lich's Gauntlet",
+      "map": "tiles and battle maps/dungeon maps/_epic/gauntlet of the lich.jpeg",
+      "mapSize": [1500, 2250],
+      "cr": 14,
+      "biomes": ["hills", "forest"],
+      "summary": "A proving ground under a hill, built by a lich to test those who would serve it. Few come out.",
+      "entrance": [0.8, 0.9],
+      "rooms": [
+        {
+          "id": "pool",
+          "name": "The Green Pool",
+          "at": [0.76, 0.8],
+          "text": "The way in is a swim: you come up through cold water into a cavern lit green from below. Spikes of crystal jut from the walls under the water line.",
+          "situations": ["lichs-gauntlet-pool"]
+        },
+        {
+          "id": "bars",
+          "name": "The Barred Hall",
+          "at": [0.7, 0.47],
+          "text": "A corridor of rusted iron bars with a locked gate across its middle. On the left, four coffins before urns of cold blue fire; on the right, a heap of broken coffins and bones.",
+          "situations": ["lichs-gauntlet-gate"]
+        },
+        {
+          "id": "cave",
+          "name": "The Roaring Cave",
+          "at": [0.65, 0.17],
+          "text": "A cave fanged with stalactites and stalagmites. In its far corner a cleft glows white-hot and roars like a furnace.",
+          "situations": ["lichs-gauntlet-furnace"]
+        },
+        {
+          "id": "frost",
+          "name": "The Frost Hall",
+          "at": [0.23, 0.52],
+          "text": "A pillared hall gone white with frost. Lines of cold light run across the floor from pillar to pillar.",
+          "situations": ["lichs-gauntlet-lines"]
+        },
+        {
+          "id": "vault",
+          "name": "The Lightning Vault",
+          "at": [0.33, 0.8],
+          "text": "A square vault of rose-coloured stone, cracked across with veins of violet lightning that crawl over the floor. A long stone bier lies in the middle.",
+          "situations": ["lichs-gauntlet-champion"]
+        }
+      ],
+      "hoard": {
+        "text": "Hidden in the bier: what the lich's failed candidates carried in, and the champion's own arms.",
+        "precious": 4,
+        "accessory": 1
+      }
+    },
+    {
+      "id": "drakescale-forge",
+      "name": "Drakescale Forge",
+      "map": "tiles and battle maps/dungeon maps/_cave : lava/lava drakescale peak.jpg",
+      "mapSize": [4900, 7000],
+      "cr": 17,
+      "biomes": ["mountains"],
+      "summary": "A forge-camp inside a volcano, where a red dragon's servants smelt its tithe beside a lake of fire.",
+      "entrance": [0.5, 0.98],
+      "rooms": [
+        {
+          "id": "camp",
+          "name": "The Thrall Camp",
+          "at": [0.6, 0.88],
+          "text": "Past two horned statues at the edge of a lava river lies a camp of shacks on scorched ground, round a smoky campfire.",
+          "situations": ["drakescale-forge-thralls"]
+        },
+        {
+          "id": "tithe",
+          "name": "The Tithe Hall",
+          "at": [0.37, 0.68],
+          "text": "A long timber hall where tables are heaped with coin, bones and barrels: the dragon's tithe, counted and stacked.",
+          "situations": ["drakescale-forge-giants"]
+        },
+        {
+          "id": "smelter",
+          "name": "The Smelting Floor",
+          "at": [0.3, 0.42],
+          "text": "Great copper vats sit on roaring furnaces, stirred by long poles on cranks. Barrels of ore and slag crowd the floor.",
+          "situations": ["drakescale-forge-salamanders"]
+        },
+        {
+          "id": "pens",
+          "name": "The Drake Pens",
+          "at": [0.87, 0.58],
+          "text": "A timber stockade holds a red drake on a heavy chain, with a water trough beside it.",
+          "situations": ["drakescale-forge-drake"]
+        },
+        {
+          "id": "bridges",
+          "name": "The Lava Bridges",
+          "at": [0.27, 0.14],
+          "text": "Two arched stone bridges cross a lake of molten rock to a dark island. Bones lie scattered on the far shore.",
+          "situations": ["drakescale-forge-bridges"]
+        },
+        {
+          "id": "isle",
+          "name": "The Dragon's Isle",
+          "at": [0.5, 0.1],
+          "text": "A dark island in the lava, its floor inlaid with a great dragon. Gold is heaped in caves on either side of the lake.",
+          "situations": ["drakescale-forge-dragon"]
+        }
+      ],
+      "hoard": {
+        "text": "The dragon's hoard, spilling out of the two gold caves above the lava lake.",
+        "precious": 5,
+        "accessory": 2
+      }
+    }
+  ]
+}
