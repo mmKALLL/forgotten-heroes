@@ -225,8 +225,8 @@ export type PoiCategory = (typeof POI_CATEGORIES)[number]
 // Progression and gear (Plan 5a)
 // ---------------------------------------------------------------------------------------------
 
-/** The highest level a character reaches for now (the character schema still allows up to 20). */
-export const MAX_LEVEL = 10
+/** The highest level a character reaches (5e's 20; Plan 6). */
+export const MAX_LEVEL = 20
 
 /**
  * Kinds of rule hook (design §8): small declarative rule changes the engine interprets. Worn

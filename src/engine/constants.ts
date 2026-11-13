@@ -496,11 +496,13 @@ export const PATH_DETOUR = 1.25
 // Progression and XP (rules/progression.ts; encounters/outcomes.ts, effects.ts; town/contracts.ts)
 
 /**
- * Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset). Checked by the economy
- * report (Plan 5a I1): about level 2 by day 15, 4 by day 60 and 5 by day 120.
+ * Total XP needed for each level 1–MAX_LEVEL (cumulative, never reset): 150 × n × (n − 1). Levels
+ * 1–10 were checked by the economy report (Plan 5a I1: about level 2 by day 15, 4 by day 60 and 5
+ * by day 120); 11–20 continue the pattern provisionally (Plan 6 C1) until Track B tunes them.
  */
 export const XP_BY_LEVEL: readonly number[] = [
-  0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500,
+  0, 300, 900, 1800, 3000, 4500, 6300, 8400, 10800, 13500, 16500, 19800, 23400, 27300, 31500, 36000,
+  40800, 45900, 51300, 57000,
 ]
 /** XP for a successful check, per point of its final DC (site power and danger included). */
 export const XP_PER_DC = 5
@@ -516,6 +518,17 @@ export const CONTRACT_XP_PER_GP = 2
 export const XP_CLEAR = 150
 /** Each point of interest discovered (exploring, rumours, clues, contracts) pays this much XP. */
 export const XP_DISCOVER = 25
+
+// Challenge ratings (rules/challenge.ts)
+
+/** The base DC of a check against each CR 0–20 (provisional, Plan 6 C1). */
+export const CR_DC: readonly number[] = [
+  10, 11, 12, 13, 13, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22,
+]
+/** Past the table, the DC rises by 1 every this many CR. */
+export const CR_DC_BEYOND = 2
+/** A CR is meant for a party of about this many levels above it. */
+export const CR_LEVEL_OFFSET = 1
 
 // World danger (world/danger.ts)
 

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { BiomeSchema, IdSchema } from './common'
-import { CRISIS_ACTS, RUN_ENDINGS } from './types'
+import { CRISIS_ACTS, MAX_LEVEL, RUN_ENDINGS } from './types'
 
 // ---------------------------------------------------------------------------------------------
 // The Crisis (Plan 5b, design §10b): every world rolls one villain whose plot has three acts,
@@ -112,7 +112,7 @@ export const RunRecordSchema = z.object({
       name: z.string(),
       ancestry: IdSchema,
       classId: IdSchema,
-      level: z.number().int().min(1).max(20),
+      level: z.number().int().min(1).max(MAX_LEVEL),
       fallen: z.boolean(),
     })
   ),

@@ -222,12 +222,12 @@
     "__schema15": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 10
+      "maximum": 20
     },
     "__schema16": {
       "type": "integer",
       "minimum": 1,
-      "maximum": 10
+      "maximum": 20
     },
     "__schema17": {
       "minItems": 1,

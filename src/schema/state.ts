@@ -11,7 +11,7 @@ import {
   SkillSchema,
   SourceSchema,
 } from './common'
-import { ABILITIES, CAMARADERIE_MAX, SKILLS, TIERS } from './types'
+import { ABILITIES, CAMARADERIE_MAX, MAX_LEVEL, SKILLS, TIERS } from './types'
 import { SituationSchema } from './encounter'
 import { CrisisStateSchema } from './crisis'
 import { AccessorySchema } from './gear'
@@ -22,7 +22,7 @@ export const CharacterSchema = z.object({
   name: z.string(),
   ancestry: IdSchema,
   classId: IdSchema,
-  level: z.number().int().min(1).max(20),
+  level: z.number().int().min(1).max(MAX_LEVEL),
   abilities: AbilityScoresSchema,
   skillProficiencies: z.array(SkillSchema),
   hitDie: z.number().int(),
