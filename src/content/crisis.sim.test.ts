@@ -3,7 +3,7 @@ import { describe, expect, test } from 'vitest'
 import { partyWiped, runEnding } from '../engine/crisis/ending'
 import { actCalendar } from '../engine/crisis/calendar'
 import { crisisStatus } from '../engine/crisis/status'
-import { currentOptions } from '../engine/encounters/run'
+import { challengeOf, decided } from '../engine/encounters/challenge'
 import { newGame, type Action } from '../engine/state'
 import { isAlive } from '../engine/town/camaraderie'
 import { crusader, trader, type TraderOptions } from '../engine/travel/trader'
@@ -46,7 +46,7 @@ type ActRun = {
   found: number | null
   thwarted: number | null
   failed: number | null
-  /** Visits to its key site, and finale checks rolled there and won (a partial or better). */
+  /** Visits to its key site, and finale challenges decided there and won (Plan 6 S). */
   visits: number
   finales: number
   finaleWins: number
@@ -130,10 +130,12 @@ function simulate(
         act.level = bestLevel(after)
       }
       if (action.type === 'visitPoi' && before.location === a.key && after.encounter) act.visits++
+      // A finale is the key site's skill challenge, counted once it is decided.
       const enc = before.encounter
-      if (action.type === 'chooseOption' && enc?.poi === a.key) {
-        const option = currentOptions(enc).find((o) => o.id === action.optionId)
-        if (option?.kind === 'check' && option.highStakes) {
+      const challenge = enc && challengeOf(enc)
+      const tally = after.encounter?.tally
+      if (action.type === 'chooseOption' && enc?.poi === a.key && challenge && tally) {
+        if (decided(tally, challenge) !== null) {
           act.finales++
           if (c.thwarted[i] !== null) act.finaleWins++
         }
@@ -265,7 +267,7 @@ describe.runIf(REPORT)('the Crisis report (CRISIS_REPORT=path)', () => {
         'Days to spare when thwarted (P10 / median / P90)',
         'Level then (median)',
         'Visits a thwart',
-        'Finale success',
+        'Finales won',
       ])
       row(['---', '---', '---', '---', '---', '---', '---', '---', '---', '---', '---'])
       for (let i = 0; i < 3; i++) {

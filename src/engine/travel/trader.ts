@@ -2,7 +2,7 @@ import type { Content } from '../../content/build'
 import type { Character, ContractState, GameState } from '../../schema/state'
 import { GOODS, type Good, type Pace } from '../../schema/types'
 import { MAX_EXHAUSTION } from '../encounters/effects'
-import { encounterOptions } from '../encounters/preview'
+import { challengePreview, encounterOptions } from '../encounters/preview'
 import { currentOptions } from '../encounters/run'
 import { load } from '../economy/capacity'
 import { goodPrice, goodWeight } from '../economy/goods'
@@ -431,11 +431,15 @@ export function trader(
       const fixed = options.filter((x) => x.kind === 'fixed')
       const free = fixed.find((x) => !costs(x.id))
       const best = checks[0]
+      // In a skill challenge (Plan 6 S), the round with the best chance of winning it.
+      const round = challengePreview(state)?.best
+      const inRound = round ? options.find((x) => x.id === round) : undefined
       const choice =
-        best && best.check!.successChance >= 0.5
+        inRound ??
+        (best && best.check!.successChance >= 0.5
           ? best
           : (free ??
-            (best && (pressOn || best.check!.successChance >= 0.25) ? best : (fixed[0] ?? best)))
+            (best && (pressOn || best.check!.successChance >= 0.25) ? best : (fixed[0] ?? best))))
       if (!choice) {
         act({ type: 'closeEncounter' }, 'encounter')
         break

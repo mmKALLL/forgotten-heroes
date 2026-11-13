@@ -184,6 +184,13 @@ export const en = {
   'encounter.close': 'Close',
   'encounter.danger': 'Danger +{percent}%: harder checks, worse wounds',
 
+  'challenge.heading': 'Challenge',
+  'challenge.successes': 'Successes',
+  'challenge.failures': 'Failures',
+  'challenge.of': '{n} of {of}',
+  'challenge.chance': '≈{percent} to win, choosing the best each round',
+  'challenge.rule': 'A critical counts twice.',
+
   'option.situational': 'situational',
   'option.lucky': 'lucky',
   'option.luckyHint':

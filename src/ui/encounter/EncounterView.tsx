@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
-import { encounterOptions, twistInfo } from '../../engine/encounters/preview'
+import { challengePreview, encounterOptions, twistInfo } from '../../engine/encounters/preview'
 import { currentOptions, encounterOver } from '../../engine/encounters/run'
 import type { Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
@@ -7,6 +7,7 @@ import { DiceRoll } from '../dice/DiceRoll'
 import { localizeEncounterState } from '../i18n/encounter'
 import { useI18n } from '../i18n/I18n'
 import { SourceBadge } from '../SourceBadge'
+import { ChallengeTally } from './ChallengeTally'
 import { OptionCard } from './OptionCard'
 import { OutcomesPanel } from './OutcomesPanel'
 import { lastRollIndex } from './rolls'
@@ -63,6 +64,7 @@ export function EncounterView({
     if (key.startsWith(prefix)) stageActorIds[key.slice(prefix.length)] = actorId
   }
   const options = encounterOptions(view, stageActorIds)
+  const challenge = challengePreview(view)
   const checks = new Map(
     currentOptions(encounter).flatMap((o) => (o.kind === 'check' ? [[o.id, o.check]] : []))
   )
@@ -172,6 +174,7 @@ export function EncounterView({
         </div>
       ) : (
         <>
+          {challenge && <ChallengeTally challenge={challenge} />}
           <div className="options" ref={nextRef} onKeyDown={onOptionsKey}>
             {options.map((option) => {
               const check = checks.get(option.id)

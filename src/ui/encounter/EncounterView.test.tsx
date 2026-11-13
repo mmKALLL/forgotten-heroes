@@ -519,3 +519,45 @@ test('the actor picker shows strain', () => {
   expect(within(picker).getByRole('option', { name: 'Brom +3 · strain −2' })).toBeTruthy()
   expect(within(picker).getByRole('option', { name: /^Lyra [+−]\d+$/ })).toBeTruthy()
 })
+
+test('a skill challenge shows its tally, the chance of winning, and what each outcome marks', () => {
+  const round = (text: string) => ({ text })
+  const situation = SituationSchema.parse({
+    id: 'duel',
+    title: 'The duel',
+    start: 'duel',
+    stages: {
+      duel: {
+        text: 'He raises his blade.',
+        challenge: {
+          successes: 3,
+          failures: 2,
+          win: { text: 'He yields.' },
+          lose: { text: 'You are beaten.' },
+        },
+        options: ['strike', 'feint'].map((id) => ({
+          id,
+          kind: 'check',
+          label: id === 'strike' ? 'Strike' : 'Feint',
+          check: { skill: id === 'strike' ? 'athletics' : 'deception', dc: 14 },
+          outcomes: {
+            fail: round('Parried.'),
+            partial: round('Steel rings.'),
+            success: round('A hit.'),
+          },
+        })),
+      },
+    },
+  })
+  const state = makeState({
+    encounter: makeEncounter({ situation, stage: 'duel', tally: { successes: 1, failures: 0 } }),
+  })
+  render(<Harness initial={state} />)
+  const tally = within(screen.getByRole('region', { name: 'Challenge' }))
+  expect(tally.getByText('1 of 3')).toBeTruthy()
+  expect(tally.getByText('0 of 2')).toBeTruthy()
+  expect(tally.getByText(/^≈\d+% to win/)).toBeTruthy()
+  // The first card is focused: its rows say what each tier marks.
+  expect(outcomes().getByText('+1 success')).toBeTruthy()
+  expect(outcomes().getByText('no ground gained')).toBeTruthy()
+})
