@@ -165,6 +165,16 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
   - A member who would take a **third or later** injury instead has a **50% chance of dying**, and their equipment is lost with them.
 - **A party wipe:** the enemies win. The party is robbed or left for dead with injuries. Death only on bad luck or at a boss.
 
+## 7b. Dark dungeons and fuel (designer call 2026-11-14; part of Plan 7)
+
+- **Rooms can be dark** (`dark: true` on a dungeon room, true to the map: caves, crypts, sewers, deep halls).
+  - Fuel should matter in about **60% of all dungeons**, which have at least one dark room.
+  - About **20%** should be mostly dark.
+- **Lighting:** a dark room is lit with fuel (torches, lamp oil). The delve preview says how many units the dark rooms ahead will burn, so a party provisions before setting out.
+- **Unlit rooms are still explorable**, but the party is **Exposed in every check** there, fights included.
+- **Darkvision:** the penalty doesn't apply when every member but one is of a darkvision ancestry (orc, dwarf, elf), or when the only member has darkvision.
+- **To decide:** fuel per dark room (1 unit each is the natural start), and whether a lit fight lights the whole line or only the tiles near the party.
+
 ## 8. UI
 
 - **The line** is drawn left to right, with the units on each tile stacked top to bottom.
