@@ -2451,6 +2451,20 @@ h2[tabindex='-1']:focus {
   text-decoration: underline;
   font-size: 0.75rem;
 }
+/* Closed, "more" sits at the end of the text's second line, over a fade (designer call). */
+.contract-text:not(.open) {
+  position: relative;
+}
+.contract-text:not(.open) button.link {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding-left: 1.6em;
+  background: linear-gradient(to right, transparent, var(--panel) 1.4em);
+}
+.contract-text.open button.link {
+  margin-left: 0.4em;
+}
 /*
  * Phones (design §9: the target is a Samsung Galaxy S26, about 412 CSS px wide and tall): tighter
  * gutters and panels, and a market table that fits the width with its trade buttons stacked.
