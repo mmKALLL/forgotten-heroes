@@ -89,6 +89,7 @@ describe('camaraderie', () => {
       accepted: 1,
       deadline: 10,
       pay: 30,
+      level: 1,
       urgent: false,
       reputation: { patron: 5, settlement: 3 },
       met: true,

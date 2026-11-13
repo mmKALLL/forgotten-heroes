@@ -566,6 +566,43 @@ export const CR_DC: readonly number[] = [
 export const CR_DC_BEYOND = 2
 /** A CR is meant for a party of about this many levels above it. */
 export const CR_LEVEL_OFFSET = 1
+/**
+ * Written DCs are standard difficulty, the CR they play at as written: at CR c a check written DC
+ * w plays at w + crDc(c) − crDc(this) (dungeons, lairs, levelled contracts; rules/levels.ts).
+ */
+export const CR_STANDARD = 2
+
+// Levelled work (town/contracts.ts, rules/levels.ts; Plan 6 D1)
+
+/** A contract's level is the founders' best level plus a seeded step in this range (at least 1). */
+export const CONTRACT_LEVEL_SPREAD: readonly [number, number] = [-1, 1]
+/** Each level above 1 adds this share of a contract's pay (level 3 pays ×2). */
+export const CONTRACT_PAY_PER_LEVEL = 0.5
+/** A "same-level contract" for a dungeon's hoard: this many steady days of pay at the level. */
+export const CONTRACT_TYPICAL_DAYS = 4
+
+// Authored dungeons: placing them (world/dungeons.ts; Plan 6 D2)
+
+/** At most this many authored dungeons are placed in a world, each at most once. */
+export const DUNGEON_COUNT = 20
+/** At least DUNGEON_NEAR_COUNT dungeons of CR ≤ DUNGEON_NEAR_CR lie within this many steady days of the start. */
+export const DUNGEON_NEAR_DAYS = 10
+export const DUNGEON_NEAR_COUNT = 2
+export const DUNGEON_NEAR_CR = 3
+/**
+ * A lair (or another hostile site that isn't an authored dungeon) plays at this CR by its threat
+ * (index 1–3), plus its domain's threat level on the day.
+ */
+export const LAIR_CR_BY_THREAT: readonly number[] = [0, 2, 4, 6]
+
+// Delving (world/delve.ts; Plan 6 D3)
+
+/** Wounds in a dungeon room are this many times as deep as written (after the danger ramp). */
+export const DELVE_WOUND = 2
+/** A cleared dungeon's hoard pays a random share in this range of a same-level contract's pay. */
+export const DELVE_REWARD: readonly [number, number] = [1.5, 2]
+/** A hoard's accessories are of tier 2 from this CR (tier 1 below). */
+export const DELVE_FINE_CR = 8
 
 // World danger (world/danger.ts)
 

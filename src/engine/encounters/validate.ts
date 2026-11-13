@@ -296,6 +296,10 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
       !compiled.site
     )
       issues.push(`${where}: ${effect.effect} only works in a site situation`)
+    // Delving (Plan 6 D3): the engine writes these into a room's snapshot (encounters/room.ts).
+    if (effect.effect === 'hoard') issues.push(`${where}: hoard is added by the engine only`)
+    if (effect.effect === 'driveOut' && !compiled.room)
+      issues.push(`${where}: driveOut only works in a dungeon room`)
   }
   for (const villain of compiled.villains)
     if (!Object.hasOwn(content.villains, villain)) issues.push(`unknown villain "${villain}"`)

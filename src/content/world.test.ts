@@ -13,6 +13,13 @@ import { BIOMES } from '../schema/types'
 import { GameStateSchema } from '../schema/state'
 import { WorldStateSchema } from '../schema/world'
 import { loadBundledContent } from './bundled'
+import { daysTo } from '../engine/crisis/generate'
+import {
+  DUNGEON_COUNT,
+  DUNGEON_NEAR_COUNT,
+  DUNGEON_NEAR_CR,
+  DUNGEON_NEAR_DAYS,
+} from '../engine/constants'
 
 const content = loadBundledContent()
 
@@ -181,6 +188,43 @@ describe('generated worlds on Altaeus', () => {
     const world = generateWorld(worldSeed(1), content)
     const named = Object.values(world.settlements).filter((s) => s.town !== null)
     expect(named.length).toBeGreaterThan(Object.keys(world.settlements).length / 2)
+  })
+})
+
+describe('the authored dungeons in new worlds (Plan 6 D2)', () => {
+  const games = [1, 2, 3, 4, 5, 6].map((seed) => newGame(seed, content))
+  const authored = Object.keys(content.dungeons).length
+
+  test('most are placed, each at most once, on their biomes, and no generic dungeon is drawn', () => {
+    for (const game of games) {
+      const pois = Object.values(game.world.pois)
+      const ids = pois.flatMap((p) => p.dungeon ?? [])
+      expect(new Set(ids).size).toBe(ids.length)
+      expect(ids.length).toBeLessThanOrEqual(Math.min(DUNGEON_COUNT, authored))
+      expect(ids.length).toBeGreaterThanOrEqual(Math.min(DUNGEON_COUNT, authored) - 4)
+      const offBiome = pois.filter((p) => {
+        const g = p.dungeon ? content.dungeons[p.dungeon] : undefined
+        const spot = content.landSpots[p.spot]
+        const terrain = spot.terrain ?? content.regions[content.settlements[p.domain].region].biome
+        return g !== undefined && !g.biomes.includes(terrain)
+      })
+      // Only the near-start rule may place one off its biomes, when none fits near the start.
+      expect(offBiome.length).toBeLessThanOrEqual(DUNGEON_NEAR_COUNT)
+      expect(pois.filter((p) => p.category === 'dungeon' && !p.dungeon)).toEqual([])
+      expect(new Set(pois.map((p) => p.spot)).size).toBe(pois.length)
+    }
+  })
+
+  test(`at least ${DUNGEON_NEAR_COUNT} of CR ≤ ${DUNGEON_NEAR_CR} lie within ${DUNGEON_NEAR_DAYS} steady days of the start`, () => {
+    for (const game of games) {
+      const near = Object.values(game.world.pois).filter((p) => {
+        const g = p.dungeon ? content.dungeons[p.dungeon] : undefined
+        if (!g || g.cr > DUNGEON_NEAR_CR) return false
+        const days = daysTo(content, game.location!, p.domain, content.landSpots[p.spot])
+        return days !== undefined && days <= DUNGEON_NEAR_DAYS
+      })
+      expect(near.length).toBeGreaterThanOrEqual(DUNGEON_NEAR_COUNT)
+    }
   })
 })
 

@@ -108,7 +108,7 @@ function placeSite(
 }
 
 /** Steady days from a settlement to a spot, by road and then its path, as for a POI there. */
-function daysTo(
+export function daysTo(
   content: Content,
   from: string,
   domain: string,

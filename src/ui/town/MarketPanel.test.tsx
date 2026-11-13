@@ -158,6 +158,7 @@ test('selling a contract’s cargo asks first, says what it costs, and dispatche
         accepted: 1,
         deadline: 9,
         pay: 30,
+        level: 1,
         urgent: false,
         reputation: { patron: 5, settlement: 3 },
         met: false,

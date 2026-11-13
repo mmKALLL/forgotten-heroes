@@ -743,6 +743,16 @@ export const testWorld: Record<string, unknown> = {
         names: 'poi-name-stones',
         situations: ['singing-stones'],
       },
+      {
+        // The authored dungeons' site type (Plan 6 D2): never drawn, placed by world/dungeons.ts.
+        id: 'authored-dungeon',
+        category: 'dungeon',
+        name: 'Dungeon',
+        weight: 0,
+        pathDanger: 2,
+        names: 'poi-name-camp',
+        situations: ['orc-war-camp-raid'],
+      },
     ],
   },
   'data/procedural/poi-names.json': {

@@ -1,6 +1,6 @@
 import { byCodeUnit, sortedEntries, type Content } from '../../content/build'
 import type { ContractTemplate } from '../../schema/economy'
-import type { ContractKind, Good, Standing } from '../../schema/types'
+import { MAX_LEVEL, type ContractKind, type Good, type Standing } from '../../schema/types'
 import type { ContractState, GameState } from '../../schema/state'
 import { revealPois } from '../encounters/effects'
 import { inProgress } from '../encounters/run'
@@ -12,6 +12,7 @@ import { observe } from '../economy/trade'
 import { nearestProducer, supplyOf } from '../economy/supply'
 import { appendLog } from '../log'
 import { grantXp } from '../rules/progression'
+import { founderLevel, levelPay } from '../rules/levels'
 import { createRng, withRng, type Draw } from '../rng'
 import { poiReach, settlementReach, type Reach } from '../travel/reach'
 import { inSettlement } from '../travel/where'
@@ -34,6 +35,7 @@ import { RUMOUR_LEAD } from './rumours'
 import {
   BOARD_SIZE,
   CAMARADERIE_CONTRACT,
+  CONTRACT_LEVEL_SPREAD,
   CONTRACT_PAY_PER_DAY,
   CONTRACT_XP_PER_GP,
   CONTRACT_PAY_PER_THREAT,
@@ -113,6 +115,8 @@ export type Offer = {
   /** The deadline if taken today (an absolute day): today + `days`. */
   deadline: number
   pay: number
+  /** The level of the work (Plan 6 D1): the founders' best ± 1. Its pay and DCs scale with it. */
+  level: number
   /** Only met at a brisk pace or on a forced march. */
   urgent: boolean
   reputation: { patron: number; settlement: number }
@@ -326,6 +330,7 @@ function makeOffer(
   const { urgent, days } = deadlineDays(d, target.reach, template.urgentChance)
   const domain = site ? state.world.pois[site].domain : to
   const threat = domainThreatLevel(state.world, domain, weekStart)
+  const level = offerLevel(state, id)
   // Whole gold, rounded up (designer decision). A procurement's patron pays the goods' base value
   // on top of the fee for the sourcing (the round trip to the nearest producer); no advance.
   const pay = Math.max(
@@ -335,7 +340,8 @@ function makeOffer(
         target.reach.days *
         template.pay *
         (urgent ? URGENT_PAY : 1) *
-        (1 + CONTRACT_PAY_PER_THREAT * threat) +
+        (1 + CONTRACT_PAY_PER_THREAT * threat) *
+        levelPay(level) +
         (procure && good ? amount * goodPrice(content, good) : 0)
     )
   )
@@ -373,6 +379,7 @@ function makeOffer(
     days,
     deadline: state.day + days,
     pay,
+    level,
     urgent,
     reputation: { ...template.reputation },
     service: template.service ?? null,
@@ -381,6 +388,17 @@ function makeOffer(
     available: true,
     reason: null,
   }
+}
+
+/**
+ * An offer's level: the founders' best level (rules/levels.ts) plus a step in
+ * CONTRACT_LEVEL_SPREAD, seeded by the offer's id (its own stream, so the board's other draws are
+ * unchanged), within 1 and MAX_LEVEL.
+ */
+export function offerLevel(state: Pick<GameState, 'party' | 'world'>, offerId: string): number {
+  const [lo, hi] = CONTRACT_LEVEL_SPREAD
+  const [step] = withRng(keyedRng(state.world.seed, `level/${offerId}`), (d) => d.int(lo, hi))
+  return Math.min(MAX_LEVEL, Math.max(1, founderLevel(state.party) + step))
 }
 
 /** Why an offer can't be taken now (English), or null. */
@@ -499,6 +517,7 @@ export function acceptContract(state: GameState, content: Content, offerId: stri
     accepted: state.day,
     deadline: offer.deadline,
     pay: offer.pay,
+    level: offer.level,
     urgent: offer.urgent,
     reputation: offer.reputation,
     met: false,

@@ -98,6 +98,7 @@ describe('travel', () => {
       accepted: 1,
       deadline: 30,
       pay: 30,
+      level: 1,
       urgent: false,
       reputation: { patron: 1, settlement: 1 },
       met: false,

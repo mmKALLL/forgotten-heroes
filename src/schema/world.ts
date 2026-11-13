@@ -199,6 +199,9 @@ export type DomainState = z.infer<typeof DomainStateSchema>
 /** A point of interest placed in this world: hidden until discovered; dungeons and lairs empty and fill up again. */
 export const PoiStateSchema = z.object({
   type: IdSchema.describe('A poiTypes id'),
+  dungeon: IdSchema.optional().describe(
+    'An authored dungeon (a dungeons id) delved here room by room (Plan 6 D2); its type is a placeholder'
+  ),
   category: PoiCategorySchema.describe("Its type's category, kept so the rules need no content"),
   spot: IdSchema.describe('The land spot it stands on'),
   domain: IdSchema.describe('The domain (settlement id) that owns the spot'),

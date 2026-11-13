@@ -14,9 +14,11 @@ import {
   v10ToV11,
   v11ToV12,
   v12ToV13,
+  v13ToV14,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
+import { placeDungeons } from './world/dungeons'
 import { newGame, step } from './state'
 import { passDay } from './travel/supplies'
 import { brom, fixtureContent, makeCharacter, makeEncounter, makeState } from './test-fixtures'
@@ -116,10 +118,14 @@ const V2_SAVE = { ...V1_SAVE, version: 2, encounter: null, followUps: [], skillU
 function migrated() {
   const rolled = generateWorld(worldSeed(5), content)
   const location = startingSettlement(rolled, content)
-  const { world, crisis } = generateCrisis(rolled, content, {
+  const { world: withCrisis, crisis } = generateCrisis(rolled, content, {
     startDay: V2_SAVE.day,
     start: location,
   })!
+  const world = {
+    ...withCrisis,
+    pois: { ...withCrisis.pois, ...placeDungeons(withCrisis, content, location) },
+  }
   return {
     ...V2_SAVE,
     version: CURRENT_SAVE_VERSION,
@@ -133,14 +139,25 @@ function migrated() {
     ...PLAN_4_DEFAULTS,
     ...PLAN_5A_DEFAULTS,
     crisis,
+    delve: null,
   }
 }
 
-/** A state's world as a save from before Plan 5b had it: without the Crisis's sites. */
+/**
+ * A state's world as a save from before Plan 5b had it: without the Crisis's sites (nor the
+ * authored dungeons, placed after them since Plan 6 D2).
+ */
 function withoutCrisis(state: GameState): GameState['world'] {
   const sites = new Set(crisisSites(state.crisis))
-  const pois = Object.fromEntries(Object.entries(state.world.pois).filter(([id]) => !sites.has(id)))
+  const pois = Object.fromEntries(
+    Object.entries(state.world.pois).filter(([id, p]) => !sites.has(id) && !p.dungeon)
+  )
   return { ...state.world, pois }
+}
+
+/** A world with the authored dungeons placed from `start`, as a new game or v13 → v14 does. */
+function withDungeons(world: GameState['world'], start: string | null): GameState['world'] {
+  return { ...world, pois: { ...world.pois, ...placeDungeons(world, content, start) } }
 }
 
 /** What every character from before Plan 5a loads with: no XP, a founder, unwounded, nothing worn. */
@@ -170,7 +187,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(13)
+  expect(CURRENT_SAVE_VERSION).toBe(14)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -271,7 +288,9 @@ describe('v3 → v4', () => {
     // The world as rolled, and the Crisis's sites placed from where the party is (v10 → v11).
     const world = generateWorld(worldSeed(save.seed), content)
     const start = { startDay: save.day, start: 'greenvale-2' }
-    expect(loaded.world).toEqual(generateCrisis(world, content, start)!.world)
+    expect(loaded.world).toEqual(
+      withDungeons(generateCrisis(world, content, start)!.world, 'greenvale-2')
+    )
     expect(loaded.location).toBe('greenvale-2')
     expect(loaded.gold).toBe(33)
     expect(loaded.party).toEqual(save.party)
@@ -626,7 +645,9 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
   test('newGame is unchanged for seeds 1–3 apart from the new fields', () => {
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
-      expect(v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content)).toEqual(state)
+      expect(
+        v13ToV14(v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content), content)
+      ).toEqual(state)
       expect(state.party.every((c) => c.xp === 0 && !c.hired && c.accessory === null)).toBe(true)
     }
   })
@@ -671,7 +692,7 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
     // Ashmoor-1 is the mainland settlement nearest to Far Isle.
     const fromMainland = generateCrisis(world, content, { startDay: 40, start: 'ashmoor-1' })!
     expect(loaded.crisis).toEqual(fromMainland.crisis)
-    expect(loaded.world).toEqual(fromMainland.world)
+    expect(loaded.world).toEqual(withDungeons(fromMainland.world, 'farisle-1'))
     expect(loaded.location).toBe('farisle-1')
   })
 
@@ -757,7 +778,7 @@ describe('v12 → v13 (Plan 6, track C: the phased Crisis)', () => {
     const crisis = state.crisis!
     const later = new Set(crisis.acts.slice(1).map((a) => a.lead))
     const pois = Object.fromEntries(
-      Object.entries(state.world.pois).filter(([id]) => !later.has(id))
+      Object.entries(state.world.pois).filter(([id, p]) => !later.has(id) && !p.dungeon)
     )
     return {
       ...raw,
@@ -810,6 +831,47 @@ describe('v12 → v13 (Plan 6, track C: the phased Crisis)', () => {
     const once = v12ToV13(raw, content)
     expect(v12ToV13(once, content)).toEqual(once)
     expect(raw).toEqual(v11)
+  })
+})
+
+describe('v13 → v14 (Plan 6, track D: levelled work and authored dungeons)', () => {
+  /** A current state as a v13 save wrote it: no authored dungeons, no delve, contracts unlevelled. */
+  function asV13(state: GameState): Record<string, unknown> {
+    const { delve: _delve, ...rest } = structuredClone(state)
+    const pois = Object.fromEntries(Object.entries(state.world.pois).filter(([, p]) => !p.dungeon))
+    const contracts = state.contracts.map(({ level: _level, ...c }) => c)
+    return { ...rest, version: 13, world: { ...state.world, pois }, contracts }
+  }
+
+  test('an old world gains the authored dungeons from where the party is; old contracts are level 1', () => {
+    const state = makeState({ day: 40 })
+    expect(Object.values(state.world.pois).some((p) => p.dungeon)).toBe(true)
+    const job = {
+      id: 'c-old',
+      template: 'see-pilgrim',
+      kind: 'escort',
+      patron: 'p-x',
+      from: 'greenvale-1',
+      to: 'greenvale-2',
+      good: null,
+      amount: 0,
+      poi: null,
+      passengers: 1,
+      accepted: 30,
+      deadline: 50,
+      pay: 30,
+      urgent: false,
+      reputation: { patron: 1, settlement: 1 },
+      met: false,
+    }
+    const loaded = deserialize(JSON.stringify({ ...asV13(state), contracts: [job] }), content)!
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
+    expect(loaded.world).toEqual(state.world)
+    expect(loaded.delve).toBeNull()
+    expect(loaded.contracts).toEqual([{ ...job, level: 1 }])
+    // Migrating again places nothing twice.
+    const once = v13ToV14(asV13(state), content)
+    expect(v13ToV14({ ...once, version: 13 }, content).world).toEqual(once.world)
   })
 })
 

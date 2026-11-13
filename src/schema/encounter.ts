@@ -225,6 +225,28 @@ export const EffectSchema = z.discriminatedUnion('effect', [
   z
     .object({ effect: z.literal('thwartAct'), ...when })
     .describe('Thwarts the current act. Only works at its key site, once it has been found'),
+  z
+    .object({ effect: z.literal('driveOut'), ...when })
+    .describe(
+      'In a dungeon room: the party is driven out, and the delve ends without the hoard. The ' +
+        'engine adds it to every failed room outcome that ends the room'
+    ),
+  z
+    .object({
+      effect: z.literal('hoard'),
+      gold: z
+        .object({ min: z.number().int().min(0), max: z.number().int().min(0) })
+        .describe('The gold, rolled in this range'),
+      precious: z.number().int().min(0).describe('Precious goods'),
+      accessories: z.number().int().min(0).describe('Accessories rolled into the gear'),
+      tier: AccessoryTierSchema.describe("The accessories' tier"),
+      xp: z.number().int().min(0).describe('XP for clearing the dungeon'),
+      ...when,
+    })
+    .describe(
+      "A dungeon's hoard: clears the site and pays it. Engine-made only: the engine adds it to " +
+        "the last room's outcomes that end the room without driving the party out"
+    ),
 ])
 export type Effect = z.infer<typeof EffectSchema>
 

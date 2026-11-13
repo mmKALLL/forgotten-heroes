@@ -2,7 +2,7 @@
   "$schema": "../_schema/poiTypes.schema.json",
   "kind": "poiTypes",
   "source": "procedural",
-  "notes": "The weighted table each world's points of interest are drawn from (design §6). Written by Claude; tune the weights freely. Lairs (one per threat in data/claude/threats.json, keyed by `threats`) are only drawn where their threat holds the land; they and the active dungeons (haunted barrow, kobold-held mine) are hostile and feed their domain's threat until cleared, about a quarter of all sites. Lone experts train a skill, sell what they know or heal; quest sites are placeholders for Plan 4 quests. Only springs and wells refill the waterskins (saint's well, herbwife's spring). Wonders are rarer than shrines and landmarks; the glass field is rarer still, as deserts are wide.",
+  "notes": "The weighted table each world's points of interest are drawn from (design §6). Written by Claude; tune the weights freely. Lairs (one per threat in data/claude/threats.json, keyed by `threats`) are only drawn where their threat holds the land; they and the active dungeons (haunted barrow, kobold-held mine) are hostile and feed their domain's threat until cleared, about a quarter of all sites. Lone experts train a skill, sell what they know or heal; quest sites are placeholders for Plan 4 quests. Only springs and wells refill the waterskins (saint's well, herbwife's spring). Wonders are rarer than shrines and landmarks; the glass field is rarer still, as deserts are wide. Plan 6 D2: the three generic dungeons (haunted barrow, kobold-held mine, old ruin) have weight 0: the authored dungeons (data/claude/dungeons-*.json) replace them in new worlds, and they stay only for older saves.",
   "entries": [
     {
       "id": "wayside-shrine",
@@ -106,7 +106,10 @@
       "biomes": ["hills", "mountains"],
       "threats": ["orc-warband"],
       "hostile": true,
-      "threat": { "min": 1, "max": 2 },
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
       "pathDanger": 2,
       "names": "poi-name-camp",
       "situations": ["orc-war-camp-raid"],
@@ -120,7 +123,10 @@
       "biomes": ["forest", "hills"],
       "threats": ["goblin-raiders"],
       "hostile": true,
-      "threat": { "min": 1, "max": 1 },
+      "threat": {
+        "min": 1,
+        "max": 1
+      },
       "pathDanger": 2,
       "names": "poi-name-warren",
       "situations": ["goblin-warren-raid"],
@@ -134,7 +140,10 @@
       "biomes": ["plains", "forest"],
       "threats": ["bandit-lord"],
       "hostile": true,
-      "threat": { "min": 1, "max": 2 },
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
       "pathDanger": 2,
       "names": "poi-name-outlaw",
       "situations": ["bandit-hideout-raid"],
@@ -148,7 +157,10 @@
       "biomes": [],
       "threats": ["pretender"],
       "hostile": true,
-      "threat": { "min": 1, "max": 2 },
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
       "pathDanger": 1,
       "names": "poi-name-muster",
       "situations": ["rebel-muster-raid"],
@@ -162,7 +174,10 @@
       "biomes": ["marsh", "desert"],
       "threats": ["restless-dead"],
       "hostile": true,
-      "threat": { "min": 1, "max": 2 },
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
       "pathDanger": 2,
       "names": "poi-name-graves",
       "situations": ["restless-graveyard-raid"],
@@ -176,7 +191,10 @@
       "biomes": [],
       "threats": ["dark-cult"],
       "hostile": true,
-      "threat": { "min": 1, "max": 2 },
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
       "pathDanger": 1,
       "names": "poi-name-cult",
       "situations": ["cult-manor-raid"],
@@ -190,7 +208,10 @@
       "biomes": ["jungle", "marsh"],
       "threats": ["serpent-cult"],
       "hostile": true,
-      "threat": { "min": 1, "max": 2 },
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
       "pathDanger": 2,
       "names": "poi-name-serpent",
       "situations": ["serpent-temple-raid"],
@@ -204,7 +225,10 @@
       "biomes": ["marsh", "forest"],
       "threats": ["hag-coven"],
       "hostile": true,
-      "threat": { "min": 1, "max": 2 },
+      "threat": {
+        "min": 1,
+        "max": 2
+      },
       "pathDanger": 2,
       "names": "poi-name-coven",
       "situations": ["hag-hollow-raid"],
@@ -218,7 +242,10 @@
       "biomes": ["mountains", "desert"],
       "threats": ["drake-brood"],
       "hostile": true,
-      "threat": { "min": 2, "max": 2 },
+      "threat": {
+        "min": 2,
+        "max": 2
+      },
       "pathDanger": 3,
       "names": "poi-name-roost",
       "situations": ["drake-roost-raid"],
@@ -232,7 +259,10 @@
       "biomes": ["mountains", "hills"],
       "threats": ["giant-clan"],
       "hostile": true,
-      "threat": { "min": 2, "max": 2 },
+      "threat": {
+        "min": 2,
+        "max": 2
+      },
       "pathDanger": 2,
       "names": "poi-name-steading",
       "situations": ["giant-steading-raid"],
@@ -242,11 +272,14 @@
       "id": "haunted-barrow",
       "category": "dungeon",
       "name": "Haunted barrow",
-      "weight": 0.4,
+      "weight": 0,
       "biomes": ["hills", "plains", "marsh"],
       "threats": ["restless-dead"],
       "hostile": true,
-      "threat": { "min": 1, "max": 1 },
+      "threat": {
+        "min": 1,
+        "max": 1
+      },
       "pathDanger": 2,
       "names": "poi-name-ruin",
       "situations": ["haunted-barrow-delve"],
@@ -256,10 +289,13 @@
       "id": "kobold-mine",
       "category": "dungeon",
       "name": "Kobold-held mine",
-      "weight": 0.45,
+      "weight": 0,
       "biomes": ["mountains", "hills"],
       "hostile": true,
-      "threat": { "min": 1, "max": 1 },
+      "threat": {
+        "min": 1,
+        "max": 1
+      },
       "pathDanger": 2,
       "names": "poi-name-mine",
       "situations": ["kobold-mine-delve"],
@@ -269,7 +305,7 @@
       "id": "old-ruin",
       "category": "dungeon",
       "name": "Old ruin",
-      "weight": 0.6,
+      "weight": 0,
       "biomes": ["plains", "forest", "hills", "desert"],
       "pathDanger": 1,
       "names": "poi-name-ruin",
