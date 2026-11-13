@@ -227,6 +227,49 @@ describe('continueJourney', () => {
     expect(lastLine(hungry)).toMatch(/goes without food/)
   })
 
+  test('a one-day walk adds to the quiet line, and stops on the encounter and arrival', () => {
+    const out = encountersOn(
+      act(at('greenvale-1'), { type: 'travel', routeId: 'greenvale-1-greenvale-2', forage: false }),
+      []
+    )
+    const day = (s: GameState) => act(s, { type: 'continueJourney', days: 1 })
+    const name = settlementName(out, 'greenvale-2')
+    const one = day(out)
+    expect(one.travel).toMatchObject({ daysDone: 1, kmDone: 30 })
+    expect(lastLine(one)).toBe(`A quiet day on the road to ${name} (30 of 75 km).`)
+    const two = day(one)
+    expect(two.log.length).toBe(one.log.length)
+    expect(lastLine(two)).toBe(`2 quiet days on the road to ${name} (60 of 75 km).`)
+    // The last day arrives, as one Continue would: the line, then the arrival.
+    expect(texts(day(two)).slice(-2)).toEqual(texts(go(out)).slice(-2))
+    // Something written in between starts a new line.
+    const noted = {
+      ...two,
+      log: [...two.log, { day: two.day, text: 'A note.', tone: 'info' as const }],
+    }
+    expect(texts(day(noted)).at(-2)).toBe(`A quiet day on the road to ${name} (75 of 75 km).`)
+    // An encounter day stops a one-day walk as it stops Continue.
+    const met = day(encountersOn(out, [1]))
+    expect(inProgress(met)).toBe(true)
+    expect(met.travel).toMatchObject({ daysDone: 1 })
+  })
+
+  test('a walk that stops for the player says why, until the next Continue', () => {
+    const short = go(
+      encountersOn(
+        travel(at('greenvale-1', { goods: { food: 1, water: 8 } }), 'greenvale-1-greenvale-2'),
+        []
+      )
+    )
+    expect(short.travel!.halt).toBe('short')
+    const out = encountersOn(travel(at('greenvale-1'), 'greenvale-1-greenvale-2'), [])
+    expect(act(out, { type: 'continueJourney', days: 1 }).travel!.halt).toBeUndefined()
+    const down = { ...out, party: out.party.map((c) => ({ ...c, hp: 0 })) }
+    expect(go(down).travel!.halt).toBe('unfit')
+    const camped = act(go(down), { type: 'rest' })
+    expect(act(camped, { type: 'continueJourney', days: 1 }).travel!.halt).toBeUndefined()
+  })
+
   test('a party that can’t go on makes camp, then carries on', () => {
     const out = encountersOn(travel(at('greenvale-1'), 'greenvale-1-greenvale-2'), [])
     const down = { ...out, party: out.party.map((c) => ({ ...c, hp: 0 })) }

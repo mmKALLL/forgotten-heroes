@@ -2,7 +2,7 @@ import type { Content } from '../../content/build'
 import { wardShare } from '../gear/hooks'
 import { scoutShare } from '../rules/upgrades'
 import type { Pace } from '../../schema/types'
-import type { GameState, TravelState } from '../../schema/state'
+import type { GameState, JourneyHalt, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
 import { drawEncounter, inProgress, startEncounter, type Place } from '../encounters/run'
 import { appendLog } from '../log'
@@ -65,7 +65,11 @@ export type TravelAction =
       /** Hire riding animals for this journey (town/animals.ts hireOffer). */
       hire?: boolean
     }
-  | { type: 'continueJourney' }
+  /**
+   * Walks on until something needs the player; with `days`, at most that many days (auto-travel
+   * walks one day at a time, design §7).
+   */
+  | { type: 'continueJourney'; days?: number }
   /** A day of rest: true or "common" for a common room, "private", or false for own food. */
   | { type: 'rest'; lodging?: boolean | Room }
   | { type: 'buyWaterskin'; count?: number }
@@ -359,14 +363,11 @@ function turnBack(state: GameState, content: Content): GameState {
 }
 
 /** The finds of the days foraged since the last summary line. */
-type ForageTally = {
-  dc: number
-  foragers: string[]
-  food: number
-  water: number
-  full: boolean
-  inspired: boolean
-}
+type ForageTally = NonNullable<NonNullable<TravelState['quiet']>['forage']>
+
+/** Marks why the walk stopped for the player, so auto-travel pauses (TravelState.halt). */
+const halted = (state: GameState, halt: JourneyHalt): GameState =>
+  state.travel ? { ...state, travel: { ...state.travel, halt } } : state
 
 const names = (list: readonly string[]): string =>
   list.length <= 1 ? (list[0] ?? '') : `${list.slice(0, -1).join(', ')} and ${list.at(-1)}`
@@ -390,15 +391,27 @@ function forageText(t: ForageTally): string {
  * best-suited member forages first (unless the journey set out without foraging). Quiet days and
  * their foraging become one line. Each day walked is recorded with its pace, for pursuit.
  */
-export function continueJourney(state: GameState, content: Content): GameState {
+export function continueJourney(
+  state: GameState,
+  content: Content,
+  maxDays: number = MAX_DAYS_PER_CONTINUE
+): GameState {
   if (inProgress(state)) return appendLog(state, BUSY, 'bad')
   if (!state.travel) return appendLog(state, 'The party is not on the road.', 'bad')
   // The route was removed from the data since this save (e.g. a path after content edits).
   if (!edgeById(state, content, state.travel.route)) return turnBack(state, content)
 
-  let next = state
+  const { halt: _halt, quiet: carried, ...setting } = state.travel
+  let next: GameState = { ...state, travel: setting }
   let quiet = 0
   let tally: ForageTally | null = null
+  // The quiet days the journal's last line already sums up (an earlier one-day walk) are added
+  // to, and that line rewritten, as long as nothing has been written since.
+  if (carried && state.log.at(-1)?.text === carried.line) {
+    quiet = carried.days
+    tally = carried.forage
+    next = { ...next, log: state.log.slice(0, -1) }
+  }
   // A supply warning stops the walk once: only when the supplies lasted as it began.
   const lasted = suppliesLast(supplyOutlook(state, content))
   const strainLines: string[] = []
@@ -412,7 +425,15 @@ export function continueJourney(state: GameState, content: Content): GameState {
       )
     }
     if (tally) parts.push(forageText(tally))
-    let out = parts.length > 0 ? appendLog(s, parts.join(' '), 'info') : s
+    const line = parts.join(' ')
+    let out =
+      parts.length > 0
+        ? appendLog(
+            { ...s, travel: { ...t, quiet: { days: quiet, line, forage: tally } } },
+            line,
+            'info'
+          )
+        : s
     for (const line of strainLines) out = appendLog(out, line, 'bad')
     quiet = 0
     tally = null
@@ -442,17 +463,19 @@ export function continueJourney(state: GameState, content: Content): GameState {
     }
   }
 
-  for (let guard = 0; guard <= MAX_DAYS_PER_CONTINUE; guard++) {
+  for (let walkedNow = 0; walkedNow <= MAX_DAYS_PER_CONTINUE; walkedNow++) {
     const travel = next.travel!
     const fit = next.party.some(canAct)
     // A party that can't go on keeps its encounter days until it has made camp. One encounter a
     // day at most: a due day is spent whole (older saves may list a day twice). A pursuit that
     // has come due takes that day's encounter (drawEncounter); it never adds a second.
     if (fit && travel.encounterDays.length > 0 && travel.encounterDays[0] <= travel.daysDone) {
+      // The encounter ends the run of quiet days: the next walk starts a new line.
+      const { quiet: _summed, ...onward } = travel
       const queued = {
         ...flush(next),
         travel: {
-          ...travel,
+          ...onward,
           encounterDays: travel.encounterDays.filter((d) => d > travel.daysDone),
         },
       }
@@ -464,7 +487,9 @@ export function continueJourney(state: GameState, content: Content): GameState {
       continue
     }
     if (travel.kmDone >= travel.km) return arrive(flush(next), content)
-    if (!fit) return appendLog(flush(next), `${UNFIT} Make camp to recover.`, 'bad')
+    if (!fit)
+      return halted(appendLog(flush(next), `${UNFIT} Make camp to recover.`, 'bad'), 'unfit')
+    if (walkedNow >= maxDays) return flush(next)
 
     const terrain = routeTerrain(next, content, travel)
     if (travel.forage) {
@@ -485,11 +510,11 @@ export function continueJourney(state: GameState, content: Content): GameState {
     )
     next = { ...passDay(next, terrain, travel.pace, content), travel: walked }
     const eventful = travel.encounterDays[0] === day
-    if (short && !eventful) return next
+    if (short && !eventful) return halted(next, 'short')
     if (!short && !eventful) quiet += 1
     if (lasted && !short && !eventful && walked.kmDone < walked.km) {
       const outlook = supplyOutlook(next, content)
-      if (!suppliesLast(outlook)) return supplyWarning(flush(next), outlook)
+      if (!suppliesLast(outlook)) return halted(supplyWarning(flush(next), outlook), 'supplies')
     }
   }
   return flush(next)
@@ -510,7 +535,7 @@ export function stepTravel(state: GameState, action: TravelAction, content: Cont
     case 'travel':
       return depart(state, content, action.routeId, action)
     case 'continueJourney':
-      return continueJourney(state, content)
+      return continueJourney(state, content, action.days)
     case 'rest':
       return rest(state, content, action.lodging)
     case 'buyWaterskin':

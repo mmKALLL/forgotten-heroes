@@ -508,11 +508,26 @@ export type JourneyInfo = {
   pace: Pace
   /** False during an encounter or when no one can walk on (then only camp helps). */
   canMove: boolean
+  /** The last walk stopped for the player (TravelState.halt): auto-travel waits to be resumed. */
+  halted: boolean
 }
 
-/** How far along its road a journey is, as a share of the km from 0 (setting out) to 1 (there). */
-export const journeyProgress = (travel: Pick<TravelState, 'km' | 'kmDone'>): number =>
-  travel.km > 0 ? Math.min(1, Math.max(0, travel.kmDone / travel.km)) : 1
+/** The km the journey's next day covers: a full day's march, or what is left of the road. */
+export const nextDayKm = (travel: Pick<TravelState, 'km' | 'kmDone' | 'kmPerDay'>): number =>
+  Math.max(0, Math.min(travel.kmPerDay, travel.km - travel.kmDone))
+
+/**
+ * How far along its road a journey is, as a share of the km from 0 (setting out) to 1 (there);
+ * `dayShare` (0 to 1) of the next day already walked, for a marker that glides (auto-travel).
+ */
+export const journeyProgress = (
+  travel: Pick<TravelState, 'km' | 'kmDone' | 'kmPerDay'>,
+  dayShare = 0
+): number => {
+  if (travel.km <= 0) return 1
+  const share = Math.min(1, Math.max(0, dayShare))
+  return Math.min(1, Math.max(0, (travel.kmDone + share * nextDayKm(travel)) / travel.km))
+}
 
 export function journeyInfo(state: GameState, content: Content): JourneyInfo | null {
   const t = state.travel
@@ -531,6 +546,7 @@ export function journeyInfo(state: GameState, content: Content): JourneyInfo | n
     danger: edgeById(state, content, t.route)?.danger ?? 0,
     pace: t.pace,
     canMove: !inProgress(state) && state.party.some(canAct),
+    halted: t.halt !== undefined,
   }
 }
 
