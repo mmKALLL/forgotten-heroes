@@ -7,7 +7,7 @@
     {
       "id": "authored-dungeon",
       "category": "dungeon",
-      "name": "Dungeon",
+      "name": "Delved room by room",
       "weight": 0,
       "pathDanger": 2,
       "names": "poi-name-ruin",

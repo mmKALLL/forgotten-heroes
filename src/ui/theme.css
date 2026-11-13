@@ -2317,3 +2317,64 @@ h2[tabindex='-1']:focus {
     padding: 0.4rem 0.6rem;
   }
 }
+
+/* A delve (Plan 6 D4): the dungeon's map, zoomed to the party, or a schematic on parchment. */
+.delve-panel .map-frame {
+  overflow: hidden;
+}
+.delve-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  background: var(--bg);
+}
+.delve-path {
+  fill: none;
+  stroke: #f4ead2;
+  stroke-opacity: 0.9;
+  stroke-width: 3px;
+  stroke-dasharray: 7 6;
+  vector-effect: non-scaling-stroke;
+}
+.delve-room circle {
+  fill: #f8f2e3;
+  stroke: #2b2118;
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+.delve-room.visited circle {
+  fill: #7a6a55;
+}
+.delve-room.here circle {
+  fill: #7b3f1d;
+}
+.delve-room.next circle {
+  fill: #f0b429;
+  stroke-width: 3px;
+}
+.delve-room text {
+  fill: #fff8ec;
+  paint-order: stroke;
+  stroke: #2b2118;
+  font-weight: 600;
+  pointer-events: none;
+}
+.delve-room.ahead text {
+  opacity: 0.75;
+}
+.delve-entrance {
+  fill: #3f6b35;
+  stroke: #f8f2e3;
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+.delve-party {
+  fill: #b51f18;
+  stroke: #fff8ec;
+  stroke-width: 3px;
+  vector-effect: non-scaling-stroke;
+}
+.dungeon-card p {
+  margin: 0.25rem 0;
+}

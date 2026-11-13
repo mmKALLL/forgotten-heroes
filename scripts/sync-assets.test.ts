@@ -63,6 +63,15 @@ describe('syncAssets', () => {
     expect(existsSync(join(to, 'world maps/w.jpg'))).toBe(true)
   })
 
+  test('copies a path with a colon to the same path with a hyphen', () => {
+    const from = tempDir('fh-from-')
+    const to = tempDir('fh-to-')
+    mkdirSync(join(from, 'maps/_cave : lava'), { recursive: true })
+    writeFileSync(join(from, 'maps/_cave : lava/a.jpg'), 'A')
+    syncAssets(['maps/_cave : lava/a.jpg'], from, to)
+    expect(readFileSync(join(to, 'maps/_cave - lava/a.jpg'), 'utf8')).toBe('A')
+  })
+
   test('copies the target of a symlink, not the link', () => {
     const from = tempDir('fh-from-')
     const to = tempDir('fh-to-')

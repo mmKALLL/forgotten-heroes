@@ -3,6 +3,11 @@ import { availableActions, type Action } from '../../engine/state'
 import { poiInfo, suppliesInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
 import { CrisisSiteNote } from '../CrisisPanel'
+import { crLevel } from '../../engine/rules/challenge'
+import { founderLevel } from '../../engine/rules/levels'
+import { delvePreview } from '../../engine/world/delve'
+import { siteCr } from '../../engine/world/dungeons'
+import { DungeonCard, SiteCr } from './DelveView'
 import { useI18n } from '../i18n/I18n'
 import { ExploreAction } from './ExploreAction'
 import { PoiSummary } from './PoiSummary'
@@ -36,12 +41,20 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
     )
   }
   const visit = availableActions(state, content).find((a) => a.type === 'visitPoi')
+  // An authored dungeon (Plan 6 D3) or a lair's challenge rating (D2).
+  const dungeon = delvePreview(state, content, state.location!)
+  const cr = siteCr(state.world, content, state.location!, state.day)
   const supplies = suppliesInfo(state)
   const reason = visit?.code ?? null
   return (
     <section className="panel place poi-panel" aria-label={t('poi.heading')}>
       <h2>{info.name}</h2>
       <PoiSummary info={info} />
+      {dungeon ? (
+        <DungeonCard preview={dungeon} />
+      ) : (
+        cr !== null && <SiteCr cr={cr} level={crLevel(cr)} party={founderLevel(state.party)} />
+      )}
       <CrisisSiteNote content={content} state={state} />
       {visit && (
         <div className="actions">
