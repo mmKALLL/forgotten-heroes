@@ -84,13 +84,18 @@ export function GoodsBar({
   )
 }
 
-/** "34 / 60 kg", a bar filling to the overload line, and Encumbered or Overloaded. */
+/**
+ * "34 / 60 kg" against the weight at which the party is encumbered, a bar that is full there, and
+ * Encumbered or Overloaded. The figures turn yellow when encumbered (the weight past the maximum)
+ * and red when overloaded (designer call 2026-11-13); the overload limit is in the tooltip.
+ */
 export function CapacityMeter({ laden }: { laden: Load }) {
   const { t } = useI18n()
   const weight = Math.round(laden.weight)
   const capacity = Math.floor(laden.capacity)
   const max = laden.capacity * OVERLOAD_RATIO
-  const fill = max > 0 ? Math.min(1, laden.weight / max) : laden.weight > 0 ? 1 : 0
+  const fill =
+    laden.capacity > 0 ? Math.min(1, laden.weight / laden.capacity) : laden.weight > 0 ? 1 : 0
   const value = t('load.value', { weight, capacity })
   const level = laden.level === 'light' ? null : t(`load.${laden.level}`)
   return (
@@ -102,10 +107,8 @@ export function CapacityMeter({ laden }: { laden: Load }) {
     >
       <span className="capacity-bar" aria-hidden="true">
         <span className="capacity-fill" style={{ width: `${Math.round(fill * 100)}%` }} />
-        {/* The light limit: capacity is 1 / OVERLOAD_RATIO of the bar. */}
-        <span className="capacity-mark" style={{ left: `${Math.round(100 / OVERLOAD_RATIO)}%` }} />
       </span>
-      <span className="small">{value}</span>
+      <span className="small capacity-value">{value}</span>
       {level && <span className="badge load-badge">{level}</span>}
     </span>
   )

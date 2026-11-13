@@ -1472,18 +1472,18 @@ h2[tabindex='-1']:focus {
   background: var(--good);
 }
 .load-encumbered .capacity-fill {
-  background: var(--tier-partial);
+  background: var(--crit);
 }
 .load-overloaded .capacity-fill {
   background: var(--bad);
 }
-.capacity-mark {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: var(--ink);
-  opacity: 0.6;
+.load-encumbered .capacity-value {
+  color: var(--crit);
+  font-weight: 600;
+}
+.load-overloaded .capacity-value {
+  color: var(--bad);
+  font-weight: 600;
 }
 .load-badge {
   margin-left: 0;
