@@ -34,7 +34,7 @@ test('the tracker shows each act’s phase, days, next step, challenge and foe',
   expect(panel.getByText(/^Strike at /)).toBeTruthy()
   // The fixture's party is level 1: act I's key site (CR 6) is beyond it.
   expect(panel.getByText('CR 6, meant for level 7')).toBeTruthy()
-  expect(panel.getByText(/too strong for you \(level 1\)/)).toBeTruthy()
+  expect(panel.getByText(/too strong/)).toBeTruthy()
   expect(panel.getByText('Holding it: Captain Test, the Hand')).toBeTruthy()
   // A later act: its name, goal, when it stirs and its challenges.
   expect(panel.getByText('II. The Test Act 2')).toBeTruthy()

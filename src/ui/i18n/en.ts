@@ -735,7 +735,7 @@ export const en = {
   'crisis.challenge': 'CR {cr}, meant for level {level}',
   'crisis.challengeHint':
     'Crisis encounters are played at their challenge rating, not the danger ramp: the lead, then the key site, which is harder. A CR is meant for a party about one level above it.',
-  'crisis.tooStrong': 'too strong for you (level {level})',
+  'crisis.tooStrong': 'too strong',
   'crisis.challenges': 'lead CR {lead} · key CR {key}',
   'crisis.foe': 'Holding it: {name}',
   'crisis.surge': '⚠ the roads are {percent}% more dangerous until it is stopped',

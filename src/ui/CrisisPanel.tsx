@@ -118,16 +118,14 @@ function PhaseMark({ t, act, info }: { t: T; act: TrackerAct; info: CrisisActInf
 }
 
 /** The challenge the open act points to (its lead, then its key site) against the party's level. */
-function Challenge({ t, act, partyLevel }: { t: T; act: TrackerAct; partyLevel: number }) {
+function Challenge({ t, act }: { t: T; act: TrackerAct; partyLevel?: number }) {
   const key = act.phase === 'prevention'
   const cr = key ? act.keyCr : act.leadCr
   const level = key ? act.keyLevel : act.leadLevel
   return (
     <div>
       <Tip tip={t('crisis.challengeHint')}>{t('crisis.challenge', { cr, level })}</Tip>
-      {act.tooStrong && (
-        <span className="tone-bad"> · {t('crisis.tooStrong', { level: partyLevel })}</span>
-      )}
+      {act.tooStrong && <span className="tone-bad"> · {t('crisis.tooStrong')}</span>}
     </div>
   )
 }
