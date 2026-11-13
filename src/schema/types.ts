@@ -172,6 +172,8 @@ export const SERVICE_ACTIONS = [
   'accessories',
   /** Stand the party a round (Plan 6): camaraderie, once per arrival. */
   'round',
+  /** Sell and buy back weapons and armour (Plan 7 Track C): the role's `arms` block. */
+  'arms',
 ] as const
 export type ServiceAction = (typeof SERVICE_ACTIONS)[number]
 
@@ -387,6 +389,17 @@ export type MoralAlignment = (typeof MORAL_ALIGNMENTS)[number]
 /** A member's place in the party's formation: the front rank starts nearer the enemy. */
 export const RANKS = ['front', 'back'] as const
 export type Rank = (typeof RANKS)[number]
+
+/**
+ * Level-up picks (Plan 7 Track C, combat design §5): a fighter's style and a bard's
+ * specialisation of one of the four. TODO (spell casting): spells' 1-of-3 pick joins as 'spell'.
+ */
+export const LEVEL_CHOICE_KINDS = ['style', 'specialise'] as const
+export type LevelChoiceKind = (typeof LEVEL_CHOICE_KINDS)[number]
+
+/** A fighter's styles: the two-attack full actions (daggers, blades, thrown) or the single blow. */
+export const FIGHTER_STYLES = ['two-attack', 'single-blow'] as const
+export type FighterStyle = (typeof FIGHTER_STYLES)[number]
 
 /** The sides of a fight. */
 export const COMBAT_SIDES = ['party', 'enemy'] as const

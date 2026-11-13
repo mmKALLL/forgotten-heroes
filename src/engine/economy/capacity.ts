@@ -1,7 +1,7 @@
 import type { Content } from '../../content/build'
 import type { AnimalDef } from '../../schema/economy'
 import type { Character, GameState, Goods, TravelState } from '../../schema/state'
-import { canAct } from '../rules/character'
+import { MAX_EXHAUSTION, canAct } from '../rules/character'
 import { goodsWeight } from './goods'
 import { carryBonus } from '../gear/hooks'
 import {
@@ -128,17 +128,45 @@ export type Load = {
   level: LoadLevel
 }
 
+/** A weapon's or armour's weight in kg (0 when unknown or none). */
+export function pieceWeight(content: Content, id: string | null): number {
+  if (!id) return 0
+  if (Object.hasOwn(content.weapons, id)) return content.weapons[id].weight ?? 0
+  return Object.hasOwn(content.armours, id) ? (content.armours[id].weight ?? 0) : 0
+}
+
+/**
+ * What the party's weapons and armour weigh (Plan 7 Track C): what living members wear, and the
+ * stash (town/arms.ts).
+ */
+export function gearWeight(
+  state: Pick<GameState, 'party'> & Partial<Pick<GameState, 'stash'>>,
+  content: Content
+): number {
+  const worn = state.party
+    .filter((c) => c.exhaustion < MAX_EXHAUSTION)
+    .reduce(
+      (sum, c) => sum + pieceWeight(content, c.gear.weapon) + pieceWeight(content, c.gear.armour),
+      0
+    )
+  return worn + (state.stash ?? []).reduce((sum, id) => sum + pieceWeight(content, id), 0)
+}
+
 /** Light up to capacity, encumbered up to OVERLOAD_RATIO × capacity, overloaded beyond. */
 export const loadLevel = (ratio: number): LoadLevel =>
   ratio > OVERLOAD_RATIO ? 'overloaded' : ratio > 1 ? 'encumbered' : 'light'
 
-/** How heavily the party is laden: with other `goods` or `hired` mounts to preview a change. */
+/**
+ * How heavily the party is laden: its goods, and its weapons and armour (gearWeight); with other
+ * `goods` or `hired` mounts to preview a change.
+ */
 export function load(
-  state: Pick<GameState, 'party' | 'animals' | 'travel' | 'goods'>,
+  state: Pick<GameState, 'party' | 'animals' | 'travel' | 'goods'> &
+    Partial<Pick<GameState, 'stash'>>,
   content: Content,
   options: { goods?: Goods; hired?: Hired | null } = {}
 ): Load {
-  const weight = goodsWeight(options.goods ?? state.goods, content)
+  const weight = goodsWeight(options.goods ?? state.goods, content) + gearWeight(state, content)
   const capacity = carryCapacity(
     state,
     content,

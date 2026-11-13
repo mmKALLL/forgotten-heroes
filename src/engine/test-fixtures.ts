@@ -1570,6 +1570,135 @@ export function combatFixtureContent(): Content {
   return fixtureContent(testCombatFoes)
 }
 
+const dice = (count: number, die: number, bonus = 0) => ({ count, die, bonus })
+
+/**
+ * Class abilities (Plan 7 Track C), shaped like the bundled ones, an undead foe, priced and
+ * weighted arms and the shops that sell them: classFixtureContent only.
+ */
+export const testClassData: Record<string, unknown> = {
+  'data/claude/test-abilities.json': {
+    kind: 'classAbilities',
+    source: 'claude',
+    entries: [
+      {
+        ...{ id: 'second-wind', name: 'Second Wind', classId: 'fighter', level: 1 },
+        ...{ description: 'Heal.', target: 'self', action: 'free' },
+        effects: [{ effect: 'heal', dice: dice(1, 10), perLevel: 1 }],
+      },
+      {
+        ...{ id: 'action-surge', name: 'Action Surge', classId: 'fighter', level: 2 },
+        ...{ description: 'Again.', target: 'self', action: 'free' },
+        effects: [{ effect: 'extraAction' }],
+      },
+      {
+        ...{ id: 'cunning-action', name: 'Cunning Action', classId: 'rogue', level: 1 },
+        ...{ description: 'Slip.', target: 'self', range: [1, 2], action: 'free' },
+        effects: [{ effect: 'move', tiles: 2 }],
+      },
+      {
+        ...{ id: 'lay-on-hands', name: 'Lay on Hands', classId: 'paladin', level: 1 },
+        ...{ description: 'Touch.', target: 'ally', range: [0, 1] },
+        effects: [{ effect: 'healPool', perLevel: 5 }],
+      },
+      {
+        ...{ id: 'divine-smite', name: 'Smite', classId: 'paladin', level: 2 },
+        ...{ description: 'Smite.', target: 'enemy', roll: { roll: 'weapon' }, spends: 'spell' },
+        effects: [{ effect: 'damage', dice: dice(2, 8) }],
+      },
+      {
+        ...{ id: 'hunters-mark', name: 'Mark', classId: 'ranger', level: 1 },
+        ...{ description: 'Mark.', target: 'enemy', range: [0, 8], action: 'free', rounds: 10 },
+        effects: [{ effect: 'mark', dice: dice(1, 6) }],
+      },
+      {
+        ...{ id: 'turn-undead', name: 'Turn Undead', classId: 'cleric', level: 2 },
+        ...{ description: 'Turn.', target: 'twoTiles', range: [1, 3], only: 'undead' },
+        ...{ roll: { roll: 'save', ability: 'wis' }, rounds: 3 },
+        effects: [{ effect: 'fear' }],
+      },
+      {
+        ...{ id: 'inspire', name: 'Inspire', classId: 'bard', level: 1 },
+        ...{ description: 'Inspire.', target: 'ally', range: [0, 3], rounds: 1 },
+        effects: [{ effect: 'rollDie', die: 6, sign: 1 }],
+        specialised: { description: 'd8.', effects: [{ effect: 'rollDie', die: 8, sign: 1 }] },
+      },
+      {
+        ...{ id: 'mending-song', name: 'Mending Song', classId: 'bard', level: 1 },
+        ...{ description: 'Mend.', target: 'ally', range: [0, 3] },
+        effects: [{ effect: 'heal', dice: dice(1, 8), perLevel: 1 }],
+        specialised: {
+          description: '2d8.',
+          effects: [{ effect: 'heal', dice: dice(2, 8), perLevel: 1 }],
+        },
+      },
+      {
+        ...{ id: 'cutting-words', name: 'Cutting Words', classId: 'bard', level: 2 },
+        ...{ description: 'Cut.', target: 'enemy', range: [1, 6], rounds: 1 },
+        effects: [{ effect: 'rollDie', die: 6, sign: -1 }],
+      },
+      {
+        ...{ id: 'rallying-song', name: 'Rallying Song', classId: 'bard', level: 4 },
+        ...{ description: 'Rally.', target: 'party', rounds: 1 },
+        effects: [{ effect: 'toHit', amount: 2 }],
+      },
+      {
+        ...{ id: 'song-of-renewal', name: 'Song of Renewal', classId: 'bard', level: 6 },
+        ...{ description: 'Renew.', target: 'party' },
+        effects: [{ effect: 'heal', dice: dice(1, 6), perLevel: 0.5 }],
+        specialised: {
+          description: '2d6.',
+          effects: [{ effect: 'heal', dice: dice(2, 6), perLevel: 0.5 }],
+        },
+      },
+      {
+        ...{ id: 'discord', name: 'Discord', classId: 'bard', level: 6 },
+        ...{ description: 'Discord.', target: 'tile', range: [1, 4], rounds: 1 },
+        effects: [{ effect: 'discord' }],
+        specialised: { description: 'Two tiles.', target: 'twoTiles' },
+      },
+    ],
+  },
+  'data/claude/test-undead.json': {
+    kind: 'creatures',
+    source: 'claude',
+    entries: [foe('skeleton', 'undead', 0.25, 'brute')],
+  },
+  'data/claude/test-arms.json': {
+    kind: 'weapons',
+    source: 'claude',
+    entries: [
+      { id: 'test-glaive', name: 'Glaive', family: 'polearms', price: 20, weight: 3 },
+      {
+        ...{ id: 'test-glaive-fine', name: 'Fine glaive', family: 'polearms', quality: 'fine' },
+        ...{ price: 80, weight: 3 },
+      },
+      {
+        ...{ id: 'test-glaive-2', name: '+2 glaive', family: 'polearms', quality: 'magic2' },
+        ...{ price: 1600, weight: 3 },
+      },
+    ],
+  },
+  'data/claude/test-armour.json': {
+    kind: 'armours',
+    source: 'claude',
+    entries: [{ id: 'test-plate', name: 'Heavy plate', grade: 'plate', price: 600, weight: 12 }],
+  },
+  'data/claude/test-arms-shops.json': {
+    kind: 'serviceRoles',
+    source: 'claude',
+    entries: [
+      { id: 'weapons-shop', function: 'trade', actions: ['arms'], arms: { sells: ['weapons'] } },
+      { id: 'armourer', function: 'trade', actions: ['arms'], arms: { sells: ['armour'] } },
+    ],
+  },
+}
+
+/** The combat fixture content plus class abilities and arms (Plan 7 Track C tests). */
+export function classFixtureContent(): Content {
+  return fixtureContent({ ...testCombatFoes, ...testClassData })
+}
+
 export function fixtureContent(extra: Record<string, unknown> = {}): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
@@ -1706,7 +1835,8 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     oldWounds: [],
     accessory: null,
     gear: { weapon: null, armour: null },
-    uses: {},
+    spent: {},
+    picks: [],
     spells: {},
     ...overrides,
   }

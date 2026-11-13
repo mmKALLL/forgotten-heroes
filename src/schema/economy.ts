@@ -11,7 +11,7 @@ import {
   StandingSchema,
 } from './common'
 import { AccessoryTierSchema } from './gear'
-import { MAX_LEVEL } from './types'
+import { MAX_LEVEL, WEAPON_QUALITIES } from './types'
 
 /** A whole-number range written as [min, max]. */
 const span = (min: number, max: number, what: string) =>
@@ -96,6 +96,19 @@ export const ServiceRoleSchema = z
       })
       .optional()
       .describe('Accessories sold here (Plan 5a); needs the "accessories" action'),
+    arms: z
+      .object({
+        sells: z
+          .array(z.enum(['weapons', 'armour']))
+          .min(1)
+          .describe('What it sells and buys back'),
+        best: z
+          .enum(WEAPON_QUALITIES)
+          .default('magic2')
+          .describe("The best weapon quality it ever stocks; the shop's quality limits it too"),
+      })
+      .optional()
+      .describe('Weapons and armour sold here (Plan 7 Track C); needs the "arms" action'),
   })
   .refine((r) => r.recruits === undefined || r.actions.includes('recruit'), {
     message: 'a role with recruits needs the "recruit" action',
@@ -103,6 +116,10 @@ export const ServiceRoleSchema = z
   })
   .refine((r) => r.accessories === undefined || r.actions.includes('accessories'), {
     message: 'a role with accessories needs the "accessories" action',
+    path: ['actions'],
+  })
+  .refine((r) => r.arms === undefined || r.actions.includes('arms'), {
+    message: 'a role with arms needs the "arms" action',
     path: ['actions'],
   })
 export type ServiceRole = z.infer<typeof ServiceRoleSchema>

@@ -14,6 +14,7 @@ import {
 import {
   ABILITIES,
   CAMARADERIE_MAX,
+  LEVEL_CHOICE_KINDS,
   MAX_LEVEL,
   MORAL_ALIGNMENTS,
   RANKS,
@@ -57,8 +58,17 @@ export const CharacterSchema = z.object({
   gear: z
     .object({ weapon: IdSchema.nullable(), armour: IdSchema.nullable() })
     .default({ weapon: null, armour: null }),
-  /** Ability and spell uses left until the next long rest, by ability id or "spell-<level>". */
-  uses: z.record(z.string(), z.number().int().min(0)).default({}),
+  /**
+   * Ability and spell uses spent since the last long rest, by ability id or "spell-<level>" (save
+   * v24; v23 kept uses left). What is left follows from the level (combat/uses.ts), so a level-up's
+   * extra use is there at once. A pool (Lay on Hands) counts the HP spent.
+   */
+  spent: z.record(z.string(), z.number().int().min(0)).default({}),
+  /**
+   * Level-up picks made (save v24): a fighter's styles ("two-attack", "single-blow"; each pick
+   * counts) and a bard's specialised abilities (ability ids).
+   */
+  picks: z.array(z.string()).default([]),
   /** Spells known, one per spell level ("1"–"9" → spells id). */
   spells: z.record(z.string().regex(/^[1-9]$/), IdSchema).default({}),
   /** A cleric's alignment (summons); others have none. */
@@ -339,11 +349,25 @@ export const LevelUpSchema = z.object({
     /** How much the proficiency bonus rose (0 most levels). */
     proficiency: z.number().int().min(0).default(0),
   }),
+  /**
+   * The picks these levels grant (Plan 7 Track C, save v24): each waits for `chooseLevelUp`, and
+   * the level-ups can't be acknowledged until every one is chosen. TODO (spell casting): a
+   * spell's 1-of-3 pick is a choice here too.
+   */
+  choices: z
+    .array(
+      z.object({
+        kind: z.enum(LEVEL_CHOICE_KINDS),
+        level: z.number().int().min(1).max(MAX_LEVEL).describe('The level that grants it'),
+        chosen: z.string().nullable().default(null),
+      })
+    )
+    .default([]),
 })
 export type LevelUp = z.infer<typeof LevelUpSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(23),
+  version: z.literal(24),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -418,5 +442,7 @@ export const GameStateSchema = z.object({
   levelUps: z.array(LevelUpSchema).default([]),
   /** The open fight on the line (Plan 7, combat/); null when there is none (save v22). */
   combat: CombatStateSchema.nullable().default(null),
+  /** Weapons and armour carried but not worn, by weapons or armours id (save v24; town/arms.ts). */
+  stash: z.array(IdSchema).default([]),
 })
 export type GameState = z.infer<typeof GameStateSchema>

@@ -31,6 +31,11 @@ export function unitOf(
     hits: 0,
     staggered: false,
     intent: null,
+    level: 1,
+    dc: 10,
+    untrained: false,
+    fullDamage: 0,
+    effects: [],
     ...o,
   }
 }

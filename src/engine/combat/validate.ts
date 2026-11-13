@@ -1,7 +1,7 @@
 import { sortedEntries, type Content } from '../../content/build'
 import type { CombatEffect } from '../../schema/combat'
 import { ENEMY_ROLES } from '../../schema/types'
-import { FALLBACK_GEAR, STARTING_GEAR } from '../constants'
+import { CLASS_PICKS, FALLBACK_GEAR, STARTING_GEAR } from '../constants'
 
 // Combat content references (Plan 7 Track T): the schemas check shapes; this checks that what a
 // fight, a class ability or a spell names exists. `pnpm test` runs it on the bundled content.
@@ -38,6 +38,51 @@ export function combatIssues(content: Content): string[] {
   }
   for (const spell of sortedEntries(content.spells)) summons(`spell ${spell.id}`, spell.effects)
   issues.push(...spellIssues(content))
+  return issues
+}
+
+/** The effects the engine plays in class abilities (combat/abilities.ts). */
+const PLAYED_IN_ABILITIES: readonly CombatEffect['effect'][] = [
+  'heal',
+  'healPool',
+  'damage',
+  'move',
+  'extraAction',
+  'mark',
+  'rollDie',
+  'toHit',
+  'damageBonus',
+  'fear',
+  'discord',
+]
+
+/**
+ * Track C's content (Plan 7): every weapon and armour has a price and a weight, every class
+ * ability uses only effects the engine plays (its specialisation too), Smite-like abilities
+ * (`spends: "spell"`) are weapon attacks, and each class with picks has something to pick.
+ */
+export function classIssues(content: Content): string[] {
+  const issues: string[] = []
+  for (const piece of [...sortedEntries(content.weapons), ...sortedEntries(content.armours)]) {
+    if (piece.price === undefined) issues.push(`${piece.id}: no price`)
+    if (piece.weight === undefined) issues.push(`${piece.id}: no weight`)
+  }
+  for (const ability of sortedEntries(content.classAbilities)) {
+    const at = `class ability ${ability.id}`
+    for (const e of [...ability.effects, ...(ability.specialised?.effects ?? [])])
+      if (!PLAYED_IN_ABILITIES.includes(e.effect))
+        issues.push(`${at}: the engine doesn't play "${e.effect}" in abilities`)
+    if (ability.spends === 'spell' && ability.roll?.roll !== 'weapon')
+      issues.push(`${at}: spending a spell use needs a weapon roll`)
+  }
+  for (const [classId, { kind }] of Object.entries(CLASS_PICKS)) {
+    if (kind !== 'specialise') continue
+    const songs = sortedEntries(content.classAbilities).filter(
+      (a) => a.classId === classId && a.specialised
+    )
+    if (songs.length < CLASS_PICKS[classId].levels.length)
+      issues.push(`${classId}: ${songs.length} abilities to specialise, fewer than its picks`)
+  }
   return issues
 }
 

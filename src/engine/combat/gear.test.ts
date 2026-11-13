@@ -12,7 +12,7 @@ describe('gear (Plan 7 Track T)', () => {
     for (const c of party) {
       expect(c.gear).toEqual(startingGear(c.classId))
       expect(c.gear.weapon).not.toBeNull()
-      expect(c.uses).toEqual({})
+      expect(c.spent).toEqual({})
       expect(c.spells).toEqual({})
     }
   })

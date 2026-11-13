@@ -13,6 +13,7 @@ import { inSettlement, notHere } from './where'
 import { load } from '../economy/capacity'
 import type { BuyLimit } from '../economy/trade'
 import { lodgingOptions, type Room } from '../town/services'
+import { longRest } from '../combat/uses'
 import { bond } from '../town/camaraderie'
 import { campKitHeal } from '../rules/upgrades'
 import { journeyDays } from './routes'
@@ -175,7 +176,8 @@ export function rest(
     if (c.exhaustion >= MAX_EXHAUSTION) return c
     const hp = Math.min(c.maxHp, c.hp + healed(c.maxHp, option.healShare))
     const exhaustion = unfed.includes(c.id) ? c.exhaustion : Math.max(0, c.exhaustion - lifts)
-    return { ...c, hp, exhaustion }
+    // A long rest (Plan 7): ability and spell uses come back.
+    return longRest({ ...c, hp, exhaustion })
   })
   const refill = option.inTown || spring
   const goods = refill

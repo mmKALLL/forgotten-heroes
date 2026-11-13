@@ -13,7 +13,8 @@ import { changeCamaraderie, livingMembers } from '../town/camaraderie'
 import { CAMARADERIE_DOWNED, WEAPON_FAMILY_RULES, WIPE_GOODS_TAKEN } from '../constants'
 import { attackSpec, rollAttack, rollDamage, type AttackSpec, type Part } from './attack'
 import { applyDefeat, defeatOdds, rollDefeat } from './defeat'
-import { actionOrder, planIntents, repositionTile } from './intents'
+import { actionOrder, infightTarget, infighting, planIntents, repositionTile } from './intents'
+import { useAbility, type AbilityAction } from './abilities'
 import {
   canEnter,
   distance,
@@ -56,6 +57,8 @@ export type CombatAction =
   | { type: 'combatEndTurn' }
   /** Clear a finished fight. */
   | { type: 'closeCombat' }
+  /** A member uses a class ability (a 1–9 slot) on a tile or a unit (combat/abilities.ts). */
+  | AbilityAction
 
 export const COMBAT_ACTIONS: readonly string[] = [
   'startCombat',
@@ -64,6 +67,7 @@ export const COMBAT_ACTIONS: readonly string[] = [
   'combatRetreat',
   'combatEndTurn',
   'closeCombat',
+  'combatAbility',
 ]
 
 /** A fight is open and undecided. */
@@ -389,7 +393,7 @@ export function attackPlan(
   return {
     target,
     extras,
-    specs: extras.map((extra) => attackSpec(combat, attacker, target, { extra })),
+    specs: extras.map((extra) => attackSpec(combat, attacker, target, { extra, full })),
   }
 }
 
@@ -411,7 +415,8 @@ function act(
     const first = unit(next, plan.target.id)
     const target = standing(first) ? first : unitsOn(combatOf(next), action.tile, 'enemy')[0]
     if (!target) return
-    const spec = i === 0 ? plan.specs[0] : attackSpec(combatOf(next), a, target, { extra })
+    const spec =
+      i === 0 ? plan.specs[0] : attackSpec(combatOf(next), a, target, { extra, full: action.full })
     next = strike(next, draw, spec, true, content)
   })
   const a = unit(next, attacker.id)
@@ -496,6 +501,13 @@ function enemyAct(
     if (!standing(u)) return [next, rally]
   }
   if (intent.kind === 'rally') return [log(next, `${u.name} rallies the others.`, 'bad'), true]
+  // Discorded and unable to fall back: it turns on one of its own.
+  if (infighting(combatOf(next), u, intent)) {
+    const victim = infightTarget(combatOf(next), u)
+    if (!victim) return [log(next, `${u.name} mills about, lost in the din.`, 'good'), rally]
+    const spec = attackSpec(combatOf(next), u, victim, { discord: true })
+    return [strike(next, draw, spec, false, content), rally]
+  }
   if (!intentLands(combatOf(next), u, intent)) {
     next = log(next, `${u.name}'s blow at tile ${intent.tile + 1} finds no one.`, 'good')
     const to = moved ? u.tile : repositionTile(combatOf(next), u, content)
@@ -544,10 +556,15 @@ function enemyTurn(s: GameState, draw: Draw, content: Content): GameState {
 /** A new round: members ready again, enemy hit counts and staggers cleared, new intents. */
 function newRound(s: GameState, draw: Draw, content: Content): GameState {
   const combat = combatOf(s)
-  const units = combat.units.map((u) =>
-    u.side === 'party' ? { ...u, moved: false, acted: false } : { ...u, hits: 0, staggered: false }
-  )
-  const fresh = { ...combat, round: combat.round + 1, units }
+  const round = combat.round + 1
+  // Lasting effects past their last round fall away.
+  const units = combat.units.map((u) => {
+    const effects = u.effects.filter((e) => e.until >= round)
+    return u.side === 'party'
+      ? { ...u, moved: false, acted: false, effects }
+      : { ...u, hits: 0, staggered: false, effects }
+  })
+  const fresh = { ...combat, round, units }
   return setCombat(s, planIntents(draw, fresh, content))
 }
 
@@ -650,6 +667,13 @@ export function stepCombat(state: GameState, action: CombatAction, content: Cont
         return act(state, draw, action, content)
       case 'combatRetreat':
         return retreat(state, draw, action.unit, content)
+      case 'combatAbility':
+        return useAbility(state, draw, action, content, {
+          log,
+          setUnit,
+          syncHp,
+          strike: (s, d, spec) => strike(s, d, spec, true, content),
+        })
       case 'combatEndTurn': {
         // A fight decided by the enemies' turn ends there, without a new round.
         const s = settle(state, content)

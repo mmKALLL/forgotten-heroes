@@ -46,15 +46,7 @@
             "type": "string"
           },
           "target": {
-            "type": "string",
-            "enum": [
-              "self",
-              "ally",
-              "party",
-              "enemy",
-              "tile",
-              "twoTiles"
-            ]
+            "$ref": "#/$defs/__schema1"
           },
           "range": {
             "default": [
@@ -62,28 +54,41 @@
               0
             ],
             "description": "Tiles from the user (0: its own tile)",
-            "$ref": "#/$defs/__schema1"
+            "$ref": "#/$defs/__schema2"
           },
           "effects": {
             "minItems": 1,
             "type": "array",
             "items": {
-              "$ref": "#/$defs/__schema4"
+              "$ref": "#/$defs/__schema5"
             }
           },
           "action": {
             "default": "action",
             "description": "Spells and abilities take an action unless free",
-            "$ref": "#/$defs/__schema6"
+            "$ref": "#/$defs/__schema8"
           },
           "roll": {
             "description": "An attack or a save; none: it always lands",
-            "$ref": "#/$defs/__schema7"
+            "$ref": "#/$defs/__schema9"
           },
           "rounds": {
             "default": 1,
             "description": "How long the lasting effects last (1: this round; 10: the whole fight)",
-            "$ref": "#/$defs/__schema8"
+            "$ref": "#/$defs/__schema10"
+          },
+          "spends": {
+            "default": "uses",
+            "description": "What it spends: its own uses, or one of the user's spell uses (Smite)",
+            "$ref": "#/$defs/__schema11"
+          },
+          "only": {
+            "description": "It affects only creatures of this type (Turn Undead: \"undead\")",
+            "$ref": "#/$defs/__schema12"
+          },
+          "specialised": {
+            "description": "What a bard's specialisation pick changes (level-up choices)",
+            "$ref": "#/$defs/__schema13"
           }
         },
         "required": [
@@ -109,23 +114,29 @@
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
     },
     "__schema1": {
+      "type": "string",
+      "enum": [
+        "self",
+        "ally",
+        "party",
+        "enemy",
+        "tile",
+        "twoTiles"
+      ]
+    },
+    "__schema2": {
       "type": "array",
       "prefixItems": [
         {
-          "$ref": "#/$defs/__schema2"
+          "$ref": "#/$defs/__schema3"
         },
         {
-          "$ref": "#/$defs/__schema3"
+          "$ref": "#/$defs/__schema4"
         }
       ],
       "items": false,
       "minItems": 2,
       "maxItems": 2
-    },
-    "__schema2": {
-      "type": "integer",
-      "minimum": 0,
-      "maximum": 8
     },
     "__schema3": {
       "type": "integer",
@@ -133,6 +144,11 @@
       "maximum": 8
     },
     "__schema4": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 8
+    },
+    "__schema5": {
       "oneOf": [
         {
           "type": "object",
@@ -142,7 +158,7 @@
               "const": "damage"
             },
             "dice": {
-              "$ref": "#/$defs/__schema5"
+              "$ref": "#/$defs/__schema6"
             }
           },
           "required": [
@@ -158,7 +174,12 @@
               "const": "heal"
             },
             "dice": {
-              "$ref": "#/$defs/__schema5"
+              "$ref": "#/$defs/__schema6"
+            },
+            "perLevel": {
+              "default": 0,
+              "description": "Plus this many HP per the user's level, rounded down (Second Wind: 1d10 + level)",
+              "$ref": "#/$defs/__schema7"
             }
           },
           "required": [
@@ -339,7 +360,7 @@
               "const": "tempHp"
             },
             "dice": {
-              "$ref": "#/$defs/__schema5"
+              "$ref": "#/$defs/__schema6"
             }
           },
           "required": [
@@ -391,7 +412,7 @@
               "const": "revive"
             },
             "dice": {
-              "$ref": "#/$defs/__schema5"
+              "$ref": "#/$defs/__schema6"
             }
           },
           "required": [
@@ -491,7 +512,7 @@
               "const": "hazard"
             },
             "dice": {
-              "$ref": "#/$defs/__schema5"
+              "$ref": "#/$defs/__schema6"
             }
           },
           "required": [
@@ -510,10 +531,94 @@
           "required": [
             "effect"
           ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "healPool"
+            },
+            "perLevel": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "effect",
+            "perLevel"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "mark"
+            },
+            "dice": {
+              "$ref": "#/$defs/__schema6"
+            }
+          },
+          "required": [
+            "effect",
+            "dice"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "effect": {
+              "type": "string",
+              "const": "rollDie"
+            },
+            "die": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "const": 4
+                },
+                {
+                  "type": "number",
+                  "const": 6
+                },
+                {
+                  "type": "number",
+                  "const": 8
+                },
+                {
+                  "type": "number",
+                  "const": 10
+                },
+                {
+                  "type": "number",
+                  "const": 12
+                }
+              ]
+            },
+            "sign": {
+              "anyOf": [
+                {
+                  "type": "number",
+                  "const": 1
+                },
+                {
+                  "type": "number",
+                  "const": -1
+                }
+              ]
+            }
+          },
+          "required": [
+            "effect",
+            "die",
+            "sign"
+          ]
         }
       ]
     },
-    "__schema5": {
+    "__schema6": {
       "type": "object",
       "properties": {
         "count": {
@@ -557,14 +662,18 @@
         "die"
       ]
     },
-    "__schema6": {
+    "__schema7": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema8": {
       "type": "string",
       "enum": [
         "action",
         "free"
       ]
     },
-    "__schema7": {
+    "__schema9": {
       "oneOf": [
         {
           "type": "object",
@@ -572,6 +681,18 @@
             "roll": {
               "type": "string",
               "const": "attack"
+            }
+          },
+          "required": [
+            "roll"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "roll": {
+              "type": "string",
+              "const": "weapon"
             }
           },
           "required": [
@@ -608,10 +729,44 @@
         }
       ]
     },
-    "__schema8": {
+    "__schema10": {
       "type": "integer",
       "minimum": 1,
       "maximum": 10
+    },
+    "__schema11": {
+      "type": "string",
+      "enum": [
+        "uses",
+        "spell"
+      ]
+    },
+    "__schema12": {
+      "type": "string"
+    },
+    "__schema13": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "target": {
+          "$ref": "#/$defs/__schema1"
+        },
+        "range": {
+          "$ref": "#/$defs/__schema2"
+        },
+        "effects": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema5"
+          }
+        }
+      },
+      "required": [
+        "description"
+      ]
     }
   }
 }

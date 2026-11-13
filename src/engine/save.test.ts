@@ -24,6 +24,7 @@ import {
   v20ToV21,
   v21ToV22,
   v22ToV23,
+  v23ToV24,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -153,6 +154,7 @@ function migrated() {
     upgrades: {},
     levelUps: [],
     combat: null,
+    stash: [],
   }
 }
 
@@ -199,7 +201,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(23)
+  expect(CURRENT_SAVE_VERSION).toBe(24)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -656,18 +658,20 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v22ToV23(
-          v21ToV22(
-            v20ToV21(
-              v19ToV20(
-                v18ToV19(
-                  v17ToV18(
-                    v16ToV17(
-                      v15ToV16(
-                        v14ToV15(
-                          v13ToV14(
-                            v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
-                            content
+        v23ToV24(
+          v22ToV23(
+            v21ToV22(
+              v20ToV21(
+                v19ToV20(
+                  v18ToV19(
+                    v17ToV18(
+                      v16ToV17(
+                        v15ToV16(
+                          v14ToV15(
+                            v13ToV14(
+                              v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
+                              content
+                            )
                           )
                         )
                       )
@@ -1090,7 +1094,8 @@ describe('v22 → v23 (Plan 7: linear combat)', () => {
     const state = makeState({ party: [brom, cleric] })
     const strip = ({
       gear: _g,
-      uses: _u,
+      spent: _u,
+      picks: _p,
       spells: _s,
       alignment: _a,
       ...c
@@ -1103,13 +1108,42 @@ describe('v22 → v23 (Plan 7: linear combat)', () => {
       { weapon: 'longsword', armour: 'chain-mail' },
       { weapon: 'mace', armour: 'chain-mail' },
     ])
-    expect(loaded.party.every((c) => Object.keys(c.uses).length === 0)).toBe(true)
+    expect(loaded.party.every((c) => Object.keys(c.spent).length === 0)).toBe(true)
     expect(loaded.party[0].alignment).toBeUndefined()
     expect(['good', 'neutral', 'evil']).toContain(loaded.party[1].alignment)
     // The rest is untouched.
     expect(loaded.party.map(strip)).toEqual(state.party.map(strip))
     expect({ ...loaded, party: [] }).toEqual({ ...state, party: [] })
     expect(v22ToV23(v22)).toMatchObject({ version: 23 })
+  })
+})
+
+describe('v23 → v24 (Plan 7 Track C: classes and gear)', () => {
+  test('uses left give way to uses spent (everyone rested), no picks, no choices, an empty stash', () => {
+    const state = makeState({
+      levelUps: [
+        {
+          characterId: brom.id,
+          from: 1,
+          to: 2,
+          gains: { maxHp: 5, abilities: {}, proficiency: 0 },
+          choices: [],
+        },
+      ],
+    })
+    const { stash: _stash, ...rest } = structuredClone(state)
+    const v23 = {
+      ...rest,
+      version: 23,
+      party: state.party.map(({ spent: _s, picks: _p, ...c }) => ({ ...c, uses: { x: 1 } })),
+      levelUps: state.levelUps.map(({ choices: _c, ...u }) => u),
+    }
+    const loaded = deserialize(JSON.stringify(v23), content)!
+    expect(loaded).toEqual(state)
+    expect(loaded.party.every((c) => !('uses' in c))).toBe(true)
+    // Pure and idempotent.
+    const once = v23ToV24(v23)
+    expect(v23ToV24({ ...once, version: 23 })).toEqual(once)
   })
 })
 

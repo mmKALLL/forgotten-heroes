@@ -34,6 +34,7 @@ describe('combatIssues', () => {
           target: 'self' as const,
           range: [0, 0] as [number, number],
           action: 'action' as const,
+          spends: 'uses' as const,
           rounds: 1,
           effects: [{ effect: 'summon' as const, summon: 'ghost' }],
           source: 'claude' as const,

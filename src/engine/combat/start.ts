@@ -16,7 +16,7 @@ import {
   SURPRISE_DC_BASE,
   SURPRISE_RESULT,
 } from '../constants'
-import { memberStats, rankOf } from './gear'
+import { abilityDc, memberStats, rankOf } from './gear'
 import { sizePoints } from './line'
 
 // Setting up a fight (combat design §2): the units, their places on the line, and the surprise
@@ -58,6 +58,11 @@ export function memberUnit(c: Character, content: Content): CombatUnit {
     hits: 0,
     staggered: false,
     intent: null,
+    level: c.level,
+    dc: abilityDc(c),
+    untrained: !s.armourTrained,
+    fullDamage: s.fullDamage,
+    effects: [],
   }
 }
 
@@ -96,6 +101,11 @@ export function enemyUnit(
     hits: 0,
     staggered: false,
     intent: null,
+    level: 1,
+    dc: 10,
+    untrained: false,
+    fullDamage: 0,
+    effects: [],
   }
 }
 

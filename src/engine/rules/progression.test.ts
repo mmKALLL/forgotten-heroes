@@ -133,6 +133,7 @@ describe('pending level-ups (the level-up dialog)', () => {
         from: 1,
         to: 2,
         gains: { maxHp: gain, abilities: {}, proficiency: 0 },
+        choices: [],
       },
     ])
     expect(after.party[0].maxHp - brom.maxHp).toBe(gain)
@@ -173,9 +174,16 @@ describe('pending level-ups (the level-up dialog)', () => {
     expect(levelUpCards(after)).toMatchObject([
       { name: 'Brom', classId: brom.classId, from: 1, to: 5, proficiencyFrom: 2, proficiencyTo: 3 },
     ])
-    const seen = step(after, { type: 'acknowledgeLevelUps' }, content)
+    // Brom's level 4 grants a fighter's style: Continue waits for it (Plan 7 Track C).
+    expect(step(after, { type: 'acknowledgeLevelUps' }, content)).toBe(after)
+    const chosen = step(
+      after,
+      { type: 'chooseLevelUp', characterId: brom.id, index: 0, option: 'two-attack' },
+      content
+    )
+    const seen = step(chosen, { type: 'acknowledgeLevelUps' }, content)
     expect(seen.levelUps).toEqual([])
-    expect(seen.party).toEqual(after.party)
+    expect(seen.party).toEqual(chosen.party)
     expect(acknowledgeLevelUps(seen)).toBe(seen)
   })
 

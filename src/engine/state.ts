@@ -26,7 +26,14 @@ import { generateWorld, startingSettlement, worldSeed, type StartMode } from './
 import { explore, forgetExplored, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
-import { acknowledgeLevelUps, applyLevelUps } from './rules/progression'
+import {
+  acknowledgeLevelUps,
+  applyLevelUps,
+  autoChoose,
+  chooseLevelUp,
+  type ChooseLevelUp,
+} from './rules/progression'
+import { stepArms, type ArmsAction } from './town/arms'
 import { keepLowSpell, mournTheDead } from './town/camaraderie'
 import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { gather } from './world/gather'
@@ -74,6 +81,10 @@ export type Action =
   | { type: 'acknowledgeEnd' }
   /** The level-up dialog's Continue: the waiting level-ups are seen (rules/progression.ts). */
   | { type: 'acknowledgeLevelUps' }
+  /** A level-up pick in the dialog: a fighter's style, a bard's specialisation (rules/progression.ts). */
+  | ChooseLevelUp
+  /** Buy, sell, wear or take off weapons and armour (town/arms.ts). */
+  | ArmsAction
   /** Press on into a dungeon's next room, or withdraw (world/delve.ts). */
   | DelveAction
   /** Buy the next level of a party upgrade from a service here (town/upgrades.ts). */
@@ -142,6 +153,7 @@ export function newGame(
     upgrades: {},
     levelUps: [],
     combat: null,
+    stash: [],
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state
@@ -159,7 +171,7 @@ export function newGame(
  * (crisis/ending.ts).
  *
  * Level-ups pause the game (designer call 2026-11-14): while any wait in `levelUps`, every action
- * but `acknowledgeLevelUps` leaves the state as it is, so nothing happens behind the level-up
+ * but `acknowledgeLevelUps` and `chooseLevelUp` (a level's pick) leaves the state as it is, so nothing happens behind the level-up
  * dialog (and a later plan's level-up choices are made before play goes on). Saving and loading
  * are not actions, so they still work. A run that ends in the step drops its level-ups.
  *
@@ -168,6 +180,7 @@ export function newGame(
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
   if (action.type === 'acknowledgeLevelUps') return acknowledgeLevelUps(state)
+  if (action.type === 'chooseLevelUp') return chooseLevelUp(state, action, content)
   if (state.levelUps.length > 0) return state
   // A fallen or disbanded party's run is over for good (crisis/ending.ts): nothing more happens.
   if (runOver(state)) return state
@@ -195,7 +208,7 @@ export function step(state: GameState, action: Action, content: Content): GameSt
  * level-ups in the journal, so any the step brings are acknowledged at once.
  */
 export const stepPastLevelUps = (state: GameState, action: Action, content: Content): GameState =>
-  acknowledgeLevelUps(step(state, action, content))
+  acknowledgeLevelUps(autoChoose(step(state, action, content), content))
 
 /** Rumour lines for the known sites whose cycle turned after day `from`. */
 function siteNews(from: number, state: GameState): GameState {
@@ -286,6 +299,8 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return acknowledgeEnd(state)
     case 'acknowledgeLevelUps':
       return acknowledgeLevelUps(state)
+    case 'chooseLevelUp':
+      return chooseLevelUp(state, action, content)
     case 'pressOn':
     case 'withdraw':
       return stepDelve(state, action, content)
@@ -297,7 +312,13 @@ function act(state: GameState, action: Action, content: Content): GameState {
     case 'combatRetreat':
     case 'combatEndTurn':
     case 'closeCombat':
+    case 'combatAbility':
       return stepCombat(state, action, content)
+    case 'buyArms':
+    case 'sellArms':
+    case 'equipArms':
+    case 'unequipArms':
+      return stepArms(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

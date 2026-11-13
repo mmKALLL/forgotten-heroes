@@ -2,7 +2,7 @@ import type { CombatState, CombatUnit, Intent } from '../../schema/combat'
 import type { GameState } from '../../schema/state'
 import { attackSpec, type AttackSpec } from './attack'
 import { attackPlan, canMove, canRetreat, intentLands, intentTargets, swingSpecs } from './fight'
-import { actionOrder } from './intents'
+import { actionOrder, infightTarget, infighting } from './intents'
 import { canEnter, isStaggered, isStunned, sideUnits, unitsOn, withUnit } from './line'
 import { fleeChance, moraleDc, moraleThreshold } from './morale'
 
@@ -80,13 +80,18 @@ export function intentPreviews(combat: CombatState): IntentPreview[] {
     const moved = withUnit(combat, { ...u, tile: from })
     const mover = { ...u, tile: from }
     const attacking = !['move', 'rally'].includes(intent.kind)
-    const broken = attacking && !intentLands(moved, mover, intent)
+    // A discorded enemy that can't fall back strikes one of its own (combat/intents.ts).
+    const infight = infighting(moved, mover, intent)
+    const victim = infight ? infightTarget(moved, mover) : null
+    const broken = attacking && (infight ? victim === null : !intentLands(moved, mover, intent))
     const attacks =
       stunned || !attacking || broken
         ? []
-        : intentTargets(moved, intent).map((t) =>
-            attackSpec(moved, mover, t, { volley: intent.kind === 'volley', rally })
-          )
+        : infight
+          ? [attackSpec(moved, mover, victim!, { discord: true })]
+          : intentTargets(moved, intent).map((t) =>
+              attackSpec(moved, mover, t, { volley: intent.kind === 'volley', rally })
+            )
     if (intent.kind === 'rally' && !stunned) rally = true
     return [{ unit: u.id, intent, stunned, staggered: isStaggered(u), broken, attacks }]
   })

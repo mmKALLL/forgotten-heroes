@@ -2,11 +2,35 @@
   "$schema": "../_schema/armours.schema.json",
   "kind": "armours",
   "source": "claude",
-  "notes": "Placeholder (Plan 7 Track T) — Track C fills this in: one armour per grade, no prices or weights yet. AC rules are ARMOUR_AC in src/engine/constants.ts.",
+  "notes": "Plan 7 Track C: the four grades of combat design §4 (AC and DEX cap in ARMOUR_AC; plate is AC 16 flat and gives disadvantage on Stealth for surprise). Prices are gp at an armourer, near 5e (plate is cheaper than 5e's 1500 gp: a goal, not a dream); weights are kg on the carrying scale (20 kg a member at STR 10), lighter than 5e so armour does not crowd out cargo. Class proficiencies are CLASS_PROFICIENCIES: untrained armour puts the wearer's attacks at disadvantage.",
   "entries": [
-    { "id": "cloth-garb", "name": "Travelling clothes", "grade": "cloth" },
-    { "id": "leather-armour", "name": "Leather armour", "grade": "leather" },
-    { "id": "chain-mail", "name": "Chain mail", "grade": "chain" },
-    { "id": "plate-armour", "name": "Plate armour", "grade": "plate" }
+    {
+      "id": "cloth-garb",
+      "name": "Travelling clothes",
+      "grade": "cloth",
+      "price": 1,
+      "weight": 1
+    },
+    {
+      "id": "leather-armour",
+      "name": "Leather armour",
+      "grade": "leather",
+      "price": 10,
+      "weight": 4
+    },
+    {
+      "id": "chain-mail",
+      "name": "Chain mail",
+      "grade": "chain",
+      "price": 60,
+      "weight": 8
+    },
+    {
+      "id": "plate-armour",
+      "name": "Plate armour",
+      "grade": "plate",
+      "price": 600,
+      "weight": 12
+    }
   ]
 }

@@ -1,7 +1,7 @@
 import type { Content } from '../../content/build'
-import type { CombatState, CombatUnit, Intent } from '../../schema/combat'
+import type { CombatEffect, CombatState, CombatUnit, Intent } from '../../schema/combat'
 import type { Draw } from '../rng'
-import { bloodied } from './attack'
+import { activeEffects, bloodied } from './attack'
 import { canEnter, distance, nearest, sideUnits, stackSize, standing, unitsOn } from './line'
 
 // Telegraphed intents (combat design §3, §6). At the start of the party's turn every enemy shows
@@ -56,6 +56,44 @@ const targetsFrom = (combat: CombatState, unit: CombatUnit, from: number): numbe
 /** The size points the party has on a tile. */
 const partyPoints = (combat: CombatState, tile: number) => stackSize(combat, tile, 'party')
 
+/** Whether a unit has a condition now (fear, discord) from a lasting effect. */
+export const hasCondition = (
+  combat: Pick<CombatState, 'round'>,
+  u: CombatUnit,
+  condition: CombatEffect['effect']
+): boolean => activeEffects(combat, u).some((e) => e.effect.effect === condition)
+
+/** A feared enemy's intent (Turn Undead): a step away from the party, or standing still. */
+export function fleeIntent(combat: CombatState, u: CombatUnit): Intent {
+  const party = sideUnits(combat, 'party')
+  const closest = party.length
+    ? party.reduce((a, b) => (distance(a.tile, u.tile) <= distance(b.tile, u.tile) ? a : b))
+    : null
+  const away = closest ? Math.sign(u.tile - closest.tile) || 1 : 1
+  const to = canEnter(combat, u, u.tile + away) ? u.tile + away : u.tile
+  return { kind: 'move', from: to, tile: to, twice: false }
+}
+
+/**
+ * A discorded enemy's intent (a bard's Discord): it falls back a step; when it can't, it strikes
+ * one of its own on its tile (an `attack` on its own tile, at DISCORD_PENALTY).
+ */
+export function discordIntent(combat: CombatState, u: CombatUnit, content: Content): Intent {
+  const back = fleeIntent(combat, u)
+  if (back.tile !== u.tile) return back
+  const to = repositionTile(combat, u, content)
+  if (to !== u.tile) return { kind: 'move', from: to, tile: to, twice: false }
+  return { kind: 'attack', from: u.tile, tile: u.tile, twice: false }
+}
+
+/** The fellow enemy a discorded one strikes: the next one on its tile, or null. */
+export const infightTarget = (combat: CombatState, u: CombatUnit): CombatUnit | null =>
+  unitsOn(combat, u.tile, u.side).find((o) => o.id !== u.id) ?? null
+
+/** A discorded unit striking at its own tile: it turns on its own side. */
+export const infighting = (combat: CombatState, u: CombatUnit, intent: Intent): boolean =>
+  intent.kind === 'attack' && intent.tile === u.tile && hasCondition(combat, u, 'discord')
+
 /** Plans one enemy's intent for the coming round. */
 export function planIntent(
   draw: Draw,
@@ -63,6 +101,9 @@ export function planIntent(
   unit: CombatUnit,
   content: Content
 ): Intent {
+  // Conditions from abilities come first: fear flees, discord falls back or turns on its own.
+  if (hasCondition(combat, unit, 'fear')) return fleeIntent(combat, unit)
+  if (hasCondition(combat, unit, 'discord')) return discordIntent(combat, unit, content)
   const twice = unit.boss && bloodied(unit)
   const role = unit.role
   // A leader rallies every other round while it has at least two allies standing.

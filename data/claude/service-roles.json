@@ -2,7 +2,7 @@
   "$schema": "../_schema/serviceRoles.schema.json",
   "kind": "serviceRoles",
   "source": "claude",
-  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Plan 5a: Magic Items sells 2–4 accessories a week up to tier 2 and the finesmith 1–2 of tier 1 (`accessories`); both buy the party's back at half their value. Plan 6: wages are gone, so the mercenaries' cheap sign-on (fee ×0.5, wage ×1.5) went with them; they now sign on at the usual fee. Recruit levels (designer, 2026-11-13): the inn 0–2 (level 0 is a level-1 recruit with two old wounds), the guild 1–4, the mercenaries 3–6; none joins above the party's lowest living member's level + 2. Quality (`picks`, the best of n sets of six 3d6 rolls by total): the inn 1, the guild 2, the mercenaries 3. Some recruits bring a tier-1 accessory, priced into the fee: 15% at the inn, 25% at the guild (`gear`) and 35% with the mercenaries. The inn's `round` stands the party a round, for camaraderie. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded. Inputs (designer call 2026-11-13): the goods a service's work uses add that much demand wherever it is, shown under its name when a price is explained: smiths, weaponsmiths and armourers want metal (the blacksmith also fuel), finesmiths and jewellers gems, herbalists and healers healing, magic shops, scribes and universities arcana, necromancers and high temples relics, carpenters timber, masons and the workers' union stone, mercenaries arms. Investing in a shop will later raise them (docs/plans/later-designs.md, Store investments).",
+  "notes": "What each of the 33 services in data/original/services.json does in the engine (Plan 4, B1): its design §5 group, the goods it buys and sells (trades), the goods it only buys (buysOnly), and its actions. Plan 5a: Magic Items sells 2–4 accessories a week up to tier 2 and the finesmith 1–2 of tier 1 (`accessories`); both buy the party's back at half their value. Plan 6: wages are gone, so the mercenaries' cheap sign-on (fee ×0.5, wage ×1.5) went with them; they now sign on at the usual fee. Recruit levels (designer, 2026-11-13): the inn 0–2 (level 0 is a level-1 recruit with two old wounds), the guild 1–4, the mercenaries 3–6; none joins above the party's lowest living member's level + 2. Quality (`picks`, the best of n sets of six 3d6 rolls by total): the inn 1, the guild 2, the mercenaries 3. Some recruits bring a tier-1 accessory, priced into the fee: 15% at the inn, 25% at the guild (`gear`) and 35% with the mercenaries. The inn's `round` stands the party a round, for camaraderie. Only actions the engine supports are listed; a service with none shows as \"coming later\" (bank, land sales, the arena, the brothel and the entertainers' guild). Every settlement also has market stalls selling the essentials, so food and fuel never depend on a shop. Water is free and never traded. Inputs (designer call 2026-11-13): the goods a service's work uses add that much demand wherever it is, shown under its name when a price is explained: smiths, weaponsmiths and armourers want metal (the blacksmith also fuel), finesmiths and jewellers gems, herbalists and healers healing, magic shops, scribes and universities arcana, necromancers and high temples relics, carpenters timber, masons and the workers' union stone, mercenaries arms. Investing in a shop will later raise them (docs/plans/later-designs.md, Store investments). Plan 7 Track C: the weapons shop, the armourer and the blacksmith sell weapons and armour for members to wear (`arms`): every plain piece, and better weapons from ARMS_QUALITY_AT of the shop's quality (fine at 3, +1 at 4, +2 at 5); the blacksmith only plain ones. They buy back at ARMS_RESALE.",
   "entries": [
     {
       "id": "inn-tavern",
@@ -55,8 +55,11 @@
       "inputs": {
         "metal": 1
       },
-      "actions": ["market"],
-      "specialty": "Mail, plate and shields, and a buyer for good iron."
+      "actions": ["market", "arms"],
+      "specialty": "Mail, plate and shields, and a buyer for good iron.",
+      "arms": {
+        "sells": ["armour"]
+      }
     },
     {
       "id": "bank",
@@ -147,8 +150,11 @@
       "inputs": {
         "metal": 1
       },
-      "actions": ["market"],
-      "specialty": "Blades, bows and spears, and a buyer for good iron."
+      "actions": ["market", "arms"],
+      "specialty": "Blades, bows and spears, and a buyer for good iron.",
+      "arms": {
+        "sells": ["weapons"]
+      }
     },
     {
       "id": "vehicles-transportation",
@@ -194,8 +200,12 @@
         "metal": 1,
         "fuel": 1
       },
-      "actions": ["market"],
-      "specialty": "Iron, tools, plain blades and mail; always short of charcoal."
+      "actions": ["market", "arms"],
+      "specialty": "Iron, tools, plain blades and mail; always short of charcoal.",
+      "arms": {
+        "sells": ["weapons", "armour"],
+        "best": "plain"
+      }
     },
     {
       "id": "necromancer",

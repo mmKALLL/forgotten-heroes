@@ -2,26 +2,303 @@
   "$schema": "../_schema/classAbilities.schema.json",
   "kind": "classAbilities",
   "source": "claude",
-  "notes": "Placeholder (Plan 7 Track T) — Track C fills this in: two abilities to show the shape. The combat engine does not play abilities yet.",
+  "notes": "Plan 7 Track C: the class abilities of combat design §5, played in a fight through the 1–9 slots (combat/abilities.ts). Each has 1 use a long rest from the level it is gained and 1 more at levels 6, 10, 14 and 18 (ABILITY_USE_LEVELS); Lay on Hands is a pool of 5 HP a level instead, and Smite spends one of the paladin's spell uses (its dice + 1d8 a spell level above 1). Uses come back on a long rest (a day's rest in camp or at an inn). Levels: even levels bring abilities (the first at level 1). A fighter picks a style at levels 4, 8, 12 and 16 (+2 damage on each attack of that kind of full action, STYLE_DAMAGE); a bard specialises one of their six songs at levels 4, 8, 12, 16 and 20 (`specialised`: a bigger die or heal, and SPECIALISE_USES more uses of it). Designer call 2026-11-14: in lieu of spells, the bard has a fifth and sixth song, Mending Song (one member) and Song of Renewal (the party, smaller); each song keeps its own uses. Saves are against 8 + proficiency + the casting ability (ABILITY_DC_BASE). Rogues' Sneak Attack, and the wizard's and cleric's spells, come later.",
   "entries": [
     {
       "id": "second-wind",
       "name": "Second Wind",
       "classId": "fighter",
-      "level": 2,
-      "description": "A breath, a grunt, and the fighter is back in it.",
+      "level": 1,
+      "description": "A breath, a grunt, and the fighter is back in it: heals 1d10 + level.",
       "target": "self",
-      "effects": [{ "effect": "heal", "dice": { "count": 1, "die": 10, "bonus": 1 } }]
+      "action": "free",
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 1,
+            "die": 10,
+            "bonus": 0
+          },
+          "perLevel": 1
+        }
+      ]
+    },
+    {
+      "id": "action-surge",
+      "name": "Action Surge",
+      "classId": "fighter",
+      "level": 2,
+      "description": "One more push: after acting, the fighter may act again this turn.",
+      "target": "self",
+      "action": "free",
+      "effects": [
+        {
+          "effect": "extraAction"
+        }
+      ]
     },
     {
       "id": "cunning-action",
       "name": "Cunning Action",
       "classId": "rogue",
-      "level": 2,
-      "description": "Two quick steps, slipping out of reach without a free swing.",
+      "level": 1,
+      "description": "Up to two quick steps instead of one, slipping out of reach without a free swing. The rogue can still attack.",
       "target": "self",
+      "range": [1, 2],
       "action": "free",
-      "effects": [{ "effect": "move", "tiles": 2 }]
+      "effects": [
+        {
+          "effect": "move",
+          "tiles": 2
+        }
+      ]
+    },
+    {
+      "id": "lay-on-hands",
+      "name": "Lay on Hands",
+      "classId": "paladin",
+      "level": 1,
+      "description": "A healing touch on a member on the paladin's tile or the next, from a pool of 5 HP a level each long rest.",
+      "target": "ally",
+      "range": [0, 1],
+      "effects": [
+        {
+          "effect": "healPool",
+          "perLevel": 5
+        }
+      ]
+    },
+    {
+      "id": "divine-smite",
+      "name": "Smite",
+      "classId": "paladin",
+      "level": 2,
+      "description": "A weapon blow charged with radiant force: 2d8 more on a hit (1d8 more for each spell level above 1), spending a spell use.",
+      "target": "enemy",
+      "roll": {
+        "roll": "weapon"
+      },
+      "spends": "spell",
+      "effects": [
+        {
+          "effect": "damage",
+          "dice": {
+            "count": 2,
+            "die": 8,
+            "bonus": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "hunters-mark",
+      "name": "Mark",
+      "classId": "ranger",
+      "level": 1,
+      "description": "The ranger marks one foe: their hits on it deal 1d6 more for the rest of the fight.",
+      "target": "enemy",
+      "range": [0, 8],
+      "action": "free",
+      "rounds": 10,
+      "effects": [
+        {
+          "effect": "mark",
+          "dice": {
+            "count": 1,
+            "die": 6,
+            "bonus": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "turn-undead",
+      "name": "Turn Undead",
+      "classId": "cleric",
+      "level": 2,
+      "description": "The holy symbol raised: each undead on two tiles (from 1–3 away) saves WIS or flees in fear for 3 rounds.",
+      "target": "twoTiles",
+      "range": [1, 3],
+      "roll": {
+        "roll": "save",
+        "ability": "wis"
+      },
+      "only": "undead",
+      "rounds": 3,
+      "effects": [
+        {
+          "effect": "fear"
+        }
+      ]
+    },
+    {
+      "id": "inspire",
+      "name": "Inspire",
+      "classId": "bard",
+      "level": 1,
+      "description": "A word or a few bars for one member up to 3 tiles away: +1d6 to their attack rolls this round.",
+      "target": "ally",
+      "range": [0, 3],
+      "rounds": 1,
+      "effects": [
+        {
+          "effect": "rollDie",
+          "die": 6,
+          "sign": 1
+        }
+      ],
+      "specialised": {
+        "description": "+1d8 to their attack rolls this round.",
+        "effects": [
+          {
+            "effect": "rollDie",
+            "die": 8,
+            "sign": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "mending-song",
+      "name": "Mending Song",
+      "classId": "bard",
+      "level": 1,
+      "description": "A low, steadying song for one member up to 3 tiles away: heals 1d8 + level.",
+      "target": "ally",
+      "range": [0, 3],
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 1,
+            "die": 8,
+            "bonus": 0
+          },
+          "perLevel": 1
+        }
+      ],
+      "specialised": {
+        "description": "Heals 2d8 + level.",
+        "effects": [
+          {
+            "effect": "heal",
+            "dice": {
+              "count": 2,
+              "die": 8,
+              "bonus": 0
+            },
+            "perLevel": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "cutting-words",
+      "name": "Cutting Words",
+      "classId": "bard",
+      "level": 2,
+      "description": "A jibe that lands where it hurts: one foe up to 6 tiles away has −1d6 on its attacks this round.",
+      "target": "enemy",
+      "range": [1, 6],
+      "rounds": 1,
+      "effects": [
+        {
+          "effect": "rollDie",
+          "die": 6,
+          "sign": -1
+        }
+      ],
+      "specialised": {
+        "description": "−1d8 on its attacks this round.",
+        "effects": [
+          {
+            "effect": "rollDie",
+            "die": 8,
+            "sign": -1
+          }
+        ]
+      }
+    },
+    {
+      "id": "rallying-song",
+      "name": "Rallying Song",
+      "classId": "bard",
+      "level": 4,
+      "description": "A marching song: every member still fighting has +2 to hit this round.",
+      "target": "party",
+      "rounds": 1,
+      "effects": [
+        {
+          "effect": "toHit",
+          "amount": 2
+        }
+      ],
+      "specialised": {
+        "description": "+2 to hit and +2 damage this round.",
+        "effects": [
+          {
+            "effect": "toHit",
+            "amount": 2
+          },
+          {
+            "effect": "damageBonus",
+            "amount": 2
+          }
+        ]
+      }
+    },
+    {
+      "id": "song-of-renewal",
+      "name": "Song of Renewal",
+      "classId": "bard",
+      "level": 6,
+      "description": "A song the whole party breathes with: one roll heals every member still fighting 1d6 + half the level.",
+      "target": "party",
+      "effects": [
+        {
+          "effect": "heal",
+          "dice": {
+            "count": 1,
+            "die": 6,
+            "bonus": 0
+          },
+          "perLevel": 0.5
+        }
+      ],
+      "specialised": {
+        "description": "Heals every member 2d6 + half the level.",
+        "effects": [
+          {
+            "effect": "heal",
+            "dice": {
+              "count": 2,
+              "die": 6,
+              "bonus": 0
+            },
+            "perLevel": 0.5
+          }
+        ]
+      }
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "classId": "bard",
+      "level": 6,
+      "description": "A sour, maddening tune at one tile 1–4 away: the enemies there break off their plans and fall back, or turn on each other (−4) if they can't.",
+      "target": "tile",
+      "range": [1, 4],
+      "rounds": 1,
+      "effects": [
+        {
+          "effect": "discord"
+        }
+      ],
+      "specialised": {
+        "description": "It reaches two tiles.",
+        "target": "twoTiles"
+      }
     }
   ]
 }

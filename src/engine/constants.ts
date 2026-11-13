@@ -3,6 +3,7 @@ import type {
   ArmourGrade,
   Biome,
   CreatureSize,
+  LevelChoiceKind,
   MoralAlignment,
   Pace,
   Skill,
@@ -1041,3 +1042,82 @@ export const CLERIC_ALIGNMENT_WEIGHTS: Readonly<Record<MoralAlignment, number>> 
   neutral: 0.35,
   evil: 0.2,
 }
+
+// Combat: classes (Plan 7 Track C; combat/gear.ts, combat/uses.ts, combat/abilities.ts)
+
+/**
+ * The weapon families and the heaviest armour each class is trained in (combat design §5); every
+ * class with a CASTING_ABILITY can use a staff too. Untrained with the weapon: no proficiency
+ * bonus to hit (5e). Untrained with the armour: attacks at disadvantage.
+ */
+export const CLASS_PROFICIENCIES: Readonly<
+  Record<string, { weapons: readonly WeaponFamily[]; armour: ArmourGrade }>
+> = {
+  fighter: {
+    weapons: ['daggers', 'blades', 'axes', 'maces', 'polearms', 'bows', 'thrown', 'staffs'],
+    armour: 'plate',
+  },
+  rogue: { weapons: ['daggers', 'blades', 'bows', 'thrown'], armour: 'leather' },
+  paladin: { weapons: ['blades', 'axes', 'maces', 'polearms'], armour: 'plate' },
+  ranger: { weapons: ['blades', 'bows', 'thrown'], armour: 'chain' },
+  cleric: { weapons: ['maces', 'thrown', 'staffs'], armour: 'chain' },
+  wizard: { weapons: ['daggers', 'staffs'], armour: 'cloth' },
+  bard: { weapons: ['blades', 'daggers', 'bows'], armour: 'leather' },
+}
+/** Any other class. */
+export const FALLBACK_PROFICIENCIES: {
+  weapons: readonly WeaponFamily[]
+  armour: ArmourGrade
+} = { weapons: ['daggers', 'staffs'], armour: 'cloth' }
+/** An ability has 1 use a long rest from the level it is gained, and 1 more at each of these. */
+export const ABILITY_USE_LEVELS: readonly number[] = [6, 10, 14, 18]
+/** The DC of an ability's save: this + proficiency + the casting ability (or the best mental one). */
+export const ABILITY_DC_BASE = 8
+/** A lasting effect of this many rounds or more holds for the whole fight. */
+export const WHOLE_FIGHT_ROUNDS = 10
+/** Smite: its dice, plus one die of this size for each spell level above 1 of the use it spends. */
+export const SMITE_UPCAST_DIE = 8
+/** Discord: an enemy that can't reposition attacks one of its own at this penalty. */
+export const DISCORD_PENALTY = 4
+/** A bard's specialisation pick: this many more uses of that song a long rest (and its `specialised` effect). */
+export const SPECIALISE_USES = 1
+/** A fighter's style pick: this much more damage on each attack of that style's full action. */
+export const STYLE_DAMAGE = 2
+/** The levels that grant a pick, by class: a fighter's style, a bard's specialisation. */
+export const CLASS_PICKS: Readonly<
+  Record<string, { kind: LevelChoiceKind; levels: readonly number[] }>
+> = {
+  fighter: { kind: 'style', levels: [4, 8, 12, 16] },
+  bard: { kind: 'specialise', levels: [4, 8, 12, 16, 20] },
+}
+
+// Combat: spell uses (Plan 7 Track C, for Smite; Track S casts from them; combat/uses.ts)
+
+/** Full casters (spell levels 1–9) and half casters (1–5), by class. */
+export const CASTER_KIND: Readonly<Record<string, 'full' | 'half'>> = {
+  wizard: 'full',
+  cleric: 'full',
+  paladin: 'half',
+  ranger: 'half',
+}
+/** The class level each spell level opens at (index 0: spell level 1), as 5e's tables. */
+export const SPELL_LEVEL_AT: Readonly<Record<'full' | 'half', readonly number[]>> = {
+  full: [1, 3, 5, 7, 9, 11, 13, 15, 17],
+  half: [2, 5, 9, 13, 17],
+}
+/** Casts a long rest: the newest spell level 1, each lower one 1 more, up to SPELL_CASTS_MAX… */
+export const SPELL_CASTS_MAX = 3
+/** …and spell level 1 at least this many (a full caster's levels 1–2: 2 casts). */
+export const SPELL_CASTS_FIRST = 2
+
+// Gear: arms shops and carrying (Plan 7 Track C; town/arms.ts, economy/capacity.ts)
+
+/** The least shop quality (1–5) that stocks each weapon quality (armour comes in one quality). */
+export const ARMS_QUALITY_AT: Readonly<Record<WeaponQuality, number>> = {
+  plain: 1,
+  fine: 3,
+  magic1: 4,
+  magic2: 5,
+}
+/** What a shop pays for weapons and armour: this share of the price, rounded down. */
+export const ARMS_RESALE = 0.5

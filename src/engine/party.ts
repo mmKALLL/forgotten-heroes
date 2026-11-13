@@ -61,7 +61,8 @@ export function generateCharacter(
       accessory: null,
       // Plan 7: a plain weapon and armour by class; a cleric's alignment from its own stream.
       gear: startingGear(cls.id),
-      uses: {},
+      spent: {},
+      picks: [],
       spells: {},
       ...(alignment ? { alignment } : {}),
     }

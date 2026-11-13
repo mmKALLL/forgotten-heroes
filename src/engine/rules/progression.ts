@@ -1,6 +1,8 @@
+import type { Content } from '../../content/build'
 import type { Character, GameState, LevelUp } from '../../schema/state'
-import { MAX_LEVEL, type Tier } from '../../schema/types'
-import { XP_BY_LEVEL, XP_CRIT, XP_FAIL, XP_PARTIAL, XP_PER_DC } from '../constants'
+import { FIGHTER_STYLES, MAX_LEVEL, type Tier } from '../../schema/types'
+import { knownAbilities } from '../combat/uses'
+import { CLASS_PICKS, XP_BY_LEVEL, XP_CRIT, XP_FAIL, XP_PARTIAL, XP_PER_DC } from '../constants'
 import { appendLog } from '../log'
 import { withRng, type Draw } from '../rng'
 import { ABILITIES, abilityModifier, proficiencyBonus, type Ability } from './abilities'
@@ -133,12 +135,17 @@ export function applyLevelUps(state: GameState): GameState {
         from: c.level,
         to: c.level,
         gains: { maxHp: 0, abilities: {}, proficiency: 0 },
+        choices: [],
       }
+      const picks = Object.hasOwn(CLASS_PICKS, c.classId) ? CLASS_PICKS[c.classId] : null
       while (levelFor(next.xp) > next.level) {
         const one = levelUp(next, d)
         next = one.character
         lines.push(...one.lines)
         up.to = next.level
+        // A level that grants a pick (Plan 7 Track C) waits for the player's choice.
+        if (picks?.levels.includes(next.level))
+          up.choices.push({ kind: picks.kind, level: next.level, chosen: null })
         up.gains.maxHp += one.maxHp
         if (one.stat) up.gains.abilities[one.stat] = (up.gains.abilities[one.stat] ?? 0) + 1
       }
@@ -175,13 +182,95 @@ function mergeLevelUp(pending: LevelUp[], up: LevelUp): LevelUp[] {
       abilities,
       proficiency: proficiencyBonus(up.to) - proficiencyBonus(was.from),
     },
+    choices: [...was.choices, ...up.choices],
   }
   return pending.map((p, j) => (j === i ? merged : p))
 }
 
-/** The player has seen the level-ups (the dialog's Continue): the game goes on. */
+/** Whether every pick the waiting level-ups grant has been chosen. */
+export const choicesMade = (state: Pick<GameState, 'levelUps'>): boolean =>
+  state.levelUps.every((up) => up.choices.every((c) => c.chosen !== null))
+
+/**
+ * The player has seen the level-ups (the dialog's Continue): the game goes on. Refused while a
+ * pick waits (chooseLevelUp).
+ */
 export const acknowledgeLevelUps = (state: GameState): GameState =>
-  state.levelUps.length > 0 ? { ...state, levelUps: [] } : state
+  state.levelUps.length > 0 && choicesMade(state) ? { ...state, levelUps: [] } : state
+
+/** Picks a level-up choice: the `index`th choice of a member's waiting level-up. */
+export type ChooseLevelUp = {
+  type: 'chooseLevelUp'
+  characterId: string
+  index: number
+  option: string
+}
+
+/**
+ * What a member may pick for a waiting choice: a fighter either style (picks stack); a bard any
+ * song they know with a specialisation, not specialised yet (nor picked in another choice).
+ */
+export function choiceOptions(
+  state: Pick<GameState, 'levelUps' | 'party'>,
+  content: Content,
+  characterId: string,
+  index: number
+): string[] {
+  const up = state.levelUps.find((u) => u.characterId === characterId)
+  const choice = up?.choices[index]
+  const c = state.party.find((m) => m.id === characterId)
+  if (!up || !choice || !c) return []
+  if (choice.kind === 'style') return [...FIGHTER_STYLES]
+  // Picks made in this dialog are already in `picks`; this choice's own may be changed.
+  const taken = c.picks.filter((p) => p !== choice.chosen)
+  return knownAbilities(c, content)
+    .filter((a) => a.specialised !== undefined && !taken.includes(a.id))
+    .map((a) => a.id)
+}
+
+/**
+ * Makes (or changes, before Continue) a level-up pick: it joins the member's `picks` at once, so
+ * the dialog and the sheet show its effect.
+ */
+export function chooseLevelUp(
+  state: GameState,
+  action: ChooseLevelUp,
+  content: Content
+): GameState {
+  const { characterId, index, option } = action
+  if (!choiceOptions(state, content, characterId, index).includes(option)) return state
+  const up = state.levelUps.find((u) => u.characterId === characterId)!
+  const was = up.choices[index].chosen
+  const levelUps = state.levelUps.map((u) =>
+    u.characterId !== characterId
+      ? u
+      : { ...u, choices: u.choices.map((c, i) => (i === index ? { ...c, chosen: option } : c)) }
+  )
+  const party = state.party.map((c) => {
+    if (c.id !== characterId) return c
+    const picks = [...c.picks]
+    if (was !== null) picks.splice(picks.indexOf(was), 1)
+    return { ...c, picks: [...picks, option] }
+  })
+  return { ...state, levelUps, party }
+}
+
+/** Simulated players (stepPastLevelUps) take the first option of every waiting pick. */
+export function autoChoose(state: GameState, content: Content): GameState {
+  let next = state
+  for (const up of state.levelUps)
+    up.choices.forEach((c, index) => {
+      if (c.chosen !== null) return
+      const [option] = choiceOptions(next, content, up.characterId, index)
+      if (option !== undefined)
+        next = chooseLevelUp(
+          next,
+          { type: 'chooseLevelUp', characterId: up.characterId, index, option },
+          content
+        )
+    })
+  return next
+}
 
 /** A waiting level-up as the dialog shows it: who, from and to, and what they gained. */
 export type LevelUpCard = LevelUp & {

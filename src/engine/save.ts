@@ -16,7 +16,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 23
+export const CURRENT_SAVE_VERSION = 24
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -556,6 +556,25 @@ export function v22ToV23(raw: Record<string, unknown>): Record<string, unknown> 
 }
 
 /**
+ * v23 → v24 (Plan 7 Track C, classes and gear): members keep the uses they have *spent* since the
+ * last long rest (`spent`) instead of the uses left, so v23's `uses` (never written in play) is
+ * dropped and every member starts rested; level-up picks (`picks`) start empty, a waiting
+ * level-up has no choices, and the party's stash of weapons and armour is empty.
+ */
+export function v23ToV24(raw: Record<string, unknown>): Record<string, unknown> {
+  const party = Array.isArray(raw.party)
+    ? raw.party.map((c: Record<string, unknown>) => {
+        const { uses: _uses, ...rest } = c
+        return { ...rest, spent: c.spent ?? {}, picks: c.picks ?? [] }
+      })
+    : raw.party
+  const levelUps = Array.isArray(raw.levelUps)
+    ? raw.levelUps.map((u: Record<string, unknown>) => ({ ...u, choices: u.choices ?? [] }))
+    : raw.levelUps
+  return { ...raw, version: 24, party, levelUps, stash: raw.stash ?? [] }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -610,6 +629,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v21ToV22(raw as Record<string, unknown>), content)
     case 22:
       return migrate(v22ToV23(raw as Record<string, unknown>), content)
+    case 23:
+      return migrate(v23ToV24(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

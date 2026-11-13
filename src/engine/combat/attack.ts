@@ -5,6 +5,7 @@ import {
   ASSIST_PER_POINT,
   BLOODIED_PENALTY,
   BLOODIED_SHARE,
+  DISCORD_PENALTY,
   ENGAGED_RANGED_PENALTY,
   RALLY_BONUS,
   REACH_PENALTY,
@@ -31,7 +32,12 @@ export type AttackSpec = {
   ac: number
   mode: RollMode
   critMin: number
+  /** The weapon's dice, its bonus raised by damage effects (a song, a fighter's style). */
   dice: Dice
+  /** More dice on a hit (a ranger's Mark, a paladin's Smite); a crit doubles them too. */
+  extraDice: Dice[]
+  /** Dice added to (sign 1) or taken from (−1) the d20 (Inspire, Cutting Words). */
+  rollDice: { die: number; sign: 1 | -1 }[]
   /** A staggered enemy's weakened blow: half damage. */
   half: boolean
   /** The chance to hit (crits included) and to crit. */
@@ -53,6 +59,23 @@ export type AttackOptions = {
   volley?: boolean
   /** A leader rallied the enemies this turn. */
   rally?: boolean
+  /** The member's full action: their style's damage (`fullDamage`) on each attack. */
+  full?: boolean
+  /** More dice on a hit (Smite). */
+  extraDice?: Dice[]
+  /** A discorded enemy striking one of its own (DISCORD_PENALTY). */
+  discord?: boolean
+}
+
+/** The lasting effects on a unit that hold now (combat.round). */
+export const activeEffects = (combat: Pick<CombatState, 'round'>, u: CombatUnit) =>
+  u.effects.filter((e) => e.until >= combat.round)
+
+/** Combines two roll modes: advantage and disadvantage cancel out. */
+export function combineModes(a: RollMode, b: RollMode): RollMode {
+  if (a === 'normal') return b
+  if (b === 'normal' || a === b) return a
+  return 'normal'
 }
 
 export const bloodied = (u: CombatUnit): boolean => u.hp <= u.maxHp * BLOODIED_SHARE
@@ -71,10 +94,31 @@ const hits = (face: number, modifier: number, ac: number, critMin: number): bool
   face >= critMin || (face !== 1 && face + modifier >= ac)
 
 /** Damage [min, max] for dice (doubled on a crit), at least 1, halved for a weakened blow. */
-export function damageRange(dice: Dice, crit: boolean, half: boolean): [number, number] {
-  const count = dice.count * (crit ? 2 : 1)
+export function damageRange(
+  dice: Dice,
+  crit: boolean,
+  half: boolean,
+  extra: readonly Dice[] = []
+): [number, number] {
+  const all = [dice, ...extra]
+  const k = crit ? 2 : 1
+  const min = all.reduce((sum, d) => sum + d.count * k + d.bonus, 0)
+  const max = all.reduce((sum, d) => sum + d.count * k * d.die + d.bonus, 0)
   const cut = (n: number) => Math.max(1, half ? Math.floor(Math.max(1, n) / 2) : n)
-  return [cut(count + dice.bonus), cut(count * dice.die + dice.bonus)]
+  return [cut(min), cut(max)]
+}
+
+/** The chance of each total of signed dice (Inspire's +d6, Cutting Words' −d6): [total, p]. */
+function dieSums(rollDice: AttackSpec['rollDice']): [number, number][] {
+  let sums = new Map<number, number>([[0, 1]])
+  for (const { die, sign } of rollDice) {
+    const next = new Map<number, number>()
+    for (const [total, p] of sums)
+      for (let f = 1; f <= die; f++)
+        next.set(total + sign * f, (next.get(total + sign * f) ?? 0) + p / die)
+    sums = next
+  }
+  return [...sums]
 }
 
 /** Everything about one attack of `attacker` on `target`, as it stands now. */
@@ -101,14 +145,36 @@ export function attackSpec(
   if (options.volley) parts.push({ label: 'volley', value: -VOLLEY_PENALTY })
   if (options.rally && attacker.side === 'enemy')
     parts.push({ label: 'rallied', value: RALLY_BONUS })
+  if (options.discord) parts.push({ label: 'discord', value: -DISCORD_PENALTY })
+  // Lasting effects (class abilities): to-hit and damage bonuses, roll dice, a mark on the target.
+  const effects = activeEffects(combat, attacker)
+  let damageBonus = options.full ? attacker.fullDamage : 0
+  const rollDice: AttackSpec['rollDice'] = []
+  for (const { source, effect } of effects) {
+    if (effect.effect === 'toHit') parts.push({ label: source, value: effect.amount })
+    if (effect.effect === 'damageBonus') damageBonus += effect.amount
+    if (effect.effect === 'rollDie') rollDice.push({ die: effect.die, sign: effect.sign })
+  }
+  const extraDice = [
+    ...activeEffects(combat, target).flatMap(({ by, effect }) =>
+      effect.effect === 'mark' && by === attacker.id ? [effect.dice] : []
+    ),
+    ...(options.extraDice ?? []),
+  ]
   parts.push(...(options.extra ?? []))
   const modifier = parts.reduce((sum, p) => sum + p.value, 0)
-  const mode = attacker.side === 'party' ? FOOTING_MODE[combat.footing] : 'normal'
+  // Members roll at the party's footing; armour they aren't trained in is disadvantage on top.
+  const mode =
+    attacker.side === 'party'
+      ? combineModes(FOOTING_MODE[combat.footing], attacker.untrained ? 'disadvantage' : 'normal')
+      : 'normal'
+  const sums = dieSums(rollDice)
   let hit = 0
   let crit = 0
   for (let face = 1; face <= 20; face++) {
     const p = faceChance(face, mode)
-    if (hits(face, modifier, target.ac, attacker.critMin)) hit += p
+    for (const [extra, q] of sums)
+      if (hits(face, modifier + extra, target.ac, attacker.critMin)) hit += p * q
     if (face >= attacker.critMin) crit += p
   }
   let onHit: AttackSpec['onHit'] = null
@@ -119,6 +185,8 @@ export function attackSpec(
     else if (!isStaggered(target) && (next >= stagger || rules?.trait === 'stagger'))
       onHit = 'stagger'
   }
+  const dice = { ...attacker.damage, bonus: attacker.damage.bonus + damageBonus }
+  const half = staggered && attacker.side === 'enemy'
   return {
     attacker: attacker.id,
     target: target.id,
@@ -127,12 +195,14 @@ export function attackSpec(
     ac: target.ac,
     mode,
     critMin: attacker.critMin,
-    dice: attacker.damage,
-    half: staggered && attacker.side === 'enemy',
+    dice,
+    extraDice,
+    rollDice,
+    half,
     hit,
     crit,
-    damage: damageRange(attacker.damage, false, staggered && attacker.side === 'enemy'),
-    critDamage: damageRange(attacker.damage, true, staggered && attacker.side === 'enemy'),
+    damage: damageRange(dice, false, half, extraDice),
+    critDamage: damageRange(dice, true, half, extraDice),
     onHit,
     cleave: rules?.trait === 'cleave',
   }
@@ -147,10 +217,19 @@ export type AttackRoll = {
 }
 
 /** Rolls damage dice (doubled on a crit), at least 1, halved for a weakened blow. */
-export function rollDamage(draw: Draw, dice: Dice, crit: boolean, half: boolean): number {
-  let total = dice.bonus
-  for (let i = 0; i < dice.count * (crit ? 2 : 1); i++) total += draw.int(1, dice.die)
-  const [min] = damageRange(dice, crit, half)
+export function rollDamage(
+  draw: Draw,
+  dice: Dice,
+  crit: boolean,
+  half: boolean,
+  extra: readonly Dice[] = []
+): number {
+  let total = 0
+  for (const d of [dice, ...extra]) {
+    total += d.bonus
+    for (let i = 0; i < d.count * (crit ? 2 : 1); i++) total += draw.int(1, d.die)
+  }
+  const [min] = damageRange(dice, crit, half, extra)
   return Math.max(min, half ? Math.floor(Math.max(1, total) / 2) : total)
 }
 
@@ -163,8 +242,9 @@ export function rollAttack(draw: Draw, spec: AttackSpec): AttackRoll {
       : spec.mode === 'disadvantage'
         ? Math.min(...dice)
         : dice[0]
-  const hit = hits(kept, spec.modifier, spec.ac, spec.critMin)
+  const bonus = (spec.rollDice ?? []).reduce((sum, r) => sum + r.sign * draw.int(1, r.die), 0)
+  const hit = hits(kept, spec.modifier + bonus, spec.ac, spec.critMin)
   const crit = kept >= spec.critMin
-  const damage = hit ? rollDamage(draw, spec.dice, crit, spec.half) : 0
+  const damage = hit ? rollDamage(draw, spec.dice, crit, spec.half, spec.extraDice ?? []) : 0
   return { dice, kept, hit, crit, damage }
 }

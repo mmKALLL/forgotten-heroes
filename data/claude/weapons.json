@@ -2,15 +2,263 @@
   "$schema": "../_schema/weapons.schema.json",
   "kind": "weapons",
   "source": "claude",
-  "notes": "Placeholder (Plan 7 Track T) — Track C fills this in: one plain weapon per family, no prices or weights yet. Family rules (die, reach, full action, trait) and quality bonuses are in src/engine/constants.ts.",
+  "notes": "Plan 7 Track C: one weapon per family (combat design §4) in the four qualities: plain, fine (+1 to hit), +1 and +2 magic (WEAPON_QUALITY_BONUS). The family sets the die, reach, full action and trait (WEAPON_FAMILY_RULES); the name is flavour. Prices are gp at an arms shop, 5e-like for plain weapons; fine is about four times plain, magic weapons are dear (a +1 is a season of trade). Weight is kg, carried by the member who wears it or in the stash (economy/capacity.ts). Shops stock a quality from ARMS_QUALITY_AT of their quality up; they buy back at ARMS_RESALE.",
   "entries": [
-    { "id": "dagger", "name": "Dagger", "family": "daggers" },
-    { "id": "longsword", "name": "Longsword", "family": "blades" },
-    { "id": "battleaxe", "name": "Battleaxe", "family": "axes" },
-    { "id": "mace", "name": "Mace", "family": "maces" },
-    { "id": "spear", "name": "Spear", "family": "polearms" },
-    { "id": "shortbow", "name": "Shortbow", "family": "bows" },
-    { "id": "javelin", "name": "Javelins", "family": "thrown" },
-    { "id": "quarterstaff", "name": "Quarterstaff", "family": "staffs" }
+    {
+      "id": "dagger",
+      "name": "Dagger",
+      "family": "daggers",
+      "quality": "plain",
+      "price": 2,
+      "weight": 0.5
+    },
+    {
+      "id": "fine-dagger",
+      "name": "Fine dagger",
+      "family": "daggers",
+      "quality": "fine",
+      "price": 20,
+      "weight": 0.5
+    },
+    {
+      "id": "dagger-1",
+      "name": "+1 dagger",
+      "family": "daggers",
+      "quality": "magic1",
+      "price": 250,
+      "weight": 0.5
+    },
+    {
+      "id": "dagger-2",
+      "name": "+2 dagger",
+      "family": "daggers",
+      "quality": "magic2",
+      "price": 1000,
+      "weight": 0.5
+    },
+    {
+      "id": "longsword",
+      "name": "Longsword",
+      "family": "blades",
+      "quality": "plain",
+      "price": 15,
+      "weight": 1.5
+    },
+    {
+      "id": "fine-longsword",
+      "name": "Fine longsword",
+      "family": "blades",
+      "quality": "fine",
+      "price": 60,
+      "weight": 1.5
+    },
+    {
+      "id": "longsword-1",
+      "name": "+1 longsword",
+      "family": "blades",
+      "quality": "magic1",
+      "price": 400,
+      "weight": 1.5
+    },
+    {
+      "id": "longsword-2",
+      "name": "+2 longsword",
+      "family": "blades",
+      "quality": "magic2",
+      "price": 1600,
+      "weight": 1.5
+    },
+    {
+      "id": "battleaxe",
+      "name": "Battleaxe",
+      "family": "axes",
+      "quality": "plain",
+      "price": 10,
+      "weight": 2
+    },
+    {
+      "id": "fine-battleaxe",
+      "name": "Fine battleaxe",
+      "family": "axes",
+      "quality": "fine",
+      "price": 50,
+      "weight": 2
+    },
+    {
+      "id": "battleaxe-1",
+      "name": "+1 battleaxe",
+      "family": "axes",
+      "quality": "magic1",
+      "price": 400,
+      "weight": 2
+    },
+    {
+      "id": "battleaxe-2",
+      "name": "+2 battleaxe",
+      "family": "axes",
+      "quality": "magic2",
+      "price": 1600,
+      "weight": 2
+    },
+    {
+      "id": "mace",
+      "name": "Mace",
+      "family": "maces",
+      "quality": "plain",
+      "price": 5,
+      "weight": 2
+    },
+    {
+      "id": "fine-mace",
+      "name": "Fine mace",
+      "family": "maces",
+      "quality": "fine",
+      "price": 40,
+      "weight": 2
+    },
+    {
+      "id": "mace-1",
+      "name": "+1 mace",
+      "family": "maces",
+      "quality": "magic1",
+      "price": 400,
+      "weight": 2
+    },
+    {
+      "id": "mace-2",
+      "name": "+2 mace",
+      "family": "maces",
+      "quality": "magic2",
+      "price": 1600,
+      "weight": 2
+    },
+    {
+      "id": "spear",
+      "name": "Spear",
+      "family": "polearms",
+      "quality": "plain",
+      "price": 5,
+      "weight": 2.5
+    },
+    {
+      "id": "fine-spear",
+      "name": "Fine spear",
+      "family": "polearms",
+      "quality": "fine",
+      "price": 40,
+      "weight": 2.5
+    },
+    {
+      "id": "spear-1",
+      "name": "+1 spear",
+      "family": "polearms",
+      "quality": "magic1",
+      "price": 400,
+      "weight": 2.5
+    },
+    {
+      "id": "spear-2",
+      "name": "+2 spear",
+      "family": "polearms",
+      "quality": "magic2",
+      "price": 1600,
+      "weight": 2.5
+    },
+    {
+      "id": "shortbow",
+      "name": "Shortbow",
+      "family": "bows",
+      "quality": "plain",
+      "price": 25,
+      "weight": 1
+    },
+    {
+      "id": "fine-shortbow",
+      "name": "Fine shortbow",
+      "family": "bows",
+      "quality": "fine",
+      "price": 80,
+      "weight": 1
+    },
+    {
+      "id": "shortbow-1",
+      "name": "+1 shortbow",
+      "family": "bows",
+      "quality": "magic1",
+      "price": 450,
+      "weight": 1
+    },
+    {
+      "id": "shortbow-2",
+      "name": "+2 shortbow",
+      "family": "bows",
+      "quality": "magic2",
+      "price": 1800,
+      "weight": 1
+    },
+    {
+      "id": "javelin",
+      "name": "Javelins",
+      "family": "thrown",
+      "quality": "plain",
+      "price": 3,
+      "weight": 2
+    },
+    {
+      "id": "fine-javelin",
+      "name": "Fine javelins",
+      "family": "thrown",
+      "quality": "fine",
+      "price": 25,
+      "weight": 2
+    },
+    {
+      "id": "javelin-1",
+      "name": "+1 javelins",
+      "family": "thrown",
+      "quality": "magic1",
+      "price": 300,
+      "weight": 2
+    },
+    {
+      "id": "javelin-2",
+      "name": "+2 javelins",
+      "family": "thrown",
+      "quality": "magic2",
+      "price": 1200,
+      "weight": 2
+    },
+    {
+      "id": "quarterstaff",
+      "name": "Quarterstaff",
+      "family": "staffs",
+      "quality": "plain",
+      "price": 1,
+      "weight": 2
+    },
+    {
+      "id": "fine-quarterstaff",
+      "name": "Fine quarterstaff",
+      "family": "staffs",
+      "quality": "fine",
+      "price": 20,
+      "weight": 2
+    },
+    {
+      "id": "quarterstaff-1",
+      "name": "+1 quarterstaff",
+      "family": "staffs",
+      "quality": "magic1",
+      "price": 300,
+      "weight": 2
+    },
+    {
+      "id": "quarterstaff-2",
+      "name": "+2 quarterstaff",
+      "family": "staffs",
+      "quality": "magic2",
+      "price": 1200,
+      "weight": 2
+    }
   ]
 }

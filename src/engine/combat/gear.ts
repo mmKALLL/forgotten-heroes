@@ -2,9 +2,11 @@ import type { Content } from '../../content/build'
 import type { Character } from '../../schema/state'
 import type { Dice } from '../../schema/combat'
 import {
+  ARMOUR_GRADES,
   MORAL_ALIGNMENTS,
   type Ability,
   type ArmourGrade,
+  type FighterStyle,
   type MoralAlignment,
   type Rank,
   type WeaponFamily,
@@ -12,11 +14,15 @@ import {
 import { abilityModifier, proficiencyBonus } from '../rules/abilities'
 import { createRng, withRng } from '../rng'
 import {
+  ABILITY_DC_BASE,
   ARMOUR_AC,
   CASTING_ABILITY,
+  CLASS_PROFICIENCIES,
   CLERIC_ALIGNMENT_WEIGHTS,
   FALLBACK_GEAR,
+  FALLBACK_PROFICIENCIES,
   STARTING_GEAR,
+  STYLE_DAMAGE,
   WEAPON_FAMILY_RULES,
   WEAPON_QUALITY_BONUS,
 } from '../constants'
@@ -48,8 +54,34 @@ export function rollAlignment(c: Pick<Character, 'id' | 'classId'>): MoralAlignm
   return alignment
 }
 
-/** Proficiency with a weapon family: every class for now (Track C adds the class tables). */
-export const proficient = (_c: Character, _family: WeaponFamily): boolean => true
+/** A class's training (CLASS_PROFICIENCIES; FALLBACK_PROFICIENCIES for any other class). */
+export const proficiencies = (classId: string) =>
+  Object.hasOwn(CLASS_PROFICIENCIES, classId)
+    ? CLASS_PROFICIENCIES[classId]
+    : FALLBACK_PROFICIENCIES
+
+/**
+ * Proficiency with a weapon family (combat design §5): the class's families, and staffs for every
+ * class with a casting ability. Untrained, a member adds no proficiency bonus to hit (5e).
+ */
+export const proficient = (c: Pick<Character, 'classId'>, family: WeaponFamily): boolean =>
+  proficiencies(c.classId).weapons.includes(family) ||
+  (family === 'staffs' && Object.hasOwn(CASTING_ABILITY, c.classId))
+
+/**
+ * Trained in an armour grade: it is no heavier than the class's heaviest. Untrained, a member's
+ * attacks are at disadvantage (5e's rule for attacks; spells come later).
+ */
+export const armourProficient = (c: Pick<Character, 'classId'>, grade: ArmourGrade): boolean =>
+  ARMOUR_GRADES.indexOf(grade) <= ARMOUR_GRADES.indexOf(proficiencies(c.classId).armour)
+
+/** The DC of a member's abilities with a save: ABILITY_DC_BASE + proficiency + casting ability. */
+export function abilityDc(c: Character): number {
+  const ability = Object.hasOwn(CASTING_ABILITY, c.classId)
+    ? CASTING_ABILITY[c.classId]
+    : (['int', 'wis', 'cha'] as const).reduce((a, b) => (c.abilities[b] > c.abilities[a] ? b : a))
+  return ABILITY_DC_BASE + proficiencyBonus(c.level) + abilityModifier(c.abilities[ability])
+}
 
 /** The ability a family attacks with: finesse daggers and thrown the better of STR and DEX. */
 export function attackAbility(c: Character, family: WeaponFamily): Ability {
@@ -77,7 +109,20 @@ export type MemberStats = {
   critMin: number
   ac: number
   grade: ArmourGrade
+  /** Trained with the weapon (its proficiency bonus counts) and in the armour. */
+  weaponTrained: boolean
+  armourTrained: boolean
+  /** A fighter's style picks for this weapon's kind of full action: damage on each of its attacks. */
+  fullDamage: number
 }
+
+/** The fighter style a family's full action belongs to: two attacks, or one bigger blow. */
+export const styleOf = (family: WeaponFamily): FighterStyle =>
+  WEAPON_FAMILY_RULES[family].full.kind === 'second' ? 'two-attack' : 'single-blow'
+
+/** STYLE_DAMAGE for each of the member's picks of the style that fits the weapon. */
+export const styleDamage = (c: Pick<Character, 'picks'>, family: WeaponFamily): number =>
+  STYLE_DAMAGE * c.picks.filter((p) => p === styleOf(family)).length
 
 /** A member's weapon and armour as they fight: to hit, damage dice, reach, crit face and AC. */
 export function memberStats(c: Character, content: Content): MemberStats {
@@ -88,7 +133,8 @@ export function memberStats(c: Character, content: Content): MemberStats {
   const quality = WEAPON_QUALITY_BONUS[weapon?.quality ?? 'plain']
   const rules = WEAPON_FAMILY_RULES[family]
   const mod = abilityModifier(c.abilities[attackAbility(c, family)])
-  const prof = proficient(c, family) ? proficiencyBonus(c.level) : 0
+  const weaponTrained = proficient(c, family)
+  const prof = weaponTrained ? proficiencyBonus(c.level) : 0
   const armourId = c.gear.armour
   const armour =
     armourId && Object.hasOwn(content.armours, armourId) ? content.armours[armourId] : null
@@ -103,6 +149,9 @@ export function memberStats(c: Character, content: Content): MemberStats {
     critMin: rules.critMin,
     ac: base + (dexCap === null ? dex : Math.min(dexCap, dex)),
     grade,
+    weaponTrained,
+    armourTrained: armourProficient(c, grade),
+    fullDamage: styleDamage(c, family),
   }
 }
 

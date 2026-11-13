@@ -110,7 +110,15 @@ export const CombatTargetSchema = z.enum(['self', 'ally', 'party', 'enemy', 'til
  */
 export const CombatEffectSchema = z.discriminatedUnion('effect', [
   z.object({ effect: z.literal('damage'), dice: DiceSchema }),
-  z.object({ effect: z.literal('heal'), dice: DiceSchema }),
+  z.object({
+    effect: z.literal('heal'),
+    dice: DiceSchema,
+    perLevel: z
+      .number()
+      .min(0)
+      .default(0)
+      .describe("Plus this many HP per the user's level, rounded down (Second Wind: 1d10 + level)"),
+  }),
   z.object({ effect: z.literal('toHit'), amount: z.number().int() }),
   z.object({ effect: z.literal('damageBonus'), amount: z.number().int() }),
   z.object({ effect: z.literal('move'), tiles: z.number().int().min(1).max(4) }),
@@ -151,6 +159,20 @@ export const CombatEffectSchema = z.discriminatedUnion('effect', [
   z.object({ effect: z.literal('hazard'), dice: DiceSchema }),
   /** Every member still fighting leaves the line at once, without free swings: a retreat. */
   z.object({ effect: z.literal('escape') }),
+  // Track C (class abilities) added these; the engine plays them (combat/abilities.ts).
+  /**
+   * Heals what the target lacks from the user's pool of perLevel × level HP a long rest (Lay on
+   * Hands); the pool is the ability's uses.
+   */
+  z.object({ effect: z.literal('healPool'), perLevel: z.number().int().min(1) }),
+  /** The user's hits on the target deal these dice more (a ranger's Mark). */
+  z.object({ effect: z.literal('mark'), dice: DiceSchema }),
+  /** The target's attack rolls get +1d`die` (sign 1: Inspire) or −1d`die` (sign −1: Cutting Words). */
+  z.object({
+    effect: z.literal('rollDie'),
+    die: z.union([z.literal(4), z.literal(6), z.literal(8), z.literal(10), z.literal(12)]),
+    sign: z.union([z.literal(1), z.literal(-1)]),
+  }),
 ])
 export type CombatEffect = z.infer<typeof CombatEffectSchema>
 
@@ -161,6 +183,8 @@ export type CombatEffect = z.infer<typeof CombatEffectSchema>
  */
 export const CombatRollSchema = z.discriminatedUnion('roll', [
   z.object({ roll: z.literal('attack') }),
+  /** The user's own weapon attack (single, not the full action); damage effects add to its dice. */
+  z.object({ roll: z.literal('weapon') }),
   z.object({ roll: z.literal('save'), ability: AbilitySchema, half: z.boolean().default(false) }),
 ])
 export type CombatRoll = z.infer<typeof CombatRollSchema>
@@ -190,6 +214,23 @@ export const ClassAbilitySchema = z.object({
   classId: IdSchema,
   level: z.number().int().min(1).max(MAX_LEVEL).describe('The level it is gained at'),
   ...usedFields,
+  spends: z
+    .enum(['uses', 'spell'])
+    .default('uses')
+    .describe("What it spends: its own uses, or one of the user's spell uses (Smite)"),
+  only: z
+    .string()
+    .optional()
+    .describe('It affects only creatures of this type (Turn Undead: "undead")'),
+  specialised: z
+    .object({
+      description: z.string(),
+      target: CombatTargetSchema.optional(),
+      range: RangeSchema.optional(),
+      effects: z.array(CombatEffectSchema).min(1).optional(),
+    })
+    .optional()
+    .describe("What a bard's specialisation pick changes (level-up choices)"),
 })
 export type ClassAbility = z.infer<typeof ClassAbilitySchema>
 
@@ -242,6 +283,18 @@ export const IntentSchema = z.object({
 })
 export type Intent = z.infer<typeof IntentSchema>
 
+/**
+ * A lasting effect on a unit (Track C): what (`effect`), from which ability, by whom, and the last
+ * round it holds (a new round past it clears it).
+ */
+export const LastingEffectSchema = z.object({
+  source: IdSchema.describe('The ability (or spell) id'),
+  by: z.string().describe('The unit that used it'),
+  effect: CombatEffectSchema,
+  until: z.number().int().min(1).describe('The last round it holds'),
+})
+export type LastingEffect = z.infer<typeof LastingEffectSchema>
+
 export const UNIT_STATUSES = ['in', 'down', 'dead', 'fled', 'left'] as const
 export type UnitStatus = (typeof UNIT_STATUSES)[number]
 
@@ -277,6 +330,16 @@ export const CombatUnitSchema = z.object({
   /** Staggered by a trait (a mace's hit) whatever the hit count, until its turn has passed. */
   staggered: z.boolean().default(false),
   intent: IntentSchema.nullable().default(null),
+  /** A member's level (abilities that scale with it); 1 for enemies. */
+  level: z.number().int().min(1).default(1),
+  /** A member's DC for abilities with a save: 8 + proficiency + the casting ability. */
+  dc: z.number().int().default(10),
+  /** Wears armour they aren't trained in: their attacks are at disadvantage. */
+  untrained: z.boolean().default(false),
+  /** A fighter's style picks: this much more damage on each attack of their full action. */
+  fullDamage: z.number().int().min(0).default(0),
+  /** Lasting effects of abilities (and later spells) on the unit. */
+  effects: z.array(LastingEffectSchema).default([]),
 })
 export type CombatUnit = z.infer<typeof CombatUnitSchema>
 
