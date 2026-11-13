@@ -475,3 +475,19 @@ test('opened from the map, the popover takes focus, Escape closes it, and focus 
   rerender(map(null))
   expect(document.activeElement).toBe(marker)
 })
+
+test('each marker has an invisible hit target a little larger than what is drawn', () => {
+  const state = discover(makeState({ location: 'greenvale-1' }), ['poi-1'])
+  const { container } = render(
+    <WorldMap content={content} state={state} selected={null} onSelect={() => {}} imageUrl={null} />
+  )
+  const settlement = container.querySelector('[data-site="greenvale-2"]')!
+  const [hit, drawn] = [...settlement.querySelectorAll('rect')]
+  expect(hit.getAttribute('class')).toBe('hit')
+  expect(hit.getAttribute('aria-hidden')).toBe('true')
+  expect(Number(hit.getAttribute('width'))).toBeGreaterThan(Number(drawn.getAttribute('width')))
+  expect(Number(hit.getAttribute('x'))).toBeLessThan(Number(drawn.getAttribute('x')))
+  const site = container.querySelector('[data-site="poi-1"]')!
+  const r = (sel: string) => Number(site.querySelector(sel)!.getAttribute('r'))
+  expect(r('circle.hit')).toBeGreaterThan(r('circle.poi-disc'))
+})

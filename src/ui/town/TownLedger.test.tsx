@@ -9,6 +9,9 @@ import { I18nProvider } from '../i18n/I18n'
 import { DEFAULT_TRAVEL_PREFS } from '../world/travelPrefs'
 import { TownLedger } from './TownLedger'
 
+// Every asset is "synced" here, so a town with a banner shows its map.
+vi.mock('../assets', () => ({ assetUrl: (path: string) => `/assets/${path}` }))
+
 const content = fixtureContent()
 afterEach(cleanup)
 
@@ -58,4 +61,35 @@ test('the ledger shows the header line, its zones, Explore before the roads, tal
   expect(screen.getByRole('heading', { name: `People (${people.length})` })).toBeTruthy()
   const list = within(screen.getByRole('list', { name: 'Notable people' }))
   for (const p of people) expect(list.getByText(p.name, { exact: false })).toBeTruthy()
+})
+
+test('the town map is shown large after the people and the roads, at the ledger’s full width', () => {
+  const state = makeState({ location: 'ashmoor-1' })
+  state.world.settlements['ashmoor-1'].town = 'harbourne'
+  const { container } = render(
+    <I18nProvider content={content}>
+      <TownLedger
+        content={content}
+        state={state}
+        selected={null}
+        onSelect={vi.fn()}
+        prefs={DEFAULT_TRAVEL_PREFS}
+        onPrefs={vi.fn()}
+        onAction={vi.fn()}
+        services={null}
+      />
+    </I18nProvider>
+  )
+  const name = placeInfo(state, content, 'ashmoor-1')!.name
+  const picture = screen.getByRole('img', { name: `Town map of ${name}` })
+  expect(picture.getAttribute('src')).toBe(
+    '/assets/town maps/Harbourne - rich seaside town - LN.jpg'
+  )
+  // Its own row of the ledger, after both columns; the header keeps no thumbnail.
+  expect(picture.closest('.town-picture')?.parentElement).toBe(container.querySelector('.ledger'))
+  for (const zone of ['Roads out', 'Talk and work']) {
+    const region = screen.getByRole('region', { name: zone })
+    expect(region.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  }
+  expect(container.querySelector('.ledger-head img')).toBeNull()
 })
