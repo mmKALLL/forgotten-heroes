@@ -58,7 +58,7 @@ describe('on the road', () => {
     const road = routeOptions(rich, content).find((o) => o.routeId === 'greenvale-1-greenvale-2')!
     const steady = road.paces.find((p) => p.pace === 'steady')!
     expect(steady.hostile.wealth).toBeGreaterThan(0)
-    // The goods bar reads the same share from visibleWealth.
+    // The top bar's wealth pips read the same share from visibleWealth.
     expect(visibleWealth(rich, content).hostile).toBe(steady.hostile.wealth)
     const out = step(rich, { type: 'travel', routeId: road.routeId }, content)
     expect(placeOnRoute(out, content, out.travel!)!.hostileShare).toBe(steady.hostile.share)

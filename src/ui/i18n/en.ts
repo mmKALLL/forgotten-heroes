@@ -11,6 +11,7 @@ export const en = {
   'top.seed': 'seed {seed}',
   'top.food': 'Food {food} ({days}d)',
   'top.water': 'Water {water}/{capacity} ({days}d)',
+  'top.fuel': 'Fuel {fuel}',
   'top.suppliesHint':
     'Rations and water: each member eats 1 and drinks 1 a day (2 in the desert); days are for the whole party',
   'top.danger': '⚠ +{percent}%',

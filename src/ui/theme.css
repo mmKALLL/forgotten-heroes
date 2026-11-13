@@ -97,13 +97,22 @@ input {
   display: flex;
   flex-direction: column;
 }
+/* The top bar stays in view (designer call 2026-11-14), over the content but under the dialogs;
+   focus scrolls clear of it. */
+html {
+  scroll-padding-top: 6rem;
+}
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 15;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 1.25rem;
-  padding: 0.6rem 1rem;
+  gap: 0.5rem 1.1rem;
+  padding: 0.4rem 1rem;
   border-bottom: 1px solid var(--line);
+  background: var(--bg);
 }
 .spacer {
   flex: 1;
@@ -1287,9 +1296,6 @@ h2[tabindex='-1']:focus {
 }
 /* The Saves menu (Plan 5b, U1): three slots under the top bar's Saves button. It hangs from the
    top bar's right edge, so it fits a phone screen wherever the bar wraps. */
-.topbar {
-  position: relative;
-}
 .saves-menu {
   position: absolute;
   right: 1rem;
@@ -1462,27 +1468,42 @@ h2[tabindex='-1']:focus {
   color: var(--bad);
   font-weight: 600;
 }
-/* The goods bar (design §9): goods by category, the capacity meter and visible wealth. */
-.goods-bar {
-  position: sticky;
-  bottom: 0;
+/*
+ * The inventory in the top bar (design §9): two-line blocks in its one row. The day, gold and
+ * Inspiration over the essentials; the other goods as a 2×2 block; the load over the wealth.
+ */
+.top-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+}
+.top-line {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.4rem 1.25rem;
-  padding: 0.4rem 1rem;
-  border-top: 1px solid var(--line);
-  background: var(--panel);
-  font-size: 0.85rem;
-  z-index: 2;
-}
-.goods-groups {
-  display: flex;
-  flex-wrap: wrap;
   gap: 0.2rem 1rem;
+}
+.essentials {
+  font-size: 0.9rem;
+}
+.top-meta {
+  align-items: flex-end;
+}
+.topbar .capacity-bar {
+  width: 4.5rem;
+}
+/* The 2×2 block takes the row's free space, so a long inventory wraps inside its cells first. */
+.goods-grid {
+  flex: 1 1 16rem;
+  display: grid;
+  grid-template-columns: auto auto;
+  justify-content: start;
+  gap: 0.15rem 1.1rem;
   list-style: none;
   margin: 0;
   padding: 0;
+  font-size: 0.85rem;
 }
 .goods-cat {
   font-size: 0.7rem;
@@ -1588,11 +1609,6 @@ h2[tabindex='-1']:focus {
 }
 .tip-pop[hidden] {
   display: none;
-}
-@media (max-width: 900px) {
-  .goods-bar {
-    position: static;
-  }
 }
 /*
  * The town ledger (design §5): one screen at desktop width. The centre column widens in town, and
@@ -2106,7 +2122,7 @@ h2[tabindex='-1']:focus {
   padding: 0.05rem 0.5rem;
   font-size: 0.8rem;
 }
-/* Drop goods: opens upwards from the goods bar. */
+/* Drop goods: opens down from the top bar. */
 .drop-goods {
   position: relative;
 }
@@ -2121,8 +2137,8 @@ h2[tabindex='-1']:focus {
 }
 .drop-list {
   position: absolute;
-  right: 0;
-  bottom: calc(100% + 0.4rem);
+  left: 0;
+  top: calc(100% + 0.3rem);
   z-index: 5;
   list-style: none;
   margin: 0;
@@ -2131,7 +2147,7 @@ h2[tabindex='-1']:focus {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 5px;
-  box-shadow: 0 -3px 10px rgb(0 0 0 / 20%);
+  box-shadow: 0 3px 10px rgb(0 0 0 / 20%);
 }
 .drop-list li {
   display: flex;
@@ -2431,12 +2447,45 @@ h2[tabindex='-1']:focus {
  * gutters and panels, and a market table that fits the width with its trade buttons stacked.
  */
 @media (max-width: 480px) {
+  /* The top bar wraps into lines: the title with the seed, language and Saves; the day and
+     supplies; the goods; the load and wealth. Drop goods opens across the bar's width. */
   .topbar {
     gap: 0.3rem 0.8rem;
-    padding: 0.4rem 0.6rem;
+    padding: 0.3rem 0.6rem;
   }
   .topbar h1 {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
+  }
+  .top-meta {
+    order: 1;
+    margin-left: auto;
+  }
+  .topbar .saves {
+    order: 2;
+  }
+  .top-status,
+  .goods-grid,
+  .top-load {
+    order: 3;
+  }
+  .goods-grid {
+    flex-basis: 100%;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.1rem 0.8rem;
+  }
+  html {
+    scroll-padding-top: 14rem;
+  }
+  .saves-menu {
+    max-height: calc(100vh - 16rem);
+  }
+  .topbar .drop-goods {
+    position: static;
+  }
+  .topbar .drop-list {
+    left: 0.6rem;
+    right: 0.6rem;
+    top: calc(100% - 0.2rem);
   }
   .layout {
     gap: 0.6rem;
@@ -2465,10 +2514,6 @@ h2[tabindex='-1']:focus {
   }
   .market-table tbody tr {
     height: 1.6rem;
-  }
-  .goods-bar {
-    gap: 0.3rem 0.8rem;
-    padding: 0.4rem 0.6rem;
   }
 }
 

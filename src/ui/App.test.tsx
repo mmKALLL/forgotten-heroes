@@ -179,9 +179,13 @@ test('a new party starts after a confirmation, in a new world', async () => {
   expect(place.getByRole('list', { name: 'Roads from here' })).toBeTruthy()
 })
 
-test('the top bar shows the supplies', () => {
+test('the top bar shows the supplies and the goods carried', () => {
   render(<App />)
-  expect(screen.getByText(/^Food \d+ \(\d+d\) · Water \d+\/\d+ \(\d+d\)$/)).toBeTruthy()
+  const supplies = screen.getByText(/^Food \d+ \(\d+d\) · Water \d+\/\d+ \(\d+d\) ·$/)
+  expect(supplies.textContent).toMatch(/ · Fuel \d+$/)
+  const top = within(document.querySelector<HTMLElement>('header.topbar')!)
+  expect(top.getByRole('list', { name: 'Goods carried' })).toBeTruthy()
+  expect(top.getByRole('group', { name: 'Load' })).toBeTruthy()
 })
 
 test('the roll announcer exists before the first roll, and HP bars are meters', async () => {
