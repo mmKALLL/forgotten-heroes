@@ -36,6 +36,7 @@ import { generateCrisis } from './crisis/generate'
 import { acknowledgeEnd, crisisNews } from './crisis/status'
 import { DISBANDED_LINE, FALLEN_LINE, partyWiped, runOver } from './crisis/ending'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
+import { COMBAT_ACTIONS, fighting, stepCombat, type CombatAction } from './combat/fight'
 
 // These moved out so the encounter engine can use them without importing this module.
 // Re-exported so existing imports from './state' keep working.
@@ -77,6 +78,8 @@ export type Action =
   | DelveAction
   /** Buy the next level of a party upgrade from a service here (town/upgrades.ts). */
   | BuyUpgrade
+  /** A fight on the line: open it, move, attack, retreat, end the turn, close it (combat/fight.ts). */
+  | CombatAction
 
 /**
  * A new party in a freshly rolled world. `start` picks where it begins (design §6): any mainland
@@ -138,6 +141,7 @@ export function newGame(
     delve: null,
     upgrades: {},
     levelUps: [],
+    combat: null,
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state
@@ -158,17 +162,24 @@ export function newGame(
  * but `acknowledgeLevelUps` leaves the state as it is, so nothing happens behind the level-up
  * dialog (and a later plan's level-up choices are made before play goes on). Saving and loading
  * are not actions, so they still work. A run that ends in the step drops its level-ups.
+ *
+ * An open fight (Plan 7, combat/fight.ts) takes only the combat actions; once it is decided, any
+ * other action clears it first.
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
   if (action.type === 'acknowledgeLevelUps') return acknowledgeLevelUps(state)
   if (state.levelUps.length > 0) return state
   // A fallen or disbanded party's run is over for good (crisis/ending.ts): nothing more happens.
   if (runOver(state)) return state
+  // An open fight takes only its own actions; a finished one is cleared by anything else.
+  const combatAction = COMBAT_ACTIONS.includes(action.type)
+  if (fighting(state) && !combatAction) return state
+  const base = state.combat && !combatAction ? { ...state, combat: null } : state
   // Anything but a room's choices, pressing on and a few chores leaves a dungeon first.
   const ready =
-    state.delve && !state.delve.inRoom && !DELVE_ACTIONS.includes(action.type)
-      ? withdraw(state, content)
-      : state
+    base.delve && !base.delve.inRoom && !DELVE_ACTIONS.includes(action.type)
+      ? withdraw(base, content)
+      : base
   const delved = settleDelve(act(ready, action, content), content)
   const acted = crisisNews(state, siteNews(state.day, delved), content)
   const settled = forgetExplored(state, expireContracts(voidBounties(acted, content), content))
@@ -280,6 +291,13 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return stepDelve(state, action, content)
     case 'buyUpgrade':
       return buyUpgrade(state, content, action.upgrade)
+    case 'startCombat':
+    case 'combatMove':
+    case 'combatAct':
+    case 'combatRetreat':
+    case 'combatEndTurn':
+    case 'closeCombat':
+      return stepCombat(state, action, content)
     default:
       return stepEncounter(state, action, content)
   }

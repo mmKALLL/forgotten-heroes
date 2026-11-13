@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "kind": {
+      "type": "string",
+      "const": "armours"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "original",
+        "imported",
+        "imported-private",
+        "procedural",
+        "claude"
+      ]
+    },
+    "notes": {
+      "type": "string"
+    },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string"
+          },
+          "grade": {
+            "type": "string",
+            "enum": [
+              "cloth",
+              "leather",
+              "chain",
+              "plate"
+            ],
+            "description": "Its AC and DEX cap (constants)"
+          },
+          "price": {
+            "description": "gp at an armourer (Track C)",
+            "$ref": "#/$defs/__schema0"
+          },
+          "weight": {
+            "description": "kg (Track C)",
+            "$ref": "#/$defs/__schema1"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "grade"
+        ]
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "source",
+    "entries"
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "number",
+      "minimum": 0
+    },
+    "__schema1": {
+      "type": "number",
+      "minimum": 0
+    }
+  }
+}

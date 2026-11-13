@@ -64,6 +64,16 @@
           "description": {
             "type": "string",
             "description": "One line, in our own words"
+          },
+          "role": {
+            "default": "brute",
+            "description": "Its combat role (data/claude/enemy-roles.json): stats by CR, range and trick",
+            "$ref": "#/$defs/__schema0"
+          },
+          "size": {
+            "default": "medium",
+            "description": "Size points toward a tile's stack cap",
+            "$ref": "#/$defs/__schema1"
           }
         },
         "required": [
@@ -81,5 +91,29 @@
     "kind",
     "source",
     "entries"
-  ]
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "string",
+      "enum": [
+        "brute",
+        "skirmisher",
+        "archer",
+        "caster",
+        "swarm",
+        "leader"
+      ]
+    },
+    "__schema1": {
+      "type": "string",
+      "enum": [
+        "tiny",
+        "small",
+        "medium",
+        "large",
+        "huge",
+        "gargantuan"
+      ]
+    }
+  }
 }

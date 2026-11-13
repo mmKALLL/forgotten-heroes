@@ -20,6 +20,10 @@ export const DungeonRoomSchema = z.object({
     .min(1)
     .max(3)
     .describe('The possible encounters (situations with room: true and site: true); one is drawn'),
+  dark: z
+    .boolean()
+    .optional()
+    .describe('Unlit (Plan 7 §7b): fuel lights it, or the party is Exposed in every check there'),
   milestone: z
     .literal(true)
     .optional()

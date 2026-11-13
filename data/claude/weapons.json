@@ -1,0 +1,16 @@
+{
+  "$schema": "../_schema/weapons.schema.json",
+  "kind": "weapons",
+  "source": "claude",
+  "notes": "Placeholder (Plan 7 Track T) — Track C fills this in: one plain weapon per family, no prices or weights yet. Family rules (die, reach, full action, trait) and quality bonuses are in src/engine/constants.ts.",
+  "entries": [
+    { "id": "dagger", "name": "Dagger", "family": "daggers" },
+    { "id": "longsword", "name": "Longsword", "family": "blades" },
+    { "id": "battleaxe", "name": "Battleaxe", "family": "axes" },
+    { "id": "mace", "name": "Mace", "family": "maces" },
+    { "id": "spear", "name": "Spear", "family": "polearms" },
+    { "id": "shortbow", "name": "Shortbow", "family": "bows" },
+    { "id": "javelin", "name": "Javelins", "family": "thrown" },
+    { "id": "quarterstaff", "name": "Quarterstaff", "family": "staffs" }
+  ]
+}

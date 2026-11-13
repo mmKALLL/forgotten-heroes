@@ -342,3 +342,59 @@ export type CrisisActPhase = (typeof CRISIS_ACT_PHASES)[number]
  */
 export const CRISIS_BOSS_STYLES = ['recurring', 'finale'] as const
 export type CrisisBossStyle = (typeof CRISIS_BOSS_STYLES)[number]
+
+// ---------------------------------------------------------------------------------------------
+// Linear combat (Plan 7; docs/plans/2026-11-13-combat-design.md)
+// ---------------------------------------------------------------------------------------------
+
+/** The eight weapon families (combat design §4). Their dice, reach and full actions are constants. */
+export const WEAPON_FAMILIES = [
+  'daggers',
+  'blades',
+  'axes',
+  'maces',
+  'polearms',
+  'bows',
+  'thrown',
+  'staffs',
+] as const
+export type WeaponFamily = (typeof WEAPON_FAMILIES)[number]
+
+/** Weapon quality tiers, worst first: plain, fine (+1 to hit), +1 and +2 magic. */
+export const WEAPON_QUALITIES = ['plain', 'fine', 'magic1', 'magic2'] as const
+export type WeaponQuality = (typeof WEAPON_QUALITIES)[number]
+
+/** Armour grades, lightest first (combat design §4). Their AC rules are constants. */
+export const ARMOUR_GRADES = ['cloth', 'leather', 'chain', 'plate'] as const
+export type ArmourGrade = (typeof ARMOUR_GRADES)[number]
+
+/** The six enemy roles (combat design §6): each has a favoured range and a trick. */
+export const ENEMY_ROLES = ['brute', 'skirmisher', 'archer', 'caster', 'swarm', 'leader'] as const
+export type EnemyRole = (typeof ENEMY_ROLES)[number]
+
+/** Creature sizes; each counts some size points toward a tile's stack cap (SIZE_POINTS). */
+export const CREATURE_SIZES = ['tiny', 'small', 'medium', 'large', 'huge', 'gargantuan'] as const
+export type CreatureSize = (typeof CREATURE_SIZES)[number]
+
+/** Spell pools (combat design §5): wizards cast arcane, clerics (and paladins, rangers) divine. */
+export const SPELL_POOLS = ['arcane', 'divine'] as const
+export type SpellPool = (typeof SPELL_POOLS)[number]
+
+/** A cleric's alignment, as far as the rules care (summons): good or neutral call beasts or celestials, evil the undead. */
+export const MORAL_ALIGNMENTS = ['good', 'neutral', 'evil'] as const
+export type MoralAlignment = (typeof MORAL_ALIGNMENTS)[number]
+
+/** A member's place in the party's formation: the front rank starts nearer the enemy. */
+export const RANKS = ['front', 'back'] as const
+export type Rank = (typeof RANKS)[number]
+
+/** The sides of a fight. */
+export const COMBAT_SIDES = ['party', 'enemy'] as const
+export type CombatSide = (typeof COMBAT_SIDES)[number]
+
+/**
+ * How a fight ended: every enemy down (victory), the enemies' morale broke (rout), every member
+ * still standing left the line (retreat), or the whole party went down (wipe).
+ */
+export const COMBAT_RESULTS = ['victory', 'rout', 'retreat', 'wipe'] as const
+export type CombatResult = (typeof COMBAT_RESULTS)[number]

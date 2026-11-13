@@ -463,7 +463,7 @@ Designer calls 9 (2026-11-13): dungeons are the faster but riskier way to grow, 
 - **Outcome tiers:** each option shows the acting member, skill, DC and the odds of every tier before the player commits.
   - **What's revealed:** the fail, partial and success outcomes are shown. Critical failure and critical success outcomes are deliberately not listed at all, because they are usually more extreme and the surprise is part of the fun. Their odds still show on the bar (as 1 and 20).
   - **Card layout:** cards stay compact, and clicking a card chooses it. Hovering or focusing an option shows its outcomes in one shared, fixed-size Outcomes panel below the cards.
-- **Combat** is resolved as a graded check in slice 1. The linear-distance combat system comes in a later phase.
+- **Combat** is resolved as a graded check in slice 1. Linear combat (Plan 7) is designed in `docs/plans/2026-11-13-combat-design.md`; its engine and data shapes are built (`src/engine/combat/`, §11 there, save v23) and wait for the integration track to offer Fight beside the graded options.
 
 ### Encounter format (Plan 2)
 

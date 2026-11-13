@@ -297,6 +297,10 @@
                 "text"
               ]
             }
+          },
+          "fight": {
+            "description": "A fight on the line this situation can open (Plan 7)",
+            "$ref": "#/$defs/__schema128"
           }
         },
         "required": [
@@ -1840,6 +1844,76 @@
         "win",
         "lose"
       ]
+    },
+    "__schema128": {
+      "type": "object",
+      "properties": {
+        "enemies": {
+          "minItems": 1,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema129"
+          }
+        },
+        "ambush": {
+          "default": false,
+          "description": "1–3 more enemies apart from the group or on the far side of the party",
+          "$ref": "#/$defs/__schema131"
+        },
+        "line": {
+          "description": "Tiles (default 7): the room's shape",
+          "$ref": "#/$defs/__schema132"
+        },
+        "win": {
+          "description": "Victory or a rout",
+          "$ref": "#/$defs/__schema126"
+        },
+        "flee": {
+          "description": "The party retreated off its end of the line",
+          "$ref": "#/$defs/__schema126"
+        },
+        "lose": {
+          "description": "A wipe: robbed or left for dead",
+          "$ref": "#/$defs/__schema126"
+        }
+      },
+      "required": [
+        "enemies"
+      ]
+    },
+    "__schema129": {
+      "type": "object",
+      "properties": {
+        "creature": {
+          "description": "A creatures id",
+          "$ref": "#/$defs/__schema0"
+        },
+        "count": {
+          "default": 1,
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 12
+        },
+        "boss": {
+          "default": false,
+          "description": "A boss: more HP, harder to stagger, desperate when bloodied",
+          "$ref": "#/$defs/__schema130"
+        }
+      },
+      "required": [
+        "creature"
+      ]
+    },
+    "__schema130": {
+      "type": "boolean"
+    },
+    "__schema131": {
+      "type": "boolean"
+    },
+    "__schema132": {
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 8
     }
   }
 }

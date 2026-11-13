@@ -1439,7 +1439,138 @@ export const testDungeons: Record<string, unknown> = {
   },
 }
 
-export function fixtureContent(): Content {
+/** One stat row at CR 0 (and a CR 5 row for brutes), so tests can reason about exact numbers. */
+const role = (
+  id: string,
+  favoured: [number, number],
+  reach: [number, number],
+  hp: number,
+  ac: number,
+  toHit: number,
+  damage: { count: number; die: number; bonus: number },
+  wis: number
+) => ({
+  id,
+  name: id[0].toUpperCase() + id.slice(1),
+  favoured,
+  reach,
+  stats: [
+    { cr: 0, hp, ac, toHit, damage, wis },
+    ...(id === 'brute'
+      ? [{ cr: 5, hp: 110, ac: 14, toHit: 7, damage: { count: 2, die: 10, bonus: 4 }, wis: 1 }]
+      : []),
+  ],
+})
+
+/** Gear and enemy roles (Plan 7): nothing draws from them at random, so they change no other test. */
+export const testCombatData: Record<string, unknown> = {
+  'data/claude/weapons.json': {
+    kind: 'weapons',
+    source: 'claude',
+    entries: [
+      { id: 'dagger', name: 'Dagger', family: 'daggers' },
+      { id: 'longsword', name: 'Longsword', family: 'blades' },
+      { id: 'battleaxe', name: 'Battleaxe', family: 'axes' },
+      { id: 'mace', name: 'Mace', family: 'maces' },
+      { id: 'spear', name: 'Spear', family: 'polearms' },
+      { id: 'shortbow', name: 'Shortbow', family: 'bows' },
+      { id: 'javelin', name: 'Javelins', family: 'thrown' },
+      { id: 'quarterstaff', name: 'Quarterstaff', family: 'staffs' },
+      { id: 'fine-longsword', name: 'Fine longsword', family: 'blades', quality: 'fine' },
+    ],
+  },
+  'data/claude/armours.json': {
+    kind: 'armours',
+    source: 'claude',
+    entries: [
+      { id: 'cloth-garb', name: 'Clothes', grade: 'cloth' },
+      { id: 'leather-armour', name: 'Leather', grade: 'leather' },
+      { id: 'chain-mail', name: 'Chain', grade: 'chain' },
+      { id: 'plate-armour', name: 'Plate', grade: 'plate' },
+    ],
+  },
+  'data/claude/enemy-roles.json': {
+    kind: 'enemyRoles',
+    source: 'claude',
+    entries: [
+      role('brute', [1, 1], [1, 1], 12, 12, 4, { count: 1, die: 8, bonus: 2 }, 0),
+      role('skirmisher', [1, 1], [1, 1], 9, 13, 4, { count: 1, die: 6, bonus: 2 }, 0),
+      role('archer', [3, 5], [3, 5], 8, 12, 4, { count: 1, die: 8, bonus: 2 }, 1),
+      role('caster', [2, 3], [1, 3], 8, 11, 4, { count: 1, die: 10, bonus: 1 }, 2),
+      role('swarm', [1, 1], [1, 1], 4, 11, 3, { count: 1, die: 4, bonus: 1 }, -1),
+      role('leader', [1, 3], [1, 3], 12, 13, 4, { count: 1, die: 8, bonus: 2 }, 1),
+    ],
+  },
+}
+
+const foe = (id: string, type: string, cr: number, role: string, size = 'medium') => ({
+  id,
+  name: id[0].toUpperCase() + id.slice(1).replace('-', ' '),
+  group: `some ${id}s`,
+  type,
+  cr,
+  description: 'A foe.',
+  role,
+  size,
+})
+
+/** A road fight: two cutthroats and a bowman, with what each ending does. */
+export const testFight = {
+  enemies: [
+    { creature: 'cutthroat', count: 2 },
+    { creature: 'bowman', count: 1 },
+  ],
+  win: { text: 'The road is clear.', effects: [{ effect: 'gold', amount: 5 }] },
+  flee: { text: 'You get away.' },
+  lose: { text: 'You wake in a ditch.' },
+}
+
+/** Fight creatures and a situation that opens a fight (combatFixtureContent only). */
+export const testCombatFoes: Record<string, unknown> = {
+  'data/claude/foes.json': {
+    kind: 'creatures',
+    source: 'claude',
+    entries: [
+      foe('cutthroat', 'humanoid', 0.25, 'skirmisher'),
+      foe('bowman', 'humanoid', 0.25, 'archer'),
+      foe('hedge-witch', 'humanoid', 0.5, 'caster'),
+      foe('rat', 'beast', 0, 'swarm', 'tiny'),
+      foe('warlord', 'humanoid', 1, 'leader'),
+      foe('thug-brute', 'humanoid', 0.5, 'brute'),
+      foe('troll', 'giant', 5, 'brute', 'large'),
+      foe('giant', 'giant', 5, 'brute', 'huge'),
+    ],
+  },
+  'data/claude/fights.json': {
+    kind: 'situations',
+    source: 'claude',
+    entries: [
+      {
+        id: 'test-fight',
+        title: 'Cutthroats',
+        disposition: 'hostile',
+        followUpOnly: true,
+        stages: {
+          start: {
+            text: 'Cutthroats block the road.',
+            options: [
+              { id: 'leave', kind: 'fixed', label: 'Back off', outcome: { text: 'You go.' } },
+              { id: 'pay', kind: 'fixed', label: 'Pay', outcome: { text: 'You pay.' } },
+            ],
+          },
+        },
+        fight: testFight,
+      },
+    ],
+  },
+}
+
+/** The fixture content plus fight creatures and a fight situation (Plan 7 combat tests). */
+export function combatFixtureContent(): Content {
+  return fixtureContent(testCombatFoes)
+}
+
+export function fixtureContent(extra: Record<string, unknown> = {}): Content {
   const { content, errors } = buildContent({
     'data/original/classes.json': {
       kind: 'classes',
@@ -1549,6 +1680,8 @@ export function fixtureContent(): Content {
     ...testProgression,
     ...testCrisis,
     ...testDungeons,
+    ...testCombatData,
+    ...extra,
   })
   if (errors.length > 0) throw new Error(JSON.stringify(errors, null, 2))
   return content
@@ -1572,6 +1705,9 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     hired: false,
     oldWounds: [],
     accessory: null,
+    gear: { weapon: null, armour: null },
+    uses: {},
+    spells: {},
     ...overrides,
   }
 }
