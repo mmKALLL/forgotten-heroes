@@ -214,6 +214,10 @@
                       }
                     ]
                   }
+                },
+                "challenge": {
+                  "description": "Makes the stage a skill challenge: its options are rounds that mark a tally",
+                  "$ref": "#/$defs/__schema113"
                 }
               },
               "required": [
@@ -223,22 +227,22 @@
           },
           "disposition": {
             "description": "How it treats the party once it hits",
-            "$ref": "#/$defs/__schema111"
+            "$ref": "#/$defs/__schema114"
           },
           "biomes": {
             "default": [],
             "description": "Terrain where it is likelier on the road (see TWIST_PLACE_WEIGHT)",
-            "$ref": "#/$defs/__schema112"
+            "$ref": "#/$defs/__schema115"
           },
           "regions": {
             "default": [],
             "description": "Regions where it is likelier on the road",
-            "$ref": "#/$defs/__schema113"
+            "$ref": "#/$defs/__schema116"
           },
           "threats": {
             "default": [],
             "description": "Regional threats that make it likelier where they hold the region's roads",
-            "$ref": "#/$defs/__schema114"
+            "$ref": "#/$defs/__schema117"
           }
         },
         "required": [
@@ -1569,9 +1573,12 @@
         "stay": {
           "$ref": "#/$defs/__schema108"
         },
+        "tally": {
+          "$ref": "#/$defs/__schema110"
+        },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema110"
+          "$ref": "#/$defs/__schema112"
         }
       },
       "required": [
@@ -1611,6 +1618,27 @@
       "type": "boolean"
     },
     "__schema110": {
+      "description": "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed option adds nothing unless given (it must then be once). An outcome that tallies stays on the stage until the challenge is decided.",
+      "$ref": "#/$defs/__schema111"
+    },
+    "__schema111": {
+      "type": "object",
+      "properties": {
+        "successes": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "failures": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        }
+      }
+    },
+    "__schema112": {
       "type": "object",
       "properties": {
         "text": {
@@ -1624,13 +1652,47 @@
         },
         "stay": {
           "$ref": "#/$defs/__schema108"
+        },
+        "tally": {
+          "$ref": "#/$defs/__schema110"
         }
       },
       "required": [
         "text"
       ]
     },
-    "__schema111": {
+    "__schema113": {
+      "type": "object",
+      "properties": {
+        "successes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "Successes that win it"
+        },
+        "failures": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9,
+          "description": "Failures that lose it"
+        },
+        "win": {
+          "description": "What winning does (no actor: no {actor}, no actor targets)",
+          "$ref": "#/$defs/__schema112"
+        },
+        "lose": {
+          "description": "What losing does (no actor)",
+          "$ref": "#/$defs/__schema112"
+        }
+      },
+      "required": [
+        "successes",
+        "failures",
+        "win",
+        "lose"
+      ]
+    },
+    "__schema114": {
       "type": "string",
       "enum": [
         "hostile",
@@ -1638,7 +1700,7 @@
         "pleasant"
       ]
     },
-    "__schema112": {
+    "__schema115": {
       "type": "array",
       "items": {
         "type": "string",
@@ -1654,13 +1716,13 @@
         ]
       }
     },
-    "__schema113": {
+    "__schema116": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema0"
       }
     },
-    "__schema114": {
+    "__schema117": {
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema0"

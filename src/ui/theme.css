@@ -197,6 +197,25 @@ input {
 .encounter-danger {
   flex-basis: 100%;
 }
+/* A skill challenge's tally (Plan 6 S), above the option cards. */
+.challenge-tally {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+  align-items: baseline;
+  margin: 0.5rem 0;
+}
+.challenge-successes [aria-hidden='true'] {
+  color: var(--good);
+  letter-spacing: 0.1em;
+}
+.challenge-failures [aria-hidden='true'] {
+  color: var(--bad);
+  letter-spacing: 0.1em;
+}
+.challenge-rule {
+  flex-basis: 100%;
+}
 .abilities {
   display: grid;
   grid-template-columns: repeat(6, 1fr);

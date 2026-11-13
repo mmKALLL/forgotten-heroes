@@ -134,7 +134,17 @@ function mapChecks(
   const stages = Object.fromEntries(
     Object.entries(situation.stages).map(([id, stage]) => [
       id,
-      { ...stage, options: stage.options.map(option) },
+      {
+        ...stage,
+        options: stage.options.map(option),
+        ...(stage.challenge && {
+          challenge: {
+            ...stage.challenge,
+            win: branch(stage.challenge.win),
+            lose: branch(stage.challenge.lose),
+          },
+        }),
+      },
     ])
   )
   return {

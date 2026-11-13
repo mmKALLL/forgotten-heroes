@@ -3,6 +3,7 @@ import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
 import { GOOD_CATEGORY, GOODS, POI_CATEGORIES, WEALTH_TAGS, type Biome } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
+import { challengeSize, playsRound } from '../engine/encounters/challenge'
 import { applyEffects } from '../engine/encounters/effects'
 import { encounterOptions } from '../engine/encounters/preview'
 import { encounterOver, fitsPlace } from '../engine/encounters/run'
@@ -320,6 +321,26 @@ describe('points of interest', () => {
     expect(Object.keys(content.dungeons).length).toBeGreaterThan(0)
     expect(dungeonIssues(content)).toEqual([])
   })
+
+  // Plan 6 S: a dungeon's boss room is a skill challenge sized by the dungeon's CR; the engine
+  // pays the hoard on its win and drives the party out on its loss (encounters/room.ts).
+  test.each(Object.values(content.dungeons).map((d) => [d.id, d] as const))(
+    '%s ends in a boss room that is a skill challenge sized by its CR',
+    (_, dungeon) => {
+      const last = dungeon.rooms[dungeon.rooms.length - 1]
+      for (const id of last.situations) {
+        const s = content.situations[id]
+        const stage = s.stages[s.start]
+        expect(stage.challenge, id).toBeDefined()
+        const { successes, failures, win, lose } = stage.challenge!
+        expect({ successes, failures }, id).toEqual(challengeSize(dungeon.cr))
+        const rounds = stage.options.filter(playsRound)
+        expect(rounds.length, id).toBeGreaterThanOrEqual(3)
+        expect(rounds.length, id).toBeLessThanOrEqual(4)
+        for (const b of [win, lose]) expect(!b.goto && !b.stay, id).toBe(true)
+      }
+    }
+  )
 
   test('every threat has a hostile lair keyed to it', () => {
     for (const threat of Object.keys(content.threats)) {

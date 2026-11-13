@@ -276,6 +276,11 @@ export function crLevel(cr: number): number
   - Optionally convert the multi-stage leads too.
   - With crDc, a novice party should almost always lose act I's key challenge.
 - **Tests:** the preview's overall chance equals the exact computation, and a simulated challenge run matches it statistically; preview == actual per round; determinism.
+- **As built (S1–S3):**
+  - `challenge` sits on a **stage** (so a later "Fight" option can sit beside the one that enters it), with `win` and `lose` branches; outcomes may carry their own `tally` (a once-only fixed sure success). A partial marks nothing. Rounds pay no XP of their own; the win pays. The open encounter's `tally` is a defaulted field: no save migration.
+  - `challengePreview` gives the tally and the exact chance with the best option each round (value iteration over tally, footing and once-only options; strain and wounds to come not foreseen). The encounter panel shows ●●○○ / ✕○○ and "≈N% to win"; each outcome row shows its marks.
+  - Content: the 9 key finales and 20 boss rooms are challenges sized by `challengeSize(cr)`; the delve's hoard and driveOut go into `win` and `lose`. The crusader plays the best round.
+  - Measured (`src/content/challenge.sim.test.ts`, 40 seeds per level over act I's three keys, played from their start at CR 6): a level 1–2 party wins about 30%, a level-7 party (the CR's level) about 39%. Bounded accuracy keeps the gap small; Track B's levers are the CR → DC slope, the sizes and the marks (e.g. a partial as a failure).
 
 ## Wave 3
 

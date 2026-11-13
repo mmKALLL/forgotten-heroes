@@ -1,4 +1,12 @@
-import type { Effect, Option, Outcome, OutcomeBranch, Situation } from '../../schema/encounter'
+import type {
+  Effect,
+  Option,
+  Outcome,
+  OutcomeBranch,
+  Situation,
+  Stage,
+} from '../../schema/encounter'
+import { playsRound } from './challenge'
 
 // A dungeon room's snapshot (Plan 6 D3; world/delve.ts). The room is played like any situation,
 // with its rules written into the snapshot when it starts, so the previews show them as chips and
@@ -6,6 +14,8 @@ import type { Effect, Option, Outcome, OutcomeBranch, Situation } from '../../sc
 // - wounds are `wound` times as deep;
 // - a failed or critically failed outcome that ends the room drives the party out (driveOut);
 // - in the last room, every other outcome that ends the room pays the hoard (`hoard`).
+// In a skill challenge (challenge.ts) the rounds never end the room: its `lose` branch drives the
+// party out and its `win` branch pays the hoard (when they end it).
 
 /** How a room is played: the wound factor, and the hoard when it is the last room. */
 export type RoomRules = { wound: number; hoard: Extract<Effect, { effect: 'hoard' }> | null }
@@ -29,6 +39,22 @@ export function asRoom(situation: Situation, { wound, hoard }: RoomRules): Situa
     ...branch(o, failed),
     ...(o.twist && { twist: branch(o.twist, failed) }),
   })
+  // A challenge round only deepens its wounds: it stays on the stage until the tally decides.
+  const round = (o: Outcome): Outcome => ({ ...o, effects: o.effects.map(effect) })
+  const roundOption = (o: Option): Option => {
+    if (o.kind === 'fixed') return { ...o, outcome: round(o.outcome) }
+    const { critFail, fail, partial, success, critSuccess } = o.outcomes
+    return {
+      ...o,
+      outcomes: {
+        ...(critFail && { critFail: round(critFail) }),
+        fail: round(fail),
+        partial: round(partial),
+        success: round(success),
+        ...(critSuccess && { critSuccess: round(critSuccess) }),
+      },
+    }
+  }
   const option = (o: Option): Option => {
     if (o.kind === 'fixed') return { ...o, outcome: outcome(o.outcome, false) }
     const { critFail, fail, partial, success, critSuccess } = o.outcomes
@@ -43,11 +69,21 @@ export function asRoom(situation: Situation, { wound, hoard }: RoomRules): Situa
       },
     }
   }
+  const stageOf = (stage: Stage): Stage => {
+    const challenge = stage.challenge
+    if (!challenge) return { ...stage, options: stage.options.map(option) }
+    return {
+      ...stage,
+      options: stage.options.map((o) => (playsRound(o) ? roundOption(o) : option(o))),
+      challenge: {
+        ...challenge,
+        win: branch(challenge.win, false),
+        lose: branch(challenge.lose, true),
+      },
+    }
+  }
   const stages = Object.fromEntries(
-    Object.entries(situation.stages).map(([id, stage]) => [
-      id,
-      { ...stage, options: stage.options.map(option) },
-    ])
+    Object.entries(situation.stages).map(([id, stage]) => [id, stageOf(stage)])
   )
   return {
     ...situation,

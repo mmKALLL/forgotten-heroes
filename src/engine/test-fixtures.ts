@@ -1582,6 +1582,7 @@ export function makeEncounter(overrides: Partial<EncounterState> = {}): Encounte
     domain: null,
     danger: 0,
     used: [],
+    tally: null,
     log: [],
     ...overrides,
   }

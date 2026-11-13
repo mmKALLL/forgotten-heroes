@@ -493,9 +493,12 @@
         "stay": {
           "$ref": "#/$defs/__schema101"
         },
+        "tally": {
+          "$ref": "#/$defs/__schema103"
+        },
         "twist": {
           "description": "Replaces this outcome when the hidden twist is true",
-          "$ref": "#/$defs/__schema103"
+          "$ref": "#/$defs/__schema105"
         }
       },
       "required": [
@@ -1428,6 +1431,27 @@
       "type": "boolean"
     },
     "__schema103": {
+      "description": "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed option adds nothing unless given (it must then be once). An outcome that tallies stays on the stage until the challenge is decided.",
+      "$ref": "#/$defs/__schema104"
+    },
+    "__schema104": {
+      "type": "object",
+      "properties": {
+        "successes": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        },
+        "failures": {
+          "default": 0,
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3
+        }
+      }
+    },
+    "__schema105": {
       "type": "object",
       "properties": {
         "text": {
@@ -1441,6 +1465,9 @@
         },
         "stay": {
           "$ref": "#/$defs/__schema101"
+        },
+        "tally": {
+          "$ref": "#/$defs/__schema103"
         }
       },
       "required": [

@@ -322,6 +322,19 @@ const outcomeFields = {
         'Without goto or stay, the encounter ends.'
     ),
   stay: z.boolean().optional().describe('Stay on the current stage'),
+  tally: z
+    .object({
+      successes: z.number().int().min(0).max(3).default(0),
+      failures: z.number().int().min(0).max(3).default(0),
+    })
+    .optional()
+    .describe(
+      "Only in a challenge stage: what this outcome adds to the challenge's tally. A check's " +
+        'outcomes default to their tier (CHALLENGE_MARKS: a critical success 2 successes, a ' +
+        'success 1, a partial nothing, a failure 1 failure, a critical failure 2); a fixed ' +
+        'option adds nothing unless given (it must then be once). An outcome that tallies ' +
+        'stays on the stage until the challenge is decided.'
+    ),
 }
 export const OutcomeBranchSchema = z.object(outcomeFields)
 export type OutcomeBranch = z.infer<typeof OutcomeBranchSchema>
@@ -411,12 +424,29 @@ export const ArchetypeSchema = z.object({
 })
 export type Archetype = z.infer<typeof ArchetypeSchema>
 
+/**
+ * A skill challenge (Plan 6 S): a stage whose options are rounds. Each round the player picks one
+ * and rolls; its outcome applies (wounds, costs, Edge) and marks the tally. The challenge is won
+ * at `successes` and lost at `failures`, and then `win` or `lose` applies. A situation enters it
+ * like any stage (its start, or a goto), so other approaches can sit beside it.
+ */
+export const ChallengeSchema = z.object({
+  successes: z.number().int().min(1).max(9).describe('Successes that win it'),
+  failures: z.number().int().min(1).max(9).describe('Failures that lose it'),
+  win: OutcomeBranchSchema.describe('What winning does (no actor: no {actor}, no actor targets)'),
+  lose: OutcomeBranchSchema.describe('What losing does (no actor)'),
+})
+export type Challenge = z.infer<typeof ChallengeSchema>
+
 export const StageSchema = z.object({
   text: z.string(),
   archetype: ArchetypeRefSchema.optional().describe(
     "Its options come first, then this stage's own"
   ),
   options: z.array(OptionSchema).default([]),
+  challenge: ChallengeSchema.optional().describe(
+    'Makes the stage a skill challenge: its options are rounds that mark a tally'
+  ),
 })
 export type Stage = z.infer<typeof StageSchema>
 

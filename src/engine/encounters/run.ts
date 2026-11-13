@@ -3,6 +3,7 @@ import type { Source } from '../../schema/common'
 import type { Biome, LogTone, Pace, Position } from '../../schema/types'
 import {
   TWIST_STAGE,
+  type Challenge,
   type Effect,
   type Option,
   type OutcomeBranch,
@@ -31,7 +32,24 @@ import { boonReadyIn, siteStatus } from '../world/sites'
 import { atChallenge, dangerLevel, harden } from '../world/danger'
 import { allSituations, attachTwistKind, compileSituation, twistKindsFor } from './compile'
 import { applyEffects, describeEffect, prepareEffects } from './effects'
-import { branchFor, defaultXp, isHighStakes, setbackCamaraderie, tierOutcome } from './outcomes'
+import {
+  NO_TALLY,
+  addTally,
+  asRound,
+  challengeOf,
+  decided,
+  marksOf,
+  playsRound,
+  type Tally,
+} from './challenge'
+import {
+  branchFor,
+  defaultXp,
+  isHighStakes,
+  onceKey,
+  setbackCamaraderie,
+  tierOutcome,
+} from './outcomes'
 import { livingMembers } from '../town/camaraderie'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
@@ -242,6 +260,7 @@ export function startEncounter(
     domain: place?.domain ?? domainAt(state.world, state.location),
     danger,
     used: [],
+    tally: situation.stages[situation.start].challenge ? NO_TALLY : null,
     log: [
       { text, tone: 'info' },
       ...(powerDc > 0
@@ -397,13 +416,6 @@ function spendBoon(state: GameState, option: Option): GameState {
   return { ...state, world: { ...state.world, pois } }
 }
 
-/**
- * The `used` key of a `once` option on a stage: its own id, or its group's (`once: "name"`), so
- * choosing any option of a group uses up all of them.
- */
-const onceKey = (stageId: string, option: Pick<Option, 'id' | 'once'>): string =>
-  typeof option.once === 'string' ? `${stageId}/@${option.once}` : `${stageId}/${option.id}`
-
 /** The current stage's options that can still be chosen (used `once` options are gone). */
 export function currentOptions(encounter: EncounterState): Option[] {
   const stageId = encounter.stage
@@ -469,14 +481,47 @@ function resolve(
     next = appendLog(next, line, 'bad')
     log = [...log, { text: line, tone: 'bad' }]
   }
+  // Entering another stage starts its challenge's tally afresh (or clears it); an ending keeps it.
+  let tally = next.encounter!.tally
   if (stage !== null && stage !== fromStage) {
     log = [...log, { text: fill(encounter.situation.stages[stage].text), tone: 'info' }]
+    tally = encounter.situation.stages[stage].challenge ? NO_TALLY : null
   }
   if (!next.party.some(canAct)) {
     next = appendLog(next, 'No one is left standing.', 'bad')
-    return { ...next, encounter: { ...next.encounter!, stage: null, log } }
+    return { ...next, encounter: { ...next.encounter!, stage: null, log, tally } }
   }
-  return { ...next, encounter: { ...next.encounter!, stage, log } }
+  return { ...next, encounter: { ...next.encounter!, stage, log, tally } }
+}
+
+/**
+ * After a challenge round has been resolved: the round's marks join the tally, and at the
+ * challenge's successes or failures its win or lose branch applies (it has no actor). Nothing is
+ * decided when the round itself ended the encounter (no one is left standing, or the Crisis act
+ * ran out of time).
+ */
+function markRound(
+  state: GameState,
+  challenge: Challenge,
+  marks: Tally,
+  content: Content | undefined
+): GameState {
+  const encounter = state.encounter
+  if (!encounter) return state
+  const tally = addTally(encounter.tally ?? NO_TALLY, marks)
+  const marked = { ...state, encounter: { ...encounter, tally } }
+  const result = encounter.stage === null ? null : decided(tally, challenge)
+  if (result === null) return marked
+  const won = result === 'won'
+  return resolve(
+    marked,
+    won ? challenge.win : challenge.lose,
+    undefined,
+    {
+      tone: won ? 'good' : 'bad',
+    },
+    content
+  )
 }
 
 /** `content` lets clues (discoverPoi) find their sites; without it they find nothing. */
@@ -508,15 +553,19 @@ export function chooseOption(
       option,
       null
     )
-    return resolve(
+    const branch = branchFor(option.outcome, encounter.twist)
+    const challenge = challengeOf(encounter)
+    const round = challenge !== null && playsRound(option) ? challenge : null
+    const resolved = resolve(
       marked,
-      branchFor(option.outcome, encounter.twist),
+      round ? asRound(branch) : branch,
       undefined,
       { tone: 'info' },
       content,
       0,
       setback
     )
+    return round ? markRound(resolved, round, marksOf(branch, null), content) : resolved
   }
 
   const { skill, ability, combat } = option.check
@@ -569,15 +618,18 @@ export function chooseOption(
     )
   }
   const branch = branchFor(tierOutcome(option, roll.tier), encounter.twist)
-  return resolve(
+  // A challenge round stays on the stage and pays no XP of its own: winning pays (Plan 6 S).
+  const challenge = challengeOf(encounter)
+  const resolved = resolve(
     rolled,
-    branch,
+    challenge ? asRound(branch) : branch,
     actor.characterId,
     { tone: TIER_TONE[roll.tier], roll: record, highStakes },
     content,
-    defaultXp(encounter.situation, branch, dc, roll.tier),
+    challenge ? 0 : defaultXp(encounter.situation, branch, dc, roll.tier),
     setbackCamaraderie(livingMembers(state).length, encounter.situation, option, roll.tier)
   )
+  return challenge ? markRound(resolved, challenge, marksOf(branch, roll.tier), content) : resolved
 }
 
 export function stepEncounter(

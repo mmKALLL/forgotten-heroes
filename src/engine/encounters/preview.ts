@@ -28,6 +28,17 @@ import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } fro
 import { fillText } from './slots'
 import { crisisActNumber } from '../crisis/status'
 import { crisisFailsDuring, tooLateChip } from '../crisis/progress'
+import {
+  NO_TALLY,
+  asRound,
+  challengeOdds,
+  challengeOf,
+  marksChip,
+  marksOf,
+  playsRound,
+  roundChoices,
+  type Tally,
+} from './challenge'
 
 /**
  * What effect chips name: the settlement a reputation effect changes, and the Crisis's current act.
@@ -219,9 +230,15 @@ export function encounterOptions(
     failsAct: (effects) => crisisFailsDuring(state, effects),
   }
   const members = livingMembers(state).length
+  const challenge = challengeOf(encounter)
   return currentOptions(encounter).map((option) => {
     const setbackAt = (tier: Tier | null) =>
       setbackCamaraderie(members, encounter.situation, option, tier)
+    // A challenge round stays on the stage, pays no XP of its own, and shows what it marks.
+    const round = challenge !== null && playsRound(option)
+    const play = (outcome: Outcome) => (round ? asRound(outcome) : outcome)
+    const marked = (shown: ShownOutcome, outcome: Outcome, tier: Tier | null): ShownOutcome =>
+      round ? { ...shown, effects: [marksChip(marksOf(outcome, tier)), ...shown.effects] } : shown
     const unmet = unmetRequirements(state, option.requires)
     const base = {
       id: option.id,
@@ -231,15 +248,19 @@ export function encounterOptions(
     }
     if (option.kind === 'fixed') {
       const outcomes = [
-        outcomePreview(
+        marked(
+          outcomePreview(
+            play(option.outcome),
+            null,
+            encounter,
+            encounter.slots,
+            'someone',
+            ctx,
+            undefined,
+            setbackAt(null)
+          ),
           option.outcome,
-          null,
-          encounter,
-          encounter.slots,
-          'someone',
-          ctx,
-          undefined,
-          setbackAt(null)
+          null
         ),
       ]
       return { ...base, available: optionAvailable(state, option), unmet, check: null, outcomes }
@@ -271,9 +292,9 @@ export function encounterOptions(
       ),
     }))
     const xpFor = (tier: Tier) => (branch: OutcomeBranch) =>
-      defaultXp(encounter.situation, branch, preview.dc, tier)
+      round ? 0 : defaultXp(encounter.situation, branch, preview.dc, tier)
     const success = outcomePreview(
-      tierOutcome(option, 'success'),
+      play(tierOutcome(option, 'success')),
       'success',
       encounter,
       values,
@@ -302,15 +323,19 @@ export function encounterOptions(
     const outcomes = TIERS.map((tier): OutcomePreview =>
       isCritical(tier)
         ? { tier, hidden: true }
-        : outcomePreview(
+        : marked(
+            outcomePreview(
+              play(tierOutcome(option, tier)),
+              tier,
+              encounter,
+              values,
+              preview.actorName,
+              ctx,
+              xpFor(tier),
+              setbackAt(tier)
+            ),
             tierOutcome(option, tier),
-            tier,
-            encounter,
-            values,
-            preview.actorName,
-            ctx,
-            xpFor(tier),
-            setbackAt(tier)
+            tier
           )
     )
     return { ...base, available: optionAvailable(state, option), unmet, check, outcomes }
@@ -328,4 +353,42 @@ export function twistInfo(state: GameState): TwistInfo | null {
   const what =
     encounter.twistKind && encounter.twistKindRevealed ? encounter.twistKind.what : twist.what
   return { what, chance: encounter.twistRevealed ? twist.chance : null }
+}
+
+/**
+ * A skill challenge as the player sees it (Plan 6 S): the tally, what wins and loses it, and the
+ * chance of winning if the best option is picked every round (challengeOdds: exact over the tally
+ * and footing, at the best actors' odds now; strain and wounds to come aren't foreseen, so it is
+ * shown as "≈"). `ifChosen` is that chance with each option picked now; `best` the highest.
+ */
+export type ChallengePreview = {
+  tally: Tally
+  need: Tally
+  chance: number
+  best: string | null
+  ifChosen: Record<string, number>
+}
+
+/** Null when the encounter isn't on a challenge stage (or has ended). */
+export function challengePreview(state: GameState): ChallengePreview | null {
+  const encounter = state.encounter
+  const challenge = encounter && challengeOf(encounter)
+  if (!encounter || !challenge || encounter.stage === null) return null
+  const available = currentOptions(encounter).filter((o) => optionAvailable(state, o))
+  const choices = roundChoices(state, available, encounter.stage)
+  const tally = encounter.tally ?? NO_TALLY
+  const { chance, ifChosen } = challengeOdds(choices, challenge, {
+    tally,
+    position: encounter.position,
+    modifier: encounter.nextCheckModifier,
+    used: encounter.used,
+  })
+  const ranked = Object.entries(ifChosen).sort((a, b) => b[1] - a[1])
+  return {
+    tally,
+    need: { successes: challenge.successes, failures: challenge.failures },
+    chance,
+    best: ranked[0]?.[0] ?? null,
+    ifChosen,
+  }
 }
