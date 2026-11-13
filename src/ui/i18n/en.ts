@@ -416,6 +416,8 @@ export const en = {
   'services.blessed': 'Already blessed this visit',
   'services.round': 'Stand a round · {gp} gp',
   'services.roundHint': 'Drinks for everyone: +{n} camaraderie, once each visit',
+  'services.roundHintSinger':
+    'Drinks for everyone, {name} leading the songs (Performance {modifier}): +{n} camaraderie, once each visit',
   'services.roundStood': 'Round stood this visit',
   'services.news.neighbours': 'Neighbours · {gp} gp',
   'services.news.all': 'All towns · {gp} gp',

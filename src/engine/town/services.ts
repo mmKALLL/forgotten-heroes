@@ -3,7 +3,7 @@ import { SERVICE_FUNCTIONS, type ServiceAction, type ServiceFunction } from '../
 import type { GameState } from '../../schema/state'
 import { inProgress } from '../encounters/run'
 import { appendLog } from '../log'
-import { MAX_EXHAUSTION } from '../rules/character'
+import { MAX_EXHAUSTION, statModifier } from '../rules/character'
 import { qualityEffects, serviceQuality, type QualityEffect } from '../economy/market'
 import { heardPrices, marketTalk } from '../economy/trade'
 import { withRng } from '../rng'
@@ -18,6 +18,8 @@ import { accessoryOffers } from '../gear/accessories'
 import {
   BLESSING_PRICE,
   CAMARADERIE_ROUND,
+  CAMARADERIE_ROUND_MIN,
+  CAMARADERIE_ROUND_PER_PERFORMANCE,
   COURIER_ALL_PRICE,
   COURIER_ALL_SPEED,
   COURIER_KM_PER_DAY,
@@ -113,24 +115,43 @@ const ROUND = 'round'
 export type RoundOption = {
   /** gp: ROUND_PRICE per living member. */
   cost: number
-  /** The camaraderie it adds (CAMARADERIE_ROUND, less at the top of the scale). */
+  /** The camaraderie it adds (roundGain, less at the top of the scale). */
   camaraderie: number
+  /** Who leads the singing (the best Performance among the living), and their modifier. */
+  singer: { id: string; name: string; modifier: number } | null
   available: boolean
   /** Why not (English), or null. */
   reason: string | null
 }
 
-/** What standing a round here would cost and bring; flat gains, a per-member price. */
+/** The best singer among the living: the highest Performance modifier (party order on ties). */
+const bestSinger = (state: GameState): RoundOption['singer'] =>
+  livingMembers(state)
+    .map((c) => ({ id: c.id, name: c.name, modifier: statModifier(c, 'performance') }))
+    .reduce<RoundOption['singer']>(
+      (best, c) => (!best || c.modifier > best.modifier ? c : best),
+      null
+    )
+
+/** A round's camaraderie by the best Performance (designer call 2026-11-14). */
+export const roundGain = (performance: number): number =>
+  Math.max(
+    CAMARADERIE_ROUND_MIN,
+    CAMARADERIE_ROUND + CAMARADERIE_ROUND_PER_PERFORMANCE * performance
+  )
+
+/** What standing a round here would cost and bring: a per-member price, gains by Performance. */
 export function roundOption(state: GameState): RoundOption {
   const cost = ROUND_PRICE * livingMembers(state).length
-  const camaraderie =
-    shiftCamaraderie(state.camaraderie, CAMARADERIE_ROUND).value - state.camaraderie
+  const singer = bestSinger(state)
+  const gain = roundGain(singer?.modifier ?? 0)
+  const camaraderie = shiftCamaraderie(state.camaraderie, gain).value - state.camaraderie
   const reason = state.doneHere.includes(ROUND)
     ? 'already stood a round this visit'
     : state.gold < cost
       ? NOT_ENOUGH_GOLD
       : null
-  return { cost, camaraderie, available: reason === null, reason }
+  return { cost, camaraderie, singer, available: reason === null, reason }
 }
 
 /** Stands the party a round: pays roundOption's cost for its camaraderie, once per arrival. */
@@ -142,7 +163,10 @@ function standRound(state: GameState): GameState {
     `You stand the party a round for ${option.cost} gp.`,
     'good'
   )
-  return changeCamaraderie(paid, CAMARADERIE_ROUND, 'a round at the inn')
+  const why = option.singer
+    ? `a round at the inn, ${option.singer.name} leading the songs`
+    : 'a round at the inn'
+  return changeCamaraderie(paid, roundGain(option.singer?.modifier ?? 0), why)
 }
 
 /** Members a healer would treat: alive, and hurt or exhausted. */

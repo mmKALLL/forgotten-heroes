@@ -81,7 +81,9 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
   await userEvent.click(inn.getByRole('button', { name: /^Common room · \d+ gp \d+% HP/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: 'common' })
   const round = inn.getByRole('button', { name: /^Stand a round · \d+ gp \+\d+ camaraderie$/ })
-  expect(round.getAttribute('title')).toMatch(/^Drinks for everyone: \+\d+ camaraderie/)
+  expect(round.getAttribute('title')).toMatch(
+    /^Drinks for everyone, \w+ leading the songs \(Performance [+−]\d+\): \+\d+ camaraderie/
+  )
   await userEvent.click(round)
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'useService',

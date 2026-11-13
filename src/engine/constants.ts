@@ -455,8 +455,16 @@ export const CAMARADERIE_RETREAT = 5
 export const CAMARADERIE_CONTRACT = 8
 /** Camaraderie gained for a night in a private room, once per arrival (a common room: none). */
 export const CAMARADERIE_BOND = 4
-/** Camaraderie gained for standing the party a round at the inn, once per arrival. */
-export const CAMARADERIE_ROUND = 8
+/**
+ * Camaraderie gained for standing the party a round at the inn, once per arrival: this, plus
+ * CAMARADERIE_ROUND_PER_PERFORMANCE × the best Performance modifier among the living (someone
+ * leads the singing; designer call 2026-11-14), at least CAMARADERIE_ROUND_MIN.
+ */
+export const CAMARADERIE_ROUND = 5
+/** ...per point of the best Performance modifier. */
+export const CAMARADERIE_ROUND_PER_PERFORMANCE = 2
+/** ...and never less than this. */
+export const CAMARADERIE_ROUND_MIN = 1
 /** A round at the inn, per living member (gp). */
 export const ROUND_PRICE = 4
 /** Camaraderie gained at once when a living member leaves: dismissed, or lost to a low spell. */

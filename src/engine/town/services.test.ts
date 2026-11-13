@@ -9,7 +9,7 @@ import { carryCapacity } from '../economy/capacity'
 import { routeOptions } from '../travel/preview'
 import { restOption } from '../travel/supplies'
 import { animalOffers } from './animals'
-import { lodgingOptions, newsOptions, serviceRows } from './services'
+import { lodgingOptions, newsOptions, roundOption, serviceRows } from './services'
 import { KM_PER_DAY } from '../constants'
 
 /** The fixture with a temple that heals and blesses, and a courier, in every settlement. */
@@ -325,5 +325,24 @@ describe('buying a mount', () => {
     // A day of rest on the party's own food: the horse costs nothing to keep.
     const rested = act(bought, { type: 'rest', lodging: false })
     expect(rested.gold).toBe(bought.gold)
+  })
+})
+
+describe('standing a round', () => {
+  test('the best Performance among the living leads the songs, and a better singer cheers more', () => {
+    const plain = at('greenvale-1', { camaraderie: 40 })
+    const bard = {
+      ...lyra,
+      abilities: { ...lyra.abilities, cha: 18 },
+      skillProficiencies: [...lyra.skillProficiencies, 'performance' as const],
+    }
+    const singing = at('greenvale-1', { camaraderie: 40, party: [brom, bard] })
+    const a = roundOption(plain)
+    const b = roundOption(singing)
+    expect(b.singer?.id).toBe(bard.id)
+    expect(b.camaraderie).toBeGreaterThan(a.camaraderie)
+    // Preview == actual.
+    const after = act(singing, { type: 'useService', service: 'inn-tavern', action: 'round' })
+    expect(after.camaraderie - singing.camaraderie).toBe(b.camaraderie)
   })
 })

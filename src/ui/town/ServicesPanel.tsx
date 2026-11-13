@@ -20,6 +20,7 @@ import { goodDef } from '../../engine/economy/goods'
 import type { Good } from '../../schema/types'
 import type { GameState } from '../../schema/state'
 import { useI18n, type I18n } from '../i18n/I18n'
+import { formatModifier } from '../../engine/format'
 import { Tip } from '../Tip'
 import type { QualityEffect } from '../../engine/economy/market'
 import { AccessoryShop } from './AccessoryShop'
@@ -406,7 +407,15 @@ function ServiceAction({
         <BuyButton
           label={stood ? t('services.roundStood') : t('services.round', { gp: round.cost })}
           effect={stood ? null : view.effect}
-          title={t('services.roundHint', { n: round.camaraderie })}
+          title={
+            round.singer
+              ? t('services.roundHintSinger', {
+                  n: round.camaraderie,
+                  name: round.singer.name,
+                  modifier: formatModifier(round.singer.modifier),
+                })
+              : t('services.roundHint', { n: round.camaraderie })
+          }
           reason={stood ? null : view.reason}
           disabled={!view.available}
           onClick={() => onAction({ type: 'useService', service: row.service, action: 'round' })}
