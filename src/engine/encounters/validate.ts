@@ -444,7 +444,8 @@ const twistKindAsSituation = (kind: TwistKind): Situation => ({
 
 /**
  * Design quality rules (design §7). Every situation that can be drawn has a disposition. Regular stages offer at least 2 options, and at least one of
- * them is neither `once` nor gated by requirements, so a stage can't become a dead end. Wonders
+ * them is neither `once` nor gated by requirements, so a stage can't become a dead end. Every
+ * check option has a description. Wonders
  * are one stage with one fixed option and flavour only: no effects but log lines.
  */
 export function lintSituation(situation: Situation, content: Content): string[] {
@@ -479,6 +480,19 @@ function challengeLint(id: string, stage: Stage): string[] {
   return issues
 }
 
+/** The lint message for a check option without a description (content tests exempt original/). */
+export const NEEDS_DESCRIPTION = 'a check option needs a description'
+
+/**
+ * Every check option (a challenge round too) says in a line what the attempt is (designer call
+ * 2026-11-14): its outcome rows show only their chips before the roll, so without one the card is
+ * a label and a spread of odds. Fixed options ("Pay the toll") need none.
+ */
+const descriptionLint = (id: string, stage: Stage): string[] =>
+  stage.options
+    .filter((o) => o.kind === 'check' && !o.description?.trim())
+    .map((o) => `stage ${id}/${o.id}: ${NEEDS_DESCRIPTION}`)
+
 function lintCompiled(compiled: Situation): string[] {
   const stages = Object.entries(compiled.stages)
   if (!compiled.wonder) {
@@ -495,6 +509,7 @@ function lintCompiled(compiled: Situation): string[] {
             `stage ${id}: every option is once or has requirements, so the stage can become a dead end`,
           ]),
       ...challengeLint(id, stage),
+      ...descriptionLint(id, stage),
     ])
   }
   const issues: string[] = []

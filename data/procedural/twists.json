@@ -94,6 +94,7 @@
               "id": "grab",
               "kind": "check",
               "label": "Take it back by force",
+              "description": "Close in on the blade and take back what's yours.",
               "check": { "skill": "athletics", "dc": 12, "combat": true },
               "outcomes": {
                 "fail": {
@@ -117,6 +118,7 @@
               "id": "scare",
               "kind": "check",
               "label": "Scare them into dropping it",
+              "description": "Make them think twice about that knife.",
               "once": true,
               "check": { "skill": "intimidation", "dc": 13 },
               "outcomes": {
@@ -162,6 +164,7 @@
               "id": "climb",
               "kind": "check",
               "label": "Climb out",
+              "description": "Haul yourselves up past the stakes.",
               "check": { "skill": "athletics", "dc": 13 },
               "outcomes": {
                 "critFail": {
@@ -186,6 +189,7 @@
               "id": "search",
               "kind": "check",
               "label": "Look for whoever dug it",
+              "description": "Study the pit for the trappers' signs. Eyes down means nobody watches the lip.",
               "once": true,
               "check": { "skill": "perception", "dc": 14 },
               "outcomes": {
@@ -234,6 +238,7 @@
               "id": "treat",
               "kind": "check",
               "label": "Treat the fever",
+              "description": "Cold cloths, bitter herbs and a long night.",
               "check": { "skill": "medicine", "dc": 13 },
               "outcomes": {
                 "fail": {
@@ -254,6 +259,7 @@
               "id": "cleanse",
               "kind": "check",
               "label": "Cleanse the mark",
+              "description": "Pray over the black mark. It may not want to go.",
               "once": true,
               "check": { "skill": "religion", "dc": 14 },
               "outcomes": {
@@ -310,6 +316,7 @@
               "id": "lie",
               "kind": "check",
               "label": "Lie for them",
+              "description": "Send the riders the wrong way, and hope the captain believes you.",
               "check": { "skill": "deception", "dc": 14 },
               "outcomes": {
                 "fail": {
@@ -335,6 +342,7 @@
               "id": "run",
               "kind": "check",
               "label": "Run with them",
+              "description": "Slip off through the hedgerows with the runaway in tow.",
               "check": { "skill": "stealth", "dc": 13 },
               "outcomes": {
                 "fail": {
@@ -377,6 +385,7 @@
               "id": "plead",
               "kind": "check",
               "label": "Plead your case",
+              "description": "Talk the crowd round before the reeve decides.",
               "check": { "skill": "persuasion", "dc": 14 },
               "outcomes": {
                 "fail": {
@@ -396,6 +405,7 @@
               "id": "expose",
               "kind": "check",
               "label": "Catch them in the lie",
+              "description": "Pick their story apart in front of everyone. Press too hard and you look the bully.",
               "once": true,
               "check": { "skill": "insight", "dc": 13 },
               "outcomes": {
@@ -425,6 +435,7 @@
               "id": "slip",
               "kind": "check",
               "label": "Slip away in the crowd",
+              "description": "Lose yourselves in the crowd. The story may follow you.",
               "check": { "skill": "stealth", "dc": 12 },
               "outcomes": {
                 "fail": {
@@ -463,6 +474,7 @@
               "id": "hunt",
               "kind": "check",
               "label": "Catch them before they sell it",
+              "description": "Run them down before they reach their buyers. A day's chase.",
               "check": { "skill": "survival", "dc": 14 },
               "outcomes": {
                 "fail": {
@@ -530,6 +542,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them off",
+              "description": "Hold the fire against teeth and claws.",
               "check": { "skill": "athletics", "dc": 13, "combat": true },
               "outcomes": {
                 "fail": {
@@ -551,6 +564,7 @@
               "tags": ["retreat"],
               "kind": "check",
               "label": "Run for high ground",
+              "description": "Scramble for rocks they can't climb, and wait them out.",
               "check": { "skill": "acrobatics", "dc": 12 },
               "outcomes": {
                 "fail": {
@@ -602,6 +616,7 @@
               "id": "bargain",
               "kind": "check",
               "label": "Bargain for it",
+              "description": "Haggle with the fey for what it took. They always want something.",
               "check": { "skill": "persuasion", "dc": 14 },
               "outcomes": {
                 "fail": {
@@ -629,6 +644,7 @@
               "id": "riddle",
               "kind": "check",
               "label": "Out-riddle it",
+              "description": "Beat it at its own game. The fey hate to lose, and pay when they do.",
               "once": true,
               "check": { "skill": "arcana", "dc": 14 },
               "outcomes": {
@@ -696,6 +712,7 @@
               "id": "hunt",
               "kind": "check",
               "label": "Find the recruiter",
+              "description": "Track down whoever planted the hymn, and break the spell at its root.",
               "once": true,
               "check": { "skill": "investigation", "dc": 14 },
               "outcomes": {

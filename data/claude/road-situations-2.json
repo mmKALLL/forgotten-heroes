@@ -297,6 +297,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight them at the fire",
+              "description": "Meet the dead at the fire, blade against spear.",
               "check": { "skill": "athletics", "dc": 13, "combat": true },
               "outcomes": {
                 "critFail": {
@@ -581,6 +582,7 @@
               "id": "treat",
               "kind": "check",
               "label": "Cut and draw the poison",
+              "description": "Open the wound and draw the venom before the fever takes hold.",
               "check": { "skill": "medicine", "dc": 13 },
               "outcomes": {
                 "fail": {
@@ -1294,6 +1296,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Put him back down",
+              "description": "Wrestle the dead man back into the peat, and keep the torc.",
               "check": { "skill": "athletics", "dc": 13, "combat": true },
               "outcomes": {
                 "fail": {
@@ -1475,6 +1478,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight",
+              "description": "Stand and meet them. Goblins break easily; sling-stones don't.",
               "check": { "skill": "athletics", "dc": 12, "combat": true },
               "outcomes": {
                 "fail": {
@@ -1499,6 +1503,7 @@
               "tags": ["retreat"],
               "kind": "check",
               "label": "Run for it",
+              "description": "Outpace them downhill. Whatever falls behind is theirs.",
               "check": { "skill": "athletics", "dc": 11 },
               "outcomes": {
                 "fail": {
@@ -1593,6 +1598,7 @@
               "id": "hold",
               "kind": "check",
               "label": "Hold the rail with the crew",
+              "description": "Keep the wreckers off the deck with boathooks and fists.",
               "check": { "skill": "athletics", "dc": 14, "combat": true },
               "outcomes": {
                 "fail": {

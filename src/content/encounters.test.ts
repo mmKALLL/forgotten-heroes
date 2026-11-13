@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import type { FixedOption, Option, OutcomeBranch } from '../schema/encounter'
+import type { FixedOption, Option, OutcomeBranch, Situation } from '../schema/encounter'
 import { GOOD_CATEGORY, GOODS, POI_CATEGORIES, WEALTH_TAGS, type Biome } from '../schema/types'
 import type { GameState } from '../schema/state'
 import { allSituations } from '../engine/encounters/compile'
@@ -10,15 +10,30 @@ import { encounterOver, fitsPlace } from '../engine/encounters/run'
 import { rollTable } from '../engine/encounters/slots'
 import { createRng, withRng } from '../engine/rng'
 import { dungeonIssues, poiTypeIssues } from '../engine/world/validate'
-import { lintSituation, validateSituation, validateTwistKind } from '../engine/encounters/validate'
+import {
+  NEEDS_DESCRIPTION,
+  lintSituation,
+  validateSituation,
+  validateTwistKind,
+} from '../engine/encounters/validate'
 import { newGame, step } from '../engine/state'
 import { brawlCandidates } from '../engine/travel/stowaway'
 import { troubleCandidates } from '../engine/town/rumours'
 import { loadBundledContent } from './bundled'
+import type { Sourced } from './build'
 
 const content = loadBundledContent()
 const situations = allSituations(content).map((s) => [s.id, s] as const)
 const UNFILLED = /\{[A-Za-z][a-z0-9-]*\}/
+
+/**
+ * The quality rules, except that the user's own situations (data/original/) may lack check
+ * descriptions: those are the designer's to write (the Encounter Deck still flags them).
+ */
+const lint = (s: Situation) =>
+  lintSituation(s, content).filter(
+    (issue) => (s as Sourced<Situation>).source !== 'original' || !issue.endsWith(NEEDS_DESCRIPTION)
+  )
 
 describe('every bundled situation', () => {
   test.each(situations)(
@@ -29,7 +44,7 @@ describe('every bundled situation', () => {
   )
 
   test.each(situations)('%s follows the quality rules', (_, s) => {
-    expect(lintSituation(s, content)).toEqual([])
+    expect(lint(s)).toEqual([])
   })
 
   test.each(situations)('%s plays to the end with every slot filled', (id) => {
@@ -496,7 +511,7 @@ describe('points of interest', () => {
         t.situations.some(
           (id) =>
             validateSituation(content.situations[id], content).length === 0 &&
-            lintSituation(content.situations[id], content).length === 0
+            lint(content.situations[id]).length === 0
         )
       )
       expect(playable.length, category).toBeGreaterThanOrEqual(1)

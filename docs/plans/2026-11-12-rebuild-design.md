@@ -404,6 +404,7 @@ Designer calls 9 (2026-11-13): dungeons are the faster but riskier way to grow, 
   - Contracts from the notice boards (Plan 4, §5) are the proper way to earn money; trading pays once there is capital to trade with.
 - **Encounter budget:** a short hop gets 0–2 encounters, a long journey 2–4, at most one a day. How many is the same on every road; route danger, regional threat, foraging, pace, visible wealth and escorted passengers change what kind: how many of them are hostile.
 - **Quality rule:** every regular encounter must offer at least 2 options that trade off different resources (gold, goods, HP, time, reputation). Options can favour particular party builds; that asymmetry is welcome. The simulation test only flags options that are best for almost every party in almost every situation.
+- **Check options say what they are** (designer call 2026-11-14): every option with a roll, a challenge round too, has a short flavour `description` of the attempt, since its outcome rows show only chips before the roll; fixed options ("Pay the toll") need none. The lint (`NEEDS_DESCRIPTION`) enforces it everywhere but `data/original/`, whose offenders the Encounter Deck flags for the designer.
 - **Wonders:** a separate kind of encounter. Rare, one click, flavour only (no rewards either: the lint allows only log lines), never a burden.
 
 ### Travel (Plan 3)
