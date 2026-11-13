@@ -56,15 +56,27 @@ describe('recruit offers', () => {
     expect(later.some((n) => JSON.stringify(n) !== JSON.stringify(names(week0)))).toBe(true)
   })
 
-  test(`are never above the founders' highest level + ${RECRUIT_LEVEL_LEAD}, and their XP matches their level`, () => {
+  test(`join only up to the lowest living member's level + ${RECRUIT_LEVEL_LEAD}; their XP matches their level`, () => {
     const mercs = withRecruits({ offers: [2, 2], levels: [3, 6] })
-    const novices = overWeeks(at(), 30, mercs)
-    expect(Math.max(...novices.map((o) => o.level))).toBe(1 + RECRUIT_LEVEL_LEAD)
+    const novices = overWeeks(at({ gold: 5000 }), 30, mercs)
+    // Levels span the block whatever the party; those above the cap are listed but refused.
+    expect(new Set(novices.map((o) => o.level))).toEqual(new Set([3, 4, 5, 6]))
+    for (const o of novices) {
+      expect(o.available).toBe(o.level <= 1 + RECRUIT_LEVEL_LEAD)
+      if (!o.available) expect(o.reason).toMatch(/level 1 member/)
+    }
+    // A veteran founder doesn't help while the other is green; once both are, more will join.
     const veteran = { ...lyra, level: 5, xp: XP_BY_LEVEL[4] }
-    const veterans = overWeeks(at({ party: [brom, veteran] }), 30, mercs)
-    expect(Math.max(...veterans.map((o) => o.level))).toBe(6)
-    expect(Math.min(...veterans.map((o) => o.level))).toBe(3)
-    for (const o of [...novices, ...veterans]) {
+    const mixed = overWeeks(at({ gold: 5000, party: [brom, veteran] }), 30, mercs)
+    expect(mixed.map((o) => o.available)).toEqual(novices.map((o) => o.available))
+    const seasoned = { ...brom, level: 4, xp: XP_BY_LEVEL[3] }
+    const both = overWeeks(at({ gold: 5000, party: [seasoned, veteran] }), 30, mercs)
+    expect(both.every((o) => o.available)).toBe(true)
+    // The offers themselves don't change with the party.
+    expect(both.map((o) => [o.id, o.level, o.fee])).toEqual(
+      novices.map((o) => [o.id, o.level, o.fee])
+    )
+    for (const o of [...novices, ...both]) {
       expect(o.character.level).toBe(o.level)
       expect(levelFor(o.character.xp)).toBe(o.level)
       expect(o.character.hired).toBe(true)

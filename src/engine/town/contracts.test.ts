@@ -7,7 +7,8 @@ import { step, type Action } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { passDay } from '../travel/days'
 import { routeOptions } from '../travel/preview'
-import { FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS, SOLD_CARGO_REP } from '../constants'
+import { BOARD_MAX, FAIL_REP, GOOD_WORD_POINTS, MAX_CONTRACTS, SOLD_CARGO_REP } from '../constants'
+import { RUMOUR_LEAD } from './rumours'
 import { maxSell } from '../economy/trade'
 import { kingdomOf } from './reputation'
 import { marketLevels } from '../economy/market'
@@ -97,6 +98,22 @@ const boom = (() => {
 })()
 
 describe('noticeBoard', () => {
+  test(`shows at most ${BOARD_MAX} offers, a rumour's lead included (first)`, () => {
+    let leads = 0
+    for (const id of Object.keys(at(HERE).world.settlements)) {
+      for (let w = 0; w < 10; w++) {
+        const s = at(id, { day: w * 7 + 1 })
+        const plain = noticeBoard(s, content, id)
+        expect(plain.length).toBeLessThanOrEqual(BOARD_MAX)
+        const led = noticeBoard({ ...s, doneHere: [RUMOUR_LEAD] }, content, id)
+        expect(led.length).toBeLessThanOrEqual(BOARD_MAX)
+        expect(led.findIndex((o) => o.lead)).toBeLessThanOrEqual(0)
+        if (led[0]?.lead) leads++
+      }
+    }
+    expect(leads).toBeGreaterThan(0)
+  })
+
   test('is the same all week and changes from week to week', () => {
     const s = at(HERE)
     const week = noticeBoard({ ...s, day: 8 }, content, HERE)

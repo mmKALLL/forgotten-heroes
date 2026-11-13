@@ -191,7 +191,8 @@ test('a recruit the party cannot afford is disabled with the reason inline', asy
   expect(hire.getAttribute('aria-disabled')).toBe('true')
   // The reason is inline and announced with the button.
   const why = document.getElementById(hire.getAttribute('aria-describedby') ?? '')
-  expect(why?.textContent).toMatch(/costs \d+ gp/)
+  // The price is on the button: the reason doesn't repeat it.
+  expect(why?.textContent).toBe('not enough gold')
 })
 
 test('the accessory shop lists offers with their hooks and the gear to sell', async () => {

@@ -66,7 +66,7 @@ export const ServiceRoleSchema = z
         levels: span(
           0,
           MAX_LEVEL,
-          "Their levels, [min, max] (never above the founders' best + 2); 0 is a level-1 recruit with two old wounds"
+          "Their levels, [min, max]; 0 is a level-1 recruit with two old wounds. Above the lowest living member's level + 2 they won't join"
         ),
         picks: z
           .number()

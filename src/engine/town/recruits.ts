@@ -3,7 +3,7 @@ import type { ClassDef } from '../../schema/content'
 import type { RecruitsBlock } from '../../schema/economy'
 import type { Accessory } from '../../schema/gear'
 import type { Character, GameState } from '../../schema/state'
-import type { Ability } from '../../schema/types'
+import { MAX_LEVEL, type Ability } from '../../schema/types'
 import { inProgress } from '../encounters/run'
 import { rollAccessory, wear } from '../gear/accessories'
 import { appendLog } from '../log'
@@ -168,17 +168,15 @@ function rollAbilities(d: Draw, cls: ClassDef, picks: number, levelZero: boolean
 type Made = { character: Character; level: number; total: number }
 
 /**
- * One recruit, from its own keyed stream: class, ancestry, a level within the block's `levels`
- * clamped to `cap`, then rolled abilities (and any old wounds: level 0 is a level-1 recruit with
- * two). The level is drawn before the clamp, so the same stream gives the same recruit whatever
- * the cap (only the levels above it are cut).
+ * One recruit, from its own keyed stream: class, ancestry, a level within the block's `levels`,
+ * then rolled abilities (and any old wounds: level 0 is a level-1 recruit with two). The party
+ * plays no part, so an offer never changes within its week.
  */
 function makeRecruit(
   rng: Rng,
   content: Content,
   localAncestry: string,
-  block: RecruitsBlock,
-  cap: number
+  block: RecruitsBlock
 ): Made {
   const known = (block.classes ?? []).filter((id) => Object.hasOwn(content.classes, id))
   const classes = known.length > 0 ? known : sortedEntries(content.classes).map((c) => c.id)
@@ -189,7 +187,7 @@ function makeRecruit(
     const others = playable.filter((a) => a.id !== localAncestry)
     const stays = local && (others.length === 0 || d.float() < RECRUIT_LOCAL_ANCESTRY)
     const ancestryId = stays ? localAncestry : d.pick(others).id
-    const level = Math.min(d.int(block.levels[0], block.levels[1]), cap)
+    const level = d.int(block.levels[0], block.levels[1])
     const rolled = rollAbilities(d, content.classes[classId], block.picks, level === 0)
     return { classId, ancestryId, level, rolled }
   })
@@ -217,22 +215,39 @@ function recruitGear(rng: Rng, content: Content, block: RecruitsBlock, id: strin
   return gear
 }
 
+/**
+ * The highest level that will sign on: the lowest living member's level + RECRUIT_LEVEL_LEAD
+ * (seasoned hands won't join a green party), and the lowest level itself.
+ */
+export function recruitCap(state: GameState): { lowest: number; cap: number } {
+  const lowest = Math.min(...livingMembers(state).map((c) => c.level), MAX_LEVEL)
+  return { lowest, cap: lowest + RECRUIT_LEVEL_LEAD }
+}
+
 /** Why an offer can't be taken now (English), or null. */
-function hireRefusal(state: GameState, settlementId: string, fee: number): string | null {
+function hireRefusal(
+  state: GameState,
+  settlementId: string,
+  level: number,
+  fee: number
+): string | null {
   if (inProgress(state)) return 'finish the current encounter first'
   if (!inSettlement(state) || state.location !== settlementId) return 'only in person'
   if (livingMembers(state).length >= PARTY_CAP) return `the party is full (${PARTY_CAP})`
-  if (state.gold < fee) return `costs ${fee} gp`
+  const { lowest, cap } = recruitCap(state)
+  if (level > cap) return `won't join a party with a level ${lowest} member`
+  if (state.gold < fee) return 'not enough gold'
   return null
 }
 
 /**
  * Who is looking for work in a settlement this week: each service here with a `recruits` block
  * offers a seeded number in its `offers` range, of its `classes` (or any), mostly of the
- * settlement's ancestry (RECRUIT_LOCAL_ANCESTRY). Levels are seeded within the block's `levels`,
- * but never above the founders' highest level + RECRUIT_LEVEL_LEAD. Only founders set the cap (alive or dead), so
- * hiring, a recruit's level-up or a death doesn't reshuffle the week's offers, and a level-1 party
- * can't climb the ladder by hiring. Offers already hired are left out.
+ * settlement's ancestry (RECRUIT_LOCAL_ANCESTRY). Levels are seeded within the block's `levels`
+ * and don't depend on the party, so the week's offers never reshuffle. An offer above the lowest
+ * living member's level + RECRUIT_LEVEL_LEAD is listed but refused (recruitCap): it opens when
+ * the party's weakest levels up, leaves or dies, and closes again if a green recruit joins.
+ * Offers already hired are left out.
  */
 export function recruitOffers(
   state: GameState,
@@ -243,8 +258,6 @@ export function recruitOffers(
   if (!info) return []
   const week = boardWeek(state.day)
   const seed = state.world.seed
-  const founders = state.party.filter((c) => !isHired(c)).map((c) => c.level)
-  const cap = Math.max(1, ...founders) + RECRUIT_LEVEL_LEAD
   const offers: RecruitOffer[] = []
   for (const service of info.services) {
     const block = own(content.serviceRoles, service)?.recruits
@@ -254,13 +267,13 @@ export function recruitOffers(
     for (let n = 0; n < count; n++) {
       const id = `r-${settlementId}-w${week}-${service}-${n}`
       if (state.recruitsTaken.includes(id)) continue
-      const made = makeRecruit(keyedRng(seed, `${key}/${n}`), content, info.ancestry, block, cap)
+      const made = makeRecruit(keyedRng(seed, `${key}/${n}`), content, info.ancestry, block)
       const c = made.character
       const gear = recruitGear(keyedRng(seed, `${key}/${n}/gear`), content, block, id)
       const extra = gear ? gearPrice(gear) : 0
       const wounded = made.level > 0 && c.oldWounds.length > 0
       const fee = signOnFee({ level: made.level, total: made.total, wounded }, block) + extra
-      const reason = hireRefusal(state, settlementId, fee)
+      const reason = hireRefusal(state, settlementId, made.level, fee)
       const joined = { ...c, id, hired: true }
       offers.push({
         id,

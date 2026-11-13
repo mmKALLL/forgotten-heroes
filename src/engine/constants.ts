@@ -339,7 +339,9 @@ export const PICKPOCKET_GP: readonly [number, number] = [1, 6]
 // Contracts and notice boards (town/contracts.ts)
 
 /** Offers on a notice board each week, by size tier (outpost first). */
-export const BOARD_SIZE: readonly number[] = [1, 2, 2, 3, 3, 4]
+export const BOARD_SIZE: readonly number[] = [1, 2, 2, 3, 3, 3]
+/** A board shows at most this many offers, a rumour's lead included (designer, 2026-11-13). */
+export const BOARD_MAX = 3
 /** Contracts the party may hold at once. */
 export const MAX_CONTRACTS = 3
 /** gp per steady day to the destination, before the template's pay and urgency. */
@@ -396,7 +398,10 @@ export const RECRUIT_OFF_CLASS = 0.15
 export const OLD_WOUND_CHANCE = 0.2
 /** Old wounds a "level 0" recruit has, on two different abilities (it is level 1 otherwise). */
 export const LEVEL0_WOUNDS = 2
-/** Recruits are offered up to the founders' best level + this (wealth can't skip the climb). */
+/**
+ * Recruits join only up to the lowest living member's level + this: seasoned hands won't sign on
+ * with a green party (designer, 2026-11-13).
+ */
 export const RECRUIT_LEVEL_LEAD = 2
 /** An old wound lowers one ability by this much (never below 3). */
 export const OLD_WOUND_PENALTY = 2

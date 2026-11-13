@@ -188,7 +188,7 @@
           "items": false,
           "minItems": 2,
           "maxItems": 2,
-          "description": "Their levels, [min, max] (never above the founders' best + 2); 0 is a level-1 recruit with two old wounds"
+          "description": "Their levels, [min, max]; 0 is a level-1 recruit with two old wounds. Above the lowest living member's level + 2 they won't join"
         },
         "picks": {
           "default": 1,
