@@ -197,7 +197,12 @@ export const AnimalDefSchema = z.object({
     .describe('Land speed multiplier while ridden: 2 for riding animals (less in rough terrain)'),
   rider: z.boolean().default(false).describe('Carries a rider: one per member to ride'),
   needs: IdSchema.optional().describe('Another animal it needs to move, e.g. a cart needs a mule'),
-  roadsOnly: z.boolean().default(false).describe('Keeps to roads: never on paths to sites (carts)'),
+  roadsOnly: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Keeps to roads: never on paths to sites (unused since carts may leave roads, 2026-11-13)'
+    ),
   maxPathDanger: z
     .number()
     .int()

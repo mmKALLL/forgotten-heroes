@@ -2,6 +2,10 @@
 
 The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 6 Track B) comes first; Plan 5a and the Plan 4 rounds follow.
 
+## Transport rules: the wagon, camels and the flying carpet (2026-11-13)
+
+Designer calls: the wagon is several times the cart's price for more kg per gp (60 gp, 400 kg → 150 gp, 1500 kg: 10 kg/gp against the cart's 6.7; with the draft horse, 230 gp for 1620 kg, 7.0 kg/gp, against cart and mule at 5.8); the camel 90 gp, 150 kg → 100 gp, 120 kg; a new flying carpet at 2500 gp. Carts, wagons and the donkey are slow (no brisk or forced pace), and each cart or wagon adds +10% hostile. The report gains a "Vehicles" section: kg per gp, and what a full load of one heavy good fetches at once in a town and a city against market depth. A full wagon of timber or stone keeps about 62–79% of the price on average; of metal 31–45%, of armour 16–26%, of arms 8–13%, so the wagon pays for bulk materials or loads split over goods and markets (a cart's full load keeps 49–97%). The policies don't buy carts, wagons or camels, so their numbers are unchanged (the trader only buys a mule, which is neither slow nor a vehicle).
+
 ## Permanent purchases dearer, no animal upkeep (2026-11-13)
 
 Designer calls: waterskins 2 → 5 gp (resale 1 → 2); animals have no upkeep and cost more instead (donkey 5 → 12, mule 8 → 20, camel 50 → 90, draft horse 50 → 80, riding horse 75 → 120, cart 15 → 30, wagon 35 → 60). The sim's trader no longer sells its spare waterskins when laden and rebuys them for the next dry road (that churn cost about 30 gp a run at the new price); it pours out their water instead. The report's "Animals' upkeep" spend row is gone (what it also caught, other gold lost on the road, now counts as encounter losses).

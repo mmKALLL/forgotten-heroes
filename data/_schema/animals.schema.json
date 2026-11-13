@@ -63,7 +63,7 @@
           },
           "roadsOnly": {
             "default": false,
-            "description": "Keeps to roads: never on paths to sites (carts)",
+            "description": "Keeps to roads: never on paths to sites (unused since carts may leave roads, 2026-11-13)",
             "$ref": "#/$defs/__schema4"
           },
           "maxPathDanger": {

@@ -158,7 +158,7 @@ export function camelWaterSaving(
 export const isSitePath = (state: Pick<GameState, 'world'>, route: Pick<Route, 'from' | 'to'>) =>
   Object.hasOwn(state.world.pois, route.from) || Object.hasOwn(state.world.pois, route.to)
 
-/** Why the owned animals can't take a path to a site (a cart keeps to roads), or null. */
+/** Why the owned animals can't take a path to a site (a `roadsOnly` one, or rough for a horse), or null. */
 export function animalBlock(
   state: Pick<GameState, 'world' | 'animals'>,
   content: Content,
