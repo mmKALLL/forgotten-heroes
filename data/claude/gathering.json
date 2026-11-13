@@ -82,7 +82,7 @@
       "biomes": ["forest", "marsh", "jungle", "hills", "mountains"],
       "skill": "medicine",
       "dc": 14,
-      "yield": { "critFail": 0, "fail": 0, "partial": 2, "success": 2, "critSuccess": 4 }
+      "yield": { "critFail": 0, "fail": 0, "partial": 1, "success": 2, "critSuccess": 4 }
     }
   ]
 }
