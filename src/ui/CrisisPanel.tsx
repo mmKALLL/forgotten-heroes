@@ -125,7 +125,12 @@ function Challenge({ t, act }: { t: T; act: TrackerAct; partyLevel?: number }) {
   return (
     <div>
       <Tip tip={t('crisis.challengeHint')}>{t('crisis.challenge', { cr, level })}</Tip>
-      {act.tooStrong && <span className="tone-bad"> · {t('crisis.tooStrong')}</span>}
+      {act.gap !== 'ok' && (
+        <span className={act.gap === 'beyond' ? 'tone-bad' : 'tone-warn'}>
+          {' '}
+          · {t('crisis.tooStrong')}
+        </span>
+      )}
     </div>
   )
 }

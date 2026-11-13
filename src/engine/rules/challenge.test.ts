@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 import { MAX_LEVEL } from '../../schema/types'
-import { crDc, crLevel } from './challenge'
+import { crDc, crLevel, levelGap } from './challenge'
 
 describe('challenge ratings', () => {
   test('a higher CR never has a lower DC, and fractional CRs read as the CR below', () => {
@@ -15,4 +15,11 @@ describe('challenge ratings', () => {
     expect(crLevel(0.25)).toBe(1)
     expect(crLevel(40)).toBe(MAX_LEVEL)
   })
+})
+
+test('a challenge one level beyond the party is a stretch, two or more beyond it', () => {
+  expect(levelGap(5, 5)).toBe('ok')
+  expect(levelGap(6, 5)).toBe('ok')
+  expect(levelGap(4, 5)).toBe('stretch')
+  expect(levelGap(3, 5)).toBe('beyond')
 })

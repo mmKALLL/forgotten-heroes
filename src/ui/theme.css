@@ -411,6 +411,10 @@ html {
   color: var(--crit);
   font-weight: bold;
 }
+/* A yellow warning: e.g. a challenge one level beyond the party (red from two). */
+.tone-warn {
+  color: var(--crit);
+}
 .side {
   display: flex;
   flex-direction: column;

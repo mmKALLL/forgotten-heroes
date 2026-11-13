@@ -2,7 +2,7 @@ import type { Content } from '../../content/build'
 import type { GameState } from '../../schema/state'
 import type { CrisisActPhase } from '../../schema/types'
 import { canAct } from '../rules/character'
-import { crLevel } from '../rules/challenge'
+import { crLevel, levelGap, type LevelGap } from '../rules/challenge'
 import { actCalendar } from './calendar'
 import { actOpen, crisisStatus, planKnown } from './status'
 import { crisisSurge, crisisWait } from './surge'
@@ -38,7 +38,8 @@ export type TrackerAct = {
   leadLevel: number
   keyLevel: number
   /** The encounter the open act points to is meant for a higher level than the party's best. */
-  tooStrong: boolean
+  /** How far the open challenge is beyond the party (rules/challenge.ts levelGap). */
+  gap: LevelGap
   /**
    * Who holds the key site, once the plan is known: a finale villain's lieutenant (the act's
    * `boss`), else the villain itself (its act III, or every act of a recurring villain).
@@ -121,9 +122,12 @@ export function crisisTracker(state: GameState, content: Content): CrisisTracker
       keyCr: act.keyCr,
       leadLevel,
       keyLevel,
-      tooStrong:
-        (phase === 'investigation' && partyLevel < leadLevel) ||
-        (phase === 'prevention' && partyLevel < keyLevel),
+      gap:
+        phase === 'investigation'
+          ? levelGap(partyLevel, leadLevel)
+          : phase === 'prevention'
+            ? levelGap(partyLevel, keyLevel)
+            : 'ok',
       foe: known ? (act.boss ?? shortName(crisis.name)) : null,
       surge: surge?.act === i ? Math.round(surge.share * 100) : 0,
       surges: known && act.surge,

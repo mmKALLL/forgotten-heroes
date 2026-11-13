@@ -5,7 +5,7 @@ import type { GameState } from '../../schema/state'
 import { note, revealPois, xpNote } from '../encounters/effects'
 import type { StartOptions } from '../encounters/run'
 import { canAct } from '../rules/character'
-import { crLevel } from '../rules/challenge'
+import { crLevel, levelGap } from '../rules/challenge'
 import { actOpen, actTitle, crisisStatus } from './status'
 import { actNumeral, crisisText, shortName, villainOf } from './text'
 import { CRISIS_SITE_CLUES, CRISIS_WEAKNESS_CLUES, XP_THWART } from '../constants'
@@ -218,13 +218,16 @@ export function crisisVisit(state: GameState, content: Content, poiId: string): 
   const key = status.phase === 'prevention'
   const cr = key ? act.keyCr : act.leadCr
   const meant = crLevel(cr)
+  const gap = levelGap(partyLevel(state), meant)
   const lines: NonNullable<StartOptions['lines']> = [
-    partyLevel(state) < meant
+    gap === 'beyond'
       ? {
           text: `A challenge of CR ${cr}, meant for level ${meant}: this is beyond you.`,
           tone: 'bad',
         }
-      : { text: `A challenge of CR ${cr}, meant for level ${meant}.`, tone: 'info' },
+      : gap === 'stretch'
+        ? { text: `A challenge of CR ${cr}, meant for level ${meant}: a stretch.`, tone: 'crit' }
+        : { text: `A challenge of CR ${cr}, meant for level ${meant}.`, tone: 'info' },
   ]
   const weakness = key && status.weakness
   if (weakness) {

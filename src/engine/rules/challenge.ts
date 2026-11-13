@@ -19,3 +19,11 @@ export function crDc(cr: number): number {
 /** The party level a CR is meant for (≈ CR + 1); used by the sims and the "too strong" hint. */
 export const crLevel = (cr: number): number =>
   Math.min(MAX_LEVEL, Math.max(1, whole(cr) + CR_LEVEL_OFFSET))
+
+/**
+ * How far a challenge is beyond the party (designer call 2026-11-14): 'ok' at or above the level
+ * it is meant for, 'stretch' one level below (a yellow warning), 'beyond' two or more below (red).
+ */
+export type LevelGap = 'ok' | 'stretch' | 'beyond'
+export const levelGap = (partyLevel: number, meant: number): LevelGap =>
+  meant - partyLevel >= 2 ? 'beyond' : meant - partyLevel === 1 ? 'stretch' : 'ok'

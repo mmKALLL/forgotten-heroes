@@ -49,7 +49,7 @@ describe('crisisTracker', () => {
     // The fixture's party is level 1; act I's key site is CR 6.
     const led = withCrisis({ leads: [35, null, null] }, { day: 40 })
     const act = crisisTracker(led, content)!.acts[0]
-    expect(act).toMatchObject({ keyCr: 6, keyLevel: 7, tooStrong: true })
+    expect(act).toMatchObject({ keyCr: 6, keyLevel: 7, gap: 'beyond' })
     const surging = withCrisis({ leads: [35, 140, null], thwarted: [50, null, null] }, { day: 195 })
     const acts = crisisTracker(surging, content)!.acts
     expect(acts[1].surge).toBeGreaterThan(0)

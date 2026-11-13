@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Content } from '../../content/build'
 import { delvePreview, type DelvePreview } from '../../engine/world/delve'
+import { levelGap } from '../../engine/rules/challenge'
 import type { Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
@@ -267,11 +268,13 @@ export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
 /** A site's CR against the party's best level, marked when it is meant for a stronger party. */
 export function SiteCr({ cr, level, party }: { cr: number; level: number; party: number }) {
   const { t } = useI18n()
-  const hard = level > party + 1
+  // One level short is a yellow warning, two or more red (designer call 2026-11-14).
+  const gap = levelGap(party, level)
+  const tone = gap === 'beyond' ? 'tone-bad' : gap === 'stretch' ? 'tone-warn' : ''
   return (
-    <p className={`small ${hard ? 'tone-bad' : ''}`}>
+    <p className={`small ${tone}`}>
       {t('site.cr', { cr, level, party })}
-      {hard && <> {t('site.crHard')}</>}
+      {gap !== 'ok' && <> {t('site.crHard')}</>}
     </p>
   )
 }
