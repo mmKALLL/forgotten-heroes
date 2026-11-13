@@ -50,7 +50,7 @@ export type LodgingOption = {
   fade: number
   /** The share of each member's max HP a night there heals. */
   heal: number
-  /** What a night there does, very short (English): "Rest 1d · 40% HP · −1 exhaustion · …". */
+  /** What a night there does, very short (English): "40% HP · −1 exhaustion · −1 strain". */
   effect: string
 }
 
@@ -60,7 +60,7 @@ export type LodgingOption = {
  */
 const roomEffect = (heal: number, fade: number, lifts: number, camaraderie = 0): string =>
   [
-    `Rest 1d · ${Math.round(heal * 100)}% HP · −${lifts} exhaustion · −${fade} Strain`,
+    `${Math.round(heal * 100)}% HP · −${lifts} exhaustion · −${fade} strain`,
     camaraderie > 0 && `+${camaraderie} camaraderie`,
   ]
     .filter(Boolean)

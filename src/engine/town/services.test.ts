@@ -169,7 +169,7 @@ describe('healers, temples and couriers', () => {
     const strained = { ...s, party: [{ ...brom, strain: { survival: 3 } }, lyra] }
     for (const room of lodgingOptions(strained, content)) {
       const night = act(strained, { type: 'rest', lodging: room.room })
-      expect(num(room.effect, 'Strain')).toBe(night.party[0].strain.survival! - 3)
+      expect(num(room.effect, 'strain')).toBe(night.party[0].strain.survival! - 3)
       const bond = room.effect.match(/\+(\d+) camaraderie/)
       expect(bond ? Number(bond[1]) : 0).toBe(night.camaraderie - strained.camaraderie)
     }

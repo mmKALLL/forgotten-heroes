@@ -78,7 +78,7 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
   const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 }, day: 20 })
   const onAction = panel(hurt)
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
-  await userEvent.click(inn.getByRole('button', { name: /^Common room · −\d+ gp Rest 1d/ }))
+  await userEvent.click(inn.getByRole('button', { name: /^Common room · −\d+ gp \d+% HP/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: 'common' })
   const round = inn.getByRole('button', { name: /^Stand a round · −\d+ gp \+\d+ camaraderie$/ })
   expect(round.getAttribute('title')).toMatch(/^Drinks for everyone: \+\d+ camaraderie/)
