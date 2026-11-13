@@ -6,11 +6,13 @@ import { loadBundledContent } from '../content/bundled'
 import { SAVE_KEY, UNREADABLE_SAVE_KEY, deserialize } from '../engine/save'
 import { App } from './App'
 import { DEV_EXPANDED_KEY } from './DevArea'
+import { LEDGER_TAB_KEY } from './town/TownLedger'
 
 // These tests use the dev panels and play situations from the Deck's list, so they start with
 // the developer tools and the list expanded.
 beforeEach(() => {
   localStorage.setItem(DEV_EXPANDED_KEY, 'true')
+  localStorage.setItem(LEDGER_TAB_KEY, 'travel')
   localStorage.setItem('forgotten-heroes/ui/deck-expanded', 'true')
 })
 
@@ -131,7 +133,8 @@ test('the pace and foraging chosen outlast an encounter, but not a new party', a
   // A land road (a sea crossing has no pace choice).
   const land = async () => {
     for (const road of within(roads()).getAllByRole('button')) {
-      await userEvent.click(road)
+      // A second click on the chosen road would close its card.
+      if (road.getAttribute('aria-pressed') !== 'true') await userEvent.click(road)
       if (place().queryByRole('button', { name: 'Brisk' })) return
     }
     throw new Error('no land road out of the starting settlement')

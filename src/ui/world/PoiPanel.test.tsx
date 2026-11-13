@@ -2,7 +2,8 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ComponentProps } from 'react'
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { LEDGER_TAB_KEY } from '../town/TownLedger'
 import { exploreOption } from '../../engine/world/explore'
 import { settlementName } from '../../engine/world/geo'
 import { edgesFrom } from '../../engine/world/graph'
@@ -15,6 +16,8 @@ import { POWER_STEP_DAYS, REINHABIT_DAYS } from '../../engine/constants'
 
 const content = fixtureContent()
 afterEach(cleanup)
+// These tests are about the roads out: open the ledger's Travel tab.
+beforeEach(() => localStorage.setItem(LEDGER_TAB_KEY, 'travel'))
 
 /** The fixture world with these POIs discovered (and cleared), the party at `location`. */
 function world(location: string, discovered: string[], cleared: string[] = []): GameState {

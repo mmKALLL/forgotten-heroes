@@ -2,7 +2,8 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState, type ComponentProps } from 'react'
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { LEDGER_TAB_KEY } from '../town/TownLedger'
 import { placeInfo, routeOptions } from '../../engine/travel/preview'
 import { brom, fixtureContent, lyra, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
@@ -16,6 +17,8 @@ import { REINHABIT_DAYS } from '../../engine/constants'
 
 const content = fixtureContent()
 afterEach(cleanup)
+// These tests are about the roads out: open the ledger's Travel tab.
+beforeEach(() => localStorage.setItem(LEDGER_TAB_KEY, 'travel'))
 
 /** The panel with its travel choices held as App holds them. */
 function Panel(props: Omit<ComponentProps<typeof PlacePanel>, 'prefs' | 'onPrefs'>) {

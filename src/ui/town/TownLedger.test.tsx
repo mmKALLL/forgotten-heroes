@@ -1,30 +1,43 @@
 // @vitest-environment jsdom
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { useState } from 'react'
 import { afterEach, expect, test, vi } from 'vitest'
+import type { Action } from '../../engine/state'
 import { peopleRows } from '../../engine/town/reputation'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import { placeInfo } from '../../engine/travel/preview'
+import { settlementName } from '../../engine/world/geo'
+import type { GameState } from '../../schema/state'
 import { I18nProvider } from '../i18n/I18n'
 import { DEFAULT_TRAVEL_PREFS } from '../world/travelPrefs'
-import { TownLedger } from './TownLedger'
+import { LEDGER_TAB_KEY, TownLedger } from './TownLedger'
 
 // Every asset is "synced" here, so a town with a banner shows its map.
 vi.mock('../assets', () => ({ assetUrl: (path: string) => `/assets/${path}` }))
 
 const content = fixtureContent()
-afterEach(cleanup)
+afterEach(() => {
+  cleanup()
+  localStorage.clear()
+})
 
-test('the ledger shows the header line, its zones, Explore before the roads, talk and work, and the people', async () => {
-  const state = makeState({ location: 'ashmoor-1', gold: 50 })
-  const onAction = vi.fn()
-  render(
+/** The ledger with its road choice kept, as the app keeps it. */
+function Ledger({
+  state,
+  onAction = vi.fn(),
+}: {
+  state: GameState
+  onAction?: (a: Action) => void
+}) {
+  const [selected, setSelected] = useState<string | null>(null)
+  return (
     <I18nProvider content={content}>
       <TownLedger
         content={content}
         state={state}
-        selected={null}
-        onSelect={vi.fn()}
+        selected={selected}
+        onSelect={setSelected}
         prefs={DEFAULT_TRAVEL_PREFS}
         onPrefs={vi.fn()}
         onAction={onAction}
@@ -32,65 +45,109 @@ test('the ledger shows the header line, its zones, Explore before the roads, tal
       />
     </I18nProvider>
   )
+}
+
+const tab = (name: string) => screen.getByRole('tab', { name })
+
+test('the ledger opens on its Market tab; the Travel tab holds Explore, the roads, talk and the people', async () => {
+  const state = makeState({ location: 'ashmoor-1', gold: 50 })
+  const onAction = vi.fn()
+  render(<Ledger state={state} onAction={onAction} />)
   const info = placeInfo(state, content, 'ashmoor-1')!
   expect(screen.getByRole('heading', { name: info.name })).toBeTruthy()
-  const zones = ['Market', 'Services', 'Roads out'].map((name) =>
-    screen.getByRole('region', { name })
-  )
-  expect(within(zones[1]).getByText('services here')).toBeTruthy()
+  expect(screen.getByText('Standing:').textContent).toBe('Standing: stranger')
+  // Market: the market and the services, side by side.
+  expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual(['Market', 'Travel'])
+  expect(tab('Market').getAttribute('aria-selected')).toBe('true')
+  const market = screen.getByRole('tabpanel', { name: 'Market' })
+  expect(within(market).getByRole('region', { name: 'Market' })).toBeTruthy()
+  expect(within(market).getByText('services here')).toBeTruthy()
+  expect(screen.queryByRole('region', { name: 'Roads out' })).toBeNull()
+
+  await userEvent.click(tab('Travel'))
+  expect(tab('Travel').getAttribute('aria-selected')).toBe('true')
+  expect(screen.queryByRole('region', { name: 'Market' })).toBeNull()
+  const roadsZone = screen.getByRole('region', { name: 'Roads out' })
   // Explore comes before the roads, without an odds bar; its tiers are a list of lines.
-  const exploreGroup = within(zones[2]).getByRole('group', { name: 'Explore the domain' })
+  const exploreGroup = within(roadsZone).getByRole('group', { name: 'Explore the domain' })
   const explore = within(exploreGroup)
   expect(explore.queryByRole('img')).toBeNull()
   expect(explore.getByRole('list', { name: 'What the search finds' })).toBeTruthy()
   expect(exploreGroup.textContent).toMatch(/vs DC \d+/)
-  expect(exploreGroup.textContent).not.toMatch(/to find a site/)
-  const roads = within(zones[2]).getByRole('list', { name: 'Roads from here' })
+  const roads = within(roadsZone).getByRole('list', { name: 'Roads from here' })
   expect(
     exploreGroup.compareDocumentPosition(roads) & Node.DOCUMENT_POSITION_FOLLOWING
   ).toBeTruthy()
-  const button = explore.getByRole('button', { name: /^Explore \(/ })
-  await userEvent.click(button)
+  await userEvent.click(explore.getByRole('button', { name: /^Explore \(/ }))
   expect(onAction).toHaveBeenCalledWith({ type: 'explore' })
-  // The party’s standing here is in the header; talk and work follow the roads.
-  expect(screen.getByText('Standing:').textContent).toBe('Standing: stranger')
+  // Talk and work: rumours, the people (always shown) and the notice board.
   const talk = within(screen.getByRole('region', { name: 'Talk and work' }))
   expect(talk.getByRole('group', { name: 'Listen for rumours' })).toBeTruthy()
   expect(talk.getByRole('region', { name: 'Notice board' })).toBeTruthy()
-  // People are always shown.
   const people = peopleRows(state, content)
-  expect(screen.getByRole('heading', { name: `People (${people.length})` })).toBeTruthy()
-  const list = within(screen.getByRole('list', { name: 'Notable people' }))
+  expect(talk.getByRole('heading', { name: `People (${people.length})` })).toBeTruthy()
+  const list = within(talk.getByRole('list', { name: 'Notable people' }))
   for (const p of people) expect(list.getByText(p.name, { exact: false })).toBeTruthy()
+  // The tab is remembered for this viewer.
+  expect(localStorage.getItem(LEDGER_TAB_KEY)).toBe('travel')
 })
 
-test('the town map is shown large after the people and the roads, at the ledger’s full width', () => {
+test('Tab switches the tabs while nothing has focus, and moves focus as usual otherwise', async () => {
+  render(<Ledger state={makeState({ location: 'ashmoor-1' })} />)
+  expect(document.activeElement).toBe(document.body)
+  await userEvent.keyboard('{Tab}')
+  expect(tab('Travel').getAttribute('aria-selected')).toBe('true')
+  await userEvent.keyboard('{Tab}')
+  expect(tab('Market').getAttribute('aria-selected')).toBe('true')
+  // From the open tab, Tab moves on into the page; the arrow keys move between the tabs.
+  tab('Market').focus()
+  await userEvent.keyboard('{Tab}')
+  expect(tab('Market').getAttribute('aria-selected')).toBe('true')
+  expect(document.activeElement).not.toBe(tab('Market'))
+  tab('Market').focus()
+  await userEvent.keyboard('{ArrowRight}')
+  expect(document.activeElement).toBe(tab('Travel'))
+  expect(tab('Travel').getAttribute('aria-selected')).toBe('true')
+  // Only the open tab is in the tab order, and it controls its panel.
+  expect(tab('Market').tabIndex).toBe(-1)
+  const panel = document.getElementById(tab('Travel').getAttribute('aria-controls')!)
+  expect(panel?.getAttribute('role')).toBe('tabpanel')
+})
+
+test('clicking the chosen destination again closes its journey card', async () => {
+  localStorage.setItem(LEDGER_TAB_KEY, 'travel')
+  const state = makeState({ location: 'greenvale-1', gold: 50 })
+  render(<Ledger state={state} />)
+  const there = settlementName(state, 'greenvale-2')
+  const road = within(screen.getByRole('list', { name: 'Roads from here' })).getByRole('button', {
+    name: there,
+  })
+  await userEvent.click(road)
+  expect(road.getAttribute('aria-pressed')).toBe('true')
+  const card = screen.getByRole('group', { name: `To ${there}` })
+  // The card holds the journey's choices and its Travel button.
+  expect(within(card).getByRole('group', { name: 'Pace' })).toBeTruthy()
+  expect(within(card).getByRole('button', { name: 'Travel' })).toBeTruthy()
+  await userEvent.click(road)
+  expect(road.getAttribute('aria-pressed')).toBe('false')
+  expect(screen.queryByRole('group', { name: `To ${there}` })).toBeNull()
+})
+
+test('the town map is shown large below the tabs, at the ledger’s full width', async () => {
   const state = makeState({ location: 'ashmoor-1' })
   state.world.settlements['ashmoor-1'].town = 'harbourne'
-  const { container } = render(
-    <I18nProvider content={content}>
-      <TownLedger
-        content={content}
-        state={state}
-        selected={null}
-        onSelect={vi.fn()}
-        prefs={DEFAULT_TRAVEL_PREFS}
-        onPrefs={vi.fn()}
-        onAction={vi.fn()}
-        services={null}
-      />
-    </I18nProvider>
-  )
+  const { container } = render(<Ledger state={state} />)
   const name = placeInfo(state, content, 'ashmoor-1')!.name
   const picture = screen.getByRole('img', { name: `Town map of ${name}` })
   expect(picture.getAttribute('src')).toBe(
     '/assets/town maps/Harbourne - rich seaside town - LN.jpg'
   )
-  // Its own row of the ledger, after both columns; the header keeps no thumbnail.
+  // Its own row of the ledger, after both tabs; the header keeps no thumbnail.
   expect(picture.closest('.town-picture')?.parentElement).toBe(container.querySelector('.ledger'))
-  for (const zone of ['Roads out', 'Talk and work']) {
-    const region = screen.getByRole('region', { name: zone })
-    expect(region.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  for (const panel of container.querySelectorAll('[role="tabpanel"]')) {
+    expect(panel.compareDocumentPosition(picture) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   }
+  await userEvent.click(tab('Travel'))
+  expect(screen.getByRole('img', { name: `Town map of ${name}` })).toBeTruthy()
   expect(container.querySelector('.ledger-head img')).toBeNull()
 })

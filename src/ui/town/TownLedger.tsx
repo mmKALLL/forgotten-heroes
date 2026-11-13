@@ -1,4 +1,13 @@
-import type { ReactNode } from 'react'
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type Dispatch,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type ReactNode,
+  type SetStateAction,
+} from 'react'
 import type { Content } from '../../content/build'
 import type { Action } from '../../engine/state'
 import { settlementStanding } from '../../engine/town/reputation'
@@ -29,12 +38,11 @@ type Props = {
 
 /**
  * The town ledger (design §5): the settlement on one screen with no modals. A one-line header
- * (town · land · kingdom · threat · the party's standing here); the Market; the Services; the
- * People under them; Explore, then the roads out with the pace chooser; then
- * talk and work: rumours and the notice board. In the DOM the zones run market, services, people,
- * roads, talk (for the keyboard and narrow screens); on wide screens they make two columns: market,
- * services and people, then roads and talk. The town's map, when synced, is shown large below both
- * columns at their full width (it may run below the fold; Plan 6 U1).
+ * (town · land · kingdom · threat · the party's standing here), then two tabs (designer, Plan 6):
+ * **Market** (the market beside the services; recruits stay with their inn or guild) and
+ * **Travel** (Explore, Gather and the roads out with the chosen journey's card, beside rumours,
+ * the people and the notice board). Each tab has two columns on wide screens and stacks on narrow
+ * ones. The town's map, when synced, is shown large below the tabs at their full width.
  */
 export function TownLedger({
   content,
@@ -47,6 +55,33 @@ export function TownLedger({
   services,
 }: Props) {
   const { t } = useI18n()
+  const [tab, setTab] = useLedgerTab()
+  const ledger = useRef<HTMLElement>(null)
+  const id = useId()
+  const tabs = useRef<Record<LedgerTab, HTMLButtonElement | null>>({ market: null, travel: null })
+  // Tab switches the tabs while nothing interactive has focus (the page, or the ledger itself);
+  // anywhere else, and with Shift, it moves focus as usual, so the page stays reachable by keyboard.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return
+      if (e.defaultPrevented || document.querySelector('[aria-modal="true"]')) return
+      const at = document.activeElement
+      const idle =
+        at === null ||
+        at === document.body ||
+        at === document.documentElement ||
+        at === ledger.current
+      if (!idle) return
+      e.preventDefault()
+      setTab((current) => (current === 'market' ? 'travel' : 'market'))
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [setTab])
+  // A destination picked (on the map, say) opens the Travel tab, where its journey card is.
+  useEffect(() => {
+    if (selected !== null) setTab('travel')
+  }, [selected, setTab])
   const here = state.location ? placeInfo(state, content, state.location) : null
   if (!here) {
     return (
@@ -56,8 +91,33 @@ export function TownLedger({
     )
   }
   const banner = here.banner ? assetUrl(here.banner) : null
+  // The tabs' own keys (WAI-ARIA tabs): the arrows, Home and End move to a tab and open it.
+  const onTabKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    const next =
+      e.key === 'ArrowLeft' || e.key === 'Home'
+        ? 'market'
+        : e.key === 'ArrowRight' || e.key === 'End'
+          ? 'travel'
+          : null
+    if (!next) return
+    e.preventDefault()
+    setTab(next)
+    tabs.current[next]?.focus()
+  }
+  const panel = (which: LedgerTab) => ({
+    role: 'tabpanel',
+    id: `${id}-${which}-panel`,
+    'aria-labelledby': `${id}-${which}-tab`,
+    hidden: tab !== which,
+    className: `ledger-tab ledger-${which}`,
+  })
   return (
-    <section className="panel place ledger" aria-label={t('place.heading')}>
+    <section
+      ref={ledger}
+      tabIndex={-1}
+      className="panel place ledger"
+      aria-label={t('place.heading')}
+    >
       <header className="ledger-head">
         <h2>{here.name}</h2>
         <span className="small" title={t('place.size', { size: sizeText(t, here.sizeTier) })}>
@@ -71,17 +131,40 @@ export function TownLedger({
           {t('ledger.standing')} <StandingBadge standing={settlementStanding(state, here.id)} />
         </span>
       </header>
-      <div className="ledger-main">
-        <section className="zone zone-market" aria-label={t('ledger.market')}>
+      <div
+        className="ledger-tabs"
+        role="tablist"
+        aria-label={t('ledger.tabs')}
+        onKeyDown={onTabKey}
+      >
+        {LEDGER_TABS.map((which) => (
+          <button
+            key={which}
+            ref={(el) => {
+              tabs.current[which] = el
+            }}
+            role="tab"
+            id={`${id}-${which}-tab`}
+            aria-selected={tab === which}
+            aria-controls={`${id}-${which}-panel`}
+            tabIndex={tab === which ? 0 : -1}
+            title={t('ledger.tabHint')}
+            onClick={() => setTab(which)}
+          >
+            {t(`ledger.tab.${which}`)}
+          </button>
+        ))}
+      </div>
+      <div {...panel('market')}>
+        <section className="ledger-col zone zone-market" aria-label={t('ledger.market')}>
           <MarketPanel content={content} state={state} onAction={onAction} />
         </section>
-        <section className="zone zone-services" aria-label={t('ledger.services')}>
+        <section className="ledger-col zone zone-services" aria-label={t('ledger.services')}>
           {services}
         </section>
-        <PeoplePanel content={content} state={state} />
       </div>
-      <div className="ledger-side">
-        <section className="zone zone-roads" aria-label={t('ledger.roads')}>
+      <div {...panel('travel')}>
+        <section className="ledger-col zone zone-roads" aria-label={t('ledger.roads')}>
           {/* Explore sits above the roads (designer decision). */}
           <ExploreAction content={content} state={state} onAction={onAction} compact />
           <GatherAction content={content} state={state} onAction={onAction} />
@@ -95,8 +178,9 @@ export function TownLedger({
             onAction={onAction}
           />
         </section>
-        <section className="zone zone-talk" aria-label={t('ledger.talk')}>
+        <section className="ledger-col zone zone-talk" aria-label={t('ledger.talk')}>
           <RumoursLine content={content} state={state} onAction={onAction} />
+          <PeoplePanel content={content} state={state} />
           <NoticeBoard content={content} state={state} onAction={onAction} />
         </section>
       </div>
@@ -107,4 +191,31 @@ export function TownLedger({
       )}
     </section>
   )
+}
+
+const LEDGER_TABS = ['market', 'travel'] as const
+type LedgerTab = (typeof LEDGER_TABS)[number]
+
+/** The ledger tab this viewer chose last (Market by default). */
+export const LEDGER_TAB_KEY = 'forgotten-heroes/ui/ledger-tab'
+
+function loadTab(): LedgerTab {
+  try {
+    return localStorage.getItem(LEDGER_TAB_KEY) === 'travel' ? 'travel' : 'market'
+  } catch {
+    return 'market'
+  }
+}
+
+/** The ledger's tab, remembered per viewer (when storage fails it is just forgotten). */
+function useLedgerTab(): [LedgerTab, Dispatch<SetStateAction<LedgerTab>>] {
+  const [tab, setTab] = useState<LedgerTab>(loadTab)
+  useEffect(() => {
+    try {
+      localStorage.setItem(LEDGER_TAB_KEY, tab)
+    } catch {
+      // Storage unavailable (private mode, quota): the choice just won't persist.
+    }
+  }, [tab])
+  return [tab, setTab]
 }

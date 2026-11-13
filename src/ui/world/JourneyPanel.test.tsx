@@ -2,7 +2,8 @@
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useState } from 'react'
-import { afterEach, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, expect, test, vi } from 'vitest'
+import { LEDGER_TAB_KEY } from '../town/TownLedger'
 import { step, type Action } from '../../engine/state'
 import { fixtureContent, makeState } from '../../engine/test-fixtures'
 import { settlementName } from '../../engine/world/geo'
@@ -13,6 +14,8 @@ import { useTravelPrefs } from './travelPrefs'
 
 const content = fixtureContent()
 afterEach(cleanup)
+// These tests are about the roads out: open the ledger's Travel tab.
+beforeEach(() => localStorage.setItem(LEDGER_TAB_KEY, 'travel'))
 
 test('shows the journey’s progress and pace, and dispatches Continue and Make camp', async () => {
   const out = step(
@@ -117,11 +120,12 @@ test('travel, then Continue until the party arrives', async () => {
   )
   expect(pacePressed()).toBe('Brisk')
   expect(foraging()).toBe(false)
-  // ...until a new party starts.
+  // ...until a new party starts (the same road stays chosen: a second click would close it).
   await userEvent.click(screen.getByRole('button', { name: 'New party' }))
-  await userEvent.click(
-    within(screen.getByRole('list', { name: 'Roads from here' })).getAllByRole('button')[0]
-  )
+  const first = within(screen.getByRole('list', { name: 'Roads from here' })).getAllByRole(
+    'button'
+  )[0]
+  expect(first.getAttribute('aria-pressed')).toBe('true')
   expect(pacePressed()).toBe('Steady')
   expect(foraging()).toBe(true)
 })
