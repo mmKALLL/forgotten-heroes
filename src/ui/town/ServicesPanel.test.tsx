@@ -106,14 +106,24 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
     action: 'bless',
   })
 
-  const from = screen.getByRole('combobox', { name: 'News from' }) as HTMLSelectElement
-  await userEvent.selectOptions(from, from.options[1].value)
-  await userEvent.click(screen.getByRole('button', { name: /^News · −\d+ gp/ }))
+  // Two courier options, each with its price and effect; neighbours' tooltip names the towns.
+  const neighbours = screen.getByRole('button', {
+    name: /^Neighbours · −\d+ gp Neighbours’ prices$/,
+  })
+  expect(neighbours.getAttribute('title')).toMatch(/\(\d+ days? old\)/)
+  await userEvent.click(neighbours)
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'useService',
     service: 'couriers',
     action: 'news',
-    settlement: from.options[1].value,
+    reach: 'neighbours',
+  })
+  await userEvent.click(screen.getByRole('button', { name: /^All towns · −\d+ gp Every town’s/ }))
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'useService',
+    service: 'couriers',
+    action: 'news',
+    reach: 'all',
   })
 
   const stable = within(screen.getByRole('region', { name: 'Animals & mounts' }))

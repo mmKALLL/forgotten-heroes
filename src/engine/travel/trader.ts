@@ -12,7 +12,7 @@ import { nearestProducer } from '../economy/supply'
 import { completeRefusal, escortPassengers, noticeBoard, type Offer } from '../town/contracts'
 import { provisionPlan } from '../town/provision'
 import { rumourOption } from '../town/rumours'
-import { newsTargets } from '../town/services'
+import { newsOptions } from '../town/services'
 import { exploreOption } from '../world/explore'
 import { siteStatus } from '../world/sites'
 import { gatherOptions, type GatherOption } from '../world/gather'
@@ -43,7 +43,6 @@ import type { Pick } from './wander'
 import {
   ENCUMBERED_SPEED,
   MAX_CONTRACTS,
-  NEWS_PRICE,
   STALE_DAYS,
   WATERSKIN_PRICE,
   WATERSKIN_WATER,
@@ -1110,14 +1109,23 @@ export function trader(
     }
     if (o.crusade && crusadeInTown(here)) return
     if (gatherWhenPoor()) return
-    // A courier's news of a contract's destination, so cargo can ride along.
+    // A courier's news of a contract's destination, so cargo can ride along: the cheapest option
+    // that brings it.
     const courier = o.trade ? serviceWith(state, content, 'news') : null
     for (const c of state.contracts) {
       const known = state.priceBook[c.to]
-      if (!courier || c.met || c.to === here || state.gold < NEWS_PRICE + NEWS_AT_GOLD) continue
+      if (!courier || c.met || c.to === here) continue
       if (known && state.day - known.day <= STALE_DAYS) continue
-      if (!newsTargets(state, content).some((t) => t.id === c.to)) continue
-      act({ type: 'useService', service: courier, action: 'news', settlement: c.to }, 'rumours')
+      const option = newsOptions(state, content).find(
+        (n) =>
+          n.available && state.gold >= n.cost + NEWS_AT_GOLD && n.towns.some((t) => t.id === c.to)
+      )
+      if (option) {
+        act(
+          { type: 'useService', service: courier, action: 'news', reach: option.reach },
+          'rumours'
+        )
+      }
     }
     lighten()
 

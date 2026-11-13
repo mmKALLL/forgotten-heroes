@@ -7,7 +7,7 @@ import { MAX_EXHAUSTION } from '../rules/character'
 import { qualityEffects, serviceQuality, type QualityEffect } from '../economy/market'
 import { heardPrices, marketTalk } from '../economy/trade'
 import { withRng } from '../rng'
-import { settlementName, straightKm } from '../world/geo'
+import { otherEnd, routesFrom, settlementName, straightKm } from '../world/geo'
 import { inSettlement, notHere } from '../travel/where'
 import { serviceWith } from './animals'
 import { rumourOption, rumourRefusal } from './rumours'
@@ -18,10 +18,12 @@ import { accessoryOffers } from '../gear/accessories'
 import {
   BLESSING_PRICE,
   CAMARADERIE_ROUND,
+  COURIER_ALL_PRICE,
+  COURIER_ALL_SPEED,
   COURIER_KM_PER_DAY,
+  COURIER_NEIGHBOURS_PRICE,
   HEALER_PRICE,
   LODGING_PRICE,
-  NEWS_PRICE,
   OFF_ROAD_WINDING,
   PRIVATE_ROOM_EXHAUSTION,
   PRIVATE_ROOM_FADE,
@@ -138,43 +140,100 @@ export const needsHealer = (state: Pick<GameState, 'party'>): string[] =>
     .filter((c) => c.exhaustion < MAX_EXHAUSTION && (c.hp < c.maxHp || c.exhaustion > 0))
     .map((c) => c.id)
 
-/** The settlements on this island a courier here reaches, nearest first. */
-function courierTowns(
-  state: GameState,
-  content: Content
-): { id: string; name: string; km: number; age: number }[] {
-  const here = state.location
-  const site = here === null ? undefined : own(content.settlements, here)
-  if (!site) return []
-  return Object.values(content.settlements)
-    .filter((s) => s.id !== here && s.island === site.island)
-    .filter((s) => Object.hasOwn(state.world.settlements, s.id))
-    .map((s) => {
-      const km = Math.round(straightKm(site.at, s.at) * OFF_ROAD_WINDING)
-      return { id: s.id, name: settlementName(state, s.id), km, age: newsAge(km) }
-    })
-    .sort((a, b) => a.km - b.km || (a.id < b.id ? -1 : 1))
+/** How far a courier's news reaches (design §5): the neighbouring towns, or every town. */
+export type NewsReach = 'neighbours' | 'all'
+export const NEWS_REACHES: readonly NewsReach[] = ['neighbours', 'all']
+
+/** A town whose news a courier brings: how far, how old its news is and the day it is from. */
+export type NewsTown = { id: string; name: string; km: number; age: number; day: number }
+
+/** One courier option here: what it costs, the towns whose prices it would make fresher. */
+export type NewsOption = {
+  reach: NewsReach
+  cost: number
+  /** What it does, very short (English), for the button's second line. */
+  effect: string
+  /** The towns it would update (only those it makes fresher), nearest first. */
+  towns: NewsTown[]
+  available: boolean
+  /** Why not (English), or null. */
+  reason: string | null
 }
+
+const NEWS_PRICES: Record<NewsReach, number> = {
+  neighbours: COURIER_NEIGHBOURS_PRICE,
+  all: COURIER_ALL_PRICE,
+}
+
+const NEWS_EFFECTS: Record<NewsReach, string> = {
+  neighbours: 'Neighbours’ prices',
+  all: 'Every town’s prices',
+}
+
+/** How old news from `km` away is: the days it takes to arrive at `speed` × the courier's pace. */
+export const newsAge = (km: number, speed = 1): number =>
+  Math.ceil(km / (COURIER_KM_PER_DAY * speed))
 
 /** The day a courier's news from a town `age` days away is from. */
 const newsDay = (state: Pick<GameState, 'day'>, age: number) => Math.max(1, state.day - age)
 
 /**
- * The settlements on this island whose news a courier here can bring, nearest first: only those
- * whose prices it would make fresher (the price book knows the others as fresh or fresher).
+ * The settlements a courier here reaches with `reach`, nearest first, each with the age of its
+ * news. Neighbours are the settlements one route away, sea routes included (ships carry letters);
+ * every town is every settlement of the world, its news travelling COURIER_ALL_SPEED × faster.
+ * Distance is the straight km × OFF_ROAD_WINDING, as for any heard price.
  */
-export function newsTargets(
-  state: GameState,
-  content: Content
-): { id: string; name: string; km: number; age: number }[] {
-  return courierTowns(state, content).filter((t) => {
-    const known = own(state.priceBook, t.id)
-    return !known || known.day < newsDay(state, t.age)
-  })
+function courierTowns(state: GameState, content: Content, reach: NewsReach): NewsTown[] {
+  const here = state.location
+  const site = here === null ? undefined : own(content.settlements, here)
+  if (!site || here === null) return []
+  const ids =
+    reach === 'neighbours'
+      ? new Set(routesFrom(content, here).map((r) => otherEnd(r, here)))
+      : new Set(Object.keys(content.settlements))
+  const speed = reach === 'all' ? COURIER_ALL_SPEED : 1
+  return Object.values(content.settlements)
+    .filter((s) => s.id !== here && ids.has(s.id))
+    .filter((s) => Object.hasOwn(state.world.settlements, s.id))
+    .map((s) => {
+      const km = Math.round(straightKm(site.at, s.at) * OFF_ROAD_WINDING)
+      const age = newsAge(km, speed)
+      return { id: s.id, name: settlementName(state, s.id), km, age, day: newsDay(state, age) }
+    })
+    .sort((a, b) => a.km - b.km || (a.id < b.id ? -1 : 1))
 }
 
-/** How old news from `km` away is: the days a courier takes to bring it. */
-export const newsAge = (km: number): number => Math.ceil(km / COURIER_KM_PER_DAY)
+/** Of the towns a courier reaches, those whose prices its news would make fresher. */
+const fresher = (state: GameState, towns: NewsTown[]): NewsTown[] =>
+  towns.filter((t) => {
+    const known = own(state.priceBook, t.id)
+    return !known || known.day < t.day
+  })
+
+/**
+ * The courier's two options here (design §5): the neighbours' news for COURIER_NEIGHBOURS_PRICE
+ * and every town's for COURIER_ALL_PRICE, each with exactly the towns it would update (the price
+ * book keeps what it knows as fresh or fresher). None without a courier.
+ */
+export function newsOptions(state: GameState, content: Content): NewsOption[] {
+  if (!serviceWith(state, content, 'news')) return []
+  return NEWS_REACHES.map((reach) => {
+    const reached = courierTowns(state, content, reach)
+    const towns = fresher(state, reached)
+    const cost = NEWS_PRICES[reach]
+    const reason =
+      reached.length === 0
+        ? 'no town a courier reaches'
+        : towns.length === 0
+          ? reach === 'neighbours'
+            ? 'you know fresher prices from every neighbour'
+            : 'you know fresher prices from every town'
+          : state.gold < cost
+            ? NOT_ENOUGH_GOLD
+            : null
+    return { reach, cost, effect: NEWS_EFFECTS[reach], towns, available: reason === null, reason }
+  })
+}
 
 /** One thing a service offers, with its price and whether it can be done now. */
 export type ServiceActionView = {
@@ -245,16 +304,14 @@ function actionView(
         state.doneHere.includes(`bless:${service}`) ? 'already blessed this visit' : null,
         `+${BLESSING_INSPIRATION} Inspiration`
       )
-    case 'news':
+    case 'news': {
+      // Two options, each with its own price and effect (newsOptions), like lodging's rooms.
+      const options = newsOptions(state, content)
       return view(
-        NEWS_PRICE,
-        newsTargets(state, content).length > 0
-          ? null
-          : courierTowns(state, content).length > 0
-            ? 'you know fresher prices from every town a courier reaches'
-            : 'no news to bring',
-        'Learn its prices'
+        null,
+        options.some((o) => o.available) ? null : (options[0]?.reason ?? 'no news to bring')
       )
+    }
     case 'rumours': {
       // Listening is the listenRumours action, previewed by rumourOption.
       const option = rumourOption(state, content)
@@ -340,7 +397,7 @@ export type ServiceUse =
   | { type: 'useService'; service: string; action: 'heal' }
   | { type: 'useService'; service: string; action: 'bless' }
   | { type: 'useService'; service: string; action: 'round' }
-  | { type: 'useService'; service: string; action: 'news'; settlement: string }
+  | { type: 'useService'; service: string; action: 'news'; reach: NewsReach }
 
 /** Refuses unless the service is here and its role offers the action. */
 function serviceHere(
@@ -402,35 +459,45 @@ function bless(state: GameState, service: string): GameState {
 }
 
 /**
- * A courier's news: NEWS_PRICE buys the prices of one settlement on this island, heard (not
- * seen) and as old as the courier's road from there (newsAge). Refused when the price book
- * already knows them as fresh.
+ * A courier's news (newsOptions): the prices of the neighbouring towns, or of every town, heard
+ * (not seen) and each as old as the news took to come from there, plus what talk says of their
+ * shortages and gluts. Towns whose prices the book knows as fresh or fresher are left as they are;
+ * refused when there are none.
  */
-function news(state: GameState, content: Content, settlement: string): GameState {
-  const target = courierTowns(state, content).find((t) => t.id === settlement)
-  if (!target) return appendLog(state, 'No courier here brings news from there.', 'bad')
-  const day = newsDay(state, target.age)
-  const known = own(state.priceBook, settlement)
-  if (known && known.day >= day) {
-    return appendLog(state, `You already know fresher prices from ${target.name}.`, 'info')
-  }
-  if (state.gold < NEWS_PRICE) return appendLog(state, `News costs ${NEWS_PRICE} gp.`, 'bad')
+function news(state: GameState, content: Content, reach: NewsReach): GameState {
+  const option = newsOptions(state, content).find((o) => o.reach === reach)
+  if (!option) return appendLog(state, 'No courier here brings news.', 'bad')
+  if (!option.available) return appendLog(state, `No news: ${option.reason}.`, 'bad')
   // Heard, not seen: a little off, like a rumour's prices (RUMOUR_SKEW).
-  const [prices, rng] = withRng(state.rng, (d) => heardPrices(d, state, content, settlement, day))
-  const talk = marketTalk(state, content, settlement, day)
-  const told = appendLog(
+  const [entries, rng] = withRng(state.rng, (d) =>
+    option.towns.map((t) => [
+      t.id,
+      { day: t.day, heard: true, prices: heardPrices(d, state, content, t.id, t.day) },
+    ])
+  )
+  const ages = option.towns.map((t) => t.age)
+  const [young, old] = [Math.min(...ages), Math.max(...ages)]
+  const age = young === old ? daysOld(young) : `${young}–${daysOld(old)}`
+  const towns = option.towns.length === 1 ? option.towns[0].name : `${option.towns.length} towns`
+  let told = appendLog(
     {
       ...state,
       rng,
-      gold: state.gold - NEWS_PRICE,
-      priceBook: { ...state.priceBook, [settlement]: { day, heard: true, prices } },
+      gold: state.gold - option.cost,
+      priceBook: { ...state.priceBook, ...Object.fromEntries(entries) },
     },
-    `For ${NEWS_PRICE} gp a courier tells you the prices in ${target.name}, ` +
-      `${target.age === 1 ? 'a day' : `${target.age} days`} old.`,
+    `For ${option.cost} gp couriers bring the prices of ${towns}, ${age} old.`,
     'info'
   )
-  return talk ? appendLog(told, talk, 'info') : told
+  for (const t of option.towns) {
+    const talk = marketTalk(state, content, t.id, t.day)
+    if (talk) told = appendLog(told, talk, 'info')
+  }
+  return told
 }
+
+/** "a day", "3 days": how old news is. */
+const daysOld = (days: number) => (days === 1 ? 'a day' : `${days} days`)
 
 export function useService(state: GameState, content: Content, use: ServiceUse): GameState {
   const refused = serviceHere(state, content, use.service, use.action)
@@ -443,6 +510,6 @@ export function useService(state: GameState, content: Content, use: ServiceUse):
     case 'round':
       return standRound(state)
     case 'news':
-      return news(state, content, use.settlement)
+      return news(state, content, use.reach)
   }
 }
