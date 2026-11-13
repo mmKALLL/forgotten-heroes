@@ -23,21 +23,13 @@ const span = (min: number, max: number, what: string) =>
 // Goods, markets and services (Plan 4). Weights are in kilograms, prices in gold pieces.
 // ---------------------------------------------------------------------------------------------
 
-/** One of the 15 goods of design §4: its unit, weight, base price and how long it keeps. */
+/** One of the 15 goods of design §4: its unit, weight and base price. */
 export const GoodDefSchema = z.object({
   id: GoodSchema,
   name: z.string(),
   unit: z.string().describe('What one unit is called, e.g. "ration" or "load"'),
   weight: z.number().min(0).describe('kg per unit'),
   price: z.number().min(0).describe('Base price in gp per unit, before supply and demand'),
-  shelfDays: z
-    .number()
-    .int()
-    .min(1)
-    .optional()
-    .describe(
-      'Days each batch keeps before what is left of it spoils at once (food only); absent: never spoils'
-    ),
   depth: z
     .number()
     .gt(0)

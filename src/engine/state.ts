@@ -22,7 +22,6 @@ import { provision, type ProvisionFor } from './town/provision'
 import { autoRest } from './town/arrival'
 import { stepRecruit, type RecruitAction } from './town/recruits'
 import { startingGoods } from './travel/supplies'
-import { syncFoodLots } from './economy/food'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
 import { explore, forgetExplored, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
@@ -99,7 +98,6 @@ export function newGame(
   const world = { ...withCrisis, pois: { ...withCrisis.pois, ...dungeons } }
   const names = party.map((c) => c.name).join(' and ')
   const from = location ? ` from ${settlementName({ world }, location)}` : ''
-  const goods = startingGoods(party.length)
   const state: GameState = {
     version: CURRENT_SAVE_VERSION,
     seed,
@@ -117,9 +115,7 @@ export function newGame(
     location,
     visited: false,
     travel: null,
-    goods,
-    // The starting food is one batch, fresh today (economy/food.ts).
-    foodLots: goods.food ? [{ day: 1, amount: goods.food }] : [],
+    goods: startingGoods(party.length),
     waterskins: 0,
     markets: {},
     priceBook: {},
@@ -151,8 +147,7 @@ export function newGame(
  * void, and contracts whose deadline has passed fail
  * (town/contracts.ts). Each member who died in the step costs camaraderie, and the low spell runs
  * (a member leaves each week below Fractured's top; town/camaraderie.ts). Then members whose XP
- * passed their level level up (rules/progression.ts), and the food lots catch up with the food
- * (economy/food.ts). A step that kills the last living member,
+ * passed their level level up (rules/progression.ts). A step that kills the last living member,
  * or brings camaraderie to 0, says so; after that, every action leaves the state as it is
  * (crisis/ending.ts).
  */
@@ -167,8 +162,7 @@ export function step(state: GameState, action: Action, content: Content): GameSt
   const delved = settleDelve(act(ready, action, content), content)
   const acted = crisisNews(state, siteNews(state.day, delved), content)
   const settled = forgetExplored(state, expireContracts(voidBounties(acted, content), content))
-  // The food lots follow what the step did to the food (economy/food.ts): new food is today's.
-  const done = syncFoodLots(applyLevelUps(keepLowSpell(mournTheDead(state, settled))))
+  const done = applyLevelUps(keepLowSpell(mournTheDead(state, settled)))
   if (partyWiped(done)) return appendLog(done, FALLEN_LINE, 'crit')
   return runOver(done) ? appendLog(done, DISBANDED_LINE, 'crit') : done
 }

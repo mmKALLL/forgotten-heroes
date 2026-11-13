@@ -25,7 +25,6 @@ export function supplyOutlook(state: GameState, content: Content): SupplyOutlook
     {
       // The speed the journey set out at (load and exhaustion are fixed at departure).
       speed: travel.kmPerDay / kmPerDay(terrain, travel.pace),
-      content,
       animalWater: animalWater(state, content),
       waterSaving: camelWaterSaving(state, content, terrain),
       escorts: escortPassengers(state),

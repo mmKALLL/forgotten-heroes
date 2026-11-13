@@ -88,7 +88,7 @@ export type Alignment = (typeof ALIGNMENTS)[number]
 
 /**
  * The 15 goods of design §4, in design order. Goods are tracked as quantities, never as items;
- * a good that is missing from a save counts as 0. Their weight, price and spoilage are content
+ * a good that is missing from a save counts as 0. Their weight and price are content
  * (`goods`), but the list and its categories are fixed by the design.
  */
 export const GOODS = [
