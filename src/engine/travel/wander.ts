@@ -2,7 +2,7 @@ import type { Content } from '../../content/build'
 import type { Character, GameState } from '../../schema/state'
 import { MAX_EXHAUSTION } from '../encounters/effects'
 import { encounterOptions } from '../encounters/preview'
-import { step } from '../state'
+import { stepPastLevelUps } from '../state'
 import { routeOptions, type PaceOption } from './preview'
 import { goodsOf, restOption } from './supplies'
 import { quote } from '../economy/market'
@@ -49,17 +49,25 @@ export function wander(
         const lodging = state.gold - restOption(state, content).lodgingCost >= LODGING_RESERVE
         const short = state.party.length - goodsOf(state.goods, 'food')
         if (short > 0 && !lodging) {
-          state = step(state, { type: 'buyGoods', good: 'food', amount: short }, content)
+          state = stepPastLevelUps(
+            state,
+            { type: 'buyGoods', good: 'food', amount: short },
+            content
+          )
         }
-        state = step(state, { type: 'rest', lodging }, content)
+        state = stepPastLevelUps(state, { type: 'rest', lodging }, content)
       }
       const options = routeOptions(state, content)
       const roads = options.filter((o) => o.available)
       if (roads.length === 0) {
         const ship = options.find((o) => o.stowaway !== null)
         state = ship
-          ? step(state, { type: 'travel', routeId: ship.routeId, stowaway: true }, content)
-          : step(state, { type: 'rest' }, content)
+          ? stepPastLevelUps(
+              state,
+              { type: 'travel', routeId: ship.routeId, stowaway: true },
+              content
+            )
+          : stepPastLevelUps(state, { type: 'rest' }, content)
         if (!ship) continue
       } else {
         const road = roads[pick(leg, roads.length)]
@@ -80,31 +88,39 @@ export function wander(
           state.gold - foodCost() >= WATERSKIN_PRICE;
           bought++
         ) {
-          state = step(state, { type: 'buyWaterskin' }, content)
+          state = stepPastLevelUps(state, { type: 'buyWaterskin' }, content)
           option = paceOf()
         }
         const missing = option.food.needed - option.food.carried
         if (missing > 0) {
-          state = step(state, { type: 'buyGoods', good: 'food', amount: missing }, content)
+          state = stepPastLevelUps(
+            state,
+            { type: 'buyGoods', good: 'food', amount: missing },
+            content
+          )
         }
-        state = step(state, { type: 'travel', routeId: road.routeId, pace: option.pace }, content)
+        state = stepPastLevelUps(
+          state,
+          { type: 'travel', routeId: road.routeId, pace: option.pace },
+          content
+        )
       }
     }
     for (let guard = 0; state.travel && guard < 100; guard++) {
       if (state.encounter) {
         const option = encounterOptions(state).find((o) => o.available)
         state = option
-          ? step(state, { type: 'chooseOption', optionId: option.id }, content)
-          : step(state, { type: 'closeEncounter' }, content)
+          ? stepPastLevelUps(state, { type: 'chooseOption', optionId: option.id }, content)
+          : stepPastLevelUps(state, { type: 'closeEncounter' }, content)
         continue
       }
       const before = state.day
-      state = step(state, { type: 'continueJourney' }, content)
+      state = stepPastLevelUps(state, { type: 'continueJourney' }, content)
       if (state.travel && !state.encounter && state.day === before) {
-        state = step(state, { type: 'rest' }, content)
+        state = stepPastLevelUps(state, { type: 'rest' }, content)
       }
     }
-    if (state.encounter) state = step(state, { type: 'closeEncounter' }, content)
+    if (state.encounter) state = stepPastLevelUps(state, { type: 'closeEncounter' }, content)
   }
   return state
 }

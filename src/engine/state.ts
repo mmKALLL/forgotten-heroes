@@ -26,7 +26,7 @@ import { generateWorld, startingSettlement, worldSeed, type StartMode } from './
 import { explore, forgetExplored, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
-import { applyLevelUps } from './rules/progression'
+import { acknowledgeLevelUps, applyLevelUps } from './rules/progression'
 import { keepLowSpell, mournTheDead } from './town/camaraderie'
 import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { gather } from './world/gather'
@@ -71,6 +71,8 @@ export type Action =
   | { type: 'gather'; rule: string }
   /** "Keep playing" after the Crisis is won or lost: dismiss its end screen (crisis/status.ts). */
   | { type: 'acknowledgeEnd' }
+  /** The level-up dialog's Continue: the waiting level-ups are seen (rules/progression.ts). */
+  | { type: 'acknowledgeLevelUps' }
   /** Press on into a dungeon's next room, or withdraw (world/delve.ts). */
   | DelveAction
   /** Buy the next level of a party upgrade from a service here (town/upgrades.ts). */
@@ -135,6 +137,7 @@ export function newGame(
     crisis: crisis?.crisis ?? null,
     delve: null,
     upgrades: {},
+    levelUps: [],
   }
   // The party knows the prices where it starts.
   return location ? observe(state, content, location) : state
@@ -150,8 +153,15 @@ export function newGame(
  * passed their level level up (rules/progression.ts). A step that kills the last living member,
  * or brings camaraderie to 0, says so; after that, every action leaves the state as it is
  * (crisis/ending.ts).
+ *
+ * Level-ups pause the game (designer call 2026-11-14): while any wait in `levelUps`, every action
+ * but `acknowledgeLevelUps` leaves the state as it is, so nothing happens behind the level-up
+ * dialog (and a later plan's level-up choices are made before play goes on). Saving and loading
+ * are not actions, so they still work. A run that ends in the step drops its level-ups.
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
+  if (action.type === 'acknowledgeLevelUps') return acknowledgeLevelUps(state)
+  if (state.levelUps.length > 0) return state
   // A fallen or disbanded party's run is over for good (crisis/ending.ts): nothing more happens.
   if (runOver(state)) return state
   // Anything but a room's choices, pressing on and a few chores leaves a dungeon first.
@@ -163,9 +173,18 @@ export function step(state: GameState, action: Action, content: Content): GameSt
   const acted = crisisNews(state, siteNews(state.day, delved), content)
   const settled = forgetExplored(state, expireContracts(voidBounties(acted, content), content))
   const done = applyLevelUps(keepLowSpell(mournTheDead(state, settled)))
-  if (partyWiped(done)) return appendLog(done, FALLEN_LINE, 'crit')
-  return runOver(done) ? appendLog(done, DISBANDED_LINE, 'crit') : done
+  // The run's end screen, not a celebration, follows a step that ends it.
+  const over = { ...done, levelUps: [] }
+  if (partyWiped(done)) return appendLog(over, FALLEN_LINE, 'crit')
+  return runOver(done) ? appendLog(over, DISBANDED_LINE, 'crit') : done
 }
+
+/**
+ * A step for simulated players (travel/trader.ts, travel/wander.ts, the simulations): they read
+ * level-ups in the journal, so any the step brings are acknowledged at once.
+ */
+export const stepPastLevelUps = (state: GameState, action: Action, content: Content): GameState =>
+  acknowledgeLevelUps(step(state, action, content))
 
 /** Rumour lines for the known sites whose cycle turned after day `from`. */
 function siteNews(from: number, state: GameState): GameState {
@@ -254,6 +273,8 @@ function act(state: GameState, action: Action, content: Content): GameState {
       return gather(state, content, action.rule)
     case 'acknowledgeEnd':
       return acknowledgeEnd(state)
+    case 'acknowledgeLevelUps':
+      return acknowledgeLevelUps(state)
     case 'pressOn':
     case 'withdraw':
       return stepDelve(state, action, content)

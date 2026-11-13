@@ -4,7 +4,7 @@ import { challengePreview, encounterOptions } from '../engine/encounters/preview
 import { currentOptions, startEncounter } from '../engine/encounters/run'
 import { withRng } from '../engine/rng'
 import { levelTo } from '../engine/rules/progression'
-import { newGame, step } from '../engine/state'
+import { newGame, stepPastLevelUps } from '../engine/state'
 import type { GameState } from '../schema/state'
 import { loadBundledContent } from './bundled'
 
@@ -55,7 +55,7 @@ function playOut(start: GameState): boolean {
     const pick = round ?? options.find((o) => o.kind === 'fixed')?.id ?? checks[0]?.id
     if (!pick) break
     const before = state.encounter!
-    state = step(state, { type: 'chooseOption', optionId: pick }, content)
+    state = stepPastLevelUps(state, { type: 'chooseOption', optionId: pick }, content)
     const challenge = challengeOf(before)
     const tally = state.encounter?.tally
     if (challenge && tally && decided(tally, challenge) !== null)

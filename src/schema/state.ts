@@ -299,8 +299,27 @@ export const DelveStateSchema = z.object({
 })
 export type DelveState = z.infer<typeof DelveStateSchema>
 
+/**
+ * A level-up the player hasn't seen yet (designer call 2026-11-14, rules/progression.ts): one per
+ * member, with every level gained since the last acknowledgement merged into it. The level-up
+ * dialog shows them; until it is confirmed (`acknowledgeLevelUps`), the game waits.
+ */
+export const LevelUpSchema = z.object({
+  characterId: z.string(),
+  from: z.number().int().min(1).max(MAX_LEVEL).describe('The level before'),
+  to: z.number().int().min(1).max(MAX_LEVEL).describe('The level reached'),
+  gains: z.object({
+    maxHp: z.number().int().min(0),
+    /** The abilities raised, by how much. */
+    abilities: z.partialRecord(AbilitySchema, z.number().int().min(1)).default({}),
+    /** How much the proficiency bonus rose (0 most levels). */
+    proficiency: z.number().int().min(0).default(0),
+  }),
+})
+export type LevelUp = z.infer<typeof LevelUpSchema>
+
 export const GameStateSchema = z.object({
-  version: z.literal(20),
+  version: z.literal(21),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -371,5 +390,7 @@ export const GameStateSchema = z.object({
   upgrades: z
     .partialRecord(UpgradeIdSchema, z.number().int().min(0).max(UPGRADE_MAX_LEVEL))
     .default({}),
+  /** Level-ups not yet acknowledged (save v21): while any wait, only acknowledging is played. */
+  levelUps: z.array(LevelUpSchema).default([]),
 })
 export type GameState = z.infer<typeof GameStateSchema>

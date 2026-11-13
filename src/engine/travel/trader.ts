@@ -24,7 +24,7 @@ import { livingMembers } from '../town/camaraderie'
 import { accessorySales } from '../gear/accessories'
 import { upgradeOffers } from '../town/upgrades'
 import { statModifier } from '../rules/character'
-import { step, type Action } from '../state'
+import { stepPastLevelUps, type Action } from '../state'
 import { actOpen, crisisDecided, crisisStatus } from '../crisis/status'
 import { crisisSites } from '../crisis/sites'
 import { runOver } from '../crisis/ending'
@@ -438,7 +438,7 @@ export function trader(
 
   const act = (action: Action, why: TraderWhy) => {
     const before = state
-    state = step(state, action, content)
+    state = stepPastLevelUps(state, action, content)
     for (const good of GOODS) {
       const was = before.goods[good] ?? 0
       const now = state.goods[good] ?? 0
