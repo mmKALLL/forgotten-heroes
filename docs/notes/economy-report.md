@@ -2,6 +2,10 @@
 
 The economy simulation runs a scripted party through 30 worlds for 60 days each and keeps the books. This note records the targets, the method, the numbers before and after each round of tuning, what was changed, and what is still open. The newest round (Plan 6 Track B) comes first; Plan 5a and the Plan 4 rounds follow.
 
+## Reputation with settlements only (2026-11-14)
+
+Designer call: no per-person reputation. A contract's reputation is now one number for the board's town (the old patron's and settlement's points summed), and spreads, locks and the rumour DC read the town alone. The sim's trader doesn't read reputation, so only the knock-on effects move, all within noise: trader gp/day by 30 (median) 1.8 → 2.2, by 60 1.9 → 1.7; contract pay 677 → 673 gp a run; broke shares and deaths unchanged. Nothing was retuned.
+
 ## Wounds by the party's HP, and inn rooms (2026-11-13)
 
 Fixed wounds now scale with the party's average max HP (÷ 25, at least ×1), a common room heals 40% and a private room 80% of max HP (4 gp a member), and resting in town without a room heals as camp does. Over 60 days the parties are still mostly level 1–4, so the books barely move: the trader's gp/day by 60 (median) 2.4 → 2.8, lodging 11.0 → 12.4 gp a run, days resting in town (all runs) 286 → 302; contracts only 2.6 → 2.4 gp/day; wander deaths 19 → 18. Nothing was retuned.
