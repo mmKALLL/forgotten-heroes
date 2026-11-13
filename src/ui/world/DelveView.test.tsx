@@ -85,6 +85,51 @@ test('between rooms, the schematic marks the way, and Press on and Withdraw disp
   expect(onAction.mock.calls.map(([a]) => a.type)).toEqual(['pressOn', 'withdraw'])
 })
 
+test('dark rooms: a moon on their dots, the fuel line, and each room says how it will be lit', () => {
+  const vault = content.dungeons['test-vault']
+  const dark = {
+    ...content,
+    dungeons: {
+      'test-vault': { ...vault, rooms: vault.rooms.map((r) => ({ ...r, dark: true })) },
+    },
+  }
+  const state = { ...atVault(), goods: { fuel: 2 } }
+  const id = state.location
+  render(
+    <PoiPanel
+      content={dark}
+      state={state}
+      selected={null}
+      onSelect={vi.fn()}
+      prefs={DEFAULT_TRAVEL_PREFS}
+      onPrefs={vi.fn()}
+      onAction={vi.fn()}
+    />
+  )
+  expect(screen.getByText('Dark rooms ahead: 3 · fuel 2 of 3 — the last will be dark')).toBeTruthy()
+  cleanup()
+  const entered = step(state, { type: 'visitPoi' }, dark)
+  expect(entered.location).toBe(id)
+  const between = step(entered, { type: 'chooseOption', optionId: 'sneak' }, dark)
+  const { container } = render(
+    <DelveView content={dark} state={between} onAction={vi.fn()} imageUrl={null} />
+  )
+  expect(container.querySelectorAll('.delve-dark')).toHaveLength(3)
+  expect(screen.getByText('Dark rooms ahead: 2 · fuel 1 of 2 — the last will be dark')).toBeTruthy()
+  expect(
+    screen.getByRole('button', { name: /Press on to Sluice\s*·\s*Dark: lit \(−1 fuel\)/ })
+  ).toBeTruthy()
+  cleanup()
+  const inSluice = step(between, { type: 'pressOn' }, dark)
+  const vaultNext = step(inSluice, { type: 'chooseOption', optionId: 'sneak' }, dark)
+  render(<DelveView content={dark} state={vaultNext} onAction={vi.fn()} imageUrl={null} />)
+  expect(screen.getByRole('button', { name: /Press on to Vault\s*·\s*Dark: Exposed/ })).toBeTruthy()
+  cleanup()
+  const inVault = step(vaultNext, { type: 'pressOn' }, dark)
+  render(<DelveView content={dark} state={inVault} onAction={vi.fn()} imageUrl={null} />)
+  expect(screen.getByText('Dark: Exposed', { exact: false })).toBeTruthy()
+})
+
 test('the zoomed view is a window inside the map around the party', () => {
   const [x, y, w, h] = delveViewBox([2000, 1000], [0.95, 0.5]).split(' ').map(Number)
   expect(x + w).toBeLessThanOrEqual(2000)

@@ -18,7 +18,8 @@ import { dangerLevel, harden } from './danger'
 import { dungeonOf } from './dungeons'
 import { dungeonXp, hoardOf, milestonePaid, type HoardEffect } from './hoard'
 import { siteStatus } from './sites'
-import { DELVE_WOUND, POWER_DC } from '../constants'
+import { darkMode, lightRooms, seesInDark, type RoomLight } from './dark'
+import { DELVE_WOUND, FUEL_PER_DARK_ROOM, POWER_DC } from '../constants'
 
 // Delving an authored dungeon (Plan 6 D3, design §6). Entering starts a delve: the rooms in order,
 // each one situation drawn from its own, played in a row without leaving. A room is about twice an
@@ -96,6 +97,15 @@ const roomSituations = (content: Content, room: DungeonRoom): string[] => {
   return room.situations.filter((id) => known.has(id))
 }
 
+/** What the room's encounter says of its darkness as it opens. */
+const LIGHT_LINES: Record<RoomLight, string> = {
+  lit: `It is dark here. You light a torch (−${FUEL_PER_DARK_ROOM} fuel).`,
+  darkvision: 'It is dark here, but darkvision guides the party: no torch is needed.',
+  unlit:
+    'It is dark here, and you have no fuel to light it. You grope on blind: Exposed in every ' +
+    'check here, fights included.',
+}
+
 /**
  * Starts the delve's room (delve.room): one of its situations, drawn, played as a room. When no
  * encounter opens (broken content: startEncounter logs why), the delve ends with a line saying so,
@@ -111,9 +121,13 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
   }
   const [situation, rng] = withRng(state.rng, (d) => d.pick(situations))
   const { dcBonus, wound, rules } = roomSetup(state, delve.poi, dungeon, delve.room)
-  const entered = { ...delve, inRoom: true, ended: null }
+  // A dark room is lit as the party enters, or played unlit (world/dark.ts).
+  const light = lightRooms(state, content, [room])[0]
+  const fuel = state.goods.fuel ?? 0
+  const goods = light === 'lit' ? { ...state.goods, fuel: fuel - FUEL_PER_DARK_ROOM } : state.goods
+  const entered = { ...delve, inRoom: true, ended: null, unlit: light === 'unlit' }
   const opened = startEncounter(
-    { ...state, rng, delve: entered },
+    { ...state, rng, goods, delve: entered },
     content,
     situation,
     undefined,
@@ -122,12 +136,17 @@ function startRoom(state: GameState, content: Content, delve: DelveState): GameS
       dcBonus,
       wound,
       room: rules,
-      lines: [{ text: `${room.name}. ${room.text}`, tone: 'info' }],
+      lines: [
+        { text: `${room.name}. ${room.text}`, tone: 'info' },
+        ...(light
+          ? [{ text: LIGHT_LINES[light], tone: light === 'unlit' ? 'bad' : 'info' } as const]
+          : []),
+      ],
     }
   )
   if (opened.encounter !== null && opened.encounter !== state.encounter) return opened
   return appendLog(
-    { ...opened, delve: null },
+    { ...opened, goods: state.goods, delve: null },
     `You can go no further into ${dungeon.name} than ${room.name}, and turn back. ` +
       'It can be tried again another time.',
     'bad'
@@ -166,7 +185,14 @@ export function enterDungeon(state: GameState, content: Content, poiId: string):
   const dungeon = dungeonOf(content, own(state.world.pois, poiId))
   if (!dungeon) return state
   if (!state.party.some(canAct)) return appendLog(state, 'No one is fit to go in.', 'bad')
-  const delve: DelveState = { poi: poiId, dungeon: dungeon.id, room: 0, inRoom: false, ended: null }
+  const delve: DelveState = {
+    poi: poiId,
+    dungeon: dungeon.id,
+    room: 0,
+    inRoom: false,
+    ended: null,
+    unlit: false,
+  }
   // Once entered, the dungeon is known: its suggested level shows from now on.
   const known = markKnown(state, [poiId])
   const entered = appendLog({ ...known, visited: true }, `You enter ${dungeon.name}.`, 'info')
@@ -227,7 +253,7 @@ export function settleDelve(state: GameState, content: Content): GameState {
   const next = delve.room + 1
   if (next >= dungeon.rooms.length) return { ...state, delve: null }
   return appendLog(
-    { ...state, delve: { ...delve, room: next, inRoom: false, ended: null } },
+    { ...state, delve: { ...delve, room: next, inRoom: false, ended: null, unlit: false } },
     `Ahead lies ${dungeon.rooms[next].name}. Press on, or withdraw with what you found.`,
     'info'
   )
@@ -261,6 +287,23 @@ export type DelvePreview = {
    * For the trader sim only: no UI shows an aggregate prediction (designer call 2026-11-14).
    */
   risk: number | null
+  /**
+   * Dark rooms (combat design §7b), by room index: how the room being played is lit, and how each
+   * room ahead will be if entered in order with the fuel the party has now (lightRooms: what
+   * entering does). Null for a room that isn't dark, or is behind the party.
+   */
+  light: (RoomLight | null)[]
+  /** The dark rooms ahead (not entered yet): how many, the fuel they need, the party's, and how many will be unlit. */
+  fuel: FuelPlan
+}
+
+/** The fuel the dark rooms ahead need (0 with darkvision) against what the party has. */
+export type FuelPlan = {
+  darkAhead: number
+  needed: number
+  have: number
+  unlitAhead: number
+  darkvision: boolean
 }
 
 /**
@@ -280,6 +323,9 @@ function roomRisk(
   const situations = roomSituations(content, room)
   if (situations.length === 0) return 0
   const { dcBonus, rules } = roomSetup(state, poiId, dungeon, index)
+  // An unlit room is played Exposed in every check (world/dark.ts).
+  const unlit = lightRooms(state, content, [room])[0] === 'unlit'
+  const mode = darkMode('normal', unlit)
   const poi = state.world.pois[poiId]
   const power = (siteStatus(state.world.seed, poiId, poi, state.day)?.power ?? 0) * POWER_DC
   const danger = dangerLevel(state, content)
@@ -301,7 +347,8 @@ function roomRisk(
         state,
         options,
         played.start,
-        (option, mode) => checkUpgrades(state, played, option, mode, true).total
+        (option, m) => checkUpgrades(state, played, option, m, true).total,
+        unlit
       )
       return 1 - challengeOdds(choices, stage.challenge, START).chance
     }
@@ -309,8 +356,8 @@ function roomRisk(
       if (o.kind === 'fixed') return drives(o.outcome.effects) ? 1 : 0
       const actor = chooseActor(state.party, o.check.skill, undefined, o.check.ability)
       if (!actor) return 1
-      const gear = checkUpgrades(state, played, o, 'normal', false).total
-      const odds = tierOdds(actor.modifier + gear, Number(o.check.dc))
+      const gear = checkUpgrades(state, played, o, mode, false).total
+      const odds = tierOdds(actor.modifier + gear, Number(o.check.dc), mode)
       return TIERS.reduce((sum, t) => sum + (drives(tierOutcome(o, t).effects) ? odds[t] : 0), 0)
     })
     return each.length === 0 ? 1 : Math.min(...each)
@@ -336,6 +383,16 @@ export function delvePreview(
   const current = delve ? delve.room : 0
   const inRoom = delve?.inRoom ?? false
   const living = state.party.filter(canAct)
+  // The rooms ahead from the next one to enter; the room being played as it was entered.
+  const next = inRoom ? current + 1 : current
+  const ahead = lightRooms(state, content, dungeon.rooms.slice(next))
+  const darkvision = seesInDark(state, content)
+  const here = (i: number): RoomLight | null =>
+    !dungeon.rooms[i].dark ? null : delve?.unlit ? 'unlit' : darkvision ? 'darkvision' : 'lit'
+  const light = dungeon.rooms.map((_, i) =>
+    i >= next ? ahead[i - next] : inRoom && i === current ? here(i) : null
+  )
+  const darkAhead = ahead.filter((l) => l !== null)
   return {
     dungeon,
     cr,
@@ -349,5 +406,13 @@ export function delvePreview(
     inRoom,
     hoard: hoardOf(dungeon, dungeon.cr),
     risk: inRoom ? null : roomRisk(state, content, poiId, dungeon, current),
+    light,
+    fuel: {
+      darkAhead: darkAhead.length,
+      needed: darkAhead.filter((l) => l !== 'darkvision').length * FUEL_PER_DARK_ROOM,
+      have: state.goods.fuel ?? 0,
+      unlitAhead: darkAhead.filter((l) => l === 'unlit').length,
+      darkvision,
+    },
   }
 }

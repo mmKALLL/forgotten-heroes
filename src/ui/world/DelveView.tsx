@@ -8,6 +8,8 @@ import type { GameState } from '../../schema/state'
 import { assetUrl } from '../assets'
 import { prefersReducedMotion } from '../dice/DiceRoll'
 import { useI18n } from '../i18n/I18n'
+import { FUEL_PER_DARK_ROOM } from '../../engine/constants'
+import type { RoomLight } from '../../engine/world/dark'
 
 /** A point on a dungeon's map as [x, y] fractions of the image. */
 type MapPoint = readonly [number, number]
@@ -168,6 +170,17 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
             return (
               <g key={room.id} className={`delve-room ${cls}`}>
                 <circle cx={x} cy={y} r={r} />
+                {room.dark && (
+                  <text
+                    className="delve-dark"
+                    x={x}
+                    y={y + r * 0.42}
+                    fontSize={r * 1.3}
+                    strokeWidth={r * 0.25}
+                  >
+                    <title>{t('delve.dark')}</title>☾
+                  </text>
+                )}
                 <text x={x + r * 1.4} y={y + r * 0.45} fontSize={r * 1.4} strokeWidth={r * 0.3}>
                   {i + 1}. {room.name}
                 </text>
@@ -188,15 +201,18 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
               name: dungeon.rooms[p.current].name,
             })
           : t('delve.roomsLeft', { left: p.roomsLeft, n: dungeon.rooms.length })}
+        {p.inRoom && p.current !== null && <LightNote light={p.light[p.current]} />}
       </p>
       {between && (
         <>
+          <FuelLine preview={p} />
           <p className="small">
             <HoardLine preview={p} />
           </p>
           <div className="actions">
             <button className="primary" onClick={() => onAction({ type: 'pressOn' })}>
               {t('delve.pressOn', { name: nextRoom.name })}
+              <LightNote light={p.light[nextIndex]} plain />
             </button>
             <button title={t('delve.withdrawHint')} onClick={() => onAction({ type: 'withdraw' })}>
               {t('delve.withdraw')}
@@ -205,6 +221,53 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
         </>
       )}
     </section>
+  )
+}
+
+/**
+ * A dark room's lighting as it is or will be played: " · Dark: lit (−1 fuel)", or nothing; `plain`
+ * inside a button (no tone).
+ */
+function LightNote({ light, plain }: { light: RoomLight | null; plain?: boolean }) {
+  const { t } = useI18n()
+  if (!light) return null
+  return (
+    <span className={light === 'unlit' && !plain ? 'tone-bad' : undefined}>
+      {' · '}
+      {t(`delve.light.${light}`, { fuel: FUEL_PER_DARK_ROOM })}
+    </span>
+  )
+}
+
+/**
+ * The dark rooms ahead and the fuel they burn (combat design §7b): "Dark rooms ahead: 3 · fuel 2
+ * of 3 — the last will be dark". Nothing when no dark room is ahead.
+ */
+function FuelLine({ preview: p }: { preview: DelvePreview }) {
+  const { t } = useI18n()
+  const { darkAhead, needed, have, unlitAhead, darkvision } = p.fuel
+  if (darkAhead === 0) return null
+  const hint = t('delve.fuelHint', { fuel: FUEL_PER_DARK_ROOM })
+  if (darkvision) {
+    return (
+      <p className="small" title={hint}>
+        {t('delve.fuelDarkvision', { n: darkAhead })}
+      </p>
+    )
+  }
+  const short =
+    unlitAhead === 0
+      ? ''
+      : unlitAhead === darkAhead
+        ? t('delve.fuelNone')
+        : unlitAhead === 1
+          ? t('delve.fuelLast')
+          : t('delve.fuelLastMany', { k: unlitAhead })
+  return (
+    <p className={`small ${unlitAhead > 0 ? 'tone-warn' : ''}`} title={hint}>
+      {t('delve.fuel', { n: darkAhead, have: Math.min(have, needed), need: needed })}
+      {short}
+    </p>
   )
 }
 
@@ -245,6 +308,7 @@ export function DungeonCard({ preview: p }: { preview: DelvePreview }) {
         <p className="small muted">{t('delve.levelUnknown')}</p>
       )}
       <p className="small">{t('delve.rooms', { n: p.dungeon.rooms.length })}</p>
+      <FuelLine preview={p} />
       <p className="small">
         <HoardLine preview={p} />
       </p>

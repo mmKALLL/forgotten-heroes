@@ -25,6 +25,7 @@ import {
   v21ToV22,
   v22ToV23,
   v23ToV24,
+  v24ToV25,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -201,7 +202,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(24)
+  expect(CURRENT_SAVE_VERSION).toBe(25)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -658,19 +659,24 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v23ToV24(
-          v22ToV23(
-            v21ToV22(
-              v20ToV21(
-                v19ToV20(
-                  v18ToV19(
-                    v17ToV18(
-                      v16ToV17(
-                        v15ToV16(
-                          v14ToV15(
-                            v13ToV14(
-                              v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content),
-                              content
+        v24ToV25(
+          v23ToV24(
+            v22ToV23(
+              v21ToV22(
+                v20ToV21(
+                  v19ToV20(
+                    v18ToV19(
+                      v17ToV18(
+                        v16ToV17(
+                          v15ToV16(
+                            v14ToV15(
+                              v13ToV14(
+                                v12ToV13(
+                                  v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)),
+                                  content
+                                ),
+                                content
+                              )
                             )
                           )
                         )
@@ -1144,6 +1150,21 @@ describe('v23 → v24 (Plan 7 Track C: classes and gear)', () => {
     // Pure and idempotent.
     const once = v23ToV24(v23)
     expect(v23ToV24({ ...once, version: 23 })).toEqual(once)
+  })
+})
+
+describe('v24 → v25 (Plan 7 Track D: dark rooms and fuel)', () => {
+  test('a delve under way plays its room lit; without a delve nothing changes', () => {
+    const delve = { poi: 'p', dungeon: 'test-vault', room: 1, inRoom: true, ended: null }
+    const state = makeState({ delve: { ...delve, unlit: false } })
+    const v24 = { ...structuredClone(state), version: 24, delve }
+    const loaded = deserialize(JSON.stringify(v24), content)!
+    expect(loaded).toEqual(state)
+    expect(v24ToV25({ ...structuredClone(makeState()), version: 24 })).toEqual(makeState())
+    // Pure and idempotent.
+    const once = v24ToV25(v24)
+    expect(v24ToV25({ ...once, version: 24 })).toEqual(once)
+    expect(v24.delve).not.toHaveProperty('unlit')
   })
 })
 

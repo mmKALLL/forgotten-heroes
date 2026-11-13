@@ -330,6 +330,13 @@ export const DelveStateSchema = z.object({
     .nullable()
     .default(null)
     .describe('Set by the room: driven out (driveOut), or the hoard paid (hoard)'),
+  unlit: z
+    .boolean()
+    .default(false)
+    .describe(
+      'The room being played is dark, with no fuel to light it and no darkvision: the party is ' +
+        'Exposed in every check there, fights included (world/dark.ts; save v25)'
+    ),
 })
 export type DelveState = z.infer<typeof DelveStateSchema>
 
@@ -367,7 +374,7 @@ export const LevelUpSchema = z.object({
 export type LevelUp = z.infer<typeof LevelUpSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(24),
+  version: z.literal(25),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),

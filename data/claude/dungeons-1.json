@@ -2,7 +2,7 @@
   "$schema": "../_schema/dungeons.schema.json",
   "kind": "dungeons",
   "source": "claude",
-  "notes": "Authored dungeons, set 1 of 2 (Plan 6 D5). Each is drawn on one dungeon map image (the path is relative to ~/dnd5e and listed in assets.manifest.txt) and delved room by room in order. Coordinates are [x, y] fractions of the image, read off downscaled copies; room texts and their situations follow what the map shows there, in our own words. Room situations live in dungeon-rooms-1.json.",
+  "notes": "Authored dungeons, set 1 of 2 (Plan 6 D5). Each is drawn on one dungeon map image (the path is relative to ~/dnd5e and listed in assets.manifest.txt) and delved room by room in order. Coordinates are [x, y] fractions of the image, read off downscaled copies; room texts and their situations follow what the map shows there, in our own words. Room situations live in dungeon-rooms-1.json. Dark rooms (Plan 7 Track D, combat design §7b): `dark` marks rooms unlit on the map and in their texts (caves, crypts, sewers, mine galleries, deep halls); about 60% of all dungeons have one and about 20% are mostly dark (src/content/dark.test.ts).",
   "entries": [
     {
       "id": "cutpurse-hollow",
@@ -77,28 +77,32 @@
           "name": "The Cocoon Cavern",
           "at": [0.57, 0.68],
           "text": "A wide cavern hung with sheets of web. Wrapped bundles dangle among the strands, and a clutch of pale eggs sits by the west wall.",
-          "situations": ["weavers-hollow-drop", "weavers-hollow-bundle"]
+          "situations": ["weavers-hollow-drop", "weavers-hollow-bundle"],
+          "dark": true
         },
         {
           "id": "orb",
           "name": "The Orb-Web Chamber",
           "at": [0.11, 0.74],
           "text": "A round chamber at the end of a thin tunnel, filled wall to wall by one great wheel of web. Something is caught at its hub.",
-          "situations": ["weavers-hollow-orb"]
+          "situations": ["weavers-hollow-orb"],
+          "dark": true
         },
         {
           "id": "eggs",
           "name": "The Egg Gallery",
           "at": [0.2, 0.43],
           "text": "A long cavern whose west end is heaped with hundreds of pale eggs. Bundled shapes lie in a hollow by the east wall.",
-          "situations": ["weavers-hollow-hatch"]
+          "situations": ["weavers-hollow-hatch"],
+          "dark": true
         },
         {
           "id": "funnel",
           "name": "The Brood Mother's Funnel",
           "at": [0.75, 0.2],
           "text": "The largest cavern. Its north wall is drawn into a thick white funnel of web around a black hole in the rock.",
-          "situations": ["weavers-hollow-mother"]
+          "situations": ["weavers-hollow-mother"],
+          "dark": true
         }
       ],
       "hoard": {
@@ -128,14 +132,16 @@
           "name": "The Gallery of Champions",
           "at": [0.5, 0.55],
           "text": "A long gallery lined with six gilded statues of armoured champions on plinths, facing inward.",
-          "situations": ["axe-temple-champions"]
+          "situations": ["axe-temple-champions"],
+          "dark": true
         },
         {
           "id": "tomb",
           "name": "The Scorched Tomb",
           "at": [0.13, 0.72],
           "text": "An eight-sided tomb blackened by old fire. Two of its stone coffins lie open, a skeleton still stretched out in each.",
-          "situations": ["axe-temple-skeletons"]
+          "situations": ["axe-temple-skeletons"],
+          "dark": true
         },
         {
           "id": "shrine",
@@ -245,14 +251,16 @@
           "name": "The Chasm",
           "at": [0.75, 0.55],
           "text": "A black crack splits the cave floor from wall to wall, too deep for any torch to find the bottom.",
-          "situations": ["gnawbone-warren-leap"]
+          "situations": ["gnawbone-warren-leap"],
+          "dark": true
         },
         {
           "id": "tomb",
           "name": "The Bone-Lidded Coffin",
           "at": [0.82, 0.07],
           "text": "At the end of the far gallery stands a stone coffin, its lid carved with a skull and crossed bones. The pack's matriarch has made it her throne.",
-          "situations": ["gnawbone-warren-matriarch"]
+          "situations": ["gnawbone-warren-matriarch"],
+          "dark": true
         }
       ],
       "hoard": {
@@ -275,7 +283,8 @@
           "name": "The Drain Hall",
           "at": [0.47, 0.74],
           "text": "A cross-shaped chamber with an iron drain grate at its heart. Four pipes in the walls leak a green, stinging fume.",
-          "situations": ["green-undercroft-fumes", "green-undercroft-grate"]
+          "situations": ["green-undercroft-fumes", "green-undercroft-grate"],
+          "dark": true
         },
         {
           "id": "vats",
@@ -289,14 +298,16 @@
           "name": "The Spout Gallery",
           "at": [0.25, 0.53],
           "text": "A many-sided chamber where stone gargoyle heads spit into a sludge channel, and pipes leak fumes across the floor.",
-          "situations": ["green-undercroft-gargoyles"]
+          "situations": ["green-undercroft-gargoyles"],
+          "dark": true
         },
         {
           "id": "sinkhole",
           "name": "The Sinkhole",
           "at": [0.38, 0.34],
           "text": "The sludge channel loops round a hollow block. In one bend the floor has fallen in, and the green flood pours into a hole ringed with rubble.",
-          "situations": ["green-undercroft-sinkhole"]
+          "situations": ["green-undercroft-sinkhole"],
+          "dark": true
         },
         {
           "id": "falls",
@@ -386,7 +397,8 @@
           "name": "The Hall of Pools",
           "at": [0.5, 0.58],
           "text": "A hall of tall columns with long green pools on either side, still and thick with weed.",
-          "situations": ["jackal-kings-tomb-crocodiles"]
+          "situations": ["jackal-kings-tomb-crocodiles"],
+          "dark": true
         },
         {
           "id": "scarab",
@@ -407,7 +419,8 @@
           "name": "The Burial Chamber",
           "at": [0.5, 0.08],
           "text": "A low chamber crowded with urns, scrolls and braziers. The king's gilded coffin stands upright under a wall of carved signs, with lesser coffins at either end.",
-          "situations": ["jackal-kings-tomb-king"]
+          "situations": ["jackal-kings-tomb-king"],
+          "dark": true
         }
       ],
       "hoard": {

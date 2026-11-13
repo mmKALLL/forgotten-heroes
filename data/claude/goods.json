@@ -29,7 +29,7 @@
       "weight": 2,
       "price": 5,
       "depth": 3,
-      "uses": "Firewood, charcoal and lamp oil. Smiths and treeless towns pay for it; cold country will need it later."
+      "uses": "Firewood, charcoal, torches and lamp oil. Lights a dark dungeon room (1 a room). Smiths and treeless towns pay for it; cold country will need it later."
     },
     {
       "id": "healing",

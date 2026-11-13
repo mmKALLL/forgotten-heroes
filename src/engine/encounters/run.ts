@@ -63,6 +63,7 @@ import { livingMembers } from '../town/camaraderie'
 import { fillText, rollSlots } from './slots'
 import { wealthWeight } from '../economy/wealth'
 import { asRoom, type RoomRules } from './room'
+import { darkMode, roomUnlit } from '../world/dark'
 import { jobDc, jobWound, partyWound } from '../rules/levels'
 import { POWER_DC, TWIST_PLACE_WEIGHT } from '../constants'
 
@@ -616,7 +617,8 @@ export function chooseOption(
   const actor = chooseActor(state.party, skill, actorId, ability)
   if (!actor) return appendLog(state, 'No one is able to act.', 'bad')
   const dc = normalizeDc(Number(option.check.dc))
-  const mode = POSITION_MODE[encounter.position]
+  // An unlit dungeon room (world/dark.ts) makes every check Exposed on top of the footing.
+  const mode = darkMode(POSITION_MODE[encounter.position], roomUnlit(state))
   // Upgrades: delving gear in a dungeon room, the scout's kit on a surprise check or when Exposed.
   const round = challengeOf(encounter) !== null
   const modifier =

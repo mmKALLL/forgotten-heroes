@@ -16,7 +16,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 24
+export const CURRENT_SAVE_VERSION = 25
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -575,6 +575,19 @@ export function v23ToV24(raw: Record<string, unknown>): Record<string, unknown> 
 }
 
 /**
+ * v24 → v25 (Plan 7 Track D, dark rooms and fuel): a delve under way plays its room lit (`unlit`
+ * false), as every room was before dark rooms.
+ */
+export function v24ToV25(raw: Record<string, unknown>): Record<string, unknown> {
+  const delve = raw.delve as Record<string, unknown> | null | undefined
+  return {
+    ...raw,
+    version: 25,
+    ...(delve != null && { delve: { ...delve, unlit: delve.unlit ?? false } }),
+  }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -631,6 +644,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v22ToV23(raw as Record<string, unknown>), content)
     case 23:
       return migrate(v23ToV24(raw as Record<string, unknown>), content)
+    case 24:
+      return migrate(v24ToV25(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

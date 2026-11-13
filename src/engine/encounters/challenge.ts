@@ -5,6 +5,7 @@ import { hasLuck } from '../gear/hooks'
 import { chooseActor } from '../rules/character'
 import { TIERS, normalizeDc, tierOdds, type RollMode, type Tier } from '../rules/checks'
 import { onceKey, tierOutcome } from './outcomes'
+import { darkMode } from '../world/dark'
 import { CHALLENGE_MARKS } from '../constants'
 
 // Skill challenges (Plan 6 S; design §7). A stage with a `challenge` is played in rounds: each
@@ -119,7 +120,9 @@ export function roundChoices(
    * What the party's upgrades add to a round with this option at this footing's roll mode
    * (rules/upgrades.ts checkUpgrades: delving gear in a dungeon room, the scout's kit).
    */
-  bonus: (option: Extract<Option, { kind: 'check' }>, mode: RollMode) => number = () => 0
+  bonus: (option: Extract<Option, { kind: 'check' }>, mode: RollMode) => number = () => 0,
+  /** An unlit dungeon room (world/dark.ts): every round is Exposed on top of its footing. */
+  unlit = false
 ): RoundChoice[] {
   return options.filter(playsRound).flatMap((option): RoundChoice[] => {
     const once = option.once ? onceKey(stageId, option) : null
@@ -132,7 +135,7 @@ export function roundChoices(
     if (!actor) return []
     const lucky = hasLuck(state, actor.characterId)
     const results = (position: Position, modifier: number) => {
-      const mode = MODE[position]
+      const mode = darkMode(MODE[position], unlit)
       const odds = tierOdds(
         actor.modifier + bonus(option, mode) + modifier,
         normalizeDc(Number(dc)),

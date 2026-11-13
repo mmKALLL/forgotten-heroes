@@ -2844,6 +2844,14 @@ h2[tabindex='-1']:focus {
 .delve-room.ahead text {
   opacity: 0.75;
 }
+/* A dark room (combat design §7b): a moon on its dot. */
+.delve-room text.delve-dark {
+  fill: #c9d4f2;
+  stroke: #1b2033;
+  text-anchor: middle;
+  font-weight: 700;
+  pointer-events: auto;
+}
 .delve-entrance {
   fill: #3f6b35;
   stroke: #f8f2e3;

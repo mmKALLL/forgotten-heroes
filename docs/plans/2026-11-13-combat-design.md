@@ -185,7 +185,19 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - **Lighting:** a dark room is lit with fuel (torches, lamp oil). The delve preview says how many units the dark rooms ahead will burn, so a party provisions before setting out.
 - **Unlit rooms are still explorable**, but the party is **Exposed in every check** there, fights included.
 - **Darkvision:** the penalty doesn't apply when every member but one is of a darkvision ancestry (orc, dwarf, elf), or when the only member has darkvision.
-- **To decide:** fuel per dark room (1 unit each is the natural start), and whether a lit fight lights the whole line or only the tiles near the party.
+- **Decided** (by Claude, Plan 7): 1 fuel per dark room, and a lit fight lights the whole line. As built below.
+
+### As built: Track D (dark rooms and fuel)
+
+- **Rooms:** `dark: true` on 27 rooms of 12 of the 20 dungeons (60%); 4 are mostly dark, half their rooms or more (20%):
+  - **Mostly dark:** Weaver's Hollow (4 of 5: the spider caves past the throat), the Green Undercroft (3 of 5: the sewer halls), the Greyvein Lead Mine (4 of 5: every gallery past the adit), the Starfloor Crypt (3 of 5: the coffin halls).
+  - **Some:** the Axe Temple (the gallery and the scorched tomb), Gnawbone Warren (the chasm and the far tomb; the camps are firelit), the Jackal King's Tomb (the hall of pools and the burial chamber), the Ashgrave Mausoleum (the coffin hall), the Drowned Keep (the flooded stair and the cistern), Stormwrack Manor (the dark vestibule), the Ape King's Vault (the sphere room and the hall of spouts), the Skullmire (the lair mouth).
+  - Rooms lit on the map or in their texts (lava, braziers, glowing sigils, lanterns, cookfires, daylight) stay lit, so the lich's gauntlet, the drakescale forge and the coastal caves need no fuel. `src/content/dark.test.ts` keeps the shares within 45–75% and 10–30%.
+- **Fuel:** entering a dark room burns `FUEL_PER_DARK_ROOM` (1) fuel if the party has it (`world/delve.ts` startRoom); the room's log says so. A lit room is lit for the whole fight too (decided by Claude: no partial lighting of the line).
+- **Unlit:** with no fuel the room is played with `DelveState.unlit` (save v24 → v25). Every check there is Exposed on top of its footing (`world/dark.ts` `darkMode`: an Edge earned in the room cancels it, as advantage and disadvantage do in 5e; decided by Claude), in the option's odds, the roll, a skill challenge's chance and the delve's room risk alike. A fight opened there (`startCombat`, whoever opens it) starts Exposed the same way (`darkFooting`).
+- **Darkvision:** `darkvision: true` on the elf, dwarf and orc ancestries (`data/original/ancestries.json`, noted there). The rule counts the living members (not the dead): all but one, or a lone member, with darkvision. Such a party **burns no fuel** in dark rooms (decided by Claude: it doesn't need light), and plays them as lit. Half-elves and goblins (darkvision in 5e) are left without it, as the designer named three; one data flag each adds them.
+- **Preview == actual:** `delvePreview` gives `light` (per room: `lit`, `darkvision`, `unlit`, or null) and `fuel` (`darkAhead`, `needed`, `have`, `unlitAhead`, `darkvision`), planned with `lightRooms`, the function entering a room calls. The UI shows a moon on dark rooms' dots, the fuel line ("Dark rooms ahead: 3 · fuel 2 of 3 — the last will be dark") between rooms and on the site panel, and each room's lighting on Press on and on the room line.
+- **For Track I:** a fight preview shown before committing should use `darkFooting(footing, roomUnlit(state))` so it matches what `startCombat` does.
 
 ## 8. UI
 

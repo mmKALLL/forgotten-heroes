@@ -1741,7 +1741,7 @@ export function fixtureContent(extra: Record<string, unknown> = {}): Content {
       source: 'original',
       entries: [
         { id: 'human', name: 'Human', playable: true },
-        { id: 'dwarf', name: 'Dwarf', playable: true },
+        { id: 'dwarf', name: 'Dwarf', playable: true, darkvision: true },
         { id: 'drake', name: 'Drake', playable: false },
       ],
     },

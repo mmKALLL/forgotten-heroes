@@ -36,6 +36,11 @@
           },
           "playable": {
             "type": "boolean"
+          },
+          "darkvision": {
+            "default": false,
+            "description": "Sees in the dark (combat design §7b): a party all of this but one member, or a lone member of it, needs no fuel in dark dungeon rooms",
+            "$ref": "#/$defs/__schema0"
           }
         },
         "required": [
@@ -50,5 +55,10 @@
     "kind",
     "source",
     "entries"
-  ]
+  ],
+  "$defs": {
+    "__schema0": {
+      "type": "boolean"
+    }
+  }
 }
