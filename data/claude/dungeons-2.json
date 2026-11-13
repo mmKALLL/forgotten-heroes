@@ -324,6 +324,13 @@
           "situations": ["stormwrack-manor-statues", "stormwrack-manor-butler"]
         },
         {
+          "id": "parlour",
+          "name": "The Shrouded Parlour",
+          "at": [0.76, 0.8],
+          "text": "East of the vestibule, a parlour whose sofas and chairs all stand under grey dust sheets, with fresh candles burning in the sconces.",
+          "situations": ["stormwrack-manor-sheets"]
+        },
+        {
           "id": "laboratory",
           "name": "The Laboratory",
           "at": [0.8, 0.7],
@@ -336,6 +343,20 @@
           "at": [0.5, 0.71],
           "text": "The heart of the lower house: a great hearth carved as a snarling face, its fire burning without wood.",
           "situations": ["stormwrack-manor-hearth"]
+        },
+        {
+          "id": "west-rooms",
+          "name": "The West Rooms",
+          "at": [0.2, 0.74],
+          "text": "Two bedchambers in the west wing: a red daybed and a writing desk heaped with letters in one, a bed and a white bearskin rug in the other.",
+          "situations": ["stormwrack-manor-drowned-lord"]
+        },
+        {
+          "id": "bridge",
+          "name": "The Covered Bridge",
+          "at": [0.5, 0.55],
+          "text": "A roofed stone bridge over the chasm between the lower house and the gallery hall, half its roof torn away by the storm.",
+          "situations": ["stormwrack-manor-bridge"]
         },
         {
           "id": "gallery-hall",
@@ -428,6 +449,13 @@
           "situations": ["ape-king-vault-fumes", "ape-king-vault-apes"]
         },
         {
+          "id": "great-ring",
+          "name": "The Great Ring",
+          "at": [0.14, 0.56],
+          "text": "The largest of the round chambers, at the west end of the gulf, where the smoke pools thickest and a long stair climbs north out of it.",
+          "situations": ["ape-king-vault-ring"]
+        },
+        {
           "id": "golden-stair",
           "name": "The Golden Stair",
           "at": [0.14, 0.15],
@@ -440,6 +468,13 @@
           "at": [0.33, 0.3],
           "text": "A narrow chamber with three great stone balls heaped in a corner, and grooves worn in the floor.",
           "situations": ["ape-king-vault-spheres"]
+        },
+        {
+          "id": "spout-hall",
+          "name": "The Hall of Spouts",
+          "at": [0.77, 0.28],
+          "text": "A long hall with a trench down its middle and round holes along both walls at knee height. A round grate closes its far end.",
+          "situations": ["ape-king-vault-spouts"]
         },
         {
           "id": "knotted-floor",

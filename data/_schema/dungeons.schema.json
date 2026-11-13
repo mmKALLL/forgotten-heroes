@@ -179,12 +179,12 @@
     },
     "__schema14": {
       "minItems": 3,
-      "maxItems": 6,
+      "maxItems": 10,
       "type": "array",
       "items": {
         "$ref": "#/$defs/__schema15"
       },
-      "description": "In delve order"
+      "description": "In delve order (most have 5; longer where the map has more, from CR 10 up)"
     },
     "__schema15": {
       "type": "object",

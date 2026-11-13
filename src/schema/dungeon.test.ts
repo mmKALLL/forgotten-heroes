@@ -31,10 +31,11 @@ describe('dungeons', () => {
     expect(d.rooms[0].at).toEqual([0.5, 0.5])
   })
 
-  test('rooms: 3 to 6 with distinct ids', () => {
+  test('rooms: 3 to 10 with distinct ids', () => {
     expect(DungeonSchema.safeParse(dungeon({ rooms: [room('a'), room('b')] })).success).toBe(false)
-    const seven = ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id) => room(id))
-    expect(DungeonSchema.safeParse(dungeon({ rooms: seven })).success).toBe(false)
+    const rooms = (n: number) => Array.from({ length: n }, (_, i) => room(`r${i}`))
+    expect(DungeonSchema.safeParse(dungeon({ rooms: rooms(10) })).success).toBe(true)
+    expect(DungeonSchema.safeParse(dungeon({ rooms: rooms(11) })).success).toBe(false)
     const twice = [room('a'), room('b'), room('a')]
     expect(DungeonSchema.safeParse(dungeon({ rooms: twice })).success).toBe(false)
   })

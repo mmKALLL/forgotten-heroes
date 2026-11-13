@@ -46,7 +46,11 @@ export const DungeonSchema = z
     biomes: z.array(BiomeSchema).min(1).describe('Where it may be placed'),
     summary: z.string().describe('One line on the map card'),
     entrance: MapPointSchema.describe('Where the party enters, as [x, y] fractions of the image'),
-    rooms: z.array(DungeonRoomSchema).min(3).max(6).describe('In delve order'),
+    rooms: z
+      .array(DungeonRoomSchema)
+      .min(3)
+      .max(10)
+      .describe('In delve order (most have 5; longer where the map has more, from CR 10 up)'),
     hoard: DungeonHoardSchema.describe('Paid when the last room is cleared'),
   })
   .refine((d) => new Set(d.rooms.map((r) => r.id)).size === d.rooms.length, {

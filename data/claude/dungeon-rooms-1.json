@@ -6614,6 +6614,710 @@
           ]
         }
       }
+    },
+    {
+      "id": "lichs-gauntlet-spikes",
+      "title": "The spiked floor",
+      "disposition": "neutral",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "Two bands of iron spikes cross the passage, sunk in slots in the floor. As you watch they stab up and drop back, one band and then the other, in a slow beat. Bones lie in the gap between them.",
+          "options": [
+            {
+              "id": "time",
+              "kind": "check",
+              "label": "Time the beat and go through",
+              "check": {
+                "skill": "perception",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} misjudges the beat, and the spikes punch up through a boot. You drag them back to the cave and bind the wound there.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You cross in pairs on the beat. One of you is a heartbeat slow, and bleeds for it.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "random"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} calls the beat, and you cross between strikes without a scratch.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "leap",
+              "kind": "check",
+              "label": "Leap the bands",
+              "check": {
+                "skill": "athletics",
+                "dc": 13
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} clears the first band and lands short of the second. The spikes take a leg, and you haul them back the way you came.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You jump them one at a time. Not everyone lands clean.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} leaps both bands and drops a rope back for the rest."
+                }
+              }
+            },
+            {
+              "id": "jam",
+              "kind": "fixed",
+              "label": "Jam the slots with timber",
+              "description": "Uses 1 timber.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "timber",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "You wedge beams across the slots. The spikes grind against the wood and stop, and you walk through. The beams will not last for the way back.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "timber",
+                    "amount": -1
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lichs-gauntlet-glyph",
+      "title": "The bound candidate",
+      "disposition": "neutral",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "In the far corner of the hall, inside a quarter-circle of violet runes, a body wrapped in grave-cloth sits against the wall. Its head turns as you come in. 'Another candidate,' it whispers. 'Let me out, and I will tell you how the next test is passed.'",
+          "options": [
+            {
+              "id": "free",
+              "kind": "check",
+              "label": "Break the runes and free it",
+              "check": {
+                "skill": "religion",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The runes flare as you scuff them, and violet fire runs up {actor}'s arms. The thing in the corner laughs as you stagger back to the spikes.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The circle breaks with a crack that burns your hands. The thing crawls out, mutters 'the shadows are the fire's', and is gone down the hall.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} unpicks the runes one by one. The candidate rises, bows, and tells you plainly: in the next hall the shadows are made by the fire, so master the fire and you master them.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    },
+                    {
+                      "effect": "inspiration",
+                      "amount": 1
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "question",
+              "kind": "check",
+              "label": "Question it from outside the circle",
+              "check": {
+                "skill": "insight",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "It talks and talks, and while it talks the runes creep across the floor and take hold of {actor}. You drag them free and fall back to the spikes.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You sift half a truth from its lies: something about the fire in the next hall."
+                },
+                "success": {
+                  "text": "{actor} catches it in its own lies until it gives up the secret of the next hall. You leave it in its circle.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "pass",
+              "kind": "fixed",
+              "label": "Pass by without a word",
+              "outcome": {
+                "text": "You keep to the far wall. The runes lash out as you pass, and their cold stays in your bones.",
+                "effects": [
+                  {
+                    "effect": "exhaustion",
+                    "amount": 1,
+                    "target": "all"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "lichs-gauntlet-braziers",
+      "title": "The shadows of the braziers",
+      "disposition": "hostile",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "Six braziers on iron stands burn down the walls of a wide hall and throw your shadows long across the floor. Then the shadows go on moving after you have stopped, and turn, and reach for you.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight the shadows",
+              "check": {
+                "skill": "athletics",
+                "dc": 14,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "Blades pass through them. Cold hands sink into {actor}'s chest, and you carry them back up the hall, grey and shaking.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You hack the shadows apart, and they leave a chill in all of you.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} drives them back into the walls with steel and fury, and the hall goes still."
+                }
+              }
+            },
+            {
+              "id": "snuff",
+              "kind": "check",
+              "label": "Snuff the braziers one by one",
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} reaches for the third brazier, and a shadow takes the arm that holds the lid. You fall back into the corridor.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "Brazier by brazier the hall goes dark, and the shadows with it. The last one fights for its light.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} darts from stand to stand. With the last flame out, there are no shadows left to move.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "flood",
+              "kind": "fixed",
+              "label": "Burn oil to flood the hall with light",
+              "description": "Uses 1 fuel.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "fuel",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "You pour oil across the floor and fire it. In the white blaze the shadows shrink to nothing, and you cross the hall with your eyebrows singed.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "fuel",
+                    "amount": -1
+                  },
+                  {
+                    "effect": "hp",
+                    "amount": -1,
+                    "target": "all"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "drakescale-forge-brood",
+      "title": "The brood pit",
+      "disposition": "hostile",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "The pit is as warm as a bread oven. Pale eggs lie heaped in its corners, and in the scorched hollows of its floor a dozen drake hatchlings, each as big as a hound, lift their heads and hiss.",
+          "options": [
+            {
+              "id": "fight",
+              "kind": "check",
+              "label": "Fight through the hatchlings",
+              "check": {
+                "skill": "athletics",
+                "dc": 15,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "They come out of every hollow at once. {actor} goes down under three of them, and you drag them out of the pit, burned and bitten.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "A snapping, scorching fight across the pit floor.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} kills the biggest, and the rest scatter back to their hollows, hissing."
+                }
+              }
+            },
+            {
+              "id": "wall",
+              "kind": "check",
+              "label": "Creep round the rim",
+              "check": {
+                "skill": "stealth",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "An egg rolls under {actor}'s foot and cracks. The whole brood rises screeching, and you run back the way you came.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You are halfway round when they scent you, and you run the rest with teeth at your heels.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} leads you round the rim behind the hollows. The hatchlings never stir.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "egg",
+              "kind": "check",
+              "label": "Snatch an egg on the way",
+              "check": {
+                "skill": "sleightOfHand",
+                "dc": 15
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} gets a hand on an egg, and the brood is on them at once. You drop it and flee the pit.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -7,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "{actor} comes away with an egg and a scorched arm, and the brood chases you out the far side. A dragon egg is worth its weight in gold.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -4,
+                      "target": "actor"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} lifts an egg from the heap and is gone before the brood knows it. A dragon egg is worth its weight in gold.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "drakescale-forge-pour",
+      "title": "The pour",
+      "disposition": "hostile",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "At the east furnace two azers, their beards braided flame, are tipping the great vat into a line of crucibles along the wall. One of them sees you and swings the long pouring pole round, the crucible on its end brimming with white-hot metal.",
+          "options": [
+            {
+              "id": "rush",
+              "kind": "check",
+              "label": "Rush them before they pour",
+              "check": {
+                "skill": "athletics",
+                "dc": 15,
+                "combat": true
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The crucible tips. Molten metal splashes across {actor}, and you drag them back from the furnace.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -7,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You close in through a hail of spattering metal and beat them down.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} is on them before the pole comes round, and the crucible crashes harmlessly into its rack."
+                }
+              }
+            },
+            {
+              "id": "bluff",
+              "kind": "check",
+              "label": "Say the counters sent you to check the weights",
+              "check": {
+                "skill": "deception",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "The azers know every face in the forge. They pour, and you flee back toward the pens.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -5,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "They let you by, but their eyes follow you, and soon the whole forge knows there are strangers about.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "exposed"
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} grumbles about short weight so well that the azers hurry to reweigh the moulds and wave you through.",
+                  "effects": [
+                    {
+                      "effect": "position",
+                      "position": "edge"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "frost",
+              "kind": "fixed",
+              "label": "Throw a flask of frost-salt into the vat",
+              "description": "Uses 1 alchemicals.",
+              "requires": [
+                {
+                  "req": "goods",
+                  "good": "alchemicals",
+                  "min": 1
+                }
+              ],
+              "outcome": {
+                "text": "The vat skins over with a crack like thunder and belches choking steam. In the cloud you get past the azers, scalded.",
+                "effects": [
+                  {
+                    "effect": "goods",
+                    "good": "alchemicals",
+                    "amount": -1
+                  },
+                  {
+                    "effect": "hp",
+                    "amount": -1,
+                    "target": "all"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "drakescale-forge-heap",
+      "title": "The tithe heap",
+      "disposition": "neutral",
+      "site": true,
+      "room": true,
+      "stages": {
+        "start": {
+          "text": "Gold coin lies knee-deep across the cave floor. In it stand blackened shapes that were once men, burned where they stood with their hands still full. A rune is cut into the rock above the heap, and it glows as you come near.",
+          "options": [
+            {
+              "id": "ward",
+              "kind": "check",
+              "label": "Read the ward and slip it",
+              "check": {
+                "skill": "arcana",
+                "dc": 15
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} speaks the wrong word. The rune flares, fire runs across the gold toward you, and you get out of the cave with your clothes alight.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "The ward dims long enough to cross the cave and fill a purse. It snaps back as the last of you leaves.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -2,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 20
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} turns the ward aside. You walk through the gold and take a handful each.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 40
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "grab",
+              "kind": "check",
+              "label": "Grab a fistful and run",
+              "check": {
+                "skill": "acrobatics",
+                "dc": 14
+              },
+              "outcomes": {
+                "fail": {
+                  "text": "{actor} stoops for the gold, and the rune burns. You flee the cave beating out the flames.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -6,
+                      "target": "actor"
+                    }
+                  ]
+                },
+                "partial": {
+                  "text": "You scoop and run. The fire licks at your heels all the way across.",
+                  "effects": [
+                    {
+                      "effect": "hp",
+                      "amount": -3,
+                      "target": "all"
+                    },
+                    {
+                      "effect": "gold",
+                      "amount": 20
+                    }
+                  ]
+                },
+                "success": {
+                  "text": "{actor} is across the heap and out with full hands before the rune wakes.",
+                  "effects": [
+                    {
+                      "effect": "gold",
+                      "amount": 20
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "id": "wall",
+              "kind": "fixed",
+              "label": "Climb round the wall, touching nothing",
+              "outcome": {
+                "text": "Hand over hand along the hot rock, never touching a coin. It is long, sweltering work.",
+                "effects": [
+                  {
+                    "effect": "exhaustion",
+                    "amount": 1,
+                    "target": "all"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
     }
   ]
 }
