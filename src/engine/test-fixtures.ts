@@ -1396,7 +1396,7 @@ export const testDungeons: Record<string, unknown> = {
     entries: [
       {
         id: 'test-vault',
-        name: 'The Test Vault',
+        name: 'the Test Vault',
         map: 'tiles and battle maps/dungeon maps/_dungeon/test-vault.jpg',
         mapSize: [2000, 1000],
         cr: 2,

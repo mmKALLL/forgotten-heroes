@@ -1,6 +1,7 @@
 import type { Content } from '../content/build'
 import { crisisInfo, type CrisisActInfo, type CrisisInfo } from '../engine/crisis/status'
 import { crisisTracker, type TrackerAct } from '../engine/crisis/tracker'
+import { capitalFirst } from '../engine/format'
 import type { GameState } from '../schema/state'
 import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
@@ -24,7 +25,7 @@ export function CrisisTracker({ content, state }: { content: Content; state: Gam
   if (!tracker?.visible || !info) return null
   return (
     <section className="panel crisis" aria-label={t('crisis.heading')}>
-      <h2>{info.name ?? t('crisis.heading')}</h2>
+      <h2>{info.name ? capitalFirst(info.name) : t('crisis.heading')}</h2>
       {info.summary && <p className="muted small crisis-summary">{info.summary}</p>}
       {info.ended && <EndedLine t={t} info={info} />}
       <ol className="crisis-acts small">
@@ -48,7 +49,7 @@ function EndedLine({ t, info }: { t: T; info: CrisisInfo }) {
   const line =
     info.short === null
       ? t('crisis.lostUnknown', { day })
-      : t(outcome === 'won' ? 'crisis.won' : 'crisis.lost', { name: info.short, day })
+      : t(outcome === 'won' ? 'crisis.won' : 'crisis.lost', { name: capitalFirst(info.short), day })
   return (
     <p className={`small crisis-ended ${outcome === 'won' ? 'tone-good' : 'tone-bad'}`}>
       {info.short === null ? line : <Tip tip={text}>{line}</Tip>}

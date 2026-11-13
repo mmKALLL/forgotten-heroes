@@ -4,6 +4,7 @@ import type { Effect } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { changeGoods } from '../economy/goods'
 import { describeAccessory, lootAccessory } from '../gear/accessories'
+import { capitalFirst } from '../format'
 import { appendLog } from '../log'
 import { withRng } from '../rng'
 import { crLevel } from '../rules/challenge'
@@ -106,7 +107,10 @@ export function payHoard(
     found.push(describeAccessory(looted.accessory))
   }
   const lines = [
-    { text: `${poi.name} is cleared. Its hoard: ${found.join(', ')}.`, tone: 'good' as const },
+    {
+      text: `${capitalFirst(poi.name)} is cleared. Its hoard: ${found.join(', ')}.`,
+      tone: 'good' as const,
+    },
     ...(h.xp > 0 ? [{ text: xpLine(h.xp, `${poi.name} cleared`), tone: 'good' as const }] : []),
   ]
   next = gainXp(next, h.xp)

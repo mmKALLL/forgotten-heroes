@@ -88,7 +88,7 @@
     },
     "__schema1": {
       "type": "string",
-      "description": "e.g. \"The Sunken Vault\""
+      "description": "e.g. \"the Sunken Vault\": a leading \"the\" is lower case, as the name reads mid-sentence (it is capitalised where it stands alone)"
     },
     "__schema2": {
       "type": "string"

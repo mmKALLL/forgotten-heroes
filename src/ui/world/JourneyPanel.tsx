@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import type { Content } from '../../content/build'
+import { capitalFirst } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import { journeyInfo, suppliesInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
@@ -54,7 +55,7 @@ export function JourneyPanel({
   return (
     <section className="panel journey" aria-label={t('journey.heading')}>
       <h2>{t('journey.heading')}</h2>
-      <p>{t('journey.route', { from: j.fromName, to: j.toName })}</p>
+      <p>{t('journey.route', { from: capitalFirst(j.fromName), to: capitalFirst(j.toName) })}</p>
       {/* The party's marker on the map shows how far along the road it is. */}
       <p className="small">
         {t('journey.days', {

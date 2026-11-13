@@ -12,7 +12,7 @@ import { DELVE_WOUND, DUNGEON_XP_SHARE, REINHABIT_DAYS } from '../constants'
 const content = fixtureContent()
 const act = (s: GameState, a: Action) => step(s, a, content)
 
-/** The party at the fixture's dungeon (The Test Vault, CR 2, three rooms), found and inhabited. */
+/** The party at the fixture's dungeon (the Test Vault, CR 2, three rooms), found and inhabited. */
 function atVault(overrides: Partial<GameState> = {}): { state: GameState; id: string } {
   const base = makeState()
   const id = Object.keys(base.world.pois).find((p) => base.world.pois[p].dungeon === 'test-vault')!
@@ -85,7 +85,7 @@ describe('delving', () => {
     expect(failed.delve).toBeNull()
     expect(failed.world.pois[id].clearedDay).toBe(state.world.pois[id].clearedDay)
     expect(failed.gold).toBe(state.gold)
-    expect(failed.log.some((l) => /driven out of The Test Vault/.test(l.text))).toBe(true)
+    expect(failed.log.some((l) => /driven out of the Test Vault/.test(l.text))).toBe(true)
     // Not fleeing: no retreat's camaraderie cost beyond the failed check's own.
     const succeeded = fightingTo(entered, ['success', 'critSuccess'])
     expect(succeeded.delve).toMatchObject({ room: 1, inRoom: false })

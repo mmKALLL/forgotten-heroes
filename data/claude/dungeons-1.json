@@ -108,7 +108,7 @@
     },
     {
       "id": "axe-temple",
-      "name": "The Axe Temple",
+      "name": "the Axe Temple",
       "map": "tiles and battle maps/dungeon maps/_dungeon/theros crypt.jpg",
       "mapSize": [5600, 7000],
       "cr": 3,
@@ -159,7 +159,7 @@
     },
     {
       "id": "sun-drowned-temple",
-      "name": "The Sun-Drowned Temple",
+      "name": "the Sun-Drowned Temple",
       "map": "tiles and battle maps/dungeon maps/_desert/temple of the sun.jpeg",
       "mapSize": [1330, 1540],
       "cr": 4,
@@ -262,7 +262,7 @@
     },
     {
       "id": "green-undercroft",
-      "name": "The Green Undercroft",
+      "name": "the Green Undercroft",
       "map": "tiles and battle maps/dungeon maps/_dungeon/sewer temple toxic.jpg",
       "mapSize": [4200, 6440],
       "cr": 7,
@@ -314,7 +314,7 @@
     },
     {
       "id": "rime-heart",
-      "name": "The Rime Heart",
+      "name": "the Rime Heart",
       "map": "tiles and battle maps/dungeon maps/_arctic/temple of the frozen heart.jpeg",
       "mapSize": [2160, 2880],
       "cr": 9,
@@ -366,7 +366,7 @@
     },
     {
       "id": "jackal-kings-tomb",
-      "name": "The Jackal King's Tomb",
+      "name": "the Jackal King's Tomb",
       "map": "tiles and battle maps/dungeon maps/_desert/pharaohs tomb.jpg",
       "mapSize": [3500, 10640],
       "cr": 11,
@@ -418,7 +418,7 @@
     },
     {
       "id": "lichs-gauntlet",
-      "name": "The Lich's Gauntlet",
+      "name": "the Lich's Gauntlet",
       "map": "tiles and battle maps/dungeon maps/_epic/gauntlet of the lich.jpeg",
       "mapSize": [1500, 2250],
       "cr": 14,

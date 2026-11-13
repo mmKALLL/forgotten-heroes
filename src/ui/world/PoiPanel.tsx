@@ -1,4 +1,5 @@
 import type { Content } from '../../content/build'
+import { capitalFirst } from '../../engine/format'
 import { availableActions, type Action } from '../../engine/state'
 import { poiInfo, suppliesInfo } from '../../engine/travel/preview'
 import type { GameState } from '../../schema/state'
@@ -51,7 +52,7 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
   const reason = visit?.code ?? null
   return (
     <section className="panel place poi-panel" aria-label={t('poi.heading')}>
-      <h2>{info.name}</h2>
+      <h2>{capitalFirst(info.name)}</h2>
       <PoiSummary info={info} />
       {dungeon ? (
         <DungeonCard preview={dungeon} />

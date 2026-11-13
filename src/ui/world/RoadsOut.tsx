@@ -1,5 +1,5 @@
 import type { Content } from '../../content/build'
-import { formatModifier, formatPercent } from '../../engine/format'
+import { capitalFirst, formatModifier, formatPercent } from '../../engine/format'
 import { tierFaces, type Tier } from '../../engine/rules/checks'
 import type { Action } from '../../engine/state'
 import {
@@ -77,7 +77,7 @@ export function RoadsOut({
               aria-pressed={r.to === selected}
               onClick={() => onSelect(r.to === selected ? null : r.to)}
             >
-              {r.toName}
+              {capitalFirst(r.toName)}
             </button>{' '}
             {isPoi(r.to) && <span className="badge small">{t('place.siteBadge')}</span>}{' '}
             {contractDeadlines(state, r.to, r.days).length > 0 && (
@@ -117,18 +117,20 @@ export function RoadsOut({
       {elsewhere && (
         <div className="route-info">
           <p className="small">
-            {t('place.elsewhere', { name: elsewhere.name, type: elsewhere.typeName })}
+            {t('place.elsewhere', { name: capitalFirst(elsewhere.name), type: elsewhere.typeName })}
           </p>
           <p className="muted small">{realmText(t, elsewhere)}</p>
           <p className="small">{threatLine(t, elsewhere)}</p>
-          <p className="muted small">{t('route.unreachable', { name: elsewhere.name })}</p>
+          <p className="muted small">
+            {t('route.unreachable', { name: capitalFirst(elsewhere.name) })}
+          </p>
         </div>
       )}
       {site && (
         <div className="route-info">
-          <p className="small">{site.name}</p>
+          <p className="small">{capitalFirst(site.name)}</p>
           <PoiSummary info={site} />
-          <p className="muted small">{t('route.unreachable', { name: site.name })}</p>
+          <p className="muted small">{t('route.unreachable', { name: capitalFirst(site.name) })}</p>
         </div>
       )}
     </>

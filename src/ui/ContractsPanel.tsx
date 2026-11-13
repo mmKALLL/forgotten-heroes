@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Content } from '../content/build'
+import { capitalFirst } from '../engine/format'
 import type { Action } from '../engine/state'
 import { contractRows, type ContractRow } from '../engine/town/contracts'
 import type { GameState } from '../schema/state'
@@ -96,7 +97,7 @@ function ContractItem({
               source: c.sourceName ?? '?',
               patron: c.patronName,
             })
-          : t('contracts.where', { to: where, patron: c.patronName })}{' '}
+          : t('contracts.where', { to: capitalFirst(where), patron: c.patronName })}{' '}
         ·{' '}
         <span
           className={

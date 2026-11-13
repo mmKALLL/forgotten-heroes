@@ -306,6 +306,7 @@ The town map image is a banner and backdrop.
   - **Placement:** each domain draws `spots / 8` sites (`POI_SPOTS_EACH`), rounded at random, and at most 2. Each site goes on a free spot at least 8 km from its settlement (`POI_MIN_KM`) and 25 km from other sites (`POI_SPACING_KM`, more than one spot step, so sites never sit on neighbouring spots).
   - **Type:** drawn by weight from the 29 types in `data/procedural/poi-types.json` (kind `poiTypes`). A type weighs ×3 where its biomes match the spot's terrain, or its threats name the land's threat. A lair keyed to threats is only drawn where one of those threats holds the land (`lairFits`).
   - **Names** come from the parts tables in `data/procedural/poi-names.json`, with twelve or more names per type and no repeats while a table lasts.
+  - **Capitals** (designer call, 2026-11-14): a site name is stored as it reads mid-sentence, with a lower-case leading "the" ("the Last Beacon", also dungeon and Crisis site names). Where it begins a sentence or stands alone (a road button, a heading, a map label, a contract's destination, a journal line), `capitalFirst` (`src/engine/format.ts`) upper-cases its first letter; content text uses `{Site}`.
 - **The 29 types:**
 
   | Category | Count | What they are |

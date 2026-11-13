@@ -1,4 +1,5 @@
 import type { Content } from '../../content/build'
+import { capitalFirst } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import { noticeBoard, type Offer } from '../../engine/town/contracts'
 import { serviceRows } from '../../engine/town/services'
@@ -68,7 +69,7 @@ function OfferRow({
           steady: daysText(t, o.steadyDays),
         })
       : t('board.route', {
-          to: o.poiName ?? o.toName,
+          to: capitalFirst(o.poiName ?? o.toName),
           km: o.km,
           left: MARK,
           steady: daysText(t, o.steadyDays),
