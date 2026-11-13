@@ -521,6 +521,7 @@ Designer call (2026-11-13): climaxes (the Crisis key finales, the dungeon boss r
     - On a phone it wraps into lines: the title with the seed, language and Saves; the day and essentials; the goods block; the load and wealth.
   - **Narrow screens (≤ 900px):** the three columns stack into one: party, then the centre (settlement, site, journey or encounter), then the map, then the journal, so the actions come early.
   - **Mobile target** (designer decision): a **Samsung Galaxy S26**, about 412 CSS px wide and tall (checked at 412 × 915). The main screens (town ledger, encounter, journey, map) fit that width with no sideways page scroll. Below 480px the gutters and panel padding tighten, and the market table fits by stacking each row's Buy and Sell buttons and hiding a Sell button with nothing to sell.
+- **Held contracts** sit in the right column, above the journal (designer call 2026-11-14).
 - **HP and XP bars** animate their changes over 1.2s (designer call 2026-11-14), unless the player prefers reduced motion.
 - **Hover-or-focus explanations** (`src/ui/Tip.tsx`): symbol-only indicators (quality pips, the wealth diamonds) explain themselves in a small popover on hover or keyboard focus, or a tap on a phone, not only in a native tooltip. A service's quality explains its current effects, which the engine reports (`qualityEffects`): each step narrows a shop's spread by `SPREAD_PER_QUALITY` (5 points, shown as half of that off buying and onto selling), and inns of `PRIVATE_ROOM_MIN_QUALITY` (3) or better have private rooms.
 - **The map** (Plan 3b):

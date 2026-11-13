@@ -157,7 +157,6 @@ function Game() {
             onAction={inProgress(state) ? undefined : dispatch}
             upgrades={ownedUpgrades(shown, content)}
           />
-          <ContractsPanel content={content} state={shown} onAction={dispatch} />
           <WorldMap
             content={content}
             state={shown}
@@ -221,6 +220,8 @@ function Game() {
           )}
         </div>
         <div className="side">
+          {/* Held contracts above the journal (designer call 2026-11-14). */}
+          <ContractsPanel content={content} state={shown} onAction={dispatch} />
           <LogPanel log={shown.log} />
           <CrisisTracker content={content} state={shown} />
           <DevArea>
