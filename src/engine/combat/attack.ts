@@ -7,13 +7,24 @@ import {
   BLOODIED_SHARE,
   DISCORD_PENALTY,
   ENGAGED_RANGED_PENALTY,
+  MACE_HIT_WEIGHT,
   RALLY_BONUS,
   REACH_PENALTY,
   STAGGER_PENALTY,
   VOLLEY_PENALTY,
   WEAPON_FAMILY_RULES,
 } from '../constants'
-import { distance, engaged, hitThresholds, isStaggered, stackSize } from './line'
+import {
+  distance,
+  engaged,
+  hitStep,
+  isStaggered,
+  isStifled,
+  stackSize,
+  stepAbove,
+  stepOf,
+  type HitStep,
+} from './line'
 
 // Attacks (combat design §2–§4): d20 + modifiers against AC. A natural 20 (or a dagger's 19)
 // is a critical hit, which always hits and doubles the dice; a natural 1 always misses. Every
@@ -46,8 +57,8 @@ export type AttackSpec = {
   /** Damage on a hit, and on a crit, as [min, max]. */
   damage: [number, number]
   critDamage: [number, number]
-  /** What one more hit does to an enemy target this party turn: stagger, stun, or nothing new. */
-  onHit: 'stagger' | 'stun' | null
+  /** The step of the hit ladder one more hit takes an enemy target to this party turn, if higher. */
+  onHit: HitStep | null
   /** An axe's crit also hits a second enemy on the tile. */
   cleave: boolean
 }
@@ -77,6 +88,10 @@ export function combineModes(a: RollMode, b: RollMode): RollMode {
   if (b === 'normal' || a === b) return a
   return 'normal'
 }
+
+/** The hits one of a unit's hits counts toward the ladder: a mace's count MACE_HIT_WEIGHT. */
+export const hitWeight = (attacker: Pick<CombatUnit, 'family'>): number =>
+  attacker.family && WEAPON_FAMILY_RULES[attacker.family].trait === 'stagger' ? MACE_HIT_WEIGHT : 1
 
 export const bloodied = (u: CombatUnit): boolean => u.hp <= u.maxHp * BLOODIED_SHARE
 
@@ -139,7 +154,8 @@ export function attackSpec(
   if (ranged && engaged(combat, attacker))
     parts.push({ label: 'engaged', value: -ENGAGED_RANGED_PENALTY })
   const staggered = isStaggered(attacker)
-  if (staggered) parts.push({ label: 'staggered', value: -STAGGER_PENALTY })
+  if (isStifled(attacker))
+    parts.push({ label: staggered ? 'staggered' : 'stifled', value: -STAGGER_PENALTY })
   if (attacker.side === 'enemy' && !attacker.boss && bloodied(attacker))
     parts.push({ label: 'bloodied', value: -BLOODIED_PENALTY })
   if (options.volley) parts.push({ label: 'volley', value: -VOLLEY_PENALTY })
@@ -179,11 +195,8 @@ export function attackSpec(
   }
   let onHit: AttackSpec['onHit'] = null
   if (target.side === 'enemy') {
-    const next = target.hits + 1
-    const { stagger, stun } = hitThresholds(target)
-    if (next >= stun) onHit = 'stun'
-    else if (!isStaggered(target) && (next >= stagger || rules?.trait === 'stagger'))
-      onHit = 'stagger'
+    const next = hitStep(target, target.hits + hitWeight(attacker), target.staggered)
+    if (stepAbove(next, stepOf(target))) onHit = next
   }
   const dice = { ...attacker.damage, bonus: attacker.damage.bonus + damageBonus }
   const half = staggered && attacker.side === 'enemy'

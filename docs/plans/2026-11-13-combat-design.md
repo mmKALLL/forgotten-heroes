@@ -42,18 +42,19 @@
   - At the start of the party's turn, every enemy shows its planned action ("Ogre: smash tile 3, 60% to hit, 9–18").
   - **Intents target tiles, not units.** A planned swing at tile 3 lands on whoever is there when the enemy acts. A unit can step out of the way, or push or pull an enemy onto that tile to take the blow.
   - **A broken intent** (out of reach, blocked) falls back to repositioning toward the enemy's favoured range. The preview updates live as the party acts.
-- **Hits within one party turn** (enemies only):
+- **Hits within one party turn** (enemies only) climb a three-step ladder (designer call 2026-11-14):
 
-  | Enemy | Staggered | Stunned |
-  |---|---|---|
-  | Normal | 3 hits | 4 or more hits |
-  | Caster or archer | 1 hit | 2 hits |
-  | Boss | 5 hits | 6 hits |
+  | Enemy | Stifled | Staggered | Stunned |
+  |---|---|---|---|
+  | Normal | 2 hits | 3 hits | 4 or more hits |
+  | Caster or archer | 1 hit | 2 hits | 3 hits |
+  | Boss | 4 hits | 5 hits | 6 hits |
 
-  - **Staggered:** −2 to hit, and the intent is weakened.
-  - **Stunned:** loses its action this round, and the intent is cancelled.
-  - So two hits interrupt a caster's spell.
-  - Each enemy shows pips counting toward its next threshold.
+  - **Stifled:** −2 to hit.
+  - **Staggered:** −2 to hit, and its intent does half damage.
+  - **Stunned:** loses its action this round (no damage), and the intent is cancelled.
+  - A mace's hit counts as 2 hits on the ladder.
+  - Each enemy shows pips counting toward its thresholds, with a mark at each step; an attack's preview names the step one more hit would reach ("A hit now staggers it: −2 to hit, half damage").
 - **Running away.**
   - A member who reaches the party's end of the line may leave the fight, braving any free swings on the way.
   - When everyone has left, the fight ends as a retreat: the situation's retreat outcome applies, and camaraderie drops as for any flight.
@@ -67,7 +68,7 @@
 | Daggers | d4 | 1 | 2nd attack at −2 | crit on 19–20 |
 | Blades | d8 | 1 | 2nd attack at −6 | — |
 | Axes | d10 | 1 | +2 attack | a crit also hits a 2nd enemy on that tile |
-| Maces | d8 | 1 | +2 attack | on a hit the target is Staggered |
+| Maces | d8 | 1 | +2 attack | a hit counts as 2 hits toward stifle, stagger and stun |
 | Polearms | d10 | 1–2 | +2 attack | −4 at reach 1 |
 | Bows | d8 | 3–5 | +2 aimed | −4 while engaged |
 | Thrown | d6 | 1–3 | 2nd throw at −6 | — |
@@ -161,10 +162,14 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - **Downed.**
   - At 0 HP a member is **removed from the fight** at once.
   - It costs **camaraderie, permanently**. It doesn't fade, so the party must win it back in other ways. (Camaraderie is the party's single mood stat: a deliberate simplification.)
+  - It also costs **+2 exhaustion** (`DOWNED_EXHAUSTION`, as outside fights; designer call 2026-11-14): a short-term penalty beside the long-term ones. At 6 the member dies, gear lost. Every intent or free swing that could drop a member says what it would cost.
 - **Lasting injuries.**
   - A downed member has a chance of **25% + the damage below 0** (in %) of a **lasting injury**: −2 to an ability, like a recruit's old wound.
   - A member who would take a **third or later** injury instead has a **50% chance of dying**, and their equipment is lost with them.
-- **A party wipe:** the enemies win. The party is robbed or left for dead with injuries. Death only on bad luck or at a boss.
+- **A party wipe:** the enemies win, and the player chooses how the party gets out of it (designer call 2026-11-14), each way's exact cost shown first. Each costs `CAMARADERIE_WIPE` (20) camaraderie, and the living come to with 1 HP; then the encounter's `lose` branch applies.
+  - **Surrender:** half of each good but essentials (rounded down) and all the gold, except 20% of the gold a level of the smuggler's compartment (at most all of it).
+  - **Struggle:** three lasting injuries (−2 to a random ability, as old wounds), two for a party of two or fewer, each on a different random living member while any is left. They never kill: the third-injury death rule is for going down only, so struggling is the way out that keeps everyone. The injuries are drawn from the game's RNG as it stands, so the option names them exactly.
+  - **Sacrifice:** one living member, picked by the player (the option lists each by name), stays behind and dies, their gear lost with them; the death costs `CAMARADERIE_DEATH` as any. Not offered to a lone survivor, so it never ends the run.
 
 ## 7b. Dark dungeons and fuel (designer call 2026-11-14; part of Plan 7)
 
@@ -179,11 +184,20 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 ## 8. UI
 
 - **The line** is drawn left to right, with the units on each tile stacked top to bottom.
-- **Enemies** show their intents (an arrow onto a tile, plus the odds) and their pips toward stagger and stun. The intents panel lists them in action order.
+- **Enemies** show their intents (an arrow onto a tile, plus the odds) and their pips up the hit ladder (stifled, staggered, stunned), with a mark at each step. The intents panel lists them in action order.
 - **Party actions:**
   - A party member's action shows its hit %, damage range and trait effect before it is committed.
   - The 1–9 keys select abilities and spells. Space or a click on a tile acts.
 - **Screen sizes:** it must fit 1440 × 1050 and 412 × 915 (Galaxy S26) with no sideways scroll.
+
+### As built: Track U (the combat UI)
+
+- `src/ui/combat/CombatView.tsx` draws `combatView(state)` (`src/engine/combat/view.ts`: the tiles with their units top to bottom, each unit's status and hit pips, the intents in action order, each ready member's legal targets from `combatPreview`) and dispatches `combatMove`, `combatAct` (with the previewed `target` and `full`), `combatRetreat`, `combatEndTurn` and `closeCombat`. It takes the centre column while a fight is open; auto-travel waits. The layout, controls and phone fit are in the rebuild design §9 ("The fight").
+- **Each fact once:** an intent's odds are on its arrow only (the intents panel says what it does and whom it would hit); an attack's hit %, damage and crit are in the Action panel only (the tiles just outline what can be targeted).
+- **Controls:** a click on a target or its tile, or Space, acts; ←/→ cycle the targets (focus follows), ↑/↓ the ready members, F the full action, 1–9 the slots (pressing again deselects; empty until Tracks C and S, and an empty slot selected blocks acting). Space on a focused button presses that button, and after End turn focus returns to the heading, so a second Space doesn't end the next turn.
+- **Phones:** the whole line fits the width rather than scrolling, so the enemies and intents stay on screen with the party (chosen over a sideways-scrolling line, which hid the enemies at first sight).
+- **Playtesting:** the Encounter Deck's Fight (test) and Ambush (test) open a bandit fight without an encounter: `startCombat` takes an optional `fight` (the open encounter's otherwise; with no encounter its branches apply to nothing).
+- **Decided while building (please review):** the action's preview names the step one more hit reaches ("A hit now stifles it: −2 to hit", "staggers it: −2 to hit, half damage", "stuns it: it loses its action"; the engine's `onHit`, a mace's hit counting 2); the intents panel names a broken intent as "breaks (out of reach, or no one there) and will reposition".
 
 ## 9. Architecture
 
@@ -206,7 +220,7 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - **Medicine and lasting injuries** (designer idea, 2026-11-14, to think over): the party's best Medicine could lower the chance of a lasting injury, and other skills could get similar uses. Track E leaves a named hook for it.
 
 - The spell lists for each pool (arcane and divine, levels 1–9) and the summon tiers.
-- The role stat tables by CR, and the road CR budget.
+- The role stat tables by CR, and the road CR budget: drafted by Track N (§12), for review in `docs/notes/enemies-review.md`.
 - The even-level schedule of abilities and uses per class.
 - Cleric alignment: chosen at creation, and how it shows.
 - How a fight's XP relates to the situation's (none of its own, as decided; check that it feels right in play).
@@ -222,29 +236,53 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 - **Save v23** (v22 → v23; written as v21 → v22 on `plan7-core` and renumbered on merging after the reputation save): `combat: null`, class gear for every member, no uses or spells, a cleric's alignment. Only what is missing is filled in.
 
 **The engine (Track E, `src/engine/combat/`).**
-- **State.** `GameState.combat` holds the line's length, the round, the units (members and enemies, each with tile, HP, AC, to-hit, dice, reach, crit face, status, moved/acted, hits this turn, a trait stagger and the intent), the footing (Edge or Exposed for the whole fight), the surprise result, the group's size for morale, the morale state, the fight's snapshot (for its branches), the result and the fight's own log (each attack recorded with the odds it was rolled at).
+- **State.** `GameState.combat` holds the line's length, the round, the units (members and enemies, each with tile, HP, AC, to-hit, dice, reach, crit face, status, moved/acted, hits this turn, a forced stagger (for abilities) and the intent), the footing (Edge or Exposed for the whole fight), the surprise result, the group's size for morale, the morale state, the fight's snapshot (for its branches), the result and the fight's own log (each attack recorded with the odds it was rolled at).
 - **Actions** through `step`: `startCombat` (the open encounter's `fight`, at the encounter's footing), `combatMove { unit, to }`, `combatAct { unit, tile, target?, full? }`, `combatRetreat { unit }`, `combatEndTurn`, `closeCombat`. While a fight is undecided every other action is refused; once decided, any other action clears it. `startCombat(state, content, fight, { footing })` is the entry point for Track I.
 - **Placement.** The party fills from tile 0 (back rank first), the enemies from the far end (archers and casters behind), each tile up to `STACK_CAP` size points. An ambush adds `AMBUSH_EXTRA` copies of the group's lowest-CR creature, at random either two tiles in front of the group ("apart") or on tile 0 with the party shifted up one ("behind").
 - **Surprise.** Coming upon them: the best Stealth (disadvantage if anyone wears plate); walking into an ambush: the best Perception. Both add the scout's kit (`scoutBonus`) and roll against `SURPRISE_DC_BASE` + the enemies' best WIS. `SURPRISE_RESULT` reads the tier: the enemies lose their first turn, act before the party's first turn, only the quicker half of the party (by DEX) acts in round 1, or nothing. `surprisePreview` gives the odds of each.
 - **Turns.** Members act in any order: one step and one action, or the full action standing still (daggers a second attack at −2, blades and thrown at −6, the rest one attack at +2). Ending the turn runs the enemies in action order (left to right, top to bottom, as they stand when the turn starts), then a new round: hit counts and staggers clear, members are ready, intents are planned.
-- **Attacks.** d20 + to-hit against AC; to-hit is the stat, assisting (`ASSIST_PER_POINT` × the stack-size difference, either way), a polearm at the next tile (−4), a bow or thrown weapon while engaged (−4), and for enemies stagger, bloodied (not bosses), volley and rally. A natural 20 (a dagger's 19) crits: doubled dice. Axes cleave on a crit; maces stagger on a hit. Edge and Exposed roll 2d20.
+- **Attacks.** d20 + to-hit against AC; to-hit is the stat, assisting (`ASSIST_PER_POINT` × the stack-size difference, either way), a polearm at the next tile (−4), a bow or thrown weapon while engaged (−4), and for enemies stifled or staggered, bloodied (not bosses), volley and rally. A natural 20 (a dagger's 19) crits: doubled dice. Axes cleave on a crit; a mace's hit counts 2 on the hit ladder. Edge and Exposed roll 2d20.
 - **Intents.** Planned at the start of the party's turn, aimed at a tile: melee enemies strike from where they stand or step in; brutes charge two tiles; skirmishers hit and step back without free swings; archers and casters seek a spot within their favoured range (archers volley a crowded tile, casters hit everyone on it); leaders rally every other round with two or more allies; a bloodied boss acts twice. A blow that finds no one (out of reach or an empty tile) repositions toward the favoured range instead, if the enemy hasn't moved.
-- **Stagger and stun** by hits in one party turn (`STAGGER_HITS`): staggered is −2 to hit and half damage (the "weakened intent"); stunned loses the action.
+- **Stifle, stagger and stun** by hits in one party turn (`STAGGER_HITS`; a mace's hit counts `MACE_HIT_WEIGHT`): stifled is −2 to hit, staggered also half damage, stunned loses the action (§3). `CombatUnit.staggered` still forces at least staggered (for an ability's `stagger` effect); nothing sets it yet.
 - **Free swings.** Leaving an adjacent enemy's reach (moving away, or off the line) gives each engaged, unstunned melee enemy a swing; enemies moving away from members draw theirs.
 - **Morale.** Tested once, when the group first stands at its threshold; each saves WIS against `MORALE_DC_BASE` + the best Intimidation among members still fighting; a tie flees. A rout wins the fight.
-- **Defeat.** A member at 0 HP is down: out of the fight, `CAMARADERIE_DOWNED` lost, and the injury roll (`INJURY_BASE` + `INJURY_PER_OVERKILL` per point past 0, plus `medicineModifier`, a named hook that is 0 for now). A member who already has `INJURY_DEATH_AFTER` injuries (old wounds count) dies instead on `DEATH_CHANCE`, gear and accessory lost, and otherwise escapes this one. Going down in a fight doesn't add `DOWNED_EXHAUSTION` (the injury roll replaces it there). Deaths cost `CAMARADERIE_DEATH` as everywhere.
-- **Endings.** Victory or rout applies `win`; retreat (every member still fighting left by tile 0) costs the usual retreat camaraderie and applies `flee`; a wipe applies `lose`: with any humanoid foe the party is robbed (all gold, `WIPE_GOODS_TAKEN` of each good), otherwise left for dead; either way the living come to with 1 HP. Downed members stay at 0 HP after a won fight.
-- **Preview.** `combatPreview(state)` lists each ready member's moves (with the free swings each draws), attacks per target (single and full action, each an `AttackSpec`: parts, modifier, hit and crit chance, damage and crit range, what one more hit does to the target) and retreat, every intent in action order (stunned, staggered, broken, and the attacks it lands with, rally included), and the morale threshold, DC and flee chance. The actions resolve with the same functions; the tests compare each logged roll's odds with the preview.
+- **Defeat.** A member at 0 HP is down: out of the fight, `CAMARADERIE_DOWNED` lost, `DOWNED_EXHAUSTION` gained (at 6 they die, gear and accessory lost, with no injury roll), and otherwise the injury roll (`INJURY_BASE` + `INJURY_PER_OVERKILL` per point past 0, plus `medicineModifier`, a named hook that is 0 for now). A member who already has `INJURY_DEATH_AFTER` injuries (old wounds count) dies instead on `DEATH_CHANCE`, gear and accessory lost, and otherwise escapes this one. Deaths cost `CAMARADERIE_DEATH` as everywhere. The view's `risks` (`downedRisk`) give what going down would cost each standing member; an intent's attack carries it as `drops` when its best roll could drop the target (`couldDrop`), and the UI says so on intents and on free swings.
+- **Endings.** Victory or rout applies `win`; retreat (every member still fighting left by tile 0) costs the usual retreat camaraderie and applies `flee`. A wipe waits for the player's choice (§7): while it waits every other action, `closeCombat` included, is refused; `combatWipeChoice { choice, member? }` applies the cost (`wipeOptions` in `combat/defeat.ts`, which the view shows as `wipe`), `CAMARADERIE_WIPE`, 1 HP for the living and `lose`, and closes the fight. Downed members stay at 0 HP after a won fight. (The automatic robbed / left-for-dead wipe is gone.)
+- **Preview.** `combatPreview(state)` lists each ready member's moves (with the free swings each draws), attacks per target (single and full action, each an `AttackSpec`: parts, modifier, hit and crit chance, damage and crit range, what one more hit does to the target) and retreat, every intent in action order (its step on the hit ladder, broken, and the attacks it lands with, rally included), and the morale threshold, DC and flee chance. The actions resolve with the same functions; the tests compare each logged roll's odds with the preview.
 
 **Decided while building (please review).**
 - Lasting injuries are stored as old wounds, and old wounds count toward the third injury (so a level-0 recruit, with two, risks death the first time they go down).
 - "25% + the damage past 0" reads as one percentage point per point of overkill.
-- A staggered enemy's weakened intent does half damage.
+- ~~A staggered enemy's weakened intent does half damage.~~ Superseded by the three-step ladder (§3; designer call 2026-11-14).
 - The surprise table: sneaking up, a success or better gives the party the free round and a critical failure leaves half the party flat-footed; walking into an ambush, a failure gives the enemies the free round, a partial half the party, a critical success the party's.
 - Retreating takes the member's move; a member can attack first and then leave.
-- A wipe by robbers takes all the gold and half of each good.
+- ~~A wipe by robbers takes all the gold and half of each good.~~ Superseded by the wipe's choice (§7; designer call 2026-11-14).
+- **The wipe's choice (Plan 7, defeat track; please review).** The player picks who is sacrificed (any living member, each a button), rather than the game. Struggle's injuries never kill (no third-injury death roll), and each goes to a different member while any is left. Surrender keeps essentials whole and doesn't also hide precious goods (the compartment shields only the gold here). No save change: a wipe waits as `combat.result: 'wipe'`, and the choice clears the fight.
 
-## 11b. As built: Track C, classes and gear (Plan 7, wave 2)
+## 12. As built: Track N, enemies (Plan 7, wave 2)
+
+The details and the judgement calls to review are in `docs/notes/enemies-review.md`.
+
+- **Role tables** (`data/claude/enemy-roles.json`) run from CR 0 to 30.
+  - The standard row follows 5e's monster statistics for AC and to-hit.
+  - HP is a published monster's HP at the CR, scaled down for one attack a turn: 100% up to CR 1/2, 40% from CR 20.
+  - Damage is one blow a turn, 70% of 5e's damage per round.
+  - Each role then scales HP, AC, to-hit, damage and WIS (brute ×1.35 HP and ×1.2 damage on d12s, down to swarm units at ×0.45 HP).
+  - Provisional until Track B's simulation.
+- **Creatures.** Every creature has a role and a size.
+  - 37 SRD creatures were added for dungeon rooms and Crisis sites.
+  - `Creature.roads` (default true) keeps the new ones out of road creature slots, so road encounters are unchanged.
+- **Bosses.** 29 named bosses in `data/claude/creatures.json`: one per authored dungeon at its CR, one per Crisis key at its keyCr (the recurring Drake-Speaker three times), plus two drakes.
+  - Each boss is a leader or a brute with a `signature` move (played when bloodied, in place of the second action) and a `trick` (every other round, or once).
+  - Moves are data (`BossMoveSchema`: an intent kind, `damage` as a multiple of the boss's blow, reach, one or two tiles, and riders: push, pull, stagger, stun, exposed, heal, call, burn).
+  - The engine does not play them yet. Each move's `todo` names what it lacks, and `bossIssues` checks them.
+- **The road CR budget** (`combat/budget.ts`) works like 5e's encounter XP budget.
+  - `fightBudget(levels, difficulty)` is a per-member XP by level, times easy, medium or hard.
+  - `groupXp(crs, partySize)` is the SRD XP by CR, times a group-size factor shifted for small or large parties.
+  - `roadFightCount(cr, levels, difficulty)` is how many of the slot's creature fit, from 1 to `ROAD_FIGHT_MAX`.
+  - Track I wires it in.
+
+## 13. As built: Track C, classes and gear (Plan 7, wave 2)
 
 **Proficiencies** (`CLASS_PROFICIENCIES`, combat/gear.ts). Each class has the weapon families of §5 and a heaviest armour (fighters and paladins plate, rangers and clerics chain, rogues and bards leather, wizards cloth); every class with a casting ability (wizard, cleric, paladin, ranger, bard) can use a staff.
 - **An untrained weapon adds no proficiency bonus to hit** (5e's rule, chosen over a flat −4: it scales with level, so a wizard with a sword falls further behind as the fighter grows).
@@ -254,7 +292,7 @@ Every grade weighs on carrying, and classes have their own armour proficiencies.
 
 **Arms shops** (`town/arms.ts`; `arms` on a service role). The weapons shop sells weapons, the armourer armour, the blacksmith both but only plain. A shop stocks every plain piece and armour, fine weapons from quality 3, +1 from 4 and +2 at 5 (`ARMS_QUALITY_AT`), without limit. Bought pieces go to the party's **stash** (`GameState.stash`); a shop buys back what it deals in at `ARMS_RESALE` (half). A purchase that would overload the party is refused. Members wear and take off pieces from their sheet (`equipArms`, `unequipArms`), outside encounters and fights. What living members wear and the stash weigh on the party's load. Recruits come with their class's plain kit (`STARTING_GEAR`), part of their fee; a dismissed member leaves with what they wear.
 
-**Ability uses** (combat/uses.ts). A member keeps the uses **spent** since the last long rest (`Character.spent`), so what is left follows from the level: an ability has 1 use from the level it is gained and 1 more at levels 6, 10, 14 and 18 (`ABILITY_USE_LEVELS`). A **long rest** (any day's rest, in camp or in town, `rest`) clears `spent`. Spell uses follow the plan's casts table (`spellCasts`: the newest spell level 1, each lower one 1 more up to 3, level 1 at least 2; full casters open spell level n at class level 2n − 1, half casters at 2, 5, 9, 13, 17); only Smite spends them so far.
+**Ability uses** (combat/uses.ts). A member keeps the uses **spent** since the last long rest (`Character.spent`), so what is left follows from the level: an ability has 1 use from the level it is gained and 1 more at levels 6, 10, 14 and 18 (`ABILITY_USE_LEVELS`). A **long rest** (any day's rest, in camp or in town, `rest`) clears `spent`. Spell uses follow the plan's casts table (`spellCasts`: the newest spell level 1, each lower one 1 more up to 3, level 1 at least 2; full casters open spell level n at class level 2n − 1, half casters at 2, 5, 9, 13, 17); only Smite spends them so far. The designer's progression (`docs/notes/spells-review.md`) supersedes this provisional table; spell casting replaces it (TODO).
 
 **Abilities** (`data/claude/class-abilities.json`, combat/abilities.ts). Played through the `combatAbility { unit, ability, tile?, target? }` action. `abilitySlots(state, content, unit)` is the 1–9 view model for the combat UI: each slot's key, the ability as held (specialised), uses left and max, action or free, whether it can be used now and why not, and every legal use with what it would do (`affects` with each unit's chance, `heal` range, Smite's `attack` spec). `useAbility` resolves from those same numbers: preview == actual.
 - **Fighter:** Second Wind (1, free: heal 1d10 + level), Action Surge (2, free, after acting: act again). Style picks at 4, 8, 12, 16: two-attack or single-blow, each pick +2 damage (`STYLE_DAMAGE`) on every attack of that kind of full action (two-attack: daggers, blades, thrown; single-blow: the rest). Picks stack.

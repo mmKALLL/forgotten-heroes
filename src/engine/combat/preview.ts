@@ -3,7 +3,7 @@ import type { GameState } from '../../schema/state'
 import { attackSpec, type AttackSpec } from './attack'
 import { attackPlan, canMove, canRetreat, intentLands, intentTargets, swingSpecs } from './fight'
 import { actionOrder, infightTarget, infighting } from './intents'
-import { canEnter, isStaggered, isStunned, sideUnits, unitsOn, withUnit } from './line'
+import { canEnter, isStunned, sideUnits, stepOf, unitsOn, withUnit, type HitStep } from './line'
 import { fleeChance, moraleDc, moraleThreshold } from './morale'
 
 // The fight's preview (combat design §3, §8): every legal action of every member with its odds,
@@ -33,7 +33,8 @@ export type IntentPreview = {
   unit: string
   intent: Intent
   stunned: boolean
-  staggered: boolean
+  /** Its step on the hit ladder: stifled (−2 to hit), staggered (and half damage), stunned. */
+  step: HitStep | null
   /** Out of reach or no one there: it will reposition instead. */
   broken: boolean
   /** The attacks it makes on landing, against whoever stands on the tile now. */
@@ -93,7 +94,7 @@ export function intentPreviews(combat: CombatState): IntentPreview[] {
               attackSpec(moved, mover, t, { volley: intent.kind === 'volley', rally })
             )
     if (intent.kind === 'rally' && !stunned) rally = true
-    return [{ unit: u.id, intent, stunned, staggered: isStaggered(u), broken, attacks }]
+    return [{ unit: u.id, intent, stunned, step: stepOf(u), broken, attacks }]
   })
 }
 

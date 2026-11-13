@@ -4150,6 +4150,7 @@
               "id": "fight-down",
               "kind": "check",
               "label": "Fight down the stair",
+              "description": "Cut your way down a step at a time. The wights hit cold and hard.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -5640,6 +5641,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight through the door",
+              "description": "Straight through a dozen paid blades. Quick, and bloody.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -6295,6 +6297,7 @@
               "id": "rush",
               "kind": "check",
               "label": "Rush the egg-thieves",
+              "description": "Hit them while their arms are full of eggs, a stone's throw from the mother.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -6796,6 +6799,7 @@
               "id": "torch-bearers",
               "kind": "check",
               "label": "Pick off the torch-bearers",
+              "description": "Stop the fires at their source, one torch at a time, unseen.",
               "check": {
                 "skill": "stealth",
                 "dc": 13,
@@ -7207,6 +7211,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Fight the giants",
+              "description": "Two giants with clubs of whole trees. The direct way, and the hardest.",
               "check": {
                 "skill": "athletics",
                 "dc": 14,
@@ -7407,6 +7412,7 @@
               "id": "kill-drakes",
               "kind": "check",
               "label": "Kill the drakes before they cry out",
+              "description": "Strike before the alarm goes up. Quick, if your blades are.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,
@@ -7955,6 +7961,7 @@
               "id": "fight",
               "kind": "check",
               "label": "Refuse, with steel",
+              "description": "They have the numbers. Their sergeant's purse may say who pays them.",
               "check": {
                 "skill": "athletics",
                 "dc": 13,

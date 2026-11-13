@@ -52,6 +52,7 @@ export function rollSlots(
     }
     const matches = sortedEntries(content.creatures).filter(
       (c) =>
+        c.roads &&
         (source.types.length === 0 || source.types.includes(c.type)) &&
         (source.maxCr === undefined || c.cr <= source.maxCr)
     )

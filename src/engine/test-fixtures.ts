@@ -39,6 +39,7 @@ const testNeed = {
       id: 'read',
       kind: 'check',
       label: 'Read them',
+      description: 'A fixture attempt.',
       once: true,
       check: { skill: 'insight', dc: 'dc' },
       outcomes: {
@@ -59,6 +60,7 @@ const testNeed = {
       id: 'rob',
       kind: 'check',
       label: 'Rob them',
+      description: 'A fixture attempt.',
       check: { skill: 'deception', dc: 'dc+2' },
       outcomes: {
         critFail: { text: 'Caught!', effects: [{ effect: 'hp', amount: -4, target: 'actor' }] },
@@ -112,6 +114,7 @@ const testSituations = [
             id: 'climb',
             kind: 'check',
             label: 'Climb',
+            description: 'A fixture attempt.',
             check: { skill: 'athletics', dc: 12 },
             outcomes: {
               fail: {
@@ -149,6 +152,7 @@ const testSituations = [
             id: 'jump',
             kind: 'check',
             label: 'Jump',
+            description: 'A fixture attempt.',
             check: { skill: 'acrobatics', dc: 14 },
             outcomes: {
               fail: {
@@ -180,6 +184,7 @@ const testSituations = [
             id: 'fight',
             kind: 'check',
             label: 'Fight',
+            description: 'A fixture attempt.',
             check: { skill: 'athletics', dc: 13, combat: true },
             outcomes: {
               fail: { text: 'Beaten.', effects: [{ effect: 'hp', amount: -4, target: 'all' }] },
@@ -237,6 +242,7 @@ const testTwists = [
             id: 'fight',
             kind: 'check',
             label: 'Fight',
+            description: 'A fixture attempt.',
             check: { skill: 'athletics', dc: 12, combat: true },
             outcomes: {
               fail: { text: 'Bloodied.', effects: [{ effect: 'hp', amount: -4, target: 'all' }] },
@@ -270,6 +276,7 @@ const testTwists = [
             id: 'chase',
             kind: 'check',
             label: 'Chase',
+            description: 'A fixture attempt.',
             check: { skill: 'athletics', dc: 12 },
             outcomes: {
               fail: {
@@ -290,6 +297,7 @@ const testTwists = [
             id: 'grab',
             kind: 'check',
             label: 'Grab the purse',
+            description: 'A fixture attempt.',
             check: { skill: 'athletics', dc: 10 },
             outcomes: {
               fail: { text: 'Cut.', effects: [{ effect: 'hp', amount: -2, target: 'actor' }] },
@@ -371,6 +379,7 @@ const stranger = {
           id: 'read',
           kind: 'check',
           label: 'Read them',
+          description: 'A fixture attempt.',
           once: true,
           check: { skill: 'insight', dc: 10 },
           outcomes: {
@@ -440,6 +449,7 @@ const testSites = [
             id: 'sneak',
             kind: 'check',
             label: 'Slip in after dark',
+            description: 'A fixture attempt.',
             check: { skill: 'stealth', dc: 14 },
             outcomes: {
               fail: { text: 'Spotted.', effects: [{ effect: 'hp', amount: -3, target: 'all' }] },
@@ -1143,6 +1153,7 @@ const testActSituation = (n: number) => ({
           id: 'sneak',
           kind: 'check',
           label: 'Slip past',
+          description: 'A fixture attempt.',
           check: { skill: 'stealth', dc: 12 },
           outcomes: {
             fail: {
@@ -1167,6 +1178,7 @@ const testActSituation = (n: number) => ({
           id: 'stop',
           kind: 'check',
           label: 'Break the rite',
+          description: 'A fixture attempt.',
           check: { skill: 'athletics', dc: 13 },
           outcomes: {
             fail: {
@@ -1306,6 +1318,7 @@ export const testCrisis: Record<string, unknown> = {
                 id: 'raid',
                 kind: 'check',
                 label: 'Raid it',
+                description: 'A fixture attempt.',
                 check: { skill: 'athletics', dc: 12 },
                 outcomes: {
                   fail: {
@@ -1341,6 +1354,7 @@ export const testCrisis: Record<string, unknown> = {
                 id: 'question',
                 kind: 'check',
                 label: 'Question them',
+                description: 'A fixture attempt.',
                 check: { skill: 'intimidation', dc: 12 },
                 outcomes: {
                   fail: { text: 'They curse you and go.' },
@@ -1372,6 +1386,7 @@ const testRoom = (id: string) => ({
           id: 'fight',
           kind: 'check',
           label: 'Fight it',
+          description: 'A fixture attempt.',
           check: { skill: 'athletics', dc: 12 },
           outcomes: {
             fail: { text: 'It bites.', effects: [{ effect: 'hp', amount: -3, target: 'actor' }] },

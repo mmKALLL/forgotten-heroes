@@ -424,7 +424,7 @@
           "properties": {
             "effect": {
               "type": "string",
-              "const": "slow"
+              "const": "rooted"
             }
           },
           "required": [

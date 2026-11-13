@@ -143,7 +143,7 @@
       "rounds": 2,
       "effects": [
         {
-          "effect": "slow"
+          "effect": "rooted"
         }
       ]
     },
@@ -408,7 +408,7 @@
       "rounds": 2,
       "effects": [
         {
-          "effect": "slow"
+          "effect": "rooted"
         },
         {
           "effect": "toHit",
@@ -500,7 +500,7 @@
           }
         },
         {
-          "effect": "slow"
+          "effect": "rooted"
         }
       ]
     },
@@ -573,7 +573,7 @@
           "tiles": 2
         },
         {
-          "effect": "slow"
+          "effect": "rooted"
         }
       ]
     },

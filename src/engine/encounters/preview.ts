@@ -28,6 +28,7 @@ import { livingMembers } from '../town/camaraderie'
 import { checkUpgrades, hiddenNote, softenLoss, upgradedEffect } from '../rules/upgrades'
 import { POSITION_MODE, currentOptions, optionAvailable, unmetRequirements } from './run'
 import { fillText } from './slots'
+import { SHOW_OUTCOME_TEXT } from '../constants'
 import { crisisActNumber } from '../crisis/status'
 import { crisisFailsDuring, tooLateChip } from '../crisis/progress'
 import {
@@ -382,6 +383,14 @@ export function encounterOptions(
 }
 
 /**
+ * Whether the outcome rows show their story text, not only their chips (SHOW_OUTCOME_TEXT). The
+ * state is taken so that a setting or a skill threshold (Insight, say) can decide it later.
+ */
+export function outcomeTextShown(_state: GameState): boolean {
+  return SHOW_OUTCOME_TEXT
+}
+
+/**
  * Null when the situation has no twist. The chance is null until revealed (e.g. by Insight). A
  * table twist reads as the situation's vague `what` until its kind is known.
  */
@@ -397,8 +406,9 @@ export function twistInfo(state: GameState): TwistInfo | null {
 /**
  * A skill challenge as the player sees it (Plan 6 S): the tally, what wins and loses it, and the
  * chance of winning if the best option is picked every round (challengeOdds: exact over the tally
- * and footing, at the best actors' odds now; strain and wounds to come aren't foreseen, so it is
- * shown as "≈"). `ifChosen` is that chance with each option picked now; `best` the highest.
+ * and footing, at the best actors' odds now; strain and wounds to come aren't foreseen).
+ * `ifChosen` is that chance with each option picked now; `best` the highest. The chances are for
+ * the sims and tests only: no UI shows an overall chance (designer call 2026-11-14).
  */
 export type ChallengePreview = {
   tally: Tally

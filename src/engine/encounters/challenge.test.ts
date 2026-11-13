@@ -52,6 +52,7 @@ const duel = SituationSchema.parse({
           id: 'strike',
           kind: 'check',
           label: 'Strike',
+          description: 'Steel against steel.',
           check: { skill: 'athletics', dc: 14, combat: true },
           outcomes: {
             fail: { text: 'He parries.' },
@@ -63,6 +64,7 @@ const duel = SituationSchema.parse({
           id: 'taunt',
           kind: 'check',
           label: 'Taunt',
+          description: 'Goad him into a mistake.',
           check: { skill: 'persuasion', dc: 16 },
           outcomes: {
             fail: {

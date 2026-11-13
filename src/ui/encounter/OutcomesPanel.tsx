@@ -7,17 +7,29 @@ import type {
 import { formatPercent } from '../../engine/format'
 import { useI18n } from '../i18n/I18n'
 
-function Branch({ branch }: { branch: BranchPreview }) {
+/**
+ * One outcome branch: its story text when shown (outcomeTextShown), then its chips. With the
+ * text hidden, a branch with no chips still says something: that the scene moves on, or that
+ * nothing comes of it.
+ */
+function Branch({ branch, showText }: { branch: BranchPreview; showText: boolean }) {
   const { t } = useI18n()
+  const escalates = branch.next === 'escalates'
+  const bare = !showText && branch.effects.length === 0 && !escalates
   return (
     <>
-      {branch.text}
+      {showText && branch.text}
       {branch.effects.map((e) => (
         <span key={e} className="chip">
           {e}
         </span>
       ))}
-      {branch.next === 'escalates' && <span className="chip">{t('outcomes.escalates')}</span>}
+      {escalates && <span className="chip">{t('outcomes.escalates')}</span>}
+      {bare && (
+        <span className="muted">
+          {t(branch.next === 'stage' ? 'outcomes.movesOn' : 'outcomes.noEffect')}
+        </span>
+      )}
     </>
   )
 }
@@ -26,17 +38,22 @@ function Branch({ branch }: { branch: BranchPreview }) {
  * The outcome tiers of the option last hovered or focused, shared by every option card, under
  * them. The box has a minimum height and grows to show every line (no scrolling, no clipping);
  * being below the cards, it never moves them. Each card's choose target points here with aria-describedby. Critical tiers
- * arrive hidden from the engine and get no row: only their odds show, on the card's bar.
+ * arrive hidden from the engine and get no row: only their odds show, on the card's bar. The
+ * story text of each row is hidden unless `showText` (designer call 2026-11-14: no spoilers
+ * before choosing; the log tells it after the roll), so a row is usually its chips alone.
  */
 export function OutcomesPanel({
   id,
   option,
   twist,
+  showText,
 }: {
   id: string
   /** The option to show, or null before any has been hovered or focused. */
   option: OptionPreview | null
   twist: TwistInfo | null
+  /** Whether the rows show their story text or only their chips (outcomeTextShown). */
+  showText: boolean
 }) {
   const { t, tier: tierName } = useI18n()
   const shown = option?.outcomes.filter((o): o is ShownOutcome => !o.hidden) ?? []
@@ -81,11 +98,11 @@ export function OutcomesPanel({
                       {o.tier && <span className="sr-only">{tierName(o.tier)}: </span>}
                     </span>
                     <div>
-                      <Branch branch={o} />
+                      <Branch branch={o} showText={showText} />
                       {o.twist && (
                         <div className="twist small">
                           {t('outcomes.if', { what: twist?.what ?? t('outcomes.someTwist') })}
-                          <Branch branch={o.twist} />
+                          <Branch branch={o.twist} showText={showText} />
                         </div>
                       )}
                     </div>

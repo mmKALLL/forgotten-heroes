@@ -12,6 +12,7 @@ import { WORLD_MAP_IMAGE, assetUrl } from './assets'
 import { CheckPanel } from './CheckPanel'
 import { ContractsPanel } from './ContractsPanel'
 import { CrisisTracker } from './CrisisPanel'
+import { CombatView } from './combat/CombatView'
 import { EncounterDeck } from './deck/EncounterDeck'
 import { DevArea } from './DevArea'
 import { EndDialog } from './EndDialog'
@@ -87,8 +88,10 @@ function Game() {
   // Camels' desert saving counts, as on the journey panel.
   const supplies = suppliesInfo(shown, terrainHere(shown, content), content)
   const atSite = shown.location !== null && nodeOf(shown, content, shown.location)?.kind === 'poi'
+  // A fight on the line (Plan 7): it takes the centre column, over the encounter it belongs to.
+  const fight = state.combat !== null
   // The town ledger takes a wider centre column (theme.css), so a settlement fits one screen.
-  const inTown = !state.encounter && !shown.travel && !atSite
+  const inTown = !state.encounter && !shown.travel && !atSite && !fight
   const crisis = crisisInfo(shown, content)
   // Fallen or disbanded: the run is over for good.
   const shownEnding = runEnding(shown)
@@ -158,7 +161,8 @@ function Game() {
           </button>
         </div>
       )}
-      <main className={inTown ? 'layout town' : 'layout'}>
+      {/* The town ledger and a fight take a wider centre column (theme.css). */}
+      <main className={inTown ? 'layout town' : fight ? 'layout fight' : 'layout'}>
         {/* On narrow screens the columns stack: party, then the centre, then the map (theme.css). */}
         <div className="left">
           <PartyPanel
@@ -167,7 +171,7 @@ function Game() {
             day={shown.day}
             camaraderie={camaraderieInfo(shown)}
             gear={shown.gear}
-            onAction={inProgress(state) ? undefined : dispatch}
+            onAction={inProgress(state) || fight ? undefined : dispatch}
             upgrades={ownedUpgrades(shown, content)}
             content={content}
             stash={shown.stash}
@@ -188,7 +192,13 @@ function Game() {
           />
         </div>
         <div className="centre">
-          {shown.delve ? (
+          {fight ? (
+            // A fight (Plan 7 U): the line in place of the encounter; its outcome shows on Close.
+            <>
+              {shown.delve && <DelveView content={content} state={shown} onAction={dispatch} />}
+              <CombatView state={state} onAction={dispatch} />
+            </>
+          ) : shown.delve ? (
             // A delve (Plan 6 D4): the dungeon's map, then the room being played.
             <>
               <DelveView content={content} state={shown} onAction={dispatch} />

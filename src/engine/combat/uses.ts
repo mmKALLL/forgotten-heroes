@@ -70,6 +70,9 @@ export function spellLevel(c: Pick<Character, 'classId' | 'level'>): number {
 /**
  * Spell uses a long rest gives at a spell level ("Decided by Claude", Plan 7): the newest level 1,
  * each lower one 1 more up to SPELL_CASTS_MAX, and level 1 at least SPELL_CASTS_FIRST.
+ * TODO (spell casting): the designer's progression (docs/notes/spells-review.md, "Designer
+ * notes": 1/0/0 → 1/1/0 → 1/1/1 → 2/1/1 …) supersedes this provisional table; only Smite reads
+ * it for now.
  */
 export function spellCasts(c: Pick<Character, 'classId' | 'level'>, level: number): number {
   const top = spellLevel(c)

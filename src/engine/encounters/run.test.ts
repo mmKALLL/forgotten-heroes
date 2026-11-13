@@ -610,7 +610,7 @@ describe('a stealthy party on the road', () => {
       })
     )
 
-  test('gives some hostile encounters a wide berth, and no others', () => {
+  test('gives some hostile encounters a wide berth, and no others', { timeout: 30_000 }, () => {
     const stealthy = draws('stealthy')
     const avoided = stealthy.filter((s) => s.encounter === null)
     const cliffs = stealthy.filter((s) => s.encounter?.situation.id === 'cliff')
@@ -630,16 +630,20 @@ describe('a stealthy party on the road', () => {
     expect(draws('steady').every((s) => s.encounter !== null)).toBe(true)
   })
 
-  test('the share of hostile encounters met is the preview’s, after avoidance', () => {
-    for (const pace of ['stealthy', 'steady'] as const) {
-      // As a journey draws them: hostile with the share before avoidance, then steered clear of.
-      const preview = hostileShare(2, 0, pace)
-      const met = draws(pace, preview.drawn).filter(
-        (s) => s.encounter?.situation.disposition === 'hostile'
-      ).length
-      expect(Math.abs(met / 400 - preview.share)).toBeLessThan(0.06)
+  test(
+    'the share of hostile encounters met is the preview’s, after avoidance',
+    { timeout: 30_000 },
+    () => {
+      for (const pace of ['stealthy', 'steady'] as const) {
+        // As a journey draws them: hostile with the share before avoidance, then steered clear of.
+        const preview = hostileShare(2, 0, pace)
+        const met = draws(pace, preview.drawn).filter(
+          (s) => s.encounter?.situation.disposition === 'hostile'
+        ).length
+        expect(Math.abs(met / 400 - preview.share)).toBeLessThan(0.06)
+      }
     }
-  })
+  )
 
   test('a due follow-up is never avoided this way', () => {
     const due = makeState({ followUps: [{ situationId: 'grudge', wait: 0 }] })

@@ -663,6 +663,59 @@ export const PartsTableSchema = z.object({
 })
 export type PartsTable = z.infer<typeof PartsTableSchema>
 
+/**
+ * What a boss move adds to its blow (Plan 7 Track N). Push and pull move the members on the
+ * target tile; stagger and stun hit those members; `exposed` leaves them Exposed for their next
+ * roll; `heal` gives the boss back a share of its max HP; `call` brings more of a creature onto
+ * the boss's end of the line; `burn` deals a share of its blow again at the end of the next
+ * round(s) to whoever was hit.
+ */
+export const BossRiderSchema = z.discriminatedUnion('effect', [
+  z.object({ effect: z.literal('push'), tiles: z.number().int().min(1).max(4) }),
+  z.object({ effect: z.literal('pull'), tiles: z.number().int().min(1).max(4) }),
+  z.object({ effect: z.literal('stagger') }),
+  z.object({ effect: z.literal('stun') }),
+  z.object({ effect: z.literal('exposed') }),
+  z.object({ effect: z.literal('heal'), share: z.number().min(0).max(1) }),
+  z.object({
+    effect: z.literal('call'),
+    creature: IdSchema,
+    count: z.number().int().min(1).max(6),
+  }),
+  z.object({
+    effect: z.literal('burn'),
+    share: z.number().min(0).max(2),
+    rounds: z.number().int().min(1).max(3),
+  }),
+])
+export type BossRider = z.infer<typeof BossRiderSchema>
+
+/**
+ * A boss's signature move or second trick (combat design §6), telegraphed like any intent. It
+ * plays as one of the intent kinds, with `damage` times the boss's own blow (its role's dice at
+ * its CR, so it scales when the tables are tuned), and the riders. `when`: `desperate` replaces
+ * the bloodied boss's second action; `everyOther` alternates with its plain intent from round 2;
+ * `once` comes the first round it can. `todo` names what the engine still lacks to play it.
+ */
+export const BossMoveSchema = z.object({
+  name: z.string(),
+  text: z.string().describe('The telegraph, in our own words: what the party sees coming'),
+  when: z.enum(['desperate', 'everyOther', 'once']),
+  kind: z
+    .enum(['attack', 'charge', 'area', 'volley', 'rally', 'call', 'heal'])
+    .describe('The intent it plays as (rally, call and heal strike no one)'),
+  reach: z
+    .tuple([z.number().int().min(0).max(8), z.number().int().min(0).max(8)])
+    .optional()
+    .describe("[nearest, farthest] tiles; the role's reach when unset"),
+  tiles: z.number().int().min(1).max(2).default(1).describe('Tiles an area or volley covers'),
+  damage: z.number().min(0).max(4).default(1).describe('Times its blow (0: no damage)'),
+  toHit: z.number().int().default(0).describe('Added to its to-hit (a rally: to its allies)'),
+  riders: z.array(BossRiderSchema).default([]),
+  todo: z.string().optional().describe('What the engine still lacks to play this move'),
+})
+export type BossMove = z.infer<typeof BossMoveSchema>
+
 export const CreatureSchema = z.object({
   id: IdSchema,
   name: z.string(),
@@ -675,5 +728,13 @@ export const CreatureSchema = z.object({
     .default('brute')
     .describe('Its combat role (data/claude/enemy-roles.json): stats by CR, range and trick'),
   size: z.enum(CREATURE_SIZES).default('medium').describe("Size points toward a tile's stack cap"),
+  roads: z
+    .boolean()
+    .default(true)
+    .describe("Drawn by situations' creature slots ({foe}); false keeps it to fights that name it"),
+  signature: BossMoveSchema.optional().describe(
+    'A boss (a leader or brute fought as `boss`): the move it saves for when it is bloodied'
+  ),
+  trick: BossMoveSchema.optional().describe("A boss's second trick, used through the fight"),
 })
 export type Creature = z.infer<typeof CreatureSchema>

@@ -605,6 +605,13 @@ export const HIGH_STAKES_BAND = [0.25, 0.75] as const
 /** A twist kind tagged with the land, or with the threat holding it, weighs this much more. */
 export const TWIST_PLACE_WEIGHT = 2
 /**
+ * Whether an option's preview shows its outcomes' story text ("Lyra slips…") beside their chips
+ * (preview.ts outcomeTextShown). Off (designer call 2026-11-14): the story isn't spoiled before
+ * choosing; it shows in the encounter's log after the roll. Later this may become a setting, or
+ * a skill threshold (e.g. a good enough Insight reads how each approach would play out).
+ */
+export const SHOW_OUTCOME_TEXT: boolean = false
+/**
  * What each tier of a check marks on a skill challenge's tally (challenge.ts, Plan 6 S): a
  * critical counts twice, and a partial holds the line without gaining ground.
  */
@@ -865,7 +872,7 @@ export const ASSIST_PER_POINT = 2
 export const REACH_PENALTY = 4
 /** A bow or thrown weapon used while an enemy is on an adjacent tile. */
 export const ENGAGED_RANGED_PENALTY = 4
-/** A staggered enemy's to-hit penalty (its weakened intent also does half damage). */
+/** A stifled or staggered enemy's to-hit penalty (a staggered one also does half damage). */
 export const STAGGER_PENALTY = 2
 /** A bloodied enemy (at or below this share of its HP) has BLOODIED_PENALTY to hit; a boss grows desperate. */
 export const BLOODIED_SHARE = 0.5
@@ -988,14 +995,20 @@ export const CASTING_ABILITY: Readonly<Record<string, Ability>> = {
 
 // Combat: stagger, stun and morale (combat/turns.ts, combat/morale.ts)
 
-/** Hits within one party turn that stagger and stun an enemy, by kind of enemy. */
+/**
+ * Hits within one party turn that stifle (−STAGGER_PENALTY to hit), stagger (that and half
+ * damage) and stun (it loses its action) an enemy, by kind of enemy (casters and archers are
+ * "ranged"; designer call 2026-11-14).
+ */
 export const STAGGER_HITS: Readonly<
-  Record<'normal' | 'ranged' | 'boss', { stagger: number; stun: number }>
+  Record<'normal' | 'ranged' | 'boss', { stifle: number; stagger: number; stun: number }>
 > = {
-  normal: { stagger: 3, stun: 4 },
-  ranged: { stagger: 1, stun: 2 },
-  boss: { stagger: 5, stun: 6 },
+  normal: { stifle: 2, stagger: 3, stun: 4 },
+  ranged: { stifle: 1, stagger: 2, stun: 3 },
+  boss: { stifle: 4, stagger: 5, stun: 6 },
 }
+/** A hit by a weapon with the stagger trait (maces) counts this many hits toward the ladder. */
+export const MACE_HIT_WEIGHT = 2
 /**
  * Morale breaks only near the end: [smallest group, enemies left] — a group of 3–4 tests at 1
  * left, 5–8 at 2, 9 or more at 3. Smaller groups never test.
@@ -1019,8 +1032,18 @@ export const INJURY_PER_OVERKILL = 0.01
 /** A member who already has this many injuries (old wounds count) dies instead on DEATH_CHANCE. */
 export const INJURY_DEATH_AFTER = 2
 export const DEATH_CHANCE = 0.5
-/** A wipe by robbers (any humanoid foe) takes all the gold and this share of each good. */
+/** Surrendering after a wipe gives up this share of each good but essentials (rounded down). */
 export const WIPE_GOODS_TAKEN = 0.5
+
+// Combat: a wipe's choice (combat/defeat.ts; designer call 2026-11-14)
+
+/** Camaraderie lost for a wipe, whichever way the party gets out of it. */
+export const CAMARADERIE_WIPE = 20
+/** Struggling after a wipe: this many lasting injuries, each on a random living member… */
+export const WIPE_STRUGGLE_INJURIES = 3
+/** …or this many for a party of WIPE_SMALL_PARTY or fewer living members. */
+export const WIPE_STRUGGLE_INJURIES_SMALL = 2
+export const WIPE_SMALL_PARTY = 2
 
 // Combat: starting gear (party.ts; save v22)
 
@@ -1121,3 +1144,77 @@ export const ARMS_QUALITY_AT: Readonly<Record<WeaponQuality, number>> = {
 }
 /** What a shop pays for weapons and armour: this share of the price, rounded down. */
 export const ARMS_RESALE = 0.5
+// Combat: the road CR budget (combat/budget.ts; Plan 7 Track N, used by Track I's road Fight)
+
+/**
+ * XP a creature of each CR is worth toward a fight's budget (the SRD 5.1 values), keyed by CR.
+ * Past CR 30 it rises by CR_XP_BEYOND per CR.
+ */
+export const CR_XP: Readonly<Record<number, number>> = {
+  0: 10,
+  0.125: 25,
+  0.25: 50,
+  0.5: 100,
+  1: 200,
+  2: 450,
+  3: 700,
+  4: 1100,
+  5: 1800,
+  6: 2300,
+  7: 2900,
+  8: 3900,
+  9: 5000,
+  10: 5900,
+  11: 7200,
+  12: 8400,
+  13: 10000,
+  14: 11500,
+  15: 13000,
+  16: 15000,
+  17: 18000,
+  18: 20000,
+  19: 22000,
+  20: 25000,
+  21: 33000,
+  22: 41000,
+  23: 50000,
+  24: 62000,
+  25: 75000,
+  26: 90000,
+  27: 105000,
+  28: 120000,
+  29: 135000,
+  30: 155000,
+}
+export const CR_XP_BEYOND = 20000
+/**
+ * A medium fight's XP per member by level 1–20 (index 0 is level 1), our own smooth curve in the
+ * shape of 5e's encounter budgets (no jump at level 5: members here gain no extra attack).
+ */
+export const FIGHT_XP_PER_MEMBER: readonly number[] = [
+  50, 100, 150, 250, 400, 550, 700, 850, 1000, 1200, 1450, 1700, 2000, 2300, 2600, 3000, 3400, 3900,
+  4400, 5000,
+]
+/** An easy, medium or hard fight's budget, as a share of the medium one. */
+export const FIGHT_DIFFICULTY: Readonly<Record<'easy' | 'medium' | 'hard', number>> = {
+  easy: 0.5,
+  medium: 1,
+  hard: 1.5,
+}
+/**
+ * A group's XP is multiplied by its size: [smallest group, factor] (several foes are worse than
+ * one of their total XP). A party of fewer than FIGHT_SMALL_PARTY members reads the next row, and
+ * one of FIGHT_LARGE_PARTY or more the row before.
+ */
+export const FIGHT_GROUP_FACTOR: readonly (readonly [group: number, factor: number])[] = [
+  [1, 1],
+  [2, 1.5],
+  [3, 2],
+  [7, 2.5],
+  [11, 3],
+  [15, 4],
+]
+export const FIGHT_SMALL_PARTY = 3
+export const FIGHT_LARGE_PARTY = 6
+/** A road fight fields at most this many of its creature (the line has room for about this many). */
+export const ROAD_FIGHT_MAX = 8

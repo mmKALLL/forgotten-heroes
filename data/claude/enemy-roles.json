@@ -2,7 +2,7 @@
   "$schema": "../_schema/enemyRoles.schema.json",
   "kind": "enemyRoles",
   "source": "claude",
-  "notes": "Placeholder (Plan 7 Track T) — Track N fills this in: the six roles with a two-row stat table (CR 0 and CR 5), loosely after 5e's monster statistics by CR. A creature takes the last row at or below its CR.",
+  "notes": "Plan 7 Track N: the six enemy roles (combat design \u00a76) and their stats by CR, 0 to 30. A creature takes the last row at or below its CR (rows for CR 21\u201329 fall back to the even row below). Modelled on 5e's monster statistics by challenge rating, adjusted for linear combat: AC and to-hit follow the 5e scale (to-hit a point above it at CR 1/2\u20132, where published foes hit harder than the table). HP is a typical published monster's HP at the CR, scaled down for a party that makes one attack a turn: the whole of it up to CR 1/2, falling to 60% at CR 5, 45% at CR 12 and 40% from CR 20, so a fight at the intended level takes about as many rounds as in 5e. Damage is one blow a turn, 70% of 5e's damage per round (a fixed 2.5, 4, 5 and 7 at CR 0 to 1/2). Then by role, against that standard: brute \u00d71.35 HP, \u22121 AC, \u00d71.2 damage on d12s; skirmisher \u00d70.85 HP, +1 AC, +1 to hit, \u00d70.85 damage on d6s; archer \u00d70.7 HP, \u22121 AC, +1 to hit, \u00d70.8 damage on d8s (a volley hits everyone on a tile); caster \u00d70.6 HP, \u22122 AC, +1 to hit, \u00d70.7 damage on d6s against each member on the tile it blasts; swarm (one of many units) \u00d70.45 HP, \u22121 AC, \u00d70.6 damage on d4s; leader \u00d71.1 HP, +1 AC, +1 to hit, \u00d70.9 damage on d8s, and the rally (RALLY_BONUS). WIS (morale) is CR/4 plus brute and swarm \u22121, skirmisher 0, archer +1, caster and leader +2. Light blows use a smaller die. Role numbers not in the rows: an archer's and a caster's range is `reach`, a caster's blast is its `damage` on every member on the tile, a swarm's unit HP is its `hp`, the rally and the volley penalty are constants. Provisional: Track B's fight simulation tunes them. Our own numbers, written by Claude.",
   "entries": [
     {
       "id": "brute",
@@ -12,19 +12,351 @@
       "stats": [
         {
           "cr": 0,
-          "hp": 15,
+          "hp": 5,
+          "ac": 11,
+          "toHit": 2,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
+          "wis": -1
+        },
+        {
+          "cr": 0.125,
+          "hp": 12,
+          "ac": 12,
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 8,
+            "bonus": 0
+          },
+          "wis": -1
+        },
+        {
+          "cr": 0.25,
+          "hp": 18,
+          "ac": 12,
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 10,
+            "bonus": 0
+          },
+          "wis": -1
+        },
+        {
+          "cr": 0.5,
+          "hp": 27,
           "ac": 12,
           "toHit": 4,
-          "damage": { "count": 1, "die": 8, "bonus": 2 },
+          "damage": {
+            "count": 1,
+            "die": 12,
+            "bonus": 2
+          },
+          "wis": -1
+        },
+        {
+          "cr": 1,
+          "hp": 36,
+          "ac": 12,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 12,
+            "bonus": 3
+          },
+          "wis": -1
+        },
+        {
+          "cr": 2,
+          "hp": 52,
+          "ac": 12,
+          "toHit": 4,
+          "damage": {
+            "count": 2,
+            "die": 12,
+            "bonus": 1
+          },
+          "wis": -1
+        },
+        {
+          "cr": 3,
+          "hp": 61,
+          "ac": 12,
+          "toHit": 5,
+          "damage": {
+            "count": 2,
+            "die": 12,
+            "bonus": 6
+          },
+          "wis": -1
+        },
+        {
+          "cr": 4,
+          "hp": 67,
+          "ac": 13,
+          "toHit": 5,
+          "damage": {
+            "count": 3,
+            "die": 12,
+            "bonus": 5
+          },
           "wis": 0
         },
         {
           "cr": 5,
-          "hp": 110,
+          "hp": 81,
           "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 3,
+            "die": 12,
+            "bonus": 10
+          },
+          "wis": 0
+        },
+        {
+          "cr": 6,
+          "hp": 87,
+          "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 4,
+            "die": 12,
+            "bonus": 8
+          },
+          "wis": 0
+        },
+        {
+          "cr": 7,
+          "hp": 93,
+          "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 4,
+            "die": 12,
+            "bonus": 13
+          },
+          "wis": 0
+        },
+        {
+          "cr": 8,
+          "hp": 98,
+          "ac": 15,
           "toHit": 7,
-          "damage": { "count": 2, "die": 10, "bonus": 4 },
+          "damage": {
+            "count": 5,
+            "die": 12,
+            "bonus": 12
+          },
           "wis": 1
+        },
+        {
+          "cr": 9,
+          "hp": 105,
+          "ac": 15,
+          "toHit": 7,
+          "damage": {
+            "count": 5,
+            "die": 12,
+            "bonus": 17
+          },
+          "wis": 1
+        },
+        {
+          "cr": 10,
+          "hp": 112,
+          "ac": 16,
+          "toHit": 7,
+          "damage": {
+            "count": 6,
+            "die": 12,
+            "bonus": 16
+          },
+          "wis": 1
+        },
+        {
+          "cr": 11,
+          "hp": 119,
+          "ac": 16,
+          "toHit": 8,
+          "damage": {
+            "count": 6,
+            "die": 12,
+            "bonus": 21
+          },
+          "wis": 1
+        },
+        {
+          "cr": 12,
+          "hp": 125,
+          "ac": 16,
+          "toHit": 8,
+          "damage": {
+            "count": 7,
+            "die": 12,
+            "bonus": 19
+          },
+          "wis": 2
+        },
+        {
+          "cr": 13,
+          "hp": 131,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 7,
+            "die": 12,
+            "bonus": 24
+          },
+          "wis": 2
+        },
+        {
+          "cr": 14,
+          "hp": 138,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 8,
+            "die": 12,
+            "bonus": 23
+          },
+          "wis": 2
+        },
+        {
+          "cr": 15,
+          "hp": 144,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 9,
+            "die": 12,
+            "bonus": 21
+          },
+          "wis": 2
+        },
+        {
+          "cr": 16,
+          "hp": 150,
+          "ac": 17,
+          "toHit": 9,
+          "damage": {
+            "count": 9,
+            "die": 12,
+            "bonus": 26
+          },
+          "wis": 3
+        },
+        {
+          "cr": 17,
+          "hp": 157,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 10,
+            "die": 12,
+            "bonus": 25
+          },
+          "wis": 3
+        },
+        {
+          "cr": 18,
+          "hp": 166,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 10,
+            "die": 12,
+            "bonus": 30
+          },
+          "wis": 3
+        },
+        {
+          "cr": 19,
+          "hp": 175,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 11,
+            "die": 12,
+            "bonus": 28
+          },
+          "wis": 3
+        },
+        {
+          "cr": 20,
+          "hp": 184,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 12,
+            "die": 12,
+            "bonus": 32
+          },
+          "wis": 4
+        },
+        {
+          "cr": 22,
+          "hp": 227,
+          "ac": 18,
+          "toHit": 11,
+          "damage": {
+            "count": 17,
+            "die": 12,
+            "bonus": 30
+          },
+          "wis": 4
+        },
+        {
+          "cr": 24,
+          "hp": 270,
+          "ac": 18,
+          "toHit": 12,
+          "damage": {
+            "count": 20,
+            "die": 12,
+            "bonus": 41
+          },
+          "wis": 5
+        },
+        {
+          "cr": 26,
+          "hp": 313,
+          "ac": 18,
+          "toHit": 12,
+          "damage": {
+            "count": 20,
+            "die": 12,
+            "bonus": 71
+          },
+          "wis": 5
+        },
+        {
+          "cr": 28,
+          "hp": 356,
+          "ac": 18,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 12,
+            "bonus": 101
+          },
+          "wis": 6
+        },
+        {
+          "cr": 30,
+          "hp": 400,
+          "ac": 18,
+          "toHit": 14,
+          "damage": {
+            "count": 20,
+            "die": 12,
+            "bonus": 131
+          },
+          "wis": 6
         }
       ]
     },
@@ -36,19 +368,351 @@
       "stats": [
         {
           "cr": 0,
-          "hp": 9,
+          "hp": 3,
           "ac": 13,
-          "toHit": 4,
-          "damage": { "count": 1, "die": 6, "bonus": 2 },
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
           "wis": 0
         },
         {
-          "cr": 5,
-          "hp": 75,
+          "cr": 0.125,
+          "hp": 8,
+          "ac": 14,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 1
+          },
+          "wis": 0
+        },
+        {
+          "cr": 0.25,
+          "hp": 11,
+          "ac": 14,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 1
+          },
+          "wis": 0
+        },
+        {
+          "cr": 0.5,
+          "hp": 17,
+          "ac": 14,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 2
+          },
+          "wis": 0
+        },
+        {
+          "cr": 1,
+          "hp": 23,
+          "ac": 14,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 3
+          },
+          "wis": 0
+        },
+        {
+          "cr": 2,
+          "hp": 33,
+          "ac": 14,
+          "toHit": 5,
+          "damage": {
+            "count": 2,
+            "die": 6,
+            "bonus": 3
+          },
+          "wis": 0
+        },
+        {
+          "cr": 3,
+          "hp": 38,
+          "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 3,
+            "die": 6,
+            "bonus": 3
+          },
+          "wis": 0
+        },
+        {
+          "cr": 4,
+          "hp": 42,
           "ac": 15,
-          "toHit": 7,
-          "damage": { "count": 2, "die": 8, "bonus": 3 },
+          "toHit": 6,
+          "damage": {
+            "count": 4,
+            "die": 6,
+            "bonus": 3
+          },
           "wis": 1
+        },
+        {
+          "cr": 5,
+          "hp": 51,
+          "ac": 16,
+          "toHit": 7,
+          "damage": {
+            "count": 4,
+            "die": 6,
+            "bonus": 7
+          },
+          "wis": 1
+        },
+        {
+          "cr": 6,
+          "hp": 55,
+          "ac": 16,
+          "toHit": 7,
+          "damage": {
+            "count": 5,
+            "die": 6,
+            "bonus": 7
+          },
+          "wis": 1
+        },
+        {
+          "cr": 7,
+          "hp": 59,
+          "ac": 16,
+          "toHit": 7,
+          "damage": {
+            "count": 6,
+            "die": 6,
+            "bonus": 7
+          },
+          "wis": 1
+        },
+        {
+          "cr": 8,
+          "hp": 62,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 6,
+            "die": 6,
+            "bonus": 11
+          },
+          "wis": 2
+        },
+        {
+          "cr": 9,
+          "hp": 66,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 7,
+            "die": 6,
+            "bonus": 11
+          },
+          "wis": 2
+        },
+        {
+          "cr": 10,
+          "hp": 71,
+          "ac": 18,
+          "toHit": 8,
+          "damage": {
+            "count": 8,
+            "die": 6,
+            "bonus": 11
+          },
+          "wis": 2
+        },
+        {
+          "cr": 11,
+          "hp": 75,
+          "ac": 18,
+          "toHit": 9,
+          "damage": {
+            "count": 8,
+            "die": 6,
+            "bonus": 14
+          },
+          "wis": 2
+        },
+        {
+          "cr": 12,
+          "hp": 78,
+          "ac": 18,
+          "toHit": 9,
+          "damage": {
+            "count": 9,
+            "die": 6,
+            "bonus": 14
+          },
+          "wis": 3
+        },
+        {
+          "cr": 13,
+          "hp": 83,
+          "ac": 19,
+          "toHit": 9,
+          "damage": {
+            "count": 10,
+            "die": 6,
+            "bonus": 14
+          },
+          "wis": 3
+        },
+        {
+          "cr": 14,
+          "hp": 87,
+          "ac": 19,
+          "toHit": 9,
+          "damage": {
+            "count": 11,
+            "die": 6,
+            "bonus": 14
+          },
+          "wis": 3
+        },
+        {
+          "cr": 15,
+          "hp": 91,
+          "ac": 19,
+          "toHit": 9,
+          "damage": {
+            "count": 11,
+            "die": 6,
+            "bonus": 18
+          },
+          "wis": 3
+        },
+        {
+          "cr": 16,
+          "hp": 95,
+          "ac": 19,
+          "toHit": 10,
+          "damage": {
+            "count": 12,
+            "die": 6,
+            "bonus": 18
+          },
+          "wis": 4
+        },
+        {
+          "cr": 17,
+          "hp": 99,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 13,
+            "die": 6,
+            "bonus": 18
+          },
+          "wis": 4
+        },
+        {
+          "cr": 18,
+          "hp": 105,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 13,
+            "die": 6,
+            "bonus": 22
+          },
+          "wis": 4
+        },
+        {
+          "cr": 19,
+          "hp": 110,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 14,
+            "die": 6,
+            "bonus": 22
+          },
+          "wis": 4
+        },
+        {
+          "cr": 20,
+          "hp": 116,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 16,
+            "die": 6,
+            "bonus": 22
+          },
+          "wis": 5
+        },
+        {
+          "cr": 22,
+          "hp": 143,
+          "ac": 20,
+          "toHit": 12,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 29
+          },
+          "wis": 5
+        },
+        {
+          "cr": 24,
+          "hp": 170,
+          "ac": 20,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 51
+          },
+          "wis": 6
+        },
+        {
+          "cr": 26,
+          "hp": 197,
+          "ac": 20,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 72
+          },
+          "wis": 6
+        },
+        {
+          "cr": 28,
+          "hp": 224,
+          "ac": 20,
+          "toHit": 14,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 94
+          },
+          "wis": 7
+        },
+        {
+          "cr": 30,
+          "hp": 252,
+          "ac": 20,
+          "toHit": 15,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 115
+          },
+          "wis": 7
         }
       ]
     },
@@ -60,19 +724,351 @@
       "stats": [
         {
           "cr": 0,
-          "hp": 8,
-          "ac": 12,
-          "toHit": 4,
-          "damage": { "count": 1, "die": 8, "bonus": 2 },
+          "hp": 3,
+          "ac": 11,
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
           "wis": 1
         },
         {
+          "cr": 0.125,
+          "hp": 6,
+          "ac": 12,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 1
+          },
+          "wis": 1
+        },
+        {
+          "cr": 0.25,
+          "hp": 9,
+          "ac": 12,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 0
+          },
+          "wis": 1
+        },
+        {
+          "cr": 0.5,
+          "hp": 14,
+          "ac": 12,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 8,
+            "bonus": 1
+          },
+          "wis": 1
+        },
+        {
+          "cr": 1,
+          "hp": 19,
+          "ac": 12,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 8,
+            "bonus": 2
+          },
+          "wis": 1
+        },
+        {
+          "cr": 2,
+          "hp": 27,
+          "ac": 12,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 8,
+            "bonus": 5
+          },
+          "wis": 1
+        },
+        {
+          "cr": 3,
+          "hp": 31,
+          "ac": 12,
+          "toHit": 6,
+          "damage": {
+            "count": 2,
+            "die": 8,
+            "bonus": 4
+          },
+          "wis": 1
+        },
+        {
+          "cr": 4,
+          "hp": 35,
+          "ac": 13,
+          "toHit": 6,
+          "damage": {
+            "count": 2,
+            "die": 8,
+            "bonus": 7
+          },
+          "wis": 2
+        },
+        {
           "cr": 5,
-          "hp": 65,
+          "hp": 42,
           "ac": 14,
           "toHit": 7,
-          "damage": { "count": 2, "die": 8, "bonus": 3 },
+          "damage": {
+            "count": 3,
+            "die": 8,
+            "bonus": 6
+          },
           "wis": 2
+        },
+        {
+          "cr": 6,
+          "hp": 45,
+          "ac": 14,
+          "toHit": 7,
+          "damage": {
+            "count": 4,
+            "die": 8,
+            "bonus": 5
+          },
+          "wis": 2
+        },
+        {
+          "cr": 7,
+          "hp": 48,
+          "ac": 14,
+          "toHit": 7,
+          "damage": {
+            "count": 4,
+            "die": 8,
+            "bonus": 8
+          },
+          "wis": 2
+        },
+        {
+          "cr": 8,
+          "hp": 51,
+          "ac": 15,
+          "toHit": 8,
+          "damage": {
+            "count": 5,
+            "die": 8,
+            "bonus": 7
+          },
+          "wis": 3
+        },
+        {
+          "cr": 9,
+          "hp": 55,
+          "ac": 15,
+          "toHit": 8,
+          "damage": {
+            "count": 5,
+            "die": 8,
+            "bonus": 11
+          },
+          "wis": 3
+        },
+        {
+          "cr": 10,
+          "hp": 58,
+          "ac": 16,
+          "toHit": 8,
+          "damage": {
+            "count": 6,
+            "die": 8,
+            "bonus": 9
+          },
+          "wis": 3
+        },
+        {
+          "cr": 11,
+          "hp": 62,
+          "ac": 16,
+          "toHit": 9,
+          "damage": {
+            "count": 6,
+            "die": 8,
+            "bonus": 13
+          },
+          "wis": 3
+        },
+        {
+          "cr": 12,
+          "hp": 65,
+          "ac": 16,
+          "toHit": 9,
+          "damage": {
+            "count": 7,
+            "die": 8,
+            "bonus": 12
+          },
+          "wis": 4
+        },
+        {
+          "cr": 13,
+          "hp": 68,
+          "ac": 17,
+          "toHit": 9,
+          "damage": {
+            "count": 7,
+            "die": 8,
+            "bonus": 15
+          },
+          "wis": 4
+        },
+        {
+          "cr": 14,
+          "hp": 72,
+          "ac": 17,
+          "toHit": 9,
+          "damage": {
+            "count": 8,
+            "die": 8,
+            "bonus": 14
+          },
+          "wis": 4
+        },
+        {
+          "cr": 15,
+          "hp": 75,
+          "ac": 17,
+          "toHit": 9,
+          "damage": {
+            "count": 8,
+            "die": 8,
+            "bonus": 17
+          },
+          "wis": 4
+        },
+        {
+          "cr": 16,
+          "hp": 78,
+          "ac": 17,
+          "toHit": 10,
+          "damage": {
+            "count": 9,
+            "die": 8,
+            "bonus": 16
+          },
+          "wis": 5
+        },
+        {
+          "cr": 17,
+          "hp": 81,
+          "ac": 18,
+          "toHit": 11,
+          "damage": {
+            "count": 9,
+            "die": 8,
+            "bonus": 19
+          },
+          "wis": 5
+        },
+        {
+          "cr": 18,
+          "hp": 86,
+          "ac": 18,
+          "toHit": 11,
+          "damage": {
+            "count": 10,
+            "die": 8,
+            "bonus": 18
+          },
+          "wis": 5
+        },
+        {
+          "cr": 19,
+          "hp": 91,
+          "ac": 18,
+          "toHit": 11,
+          "damage": {
+            "count": 10,
+            "die": 8,
+            "bonus": 22
+          },
+          "wis": 5
+        },
+        {
+          "cr": 20,
+          "hp": 95,
+          "ac": 18,
+          "toHit": 11,
+          "damage": {
+            "count": 11,
+            "die": 8,
+            "bonus": 24
+          },
+          "wis": 6
+        },
+        {
+          "cr": 22,
+          "hp": 118,
+          "ac": 18,
+          "toHit": 12,
+          "damage": {
+            "count": 15,
+            "die": 8,
+            "bonus": 26
+          },
+          "wis": 6
+        },
+        {
+          "cr": 24,
+          "hp": 140,
+          "ac": 18,
+          "toHit": 13,
+          "damage": {
+            "count": 19,
+            "die": 8,
+            "bonus": 28
+          },
+          "wis": 7
+        },
+        {
+          "cr": 26,
+          "hp": 162,
+          "ac": 18,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 8,
+            "bonus": 44
+          },
+          "wis": 7
+        },
+        {
+          "cr": 28,
+          "hp": 185,
+          "ac": 18,
+          "toHit": 14,
+          "damage": {
+            "count": 20,
+            "die": 8,
+            "bonus": 64
+          },
+          "wis": 8
+        },
+        {
+          "cr": 30,
+          "hp": 207,
+          "ac": 18,
+          "toHit": 15,
+          "damage": {
+            "count": 20,
+            "die": 8,
+            "bonus": 84
+          },
+          "wis": 8
         }
       ]
     },
@@ -84,19 +1080,351 @@
       "stats": [
         {
           "cr": 0,
-          "hp": 8,
-          "ac": 11,
-          "toHit": 4,
-          "damage": { "count": 1, "die": 10, "bonus": 1 },
+          "hp": 2,
+          "ac": 10,
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
           "wis": 2
         },
         {
-          "cr": 5,
-          "hp": 60,
+          "cr": 0.125,
+          "hp": 5,
+          "ac": 11,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
+          "wis": 2
+        },
+        {
+          "cr": 0.25,
+          "hp": 8,
+          "ac": 11,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 0
+          },
+          "wis": 2
+        },
+        {
+          "cr": 0.5,
+          "hp": 12,
+          "ac": 11,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 1
+          },
+          "wis": 2
+        },
+        {
+          "cr": 1,
+          "hp": 16,
+          "ac": 11,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 2
+          },
+          "wis": 2
+        },
+        {
+          "cr": 2,
+          "hp": 23,
+          "ac": 11,
+          "toHit": 5,
+          "damage": {
+            "count": 2,
+            "die": 6,
+            "bonus": 1
+          },
+          "wis": 2
+        },
+        {
+          "cr": 3,
+          "hp": 27,
+          "ac": 11,
+          "toHit": 6,
+          "damage": {
+            "count": 2,
+            "die": 6,
+            "bonus": 4
+          },
+          "wis": 2
+        },
+        {
+          "cr": 4,
+          "hp": 30,
           "ac": 12,
-          "toHit": 7,
-          "damage": { "count": 3, "die": 8, "bonus": 0 },
+          "toHit": 6,
+          "damage": {
+            "count": 3,
+            "die": 6,
+            "bonus": 4
+          },
           "wis": 3
+        },
+        {
+          "cr": 5,
+          "hp": 36,
+          "ac": 13,
+          "toHit": 7,
+          "damage": {
+            "count": 3,
+            "die": 6,
+            "bonus": 7
+          },
+          "wis": 3
+        },
+        {
+          "cr": 6,
+          "hp": 39,
+          "ac": 13,
+          "toHit": 7,
+          "damage": {
+            "count": 4,
+            "die": 6,
+            "bonus": 6
+          },
+          "wis": 3
+        },
+        {
+          "cr": 7,
+          "hp": 41,
+          "ac": 13,
+          "toHit": 7,
+          "damage": {
+            "count": 5,
+            "die": 6,
+            "bonus": 6
+          },
+          "wis": 3
+        },
+        {
+          "cr": 8,
+          "hp": 44,
+          "ac": 14,
+          "toHit": 8,
+          "damage": {
+            "count": 5,
+            "die": 6,
+            "bonus": 8
+          },
+          "wis": 4
+        },
+        {
+          "cr": 9,
+          "hp": 47,
+          "ac": 14,
+          "toHit": 8,
+          "damage": {
+            "count": 6,
+            "die": 6,
+            "bonus": 8
+          },
+          "wis": 4
+        },
+        {
+          "cr": 10,
+          "hp": 50,
+          "ac": 15,
+          "toHit": 8,
+          "damage": {
+            "count": 6,
+            "die": 6,
+            "bonus": 11
+          },
+          "wis": 4
+        },
+        {
+          "cr": 11,
+          "hp": 53,
+          "ac": 15,
+          "toHit": 9,
+          "damage": {
+            "count": 7,
+            "die": 6,
+            "bonus": 10
+          },
+          "wis": 4
+        },
+        {
+          "cr": 12,
+          "hp": 55,
+          "ac": 15,
+          "toHit": 9,
+          "damage": {
+            "count": 8,
+            "die": 6,
+            "bonus": 10
+          },
+          "wis": 5
+        },
+        {
+          "cr": 13,
+          "hp": 58,
+          "ac": 16,
+          "toHit": 9,
+          "damage": {
+            "count": 8,
+            "die": 6,
+            "bonus": 13
+          },
+          "wis": 5
+        },
+        {
+          "cr": 14,
+          "hp": 61,
+          "ac": 16,
+          "toHit": 9,
+          "damage": {
+            "count": 9,
+            "die": 6,
+            "bonus": 12
+          },
+          "wis": 5
+        },
+        {
+          "cr": 15,
+          "hp": 64,
+          "ac": 16,
+          "toHit": 9,
+          "damage": {
+            "count": 9,
+            "die": 6,
+            "bonus": 15
+          },
+          "wis": 5
+        },
+        {
+          "cr": 16,
+          "hp": 67,
+          "ac": 16,
+          "toHit": 10,
+          "damage": {
+            "count": 10,
+            "die": 6,
+            "bonus": 14
+          },
+          "wis": 6
+        },
+        {
+          "cr": 17,
+          "hp": 70,
+          "ac": 17,
+          "toHit": 11,
+          "damage": {
+            "count": 10,
+            "die": 6,
+            "bonus": 17
+          },
+          "wis": 6
+        },
+        {
+          "cr": 18,
+          "hp": 74,
+          "ac": 17,
+          "toHit": 11,
+          "damage": {
+            "count": 11,
+            "die": 6,
+            "bonus": 17
+          },
+          "wis": 6
+        },
+        {
+          "cr": 19,
+          "hp": 78,
+          "ac": 17,
+          "toHit": 11,
+          "damage": {
+            "count": 12,
+            "die": 6,
+            "bonus": 16
+          },
+          "wis": 6
+        },
+        {
+          "cr": 20,
+          "hp": 82,
+          "ac": 17,
+          "toHit": 11,
+          "damage": {
+            "count": 13,
+            "die": 6,
+            "bonus": 19
+          },
+          "wis": 7
+        },
+        {
+          "cr": 22,
+          "hp": 101,
+          "ac": 17,
+          "toHit": 12,
+          "damage": {
+            "count": 16,
+            "die": 6,
+            "bonus": 26
+          },
+          "wis": 7
+        },
+        {
+          "cr": 24,
+          "hp": 120,
+          "ac": 17,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 29
+          },
+          "wis": 8
+        },
+        {
+          "cr": 26,
+          "hp": 139,
+          "ac": 17,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 47
+          },
+          "wis": 8
+        },
+        {
+          "cr": 28,
+          "hp": 158,
+          "ac": 17,
+          "toHit": 14,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 65
+          },
+          "wis": 9
+        },
+        {
+          "cr": 30,
+          "hp": 178,
+          "ac": 17,
+          "toHit": 15,
+          "damage": {
+            "count": 20,
+            "die": 6,
+            "bonus": 82
+          },
+          "wis": 9
         }
       ]
     },
@@ -108,19 +1436,351 @@
       "stats": [
         {
           "cr": 0,
-          "hp": 4,
+          "hp": 2,
           "ac": 11,
-          "toHit": 3,
-          "damage": { "count": 1, "die": 4, "bonus": 1 },
+          "toHit": 2,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
           "wis": -1
         },
         {
-          "cr": 5,
-          "hp": 25,
+          "cr": 0.125,
+          "hp": 4,
+          "ac": 12,
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
+          "wis": -1
+        },
+        {
+          "cr": 0.25,
+          "hp": 6,
+          "ac": 12,
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
+          "wis": -1
+        },
+        {
+          "cr": 0.5,
+          "hp": 9,
+          "ac": 12,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 2
+          },
+          "wis": -1
+        },
+        {
+          "cr": 1,
+          "hp": 12,
+          "ac": 12,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 2
+          },
+          "wis": -1
+        },
+        {
+          "cr": 2,
+          "hp": 17,
+          "ac": 12,
+          "toHit": 4,
+          "damage": {
+            "count": 2,
+            "die": 4,
+            "bonus": 2
+          },
+          "wis": -1
+        },
+        {
+          "cr": 3,
+          "hp": 20,
+          "ac": 12,
+          "toHit": 5,
+          "damage": {
+            "count": 3,
+            "die": 4,
+            "bonus": 2
+          },
+          "wis": -1
+        },
+        {
+          "cr": 4,
+          "hp": 22,
           "ac": 13,
-          "toHit": 6,
-          "damage": { "count": 2, "die": 6, "bonus": 2 },
+          "toHit": 5,
+          "damage": {
+            "count": 3,
+            "die": 4,
+            "bonus": 5
+          },
           "wis": 0
+        },
+        {
+          "cr": 5,
+          "hp": 27,
+          "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 4,
+            "die": 4,
+            "bonus": 5
+          },
+          "wis": 0
+        },
+        {
+          "cr": 6,
+          "hp": 29,
+          "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 5,
+            "die": 4,
+            "bonus": 5
+          },
+          "wis": 0
+        },
+        {
+          "cr": 7,
+          "hp": 31,
+          "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 5,
+            "die": 4,
+            "bonus": 7
+          },
+          "wis": 0
+        },
+        {
+          "cr": 8,
+          "hp": 33,
+          "ac": 15,
+          "toHit": 7,
+          "damage": {
+            "count": 6,
+            "die": 4,
+            "bonus": 7
+          },
+          "wis": 1
+        },
+        {
+          "cr": 9,
+          "hp": 35,
+          "ac": 15,
+          "toHit": 7,
+          "damage": {
+            "count": 7,
+            "die": 4,
+            "bonus": 7
+          },
+          "wis": 1
+        },
+        {
+          "cr": 10,
+          "hp": 37,
+          "ac": 16,
+          "toHit": 7,
+          "damage": {
+            "count": 8,
+            "die": 4,
+            "bonus": 7
+          },
+          "wis": 1
+        },
+        {
+          "cr": 11,
+          "hp": 40,
+          "ac": 16,
+          "toHit": 8,
+          "damage": {
+            "count": 8,
+            "die": 4,
+            "bonus": 10
+          },
+          "wis": 1
+        },
+        {
+          "cr": 12,
+          "hp": 42,
+          "ac": 16,
+          "toHit": 8,
+          "damage": {
+            "count": 9,
+            "die": 4,
+            "bonus": 10
+          },
+          "wis": 2
+        },
+        {
+          "cr": 13,
+          "hp": 44,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 10,
+            "die": 4,
+            "bonus": 10
+          },
+          "wis": 2
+        },
+        {
+          "cr": 14,
+          "hp": 46,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 11,
+            "die": 4,
+            "bonus": 10
+          },
+          "wis": 2
+        },
+        {
+          "cr": 15,
+          "hp": 48,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 11,
+            "die": 4,
+            "bonus": 12
+          },
+          "wis": 2
+        },
+        {
+          "cr": 16,
+          "hp": 50,
+          "ac": 17,
+          "toHit": 9,
+          "damage": {
+            "count": 12,
+            "die": 4,
+            "bonus": 12
+          },
+          "wis": 3
+        },
+        {
+          "cr": 17,
+          "hp": 52,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 13,
+            "die": 4,
+            "bonus": 12
+          },
+          "wis": 3
+        },
+        {
+          "cr": 18,
+          "hp": 55,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 13,
+            "die": 4,
+            "bonus": 15
+          },
+          "wis": 3
+        },
+        {
+          "cr": 19,
+          "hp": 58,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 14,
+            "die": 4,
+            "bonus": 15
+          },
+          "wis": 3
+        },
+        {
+          "cr": 20,
+          "hp": 61,
+          "ac": 18,
+          "toHit": 10,
+          "damage": {
+            "count": 15,
+            "die": 4,
+            "bonus": 18
+          },
+          "wis": 4
+        },
+        {
+          "cr": 22,
+          "hp": 76,
+          "ac": 18,
+          "toHit": 11,
+          "damage": {
+            "count": 20,
+            "die": 4,
+            "bonus": 20
+          },
+          "wis": 4
+        },
+        {
+          "cr": 24,
+          "hp": 90,
+          "ac": 18,
+          "toHit": 12,
+          "damage": {
+            "count": 20,
+            "die": 4,
+            "bonus": 35
+          },
+          "wis": 5
+        },
+        {
+          "cr": 26,
+          "hp": 104,
+          "ac": 18,
+          "toHit": 12,
+          "damage": {
+            "count": 20,
+            "die": 4,
+            "bonus": 50
+          },
+          "wis": 5
+        },
+        {
+          "cr": 28,
+          "hp": 119,
+          "ac": 18,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 4,
+            "bonus": 66
+          },
+          "wis": 6
+        },
+        {
+          "cr": 30,
+          "hp": 133,
+          "ac": 18,
+          "toHit": 14,
+          "damage": {
+            "count": 20,
+            "die": 4,
+            "bonus": 81
+          },
+          "wis": 6
         }
       ]
     },
@@ -132,19 +1792,351 @@
       "stats": [
         {
           "cr": 0,
-          "hp": 12,
+          "hp": 4,
           "ac": 13,
+          "toHit": 3,
+          "damage": {
+            "count": 1,
+            "die": 4,
+            "bonus": 0
+          },
+          "wis": 2
+        },
+        {
+          "cr": 0.125,
+          "hp": 10,
+          "ac": 14,
           "toHit": 4,
-          "damage": { "count": 1, "die": 8, "bonus": 2 },
-          "wis": 1
+          "damage": {
+            "count": 1,
+            "die": 6,
+            "bonus": 0
+          },
+          "wis": 2
+        },
+        {
+          "cr": 0.25,
+          "hp": 14,
+          "ac": 14,
+          "toHit": 4,
+          "damage": {
+            "count": 1,
+            "die": 8,
+            "bonus": 0
+          },
+          "wis": 2
+        },
+        {
+          "cr": 0.5,
+          "hp": 22,
+          "ac": 14,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 8,
+            "bonus": 2
+          },
+          "wis": 2
+        },
+        {
+          "cr": 1,
+          "hp": 29,
+          "ac": 14,
+          "toHit": 5,
+          "damage": {
+            "count": 1,
+            "die": 8,
+            "bonus": 2
+          },
+          "wis": 2
+        },
+        {
+          "cr": 2,
+          "hp": 42,
+          "ac": 14,
+          "toHit": 5,
+          "damage": {
+            "count": 2,
+            "die": 8,
+            "bonus": 2
+          },
+          "wis": 2
+        },
+        {
+          "cr": 3,
+          "hp": 50,
+          "ac": 14,
+          "toHit": 6,
+          "damage": {
+            "count": 2,
+            "die": 8,
+            "bonus": 5
+          },
+          "wis": 2
+        },
+        {
+          "cr": 4,
+          "hp": 54,
+          "ac": 15,
+          "toHit": 6,
+          "damage": {
+            "count": 3,
+            "die": 8,
+            "bonus": 5
+          },
+          "wis": 3
         },
         {
           "cr": 5,
-          "hp": 90,
-          "ac": 15,
+          "hp": 66,
+          "ac": 16,
           "toHit": 7,
-          "damage": { "count": 2, "die": 8, "bonus": 4 },
+          "damage": {
+            "count": 3,
+            "die": 8,
+            "bonus": 9
+          },
           "wis": 3
+        },
+        {
+          "cr": 6,
+          "hp": 71,
+          "ac": 16,
+          "toHit": 7,
+          "damage": {
+            "count": 4,
+            "die": 8,
+            "bonus": 8
+          },
+          "wis": 3
+        },
+        {
+          "cr": 7,
+          "hp": 76,
+          "ac": 16,
+          "toHit": 7,
+          "damage": {
+            "count": 5,
+            "die": 8,
+            "bonus": 7
+          },
+          "wis": 3
+        },
+        {
+          "cr": 8,
+          "hp": 80,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 5,
+            "die": 8,
+            "bonus": 11
+          },
+          "wis": 4
+        },
+        {
+          "cr": 9,
+          "hp": 86,
+          "ac": 17,
+          "toHit": 8,
+          "damage": {
+            "count": 6,
+            "die": 8,
+            "bonus": 10
+          },
+          "wis": 4
+        },
+        {
+          "cr": 10,
+          "hp": 91,
+          "ac": 18,
+          "toHit": 8,
+          "damage": {
+            "count": 6,
+            "die": 8,
+            "bonus": 14
+          },
+          "wis": 4
+        },
+        {
+          "cr": 11,
+          "hp": 97,
+          "ac": 18,
+          "toHit": 9,
+          "damage": {
+            "count": 7,
+            "die": 8,
+            "bonus": 13
+          },
+          "wis": 4
+        },
+        {
+          "cr": 12,
+          "hp": 101,
+          "ac": 18,
+          "toHit": 9,
+          "damage": {
+            "count": 7,
+            "die": 8,
+            "bonus": 17
+          },
+          "wis": 5
+        },
+        {
+          "cr": 13,
+          "hp": 107,
+          "ac": 19,
+          "toHit": 9,
+          "damage": {
+            "count": 8,
+            "die": 8,
+            "bonus": 16
+          },
+          "wis": 5
+        },
+        {
+          "cr": 14,
+          "hp": 112,
+          "ac": 19,
+          "toHit": 9,
+          "damage": {
+            "count": 9,
+            "die": 8,
+            "bonus": 16
+          },
+          "wis": 5
+        },
+        {
+          "cr": 15,
+          "hp": 118,
+          "ac": 19,
+          "toHit": 9,
+          "damage": {
+            "count": 9,
+            "die": 8,
+            "bonus": 19
+          },
+          "wis": 5
+        },
+        {
+          "cr": 16,
+          "hp": 122,
+          "ac": 19,
+          "toHit": 10,
+          "damage": {
+            "count": 10,
+            "die": 8,
+            "bonus": 19
+          },
+          "wis": 6
+        },
+        {
+          "cr": 17,
+          "hp": 128,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 11,
+            "die": 8,
+            "bonus": 18
+          },
+          "wis": 6
+        },
+        {
+          "cr": 18,
+          "hp": 135,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 11,
+            "die": 8,
+            "bonus": 22
+          },
+          "wis": 6
+        },
+        {
+          "cr": 19,
+          "hp": 143,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 12,
+            "die": 8,
+            "bonus": 21
+          },
+          "wis": 6
+        },
+        {
+          "cr": 20,
+          "hp": 150,
+          "ac": 20,
+          "toHit": 11,
+          "damage": {
+            "count": 13,
+            "die": 8,
+            "bonus": 24
+          },
+          "wis": 7
+        },
+        {
+          "cr": 22,
+          "hp": 185,
+          "ac": 20,
+          "toHit": 12,
+          "damage": {
+            "count": 17,
+            "die": 8,
+            "bonus": 29
+          },
+          "wis": 7
+        },
+        {
+          "cr": 24,
+          "hp": 220,
+          "ac": 20,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 8,
+            "bonus": 38
+          },
+          "wis": 8
+        },
+        {
+          "cr": 26,
+          "hp": 255,
+          "ac": 20,
+          "toHit": 13,
+          "damage": {
+            "count": 20,
+            "die": 8,
+            "bonus": 61
+          },
+          "wis": 8
+        },
+        {
+          "cr": 28,
+          "hp": 290,
+          "ac": 20,
+          "toHit": 14,
+          "damage": {
+            "count": 20,
+            "die": 8,
+            "bonus": 83
+          },
+          "wis": 9
+        },
+        {
+          "cr": 30,
+          "hp": 326,
+          "ac": 20,
+          "toHit": 15,
+          "damage": {
+            "count": 20,
+            "die": 8,
+            "bonus": 106
+          },
+          "wis": 9
         }
       ]
     }

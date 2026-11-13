@@ -101,6 +101,10 @@
 - **Sizes:** it must fit 1440 × 1050 and 412 × 915.
 - **Tests:** one smoke test and the critical interactions.
 
+### As built (Track U)
+- Built on branch `plan7-ui`: `src/ui/combat/CombatView.tsx` over `combatView` (`src/engine/combat/view.ts`); the details are in the combat design's §8 ("As built: Track U") and the rebuild design §9 ("The fight").
+- The Encounter Deck's Fight (test) and Ambush (test) start a bandit fight through `startCombat { fight }` until Track I offers Fight in encounters.
+
 ## Wave 2: classes, enemies and integration (parallel after wave 1)
 
 - **Track C (classes and gear):**
@@ -121,6 +125,10 @@
   - Role stat tables by CR (HP, AC, to-hit, damage), modelled on 5e's monster statistics by CR.
   - Every creature gets a role and a size; bosses get a signature move and a second trick.
   - A road CR budget for the party's level and size.
+  - **As built** (branch `plan7-enemies`): design §12 and `docs/notes/enemies-review.md`.
+    - Role tables run from CR 0 to 30.
+    - 37 SRD creatures were added (`roads: false`), plus 29 named bosses with signature moves and tricks as data. The engine doesn't play the moves yet; the review note lists the missing hooks.
+    - `combat/budget.ts` has `fightBudget`, `groupXp` and `roadFightCount` for Track I.
 - **Track I (integration):**
   - **Fight** beside the existing options in hostile road situations. The enemy group is built from the situation's creature slot and the CR budget. The CR is shown as far as the party knows it.
   - **Parley** (the designer call above).
@@ -134,7 +142,7 @@
 - **Side task:** the camaraderie from standing a round scales with the best Performance.
 
 ### As built (Track C)
-- Built on branch `plan7-classes`; the details and the calls made are in the combat design's §11b. Save v23 → v24 (`spent` replaces `uses`, `picks`, level-up `choices`, `stash`).
+- Built on branch `plan7-classes`; the details and the calls made are in the combat design's §13. Save v23 → v24 (`spent` replaces `uses`, `picks`, level-up `choices`, `stash`).
 - For Track U (the 1–9 keys): `abilitySlots(state, content, unit)` lists each slot with its legal uses and what each does; dispatch `combatAbility { unit, ability, tile?, target? }`. Track S can add spells as further slots and spend `spell-<level>` uses (combat/uses.ts `spellCasts`, `spellUsesLeft`).
 - Designer call (2026-11-14): the bard's fifth and sixth songs (Mending Song, Song of Renewal), each song with its own uses, specialisations raising uses and effect.
 
@@ -148,7 +156,7 @@
 ## Decided by Claude (please review)
 - **Fuel:** 1 fuel per dark room; a lit fight lights the whole line.
 - **Parley DC:** `crDc(cr)`, so the same scale as the checks.
-- **Casts per rest** (slots by caster level): levels 1–2: 2 casts at spell level 1. Each new spell level starts at 1 cast, and the lower ones gain one at each new spell level, up to 3.
+- **Casts per rest:** superseded by the designer's progression (2026-11-14, `docs/notes/spells-review.md`, "Designer notes"): 1/0/0/0 → 1/1/0/0 → 1/1/1/0 → 2/1/1/0 → 2/1/1/1 → 2/2/1/1 …, with even levels from 6 adding lower-level casts. Previous provisional idea: levels 1–2: 2 casts at spell level 1. Each new spell level starts at 1 cast, and the lower ones gain one at each new spell level, up to 3.
 - **Ability uses:** 1 at the level gained, +1 at levels 6, 10, 14 and 18.
 - **Cleric alignment:** picked when a cleric is created. Recruits roll good 45%, neutral 35%, evil 20%.
 - **Starting gear:** a class-appropriate plain weapon and armour (Plate for fighters and paladins is too dear, so they start in Chain).
