@@ -263,8 +263,10 @@ export type AccessoryPart = (typeof ACCESSORY_PARTS)[number]
 /**
  * Tags on an encounter option (Plan 6). `retreat`: fleeing or withdrawing from a hostile
  * encounter, which costs camaraderie (CAMARADERIE_RETREAT per living member beyond the first).
+ * `surprise`: a check about an ambush or being caught unawares (spotting it coming, reacting in
+ * time, or springing one); the scout's kit adds to it (rules/upgrades.ts scoutBonus).
  */
-export const OPTION_TAGS = ['retreat'] as const
+export const OPTION_TAGS = ['retreat', 'surprise'] as const
 export type OptionTag = (typeof OPTION_TAGS)[number]
 
 /** The top of the party's camaraderie scale (0–100, design §3; Plan 6 wave 2b, ×2.5 from 0–40). */
@@ -282,6 +284,7 @@ export const UPGRADES = [
   'surveyors-maps',
   'delving-gear',
   'company-banner',
+  'scouts-kit',
 ] as const
 export type UpgradeId = (typeof UPGRADES)[number]
 /** The highest level of a party upgrade. */

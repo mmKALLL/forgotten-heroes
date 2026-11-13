@@ -454,3 +454,9 @@ test('a cart disables the brisk and forced paces with the reason, and shows in t
   const prefs = { ...DEFAULT_TRAVEL_PREFS, pace: 'brisk' as const }
   expect(travelAction(out, prefs)).toMatchObject({ pace: 'steady' })
 })
+
+test("the scout's kit shows in the hostile share", () => {
+  const state = makeState({ location: 'ashmoor-1', upgrades: { 'scouts-kit': 1 } })
+  panel(state, 'greenvale-2')
+  expect(road(settlementName(state, 'greenvale-2')).getByText(/% scout’s kit/)).toBeTruthy()
+})

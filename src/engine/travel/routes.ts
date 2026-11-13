@@ -120,7 +120,8 @@ export function encounterRange(days: number): [number, number] {
  * How likely each encounter on a journey is to be hostile, and what makes it so: the base share,
  * then route danger, the domain's threat level, foraging (FORAGE_HOSTILE_BONUS) and a brisk or
  * forced pace (PACE_HOSTILE_BONUS), visible wealth, escorted passengers and the party's vehicles
- * (VEHICLE_HOSTILE each), less the party's best `ward` hook (gear/hooks.ts), within HOSTILE_SHARE_RANGE. That is the share `drawn` hostile;
+ * (VEHICLE_HOSTILE each), less the party's best `ward` hook (gear/hooks.ts) and its scout's kit
+ * (SCOUT_HOSTILE_PER_LEVEL a level), within HOSTILE_SHARE_RANGE. That is the share `drawn` hostile;
  * a stealthy party then steers clear of some of those (PACE_HOSTILE_AVOIDANCE: a quiet
  * day instead), so the share actually met is `share` = drawn × (1 − avoidance), and `avoided` is
  * the (negative) difference. The rest are neutral or pleasant, by their situations' weights.
@@ -143,6 +144,8 @@ export type HostileShare = {
   cargo: number
   /** The party's best worn ward (gear/hooks.ts wardShare), as a negative share (0 if none). */
   ward: number
+  /** The scout's kit (rules/upgrades.ts scoutShare): SCOUT_HOSTILE_PER_LEVEL per level, negative. */
+  scout: number
   /** Hostile encounters steered clear of at this pace, as a negative share (0 if none). */
   avoided: number
 }
@@ -155,7 +158,8 @@ export function hostileShare(
   wealthSteps = 0,
   escort = false,
   ward = 0,
-  vehicles = 0
+  vehicles = 0,
+  scout = 0
 ): HostileShare {
   const parts = {
     base: HOSTILE_BASE,
@@ -167,6 +171,7 @@ export function hostileShare(
     escort: escort ? ESCORT_HOSTILE : 0,
     cargo: VEHICLE_HOSTILE * vehicles,
     ward: ward > 0 ? -ward : 0,
+    scout: scout > 0 ? -scout : 0,
   }
   const [lo, hi] = HOSTILE_SHARE_RANGE
   const sum =
@@ -178,7 +183,8 @@ export function hostileShare(
     parts.wealth +
     parts.escort +
     parts.cargo +
-    parts.ward
+    parts.ward +
+    parts.scout
   const drawn = Math.min(hi, Math.max(lo, sum))
   const share = drawn * (1 - paceHostileAvoidance(pace))
   return { share, drawn, ...parts, avoided: share - drawn }

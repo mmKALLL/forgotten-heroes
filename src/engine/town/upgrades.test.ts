@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { SituationSchema } from '../../schema/encounter'
 import { UPGRADES } from '../../schema/types'
+import type { GameState } from '../../schema/state'
 import { step } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
 import { upgradeOffers, upgradePrice } from './upgrades'
@@ -24,6 +25,16 @@ describe('prices', () => {
     expect(ratio).toBeGreaterThan(1.6)
     expect(ratio).toBeLessThan(2.5)
   })
+})
+
+test("the scout's kit costs its base price × the level, dearer each level", () => {
+  const offer = (upgrades: GameState['upgrades']) =>
+    upgradeOffers({ ...atInn(), upgrades }, content).find((o) => o.id === 'scouts-kit')!
+  const base = content.upgrades['scouts-kit'].basePrice
+  expect(offer({}).price).toBe(base)
+  expect(offer({ 'scouts-kit': 1 }).price).toBe(2 * base)
+  expect(offer({ 'scouts-kit': 4 }).price).toBe(5 * base)
+  expect(offer({ 'scouts-kit': 1 }).effect).not.toBe(offer({}).effect)
 })
 
 describe('buying', () => {

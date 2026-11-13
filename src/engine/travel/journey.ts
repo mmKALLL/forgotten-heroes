@@ -1,5 +1,6 @@
 import type { Content } from '../../content/build'
 import { wardShare } from '../gear/hooks'
+import { scoutShare } from '../rules/upgrades'
 import type { Pace } from '../../schema/types'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
@@ -277,7 +278,8 @@ export function placeOnRoute(
       steps,
       isEscorting(state),
       state.party ? wardShare({ party: state.party }) : 0,
-      state.animals ? vehicleCount({ animals: state.animals }, content) : 0
+      state.animals ? vehicleCount({ animals: state.animals }, content) : 0,
+      scoutShare(state)
     ).drawn,
     wealthSteps: steps,
   }

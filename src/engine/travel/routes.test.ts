@@ -145,6 +145,7 @@ describe('hostileShare', () => {
       escort: 0,
       cargo: 0,
       ward: 0,
+      scout: 0,
     })
     const share = hostileShare(2, 1, 'brisk', true)
     expect(share).toMatchObject({ danger: 0.2, threat: 0.1, forage: 0.1, pace: 0.1 })

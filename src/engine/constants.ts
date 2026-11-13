@@ -473,6 +473,10 @@ export const DELVING_GEAR_SKILLS: readonly Skill[] = ['athletics', 'perception',
 export const DELVING_GEAR_CHALLENGE_LEVEL = 5
 /** Company banner: every camaraderie loss is this much smaller per level (never below 0). */
 export const BANNER_SOFTEN = 1
+/** Scout's kit: added per level to a surprise check, or to any check rolled with disadvantage. */
+export const SCOUT_CHECK_BONUS = 1
+/** Scout's kit: the share of road encounters that are hostile falls by this much per level. */
+export const SCOUT_HOSTILE_PER_LEVEL = 0.05
 
 // Points of interest (pois.ts)
 

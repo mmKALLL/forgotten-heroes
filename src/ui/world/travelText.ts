@@ -33,12 +33,14 @@ export function hostileParts(t: T, option: Pick<PaceOption, 'hostile' | 'pace'>)
           }),
         ]
       : []
-  // A worn ward lowers the share (a negative part).
+  // A worn ward and the scout's kit lower the share (negative parts).
   const ward = h.ward < 0 ? [t('route.hostilePart.ward', { pct: formatPercent(-h.ward) })] : []
+  const scout = h.scout < 0 ? [t('route.hostilePart.scout', { pct: formatPercent(-h.scout) })] : []
   return [
     t('route.hostilePart.base', { pct: formatPercent(h.base) }),
     ...parts,
     ...ward,
+    ...scout,
     ...avoided,
   ].join(', ')
 }

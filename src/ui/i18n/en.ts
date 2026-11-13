@@ -200,6 +200,7 @@ export const en = {
   'upgrades.ownedItem': '{name} {level}',
   /** What delving gear adds to a check in a dungeon room (Plan 6c), after its modifier. */
   'option.delvingGear': 'delving gear',
+  'option.scoutsKit': 'scout’s kit',
   'option.lucky': 'lucky',
   'option.luckyHint':
     'A lucky charm: a natural 1 is rerolled once today. The odds already include it.',
@@ -502,6 +503,7 @@ export const en = {
   'route.hostilePart.cargo': '{pct} cargo vehicles',
   'route.hostilePart.avoided': '−{pct} {pace}',
   'route.hostilePart.ward': '−{pct} ward',
+  'route.hostilePart.scout': '−{pct} scout’s kit',
   'route.footing': 'Ambushes: {footing}',
   'route.footingForaging': ' (foraging)',
   'route.fare': 'Passage: {gp} gp',

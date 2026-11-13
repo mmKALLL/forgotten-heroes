@@ -1374,7 +1374,7 @@
       "type": "string"
     },
     "__schema85": {
-      "description": "\"retreat\": fleeing or withdrawing from a hostile encounter; it costs camaraderie, more the bigger the party",
+      "description": "\"retreat\": fleeing or withdrawing from a hostile encounter; it costs camaraderie, more the bigger the party. \"surprise\": a check about an ambush or being caught unawares (spotting it, reacting in time, or springing one); the scout's kit adds to it",
       "$ref": "#/$defs/__schema86"
     },
     "__schema86": {
@@ -1382,7 +1382,8 @@
       "items": {
         "type": "string",
         "enum": [
-          "retreat"
+          "retreat",
+          "surprise"
         ]
       }
     },

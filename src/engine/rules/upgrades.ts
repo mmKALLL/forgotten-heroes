@@ -10,8 +10,11 @@ import {
   DELVING_GEAR_CHALLENGE_LEVEL,
   DELVING_GEAR_SKILLS,
   MAPS_EXPLORE,
+  SCOUT_CHECK_BONUS,
+  SCOUT_HOSTILE_PER_LEVEL,
   SMUGGLE_SHARE,
 } from '../constants'
+import type { RollMode } from './checks'
 
 // What the party's upgrades do (Plan 6c; design §4 "Party upgrades"). Each rule reads only the
 // party's levels, so the previews that show an effect and the steps that apply it call the same
@@ -99,6 +102,47 @@ export function delvingBonus(
     ? DELVING_GEAR_BONUS * level
     : 0
   return gear + (round && level >= DELVING_GEAR_CHALLENGE_LEVEL ? 1 : 0)
+}
+
+/** A surprise check: its option is tagged `surprise` (an ambush, or being caught unawares). */
+export const isSurprise = (option: { tags?: readonly string[] }): boolean =>
+  option.tags?.includes('surprise') ?? false
+
+/**
+ * Scout's kit: added to a surprise check (isSurprise) or to any check rolled with disadvantage
+ * (Exposed): SCOUT_CHECK_BONUS per level, once even when both hold. Combat's surprise roll
+ * (Plan 7) should read the same bonus.
+ */
+export function scoutBonus(
+  state: Owned,
+  option: { tags?: readonly string[] },
+  mode: RollMode
+): number {
+  if (!isSurprise(option) && mode !== 'disadvantage') return 0
+  return SCOUT_CHECK_BONUS * upgradeLevel(state, 'scouts-kit')
+}
+
+/** Scout's kit: what it takes off the share of hostile encounters on the road (≥ 0). */
+export const scoutShare = (state: Owned): number =>
+  SCOUT_HOSTILE_PER_LEVEL * upgradeLevel(state, 'scouts-kit')
+
+/** What the party's upgrades add to an encounter check, by upgrade, and in all. */
+export type CheckUpgrades = { delving: number; scout: number; total: number }
+
+/**
+ * Everything the party's upgrades add to an encounter check: delving gear (delvingBonus) and the
+ * scout's kit (scoutBonus). The preview and the roll both call this: preview == actual.
+ */
+export function checkUpgrades(
+  state: Owned,
+  situation: { room?: boolean },
+  option: { tags?: readonly string[]; check: { skill: string } },
+  mode: RollMode,
+  round: boolean
+): CheckUpgrades {
+  const delving = delvingBonus(state, situation, option.check.skill, round)
+  const scout = scoutBonus(state, option, mode)
+  return { delving, scout, total: delving + scout }
 }
 
 /**

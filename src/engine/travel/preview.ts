@@ -1,5 +1,6 @@
 import type { Content } from '../../content/build'
 import { wardShare } from '../gear/hooks'
+import { scoutShare } from '../rules/upgrades'
 import { PACES, type Biome, type Pace, type PoiCategory, type Position } from '../../schema/types'
 import type { GameState, TravelState } from '../../schema/state'
 import type { Route } from '../../schema/world'
@@ -265,6 +266,7 @@ function paceOptions(
   const wealth = visibleWealth(state, content).steps
   const escort = isEscorting(state)
   const ward = wardShare(state)
+  const scout = scoutShare(state)
   const to = otherEnd(route, state.location ?? route.from)
   const heavy: TravelWarning[] =
     !sea && laden.level !== 'light'
@@ -295,7 +297,8 @@ function paceOptions(
         wealth,
         escort,
         ward,
-        vehicles
+        vehicles,
+        scout
       ),
       ambush: ambushPositionForPace(pace, 'normal', foraging),
     })

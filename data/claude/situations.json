@@ -792,6 +792,7 @@
           "options": [
             {
               "id": "spot",
+              "tags": ["surprise"],
               "kind": "check",
               "label": "Spot their lookouts first",
               "description": "Whatever you do next goes better if you see them first.",
@@ -1406,6 +1407,7 @@
             },
             {
               "id": "shout",
+              "tags": ["surprise"],
               "kind": "check",
               "label": "Raise the camp and light the fires",
               "description": "Thieves hate light and noise. Safer than steel, if everyone wakes fast.",

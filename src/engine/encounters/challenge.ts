@@ -108,15 +108,18 @@ function footingAfter(branch: OutcomeBranch): { position: Position; modifier: nu
 /**
  * The options a round can be played with, as the odds see them: each check by its best actor (the
  * one who acts when the player doesn't pick) at that actor's modifier and luck now, with the
- * footing each outcome leaves (plus any upgrade `bonus`); a fixed option's one outcome for sure. Strain and wounds taken in
- * later rounds are not foreseen. `options` should be the ones available now.
+ * footing each outcome leaves (plus any upgrade `bonus`); a fixed option's one outcome for
+ * sure. Strain and wounds taken in later rounds are not foreseen. `options` should be the ones available now.
  */
 export function roundChoices(
   state: Pick<GameState, 'party' | 'day' | 'luckUsed'>,
   options: readonly Option[],
   stageId: string,
-  /** What the party's upgrades add to a round of this skill (delving gear in a dungeon room). */
-  bonus: (skill: string) => number = () => 0
+  /**
+   * What the party's upgrades add to a round with this option at this footing's roll mode
+   * (rules/upgrades.ts checkUpgrades: delving gear in a dungeon room, the scout's kit).
+   */
+  bonus: (option: Extract<Option, { kind: 'check' }>, mode: RollMode) => number = () => 0
 ): RoundChoice[] {
   return options.filter(playsRound).flatMap((option): RoundChoice[] => {
     const once = option.once ? onceKey(stageId, option) : null
@@ -129,10 +132,11 @@ export function roundChoices(
     if (!actor) return []
     const lucky = hasLuck(state, actor.characterId)
     const results = (position: Position, modifier: number) => {
+      const mode = MODE[position]
       const odds = tierOdds(
-        actor.modifier + bonus(skill) + modifier,
+        actor.modifier + bonus(option, mode) + modifier,
         normalizeDc(Number(dc)),
-        MODE[position],
+        mode,
         lucky
       )
       return TIERS.filter((tier) => odds[tier] > 0).map((tier) => {
