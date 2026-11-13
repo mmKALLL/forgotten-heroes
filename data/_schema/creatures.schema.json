@@ -28,8 +28,7 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "string",
-            "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+            "$ref": "#/$defs/__schema0"
           },
           "name": {
             "type": "string"
@@ -68,12 +67,25 @@
           "role": {
             "default": "brute",
             "description": "Its combat role (data/claude/enemy-roles.json): stats by CR, range and trick",
-            "$ref": "#/$defs/__schema0"
+            "$ref": "#/$defs/__schema1"
           },
           "size": {
             "default": "medium",
             "description": "Size points toward a tile's stack cap",
-            "$ref": "#/$defs/__schema1"
+            "$ref": "#/$defs/__schema2"
+          },
+          "roads": {
+            "default": true,
+            "description": "Drawn by situations' creature slots ({foe}); false keeps it to fights that name it",
+            "$ref": "#/$defs/__schema3"
+          },
+          "signature": {
+            "description": "A boss (a leader or brute fought as `boss`): the move it saves for when it is bloodied",
+            "$ref": "#/$defs/__schema4"
+          },
+          "trick": {
+            "description": "A boss's second trick, used through the fight",
+            "$ref": "#/$defs/__schema4"
           }
         },
         "required": [
@@ -95,6 +107,10 @@
   "$defs": {
     "__schema0": {
       "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+    },
+    "__schema1": {
+      "type": "string",
       "enum": [
         "brute",
         "skirmisher",
@@ -104,7 +120,7 @@
         "leader"
       ]
     },
-    "__schema1": {
+    "__schema2": {
       "type": "string",
       "enum": [
         "tiny",
@@ -114,6 +130,251 @@
         "huge",
         "gargantuan"
       ]
+    },
+    "__schema3": {
+      "type": "boolean"
+    },
+    "__schema4": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string",
+          "description": "The telegraph, in our own words: what the party sees coming"
+        },
+        "when": {
+          "type": "string",
+          "enum": [
+            "desperate",
+            "everyOther",
+            "once"
+          ]
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "attack",
+            "charge",
+            "area",
+            "volley",
+            "rally",
+            "call",
+            "heal"
+          ],
+          "description": "The intent it plays as (rally, call and heal strike no one)"
+        },
+        "reach": {
+          "description": "[nearest, farthest] tiles; the role's reach when unset",
+          "$ref": "#/$defs/__schema5"
+        },
+        "tiles": {
+          "default": 1,
+          "description": "Tiles an area or volley covers",
+          "$ref": "#/$defs/__schema6"
+        },
+        "damage": {
+          "default": 1,
+          "description": "Times its blow (0: no damage)",
+          "$ref": "#/$defs/__schema7"
+        },
+        "toHit": {
+          "default": 0,
+          "description": "Added to its to-hit (a rally: to its allies)",
+          "$ref": "#/$defs/__schema8"
+        },
+        "riders": {
+          "default": [],
+          "type": "array",
+          "items": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "push"
+                  },
+                  "tiles": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4
+                  }
+                },
+                "required": [
+                  "effect",
+                  "tiles"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "pull"
+                  },
+                  "tiles": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4
+                  }
+                },
+                "required": [
+                  "effect",
+                  "tiles"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "stagger"
+                  }
+                },
+                "required": [
+                  "effect"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "stun"
+                  }
+                },
+                "required": [
+                  "effect"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "exposed"
+                  }
+                },
+                "required": [
+                  "effect"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "heal"
+                  },
+                  "share": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": [
+                  "effect",
+                  "share"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "call"
+                  },
+                  "creature": {
+                    "$ref": "#/$defs/__schema0"
+                  },
+                  "count": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 6
+                  }
+                },
+                "required": [
+                  "effect",
+                  "creature",
+                  "count"
+                ]
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "effect": {
+                    "type": "string",
+                    "const": "burn"
+                  },
+                  "share": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  "rounds": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 3
+                  }
+                },
+                "required": [
+                  "effect",
+                  "share",
+                  "rounds"
+                ]
+              }
+            ]
+          }
+        },
+        "todo": {
+          "description": "What the engine still lacks to play this move",
+          "$ref": "#/$defs/__schema9"
+        }
+      },
+      "required": [
+        "name",
+        "text",
+        "when",
+        "kind"
+      ]
+    },
+    "__schema5": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 8
+        }
+      ],
+      "items": false,
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "__schema6": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2
+    },
+    "__schema7": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 4
+    },
+    "__schema8": {
+      "type": "integer",
+      "minimum": -9007199254740991,
+      "maximum": 9007199254740991
+    },
+    "__schema9": {
+      "type": "string"
     }
   }
 }

@@ -109,8 +109,10 @@ describe('the twist table', () => {
 
 test('SRD creatures are imported, and parts tables feed three templates', () => {
   const creatures = Object.values(content.creatures)
-  expect(creatures.length).toBeGreaterThanOrEqual(15)
-  expect(creatures.every((c) => c.source === 'imported')).toBe(true)
+  expect(creatures.filter((c) => c.source === 'imported').length).toBeGreaterThanOrEqual(15)
+  // Claude's own creatures (Plan 7 Track N) are the bosses and their drakes, kept off the roads.
+  expect(creatures.every((c) => c.source === 'imported' || c.source === 'claude')).toBe(true)
+  expect(creatures.filter((c) => c.source === 'claude').every((c) => !c.roads)).toBe(true)
   expect(Object.keys(content.partsTables)).toEqual(
     expect.arrayContaining([
       'who',
