@@ -187,6 +187,10 @@ export const acknowledgeLevelUps = (state: GameState): GameState =>
 export type LevelUpCard = LevelUp & {
   name: string
   classId: string
+  /** Max HP now, after the gain. */
+  maxHpNow: number
+  /** Ability scores now, after the gains. */
+  scores: Character['abilities']
   /** The proficiency bonus before and after (equal on most levels). */
   proficiencyFrom: number
   proficiencyTo: number
@@ -202,6 +206,8 @@ export function levelUpCards(state: GameState): LevelUpCard[] {
         ...up,
         name: c.name,
         classId: c.classId,
+        maxHpNow: c.maxHp,
+        scores: c.abilities,
         proficiencyFrom: proficiencyBonus(up.from),
         proficiencyTo: proficiencyBonus(up.to),
       },

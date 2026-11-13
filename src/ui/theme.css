@@ -2421,6 +2421,96 @@ h2[tabindex='-1']:focus {
     animation: none;
   }
 }
+/* Level-ups (designer call 2026-11-14): the reward dialog's gilt frame, rising stars instead of
+   coins, and a card per member (side by side, stacked on a phone). */
+.levelup-dialog {
+  width: min(40rem, 100%);
+}
+.levelup-stars {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.2rem;
+  height: 1.7rem;
+}
+.levelup-star {
+  width: 1.05rem;
+  height: 1.05rem;
+  fill: var(--crit);
+  stroke: color-mix(in srgb, var(--crit) 60%, var(--ink));
+  stroke-width: 0.8;
+  stroke-linejoin: round;
+  animation: star-rise 560ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.levelup-star.star-1 {
+  width: 1.45rem;
+  height: 1.45rem;
+  margin-bottom: 0.25rem;
+  animation-delay: 110ms;
+}
+.levelup-star.star-2 {
+  animation-delay: 220ms;
+}
+.levelup-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: 0.7rem;
+}
+.levelup-cards.single {
+  grid-template-columns: minmax(0, 16rem);
+  justify-content: center;
+}
+.levelup-card {
+  padding: 0.55rem 0.7rem 0.6rem;
+  border: 1px solid color-mix(in srgb, var(--crit) 40%, var(--line));
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--crit) 7%, var(--panel));
+  min-width: 0;
+}
+.levelup-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+.levelup-levels {
+  margin: 0.25rem 0 0.3rem;
+  font-weight: 700;
+  font-variant: small-caps;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+}
+.levelup-gains {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  line-height: 1.45;
+}
+.levelup-actions {
+  margin-top: 1rem;
+}
+.levelup-actions button {
+  min-width: 8rem;
+}
+@media (max-width: 480px) {
+  .levelup-cards,
+  .levelup-cards.single {
+    grid-template-columns: 1fr;
+  }
+}
+@keyframes star-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.6rem) scale(0.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .levelup-star {
+    animation: none;
+  }
+}
 .contract-abandon button {
   padding: 0 0.35rem;
   font-size: 0.75rem;

@@ -15,6 +15,7 @@ import { CrisisTracker } from './CrisisPanel'
 import { EncounterDeck } from './deck/EncounterDeck'
 import { DevArea } from './DevArea'
 import { EndDialog } from './EndDialog'
+import { LevelUpDialog } from './LevelUpDialog'
 import { prefersReducedMotion } from './dice/DiceRoll'
 import { EncounterView } from './encounter/EncounterView'
 import { Essentials, TopInventory } from './Inventory'
@@ -100,9 +101,17 @@ function Game() {
     : crisis?.showEnd && !shown.encounter
       ? crisis.ended!.outcome
       : null
-  // Auto-travel (design §7): the party walks on by itself; it waits while a roll animates or the
-  // run is over (an open encounter, a modal and a hidden tab are checked inside).
-  const auto = useAutoTravel(state, content, dispatch, rolling || final !== null)
+  // Level-ups wait for the player (the engine refuses anything else meanwhile): their dialog
+  // opens once the roll that brought them has been shown, before any end screen.
+  const levelUps = shown.levelUps.length > 0
+  // Auto-travel (design §7): the party walks on by itself; it waits while a roll animates, a
+  // level-up waits or the run is over (an open encounter, a modal and a hidden tab are checked inside).
+  const auto = useAutoTravel(
+    state,
+    content,
+    dispatch,
+    rolling || final !== null || state.levelUps.length > 0
+  )
   const newParty = () => {
     setSelected(null)
     restart(slot)
@@ -236,7 +245,10 @@ function Game() {
           </DevArea>
         </div>
       </main>
-      {endScreen && (
+      {levelUps && (
+        <LevelUpDialog state={shown} onContinue={() => dispatch({ type: 'acknowledgeLevelUps' })} />
+      )}
+      {endScreen && !levelUps && (
         <EndDialog
           key={`${run}:${endScreen}`}
           content={content}
