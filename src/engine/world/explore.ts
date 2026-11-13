@@ -22,7 +22,7 @@ import { gainXp } from '../rules/progression'
 import { kmPerDay } from '../travel/routes'
 import { crisisRefusal, crisisVisit } from '../crisis/progress'
 import { omenFactor } from '../crisis/clues'
-import { siteStatus } from './sites'
+import { boonReadyIn, siteStatus } from './sites'
 import { dungeonOf, siteCr } from './dungeons'
 import { enterDungeon } from './delve'
 import { contractDc, contractWound, crOffset, crWound } from '../rules/levels'
@@ -430,9 +430,13 @@ function visitRefusal(
     return { code: 'cleared', text: `${poi.name} lies empty for now.` }
   }
   if (state.visited) {
+    // Say when what was taken here comes back, if the party took it (a siteReady option).
+    const back = boonReadyIn(poi, state.day)
     return {
       code: 'visited',
-      text: `You have already visited ${poi.name}. Leave and come back another time.`,
+      text:
+        `You have already visited ${poi.name}. Leave and come back another time` +
+        (back > 0 ? `; what you did here can be done again in ${back}d.` : '.'),
     }
   }
   return null

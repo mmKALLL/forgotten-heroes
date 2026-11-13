@@ -290,6 +290,20 @@ describe('visitPoi', () => {
     expect(again.encounter).toBeNull()
     expect(again.log.at(-1)).toMatchObject({ tone: 'bad' })
     expect(again.log.at(-1)!.text).toMatch(/already visited/)
+    // When the site's boon was taken, the refusal says when it can be done again.
+    const spent = {
+      ...closed,
+      world: {
+        ...closed.world,
+        pois: {
+          ...closed.world.pois,
+          'poi-1': { ...closed.world.pois['poi-1'], boonDay: closed.day },
+        },
+      },
+    }
+    expect(step(spent, { type: 'visitPoi' }, content).log.at(-1)!.text).toMatch(
+      /can be done again in \d+d\.$/
+    )
     expect(availableActions(closed, content)).toContainEqual(
       expect.objectContaining({ type: 'visitPoi', available: false, code: 'visited' })
     )
@@ -414,12 +428,8 @@ describe('siteReady: a site’s boon on a cooldown', () => {
   })
 
   test(`is unmet for ${BOON_COOLDOWN_DAYS} days, with the days left as the reason`, () => {
-    expect(unmetRequirements(at(30), ready)).toEqual([
-      'the blessing here is spent; it returns in 20 days',
-    ])
-    expect(unmetRequirements(at(11), ready)).toEqual([
-      'the blessing here is spent; it returns in 1 day',
-    ])
+    expect(unmetRequirements(at(30), ready)).toEqual(['already done here; possible again in 20d'])
+    expect(unmetRequirements(at(11), ready)).toEqual(['already done here; possible again in 1d'])
     expect(unmetRequirements(at(10), ready)).toEqual([])
     const [pray] = encounterOptions(at(30))
     expect(pray.available).toBe(false)

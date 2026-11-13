@@ -408,9 +408,7 @@ export function unmetRequirements(state: GameState, requires: readonly Requireme
         // Away from a site (e.g. played from the deck) there is no boon to spend.
         const poi = siteOf(state)
         const days = poi ? boonReadyIn(poi, state.day) : 0
-        return days === 0
-          ? []
-          : [`the blessing here is spent; it returns in ${days === 1 ? '1 day' : `${days} days`}`]
+        return days === 0 ? [] : [`already done here; possible again in ${days}d`]
       }
       case 'goods':
         return (state.goods[r.good] ?? 0) >= r.min ? [] : [`needs ${r.min} ${r.good}`]
