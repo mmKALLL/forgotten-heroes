@@ -12,7 +12,7 @@ import { fadeStrainAfter } from '../rules/strain'
 import { enduranceBonus } from '../gear/hooks'
 import { rationMultiplier } from './pace'
 import { escortPassengers } from '../town/contract-hooks'
-import { isAlive, payWages, wentWithout } from '../town/camaraderie'
+import { isAlive, wentWithout } from '../town/camaraderie'
 import { DEFAULT_PACE, FORCED_MARCH_DC, HUNGER_DC, THIRST_DC } from '../constants'
 
 // A day passing: eating, drinking and going without (design §7). Kept apart from supplies.ts so
@@ -126,12 +126,9 @@ export function consumeDay(
   return { state: content ? endOfDay(next, content) : next, unfed }
 }
 
-/**
- * A day ends: goods spoil (spoilDay), the owned animals' upkeep is paid (payUpkeep), then the
- * hired members' wages (payWages).
- */
+/** A day ends: goods spoil (spoilDay), then the owned animals' upkeep is paid (payUpkeep). */
 export const endOfDay = (state: GameState, content: Content): GameState =>
-  payWages(payUpkeep(spoilDay(state, content), content))
+  payUpkeep(spoilDay(state, content), content)
 
 /** A day on the road at this pace (goods spoil when `content` is given). */
 export const passDay = (

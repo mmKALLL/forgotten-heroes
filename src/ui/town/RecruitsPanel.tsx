@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Content } from '../../content/build'
-import { formatGp, formatModifier } from '../../engine/format'
+import { formatModifier } from '../../engine/format'
+import { describeAccessory } from '../../engine/gear/accessories'
 import { ABILITIES, abilityModifier } from '../../engine/rules/abilities'
 import { statModifier } from '../../engine/rules/character'
 import type { Action } from '../../engine/state'
@@ -19,8 +20,9 @@ type Props = {
 }
 
 /**
- * Who is looking for work at a service this week (Plan 5a U2, design §5): each offer's name,
- * level, ancestry and class, key abilities, proficient skills, fee and wage, and Hire (when
+ * Who is looking for work at a service this week (Plan 5a U2, Plan 6 A2, design §5): each
+ * offer's name, level, ancestry and class, their six rolled abilities (the two best in bold),
+ * proficient skills, any old wound and the accessory they bring, the sign-on fee, and Hire (when
  * refused, still focusable with the engine's reason inline and announced). After a hire, focus
  * returns to the heading. It replaces the service tiles until closed (the ledger stays on one
  * screen); Escape or Close goes back.
@@ -86,7 +88,7 @@ function RecruitRow({
     content.ancestries[c.ancestry]?.name ?? c.ancestry
   )
   const cls = name('classes', c.classId, content.classes[c.classId]?.name ?? c.classId)
-  // The two highest scores, in ability order on ties.
+  // The two highest scores, in ability order on ties, are in bold.
   const key = [...ABILITIES].sort((a, b) => c.abilities[b] - c.abilities[a]).slice(0, 2)
   return (
     <li className="recruit" aria-label={c.name}>
@@ -96,29 +98,38 @@ function RecruitRow({
           {t('recruits.who', { level: o.level, ancestry, class: cls, hp: c.maxHp })}
         </span>
       </div>
-      <div className="small">
-        {key
-          .map(
-            (a) =>
-              `${stat(a)} ${c.abilities[a]} (${formatModifier(abilityModifier(c.abilities[a]))})`
+      <div className="small recruit-abilities">
+        {ABILITIES.map((a, i) => {
+          const text = `${stat(a)} ${c.abilities[a]}`
+          const tip = formatModifier(abilityModifier(c.abilities[a]))
+          return (
+            <span key={a} title={tip}>
+              {i > 0 && ' · '}
+              {key.includes(a) ? <strong>{text}</strong> : text}
+            </span>
           )
-          .join(' · ')}
-        {c.skillProficiencies.length > 0 && (
-          <>
-            {' · '}
-            {c.skillProficiencies
-              .map((s) => `${stat(s)} ${formatModifier(statModifier(c, s))}`)
-              .join(', ')}
-          </>
-        )}
+        })}
       </div>
+      {c.skillProficiencies.length > 0 && (
+        <div className="small">
+          {c.skillProficiencies
+            .map((s) => `${stat(s)} ${formatModifier(statModifier(c, s))}`)
+            .join(', ')}
+        </div>
+      )}
+      {o.wound && <div className="small tone-bad">{t('recruits.wound', { wound: o.wound })}</div>}
+      {o.gear && (
+        <div className="small">
+          {t('recruits.gear', { gear: describeAccessory(o.gear), gp: o.gearPrice })}
+        </div>
+      )}
       <div className="recruit-hire">
         <ReasonButton
           available={o.available}
           reason={o.reason}
           onClick={() => onAction({ type: 'hireRecruit', offerId: o.id })}
         >
-          {t('recruits.hire', { fee: o.fee, wage: formatGp(o.wage) })}
+          {t('recruits.hire', { fee: o.fee })}
         </ReasonButton>
       </div>
     </li>

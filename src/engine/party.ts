@@ -4,7 +4,12 @@ import { withRng, type Rng } from './rng'
 import { ABILITIES } from './rules/abilities'
 import { personName } from './world/names'
 
-export type GenerateOptions = { classId?: string; ancestryId?: string }
+export type GenerateOptions = {
+  classId?: string
+  ancestryId?: string
+  /** Rolled scores (a recruit's 3d6) instead of the class's spread with three random +1s. */
+  abilities?: Character['abilities']
+}
 
 /** Own-property lookup, so ids like "constructor" don't resolve to Object.prototype members. */
 const lookup = <T>(table: Record<string, T>, id: string): T | undefined =>
@@ -26,8 +31,8 @@ export function generateCharacter(
       : d.pick(playable)
     if (!ancestry) throw new Error(`unknown ancestry ${options.ancestryId}`)
 
-    const abilities = { ...cls.baseAbilities }
-    for (let i = 0; i < 3; i++) abilities[d.pick(ABILITIES)] += 1
+    const abilities = options.abilities ? { ...options.abilities } : { ...cls.baseAbilities }
+    if (!options.abilities) for (let i = 0; i < 3; i++) abilities[d.pick(ABILITIES)] += 1
 
     const name = personName(d, content, ancestry.id)
 
@@ -48,7 +53,8 @@ export function generateCharacter(
       exhaustion: 0,
       strain: {},
       xp: 0,
-      wage: 0,
+      hired: false,
+      oldWound: null,
       accessory: null,
     }
   })

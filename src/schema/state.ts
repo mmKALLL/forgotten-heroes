@@ -33,8 +33,10 @@ export const CharacterSchema = z.object({
   strain: z.partialRecord(SkillSchema, z.number().int().min(1)).default({}),
   /** Total XP earned, never reset; the level follows from the XP table (Plan 5a). */
   xp: z.number().int().min(0).default(0),
-  /** gp a day: 0 for the founders, the agreed wage for hired members (Plan 5a). */
-  wage: z.number().min(0).default(0),
+  /** Signed on at a service (Plan 5a): may be dismissed and may desert. Founders are not. */
+  hired: z.boolean().default(false),
+  /** An old wound a recruit came with (Plan 6): this ability is OLD_WOUND_PENALTY lower. */
+  oldWound: AbilitySchema.nullable().default(null),
   /** The accessory worn (one slot), or null. */
   accessory: AccessorySchema.nullable().default(null),
 })
@@ -232,7 +234,7 @@ export const ContractStateSchema = z.object({
 export type ContractState = z.infer<typeof ContractStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(11),
+  version: z.literal(12),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -273,10 +275,8 @@ export const GameStateSchema = z.object({
   doneHere: z.array(z.string()).default([]),
   /** Accessories carried but not worn (weightless). */
   gear: z.array(AccessorySchema).default([]),
-  /** The party's camaraderie, 0–8 (tiers in CAMARADERIE_TIERS). 5 is CAMARADERIE_START. */
-  camaraderie: z.number().int().min(0).max(CAMARADERIE_MAX).default(5),
-  /** Wages (gp) that went unpaid for lack of coin, paid first the next day. */
-  wagesOwed: z.number().min(0).default(0),
+  /** The party's camaraderie, 0–40 (tiers in CAMARADERIE_TIERS). 25 is CAMARADERIE_START. */
+  camaraderie: z.number().int().min(0).max(CAMARADERIE_MAX).default(25),
   /** Units gathered recently by domain (settlement id) and good; the land recovers like a market. */
   gathered: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
   /** Recruit offer ids hired, so they are never offered again. */

@@ -141,7 +141,8 @@
           "passage",
           "news",
           "recruit",
-          "accessories"
+          "accessories",
+          "round"
         ]
       }
     },
@@ -195,12 +196,11 @@
         },
         "fee": {
           "default": 1,
-          "description": "Multiplies the hiring fee",
+          "description": "Multiplies the sign-on fee",
           "$ref": "#/$defs/__schema18"
         },
-        "wage": {
-          "default": 1,
-          "description": "Multiplies the daily wage",
+        "gear": {
+          "description": "The chance an offer brings a tier-1 accessory (default RECRUIT_GEAR_CHANCE)",
           "$ref": "#/$defs/__schema19"
         }
       },
@@ -242,7 +242,8 @@
     },
     "__schema19": {
       "type": "number",
-      "exclusiveMinimum": 0
+      "minimum": 0,
+      "maximum": 1
     },
     "__schema20": {
       "description": "Accessories sold here (Plan 5a); needs the \"accessories\" action",

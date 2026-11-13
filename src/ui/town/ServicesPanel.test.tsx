@@ -67,13 +67,21 @@ test('tiles are grouped by function; an unsupported service shows "coming later"
   expect(within(screen.getByRole('region', { name: 'Jewelry trader' })).getByText(/^Trades gems/))
 })
 
-test('rooms, the healer, a blessing, news and animals dispatch their actions', async () => {
+test('rooms, a round, the healer, a blessing, news and animals dispatch their actions', async () => {
   // Late enough that a courier's news is fresher than any prices the party knows.
   const hurt = town({ party: [{ ...brom, hp: 5 }, lyra], animals: { mule: 1 }, day: 20 })
   const onAction = panel(hurt)
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
   await userEvent.click(inn.getByRole('button', { name: /^Common · \d+ gp$/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'rest', lodging: 'common' })
+  const round = inn.getByRole('button', { name: /^Stand a round · \d+ gp$/ })
+  expect(round.getAttribute('title')).toMatch(/^Drinks for everyone: \+\d+ camaraderie/)
+  await userEvent.click(round)
+  expect(onAction).toHaveBeenLastCalledWith({
+    type: 'useService',
+    service: 'inn-tavern',
+    action: 'round',
+  })
 
   const heal = screen.getByRole('button', { name: `Heal 1 · ${HEALER_PRICE} gp` })
   expect(heal.getAttribute('title')).toMatch(/for Brom,/)
@@ -136,9 +144,7 @@ test('the inn opens its recruits in place of the tiles; Hire dispatches hireRecr
   expect(screen.queryByRole('region', { name: 'Inn/Tavern' })).toBeNull()
   const first = within(list.getByRole('listitem', { name: offers[0].character.name }))
   expect(first.getByText(new RegExp(`^level ${offers[0].level} `))).toBeTruthy()
-  await userEvent.click(
-    first.getByRole('button', { name: /^Hire · \d+ gp, then [\d.]+ gp a day$/ })
-  )
+  await userEvent.click(first.getByRole('button', { name: /^Hire · \d+ gp$/ }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'hireRecruit', offerId: offers[0].id })
   expect(document.activeElement).toBe(list.getByRole('heading', { name: 'Recruits · Inn/Tavern' }))
   await userEvent.keyboard('{Escape}')
@@ -152,6 +158,19 @@ test('with no one looking for work, the inn leaves out its Recruits opener', () 
   panel(town({ recruitsTaken: ids }))
   const inn = within(screen.getByRole('region', { name: 'Inn/Tavern' }))
   expect(inn.queryByRole('button', { name: /^Recruits/ })).toBeNull()
+})
+
+test("a recruit's old wound and the gear they bring are shown", async () => {
+  const day = Array.from({ length: 80 }, (_, w) => w * 7 + 1).find((d) =>
+    recruitOffers(town({ day: d }), content, 'greenvale-1').some((o) => o.wound || o.gear)
+  )!
+  const offer = recruitOffers(town({ day }), content, 'greenvale-1').find((o) => o.wound || o.gear)!
+  panel(town({ day }))
+  await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))
+  const row = within(screen.getByRole('listitem', { name: offer.character.name }))
+  if (offer.wound) expect(row.getByText(`Old wound: ${offer.wound}`)).toBeTruthy()
+  if (offer.gear)
+    expect(row.getByText(new RegExp(`^Brings .* \\(\\+${offer.gearPrice} gp\\)$`))).toBeTruthy()
 })
 
 test('a recruit the party cannot afford is disabled with the reason inline', async () => {

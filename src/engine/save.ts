@@ -2,7 +2,6 @@ import type { Content } from '../content/build'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { WorldStateSchema, type WorldState } from '../schema/world'
 import { generateCrisis } from './crisis/generate'
-import { CAMARADERIE_START } from './constants'
 import { generatePeople } from './town/people'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, mainlandSettlements, startingSettlement, worldSeed } from './world/generate'
@@ -14,7 +13,7 @@ export const SAVE_KEY = 'forgotten-heroes/save/v1'
 export const UNREADABLE_SAVE_KEY = `${SAVE_KEY}/unreadable`
 
 /** Bump this (and GameStateSchema's `version` literal) when GameState's shape changes. */
-export const CURRENT_SAVE_VERSION = 11
+export const CURRENT_SAVE_VERSION = 12
 
 export const serialize = (state: GameState): string => JSON.stringify(state)
 
@@ -206,7 +205,7 @@ export function v8ToV9(raw: Record<string, unknown>): Record<string, unknown> {
 
 /**
  * v9 → v10 (Plan 5a): every character has no XP yet, no wage (they are all founders) and wears
- * nothing; the party carries no gear, starts at CAMARADERIE_START and owes no wages, has gathered
+ * nothing; the party carries no gear, starts Steady (5 of 8) and owes no wages, has gathered
  * nothing, hired and bought nothing, and spent no luck. An open encounter had no danger applied.
  */
 export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
@@ -220,7 +219,8 @@ export function v9ToV10(raw: Record<string, unknown>): Record<string, unknown> {
     party,
     encounter: encounter ? { ...encounter, danger: 0 } : encounter,
     gear: [],
-    camaraderie: CAMARADERIE_START,
+    // Steady on the 0–8 scale of the time; v12 scales it ×5.
+    camaraderie: 5,
     wagesOwed: 0,
     gathered: {},
     recruitsTaken: [],
@@ -281,6 +281,28 @@ export function v10ToV11(raw: Record<string, unknown>, content: Content): Record
 }
 
 /**
+ * v11 → v12 (Plan 6, track A): wages are gone. A member who drew a wage is marked `hired` (the
+ * founders drew none), and the `wage` field goes; wages still owed are forgiven silently. No one
+ * has an old wound. Camaraderie moves from the 0–8 scale to 0–40 (×5).
+ */
+export function v11ToV12(raw: Record<string, unknown>): Record<string, unknown> {
+  const party = Array.isArray(raw.party)
+    ? raw.party.map((c: Record<string, unknown>) => {
+        if (typeof c !== 'object' || c === null) return c
+        const { wage, ...rest } = c
+        const hired = typeof wage === 'number' ? wage > 0 : rest.hired === true
+        return { ...rest, hired, oldWound: rest.oldWound ?? null }
+      })
+    : raw.party
+  const { wagesOwed: _forgiven, ...rest } = raw
+  const camaraderie =
+    typeof raw.camaraderie === 'number' && raw.version === 11
+      ? raw.camaraderie * 5
+      : raw.camaraderie
+  return { ...rest, version: 12, party, camaraderie }
+}
+
+/**
  * Upgrades a parsed save to the current version, one step at a time.
  * When GameState changes, add `case n: return migrate(vNToVNPlus1(raw), content)` above the
  * current case. Unknown versions throw, so `deserialize` reports them as unreadable.
@@ -311,6 +333,8 @@ export function migrate(raw: unknown, content: Content): unknown {
       return migrate(v9ToV10(raw as Record<string, unknown>), content)
     case 10:
       return migrate(v10ToV11(raw as Record<string, unknown>, content), content)
+    case 11:
+      return migrate(v11ToV12(raw as Record<string, unknown>), content)
     case CURRENT_SAVE_VERSION:
       return raw
     default:

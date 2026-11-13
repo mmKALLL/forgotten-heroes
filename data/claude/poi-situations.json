@@ -704,6 +704,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back to the gully",
               "description": "Get out with a few cuts. The lair stays.",
@@ -776,6 +777,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -960,6 +962,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back out of the tunnels",
               "description": "Get out with a few cuts. The lair stays.",
@@ -1032,6 +1035,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -1182,6 +1186,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back over the fence",
               "description": "Get out with a few cuts. The lair stays.",
@@ -1254,6 +1259,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -1407,6 +1413,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back to the river",
               "description": "Get out with a few cuts. The lair stays.",
@@ -1478,6 +1485,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -1629,6 +1637,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back to the gate",
               "description": "Get out with a few cuts. The lair stays.",
@@ -1701,6 +1710,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -1851,6 +1861,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back up the stair",
               "description": "Get out with a few cuts. The lair stays.",
@@ -1924,6 +1935,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -2074,6 +2086,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back down the stair",
               "description": "Get out with a few cuts. The lair stays.",
@@ -2143,6 +2156,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -2304,6 +2318,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back across the water",
               "description": "Get out with a few cuts. The lair stays.",
@@ -2377,6 +2392,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -2530,6 +2546,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back down the crag",
               "description": "Get out with a few cuts. The lair stays.",
@@ -2603,6 +2620,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -2753,6 +2771,7 @@
             },
             {
               "id": "fall-back",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Fall back down the pass",
               "description": "Get out with a few cuts. The lair stays.",
@@ -2822,6 +2841,7 @@
             },
             {
               "id": "withdraw",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Back away while you can",
               "description": "Break off while you still can. The lair stays.",
@@ -3044,6 +3064,7 @@
             },
             {
               "id": "flee",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Flee",
               "description": "Get out with a few cuts. The barrow stays haunted.",
@@ -3339,6 +3360,7 @@
             },
             {
               "id": "flee",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Flee",
               "description": "Get out with a few cuts. The mine stays theirs.",

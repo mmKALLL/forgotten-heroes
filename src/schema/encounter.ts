@@ -14,7 +14,7 @@ import {
   StandingSchema,
 } from './common'
 import { AccessoryTierSchema } from './gear'
-import { MAX_DC, MIN_DC } from './types'
+import { MAX_DC, MIN_DC, OPTION_TAGS } from './types'
 
 // ---------------------------------------------------------------------------------------------
 // Effects: what an outcome does to the game. The engine interprets them in applyEffects().
@@ -196,7 +196,7 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     ),
   z
     .object({ effect: z.literal('camaraderie'), amount, ...when })
-    .describe("Raise (+) or lower (−) the party's camaraderie (0–8)"),
+    .describe("Raise (+) or lower (−) the party's camaraderie (0–40; a quarrel is about −5)"),
   z
     .object({ effect: z.literal('accessory'), tier: AccessoryTierSchema, ...when })
     .describe("Loot: roll one accessory of this tier into the party's gear"),
@@ -307,6 +307,13 @@ const optionFields = {
   id: IdSchema.describe('Unique within its stage'),
   label: z.string(),
   description: z.string().optional(),
+  tags: z
+    .array(z.enum(OPTION_TAGS))
+    .optional()
+    .describe(
+      '"retreat": fleeing or withdrawing from a hostile encounter; it costs camaraderie, more ' +
+        'the bigger the party'
+    ),
   requires: z.array(RequirementSchema).default([]),
   once: z
     .union([z.boolean(), IdSchema])

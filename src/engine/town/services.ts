@@ -13,9 +13,11 @@ import { serviceWith } from './animals'
 import { rumourOption, rumourRefusal } from './rumours'
 import { noticeBoard } from './contracts'
 import { recruitOffers } from './recruits'
+import { changeCamaraderie, livingMembers, shiftCamaraderie } from './camaraderie'
 import { accessoryOffers } from '../gear/accessories'
 import {
   BLESSING_PRICE,
+  CAMARADERIE_ROUND,
   COURIER_KM_PER_DAY,
   HEALER_PRICE,
   LODGING_PRICE,
@@ -24,6 +26,7 @@ import {
   PRIVATE_ROOM_FADE,
   PRIVATE_ROOM_MIN_QUALITY,
   PRIVATE_ROOM_PRICE,
+  ROUND_PRICE,
 } from '../constants'
 
 // The services of a settlement (design §5): lodging tiers, healers, temples and couriers. What a
@@ -57,6 +60,45 @@ export function lodgingOptions(state: GameState, content: Content): LodgingOptio
     })
   }
   return rooms
+}
+
+/** Once-per-arrival key (doneHere) for standing a round. */
+const ROUND = 'round'
+
+/** Standing the party a round at the inn (Plan 6): its price, what it does, and whether it can. */
+export type RoundOption = {
+  /** gp: ROUND_PRICE per living member. */
+  cost: number
+  /** The camaraderie it adds (CAMARADERIE_ROUND, less at the top of the scale). */
+  camaraderie: number
+  available: boolean
+  /** Why not (English), or null. */
+  reason: string | null
+}
+
+/** What standing a round here would cost and bring; flat gains, a per-member price. */
+export function roundOption(state: GameState): RoundOption {
+  const cost = ROUND_PRICE * livingMembers(state).length
+  const camaraderie =
+    shiftCamaraderie(state.camaraderie, CAMARADERIE_ROUND).value - state.camaraderie
+  const reason = state.doneHere.includes(ROUND)
+    ? 'already stood a round this visit'
+    : state.gold < cost
+      ? `costs ${cost} gp`
+      : null
+  return { cost, camaraderie, available: reason === null, reason }
+}
+
+/** Stands the party a round: pays roundOption's cost for its camaraderie, once per arrival. */
+function standRound(state: GameState): GameState {
+  const option = roundOption(state)
+  if (!option.available) return appendLog(state, `No round: ${option.reason}.`, 'bad')
+  const paid = appendLog(
+    { ...state, gold: state.gold - option.cost, doneHere: [...state.doneHere, ROUND] },
+    `You stand the party a round for ${option.cost} gp.`,
+    'good'
+  )
+  return changeCamaraderie(paid, CAMARADERIE_ROUND, 'a round at the inn')
 }
 
 /** Members a healer would treat: alive, and hurt or exhausted. */
@@ -179,6 +221,10 @@ function actionView(
             : (offers[0].reason ?? 'nothing you can take')
       )
     }
+    case 'round': {
+      const option = roundOption(state)
+      return view(option.cost, option.reason)
+    }
     case 'recruit': {
       // Recruits are hired one by one (hireRecruit), listed by recruitOffers.
       const offers = recruitOffers(state, content, state.location!).filter(
@@ -239,6 +285,7 @@ export function serviceRows(state: GameState, content: Content): ServiceRow[] {
 export type ServiceUse =
   | { type: 'useService'; service: string; action: 'heal' }
   | { type: 'useService'; service: string; action: 'bless' }
+  | { type: 'useService'; service: string; action: 'round' }
   | { type: 'useService'; service: string; action: 'news'; settlement: string }
 
 /** Refuses unless the service is here and its role offers the action. */
@@ -337,6 +384,8 @@ export function useService(state: GameState, content: Content, use: ServiceUse):
       return heal(state)
     case 'bless':
       return bless(state, use.service)
+    case 'round':
+      return standRound(state)
     case 'news':
       return news(state, content, use.settlement)
   }

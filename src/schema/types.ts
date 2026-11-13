@@ -159,6 +159,8 @@ export const SERVICE_ACTIONS = [
   'news',
   'recruit',
   'accessories',
+  /** Stand the party a round (Plan 6): camaraderie, once per arrival. */
+  'round',
 ] as const
 export type ServiceAction = (typeof SERVICE_ACTIONS)[number]
 
@@ -258,16 +260,23 @@ export type AccessoryTier = (typeof ACCESSORY_TIERS)[number]
 export const ACCESSORY_PARTS = ['base', 'prefix', 'suffix'] as const
 export type AccessoryPart = (typeof ACCESSORY_PARTS)[number]
 
-/** The top of the party's camaraderie scale (0–8: fewer than 10 steps, design §3). */
-export const CAMARADERIE_MAX = 8
+/**
+ * Tags on an encounter option (Plan 6). `retreat`: fleeing or withdrawing from a hostile
+ * encounter, which costs camaraderie (CAMARADERIE_RETREAT per living member beyond the first).
+ */
+export const OPTION_TAGS = ['retreat'] as const
+export type OptionTag = (typeof OPTION_TAGS)[number]
+
+/** The top of the party's camaraderie scale (0–40, design §3; ×5 in Plan 6 for whole-step losses). */
+export const CAMARADERIE_MAX = 40
 
 /** Camaraderie tiers, worst first: a tier holds from its `min` up to the next tier's. */
 export const CAMARADERIE_TIERS = [
   { id: 'fractured', min: 0 },
-  { id: 'strained', min: 2 },
-  { id: 'steady', min: 4 },
-  { id: 'close', min: 6 },
-  { id: 'sworn', min: 8 },
+  { id: 'strained', min: 10 },
+  { id: 'steady', min: 20 },
+  { id: 'close', min: 30 },
+  { id: 'sworn', min: 40 },
 ] as const
 export type CamaraderieTier = (typeof CAMARADERIE_TIERS)[number]['id']
 

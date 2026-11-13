@@ -1,7 +1,12 @@
-import type { CheckOption, Outcome, OutcomeBranch, Situation } from '../../schema/encounter'
+import type { CheckOption, Option, Outcome, OutcomeBranch, Situation } from '../../schema/encounter'
 import { TIERS, successChance, type Tier } from '../rules/checks'
 import { checkXp } from '../rules/progression'
-import { HIGH_STAKES_BAND } from '../constants'
+import {
+  CAMARADERIE_CRIT_FAIL,
+  CAMARADERIE_FAIL,
+  CAMARADERIE_RETREAT,
+  HIGH_STAKES_BAND,
+} from '../constants'
 
 /** The outcome for a tier; critical tiers fall back to fail and success. */
 export function tierOutcome(option: CheckOption, tier: Tier): Outcome {
@@ -41,4 +46,24 @@ export function defaultXp(
 ): number {
   if (situation.wonder || branch.effects.some((e) => e.effect === 'xp')) return 0
   return checkXp(dc, tier)
+}
+
+/**
+ * The camaraderie a choice costs (Plan 6; design §3), as a negative amount or 0: a failed check
+ * CAMARADERIE_FAIL and a critical failure CAMARADERIE_CRIT_FAIL, plus CAMARADERIE_RETREAT for an
+ * option tagged `retreat`, each per living member beyond the first (more people pin the blame on
+ * someone). `tier` is null for a fixed option. Wonders cost nothing.
+ */
+export function setbackCamaraderie(
+  members: number,
+  situation: Pick<Situation, 'wonder'>,
+  option: Pick<Option, 'tags'>,
+  tier: Tier | null
+): number {
+  const others = Math.max(0, members - 1)
+  if (situation.wonder || others === 0) return 0
+  const failed =
+    tier === 'critFail' ? CAMARADERIE_CRIT_FAIL : tier === 'fail' ? CAMARADERIE_FAIL : 0
+  const fled = option.tags?.includes('retreat') ? CAMARADERIE_RETREAT : 0
+  return -(failed + fled) * others
 }

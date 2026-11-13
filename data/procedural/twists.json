@@ -548,6 +548,7 @@
             },
             {
               "id": "high-ground",
+              "tags": ["retreat"],
               "kind": "check",
               "label": "Run for high ground",
               "check": { "skill": "acrobatics", "dc": 12 },

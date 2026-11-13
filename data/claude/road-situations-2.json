@@ -208,7 +208,7 @@
                 "text": "You hunker down in a ring behind the packs, cloaks over your heads. It blows for a day and a night. You share the water, then the stories, then the silences. When it drops you dig each other out, laughing at nothing.",
                 "effects": [
                   { "effect": "days", "amount": 1 },
-                  { "effect": "camaraderie", "amount": 1 }
+                  { "effect": "camaraderie", "amount": 5 }
                 ]
               }
             },
@@ -363,6 +363,7 @@
             },
             {
               "id": "abandon",
+              "tags": ["retreat"],
               "kind": "fixed",
               "label": "Leave the camp and walk into the dark",
               "description": "They want the fire, not you. Probably. Your food is still by it.",
@@ -715,7 +716,7 @@
                   { "effect": "days", "amount": 1 },
                   { "effect": "healFraction", "fraction": 0.5, "target": "all" },
                   { "effect": "exhaustion", "amount": -1, "target": "all" },
-                  { "effect": "camaraderie", "amount": 1 }
+                  { "effect": "camaraderie", "amount": 5 }
                 ]
               }
             },
@@ -1115,7 +1116,7 @@
                 "text": "You split it. The talk round the fire that night is short, and one of you doesn't join in.",
                 "effects": [
                   { "effect": "gold", "amount": 15 },
-                  { "effect": "camaraderie", "amount": -1 }
+                  { "effect": "camaraderie", "amount": -5 }
                 ]
               }
             },
@@ -1136,7 +1137,7 @@
                   "text": "You find the courier at a well, frantic. He takes the purse with both hands and has nothing to give you but thanks.",
                   "effects": [
                     { "effect": "reputation", "amount": 1 },
-                    { "effect": "camaraderie", "amount": 1 }
+                    { "effect": "camaraderie", "amount": 5 }
                   ]
                 },
                 "success": {
@@ -1144,7 +1145,7 @@
                   "effects": [
                     { "effect": "gold", "amount": 5 },
                     { "effect": "reputation", "amount": 2 },
-                    { "effect": "camaraderie", "amount": 1 }
+                    { "effect": "camaraderie", "amount": 5 }
                   ]
                 }
               }
@@ -1238,7 +1239,7 @@
                   "text": "A cutter opens her eyes mid-prayer and sees {actor}'s hand at the dead man's throat. You leave without the torc, and the story goes ahead of you.",
                   "effects": [
                     { "effect": "reputation", "amount": -3 },
-                    { "effect": "camaraderie", "amount": -1 }
+                    { "effect": "camaraderie", "amount": -5 }
                   ]
                 },
                 "partial": {
@@ -1246,14 +1247,14 @@
                   "effects": [
                     { "effect": "accessory", "tier": 1 },
                     { "effect": "reputation", "amount": -2 },
-                    { "effect": "camaraderie", "amount": -1 }
+                    { "effect": "camaraderie", "amount": -5 }
                   ],
                   "twist": {
                     "text": "{actor} twists the torc free, and the dead man's eyes open. The boy at the back of the crowd screams.",
                     "effects": [
                       { "effect": "openingHit" },
                       { "effect": "reputation", "amount": -2 },
-                      { "effect": "camaraderie", "amount": -1 }
+                      { "effect": "camaraderie", "amount": -5 }
                     ],
                     "goto": "risen"
                   }
@@ -1262,13 +1263,13 @@
                   "text": "Heads are bowed. {actor}'s hand goes in and comes out with the torc, and nobody sees but you.",
                   "effects": [
                     { "effect": "accessory", "tier": 1 },
-                    { "effect": "camaraderie", "amount": -1 }
+                    { "effect": "camaraderie", "amount": -5 }
                   ],
                   "twist": {
                     "text": "{actor} twists the torc free while heads are bowed, and the dead man's hand comes up after it.",
                     "effects": [
                       { "effect": "openingHit" },
-                      { "effect": "camaraderie", "amount": -1 }
+                      { "effect": "camaraderie", "amount": -5 }
                     ],
                     "goto": "risen"
                   }
@@ -1492,6 +1493,7 @@
             },
             {
               "id": "run",
+              "tags": ["retreat"],
               "kind": "check",
               "label": "Run for it",
               "check": { "skill": "athletics", "dc": 11 },
@@ -1533,7 +1535,7 @@
                 "text": "You row with the crew in shifts through two days of heat. It's brutal, and by the end you are singing their filthy songs with them.",
                 "effects": [
                   { "effect": "exhaustion", "amount": 1, "target": "all" },
-                  { "effect": "camaraderie", "amount": 1 }
+                  { "effect": "camaraderie", "amount": 5 }
                 ]
               }
             },

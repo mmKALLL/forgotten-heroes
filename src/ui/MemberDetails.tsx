@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { formatGp } from '../engine/format'
 import { describeAccessory } from '../engine/gear/accessories'
 import { describeHook } from '../engine/gear/hooks'
 import { xpProgress } from '../engine/rules/progression'
 import { isAlive, isHired, type CamaraderieInfo } from '../engine/town/camaraderie'
+import { oldWoundText } from '../engine/town/recruits'
 import type { Action } from '../engine/state'
 import type { Accessory } from '../schema/gear'
 import type { Character } from '../schema/state'
@@ -11,7 +11,7 @@ import { useI18n } from './i18n/I18n'
 import { Tip } from './Tip'
 
 // Plan 5a, U1: the progression parts of a member's card (the XP bar; in the sheet the XP line,
-// wage, Dismiss and the accessory slot) and the party's camaraderie line.
+// hired or founder, Dismiss and the accessory slot) and the party's camaraderie line.
 
 /** A thin bar to the next level under the HP bar; none at the cap. */
 export function XpBar({ character: c }: { character: Character }) {
@@ -37,8 +37,7 @@ export function XpBar({ character: c }: { character: Character }) {
 
 /**
  * In the expanded sheet: XP, the accessory slot (the worn one, Take off, and a picker of the
- * party's unworn gear) and, for a hired member, the wage and Dismiss with a confirm. Founders
- * draw no wage and stay.
+ * party's unworn gear) and, for a hired member, Dismiss with a confirm. Founders stay.
  */
 export function MemberDetails({
   character: c,
@@ -72,10 +71,11 @@ export function MemberDetails({
           ? t('party.xpCap', { xp: p.xp })
           : t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })}
       </p>
+      {c.oldWound && <p className="tone-bad">{t('party.wound', { wound: oldWoundText(c)! })}</p>}
       <AccessorySlot character={c} gear={gear} onAction={onAction} />
       {hired ? (
         <div className="member-hire">
-          <span>{t('party.wage', { gp: formatGp(c.wage) })}</span>
+          <span>{t('party.hired')}</span>
           {onAction &&
             (confirming ? (
               <span className="member-confirm">
@@ -158,12 +158,12 @@ function AccessorySlot({
   )
 }
 
-/** "Camaraderie: Steady (5/8) · wages 3 gp a day · 2 gp owed", explained on hover or tap. */
+/** "Camaraderie: Steady (25/40)", explained on hover or tap. */
 export function CamaraderieLine({ info }: { info: CamaraderieInfo }) {
   const { t } = useI18n()
   const tip = [
     t('camaraderie.tipValue', { label: info.label, value: info.value, max: info.max }),
-    t('camaraderie.tipRules'),
+    t('camaraderie.tipRules', { fail: info.failCost, flee: info.fleeCost }),
     t('camaraderie.tipEffect', {
       max: info.fracturedMax,
       n: Math.round(info.desertChance * 100),
@@ -187,15 +187,6 @@ export function CamaraderieLine({ info }: { info: CamaraderieInfo }) {
           </span>
         )}
       </Tip>
-      {info.wagesPerDay > 0 && (
-        <span> · {t('camaraderie.wages', { gp: formatGp(info.wagesPerDay) })}</span>
-      )}
-      {info.wagesOwed > 0 && (
-        <span className="tone-bad">
-          {' · '}
-          {t('camaraderie.owed', { gp: formatGp(info.wagesOwed) })}
-        </span>
-      )}
     </p>
   )
 }

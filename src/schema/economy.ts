@@ -65,8 +65,13 @@ export const ServiceRoleSchema = z
         offers: span(0, 10, 'How many recruits it offers a week, [min, max]'),
         levels: span(1, MAX_LEVEL, "Their levels, [min, max] (never above the founders' best + 1)"),
         classes: z.array(IdSchema).min(1).optional().describe('Class ids it offers (default any)'),
-        fee: z.number().gt(0).default(1).describe('Multiplies the hiring fee'),
-        wage: z.number().gt(0).default(1).describe('Multiplies the daily wage'),
+        fee: z.number().gt(0).default(1).describe('Multiplies the sign-on fee'),
+        gear: z
+          .number()
+          .min(0)
+          .max(1)
+          .optional()
+          .describe('The chance an offer brings a tier-1 accessory (default RECRUIT_GEAR_CHANCE)'),
       })
       .optional()
       .describe('Who hires out here (Plan 5a); needs the "recruit" action'),

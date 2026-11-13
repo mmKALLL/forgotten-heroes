@@ -6,6 +6,7 @@ import { generatePolitics } from './politics'
 import { domainThreatLevel, generatePois } from './pois'
 import { generateSettlements } from './settlements'
 import { territory } from './territory'
+import { START_UNSAFE_DANGER } from '../constants'
 
 /** Mixed into the run seed, so the world and the run draw from separate streams. */
 export const WORLD_SALT = 0x5eeda17a
@@ -67,8 +68,19 @@ export function mainlandSettlements(world: WorldState, content: Content): Settle
 }
 
 /**
+ * True when a settlement has a road out below START_UNSAFE_DANGER: a random start skips one
+ * entirely surrounded by notorious routes (designer, 2026-11-13: the only safety net).
+ */
+const hasSafeRoad = (content: Content, id: string): boolean =>
+  Object.values(content.routes).some(
+    (r) => (r.from === id || r.to === id) && r.danger < START_UNSAFE_DANGER
+  )
+
+/**
  * Where a new party begins, on the largest land mass (the mainland). Picked with the world's
- * seed, so a world always starts in the same place for the same mode. Null for an empty world.
+ * seed, so a world always starts in the same place for the same mode. A random start skips
+ * settlements with no road out below START_UNSAFE_DANGER (any mainland one when none has).
+ * Null for an empty world.
  */
 export function startingSettlement(
   world: WorldState,
@@ -79,7 +91,10 @@ export function startingSettlement(
   if (onMainland === null) return null
   const pick = (pool: Settlement[]) =>
     withRng(createRng((world.seed ^ START_SALT) >>> 0), (d) => d.pick(pool).id)[0]
-  if (mode === 'random') return pick(onMainland)
+  if (mode === 'random') {
+    const safe = onMainland.filter((s) => hasSafeRoad(content, s.id))
+    return pick(safe.length > 0 ? safe : onMainland)
+  }
 
   const small = onMainland.filter((s) => !GRAND.includes(world.settlements[s.id].type))
   const pool = small.length > 0 ? small : onMainland
