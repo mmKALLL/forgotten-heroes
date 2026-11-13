@@ -434,9 +434,7 @@ function visitRefusal(
     const back = boonReadyIn(poi, state.day)
     return {
       code: 'visited',
-      text:
-        `You have already visited ${poi.name}. Leave and come back another time` +
-        (back > 0 ? `; what you did here can be done again in ${back}d.` : '.'),
+      text: `Already visited: come back later${back > 0 ? ` (again in ${back}d)` : ''}.`,
     }
   }
   return null

@@ -78,9 +78,8 @@ export function PoiPanel({ content, state, selected, onSelect, prefs, onPrefs, o
         reason &&
         reason !== 'cleared' && (
           <p className="tone-bad small">
-            {reason === 'visited'
-              ? t('poi.visitedReason', { name: info.name })
-              : t('roadReason.busy')}
+            {/* Visited: the engine's words, with when the site's one-off returns. */}
+            {reason === 'visited' ? visit?.reason : t('roadReason.busy')}
           </p>
         )
       )}

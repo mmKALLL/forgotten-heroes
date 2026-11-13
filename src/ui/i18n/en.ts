@@ -588,7 +588,6 @@ export const en = {
   'poi.reinhabited': 'Re-inhabited: something has moved in again.',
   'poi.stronger': 'Growing stronger: every check here is DC +{dc}.',
   'poi.clearedReason': '{name} lies empty for now.',
-  'poi.visitedReason': 'You have already visited {name}. Leave and come back another time.',
   'poi.water': 'A spring here: arriving refills the waterskins.',
   'poi.enter': 'Enter',
   'poi.visit': 'Visit',

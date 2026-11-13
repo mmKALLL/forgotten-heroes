@@ -289,7 +289,7 @@ describe('visitPoi', () => {
     const again = step(closed, { type: 'visitPoi' }, content)
     expect(again.encounter).toBeNull()
     expect(again.log.at(-1)).toMatchObject({ tone: 'bad' })
-    expect(again.log.at(-1)!.text).toMatch(/already visited/)
+    expect(again.log.at(-1)!.text).toBe('Already visited: come back later.')
     // When the site's boon was taken, the refusal says when it can be done again.
     const spent = {
       ...closed,
@@ -302,7 +302,7 @@ describe('visitPoi', () => {
       },
     }
     expect(step(spent, { type: 'visitPoi' }, content).log.at(-1)!.text).toMatch(
-      /can be done again in \d+d\.$/
+      /^Already visited: come back later \(again in \d+d\)\.$/
     )
     expect(availableActions(closed, content)).toContainEqual(
       expect.objectContaining({ type: 'visitPoi', available: false, code: 'visited' })

@@ -126,9 +126,7 @@ test('a site already visited since arriving can’t be visited again, and says w
   show({ ...world('poi-1', ['poi-1']), visited: true })
   const visit = screen.getByRole('button', { name: 'Visit' }) as HTMLButtonElement
   expect(visit.disabled).toBe(true)
-  expect(
-    screen.getByText('You have already visited Old Wen’s hut. Leave and come back another time.')
-  ).toBeTruthy()
+  expect(screen.getByText('Already visited: come back later.')).toBeTruthy()
 })
 
 test('a lair grown strong says so', () => {

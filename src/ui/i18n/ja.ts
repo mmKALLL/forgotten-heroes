@@ -432,7 +432,6 @@ export const ja: Partial<Messages> = {
   'poi.reinhabited': '再び何者かが住み着いた。',
   'poi.stronger': '力を増している：ここでの判定はすべてDC +{dc}。',
   'poi.clearedReason': '{name}は今は空になっている。',
-  'poi.visitedReason': '{name}はもう訪れた。一度離れてから、また来よう。',
   'poi.water': '泉がある：到着すると水袋が満たされる。',
   'poi.enter': '踏み込む',
   'poi.visit': '訪れる',
