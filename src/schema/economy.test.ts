@@ -86,7 +86,7 @@ describe('service roles', () => {
     expect(
       ServiceRoleSchema.parse({ id: 'guild', function: 'hire', actions: ['recruit'], recruits })
         .recruits
-    ).toEqual({ ...recruits, fee: 1 })
+    ).toEqual({ ...recruits, picks: 1, fee: 1 })
   })
 })
 

@@ -35,8 +35,11 @@ export const CharacterSchema = z.object({
   xp: z.number().int().min(0).default(0),
   /** Signed on at a service (Plan 5a): may be dismissed and may desert. Founders are not. */
   hired: z.boolean().default(false),
-  /** An old wound a recruit came with (Plan 6): this ability is OLD_WOUND_PENALTY lower. */
-  oldWound: AbilitySchema.nullable().default(null),
+  /**
+   * Old wounds a recruit came with (Plan 6): each lowers its ability by OLD_WOUND_PENALTY. Most
+   * have none, some one; a "level 0" recruit has two (save v15; earlier a single `oldWound`).
+   */
+  oldWounds: z.array(AbilitySchema).default([]),
   /** The accessory worn (one slot), or null. */
   accessory: AccessorySchema.nullable().default(null),
 })
@@ -262,7 +265,7 @@ export const DelveStateSchema = z.object({
 export type DelveState = z.infer<typeof DelveStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(14),
+  version: z.literal(15),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),

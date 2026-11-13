@@ -41,7 +41,7 @@ describe('economyIssues', () => {
     content.serviceRoles.port = {
       ...content.serviceRoles.port,
       actions: ['passage', 'market', 'recruit'],
-      recruits: { offers: [1, 1], levels: [1, 1], classes: ['wizard'], fee: 1 },
+      recruits: { offers: [1, 1], levels: [1, 1], picks: 1, classes: ['wizard'], fee: 1 },
     }
     expect(economyIssues(content)).toEqual(['serviceRoles port: recruits unknown class "wizard"'])
   })

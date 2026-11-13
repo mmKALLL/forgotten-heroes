@@ -4,7 +4,15 @@ import { step, type Action } from '../state'
 import { brom, fixtureContent, lyra, makeCharacter, makeState } from '../test-fixtures'
 import { levelFor } from '../rules/progression'
 import { ABILITIES } from '../rules/abilities'
-import { PARTY_CAP, RECRUIT_SIGNON, STARTING_FOOD_DAYS, XP_BY_LEVEL } from '../constants'
+import type { RecruitsBlock } from '../../schema/economy'
+import {
+  LEVEL0_WOUNDS,
+  PARTY_CAP,
+  RECRUIT_LEVEL_LEAD,
+  RECRUIT_SIGNON,
+  STARTING_FOOD_DAYS,
+  XP_BY_LEVEL,
+} from '../constants'
 import { serviceRows } from './services'
 import { gearPrice, recruitOffers, signOnFee, type RecruitOffer } from './recruits'
 
@@ -22,10 +30,18 @@ function at(overrides: Partial<GameState> = {}): GameState {
   return { ...s, world: { ...s.world, settlements }, ...overrides }
 }
 const act = (s: GameState, a: Action) => step(s, a, content)
-const offers = (s: GameState) => recruitOffers(s, content, HERE)
+const offers = (s: GameState, c = content) => recruitOffers(s, c, HERE)
 /** Every offer over many weeks, for statistics. */
-const overWeeks = (s: GameState, weeks = 30): RecruitOffer[] =>
-  Array.from({ length: weeks }, (_, w) => offers({ ...s, day: w * 7 + 1 })).flat()
+const overWeeks = (s: GameState, weeks = 30, c = content): RecruitOffer[] =>
+  Array.from({ length: weeks }, (_, w) => offers({ ...s, day: w * 7 + 1 }, c)).flat()
+/** The fixture with the inn's recruits block replaced. */
+function withRecruits(block: Partial<RecruitsBlock>) {
+  const c = fixtureContent()
+  const inn = c.serviceRoles['inn-tavern']
+  const recruits = { ...inn.recruits!, picks: 1, ...block }
+  c.serviceRoles = { ...c.serviceRoles, 'inn-tavern': { ...inn, recruits } }
+  return c
+}
 const members = (n: number) =>
   Array.from({ length: n }, (_, i) => makeCharacter({ id: `m${i}`, name: `M${i}` }))
 
@@ -40,16 +56,51 @@ describe('recruit offers', () => {
     expect(later.some((n) => JSON.stringify(n) !== JSON.stringify(names(week0)))).toBe(true)
   })
 
-  test("are never above the founders' highest level + 1, and their XP matches their level", () => {
-    const novices = overWeeks(at())
-    expect(Math.max(...novices.map((o) => o.level))).toBe(2)
-    const veterans = overWeeks(at({ party: [brom, { ...lyra, level: 5, xp: XP_BY_LEVEL[4] }] }))
-    expect(Math.max(...veterans.map((o) => o.level))).toBeGreaterThan(2)
+  test(`are never above the founders' highest level + ${RECRUIT_LEVEL_LEAD}, and their XP matches their level`, () => {
+    const mercs = withRecruits({ offers: [2, 2], levels: [3, 6] })
+    const novices = overWeeks(at(), 30, mercs)
+    expect(Math.max(...novices.map((o) => o.level))).toBe(1 + RECRUIT_LEVEL_LEAD)
+    const veteran = { ...lyra, level: 5, xp: XP_BY_LEVEL[4] }
+    const veterans = overWeeks(at({ party: [brom, veteran] }), 30, mercs)
+    expect(Math.max(...veterans.map((o) => o.level))).toBe(6)
+    expect(Math.min(...veterans.map((o) => o.level))).toBe(3)
     for (const o of [...novices, ...veterans]) {
       expect(o.character.level).toBe(o.level)
       expect(levelFor(o.character.xp)).toBe(o.level)
       expect(o.character.hired).toBe(true)
     }
+  })
+
+  test('level 0 is a level-1 recruit with two old wounds, signed on below level 1', () => {
+    const inn = withRecruits({ offers: [2, 2], levels: [0, 2] })
+    const all = overWeeks(at(), 30, inn)
+    expect(new Set(all.map((o) => o.level))).toEqual(new Set([0, 1, 2]))
+    const zeros = all.filter((o) => o.level === 0)
+    const [low, high] = RECRUIT_SIGNON[0]
+    for (const o of zeros) {
+      expect(o.character.level).toBe(1)
+      expect(new Set(o.character.oldWounds).size).toBe(LEVEL0_WOUNDS)
+      expect(o.wound!.split('; ')).toHaveLength(LEVEL0_WOUNDS)
+      expect(o.fee - o.gearPrice).toBeGreaterThanOrEqual(low)
+      expect(o.fee - o.gearPrice).toBeLessThanOrEqual(high)
+    }
+    expect(zeros.length).toBeGreaterThan(0)
+    expect(low).toBeLessThan(RECRUIT_SIGNON[1][0])
+    expect(high).toBeLessThan(RECRUIT_SIGNON[1][1])
+    expect(all.filter((o) => o.level > 0).every((o) => o.character.oldWounds.length <= 1)).toBe(
+      true
+    )
+  })
+
+  test('a service with more picks offers better-rolled recruits on average', () => {
+    const avg = (picks: number) => {
+      const all = overWeeks(at(), 60, withRecruits({ offers: [2, 2], levels: [1, 1], picks }))
+      const totals = all.map((o) => ABILITIES.reduce((t, a) => t + o.character.abilities[a], 0))
+      return totals.reduce((t, x) => t + x, 0) / totals.length
+    }
+    const [inn, guild, mercs] = [avg(1), avg(2), avg(3)]
+    expect(guild).toBeGreaterThan(inn)
+    expect(mercs).toBeGreaterThan(guild)
   })
 
   test('an offer keeps its level and fee for the week after another offer is hired', () => {
@@ -91,8 +142,8 @@ describe('recruit offers', () => {
 
 describe('sign-on fees and rolled recruits (Plan 6)', () => {
   test("the fee lies within its level's range; better stats never cost less; a wound lowers it", () => {
-    for (let level = 1; level <= RECRUIT_SIGNON.length; level++) {
-      const [low, high] = RECRUIT_SIGNON[level - 1]
+    for (let level = 0; level < RECRUIT_SIGNON.length; level++) {
+      const [low, high] = RECRUIT_SIGNON[level]
       let last = 0
       for (let total = 18; total <= 108; total++) {
         const fee = signOnFee({ level, total, wounded: false })
@@ -114,11 +165,11 @@ describe('sign-on fees and rolled recruits (Plan 6)', () => {
     for (const o of novices) {
       for (const a of ABILITIES) expect(o.character.abilities[a]).toBeLessThanOrEqual(18)
       expect(o.character.abilities.str).toBeGreaterThanOrEqual(3)
-      const [low, high] = RECRUIT_SIGNON[0]
+      const [low, high] = RECRUIT_SIGNON[1]
       expect(o.fee - o.gearPrice).toBeGreaterThanOrEqual(low)
       expect(o.fee - o.gearPrice).toBeLessThanOrEqual(high)
     }
-    const wounded = all.filter((o) => o.character.oldWound !== null)
+    const wounded = all.filter((o) => o.character.oldWounds.length > 0)
     expect(wounded.length / all.length).toBeGreaterThan(0.05)
     expect(wounded.length / all.length).toBeLessThan(0.4)
     expect(wounded.every((o) => o.wound !== null && /−2 [A-Z]{3}\)$/.test(o.wound))).toBe(true)

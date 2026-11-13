@@ -1532,7 +1532,7 @@ export function makeCharacter(overrides: Partial<Character> = {}): Character {
     strain: {},
     xp: 0,
     hired: false,
-    oldWound: null,
+    oldWounds: [],
     accessory: null,
     ...overrides,
   }

@@ -161,14 +161,20 @@ test('with no one looking for work, the inn leaves out its Recruits opener', () 
 })
 
 test("a recruit's old wound and the gear they bring are shown", async () => {
-  const day = Array.from({ length: 80 }, (_, w) => w * 7 + 1).find((d) =>
-    recruitOffers(town({ day: d }), content, 'greenvale-1').some((o) => o.wound || o.gear)
-  )!
-  const offer = recruitOffers(town({ day }), content, 'greenvale-1').find((o) => o.wound || o.gear)!
+  // An offer with a wound or gear, whose name no other offer that week shares.
+  const pick = (d: number) => {
+    const all = recruitOffers(town({ day: d }), content, 'greenvale-1')
+    const named = (o: (typeof all)[number]) =>
+      all.filter((x) => x.character.name === o.character.name).length === 1
+    return all.find((o) => (o.wound || o.gear) && named(o))
+  }
+  const day = Array.from({ length: 80 }, (_, w) => w * 7 + 1).find((d) => pick(d))!
+  const offer = pick(day)!
   panel(town({ day }))
   await userEvent.click(screen.getByRole('button', { name: /^Recruits \(\d\)$/ }))
   const row = within(screen.getByRole('listitem', { name: offer.character.name }))
-  if (offer.wound) expect(row.getByText(`Old wound: ${offer.wound}`)).toBeTruthy()
+  const label = offer.character.oldWounds.length > 1 ? 'Old wounds' : 'Old wound'
+  if (offer.wound) expect(row.getByText(`${label}: ${offer.wound}`)).toBeTruthy()
   // The accessory alone: no "Brings", no price (designer call).
   if (offer.gear) {
     expect(row.getByText(describeAccessory(offer.gear))).toBeTruthy()

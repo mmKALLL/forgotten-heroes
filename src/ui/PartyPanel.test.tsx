@@ -101,7 +101,7 @@ test('no strain, no strain badge', () => {
 })
 
 test('each card shows its level and a bar to the next; the sheet has XP, hired and accessory', async () => {
-  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], hired: true, oldWound: 'dex' as const }
+  const hired = { ...lyra, level: 2, xp: XP_BY_LEVEL[1], hired: true, oldWounds: ['dex' as const] }
   render(<PartyPanel party={[brom, hired]} />)
   expect(toggle('Lyra').textContent).toMatch(/lv 2/)
   const bar = card('Lyra').getByRole('meter', { name: 'Lyra XP' })

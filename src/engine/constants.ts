@@ -373,12 +373,14 @@ export const ESCORT_HOSTILE = 0.1
 /** Living members a party can have: hiring stops here (the dead don't count). */
 export const PARTY_CAP = 6
 /**
- * A recruit's one-time sign-on fee range (gp) by level 1–20, [low, high], before the service's
- * `fee`: a recruit's rolled stats and any old wound place them in it (designer, 2026-11-13, to
- * level 5; ×1.35 a level beyond).
+ * A recruit's one-time sign-on fee range (gp) by level 0–20 (index = level), [low, high], before
+ * the service's `fee`: a recruit's rolled stats and any old wound place them in it (designer,
+ * 2026-11-13, to level 5; ×1.35 a level beyond). Level 0, a level-1 recruit with two old wounds,
+ * sits below level 1.
  */
 // prettier-ignore
 export const RECRUIT_SIGNON: readonly (readonly [number, number])[] = [
+  [8, 25],
   [20, 60], [40, 100], [75, 150], [140, 200], [200, 280],
   [270, 380], [360, 510], [490, 690], [660, 930], [900, 1250],
   [1200, 1700], [1650, 2300], [2200, 3100], [3000, 4150], [4000, 5650],
@@ -392,6 +394,10 @@ export const RECRUIT_STAT_SPAN = 29
 export const RECRUIT_OFF_CLASS = 0.15
 /** The share of recruits with an old wound (founders have none). */
 export const OLD_WOUND_CHANCE = 0.2
+/** Old wounds a "level 0" recruit has, on two different abilities (it is level 1 otherwise). */
+export const LEVEL0_WOUNDS = 2
+/** Recruits are offered up to the founders' best level + this (wealth can't skip the climb). */
+export const RECRUIT_LEVEL_LEAD = 2
 /** An old wound lowers one ability by this much (never below 3). */
 export const OLD_WOUND_PENALTY = 2
 /** A wounded recruit's place in the fee range is multiplied by this: near the low end. */

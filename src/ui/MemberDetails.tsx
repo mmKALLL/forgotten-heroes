@@ -71,7 +71,11 @@ export function MemberDetails({
           ? t('party.xpCap', { xp: p.xp })
           : t('party.xpValue', { xp: p.xp, n: p.toNext, level: c.level + 1 })}
       </p>
-      {c.oldWound && <p className="tone-bad">{t('party.wound', { wound: oldWoundText(c)! })}</p>}
+      {c.oldWounds.length > 0 && (
+        <p className="tone-bad">
+          {t(c.oldWounds.length > 1 ? 'party.wounds' : 'party.wound', { wound: oldWoundText(c)! })}
+        </p>
+      )}
       <AccessorySlot character={c} gear={gear} onAction={onAction} />
       {hired ? (
         <div className="member-hire">
