@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { recordCrisis } from '../engine/crisis/ending'
+import { FINAL_ENDINGS, recordCrisis } from '../engine/crisis/ending'
 import { readHall } from './hall'
 import { useI18n } from './i18n/I18n'
 
@@ -41,7 +41,8 @@ export function HallOfFallen() {
                       day: r.day,
                       ending: r.ending ? t(`saves.ending.${r.ending}`) : '',
                     }),
-                    r.ending === 'fallen' &&
+                    r.ending &&
+                      FINAL_ENDINGS.includes(r.ending) &&
                       recordCrisis(r) &&
                       t(`saves.ending.${recordCrisis(r)!}`),
                     r.villain && t('hall.villain', { villain: r.villain }),

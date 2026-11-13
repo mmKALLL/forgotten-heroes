@@ -12,7 +12,7 @@ import { withRng, type Draw, type Rng } from '../rng'
 import { ABILITIES, statLabel } from '../rules/abilities'
 import { levelTo } from '../rules/progression'
 import { inSettlement } from '../travel/where'
-import { isAlive, isHired, livingMembers } from './camaraderie'
+import { isAlive, isHired, livingMembers, parting } from './camaraderie'
 import { boardWeek, keyedRng } from './contracts'
 import {
   OLD_WOUND_CHANCE,
@@ -290,7 +290,8 @@ export function hireRecruit(state: GameState, content: Content, offerId: string)
 
 /**
  * Parts ways with a hired member (alive or dead); founders are never dismissed. It costs nothing,
- * and their accessory stays with the party's gear.
+ * and their accessory stays with the party's gear. A living member's leaving lifts the rest
+ * (CAMARADERIE_PARTING, town/camaraderie.ts); laying the dead to rest doesn't.
  */
 export function dismissMember(state: GameState, characterId: string): GameState {
   if (inProgress(state)) return appendLog(state, 'Finish the current encounter first.', 'bad')
@@ -302,10 +303,8 @@ export function dismissMember(state: GameState, characterId: string): GameState 
     party: state.party.filter((m) => m.id !== c.id),
     gear: c.accessory ? [...state.gear, c.accessory] : state.gear,
   }
-  const text = isAlive(c)
-    ? `${c.name} is dismissed and leaves the party.`
-    : `${c.name} is laid to rest and left behind.`
-  return appendLog(next, text, 'info')
+  if (!isAlive(c)) return appendLog(next, `${c.name} is laid to rest and left behind.`, 'info')
+  return parting(appendLog(next, `${c.name} is dismissed and leaves the party.`, 'info'), c.name)
 }
 
 export function stepRecruit(state: GameState, action: RecruitAction, content: Content): GameState {

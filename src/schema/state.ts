@@ -262,7 +262,7 @@ export const DelveStateSchema = z.object({
 export type DelveState = z.infer<typeof DelveStateSchema>
 
 export const GameStateSchema = z.object({
-  version: z.literal(14),
+  version: z.literal(15),
   seed: z.number().int(),
   rng: z.object({ state: z.number().int().min(0).max(0xffffffff) }),
   day: z.number().int().min(1),
@@ -303,8 +303,16 @@ export const GameStateSchema = z.object({
   doneHere: z.array(z.string()).default([]),
   /** Accessories carried but not worn (weightless). */
   gear: z.array(AccessorySchema).default([]),
-  /** The party's camaraderie, 0–40 (tiers in CAMARADERIE_TIERS). 25 is CAMARADERIE_START. */
-  camaraderie: z.number().int().min(0).max(CAMARADERIE_MAX).default(25),
+  /** The party's camaraderie, 0–100 (tiers in CAMARADERIE_TIERS). 63 is CAMARADERIE_START. */
+  camaraderie: z.number().int().min(0).max(CAMARADERIE_MAX).default(63),
+  /**
+   * The unbroken spell below Fractured's top (Plan 6 wave 2b, town/camaraderie.ts): the day it
+   * began and the members lost to it so far (one per full week); null while camaraderie is higher.
+   */
+  lowSpell: z
+    .object({ since: z.number().int().min(1), losses: z.number().int().min(0) })
+    .nullable()
+    .default(null),
   /** Units gathered recently by domain (settlement id) and good; the land recovers like a market. */
   gathered: z.record(IdSchema, z.partialRecord(GoodSchema, MarketTradeSchema)).default({}),
   /** Recruit offer ids hired, so they are never offered again. */

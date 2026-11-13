@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest'
 import { PUBLISHED_TOWNS } from '../../scripts/port/town-maps'
 import { slotNames } from '../engine/encounters/slots'
+import { runOver } from '../engine/crisis/ending'
 import { newGame } from '../engine/state'
 import { wander } from '../engine/travel/wander'
 import { generateWorld, startingSettlement, worldSeed } from '../engine/world/generate'
@@ -238,7 +239,8 @@ describe('journeys on Altaeus', () => {
       (leg, count) => (leg * 3 + seed) % count
     )
     expect(GameStateSchema.parse(state)).toEqual(state)
-    expect(state.day).toBeGreaterThan(12)
+    // The wandering policy starves a poor party; a run that ends (disbanded or fallen) stops there.
+    if (!runOver(state)) expect(state.day).toBeGreaterThan(12)
     expect(state.log.map((e) => e.text)).not.toContain('No encounters match that filter.')
   })
 })

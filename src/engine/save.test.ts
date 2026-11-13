@@ -15,6 +15,7 @@ import {
   v11ToV12,
   v12ToV13,
   v13ToV14,
+  v14ToV15,
 } from './save'
 import { actCalendar } from './crisis/calendar'
 import { crisisSites } from './crisis/sites'
@@ -163,10 +164,11 @@ function withDungeons(world: GameState['world'], start: string | null): GameStat
 /** What every character from before Plan 5a loads with: no XP, a founder, unwounded, nothing worn. */
 const CHARACTER_5A_DEFAULTS = { xp: 0, hired: false, oldWound: null, accessory: null }
 
-/** What a save from before Plan 5a loads with (camaraderie Steady: 5 of 8 then, 25 of 40 now). */
+/** What a save from before Plan 5a loads with (camaraderie Steady: 5 of 8 then, 63 of 100 now). */
 const PLAN_5A_DEFAULTS = {
   gear: [],
-  camaraderie: 25,
+  camaraderie: 63,
+  lowSpell: null,
   gathered: {},
   recruitsTaken: [],
   gearTaken: [],
@@ -187,7 +189,7 @@ const PLAN_4_DEFAULTS = {
 }
 
 test('a version 2 save loads as the current version with a world, a starting place and supplies', () => {
-  expect(CURRENT_SAVE_VERSION).toBe(14)
+  expect(CURRENT_SAVE_VERSION).toBe(15)
   expect(deserialize(JSON.stringify(V2_SAVE), content)).toEqual(migrated())
 })
 
@@ -646,7 +648,9 @@ describe('v9 → v10 (Plan 5a: XP, wages, accessories, camaraderie, gathering)',
     for (const seed of [1, 2, 3]) {
       const state = newGame(seed, content)
       expect(
-        v13ToV14(v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content), content)
+        v14ToV15(
+          v13ToV14(v12ToV13(v11ToV12(v10ToV11(v9ToV10(asV9(state)), content)), content), content)
+        )
       ).toEqual(state)
       expect(state.party.every((c) => c.xp === 0 && !c.hired && c.accessory === null)).toBe(true)
     }
@@ -657,7 +661,7 @@ describe('v10 → v11 (Plan 5b: the Crisis)', () => {
   /** A current state as a v10 save wrote it: no Crisis, and camaraderie on the 0–8 scale. */
   function asV10(state: GameState): Record<string, unknown> {
     const { crisis: _crisis, ...rest } = structuredClone(state)
-    const camaraderie = state.camaraderie / 5
+    const camaraderie = state.camaraderie / 12.5
     return { ...rest, version: 10, world: withoutCrisis(state), camaraderie }
   }
 
@@ -738,7 +742,7 @@ describe('v11 → v12 (Plan 6, track A: no wages)', () => {
       ...c,
       wage: hired ? 1.5 : 0,
     }))
-    const camaraderie = state.camaraderie / 5
+    const camaraderie = state.camaraderie / 12.5
     return { ...structuredClone(state), version: 11, party, wagesOwed: owed, camaraderie }
   }
 
@@ -753,9 +757,9 @@ describe('v11 → v12 (Plan 6, track A: no wages)', () => {
     expect(loaded.party.map((c) => c.hired)).toEqual([false, true])
     expect(loaded.gold).toBe(37)
     expect('wagesOwed' in loaded).toBe(false)
-    // Camaraderie moves to the 0–40 scale: Close (7 of 8) is still Close.
+    // Camaraderie moves to the 0–40 scale and on to 0–100: Close (7 of 8) is still Close.
     const close = deserialize(JSON.stringify({ ...asV11(state), camaraderie: 7 }), content)!
-    expect(close.camaraderie).toBe(35)
+    expect(close.camaraderie).toBe(88)
     expect(loaded.camaraderie).toBe(state.camaraderie)
   })
 
@@ -872,6 +876,42 @@ describe('v13 → v14 (Plan 6, track D: levelled work and authored dungeons)', (
     // Migrating again places nothing twice.
     const once = v13ToV14(asV13(state), content)
     expect(v13ToV14({ ...once, version: 13 }, content).world).toEqual(once.world)
+  })
+})
+
+describe('v14 → v15 (Plan 6 wave 2b, track E: camaraderie 0–100, dungeons known by word)', () => {
+  /** A current state as a v14 save wrote it: camaraderie on 0–40, no low spell, no `known`. */
+  function asV14(state: GameState, camaraderie: number): Record<string, unknown> {
+    const { lowSpell: _spell, ...rest } = structuredClone(state)
+    const pois = Object.fromEntries(
+      Object.entries(state.world.pois).map(([id, { known: _known, ...p }]) => [id, p])
+    )
+    return { ...rest, version: 14, camaraderie, world: { ...state.world, pois } }
+  }
+
+  test('camaraderie is ×2.5 (tiers kept, never 0); a cleared dungeon is known', () => {
+    const state = makeState({ day: 40 })
+    const [id] = Object.entries(state.world.pois).find(([, p]) => p.dungeon)!
+    const cleared = {
+      ...state,
+      world: {
+        ...state.world,
+        pois: { ...state.world.pois, [id]: { ...state.world.pois[id], clearedDay: 30 } },
+      },
+    }
+    const load = (c: number) => deserialize(JSON.stringify(asV14(cleared, c)), content)!
+    const loaded = load(25)
+    expect(loaded.version).toBe(CURRENT_SAVE_VERSION)
+    expect(loaded.camaraderie).toBe(63)
+    expect(loaded.lowSpell).toBeNull()
+    expect(loaded.world.pois[id].known).toBe(true)
+    expect(Object.values(loaded.world.pois).filter((p) => p.known)).toHaveLength(1)
+    expect([load(10).camaraderie, load(9).camaraderie, load(40).camaraderie]).toEqual([25, 23, 100])
+    expect(load(0).camaraderie).toBe(1)
+    const raw = asV14(cleared, 25)
+    const once = v14ToV15(structuredClone(raw))
+    expect(v14ToV15({ ...once, version: 14 }).world).toEqual(once.world)
+    expect(raw).toEqual(asV14(cleared, 25))
   })
 })
 

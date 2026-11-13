@@ -26,14 +26,14 @@ import { explore, siteActions, visitPoi, type SiteAction } from './world/explore
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
 import { applyLevelUps } from './rules/progression'
-import { mournTheDead } from './town/camaraderie'
+import { keepLowSpell, mournTheDead } from './town/camaraderie'
 import { stepAccessory, type AccessoryAction } from './gear/accessories'
 import { gather } from './world/gather'
 import { placeDungeons } from './world/dungeons'
 import { DELVE_ACTIONS, settleDelve, stepDelve, withdraw, type DelveAction } from './world/delve'
 import { generateCrisis } from './crisis/generate'
 import { acknowledgeEnd, crisisNews } from './crisis/status'
-import { FALLEN_LINE, partyWiped } from './crisis/ending'
+import { DISBANDED_LINE, FALLEN_LINE, partyWiped, runOver } from './crisis/ending'
 import { CAMARADERIE_START, STARTING_GOLD, STARTING_PARTY_SIZE } from './constants'
 
 // These moved out so the encounter engine can use them without importing this module.
@@ -125,6 +125,7 @@ export function newGame(
     doneHere: [],
     gear: [],
     camaraderie: CAMARADERIE_START,
+    lowSpell: null,
     gathered: {},
     recruitsTaken: [],
     gearTaken: [],
@@ -141,13 +142,15 @@ export function newGame(
  * lair cleared by the realm, or one that something has moved into again (world/sites.ts). Then
  * the Crisis's deadline lines (crisis/status.ts). Then bounties whose site the realm emptied are
  * void, and contracts whose deadline has passed fail
- * (town/contracts.ts). Each member who died in the step costs camaraderie (town/camaraderie.ts).
- * Then members whose XP passed their level level up (rules/progression.ts). A step that kills the
- * last living member says so; after that, every action leaves the state as it is (crisis/ending.ts).
+ * (town/contracts.ts). Each member who died in the step costs camaraderie, and the low spell runs
+ * (a member leaves each week below Fractured's top; town/camaraderie.ts). Then members whose XP
+ * passed their level level up (rules/progression.ts). A step that kills the last living member,
+ * or brings camaraderie to 0, says so; after that, every action leaves the state as it is
+ * (crisis/ending.ts).
  */
 export function step(state: GameState, action: Action, content: Content): GameState {
-  // A fallen party's run is over for good (crisis/ending.ts): nothing more happens.
-  if (partyWiped(state)) return state
+  // A fallen or disbanded party's run is over for good (crisis/ending.ts): nothing more happens.
+  if (runOver(state)) return state
   // Anything but a room's choices, pressing on and a few chores leaves a dungeon first.
   const ready =
     state.delve && !state.delve.inRoom && !DELVE_ACTIONS.includes(action.type)
@@ -156,8 +159,9 @@ export function step(state: GameState, action: Action, content: Content): GameSt
   const delved = settleDelve(act(ready, action, content), content)
   const acted = crisisNews(state, siteNews(state.day, delved), content)
   const settled = expireContracts(voidBounties(acted, content), content)
-  const done = applyLevelUps(mournTheDead(state, settled))
-  return partyWiped(done) ? appendLog(done, FALLEN_LINE, 'crit') : done
+  const done = applyLevelUps(keepLowSpell(mournTheDead(state, settled)))
+  if (partyWiped(done)) return appendLog(done, FALLEN_LINE, 'crit')
+  return runOver(done) ? appendLog(done, DISBANDED_LINE, 'crit') : done
 }
 
 /** Rumour lines for the known sites whose cycle turned after day `from`. */

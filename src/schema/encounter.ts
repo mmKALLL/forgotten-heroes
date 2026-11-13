@@ -196,7 +196,7 @@ export const EffectSchema = z.discriminatedUnion('effect', [
     ),
   z
     .object({ effect: z.literal('camaraderie'), amount, ...when })
-    .describe("Raise (+) or lower (−) the party's camaraderie (0–40; a quarrel is about −5)"),
+    .describe("Raise (+) or lower (−) the party's camaraderie (0–100; a quarrel is about −13)"),
   z
     .object({ effect: z.literal('accessory'), tier: AccessoryTierSchema, ...when })
     .describe("Loot: roll one accessory of this tier into the party's gear"),

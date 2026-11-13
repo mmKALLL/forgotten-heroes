@@ -14,19 +14,22 @@ import {
   CAMARADERIE_BOND,
   CAMARADERIE_DEATH,
   CAMARADERIE_HUNGER,
-  DESERT_CHANCE,
+  CAMARADERIE_LEAVE_DAYS,
+  CAMARADERIE_PARTING,
 } from '../constants'
 
-// Camaraderie and desertion (Plan 5a, B2; Plan 6, A1 and A3; design §3). Camaraderie is one
-// party-wide value, 0–40, changed only by a few rules: a failed encounter check and fleeing
+// Camaraderie (Plan 5a, B2; Plan 6, A1, A3 and wave 2b; design §3). Camaraderie is one party-wide
+// value, 0–100, changed only by a few rules: a failed encounter check and fleeing
 // (encounters/outcomes.ts setbackCamaraderie: more the bigger the party), a day of hunger or
-// thirst, a death, and flat gains for a contract kept, a night in a private room and a round at the
-// inn (town/services.ts), and encounter effects. Its only effect for now: while it is Fractured,
-// hired members may desert on arrival. Founders never desert. There are no wages (Plan 6).
+// thirst, a death, and flat gains for a contract kept, a night in a private room, a round at the
+// inn (town/services.ts), a living member leaving (dismissed or lost to the low spell) and
+// encounter effects. Its effects: for each full week of an unbroken spell below LOW_BELOW
+// (Fractured) a member leaves, a hired one first; at 0 the party breaks up and the run ends,
+// disbanded (crisis/ending.ts). There are no wages (Plan 6).
 
 /** A member who isn't dead (exhaustion 6). */
 export const isAlive = (c: Character): boolean => c.exhaustion < MAX_EXHAUSTION
-/** A hired member signed on at a service; founders are never dismissed and never desert. */
+/** A hired member signed on at a service; founders are never dismissed, and leave a low spell last. */
 export const isHired = (c: Character): boolean => c.hired
 /** The living members: the party cap counts these. */
 export const livingMembers = (state: Pick<GameState, 'party'>): Character[] =>
@@ -92,31 +95,64 @@ export function bond(state: GameState): GameState {
   return changeCamaraderie(marked, CAMARADERIE_BOND, 'a night in good rooms')
 }
 
+/** Below this (Fractured) the low spell runs: a member leaves for each full week of it. */
+export const LOW_BELOW: number = CAMARADERIE_TIERS[1].min
+
+/** Camaraderie at 0: the party breaks up and the run ends (crisis/ending.ts, "disbanded"). */
+export const partyDisbanded = (state: Pick<GameState, 'camaraderie'>): boolean =>
+  state.camaraderie <= 0
+
+/** A living member leaving lifts the rest a little: CAMARADERIE_PARTING, logged on a crossing. */
+export const parting = (state: GameState, name: string): GameState =>
+  changeCamaraderie(state, CAMARADERIE_PARTING, `${name} is gone`)
+
+/** The day the low spell's next member leaves, or null with no spell. */
+export const nextLossDay = (spell: GameState['lowSpell']): number | null =>
+  spell && spell.since + CAMARADERIE_LEAVE_DAYS * (spell.losses + 1)
+
 /**
- * On arrival in a settlement, while camaraderie is Fractured, each living hired member deserts
- * with DESERT_CHANCE (seeded). They take no gold or goods (a worn accessory stays in the party's
- * gear). Founders never desert.
+ * One member leaves to the low spell: a hired member if any is alive (seeded), else a founder,
+ * never the last living member (the week still counts). They take no gold or goods (a worn
+ * accessory stays in the party's gear); the rest gain CAMARADERIE_PARTING, which may end the spell.
  */
-export function desertOnArrival(state: GameState): GameState {
-  if (camaraderieTier(state.camaraderie) !== 'fractured' || !inSettlement(state)) return state
-  const hired = livingMembers(state).filter(isHired)
-  if (hired.length === 0) return state
-  const [leaving, rng] = withRng(state.rng, (d) => hired.filter(() => d.float() < DESERT_CHANCE))
-  if (leaving.length === 0) return { ...state, rng }
-  const ids = new Set(leaving.map((c) => c.id))
-  const names = leaving.map((c) => c.name)
-  const who = names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} and ${names.at(-1)}`
-  return appendLog(
+function loseToTheSpell(state: GameState): GameState {
+  const spell = { ...state.lowSpell!, losses: state.lowSpell!.losses + 1 }
+  const living = livingMembers(state)
+  if (living.length <= 1) return { ...state, lowSpell: spell }
+  const hired = living.filter(isHired)
+  const [who, rng] = withRng(state.rng, (d) => d.pick(hired.length > 0 ? hired : living))
+  const left = appendLog(
     {
       ...state,
       rng,
-      party: state.party.filter((c) => !ids.has(c.id)),
-      gear: [...state.gear, ...leaving.flatMap((c) => (c.accessory ? [c.accessory] : []))],
+      lowSpell: spell,
+      party: state.party.filter((c) => c.id !== who.id),
+      gear: who.accessory ? [...state.gear, who.accessory] : state.gear,
     },
-    `${who} ${names.length === 1 ? 'has' : 'have'} had enough and ` +
-      `${names.length === 1 ? 'leaves' : 'leave'} the party.`,
+    `${who.name} has had enough of this company and leaves the party.`,
     'bad'
   )
+  const after = parting(left, who.name)
+  return after.camaraderie >= LOW_BELOW ? { ...after, lowSpell: null } : after
+}
+
+/** An encounter is open: a loss that falls due waits for its end. */
+const busy = (s: GameState): boolean => s.encounter !== null && s.encounter.stage !== null
+
+/**
+ * After every step (state.ts): the low spell. Below LOW_BELOW it starts (on this day) or goes on,
+ * and for each full CAMARADERIE_LEAVE_DAYS of it a member leaves, between encounters. At
+ * LOW_BELOW or above it ends.
+ */
+export function keepLowSpell(state: GameState): GameState {
+  if (state.camaraderie >= LOW_BELOW) return state.lowSpell ? { ...state, lowSpell: null } : state
+  let next: GameState = state.lowSpell
+    ? state
+    : { ...state, lowSpell: { since: state.day, losses: 0 } }
+  while (next.lowSpell && !busy(next) && next.day >= nextLossDay(next.lowSpell)!) {
+    next = loseToTheSpell(next)
+  }
+  return next
 }
 
 /** The party's camaraderie for the UI: the value, its tier and what is pulling it down now. */
@@ -127,14 +163,21 @@ export type CamaraderieInfo = {
   label: string
   /** What is pulling it down now (English); the journal carries the history. */
   causes: string[]
-  /** The chance each hired member deserts on the next arrival (0 unless Fractured). */
-  desertRisk: number
-  /** The rule, for the tooltip: the chance each hired member deserts while Fractured. */
-  desertChance: number
-  /** The highest value that is still Fractured. */
-  fracturedMax: number
+  /** The rule, for the tooltip: below `lowBelow` a member leaves each `leaveDays` of a spell. */
+  lowBelow: number
+  leaveDays: number
+  /** Full weeks (leaveDays) of the current low spell so far; 0 without one. */
+  weeksBelow: number
+  /** The day the low spell's next member leaves (none leaves the last); null without a spell. */
+  nextLoss: number | null
+  /** At this value the party breaks up and the run ends (0). */
+  disbandAt: number
+  /** What a living member leaving (dismissed or lost) gives the rest. */
+  parting: number
   /** What a failed encounter check costs this party now (more the bigger it is), positive. */
   failCost: number
+  /** What a critically failed check costs this party now, positive. */
+  critCost: number
   /** What fleeing an encounter (a `retreat` option) costs this party now, positive. */
   fleeCost: number
 }
@@ -142,25 +185,30 @@ export type CamaraderieInfo = {
 export function camaraderieInfo(state: GameState): CamaraderieInfo {
   const tier = camaraderieTier(state.camaraderie)
   const living = livingMembers(state).length
-  const hired = livingMembers(state).filter(isHired).length
-  const desertRisk = tier === 'fractured' && hired > 0 ? DESERT_CHANCE : 0
   const causes: string[] = []
   const short =
     (state.goods.food ?? 0) < living || (!inSettlement(state) && (state.goods.water ?? 0) < living)
   if (living > 0 && short) causes.push("food or water won't last everyone a day")
-  if (desertRisk > 0) {
-    causes.push(`hired members may desert on arrival (${Math.round(desertRisk * 100)}% each)`)
-  }
+  // The spell as the post-step pass keeps it (one starts on the day camaraderie falls below).
+  const spell =
+    state.camaraderie >= LOW_BELOW ? null : (state.lowSpell ?? { since: state.day, losses: 0 })
+  const nextLoss = nextLossDay(spell)
+  const setback = (option: { tags?: 'retreat'[] }, tier: 'fail' | 'critFail' | null) =>
+    -setbackCamaraderie(living, { wonder: false }, option, tier)
   return {
     value: state.camaraderie,
     max: CAMARADERIE_MAX,
     tier,
     label: CAMARADERIE_LABELS[tier],
     causes,
-    desertRisk,
-    desertChance: DESERT_CHANCE,
-    fracturedMax: CAMARADERIE_TIERS[1].min - 1,
-    failCost: -setbackCamaraderie(living, { wonder: false }, {}, 'fail'),
-    fleeCost: -setbackCamaraderie(living, { wonder: false }, { tags: ['retreat'] }, null),
+    lowBelow: LOW_BELOW,
+    leaveDays: CAMARADERIE_LEAVE_DAYS,
+    weeksBelow: spell ? Math.floor((state.day - spell.since) / CAMARADERIE_LEAVE_DAYS) : 0,
+    nextLoss,
+    disbandAt: 0,
+    parting: CAMARADERIE_PARTING,
+    failCost: setback({}, 'fail'),
+    critCost: setback({}, 'critFail'),
+    fleeCost: setback({ tags: ['retreat'] }, null),
   }
 }

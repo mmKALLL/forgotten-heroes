@@ -157,22 +157,29 @@ test('the accessory slot: the worn one with its hooks, Take off, and wearing fro
   })
 })
 
-test('the camaraderie line: tier, value and desertion, explained on hover', () => {
+test('the camaraderie line: tier, value and the next loss, explained on hover', () => {
   const info: CamaraderieInfo = {
-    value: 5,
-    max: 40,
+    value: 12,
+    max: 100,
     tier: 'fractured',
     label: 'Fractured',
     causes: ["food or water won't last everyone a day"],
-    desertRisk: 0.25,
-    desertChance: 0.25,
-    fracturedMax: 9,
+    lowBelow: 25,
+    leaveDays: 7,
+    weeksBelow: 1,
+    nextLoss: 23,
+    disbandAt: 0,
+    parting: 5,
     failCost: 2,
+    critCost: 5,
     fleeCost: 4,
   }
   render(<PartyPanel party={[brom]} camaraderie={info} />)
   const line = document.querySelector('.camaraderie')!
-  expect(line.textContent).toMatch(/^Camaraderie: Fractured \(5\/40\) · desertion 25%/s)
+  expect(line.textContent).toMatch(/^Camaraderie: Fractured \(12\/100\) · a member leaves day 23/s)
+  expect(screen.getByRole('tooltip', { hidden: true }).textContent).toMatch(
+    /At 0 the party breaks up/
+  )
   expect(screen.getByRole('tooltip', { hidden: true }).textContent).toMatch(
     /Now: food or water won't last everyone a day\./
   )

@@ -2,14 +2,15 @@ import type { Content } from '../../content/build'
 import type { RunRecord } from '../../schema/crisis'
 import type { RunEnding } from '../../schema/types'
 import type { GameState, LogEntry } from '../../schema/state'
-import { isAlive } from '../town/camaraderie'
+import { isAlive, partyDisbanded } from '../town/camaraderie'
 import { settlementName } from '../world/geo'
 import { crisisStatus, planKnown } from './status'
 import { villainOf } from './text'
 
 // How a run ends (Plan 5b E5, design §11): the Crisis won or lost (the party may keep playing), or
-// the whole party fallen, which ends the run for good. The summary and the Hall of the Fallen's
-// record are built here, purely; the UI keeps the Hall.
+// the whole party fallen, or (Plan 6 wave 2b) camaraderie at 0, the party disbanded: these two end
+// the run for good. The summary and the Hall of the Fallen's record are built here, purely; the UI
+// keeps the Hall.
 
 /** Logged once, by the step in which the last living member dies. */
 export const FALLEN_LINE = 'The last of the party falls. The road goes on without them.'
@@ -20,9 +21,24 @@ export const FALLEN_LINE = 'The last of the party falls. The road goes on withou
  */
 export const partyWiped = (state: Pick<GameState, 'party'>): boolean => !state.party.some(isAlive)
 
-/** How the run has ended: fallen first, then the Crisis won or lost; null while it goes on. */
+/** Logged once, by the step in which camaraderie reaches 0. */
+export const DISBANDED_LINE =
+  'There is nothing left to hold the company together. They go their separate ways.'
+
+/** The endings that end the run for good: the engine refuses every action after them. */
+export const FINAL_ENDINGS: readonly RunEnding[] = ['fallen', 'disbanded']
+
+/** The run is over for good: the party has fallen or disbanded. */
+export const runOver = (state: Pick<GameState, 'party' | 'camaraderie'>): boolean =>
+  partyWiped(state) || partyDisbanded(state)
+
+/**
+ * How the run has ended: fallen first, then disbanded (camaraderie 0), then the Crisis won or
+ * lost; null while it goes on.
+ */
 export function runEnding(state: GameState): RunEnding | null {
   if (partyWiped(state)) return 'fallen'
+  if (partyDisbanded(state)) return 'disbanded'
   if (!state.crisis) return null
   const phase = crisisStatus(state.crisis, state.day).phase
   return phase === 'won' || phase === 'lost' ? phase : null

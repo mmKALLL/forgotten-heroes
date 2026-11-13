@@ -228,6 +228,13 @@ export const PoiStateSchema = z.object({
     .nullable()
     .default(null)
     .describe('The day its boon was last taken (a siteReady option); null if never'),
+  known: z
+    .literal(true)
+    .optional()
+    .describe(
+      'Known by word (Plan 6 wave 2b): heard of in a rumour or entered at least once, so an ' +
+        "authored dungeon's suggested party level is known; absent otherwise"
+    ),
 })
 export type PoiState = z.infer<typeof PoiStateSchema>
 

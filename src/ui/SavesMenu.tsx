@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import type { Content } from '../content/build'
+import { FINAL_ENDINGS } from '../engine/crisis/ending'
 import { slotSummary, type SlotSummary } from '../engine/slots'
 import type { GameState } from '../schema/state'
 import { HallOfFallen } from './HallOfFallen'
@@ -84,7 +85,9 @@ export function SavesMenu({
               const active = n === slot
               // A run whose party lives (a won or lost Crisis plays on) is lost when replaced: ask
               // first. Only a fallen run has nothing left to lose.
-              const ongoing = v.kind === 'saved' && v.summary.ending !== 'fallen'
+              const ongoing =
+                v.kind === 'saved' &&
+                !(v.summary.ending && FINAL_ENDINGS.includes(v.summary.ending))
               const asking = confirm?.slot === n ? confirm.what : null
               return (
                 <li key={n}>
