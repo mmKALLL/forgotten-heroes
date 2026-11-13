@@ -71,6 +71,18 @@ town maps/White Hill - declining cliff city - TN.jpeg
 town maps/Winnowing Reach - swamp town - CE.webp
 town maps/Xiousing District - temperate town - LN.jpg
 
+# Dungeon maps (Plan 6 D5)
+tiles and battle maps/dungeon maps/_dungeon/_dice grimorium maps/Bandit-Den-Gridded-22x33-Map1.jpg
+tiles and battle maps/dungeon maps/_cave : lava/300dpi_cave_spider_day_grid.jpg
+tiles and battle maps/dungeon maps/_dungeon/theros crypt.jpg
+tiles and battle maps/dungeon maps/_desert/temple of the sun.jpeg
+tiles and battle maps/dungeon maps/_cave : lava/cavern with chasm.jpeg
+tiles and battle maps/dungeon maps/_dungeon/sewer temple toxic.jpg
+tiles and battle maps/dungeon maps/_arctic/temple of the frozen heart.jpeg
+tiles and battle maps/dungeon maps/_desert/pharaohs tomb.jpg
+tiles and battle maps/dungeon maps/_epic/gauntlet of the lich.jpeg
+tiles and battle maps/dungeon maps/_cave : lava/lava drakescale peak.jpg
+
 # Dungeon maps (Plan 6 D5, set 2)
 tiles and battle maps/dungeon maps/_haunted/Afternoon Maps is creating RPG and DnD battlemaps _ Patreon.jpeg
 tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/old_lead_mine_70_nogrid_by_zatnikotel_ddq2v99.jpg
