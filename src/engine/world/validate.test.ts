@@ -283,6 +283,15 @@ describe('dungeonIssues', () => {
     ])
   })
 
+  test('a leading "the" is lower case, as the name reads mid-sentence', () => {
+    const broken = edit((c) => {
+      c.dungeons['test-vault'].name = 'The Test Vault'
+    })
+    expect(dungeonIssues(broken)).toEqual([
+      'dungeon test-vault: write "the" lower case at the name\'s start',
+    ])
+  })
+
   test('the last room is never a milestone (Plan 6 B)', () => {
     const broken = edit((c) => {
       c.dungeons['test-vault'].rooms[2].milestone = true

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Content } from '../../content/build'
+import { capitalFirst } from '../../engine/format'
 import { delvePreview, type DelvePreview } from '../../engine/world/delve'
 import type { Action } from '../../engine/state'
 import type { GameState } from '../../schema/state'
@@ -130,7 +131,7 @@ export function DelveView({ content, state, onAction, imageUrl }: Props) {
   return (
     <section className="panel delve-panel" aria-label={t('delve.heading')}>
       <div className="map-head">
-        <h2>{dungeon.name}</h2>
+        <h2>{capitalFirst(dungeon.name)}</h2>
         <div className="map-buttons">
           <button type="button" aria-pressed={!zoomed} onClick={() => setZoomed(!zoomed)}>
             {zoomed ? t('delve.zoomOut') : t('delve.zoomIn')}

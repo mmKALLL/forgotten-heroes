@@ -4,6 +4,7 @@ import type { Effect } from '../../schema/encounter'
 import type { GameState } from '../../schema/state'
 import { note, revealPois, xpNote } from '../encounters/effects'
 import type { StartOptions } from '../encounters/run'
+import { capitalFirst } from '../format'
 import { canAct } from '../rules/character'
 import { crLevel } from '../rules/challenge'
 import { actOpen, actTitle, crisisStatus } from './status'
@@ -189,8 +190,7 @@ export function crisisRefusal(state: GameState, poiId: string): string | null {
   const status = crisisStatus(crisis, state.day)
   if (status.target === poiId) return null
   const name = state.world.pois[poiId]?.name ?? poiId
-  // Site names often start with "the".
-  const Name = name.charAt(0).toUpperCase() + name.slice(1)
+  const Name = capitalFirst(name)
   if (status.phase === 'won' || status.phase === 'lost') return `${Name} lies quiet now.`
   if (crisis.thwarted[i] !== null) return `The plot at ${name} is broken.`
   if (crisis.acts[i].lead === poiId && crisis.leads[i] !== null) {

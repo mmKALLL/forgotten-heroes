@@ -21,3 +21,11 @@ export const formatFacesShort = (r: FaceRange): string =>
 /** A price in gold pieces: whole above 10, else to one decimal place ("0.8", "12"). */
 export const formatGp = (gp: number): string =>
   gp >= 10 ? `${Math.round(gp)}` : `${Math.round(gp * 10) / 10}`
+
+/**
+ * The first letter upper case. Site names are stored as they read mid-sentence ("the Last
+ * Beacon"); a name that begins a sentence or stands alone (a heading, a button, a map label) goes
+ * through this.
+ */
+export const capitalFirst = (text: string): string =>
+  text ? text.charAt(0).toUpperCase() + text.slice(1) : text

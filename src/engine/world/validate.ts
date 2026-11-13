@@ -104,7 +104,8 @@ export function worldIssues(content: Content): string[] {
 
 /**
  * Problems with the authored dungeons (Plan 6): a room situation that is missing or not a room
- * site situation, and a dungeon set at sea. The schema checks the rest (coordinates, CR, room ids).
+ * site situation, a dungeon set at sea, and a name starting "The" (site names read mid-sentence).
+ * The schema checks the rest (coordinates, CR, room ids).
  */
 export function dungeonIssues(content: Content): string[] {
   const issues: string[] = []
@@ -112,6 +113,8 @@ export function dungeonIssues(content: Content): string[] {
   for (const dungeon of sortedEntries(content.dungeons)) {
     const at = `dungeon ${dungeon.id}`
     if (dungeon.biomes.includes('sea')) issues.push(`${at}: dungeons lie on land, not "sea"`)
+    // Site names read mid-sentence ("You enter the Axe Temple."); capitalFirst capitalises them.
+    if (/^The /.test(dungeon.name)) issues.push(`${at}: write "the" lower case at the name's start`)
     const last = dungeon.rooms.at(-1)
     if (last?.milestone) issues.push(`${at}: room ${last.id}: the last room can't be a milestone`)
     for (const room of dungeon.rooms) {

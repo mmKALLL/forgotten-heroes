@@ -2,7 +2,7 @@ import { emptyContent, type Content } from '../../content/build'
 import type { LogTone } from '../../schema/types'
 import type { Condition, Effect } from '../../schema/encounter'
 import type { Character, EncounterState, GameState } from '../../schema/state'
-import { formatModifier } from '../format'
+import { capitalFirst, formatModifier } from '../format'
 import { appendLog } from '../log'
 import { withRng, type Rng } from '../rng'
 import { statLabel } from '../rules/abilities'
@@ -232,7 +232,11 @@ function applyEffect(state: GameState, effect: Effect, ctx: EffectContext): Game
         (1 + power) * (cr === null ? XP_CLEAR : Math.round(LAIR_XP_SHARE * levelGap(crLevel(cr))))
       const pois = { ...state.world.pois, [id]: { ...poi, clearedDay: state.day } }
       const cleared = { ...state, world: { ...state.world, pois } }
-      const told = note(cleared, `${poi.name} is cleared. It will lie empty for a while.`, 'good')
+      const told = note(
+        cleared,
+        `${capitalFirst(poi.name)} is cleared. It will lie empty for a while.`,
+        'good'
+      )
       const paid = xpNote(told, xp, `${poi.name} cleared`)
       return siteContractsMet(paid, 'bounty', id)
     }

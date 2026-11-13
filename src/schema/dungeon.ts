@@ -40,7 +40,11 @@ export type DungeonHoard = z.infer<typeof DungeonHoardSchema>
 export const DungeonSchema = z
   .object({
     id: IdSchema,
-    name: z.string().describe('e.g. "The Sunken Vault"'),
+    name: z
+      .string()
+      .describe(
+        'e.g. "the Sunken Vault": a leading "the" is lower case, as the name reads mid-sentence (it is capitalised where it stands alone)'
+      ),
     notes: z.string().optional(),
     map: z
       .string()

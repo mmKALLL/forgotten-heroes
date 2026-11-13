@@ -12,7 +12,7 @@ const room = (id: string, at: [number, number] = [0.5, 0.5]) => ({
 
 const dungeon = (overrides: Record<string, unknown> = {}) => ({
   id: 'test-vault',
-  name: 'The Test Vault',
+  name: 'the Test Vault',
   map: 'tiles and battle maps/dungeon maps/_dungeon/test.jpg',
   mapSize: [4096, 2304],
   cr: 4,

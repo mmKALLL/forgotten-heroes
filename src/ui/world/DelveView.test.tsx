@@ -17,7 +17,7 @@ afterEach(() => {
   Reflect.deleteProperty(window, 'matchMedia')
 })
 
-/** The party at the fixture's dungeon (The Test Vault), found and inhabited; known by word or not. */
+/** The party at the fixture's dungeon (the Test Vault), found and inhabited; known by word or not. */
 function atVault(known = true): GameState {
   const base = makeState()
   const id = Object.keys(base.world.pois).find((p) => base.world.pois[p].dungeon)!
@@ -74,7 +74,7 @@ test('between rooms, the schematic marks the way, and Press on and Withdraw disp
   const { container } = render(
     <DelveView content={content} state={between} onAction={onAction} imageUrl={null} />
   )
-  expect(screen.getByRole('img', { name: 'Map of The Test Vault' })).toBeTruthy()
+  expect(screen.getByRole('img', { name: 'Map of the Test Vault' })).toBeTruthy()
   expect(screen.getByText(/showing the rooms only/)).toBeTruthy()
   expect(container.querySelectorAll('.delve-room')).toHaveLength(3)
   expect(container.querySelector('.delve-room.visited')).toBeTruthy()

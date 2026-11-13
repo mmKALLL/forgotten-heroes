@@ -6,7 +6,7 @@
   "entries": [
     {
       "id": "ashgrave-mausoleum",
-      "name": "The Ashgrave Mausoleum",
+      "name": "the Ashgrave Mausoleum",
       "map": "tiles and battle maps/dungeon maps/_haunted/Afternoon Maps is creating RPG and DnD battlemaps _ Patreon.jpeg",
       "mapSize": [1000, 1500],
       "cr": 1,
@@ -50,7 +50,7 @@
     },
     {
       "id": "greyvein-mine",
-      "name": "The Greyvein Lead Mine",
+      "name": "the Greyvein Lead Mine",
       "map": "tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/old_lead_mine_70_nogrid_by_zatnikotel_ddq2v99.jpg",
       "mapSize": [1610, 2240],
       "cr": 2,
@@ -153,7 +153,7 @@
     },
     {
       "id": "starfloor-crypt",
-      "name": "The Starfloor Crypt",
+      "name": "the Starfloor Crypt",
       "map": "tiles and battle maps/dungeon maps/_haunted/crypt with traps.jpeg",
       "mapSize": [2088, 1800],
       "cr": 5,
@@ -204,7 +204,7 @@
     },
     {
       "id": "gilded-grottoes",
-      "name": "The Gilded Grottoes",
+      "name": "the Gilded Grottoes",
       "map": "tiles and battle maps/dungeon maps/_coastal/cavern sea-trapped encampment.jpeg",
       "mapSize": [2800, 4200],
       "cr": 6,
@@ -256,7 +256,7 @@
     },
     {
       "id": "drowned-keep",
-      "name": "The Drowned Keep",
+      "name": "the Drowned Keep",
       "map": "tiles and battle maps/dungeon maps/_haunted/abandoned dungeon overtaken by water and ghosts.jpeg",
       "mapSize": [2100, 2100],
       "cr": 8,
@@ -382,7 +382,7 @@
     },
     {
       "id": "skullmire",
-      "name": "The Skullmire",
+      "name": "the Skullmire",
       "map": "tiles and battle maps/dungeon maps/__dungeon entrances/swamp black dragon lair.jpg",
       "mapSize": [5740, 6300],
       "cr": 13,
@@ -434,7 +434,7 @@
     },
     {
       "id": "ape-king-vault",
-      "name": "The Vault of the Ape King",
+      "name": "the Vault of the Ape King",
       "map": "tiles and battle maps/dungeon maps/_epic/__zatnikotel-maps/_lost temple of the monkey king/map_2_puzzles_grid_by_zatnikotel_dd2b587.jpg",
       "mapSize": [3500, 3500],
       "cr": 15,
@@ -501,7 +501,7 @@
     },
     {
       "id": "greenwyrm-falls",
-      "name": "The Greenwyrm Falls",
+      "name": "the Greenwyrm Falls",
       "map": "tiles and battle maps/dungeon maps/__dungeon entrances/forest green dragon lair.jpg",
       "mapSize": [3360, 7560],
       "cr": 18,

@@ -3,6 +3,7 @@ import type { Content } from '../content/build'
 import { FINAL_ENDINGS, runSummary } from '../engine/crisis/ending'
 import { crisisInfo } from '../engine/crisis/status'
 import { actNumeral, shortName } from '../engine/crisis/text'
+import { capitalFirst } from '../engine/format'
 import type { GameState } from '../schema/state'
 import type { RunEnding } from '../schema/types'
 import { useI18n } from './i18n/I18n'
@@ -94,7 +95,7 @@ export function EndDialog({
         onKeyDown={onKeyDown}
       >
         {kicker && <p className="end-kicker">{kicker}</p>}
-        <h2 id="end-title">{title.charAt(0).toUpperCase() + title.slice(1)}</h2>
+        <h2 id="end-title">{capitalFirst(title)}</h2>
         {!fallen && ended && <p className="end-story">{ended.text}</p>}
         {fallen && summary.lastLines.length > 0 && (
           <section aria-label={t('end.lastLines')}>

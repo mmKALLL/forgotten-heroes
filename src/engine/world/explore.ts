@@ -6,7 +6,7 @@ import type { PoiState } from '../../schema/world'
 export { NOTHING_TO_LEARN } from '../encounters/effects'
 import { allSituations } from '../encounters/compile'
 import { fitsPlace, inProgress, startEncounter, type Place } from '../encounters/run'
-import { formatModifier } from '../format'
+import { capitalFirst, formatModifier } from '../format'
 import { TIER_TONE, appendLog } from '../log'
 import { withRng } from '../rng'
 import { statLabel } from '../rules/abilities'
@@ -436,7 +436,7 @@ function visitRefusal(
   if (quiet) return { code: 'quiet', text: quiet }
   const status = siteStatus(state.world.seed, id, poi, state.day)
   if (status?.phase === 'empty') {
-    return { code: 'cleared', text: `${poi.name} lies empty for now.` }
+    return { code: 'cleared', text: `${capitalFirst(poi.name)} lies empty for now.` }
   }
   if (state.visited) {
     // Say when what was taken here comes back, if the party took it (a siteReady option).

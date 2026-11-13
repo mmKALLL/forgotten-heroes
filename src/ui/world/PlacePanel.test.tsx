@@ -325,6 +325,14 @@ test('shows the land and the kingdom (a settlement is its own domain), with the 
   ).toBeTruthy()
 })
 
+test('a site named mid-sentence ("the Last Beacon") stands capitalised in the roads list', () => {
+  const state = withLair(true)
+  state.world.pois['poi-9'].name = 'the Last Beacon'
+  panel(state, null)
+  const roads = within(screen.getByRole('list', { name: 'Roads from here' }))
+  expect(roads.getByRole('button', { name: 'The Last Beacon' })).toBeTruthy()
+})
+
 test('the lair note appears only for a discovered, inhabited lair in the domain', () => {
   const { unmount } = panel(withLair(false), null)
   expect(screen.queryByText(/from lairs/)).toBeNull()

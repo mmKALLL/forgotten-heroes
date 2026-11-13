@@ -1,5 +1,6 @@
 import { formatDate } from '../engine/calendar'
 import type { CrisisInfo } from '../engine/crisis/status'
+import { capitalFirst } from '../engine/format'
 import { dangerInfo, type DangerInfo } from '../engine/world/danger'
 import { currentAct } from './CrisisPanel'
 import { useI18n } from './i18n/I18n'
@@ -42,7 +43,9 @@ export function DayMark({
           className={`crisis-mark small${act.pressing ? ' tone-bad' : ''}`}
           tip={[
             t('crisis.markTip', { numeral: act.numeral, name: crisis.short ?? '', act: act.name }),
-            act.poi ? act.where : act.where && t('crisis.somewhere', { land: act.where }),
+            act.poi
+              ? capitalFirst(act.where ?? '')
+              : act.where && t('crisis.somewhere', { land: act.where }),
             t('crisis.due', { due: act.due, days: act.daysLeft }),
           ]
             .filter(Boolean)

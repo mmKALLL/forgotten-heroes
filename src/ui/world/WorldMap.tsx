@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { sortedEntries, type Content } from '../../content/build'
-import { formatPercent } from '../../engine/format'
+import { capitalFirst, formatPercent } from '../../engine/format'
 import type { Action } from '../../engine/state'
 import { routeOptions, type RouteOption } from '../../engine/travel/preview'
 import { settlementName } from '../../engine/world/geo'
@@ -451,7 +451,8 @@ export function WorldMap({
           {pois.map(({ id, at: p, poi, category, icon }) => {
             const here = id === state.location && !travel
             const crisis = crisisSites.get(id)
-            const label = `${poi.name} (${crisis ? t('crisis.mapSite') : poiCategoryText(t, category)})`
+            const name = capitalFirst(poi.name)
+            const label = `${name} (${crisis ? t('crisis.mapSite') : poiCategoryText(t, category)})`
             const r = marker * 0.85
             const classes = [
               'site',
@@ -505,7 +506,7 @@ export function WorldMap({
                 )}
                 {(zoomed || !imageUrl) && (
                   <text className="site-label" x={p.x} y={p.y - r - 14} textAnchor="middle">
-                    {poi.name}
+                    {name}
                   </text>
                 )}
               </g>
@@ -639,7 +640,7 @@ function TravelPopover({
         }
       }}
     >
-      <strong>{road.toName}</strong>
+      <strong>{capitalFirst(road.toName)}</strong>
       <p className="small">
         {max > 0
           ? t('mapTravel.facts', {
