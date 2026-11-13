@@ -1,0 +1,1119 @@
+{
+  "$schema": "../_schema/creatures.schema.json",
+  "kind": "creatures",
+  "source": "claude",
+  "notes": "Plan 7 Track N, written by Claude (our own names and words). The bosses of the dungeon climaxes (data/claude/dungeons-1.json, dungeons-2.json; CR = the dungeon's CR) and of the Crisis key sites (villains.json: each act's boss, the finale villains, and the recurring Drake-Speaker once per act; CR = the act's keyCr), plus two drakes of the Drake-Speaker's. A boss is fought as `boss` in a fight (twice its role's HP, harder to stagger, acting twice when bloodied) and has a signature move (`when: desperate`: it replaces the bloodied boss's second action) and a second trick. The engine does not play boss moves yet (Track I or a follow-up: one hook that turns a move into an intent); each move's `todo` names anything more it needs. Their henchmen are SRD creatures in data/imported/creatures.json. `roads: false` keeps them off the road slots.",
+  "entries": [
+    {
+      "id": "cutpurse-captain",
+      "name": "the Cutpurse Captain",
+      "group": "the Cutpurse Captain and her loyalists",
+      "type": "humanoid",
+      "cr": 1,
+      "description": "The bandit crew's captain, who fights with two long knives and never fights fair.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Knife Flurry",
+        "text": "She steps inside your guard with both knives working.",
+        "when": "desperate",
+        "kind": "attack",
+        "damage": 1.5
+      },
+      "trick": {
+        "name": "Grit in the Eyes",
+        "text": "She flings a fistful of grit at a face, then cuts.",
+        "when": "everyOther",
+        "kind": "attack",
+        "damage": 0.5,
+        "riders": [
+          {
+            "effect": "exposed"
+          }
+        ],
+        "todo": "Needs member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      }
+    },
+    {
+      "id": "weaver-mother",
+      "name": "the Weaver Mother",
+      "group": "the Weaver Mother",
+      "type": "beast",
+      "cr": 2,
+      "description": "A spider the size of a cart, mother of every web in the hollow.",
+      "role": "brute",
+      "size": "large",
+      "roads": false,
+      "signature": {
+        "name": "Venom Frenzy",
+        "text": "Her fangs sink in deep, and the poison keeps burning.",
+        "when": "desperate",
+        "kind": "attack",
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.5,
+            "rounds": 2
+          }
+        ],
+        "todo": "Needs damage over rounds."
+      },
+      "trick": {
+        "name": "Web Line",
+        "text": "She shoots a strand and reels in whoever it catches.",
+        "when": "everyOther",
+        "kind": "attack",
+        "reach": [1, 4],
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "pull",
+            "tiles": 2
+          }
+        ],
+        "todo": "Needs a move's own reach (enemies strike at their role's reach); forced movement of members (push and pull: Track S builds them for spells)."
+      }
+    },
+    {
+      "id": "horned-priest",
+      "name": "the Horned Priest",
+      "group": "the Horned Priest and his guards",
+      "type": "humanoid",
+      "cr": 3,
+      "description": "The cult's priest, swollen with the light of the war god's axe.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Axe-Light",
+        "text": "He raises the axe, and its light bursts over a tile.",
+        "when": "desperate",
+        "kind": "area",
+        "damage": 1.5
+      },
+      "trick": {
+        "name": "Drink the Light",
+        "text": "He drinks the axe's glow, and his wounds close.",
+        "when": "everyOther",
+        "kind": "heal",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "heal",
+            "share": 0.2
+          }
+        ],
+        "todo": "Needs an enemy healing itself."
+      }
+    },
+    {
+      "id": "priest-king",
+      "name": "the Priest-King",
+      "group": "the Priest-King",
+      "type": "undead",
+      "cr": 4,
+      "description": "A sun-masked king in gold and wrappings, who carries a rotting curse.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Glare of the Sun Mask",
+        "text": "The mask blazes; whoever meets its gaze freezes where they stand.",
+        "when": "desperate",
+        "kind": "area",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "stun"
+          }
+        ],
+        "todo": "Needs member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Rotting Fist",
+        "text": "A blow that leaves the flesh rotting after it.",
+        "when": "everyOther",
+        "kind": "attack",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.5,
+            "rounds": 3
+          }
+        ],
+        "todo": "Needs damage over rounds."
+      }
+    },
+    {
+      "id": "gnoll-matriarch",
+      "name": "the Bone-Crowned Matriarch",
+      "group": "the Matriarch and her hyenas",
+      "type": "humanoid",
+      "cr": 5,
+      "description": "The pack's matriarch, crowned with finger bones, laughing as she kills.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Rampage",
+        "text": "She bounds over the fallen, cackling, straight at you.",
+        "when": "desperate",
+        "kind": "charge",
+        "damage": 1.5
+      },
+      "trick": {
+        "name": "Call the Hyenas",
+        "text": "She howls, and hyenas come loping out of the dark.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "hyena",
+            "count": 3
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "sludge-mother",
+      "name": "the Sludge Mother",
+      "group": "the Sludge Mother",
+      "type": "ooze",
+      "cr": 7,
+      "description": "The undercroft's poisoned sludge, raised by the cult's prayers into one heaving body.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false,
+      "signature": {
+        "name": "Engulf",
+        "text": "It rolls over a tile and tries to swallow what stands there.",
+        "when": "desperate",
+        "kind": "attack",
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "pull",
+            "tiles": 1
+          },
+          {
+            "effect": "burn",
+            "share": 0.5,
+            "rounds": 2
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells); damage over rounds."
+      },
+      "trick": {
+        "name": "Spatter",
+        "text": "It heaves and sprays burning sludge across two tiles.",
+        "when": "everyOther",
+        "kind": "area",
+        "reach": [1, 2],
+        "tiles": 2,
+        "damage": 0.6,
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach)."
+      }
+    },
+    {
+      "id": "rime-keeper",
+      "name": "the Rime-Keeper",
+      "group": "the Rime-Keeper and its guardians",
+      "type": "elemental",
+      "cr": 9,
+      "description": "A tall figure of ice poured out of the frozen heart: the keeper the temple was built for.",
+      "role": "brute",
+      "size": "large",
+      "roads": false,
+      "signature": {
+        "name": "Heart-Frost",
+        "text": "The cold doubles; frost sweeps two tiles and stiffens every limb.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 3],
+        "tiles": 2,
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "stagger"
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Glacier Shove",
+        "text": "It drives forward like a sliding ice-sheet.",
+        "when": "everyOther",
+        "kind": "attack",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "push",
+            "tiles": 2
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      }
+    },
+    {
+      "id": "jackal-king",
+      "name": "the Jackal King",
+      "group": "the Jackal King and his spear-bearers",
+      "type": "undead",
+      "cr": 11,
+      "description": "A mummified king in linen and gold, with dust and despair rolling off him like a wind.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Dust of Ages",
+        "text": "He breathes out the dust of his tomb across two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 3],
+        "tiles": 2,
+        "damage": 1.2,
+        "riders": [
+          {
+            "effect": "exposed"
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Rise, Spear-Bearers",
+        "text": "He lifts his crook, and two more coffins open.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "mummy",
+            "count": 2
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "last-champion",
+      "name": "the Last Champion",
+      "group": "the Last Champion",
+      "type": "undead",
+      "cr": 14,
+      "description": "A knight in black armour with a sword of violet fire: the last test of the lich's gauntlet.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Storm-Blade",
+        "text": "Lightning gathers on the blade and cracks down across two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 2],
+        "tiles": 2,
+        "damage": 1.2,
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach)."
+      },
+      "trick": {
+        "name": "Violet Fire",
+        "text": "The sword's fire clings to the wound it makes.",
+        "when": "everyOther",
+        "kind": "attack",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.5,
+            "rounds": 2
+          }
+        ],
+        "todo": "Needs damage over rounds."
+      }
+    },
+    {
+      "id": "forge-dragon",
+      "name": "the Forge Dragon",
+      "group": "the Forge Dragon",
+      "type": "dragon",
+      "cr": 17,
+      "description": "A red dragon grown vast on its tithe of gold, coiled over its own lake of fire.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false,
+      "signature": {
+        "name": "Fire Breath",
+        "text": "It rears and breathes a river of fire over two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 4],
+        "tiles": 2,
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.3,
+            "rounds": 1
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach); damage over rounds."
+      },
+      "trick": {
+        "name": "Wing Buffet",
+        "text": "Its wings beat, hurling back whoever stands close.",
+        "when": "everyOther",
+        "kind": "area",
+        "damage": 0.5,
+        "riders": [
+          {
+            "effect": "push",
+            "tiles": 2
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      }
+    },
+    {
+      "id": "ashgrave-founder",
+      "name": "the Founder",
+      "group": "the Founder of the Ashgrave line",
+      "type": "undead",
+      "cr": 1,
+      "description": "The first of the family, gaunt and black-nailed, still wearing the family circlet.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Paralysing Claws",
+        "text": "Its black nails rake, and the flesh they touch goes rigid.",
+        "when": "desperate",
+        "kind": "attack",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "stun"
+          }
+        ],
+        "todo": "Needs member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Grave Hunger",
+        "text": "It bites and feeds, and looks the fuller for it.",
+        "when": "everyOther",
+        "kind": "attack",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "heal",
+            "share": 0.25
+          }
+        ],
+        "todo": "Needs an enemy healing itself."
+      }
+    },
+    {
+      "id": "sinkhole-crawler",
+      "name": "the Sinkhole Crawler",
+      "group": "the Sinkhole Crawler",
+      "type": "monstrosity",
+      "cr": 2,
+      "description": "A long, many-legged thing from below the mine, with a mouth of twitching feelers.",
+      "role": "brute",
+      "size": "large",
+      "roads": false,
+      "signature": {
+        "name": "Feeler Lash",
+        "text": "Its feelers lash out two tiles; whoever they touch goes rigid.",
+        "when": "desperate",
+        "kind": "attack",
+        "reach": [1, 2],
+        "damage": 0.5,
+        "riders": [
+          {
+            "effect": "stun"
+          }
+        ],
+        "todo": "Needs a move's own reach (enemies strike at their role's reach); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Drag Below",
+        "text": "It seizes a leg and hauls toward the sinkhole.",
+        "when": "everyOther",
+        "kind": "attack",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "pull",
+            "tiles": 1
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      }
+    },
+    {
+      "id": "drowned-captain",
+      "name": "the Drowned Captain",
+      "group": "the Drowned Captain",
+      "type": "undead",
+      "cr": 3,
+      "description": "The wreck's captain, grey and dripping, who never left his cargo.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Undertow",
+        "text": "Seawater pours off him and drags at every leg on a tile.",
+        "when": "desperate",
+        "kind": "area",
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "pull",
+            "tiles": 1
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      },
+      "trick": {
+        "name": "All Hands",
+        "text": "He bellows for his crew, and the drowned answer.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "zombie",
+            "count": 2
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "star-priest",
+      "name": "the Star-Priest",
+      "group": "the Star-Priest",
+      "type": "undead",
+      "cr": 5,
+      "description": "A dead priest of the stars in silver-sewn robes, with a cold light in his eyes.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Falling Star",
+        "text": "He points, and a cold star falls on a tile far from him.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [2, 4],
+        "damage": 1.5,
+        "todo": "Needs a move's own reach (enemies strike at their role's reach)."
+      },
+      "trick": {
+        "name": "Sigil Flare",
+        "text": "The floor sigils flare under a tile and throw back whoever stands there.",
+        "when": "everyOther",
+        "kind": "area",
+        "damage": 0.5,
+        "riders": [
+          {
+            "effect": "push",
+            "tiles": 1
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      }
+    },
+    {
+      "id": "brood-mother",
+      "name": "the Brood-Mother",
+      "group": "the Brood-Mother",
+      "type": "monstrosity",
+      "cr": 6,
+      "description": "Armoured like a crab and as long as a boat, she comes up from the pool for her eggs.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false,
+      "signature": {
+        "name": "Crushing Claws",
+        "text": "Both claws close on one of you at once.",
+        "when": "desperate",
+        "kind": "attack",
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "stagger"
+          }
+        ],
+        "todo": "Needs member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "The Brood",
+        "text": "The pods split, and her young come scuttling to her side.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "giant-crab",
+            "count": 3
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "drowned-castellan",
+      "name": "the Drowned Castellan",
+      "group": "the Drowned Castellan",
+      "type": "undead",
+      "cr": 8,
+      "description": "The keep's castellan in rusted plate, river-weed hanging from his helm, still at his post.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "River's Wrath",
+        "text": "He calls the river through the breach, and it sweeps two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 2],
+        "tiles": 2,
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "push",
+            "tiles": 1
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach); forced movement of members (push and pull: Track S builds them for spells)."
+      },
+      "trick": {
+        "name": "Hold the Line",
+        "text": "He raises his sword, and the dead garrison steadies.",
+        "when": "everyOther",
+        "kind": "rally",
+        "damage": 0
+      }
+    },
+    {
+      "id": "lady-of-stormwrack",
+      "name": "the Lady of Stormwrack",
+      "group": "the Lady and her household",
+      "type": "humanoid",
+      "cr": 10,
+      "description": "The lady of the house, who sold her husband's name to a chained fire-idol and burns with its gift.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Idol's Fire",
+        "text": "Fire runs down the chains and out of her hands over two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 3],
+        "tiles": 2,
+        "damage": 1.2,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.3,
+            "rounds": 1
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); damage over rounds."
+      },
+      "trick": {
+        "name": "Burning Chains",
+        "text": "A chain of fire whips out and drags someone to her.",
+        "when": "everyOther",
+        "kind": "attack",
+        "damage": 0.8,
+        "riders": [
+          {
+            "effect": "pull",
+            "tiles": 2
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      }
+    },
+    {
+      "id": "skullmire-wyrm",
+      "name": "the Skullmire Wyrm",
+      "group": "the Skullmire Wyrm",
+      "type": "dragon",
+      "cr": 13,
+      "description": "A black dragon of the mire, acid smoking from its jaws.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false,
+      "signature": {
+        "name": "Acid Breath",
+        "text": "It spits a line of acid that hisses across two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 4],
+        "tiles": 2,
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.3,
+            "rounds": 1
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach); damage over rounds."
+      },
+      "trick": {
+        "name": "Tail Sweep",
+        "text": "Its tail sweeps the ground beside it.",
+        "when": "everyOther",
+        "kind": "area",
+        "damage": 0.7,
+        "riders": [
+          {
+            "effect": "push",
+            "tiles": 1
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      }
+    },
+    {
+      "id": "stone-ape",
+      "name": "the Stone Ape",
+      "group": "the Stone Ape",
+      "type": "construct",
+      "cr": 15,
+      "description": "The great stone ape of the well, taller than three men, with blue light burning in its eyes.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false,
+      "signature": {
+        "name": "Earth-Shaking Leap",
+        "text": "It leaps and lands with a blow that shakes the floor.",
+        "when": "desperate",
+        "kind": "charge",
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "stagger"
+          }
+        ],
+        "todo": "Needs member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Hurl a Block",
+        "text": "It wrenches a block of stone from the wall and throws it.",
+        "when": "everyOther",
+        "kind": "attack",
+        "reach": [2, 5],
+        "damage": 1,
+        "todo": "Needs a move's own reach (enemies strike at their role's reach)."
+      }
+    },
+    {
+      "id": "greenwyrm",
+      "name": "the Greenwyrm",
+      "group": "the Greenwyrm",
+      "type": "dragon",
+      "cr": 18,
+      "description": "An ancient green dragon, vast and patient, with poison curling from its jaws.",
+      "role": "brute",
+      "size": "gargantuan",
+      "roads": false,
+      "signature": {
+        "name": "Poison Breath",
+        "text": "A green cloud rolls out over two tiles and clings.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 5],
+        "tiles": 2,
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.5,
+            "rounds": 2
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach); damage over rounds."
+      },
+      "trick": {
+        "name": "Beguiling Words",
+        "text": "It speaks softly, and one of you lowers their weapon.",
+        "when": "everyOther",
+        "kind": "attack",
+        "reach": [1, 5],
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "stun"
+          }
+        ],
+        "todo": "Needs a move's own reach (enemies strike at their role's reach); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      }
+    },
+    {
+      "id": "ilse-marrow",
+      "name": "Sister Ilse Marrow",
+      "group": "Sister Ilse and her risen",
+      "type": "humanoid",
+      "cr": 6,
+      "description": "The Grave-Reader, who reads aloud to the dead until they rise to listen.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Grave Words",
+        "text": "She reads a name from her book, and the cold of the grave falls on a tile.",
+        "when": "desperate",
+        "kind": "area",
+        "damage": 1.2,
+        "riders": [
+          {
+            "effect": "exposed"
+          }
+        ],
+        "todo": "Needs member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Wake the Sleepers",
+        "text": "She turns a page, and the ground on her side of the line heaves.",
+        "when": "everyOther",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "zombie",
+            "count": 2
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "anselm-crake",
+      "name": "Father Anselm Crake",
+      "group": "Father Anselm and his choir",
+      "type": "humanoid",
+      "cr": 12,
+      "description": "The Choir-Master, whose bells teach the dead to march in step.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Toll the Great Bell",
+        "text": "The great bell sounds, and the note staggers two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 3],
+        "tiles": 2,
+        "damage": 1,
+        "riders": [
+          {
+            "effect": "stagger"
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Keep Step",
+        "text": "He rings the beat, and every dead thing strikes on it.",
+        "when": "everyOther",
+        "kind": "rally",
+        "damage": 0,
+        "toHit": 1
+      }
+    },
+    {
+      "id": "ashen-prophet",
+      "name": "the Ashen Prophet",
+      "group": "the Ashen Prophet and the faithful",
+      "type": "humanoid",
+      "cr": 18,
+      "description": "A scholar of the dead wrapped in ash and borrowed power, a crown of ash within reach.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Ash Storm",
+        "text": "Ash whirls up from the crypt floor and blinds two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 4],
+        "tiles": 2,
+        "damage": 1.3,
+        "riders": [
+          {
+            "effect": "exposed"
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Raise the Fallen",
+        "text": "The Prophet speaks a king's name, and two of the tombs open.",
+        "when": "everyOther",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "mummy",
+            "count": 2
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "agathe-wren",
+      "name": "Agathe Wren",
+      "group": "Agathe Wren and her hired men",
+      "type": "humanoid",
+      "cr": 6,
+      "description": "The Hand's steward: quiet, careful, with a sword-cane and a purse of other people's secrets.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "The Sword-Cane",
+        "text": "She stops pretending to be harmless.",
+        "when": "desperate",
+        "kind": "attack",
+        "damage": 1.5,
+        "toHit": 2
+      },
+      "trick": {
+        "name": "Paid Help",
+        "text": "She snaps her fingers, and hired men step in from the doorway.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "thug",
+            "count": 2
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "ulrika-hask",
+      "name": "Captain Ulrika Hask",
+      "group": "Captain Hask and the Grey Company",
+      "type": "humanoid",
+      "cr": 12,
+      "description": "Captain of the Grey Company, who has never lost a fight she was paid enough for.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Captain's Cleave",
+        "text": "She wades in with the greatsword and cuts through a whole tile.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 1],
+        "damage": 1.2
+      },
+      "trick": {
+        "name": "Volley on My Word",
+        "text": "She raises a hand, and the company's crossbows pick a tile.",
+        "when": "everyOther",
+        "kind": "volley",
+        "reach": [3, 5],
+        "damage": 0.8,
+        "todo": "Needs a move's own reach (enemies strike at their role's reach)."
+      }
+    },
+    {
+      "id": "pretenders-hand",
+      "name": "the Pretender's Hand",
+      "group": "the Hand and the bought knights",
+      "type": "humanoid",
+      "cr": 18,
+      "description": "A disinherited heir in fine armour, guarded by bought knights, who will not be told no.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false,
+      "signature": {
+        "name": "Royal Fury",
+        "text": "Cornered, the heir fights as if the crown were already theirs.",
+        "when": "desperate",
+        "kind": "attack",
+        "damage": 2
+      },
+      "trick": {
+        "name": "Knights, to Me!",
+        "text": "The Hand calls, and two knights come running from the chapel doors.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "knight",
+            "count": 2
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "drake-speaker-brood",
+      "name": "the Drake-Speaker",
+      "group": "the Drake-Speaker",
+      "type": "giant",
+      "cr": 6,
+      "description": "An outcast of the giant clans who talks to drakes, and is answered. Met at the brood cave.",
+      "role": "brute",
+      "size": "large",
+      "roads": false,
+      "signature": {
+        "name": "Speaker's Roar",
+        "text": "He roars like a drake and charges, throwing you aside.",
+        "when": "desperate",
+        "kind": "charge",
+        "damage": 1.5,
+        "riders": [
+          {
+            "effect": "push",
+            "tiles": 1
+          }
+        ],
+        "todo": "Needs forced movement of members (push and pull: Track S builds them for spells)."
+      },
+      "trick": {
+        "name": "Answer Me!",
+        "text": "He calls up the cave, and a drake answers.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "hill-drake",
+            "count": 1
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "drake-speaker-beacons",
+      "name": "the Drake-Speaker",
+      "group": "the Drake-Speaker",
+      "type": "giant",
+      "cr": 12,
+      "description": "The Speaker again, on the beacon hills, stronger and angrier, with Ashmaw at call.",
+      "role": "brute",
+      "size": "large",
+      "roads": false,
+      "signature": {
+        "name": "Beacon Brand",
+        "text": "He swings a burning beacon-log across a tile.",
+        "when": "desperate",
+        "kind": "area",
+        "damage": 1.3,
+        "riders": [
+          {
+            "effect": "burn",
+            "share": 0.3,
+            "rounds": 1
+          }
+        ],
+        "todo": "Needs damage over rounds."
+      },
+      "trick": {
+        "name": "Ashmaw!",
+        "text": "He whistles, and the great grey drake drops out of the smoke.",
+        "when": "once",
+        "kind": "call",
+        "damage": 0,
+        "riders": [
+          {
+            "effect": "call",
+            "creature": "ashmaw",
+            "count": 1
+          }
+        ],
+        "todo": "Needs enemies joining mid-fight (placed at the boss end of the line)."
+      }
+    },
+    {
+      "id": "drake-speaker-waking",
+      "name": "the Drake-Speaker",
+      "group": "the Drake-Speaker",
+      "type": "giant",
+      "cr": 18,
+      "description": "The Speaker at the last, half mad in the wyrm's hall, with the wyrm's heat in his voice.",
+      "role": "brute",
+      "size": "large",
+      "roads": false,
+      "signature": {
+        "name": "Wyrm-Voice",
+        "text": "He speaks with the wyrm's voice, and the sound staggers two tiles.",
+        "when": "desperate",
+        "kind": "area",
+        "reach": [1, 3],
+        "tiles": 2,
+        "damage": 1.2,
+        "riders": [
+          {
+            "effect": "stagger"
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      },
+      "trick": {
+        "name": "Shake the Mountain",
+        "text": "He stamps, the mountain answers, and stone falls across two tiles.",
+        "when": "everyOther",
+        "kind": "area",
+        "reach": [1, 4],
+        "tiles": 2,
+        "damage": 0.6,
+        "riders": [
+          {
+            "effect": "exposed"
+          }
+        ],
+        "todo": "Needs a two-tile area for enemies (the area intent covers one tile); a move's own reach (enemies strike at their role's reach); member conditions: the engine staggers and stuns only enemies, and Exposed is for the whole fight."
+      }
+    },
+    {
+      "id": "hill-drake",
+      "name": "Hill Drake",
+      "group": "a flight of drakes",
+      "type": "dragon",
+      "cr": 3,
+      "description": "Lean, horse-sized drakes of the high country that take sheep and shepherds alike.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "ashmaw",
+      "name": "Ashmaw",
+      "group": "Ashmaw",
+      "type": "dragon",
+      "cr": 9,
+      "description": "The Drake-Speaker's mount: an old grey drake with a burned-out eye and a temper to match.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false
+    }
+  ]
+}

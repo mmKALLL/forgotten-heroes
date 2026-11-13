@@ -288,6 +288,7 @@ function validateCompiled(compiled: Situation, content: Content): string[] {
     }
     const any = Object.values(content.creatures).some(
       (c) =>
+        c.roads &&
         (source.types.length === 0 || source.types.includes(c.type)) &&
         (source.maxCr === undefined || c.cr <= source.maxCr)
     )

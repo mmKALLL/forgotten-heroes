@@ -1041,3 +1041,78 @@ export const CLERIC_ALIGNMENT_WEIGHTS: Readonly<Record<MoralAlignment, number>> 
   neutral: 0.35,
   evil: 0.2,
 }
+
+// Combat: the road CR budget (combat/budget.ts; Plan 7 Track N, used by Track I's road Fight)
+
+/**
+ * XP a creature of each CR is worth toward a fight's budget (the SRD 5.1 values), keyed by CR.
+ * Past CR 30 it rises by CR_XP_BEYOND per CR.
+ */
+export const CR_XP: Readonly<Record<number, number>> = {
+  0: 10,
+  0.125: 25,
+  0.25: 50,
+  0.5: 100,
+  1: 200,
+  2: 450,
+  3: 700,
+  4: 1100,
+  5: 1800,
+  6: 2300,
+  7: 2900,
+  8: 3900,
+  9: 5000,
+  10: 5900,
+  11: 7200,
+  12: 8400,
+  13: 10000,
+  14: 11500,
+  15: 13000,
+  16: 15000,
+  17: 18000,
+  18: 20000,
+  19: 22000,
+  20: 25000,
+  21: 33000,
+  22: 41000,
+  23: 50000,
+  24: 62000,
+  25: 75000,
+  26: 90000,
+  27: 105000,
+  28: 120000,
+  29: 135000,
+  30: 155000,
+}
+export const CR_XP_BEYOND = 20000
+/**
+ * A medium fight's XP per member by level 1–20 (index 0 is level 1), our own smooth curve in the
+ * shape of 5e's encounter budgets (no jump at level 5: members here gain no extra attack).
+ */
+export const FIGHT_XP_PER_MEMBER: readonly number[] = [
+  50, 100, 150, 250, 400, 550, 700, 850, 1000, 1200, 1450, 1700, 2000, 2300, 2600, 3000, 3400, 3900,
+  4400, 5000,
+]
+/** An easy, medium or hard fight's budget, as a share of the medium one. */
+export const FIGHT_DIFFICULTY: Readonly<Record<'easy' | 'medium' | 'hard', number>> = {
+  easy: 0.5,
+  medium: 1,
+  hard: 1.5,
+}
+/**
+ * A group's XP is multiplied by its size: [smallest group, factor] (several foes are worse than
+ * one of their total XP). A party of fewer than FIGHT_SMALL_PARTY members reads the next row, and
+ * one of FIGHT_LARGE_PARTY or more the row before.
+ */
+export const FIGHT_GROUP_FACTOR: readonly (readonly [group: number, factor: number])[] = [
+  [1, 1],
+  [2, 1.5],
+  [3, 2],
+  [7, 2.5],
+  [11, 3],
+  [15, 4],
+]
+export const FIGHT_SMALL_PARTY = 3
+export const FIGHT_LARGE_PARTY = 6
+/** A road fight fields at most this many of its creature (the line has room for about this many). */
+export const ROAD_FIGHT_MAX = 8

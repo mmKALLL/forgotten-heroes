@@ -2,7 +2,7 @@
   "$schema": "../_schema/creatures.schema.json",
   "kind": "creatures",
   "source": "imported",
-  "notes": "Names, types and challenge ratings from the System Reference Document 5.1 by Wizards of the Coast LLC, licensed under CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/legalcode). Groups and descriptions are our own words. Used as the {foe} in hostile-group encounters, and the beasts as predators in the twist table.",
+  "notes": "Names, types and challenge ratings from the System Reference Document 5.1 by Wizards of the Coast LLC, licensed under CC-BY-4.0 (https://creativecommons.org/licenses/by/4.0/legalcode). Groups and descriptions are our own words. Used as the {foe} in hostile-group encounters, and the beasts as predators in the twist table. Plan 7 Track N (Claude): every creature has a combat role and a size (data/claude/enemy-roles.json), and the creatures after the first 19 were added for dungeon rooms and Crisis sites, with \"roads\": false so the road slots draw from the same creatures as before.",
   "entries": [
     {
       "id": "bandit",
@@ -10,7 +10,9 @@
       "group": "a band of bandits",
       "type": "humanoid",
       "cr": 0.125,
-      "description": "Desperate road-thieves who would rather rob the weak than fight the strong."
+      "description": "Desperate road-thieves who would rather rob the weak than fight the strong.",
+      "role": "skirmisher",
+      "size": "medium"
     },
     {
       "id": "bandit-captain",
@@ -18,7 +20,9 @@
       "group": "a bandit captain and her crew",
       "type": "humanoid",
       "cr": 2,
-      "description": "A seasoned outlaw who keeps her gang in line by being the most dangerous of them."
+      "description": "A seasoned outlaw who keeps her gang in line by being the most dangerous of them.",
+      "role": "leader",
+      "size": "medium"
     },
     {
       "id": "thug",
@@ -26,7 +30,9 @@
       "group": "a gang of thugs",
       "type": "humanoid",
       "cr": 0.5,
-      "description": "Hired muscle that deals in threats and broken fingers."
+      "description": "Hired muscle that deals in threats and broken fingers.",
+      "role": "brute",
+      "size": "medium"
     },
     {
       "id": "cultist",
@@ -34,7 +40,9 @@
       "group": "a knot of robed cultists",
       "type": "humanoid",
       "cr": 0.125,
-      "description": "Zealots of a hidden god, more fervent than skilled."
+      "description": "Zealots of a hidden god, more fervent than skilled.",
+      "role": "swarm",
+      "size": "medium"
     },
     {
       "id": "veteran",
@@ -42,7 +50,9 @@
       "group": "a pair of deserters",
       "type": "humanoid",
       "cr": 3,
-      "description": "Old soldiers who have seen too many battles to fear one more."
+      "description": "Old soldiers who have seen too many battles to fear one more.",
+      "role": "brute",
+      "size": "medium"
     },
     {
       "id": "goblin",
@@ -50,7 +60,9 @@
       "group": "a mob of goblins",
       "type": "humanoid",
       "cr": 0.25,
-      "description": "Small, quick and cruel, and much braver in numbers."
+      "description": "Small, quick and cruel, and much braver in numbers.",
+      "role": "skirmisher",
+      "size": "small"
     },
     {
       "id": "hobgoblin",
@@ -58,7 +70,9 @@
       "group": "a squad of hobgoblins",
       "type": "humanoid",
       "cr": 0.5,
-      "description": "Disciplined goblinoid soldiers who fight in tight ranks."
+      "description": "Disciplined goblinoid soldiers who fight in tight ranks.",
+      "role": "brute",
+      "size": "medium"
     },
     {
       "id": "bugbear",
@@ -66,7 +80,9 @@
       "group": "a pair of bugbears",
       "type": "humanoid",
       "cr": 1,
-      "description": "Hulking goblinoids who prefer an ambush to a fair fight."
+      "description": "Hulking goblinoids who prefer an ambush to a fair fight.",
+      "role": "brute",
+      "size": "medium"
     },
     {
       "id": "orc",
@@ -74,7 +90,9 @@
       "group": "a war band of orcs",
       "type": "humanoid",
       "cr": 0.5,
-      "description": "Fierce raiders who take what the land won't give them."
+      "description": "Fierce raiders who take what the land won't give them.",
+      "role": "brute",
+      "size": "medium"
     },
     {
       "id": "gnoll",
@@ -82,7 +100,9 @@
       "group": "a pack of gnolls",
       "type": "humanoid",
       "cr": 0.5,
-      "description": "Hyena-headed raiders with a hunger that is never satisfied."
+      "description": "Hyena-headed raiders with a hunger that is never satisfied.",
+      "role": "skirmisher",
+      "size": "medium"
     },
     {
       "id": "kobold",
@@ -90,7 +110,9 @@
       "group": "a swarm of kobolds",
       "type": "humanoid",
       "cr": 0.125,
-      "description": "Tiny reptilian schemers who trust traps and numbers over courage."
+      "description": "Tiny reptilian schemers who trust traps and numbers over courage.",
+      "role": "swarm",
+      "size": "small"
     },
     {
       "id": "lizardfolk",
@@ -98,7 +120,9 @@
       "group": "a hunting party of lizardfolk",
       "type": "humanoid",
       "cr": 0.5,
-      "description": "Cold-eyed marsh hunters who see everything as food, threat or tool."
+      "description": "Cold-eyed marsh hunters who see everything as food, threat or tool.",
+      "role": "brute",
+      "size": "medium"
     },
     {
       "id": "ogre",
@@ -106,7 +130,9 @@
       "group": "an ogre and its hangers-on",
       "type": "giant",
       "cr": 2,
-      "description": "A brute of enormous strength and very little patience."
+      "description": "A brute of enormous strength and very little patience.",
+      "role": "brute",
+      "size": "large"
     },
     {
       "id": "worg",
@@ -114,7 +140,9 @@
       "group": "a pack of worgs",
       "type": "monstrosity",
       "cr": 0.5,
-      "description": "Cunning wolf-like beasts that can speak, and hold grudges."
+      "description": "Cunning wolf-like beasts that can speak, and hold grudges.",
+      "role": "skirmisher",
+      "size": "large"
     },
     {
       "id": "ghoul",
@@ -122,7 +150,9 @@
       "group": "a pack of ghouls",
       "type": "undead",
       "cr": 1,
-      "description": "Starving dead whose claws lock the living rigid with fear."
+      "description": "Starving dead whose claws lock the living rigid with fear.",
+      "role": "skirmisher",
+      "size": "medium"
     },
     {
       "id": "wolf",
@@ -130,7 +160,9 @@
       "group": "a pack of wolves",
       "type": "beast",
       "cr": 0.25,
-      "description": "Lean grey hunters that wear their prey down together."
+      "description": "Lean grey hunters that wear their prey down together.",
+      "role": "skirmisher",
+      "size": "medium"
     },
     {
       "id": "dire-wolf",
@@ -138,7 +170,9 @@
       "group": "a pair of dire wolves",
       "type": "beast",
       "cr": 1,
-      "description": "Wolves the size of ponies, patient and terribly strong."
+      "description": "Wolves the size of ponies, patient and terribly strong.",
+      "role": "brute",
+      "size": "large"
     },
     {
       "id": "brown-bear",
@@ -146,7 +180,9 @@
       "group": "a she-bear and her grown cubs",
       "type": "beast",
       "cr": 1,
-      "description": "Half a ton of hunger that doesn't care whose meal it takes."
+      "description": "Half a ton of hunger that doesn't care whose meal it takes.",
+      "role": "brute",
+      "size": "large"
     },
     {
       "id": "giant-spider",
@@ -154,7 +190,416 @@
       "group": "a pair of giant spiders",
       "type": "beast",
       "cr": 1,
-      "description": "Web-spinners as big as a mule, with a venomous bite."
+      "description": "Web-spinners as big as a mule, with a venomous bite.",
+      "role": "skirmisher",
+      "size": "large"
+    },
+    {
+      "id": "giant-rat",
+      "name": "Giant Rat",
+      "group": "a pack of giant rats",
+      "type": "beast",
+      "cr": 0.125,
+      "description": "Rats the size of dogs, grown fat and bold in the dark.",
+      "role": "swarm",
+      "size": "small",
+      "roads": false
+    },
+    {
+      "id": "mastiff",
+      "name": "Mastiff",
+      "group": "a pack of hounds",
+      "type": "beast",
+      "cr": 0.125,
+      "description": "Heavy-jawed guard dogs, kept hungry on purpose.",
+      "role": "skirmisher",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "giant-wolf-spider",
+      "name": "Giant Wolf Spider",
+      "group": "a clutch of hunting spiders",
+      "type": "beast",
+      "cr": 0.25,
+      "description": "Dog-sized spiders that run their prey down instead of waiting in a web.",
+      "role": "skirmisher",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "swarm-of-insects",
+      "name": "Swarm of Insects",
+      "group": "a swarm of crawling things",
+      "type": "beast",
+      "cr": 0.5,
+      "description": "A clicking, biting carpet of beetles, spiders or worse, moving as one.",
+      "role": "swarm",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "hyena",
+      "name": "Hyena",
+      "group": "a pack of hyenas",
+      "type": "beast",
+      "cr": 0,
+      "description": "Cackling scavengers that dart in to bite and dart away again.",
+      "role": "skirmisher",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "giant-crab",
+      "name": "Giant Crab",
+      "group": "a scuttle of giant crabs",
+      "type": "beast",
+      "cr": 0.125,
+      "description": "Shield-broad crabs that pinch first and never let go.",
+      "role": "swarm",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "crocodile",
+      "name": "Crocodile",
+      "group": "a bask of crocodiles",
+      "type": "beast",
+      "cr": 0.5,
+      "description": "A log that opens into a mouth full of teeth.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "giant-crocodile",
+      "name": "Giant Crocodile",
+      "group": "a pair of giant crocodiles",
+      "type": "beast",
+      "cr": 5,
+      "description": "A crocodile as long as a boat, old and patient.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false
+    },
+    {
+      "id": "giant-scorpion",
+      "name": "Giant Scorpion",
+      "group": "a nest of giant scorpions",
+      "type": "beast",
+      "cr": 3,
+      "description": "Armoured desert hunters with claws like vices and a killing sting.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "giant-ape",
+      "name": "Giant Ape",
+      "group": "a troop of giant apes",
+      "type": "beast",
+      "cr": 7,
+      "description": "Apes taller than a house that hurl boulders when they cannot reach you.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false
+    },
+    {
+      "id": "skeleton",
+      "name": "Skeleton",
+      "group": "a rank of skeletons",
+      "type": "undead",
+      "cr": 0.25,
+      "description": "Old bones made to stand and fight; they do not tire and they do not stop.",
+      "role": "swarm",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "zombie",
+      "name": "Zombie",
+      "group": "a shamble of zombies",
+      "type": "undead",
+      "cr": 0.25,
+      "description": "Slow, stubborn corpses that keep coming after they should have fallen.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "shadow",
+      "name": "Shadow",
+      "group": "a gathering of shadows",
+      "type": "undead",
+      "cr": 0.5,
+      "description": "Darkness that moves on its own and drinks the strength out of the living.",
+      "role": "skirmisher",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "specter",
+      "name": "Specter",
+      "group": "a cold host of specters",
+      "type": "undead",
+      "cr": 1,
+      "description": "A hateful ghost whose touch withers what it passes through.",
+      "role": "skirmisher",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "ghost",
+      "name": "Ghost",
+      "group": "a haunting of ghosts",
+      "type": "undead",
+      "cr": 4,
+      "description": "A soul bound to the place it died; one look at its face can age you years.",
+      "role": "caster",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "wight",
+      "name": "Wight",
+      "group": "a barrow-host led by a wight",
+      "type": "undead",
+      "cr": 3,
+      "description": "A cunning dead warrior who commands lesser corpses and drinks life with its blade.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "mummy",
+      "name": "Mummy",
+      "group": "a procession of mummies",
+      "type": "undead",
+      "cr": 3,
+      "description": "Wrapped dead whose fists carry a rotting curse.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "vampire-spawn",
+      "name": "Vampire Spawn",
+      "group": "a brood of vampire spawn",
+      "type": "undead",
+      "cr": 5,
+      "description": "A vampire's fed-upon servant: quick, strong and always hungry.",
+      "role": "skirmisher",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "animated-armor",
+      "name": "Animated Armor",
+      "group": "a file of animated armour",
+      "type": "construct",
+      "cr": 1,
+      "description": "An empty suit of armour that marches and strikes on its maker's old orders.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "stone-golem",
+      "name": "Stone Golem",
+      "group": "a pair of stone golems",
+      "type": "construct",
+      "cr": 10,
+      "description": "A carved guardian that cannot be bribed, frightened or tired.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "gargoyle",
+      "name": "Gargoyle",
+      "group": "a flight of gargoyles",
+      "type": "elemental",
+      "cr": 2,
+      "description": "A living statue that waits on a ledge for years, then drops on its prey.",
+      "role": "skirmisher",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "azer",
+      "name": "Azer",
+      "group": "a forge-crew of azers",
+      "type": "elemental",
+      "cr": 2,
+      "description": "Bronze-skinned smiths of living fire, with beards of flame.",
+      "role": "brute",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "fire-elemental",
+      "name": "Fire Elemental",
+      "group": "a blaze of fire elementals",
+      "type": "elemental",
+      "cr": 5,
+      "description": "A towering shape of flame that sets alight whatever it touches.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "salamander",
+      "name": "Salamander",
+      "group": "a coil of salamanders",
+      "type": "elemental",
+      "cr": 5,
+      "description": "Serpent-bodied creatures of flame that crush and burn in the same embrace.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "otyugh",
+      "name": "Otyugh",
+      "group": "an otyugh",
+      "type": "aberration",
+      "cr": 5,
+      "description": "A three-legged sack of hunger that lives in filth and eats anything.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "black-pudding",
+      "name": "Black Pudding",
+      "group": "a black pudding",
+      "type": "ooze",
+      "cr": 4,
+      "description": "A heaving black ooze that dissolves wood, metal and flesh alike.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "winter-wolf",
+      "name": "Winter Wolf",
+      "group": "a pack of winter wolves",
+      "type": "monstrosity",
+      "cr": 3,
+      "description": "Pale wolves the size of ponies whose breath is a killing frost.",
+      "role": "skirmisher",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "phase-spider",
+      "name": "Phase Spider",
+      "group": "a nest of phase spiders",
+      "type": "monstrosity",
+      "cr": 3,
+      "description": "Spiders that blink out of the world and back, a step behind you.",
+      "role": "skirmisher",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "hill-giant",
+      "name": "Hill Giant",
+      "group": "a clan of hill giants",
+      "type": "giant",
+      "cr": 5,
+      "description": "Greedy, dim and enormous, with a club made from a tree.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false
+    },
+    {
+      "id": "stone-giant",
+      "name": "Stone Giant",
+      "group": "a clan of stone giants",
+      "type": "giant",
+      "cr": 7,
+      "description": "Grey, quiet giants of the high places, who throw boulders with deadly aim.",
+      "role": "archer",
+      "size": "huge",
+      "roads": false
+    },
+    {
+      "id": "fire-giant",
+      "name": "Fire Giant",
+      "group": "a crew of fire giants",
+      "type": "giant",
+      "cr": 9,
+      "description": "Soot-black giants of the forges, as skilled with a hammer as with a sword.",
+      "role": "brute",
+      "size": "huge",
+      "roads": false
+    },
+    {
+      "id": "red-dragon-wyrmling",
+      "name": "Red Dragon Wyrmling",
+      "group": "a brood of red wyrmlings",
+      "type": "dragon",
+      "cr": 4,
+      "description": "A newly hatched red dragon, the size of a hound and already greedy.",
+      "role": "swarm",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "young-red-dragon",
+      "name": "Young Red Dragon",
+      "group": "a young red dragon",
+      "type": "dragon",
+      "cr": 10,
+      "description": "A red dragon not yet grown, all temper and fire.",
+      "role": "brute",
+      "size": "large",
+      "roads": false
+    },
+    {
+      "id": "scout",
+      "name": "Scout",
+      "group": "a party of scouts",
+      "type": "humanoid",
+      "cr": 0.5,
+      "description": "Woods-wise hunters and lookouts who shoot from cover.",
+      "role": "archer",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "cult-fanatic",
+      "name": "Cult Fanatic",
+      "group": "a coven of fanatics",
+      "type": "humanoid",
+      "cr": 2,
+      "description": "True believers who have been given a little real power, and want more.",
+      "role": "caster",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "knight",
+      "name": "Knight",
+      "group": "a company of knights",
+      "type": "humanoid",
+      "cr": 3,
+      "description": "Armoured riders sworn to a lord, who fight in order and call their charges.",
+      "role": "leader",
+      "size": "medium",
+      "roads": false
+    },
+    {
+      "id": "mage",
+      "name": "Mage",
+      "group": "a circle of mages",
+      "type": "humanoid",
+      "cr": 6,
+      "description": "A learned spellcaster who settles arguments with fire.",
+      "role": "caster",
+      "size": "medium",
+      "roads": false
     }
   ]
 }
