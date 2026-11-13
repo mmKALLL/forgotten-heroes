@@ -664,6 +664,13 @@ export const en = {
 
   'journey.continueHint':
     'Walks on until something happens: an encounter, a supply warning, someone going short, or arrival',
+  'journey.pause': 'Pause',
+  'journey.resume': 'Resume',
+  'journey.autoHint':
+    'The party walks on by itself, a day at a time, and stops when it needs you. Space pauses or resumes.',
+  'journey.skip': 'Skip ahead',
+  'journey.skipHint':
+    'Walk on at once until something happens: an encounter, a supply warning, someone going short, or arrival',
   'journey.autoRest':
     'On arrival, rest a day if anyone is hurt or strained (at an inn if affordable)',
   'mapTravel.label': 'Travel to {name}',

@@ -18,6 +18,7 @@ import { ridden, shownPace, travelAction } from './RoadsOut'
 import { dangerText, daysText, paceText, roadReasonMessage, warningMessage } from './travelText'
 import { isSevere } from '../../engine/travel/warnings'
 import type { TravelPrefs } from './travelPrefs'
+import { useGlideShare, type GlideStore } from './autoTravel'
 import { SPOT_SPACING_PX } from '../../engine/constants'
 
 /**
@@ -136,6 +137,8 @@ type Props = {
   prefs?: TravelPrefs
   onTravel?: (a: Action) => void
   onClose?: () => void
+  /** Auto-travel's glide: on the road the marker moves on through the day under way. */
+  glide?: GlideStore
 }
 
 /** A small three-pointed crown above a seat's marker. */
@@ -211,6 +214,7 @@ export function WorldMap({
   prefs,
   onTravel,
   onClose,
+  glide,
 }: Props) {
   const { t } = useI18n()
   // Zoomed in on the party by default; the view follows it as it moves.
@@ -222,8 +226,9 @@ export function WorldMap({
   const at = (id: string): MapPoint | null => nodeOf(state, content, id)?.at ?? null
   const travel = state.travel
   const from = travel ? at(travel.from) : null
-  // On the road the party is drawn the share of the way it has travelled along its road.
-  const party = partyPoint(state, content)
+  // On the road the party is drawn the share of the way it has travelled along its road, gliding
+  // on through the day under way while auto-travel runs (only the map re-renders each frame).
+  const party = partyPoint(state, content, useGlideShare(glide, state))
   const roads = routeOptions(state, content, prefs?.forage ?? true)
   const reachable = new Set(roads.map((r) => r.to))
   const picked = !travel && prefs && onTravel ? roads.find((r) => r.to === selected) : undefined
