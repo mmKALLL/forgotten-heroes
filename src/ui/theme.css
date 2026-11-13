@@ -2940,20 +2940,6 @@ h2[tabindex='-1']:focus {
 .intent-row.other .arrow {
   border-top-style: dashed;
 }
-.arrow::after {
-  content: '';
-  position: absolute;
-  top: -6px;
-  border: 5px solid transparent;
-}
-.arrow.to-right::after {
-  right: -6px;
-  border-left: 7px solid currentColor;
-}
-.arrow.to-left::after {
-  left: -6px;
-  border-right: 7px solid currentColor;
-}
 .arrow-label {
   position: absolute;
   top: 0;
@@ -2967,11 +2953,11 @@ h2[tabindex='-1']:focus {
   line-height: 1.15rem;
   white-space: nowrap;
 }
-.arrow-label.at-start {
-  transform: translateX(-25%);
+.arrow-label.to-left {
+  transform: translateX(-0.35rem);
 }
-.arrow-label.at-end {
-  transform: translateX(-75%);
+.arrow-label.to-right {
+  transform: translateX(calc(-100% + 0.35rem));
 }
 .tile {
   display: flex;
@@ -3197,8 +3183,71 @@ h2[tabindex='-1']:focus {
   gap: 0.5rem;
   margin: 0.5rem 0;
 }
+/*
+ * Phones (≤ 480px): the whole line fits the width (7–8 tiles of about 44–50px), so the enemies
+ * and the intents are on screen with the party; the cards shrink, a medium unit's size letter is
+ * left out, and the frame still scrolls sideways rather than the page if a long name won't fit.
+ */
+@media (max-width: 480px) {
+  .combat-line {
+    grid-template-columns: repeat(var(--tiles), minmax(0, 1fr));
+    gap: 3px;
+  }
+  .tile {
+    min-height: 6.5rem;
+    padding: 2px;
+    gap: 3px;
+  }
+  .unit {
+    padding: 2px 3px;
+    border-left-width: 2px;
+    font-size: 0.62rem;
+  }
+  .unit .hp {
+    height: 0.8rem;
+    margin: 0.1rem 0;
+  }
+  .unit .hp-text {
+    font-size: 0.58rem;
+    padding-left: 0.15rem;
+  }
+  .unit-size.medium {
+    display: none;
+  }
+  /* Names wrap to two lines rather than cut, so "Bandit 1" and "Bandit 2" stay apart. */
+  .unit-name {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.15;
+  }
+  .unit-tags {
+    font-size: 0.55rem;
+    overflow-wrap: anywhere;
+  }
+  .pip {
+    width: 0.4rem;
+    height: 0.4rem;
+  }
+  .pip.stagger {
+    margin-right: 2px;
+  }
+  .move-here {
+    padding: 0.1rem 0;
+    font-size: 0.6rem;
+  }
+  .arrow-label {
+    font-size: 0.62rem;
+    padding: 0 0.2rem;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .unit {
     transition: none;
   }
+}
+.unit.side-party .unit-tags {
+  color: var(--muted);
 }

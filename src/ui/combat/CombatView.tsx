@@ -427,7 +427,7 @@ function UnitCard({
         <span className="unit-name" title={u.name}>
           {u.name}
         </span>
-        <span className="unit-size" title={t(`combat.sizeName.${u.size}`)}>
+        <span className={`unit-size ${u.size}`} title={t(`combat.sizeName.${u.size}`)}>
           {t(`combat.size.${u.size}`)}
         </span>
       </span>
@@ -504,15 +504,18 @@ function IntentLane({
         const to = intent.intent.tile
         const lo = Math.min(from, to)
         const hi = Math.max(from, to)
-        const edge = to === 0 ? ' at-start' : to === view.line - 1 ? ' at-end' : ''
+        // The label is the arrowhead: it starts at the target tile and runs back over the shaft.
+        const dir = to < from ? 'to-left' : to > from ? 'to-right' : 'in-place'
         return (
           <div key={intent.unit} className={`intent-row ${intentTone(intent)}`}>
             <span
-              className={`arrow ${to < from ? 'to-left' : 'to-right'}`}
+              className="arrow"
               style={{ left: pct(lo), width: `${((hi - lo) / view.line) * 100}%` }}
             />
-            <span className={`arrow-label${edge}`} style={{ left: pct(to) }}>
+            <span className={`arrow-label ${dir}`} style={{ left: pct(to) }}>
+              {dir === 'to-left' && '◀ '}
               <b>{n + 1}</b> {arrowLabel(intent, i18n)}
+              {dir === 'to-right' && ' ▶'}
             </span>
           </div>
         )
@@ -647,7 +650,6 @@ function Preview({
     const target = view.tiles.flatMap((x) => x.units).find((u) => u.id === aim.target)
     const notes: string[] = []
     if (specs[0]?.onHit) notes.push(t(`combat.onHit.${specs[0].onHit}`))
-    if (active.staggersOnHit) notes.push(t('combat.traitStagger'))
     if (specs[0]?.cleave) notes.push(t('combat.cleave'))
     return (
       <>
