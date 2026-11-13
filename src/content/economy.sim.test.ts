@@ -12,6 +12,7 @@ import { rampLevel } from '../engine/world/danger'
 import { gatherOptions, type GatherOption } from '../engine/world/gather'
 import { isAlive, isHired, livingMembers } from '../engine/town/camaraderie'
 import { MAX_EXHAUSTION } from '../engine/rules/character'
+import { runOver } from '../engine/crisis/ending'
 import { STARTING_GOLD } from '../engine/constants'
 import { GameStateSchema, type GameState } from '../schema/state'
 import { CONTRACT_KINDS, GOODS, type ContractKind, type Good } from '../schema/types'
@@ -413,11 +414,13 @@ function priceSpreads(seeds: number[], days: number[]): Record<Good, number[]> {
 describe('the economy (guards with generous bounds)', () => {
   const runs = [1, 2, 3, 4, 5, 6, 7, 8].map((seed) => simulate(seed, 'trader', 30))
 
-  test('the trader runs seeds 1–8 for 30 days and keeps a valid state', () => {
+  test('the trader runs seeds 1–8 for 30 days (or until its run ends) and keeps a valid state', () => {
     for (const { state } of runs) {
       expect(GameStateSchema.parse(state)).toEqual(state)
-      expect(state.day).toBeGreaterThanOrEqual(30)
+      // Hunger can now disband a party (camaraderie 0) before day 30: that is a valid ending.
+      if (!runOver(state)) expect(state.day).toBeGreaterThanOrEqual(30)
     }
+    expect(runs.filter(({ state }) => !runOver(state)).length).toBeGreaterThanOrEqual(4)
   })
 
   test('seeds 1–3 have no deaths', () => {
