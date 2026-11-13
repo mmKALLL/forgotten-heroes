@@ -255,6 +255,7 @@ export function crLevel(cr: number): number
 
 **Tracks:**
 - **E (engine):** camaraderie 0–100 with weekly losses and the game over, lead +1 CR, the waiting penalty, and the dungeon level knowledge (state and view model). Migration v14 → v15.
+  - **As built:** design §3 (the low spell, disbanded), §6 (known by word), §10b (the waiting penalty, lead CRs) and §12 (Claude's calls: +5 only for a living member leaving; disbanded is final like a wipe; rounding; hunger now disbands a starving party in about five days).
 - **V (UI):**
   - market labels, services inline, shift-sell ×5, recruit offer text;
   - the map +32 px, kingdoms by distance;
