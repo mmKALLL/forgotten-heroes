@@ -441,7 +441,7 @@ export const RECRUIT_LOCAL_ANCESTRY = 0.75
 /** Camaraderie lost at the end of a day on which anyone went without food or water. */
 export const CAMARADERIE_HUNGER = 8
 /** Camaraderie lost for each member who dies. */
-export const CAMARADERIE_DEATH = 25
+export const CAMARADERIE_DEATH = 20
 /**
  * Camaraderie lost for a failed encounter check, per living member beyond the first (the total is
  * rounded to whole points).
@@ -452,13 +452,13 @@ export const CAMARADERIE_CRIT_FAIL = 2
 /** Camaraderie lost for fleeing (an option tagged `retreat`), per living member beyond the first. */
 export const CAMARADERIE_RETREAT = 5
 /** Camaraderie gained for each contract completed. */
-export const CAMARADERIE_CONTRACT = 13
+export const CAMARADERIE_CONTRACT = 8
 /** Camaraderie gained for a night in a private room, once per arrival (a common room: none). */
 export const CAMARADERIE_BOND = 4
 /** Camaraderie gained for standing the party a round at the inn, once per arrival. */
 export const CAMARADERIE_ROUND = 8
 /** A round at the inn, per living member (gp). */
-export const ROUND_PRICE = 1
+export const ROUND_PRICE = 4
 /** Camaraderie gained at once when a living member leaves: dismissed, or lost to a low spell. */
 export const CAMARADERIE_PARTING = 5
 /** Below Fractured's top, one member leaves for each full this many days of an unbroken spell. */
