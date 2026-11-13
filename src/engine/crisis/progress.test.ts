@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'vitest'
-import { EffectSchema, OptionSchema } from '../../schema/encounter'
+import { EffectSchema, OptionSchema, SituationSchema } from '../../schema/encounter'
 import type { CrisisState } from '../../schema/crisis'
 import type { GameState } from '../../schema/state'
 import { applyEffects, describeEffect } from '../encounters/effects'
@@ -7,7 +7,7 @@ import { encounterOptions } from '../encounters/preview'
 import { crDc } from '../rules/challenge'
 import { step } from '../state'
 import { fixtureContent, makeEncounter, makeState } from '../test-fixtures'
-import { siteActions } from '../world/explore'
+import { exploreOption, siteActions } from '../world/explore'
 import { poisToDiscover } from '../world/pois'
 import { CRISIS_DC_BASE, CRISIS_SITE_CLUES, XP_DISCOVER, XP_THWART } from '../constants'
 import { crisisHidden } from './sites'
@@ -185,6 +185,49 @@ describe('the act sites', () => {
     ).toContain(site)
     const noClue = { ...state, crisis: { ...state.crisis!, clues: [3, 0, 0] } }
     expect(crisisHidden(noClue, domain).has(site)).toBe(true)
+  })
+
+  test('a lead coming within reach clears "fully explored" across its land, never only its domain', () => {
+    const state = withCrisis(
+      { leads: [35, null, null], thwarted: [50, null, null], clues: [3, 0, 0] },
+      { day: 140 }
+    )
+    const site = state.crisis!.acts[1].lead
+    const domain = state.world.pois[site].domain
+    const land = state.world.domains[domain].land
+    const domains = Object.keys(state.world.domains)
+    const elsewhere = domains.filter((d) => state.world.domains[d].land !== land)
+    const marked = { ...state, explored: domains, location: domain, travel: null }
+    // Without a clue the lead stays hidden; with one, Explore doesn't return in its domain alone
+    // (that would point to it): the mark lapses only with what the party learns.
+    expect(exploreOption(marked, content)?.explored).toBe(true)
+    const clued = { ...marked, crisis: { ...marked.crisis!, clues: [3, 1, 0] } }
+    expect(exploreOption(clued, content)?.explored).toBe(true)
+    // The clue line itself is what the party learns: the whole land's marks lapse.
+    const situation = SituationSchema.parse({
+      id: 'test-clue',
+      title: 'Clue',
+      stages: {
+        start: {
+          text: 'A whisper.',
+          options: [
+            {
+              id: 'hear',
+              kind: 'fixed',
+              label: 'Listen',
+              outcome: { text: 'You listen.', effects: [{ effect: 'crisisClue', amount: 1 }] },
+            },
+          ],
+        },
+      },
+    })
+    const heard = step(
+      { ...marked, encounter: makeEncounter({ situation }) },
+      { type: 'chooseOption', optionId: 'hear' },
+      content
+    )
+    expect(heard.crisis!.clues[1]).toBe(1)
+    expect(heard.explored.sort()).toEqual([...elsewhere].sort())
   })
 
   test('thwarting act I on day 50 is allowed, gives act II its land, and quiets the site', () => {

@@ -23,7 +23,7 @@ import { autoRest } from './town/arrival'
 import { stepRecruit, type RecruitAction } from './town/recruits'
 import { startingGoods } from './travel/supplies'
 import { generateWorld, startingSettlement, worldSeed, type StartMode } from './world/generate'
-import { explore, siteActions, visitPoi, type SiteAction } from './world/explore'
+import { explore, forgetExplored, siteActions, visitPoi, type SiteAction } from './world/explore'
 import { settlementName } from './world/geo'
 import { siteEvents } from './world/sites'
 import { applyLevelUps } from './rules/progression'
@@ -162,7 +162,7 @@ export function step(state: GameState, action: Action, content: Content): GameSt
       : state
   const delved = settleDelve(act(ready, action, content), content)
   const acted = crisisNews(state, siteNews(state.day, delved), content)
-  const settled = expireContracts(voidBounties(acted, content), content)
+  const settled = forgetExplored(state, expireContracts(voidBounties(acted, content), content))
   const done = applyLevelUps(keepLowSpell(mournTheDead(state, settled)))
   if (partyWiped(done)) return appendLog(done, FALLEN_LINE, 'crit')
   return runOver(done) ? appendLog(done, DISBANDED_LINE, 'crit') : done
