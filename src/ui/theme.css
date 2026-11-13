@@ -2084,6 +2084,12 @@ h2[tabindex='-1']:focus {
   font-size: 0.72rem;
   padding: 0 0.2rem;
 }
+/* "Riding horse · 120 gp · 20 kg" fits a tile's width. */
+.inline-pick select.animal-pick {
+  font-size: 0.68rem;
+  padding: 0 0 0 0.1rem;
+  letter-spacing: -0.01em;
+}
 .hire-toggle {
   display: block;
 }
@@ -2280,15 +2286,140 @@ h2[tabindex='-1']:focus {
   border-top: 0;
 }
 .contract-rewards {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: center;
-  gap: 0.2rem 0.4rem;
   margin-top: 0.2rem;
 }
 .contract-rewards button {
-  padding: 0.05rem 0.4rem;
+  padding: 0.05rem 0.5rem;
   font-size: 0.8rem;
+}
+/* Claiming a contract's reward (designer call 2026-11-14): a gilt-edged modal, the two rewards
+   side by side (stacked on a phone), a few coins settling in above the heading. */
+.reward-dialog {
+  position: relative;
+  width: min(30rem, 100%);
+  max-height: 100%;
+  overflow-y: auto;
+  text-align: center;
+  padding: 1.1rem 1.2rem 1.2rem;
+  border: 1px solid color-mix(in srgb, var(--crit) 55%, var(--line));
+  border-top: 4px solid var(--crit);
+  box-shadow:
+    0 8px 28px rgb(0 0 0 / 0.35),
+    inset 0 0 0 3px var(--panel),
+    inset 0 0 0 4px color-mix(in srgb, var(--crit) 35%, transparent);
+  animation: reward-in 260ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.reward-dialog h2 {
+  margin: 0.2rem 0 0.15rem;
+  font-size: 1.3rem;
+  letter-spacing: 0.06em;
+  font-variant: small-caps;
+  text-transform: none;
+  color: var(--ink);
+}
+.reward-title {
+  margin: 0;
+  font-style: italic;
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+.reward-close {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.5rem;
+  font-size: 1.3rem;
+  line-height: 1;
+  padding: 0.1rem 0.35rem;
+  border: 0;
+  background: none;
+  color: var(--muted);
+}
+.reward-coins {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 0.15rem;
+  height: 1.6rem;
+}
+.reward-coin {
+  width: 1.15rem;
+  height: 1.15rem;
+  fill: var(--crit);
+  stroke: color-mix(in srgb, var(--crit) 60%, var(--ink));
+  stroke-width: 1;
+  animation: coin-drop 520ms cubic-bezier(0.3, 1.4, 0.5, 1) both;
+}
+.reward-coin .coin-rim {
+  fill: none;
+  stroke-width: 0.9;
+  opacity: 0.7;
+}
+.reward-coin.coin-1 {
+  width: 1.4rem;
+  height: 1.4rem;
+  margin-bottom: 0.2rem;
+  animation-delay: 90ms;
+}
+.reward-coin.coin-2 {
+  animation-delay: 180ms;
+}
+.reward-rule {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.6rem auto 0.9rem;
+  width: min(14rem, 80%);
+  font-size: 0.7rem;
+  color: var(--crit);
+}
+.reward-rule span {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--crit));
+}
+.reward-rule span:last-child {
+  background: linear-gradient(to left, transparent, var(--crit));
+}
+.reward-choices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+.reward-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+.reward-choice button {
+  width: 100%;
+}
+.reward-choice p {
+  margin: 0;
+  line-height: 1.35;
+}
+@media (max-width: 480px) {
+  .reward-choices {
+    grid-template-columns: 1fr;
+  }
+}
+@keyframes reward-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+@keyframes coin-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-0.7rem);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reward-dialog,
+  .reward-coin {
+    animation: none;
+  }
 }
 .contract-abandon button {
   padding: 0 0.35rem;

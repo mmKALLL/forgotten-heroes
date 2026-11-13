@@ -6,6 +6,7 @@ import { actNumeral, shortName } from '../engine/crisis/text'
 import type { GameState } from '../schema/state'
 import type { RunEnding } from '../schema/types'
 import { useI18n } from './i18n/I18n'
+import { trapTab, useInertBehind } from './modal'
 
 type Props = {
   content: Content
@@ -18,8 +19,6 @@ type Props = {
   /** Fallen or disbanded: closes the screen for this session, to look over the ended run. */
   onLookBack: () => void
 }
-
-const FOCUSABLE = 'button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])'
 
 /**
  * The end screens (design §9, Plan 5b U3): victory, game over and fallen, over the game. The
@@ -48,18 +47,7 @@ export function EndDialog({
   const backdrop = useRef<HTMLDivElement>(null)
 
   // The game behind is inert while the dialog is open, so neither a click nor Tab reaches it.
-  useEffect(() => {
-    const before = document.activeElement as HTMLElement | null
-    const parent = backdrop.current?.parentElement
-    const behind = parent
-      ? [...parent.children].filter((el) => el !== backdrop.current && !el.hasAttribute('inert'))
-      : []
-    for (const el of behind) el.setAttribute('inert', '')
-    return () => {
-      for (const el of behind) el.removeAttribute('inert')
-      if (before?.isConnected) before.focus()
-    }
-  }, [])
+  useInertBehind(backdrop)
   // The first button takes focus on opening, and again when the buttons change.
   useEffect(() => {
     box.current?.querySelector<HTMLElement>('.end-actions button')?.focus()
@@ -72,18 +60,7 @@ export function EndDialog({
       else dismiss()
       return
     }
-    if (e.key !== 'Tab' || !box.current) return
-    const all = [...box.current.querySelectorAll<HTMLElement>(FOCUSABLE)]
-    if (all.length === 0) return
-    const first = all[0]
-    const last = all[all.length - 1]
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault()
-      last.focus()
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault()
-      first.focus()
-    }
+    trapTab(e, box.current)
   }
 
   const summary = runSummary(state, content)

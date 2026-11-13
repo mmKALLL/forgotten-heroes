@@ -63,20 +63,39 @@ test('a contract on its way shows the days left, and is abandoned after a second
   expect(onAction).toHaveBeenCalledWith({ type: 'abandonContract', id: 'c-test' })
 })
 
-test('at its destination it offers the pay or a good word, saying what each gives', async () => {
+test('at its destination, Claim reward opens a dialog with each reward’s total', async () => {
   const onAction = panel(
     makeState({ location: 'greenvale-1', day: 5, contracts: [escort({ met: true })] })
   )
   const list = within(screen.getByRole('region', { name: 'Contracts' }))
-  expect(list.getByText('+5 with the patron, +3 with the town')).toBeTruthy()
-  expect(list.getByText(/^no gold; \+\d+ in each of \d+ settlements of /)).toBeTruthy()
-  await userEvent.click(list.getByRole('button', { name: 'Take 30 gp' }))
+  // The rewards are in the dialog, not inline.
+  expect(list.queryByRole('button', { name: /^Take / })).toBeNull()
+  const claim = list.getByRole('button', { name: /^Claim the reward for / })
+  await userEvent.click(claim)
+  const dialog = within(screen.getByRole('dialog', { name: 'Contract fulfilled' }))
+  // The pay's total (patron 5 + town 3), and the good word's reach.
+  expect(dialog.getByText('+8 reputation')).toBeTruthy()
+  expect(
+    dialog.getByText(
+      /^\+\d+ reputation (in each of .+’s \d+ settlements|in .+), \+5 with the patron$/
+    )
+  ).toBeTruthy()
+  // Focus starts on the pay; Escape closes without choosing, and focus returns to the button.
+  expect(document.activeElement?.textContent).toBe('Take 30 gp')
+  await userEvent.keyboard('{Escape}')
+  expect(screen.queryByRole('dialog')).toBeNull()
+  expect(onAction).not.toHaveBeenCalled()
+  expect(document.activeElement).toBe(claim)
+
+  await userEvent.click(claim)
+  await userEvent.click(screen.getByRole('button', { name: 'Take 30 gp' }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'completeContract',
     id: 'c-test',
     reward: 'gold',
   })
-  await userEvent.click(list.getByRole('button', { name: 'Ask for a good word' }))
+  await userEvent.click(claim)
+  await userEvent.click(screen.getByRole('button', { name: 'Ask for a good word' }))
   expect(onAction).toHaveBeenLastCalledWith({
     type: 'completeContract',
     id: 'c-test',

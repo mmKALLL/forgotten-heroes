@@ -127,8 +127,9 @@ test('rooms, a round, the healer, a blessing, news and animals dispatch their ac
   })
 
   const stable = within(screen.getByRole('region', { name: 'Animals & mounts' }))
-  expect(stable.getByText('+100 kg')).toBeTruthy()
-  // The price is in the picker ("Mule · 10 gp"); the button doesn't repeat it.
+  // The price and the kg are in the picker; neither the button nor a line beside it repeats them.
+  expect(stable.getByRole('option', { name: /^Mule · \d+ gp · 100 kg$/ })).toBeTruthy()
+  expect(stable.queryByText('+100 kg')).toBeNull()
   await userEvent.click(stable.getByRole('button', { name: 'Buy' }))
   expect(onAction).toHaveBeenLastCalledWith({ type: 'buyAnimal', animal: 'mule' })
   await userEvent.click(stable.getByRole('button', { name: /^Sell \(1\)/ }))
