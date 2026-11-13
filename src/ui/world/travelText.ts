@@ -16,7 +16,7 @@ type T = I18n['t']
  */
 export function hostileParts(t: T, option: Pick<PaceOption, 'hostile' | 'pace'>): string {
   const h = option.hostile
-  const parts = (['danger', 'threat', 'forage', 'pace', 'wealth', 'escort'] as const)
+  const parts = (['danger', 'threat', 'forage', 'pace', 'wealth', 'escort', 'cargo'] as const)
     .filter((part) => h[part] !== 0)
     .map((part) =>
       t(`route.hostilePart.${part}`, {
@@ -212,6 +212,8 @@ export function roadReasonMessage(t: T, r: RoadReason): string {
       })
     case 'hire':
       return t('roadReason.hire', { gp: r.params.gold })
+    case 'slow':
+      return t('roadReason.slow', { name: r.params.name.toLowerCase() })
   }
 }
 

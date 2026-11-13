@@ -1,6 +1,6 @@
 import type { Content } from '../../content/build'
 import type { GameState } from '../../schema/state'
-import { animalWater } from '../town/animals'
+import { animalWater, camelWaterSaving } from '../town/animals'
 import { escortPassengers } from '../town/contract-hooks'
 import { kmPerDay, routeTerrain } from './routes'
 import { forecastJourney } from './warnings'
@@ -27,6 +27,7 @@ export function supplyOutlook(state: GameState, content: Content): SupplyOutlook
       speed: travel.kmPerDay / kmPerDay(terrain, travel.pace),
       content,
       animalWater: animalWater(state, content),
+      waterSaving: camelWaterSaving(state, content, terrain),
       escorts: escortPassengers(state),
     }
   )

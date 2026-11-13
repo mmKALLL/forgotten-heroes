@@ -377,7 +377,7 @@ function roadToward(
  * while everyone is fresh). Only steady, brisk and forced are used, so new paces don't matter.
  */
 function paceFor(state: GameState, content: Content, road: RouteOption): Pace {
-  const has = (p: Pace) => road.paces.some((o) => o.pace === p)
+  const has = (p: Pace) => road.paces.some((o) => o.pace === p && !o.blocked)
   let need: Pace = 'steady'
   for (const c of state.contracts) {
     if (c.met) continue
@@ -390,7 +390,7 @@ function paceFor(state: GameState, content: Content, road: RouteOption): Pace {
     const pace: Pace = days / 1.25 <= left || !healthy(state) ? 'brisk' : 'forced'
     if (pace === 'forced' || need === 'steady') need = pace
   }
-  if (!has(need)) return has('brisk') ? 'brisk' : (road.paces[0]?.pace ?? 'steady')
+  if (!has(need)) return has('brisk') ? 'brisk' : 'steady'
   return need
 }
 
@@ -1279,10 +1279,10 @@ export function trader(
       roads[o.pick(leg, roads.length)]
     // No market here to restock: never a pace whose food or water runs out when another lasts,
     // and never a forced march on short supplies.
-    const has = (p: Pace) => road.paces.some((o) => o.pace === p)
+    const has = (p: Pace) => road.paces.some((o) => o.pace === p && !o.blocked)
     const lasts = (p: Pace) =>
       road.paces
-        .find((o) => o.pace === p)
+        .find((o) => o.pace === p && !o.blocked)
         ?.warnings.every((w) => w.code !== 'waterRunsOut' && w.code !== 'foodRunsOut') ?? false
     const wanted = paceFor(state, content, road)
     const pace = lasts(wanted)

@@ -56,29 +56,62 @@ export function workingAnimals(
   return working
 }
 
-/** What owned (working) animals and hired mounts carry. */
+/**
+ * The flying carpets the party flies on (`flies` in animals.json), or null when it walks: they fly
+ * only when they are its only animals, owned or hired (no mule or horse can keep up). Flying, the
+ * carpets carry the whole party and their own `capacity` in cargo, whatever the members'
+ * strength, at their `speed` on any terrain and any path (town/animals.ts mountSpeed).
+ */
+export function flyingCarpets(
+  animals: Readonly<Record<string, number>>,
+  content: Content,
+  hired: Hired | null = null
+): { count: number; capacity: number; speed: number } | null {
+  if (hired && hired.count > 0) return null
+  const working = Object.entries(workingAnimals(animals, content))
+  if (working.length === 0) return null
+  let count = 0
+  let capacity = 0
+  let speed = Infinity
+  for (const [id, n] of working) {
+    const def = animalDef(content, id)
+    if (!def?.flies) return null
+    count += n
+    capacity += n * def.capacity
+    speed = Math.min(speed, def.speed)
+  }
+  return { count, capacity, speed }
+}
+
+/**
+ * What owned (working) animals and hired mounts carry. A flying carpet among other animals is
+ * rolled up and carries nothing (flyingCarpets).
+ */
 export function animalCapacity(
   animals: Readonly<Record<string, number>>,
   content: Content,
   hired: Hired | null = null
 ): number {
-  const owned = Object.entries(workingAnimals(animals, content)).reduce(
-    (sum, [id, n]) => sum + n * (animalDef(content, id)?.capacity ?? 0),
-    0
-  )
+  const owned = Object.entries(workingAnimals(animals, content)).reduce((sum, [id, n]) => {
+    const def = animalDef(content, id)
+    return def && !def.flies ? sum + n * def.capacity : sum
+  }, 0)
   const rented = hired ? hired.count * (animalDef(content, hired.animal)?.capacity ?? 0) : 0
   return owned + rented
 }
 
 /**
  * The party's carrying capacity: every member able to act, plus owned animals and the mounts
- * hired for this journey (or `hired`, to preview hiring).
+ * hired for this journey (or `hired`, to preview hiring). On a flying carpet, the carpet's fixed
+ * cargo instead (flyingCarpets).
  */
 export function carryCapacity(
   state: Pick<GameState, 'party' | 'animals' | 'travel'>,
   content: Content,
   hired: Hired | null = state.travel?.hired ?? null
 ): number {
+  const carpets = flyingCarpets(state.animals, content, hired)
+  if (carpets) return carpets.capacity
   const members = state.party.filter(canAct).reduce((sum, c) => sum + memberCapacity(c), 0)
   return members + animalCapacity(state.animals, content, hired)
 }

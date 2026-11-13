@@ -32,7 +32,16 @@ import { stowAway, stowawayRefusal, type StowawayOutcome } from './stowaway'
 import { suppliesLast, supplyOutlook } from './outlook'
 import { load, overloadExcess, type Hired } from '../economy/capacity'
 import { visibleWealth } from '../economy/wealth'
-import { animalBlock, animalBlockText, hireCost, hireOffer } from '../town/animals'
+import {
+  animalBlock,
+  animalBlockText,
+  camelWaterSaving,
+  hireCost,
+  hireOffer,
+  paceBlock,
+  paceBlockText,
+  vehicleCount,
+} from '../town/animals'
 import type { Room } from '../town/services'
 import { contractsOnArrival, isEscorting } from '../town/contracts'
 import { summonsOnArrival } from '../crisis/clues'
@@ -130,6 +139,8 @@ export function depart(
   if (route.terrain !== 'sea' && laden.level === 'encumbered' && options.pace === 'forced') {
     return appendLog(state, 'Too heavily laden for a forced march.', 'bad')
   }
+  const slow = paceBlock(state, content, route.terrain, options.pace ?? DEFAULT_PACE)
+  if (slow) return appendLog(state, paceBlockText(slow), 'bad')
   if (options.stowaway) {
     const refused = stowawayRefusal(state, route)
     if (refused) return appendLog(state, refused, 'bad')
@@ -232,7 +243,7 @@ function setOut(
  */
 export function placeOnRoute(
   state: Pick<GameState, 'world' | 'day'> &
-    Partial<Pick<GameState, 'goods' | 'gold' | 'party' | 'contracts' | 'upgrades'>>,
+    Partial<Pick<GameState, 'goods' | 'gold' | 'party' | 'contracts' | 'upgrades' | 'animals'>>,
   content: Content,
   travel: TravelState
 ): Place | null {
@@ -265,7 +276,8 @@ export function placeOnRoute(
       travel.forage,
       steps,
       isEscorting(state),
-      state.party ? wardShare({ party: state.party }) : 0
+      state.party ? wardShare({ party: state.party }) : 0,
+      state.animals ? vehicleCount({ animals: state.animals }, content) : 0
     ).drawn,
     wealthSteps: steps,
   }
@@ -458,7 +470,7 @@ export function continueJourney(state: GameState, content: Content): GameState {
       next = foraged.state
       if (foraged.result) record(next, foraged.result)
     }
-    const short = runsShort(next, terrain)
+    const short = runsShort(next, terrain, camelWaterSaving(next, content, terrain))
     if (short) next = flush(next)
     const day = travel.daysDone + 1
     const walked = logPaceDay(

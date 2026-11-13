@@ -63,7 +63,7 @@
           },
           "roadsOnly": {
             "default": false,
-            "description": "Keeps to roads: never on paths to sites (carts)",
+            "description": "Keeps to roads: never on paths to sites (unused since carts may leave roads, 2026-11-13)",
             "$ref": "#/$defs/__schema4"
           },
           "maxPathDanger": {
@@ -79,6 +79,30 @@
             "default": false,
             "description": "Thieves can lead it away (an `animals` loss without a named animal)",
             "$ref": "#/$defs/__schema7"
+          },
+          "vehicle": {
+            "default": false,
+            "description": "A vehicle (cart, wagon): each working one adds VEHICLE_HOSTILE to the hostile share",
+            "$ref": "#/$defs/__schema8"
+          },
+          "slow": {
+            "default": false,
+            "description": "Slow: while the party has a working one, the brisk and forced paces are unavailable",
+            "$ref": "#/$defs/__schema9"
+          },
+          "flies": {
+            "default": false,
+            "description": "Flies (the flying carpet): when it is the party's only animal, it carries the whole party and `capacity` kg whatever their strength, at `speed` on any terrain and any path; with other animals it is rolled up and carries nothing",
+            "$ref": "#/$defs/__schema10"
+          },
+          "desertWater": {
+            "default": false,
+            "description": "Camels: in the desert each one cuts the party’s water by CAMEL_DESERT_WATER_SAVING, up to CAMEL_DESERT_WATER_MAX",
+            "$ref": "#/$defs/__schema11"
+          },
+          "soldIn": {
+            "description": "Sold only at animals services in settlements that match; omit to sell it at every one",
+            "$ref": "#/$defs/__schema12"
           }
         },
         "required": [
@@ -126,6 +150,56 @@
     },
     "__schema7": {
       "type": "boolean"
+    },
+    "__schema8": {
+      "type": "boolean"
+    },
+    "__schema9": {
+      "type": "boolean"
+    },
+    "__schema10": {
+      "type": "boolean"
+    },
+    "__schema11": {
+      "type": "boolean"
+    },
+    "__schema12": {
+      "type": "object",
+      "properties": {
+        "biomes": {
+          "description": "The settlement's land is one of these",
+          "$ref": "#/$defs/__schema13"
+        },
+        "minSizeTier": {
+          "description": "At least this size",
+          "$ref": "#/$defs/__schema15"
+        }
+      }
+    },
+    "__schema13": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/__schema14"
+      }
+    },
+    "__schema14": {
+      "type": "string",
+      "enum": [
+        "plains",
+        "forest",
+        "hills",
+        "mountains",
+        "marsh",
+        "desert",
+        "jungle",
+        "sea"
+      ]
+    },
+    "__schema15": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 5
     }
   }
 }

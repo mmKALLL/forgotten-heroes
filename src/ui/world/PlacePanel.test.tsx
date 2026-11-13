@@ -433,3 +433,24 @@ test('an encumbered party with a forced march remembered travels and provisions 
   expect(travelAction(out, prefs)).toMatchObject({ type: 'travel', pace: shown })
   expect(provisionAction(out, prefs)).toMatchObject({ type: 'provision', pace: shown })
 })
+
+test('a cart disables the brisk and forced paces with the reason, and shows in the hostile share', () => {
+  const state = makeState({ location: 'ashmoor-1', gold: 50, animals: { mule: 1, cart: 1 } })
+  panel(state, 'greenvale-2')
+  const group = road(settlementName(state, 'greenvale-2'))
+  const pacePicker = within(group.getByRole('group', { name: 'Pace' }))
+  const disabled = (name: string) =>
+    (pacePicker.getByRole('button', { name }) as HTMLButtonElement).disabled
+  expect(['Stealthy', 'Steady', 'Brisk', 'Forced march'].map(disabled)).toEqual([
+    false,
+    false,
+    true,
+    true,
+  ])
+  expect(group.getByText('The cart can’t be hurried.')).toBeTruthy()
+  expect(group.getByText(/% cargo vehicles/)).toBeTruthy()
+  // A remembered brisk pace falls back to one the cart allows.
+  const out = routeOptions(state, content).find((r) => r.to === 'greenvale-2')!
+  const prefs = { ...DEFAULT_TRAVEL_PREFS, pace: 'brisk' as const }
+  expect(travelAction(out, prefs)).toMatchObject({ pace: 'steady' })
+})

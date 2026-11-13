@@ -12,7 +12,17 @@ import { siteStatus, siteThreat, type SiteStatus } from '../world/sites'
 import { ambushPositionForPace } from './pace'
 import { load, overloadExcess, type Hired } from '../economy/capacity'
 import { visibleWealth } from '../economy/wealth'
-import { animalBlock, animalBlockText, animalWater, hireCost, hireOffer } from '../town/animals'
+import {
+  animalBlock,
+  animalBlockText,
+  animalWater,
+  camelWaterSaving,
+  hireCost,
+  hireOffer,
+  paceBlock,
+  paceBlockText,
+  vehicleCount,
+} from '../town/animals'
 import {
   canMeetEncounters,
   fareFor,
@@ -225,6 +235,11 @@ export type PaceOption = {
    * party would arrive at this pace, the deadline, and whether that is in time.
    */
   deadlines: ContractDeadline[]
+  /**
+   * Why this pace can't be chosen now (a slow animal or vehicle can't be hurried: paceBlock), or
+   * null. The pace is still listed, so the chooser can show it disabled with the reason.
+   */
+  blocked: RoadReason | null
 }
 
 function paceOptions(
@@ -245,6 +260,8 @@ function paceOptions(
     : PACES.filter((p) => p !== 'forced' || laden.level === 'light')
   const speed = landSpeed(state, content, route.terrain, hired)
   const drink = animalWater(state, content, hired)
+  const saving = camelWaterSaving(state, content, route.terrain)
+  const vehicles = vehicleCount(state, content)
   const wealth = visibleWealth(state, content).steps
   const escort = isEscorting(state)
   const ward = wardShare(state)
@@ -263,18 +280,29 @@ function paceOptions(
       speed,
       content,
       animalWater: drink,
+      waterSaving: saving,
       escorts: escortPassengers(state),
     })
     const { days, water, food } = forecast
     const warnings = [...heavy, ...forecast.warnings]
     // As the journey would record it (depart): no foraging at sea.
     const exposure = (foraging: boolean) => ({
-      hostile: hostileShare(route.danger, threatLevel, pace, foraging, wealth, escort, ward),
+      hostile: hostileShare(
+        route.danger,
+        threatLevel,
+        pace,
+        foraging,
+        wealth,
+        escort,
+        ward,
+        vehicles
+      ),
       ambush: ambushPositionForPace(pace, 'normal', foraging),
     })
     const chosen = exposure(forage && !sea)
     const on = exposure(true)
     const off = exposure(false)
+    const slowPace = paceBlock(state, content, route.terrain, pace)
     return {
       pace,
       days,
@@ -292,6 +320,7 @@ function paceOptions(
             notForaging: { hostile: off.hostile.share, ambush: off.ambush },
           },
       deadlines: contractDeadlines(state, to, days),
+      blocked: slowPace && { code: 'slow', params: slowPace },
     }
   })
 }
@@ -307,6 +336,8 @@ export type RoadReason =
   | { code: 'animals'; params: { name: string; roadsOnly: boolean } }
   /** Hiring the mounts for this pace costs more than the party has. */
   | { code: 'hire'; params: { gold: number } }
+  /** A slow animal or vehicle can't be hurried: brisk and forced are out (paceBlock). */
+  | { code: 'slow'; params: { name: string } }
 
 /** The English text of a road reason, until every caller localises the codes. */
 export function roadReasonText(r: RoadReason): string {
@@ -323,6 +354,8 @@ export function roadReasonText(r: RoadReason): string {
       return animalBlockText(r.params)
     case 'hire':
       return `Hiring the mounts costs ${r.params.gold} gp.`
+    case 'slow':
+      return paceBlockText(r.params)
   }
 }
 
@@ -508,15 +541,21 @@ export type SuppliesInfo = {
   waterDays: number
 }
 
-export function suppliesInfo(state: GameState, terrain: Biome | null = null): SuppliesInfo {
+/** With `content`, camels' desert saving counts (camelWaterSaving). */
+export function suppliesInfo(
+  state: GameState,
+  terrain: Biome | null = null,
+  content?: Content
+): SuppliesInfo {
   const members = Math.max(1, state.party.length)
   const food = goodsOf(state.goods, 'food')
   const water = goodsOf(state.goods, 'water')
+  const saving = content ? camelWaterSaving(state, content, terrain) : 0
   return {
     food,
     water,
     waterCapacity: partyWaterCapacity(state),
     foodDays: Math.floor(food / members),
-    waterDays: Math.floor(water / (members * waterNeed(terrain))),
+    waterDays: Math.floor(water / Math.max(1, members * waterNeed(terrain) - saving)),
   }
 }

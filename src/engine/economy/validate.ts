@@ -103,6 +103,9 @@ export function economyIssues(content: Content): string[] {
     if (animal.hirePerDay !== undefined && !animal.rider) {
       issues.push(`${at}: only riding animals are hired (hirePerDay needs rider)`)
     }
+    if (animal.flies && (animal.needs !== undefined || animal.rider || animal.slow)) {
+      issues.push(`${at}: a flier carries the party itself (flies excludes needs, rider and slow)`)
+    }
   }
 
   for (const role of sortedEntries(personRoles)) {

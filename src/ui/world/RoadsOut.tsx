@@ -166,15 +166,15 @@ export function provisionAction(road: RouteOption, prefs: TravelPrefs): Action {
 
 /**
  * The pace option shown for a road: the chosen pace (steady, or the first, when the road doesn't
- * offer it), on foot or riding hired mounts.
+ * offer it or it is blocked, e.g. brisk with a cart), on foot or riding hired mounts.
  */
 export function shownPace(
   road: RouteOption,
   prefs: Pick<TravelPrefs, 'pace' | 'mounted'>
 ): PaceOption & { cost?: number; reason?: RoadReason | null } {
-  const paces: (PaceOption & { cost?: number; reason?: RoadReason | null })[] = ridden(road, prefs)
-    ? road.mounted!.paces
-    : road.paces
+  const paces: (PaceOption & { cost?: number; reason?: RoadReason | null })[] = (
+    ridden(road, prefs) ? road.mounted!.paces : road.paces
+  ).filter((p) => p.blocked === null)
   return (
     paces.find((p) => p.pace === normalizePace(prefs.pace)) ??
     paces.find((p) => p.pace === 'steady') ??
@@ -216,6 +216,8 @@ export function RouteInfo({
   const sea = road.terrain === 'sea'
   const riding = ridden(road, { mounted })
   const option = shownPace(road, { pace, mounted })
+  const paceBlocked =
+    (riding ? road.mounted!.paces : road.paces).find((p) => p.blocked !== null)?.blocked ?? null
   const shown = option.pace
   const onFoot = shownPace(road, { pace, mounted: false })
   const reason = riding ? (option.reason ?? null) : road.reason
@@ -266,7 +268,10 @@ export function RouteInfo({
                 key={choice}
                 aria-pressed={choice === shown}
                 className={late || actLate ? 'late' : undefined}
+                // A slow animal or vehicle rules out hurrying: shown, but disabled with the reason.
+                disabled={p.blocked !== null}
                 title={[
+                  p.blocked && roadReasonMessage(t, p.blocked),
                   paceHintText(t, choice),
                   late && t('route.paceLate'),
                   actLate && t('crisis.paceLate'),
@@ -285,6 +290,8 @@ export function RouteInfo({
       ) : (
         <>
           <p className="muted small">{paceHintText(t, shown)}</p>
+          {/* Why some paces are disabled (a cart or the donkey can't be hurried), once. */}
+          {paceBlocked && <p className="muted small">{roadReasonMessage(t, paceBlocked)}</p>}
           <label className="inline small">
             <input type="checkbox" checked={forage} onChange={(e) => onForage(e.target.checked)} />{' '}
             {t('route.forage')}

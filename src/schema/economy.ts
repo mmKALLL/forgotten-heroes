@@ -197,7 +197,12 @@ export const AnimalDefSchema = z.object({
     .describe('Land speed multiplier while ridden: 2 for riding animals (less in rough terrain)'),
   rider: z.boolean().default(false).describe('Carries a rider: one per member to ride'),
   needs: IdSchema.optional().describe('Another animal it needs to move, e.g. a cart needs a mule'),
-  roadsOnly: z.boolean().default(false).describe('Keeps to roads: never on paths to sites (carts)'),
+  roadsOnly: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Keeps to roads: never on paths to sites (unused since carts may leave roads, 2026-11-13)'
+    ),
   maxPathDanger: z
     .number()
     .int()
@@ -217,6 +222,45 @@ export const AnimalDefSchema = z.object({
     .boolean()
     .default(false)
     .describe('Thieves can lead it away (an `animals` loss without a named animal)'),
+  vehicle: z
+    .boolean()
+    .default(false)
+    .describe(
+      'A vehicle (cart, wagon): each working one adds VEHICLE_HOSTILE to the hostile share'
+    ),
+  slow: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Slow: while the party has a working one, the brisk and forced paces are unavailable'
+    ),
+  flies: z
+    .boolean()
+    .default(false)
+    .describe(
+      "Flies (the flying carpet): when it is the party's only animal, it carries the whole party and " +
+        '`capacity` kg whatever their strength, at `speed` on any terrain and any path; ' +
+        'with other animals it is rolled up and carries nothing'
+    ),
+  desertWater: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Camels: in the desert each one cuts the party’s water by CAMEL_DESERT_WATER_SAVING, up to CAMEL_DESERT_WATER_MAX'
+    ),
+  soldIn: z
+    .object({
+      biomes: z
+        .array(BiomeSchema)
+        .min(1)
+        .optional()
+        .describe("The settlement's land is one of these"),
+      minSizeTier: z.number().int().min(0).max(5).optional().describe('At least this size'),
+    })
+    .optional()
+    .describe(
+      'Sold only at animals services in settlements that match; omit to sell it at every one'
+    ),
 })
 export type AnimalDef = z.infer<typeof AnimalDefSchema>
 

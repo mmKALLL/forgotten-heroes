@@ -12,7 +12,7 @@ import { forecastJourney } from '../travel/warnings'
 import { paceFor } from '../travel/journey'
 import { otherEnd, settlementName } from '../world/geo'
 import { edgeById } from '../world/graph'
-import { animalWater, hireOffer } from './animals'
+import { animalWater, camelWaterSaving, hireOffer } from './animals'
 import { escortPassengers } from './contract-hooks'
 
 // "Provision for this road" (a click-saver, Plan 4 designer decisions): one action buys the food a
@@ -79,6 +79,7 @@ export function provisionPlan(
       speed: landSpeed(s, content, route.terrain, hired),
       content,
       animalWater: animalWater(s, content, hired),
+      waterSaving: camelWaterSaving(s, content, route.terrain),
       escorts: escortPassengers(s),
     })
   const runsOut = (s: GameState, code: 'foodRunsOut' | 'waterRunsOut') =>

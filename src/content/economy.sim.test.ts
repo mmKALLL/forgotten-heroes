@@ -2,7 +2,7 @@ import { writeFileSync } from 'node:fs'
 import { describe, expect, test } from 'vitest'
 import { load } from '../engine/economy/capacity'
 import { goodPrice } from '../engine/economy/goods'
-import { midPrice, quote, shopsFor } from '../engine/economy/market'
+import { marketDepth, midPrice, quote, shopsFor } from '../engine/economy/market'
 import { noticeBoard } from '../engine/town/contracts'
 import { newGame, step, type Action } from '../engine/state'
 import { trader, type TraderOptions, type TraderWhy } from '../engine/travel/trader'
@@ -966,6 +966,41 @@ describe.runIf(REPORT)('the economy report (ECONOMY_REPORT=path)', () => {
         `${f1(Math.min(...xs))}×`,
         `${f1(median(xs))}×`,
         `${f1(Math.max(...xs))}×`,
+      ])
+    }
+    // Vehicles (designer call 2026-11-13): the wagon is a dearer, better buy per kg than the cart,
+    // but a full load meets the market's depth (economy/market.ts: price × exp(−units / depth)).
+    lines.push('', '## Vehicles: kg per gp, and a full load against market depth', '')
+    row(['Vehicle', 'gp', 'kg', 'kg/gp', 'With its puller: gp', 'kg', 'kg/gp'])
+    row(['---', '---', '---', '---', '---', '---', '---'])
+    const vehicles = Object.values(content.animals).filter((a) => a.vehicle)
+    for (const v of vehicles) {
+      const puller = v.needs ? content.animals[v.needs] : undefined
+      const gp = v.price + (puller?.price ?? 0)
+      const kg = v.capacity + (puller?.capacity ?? 0)
+      row([v.name, v.price, v.capacity, f1(v.capacity / v.price), gp, kg, f1(kg / gp)])
+    }
+    lines.push(
+      '',
+      'A full load of one good sold at once: the units it holds, and the average share of the ' +
+        'price a town (size 3) and a city (size 4) pay as each unit sags the next.',
+      ''
+    )
+    row(['Good', 'kg/unit', ...vehicles.flatMap((v) => [`${v.name}: units`, 'town', 'city'])])
+    row(['---', '---', ...vehicles.flatMap(() => ['---', '---', '---'])])
+    for (const good of ['timber', 'stone', 'metal', 'armour', 'arms'] as Good[]) {
+      const kg = content.goods[good].weight
+      const share = (units: number, tier: number) => {
+        const depth = marketDepth(content, tier, good)
+        return pct((depth / units) * (1 - Math.exp(-units / depth)))
+      }
+      row([
+        good,
+        kg,
+        ...vehicles.flatMap((v) => {
+          const units = Math.floor(v.capacity / kg)
+          return [units, share(units, 3), share(units, 4)]
+        }),
       ])
     }
     writeFileSync(REPORT!, lines.join('\n') + '\n')

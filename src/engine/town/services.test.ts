@@ -189,7 +189,8 @@ describe('animals', () => {
 describe('animal offers', () => {
   test('list what is for sale where there is an animals service, with resale', () => {
     const offers = animalOffers(at('greenvale-1', { gold: 15, animals: { mule: 1 } }), content)
-    expect(offers.map((o) => o.id)).toEqual(['mule', 'cart', 'riding-horse'])
+    // The camel is for sale everywhere; the flying carpet only in the desert (soldIn).
+    expect(offers.map((o) => o.id)).toEqual(['mule', 'cart', 'riding-horse', 'camel'])
     expect(offers[0]).toMatchObject({ owned: 1, capacity: 100, buyReason: null })
     expect(offers[0].resale).toBeLessThan(offers[0].price)
     expect(offers[2]).toMatchObject({ rides: 2, buyReason: 'not enough gold' })
