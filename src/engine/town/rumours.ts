@@ -28,6 +28,8 @@ import {
   PICKPOCKET_GP,
   RUMOUR_DC,
   RUMOUR_PRICE,
+  RUMOUR_PRICE_DAYS,
+  RUMOUR_PRICE_STEP,
   RUMOUR_PRICES,
   RUMOUR_TROUBLE_FIGHT,
 } from '../constants'
@@ -57,6 +59,10 @@ export const RUMOUR_OUTCOMES: Readonly<Record<Tier, string>> = {
 /** One outcome row of the preview; `text` is null for a critical tier (a surprise). */
 export type RumourOutcome = { tier: Tier; text: string | null; hidden: boolean }
 
+/** A round for the table: RUMOUR_PRICE, plus RUMOUR_PRICE_STEP for every full RUMOUR_PRICE_DAYS. */
+export const rumourPrice = (day: number): number =>
+  RUMOUR_PRICE + RUMOUR_PRICE_STEP * Math.floor(Math.max(0, day - 1) / RUMOUR_PRICE_DAYS)
+
 /** Listening for rumours here: who listens, with what, the DC, the round's cost and the odds. */
 export type RumourOption = {
   service: string
@@ -65,7 +71,7 @@ export type RumourOption = {
   modifier: number
   /** RUMOUR_DC less the party's standing steps here (better standing, easier talk). */
   dc: number
-  /** A round for the table: RUMOUR_PRICE per member. */
+  /** A round for the table: rumourPrice(day). */
   cost: number
   chances: Record<Tier, number>
   outcomes: RumourOutcome[]
@@ -111,7 +117,7 @@ export function rumourOption(state: GameState, content: Content): RumourOption |
     skill: best.skill,
     modifier: best.actor.modifier,
     dc,
-    cost: RUMOUR_PRICE * state.party.length,
+    cost: rumourPrice(state.day),
     chances: tierOdds(best.actor.modifier, dc),
     outcomes: TIERS.map((tier) => {
       const hidden = tier === 'critFail' || tier === 'critSuccess'

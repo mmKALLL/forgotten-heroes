@@ -8,7 +8,7 @@ import { step } from '../state'
 import { fixtureContent, makeState } from '../test-fixtures'
 import { nearestSettlements } from '../travel/reach'
 import { STANDING_POINTS } from '../constants'
-import { RUMOUR_LEAD, RUMOUR_TROUBLE_TAG, RUMOURS_DONE, rumourOption } from './rumours'
+import { RUMOUR_LEAD, RUMOUR_TROUBLE_TAG, RUMOURS_DONE, rumourOption, rumourPrice } from './rumours'
 import { serviceRows } from './services'
 
 const content = fixtureContent()
@@ -74,6 +74,14 @@ describe('rumourOption', () => {
     const settlements = { ...s.world.settlements }
     settlements[HERE] = { ...settlements[HERE], services: [] }
     expect(rumourOption({ ...s, world: { ...s.world, settlements } }, content)).toBeNull()
+  })
+})
+
+describe('rumourPrice', () => {
+  test('a round costs the same for any party, and dearer as the years pass', () => {
+    expect(rumourPrice(1)).toBe(rumourPrice(100))
+    expect(rumourPrice(101)).toBeGreaterThan(rumourPrice(100))
+    expect(rumourPrice(201)).toBeGreaterThan(rumourPrice(101))
   })
 })
 

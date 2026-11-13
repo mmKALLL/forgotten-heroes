@@ -314,8 +314,11 @@ export const TRADE_REP_MAX = 3
 
 /** The DC to hear something useful (Insight or Persuasion), less 1 per standing tier above stranger. */
 export const RUMOUR_DC = 12
-/** A round for the table, per member. */
-export const RUMOUR_PRICE = 1
+/** A round for the table, whatever the party's size: dear enough to weigh against exploring's days. */
+export const RUMOUR_PRICE = 5
+/** ...plus this much more for every full RUMOUR_PRICE_DAYS days passed (5 gp to day 100, 10 to 200). */
+export const RUMOUR_PRICE_STEP = 5
+export const RUMOUR_PRICE_DAYS = 100
 /** Nearby towns whose prices each tier brings (a partial is idle gossip; nothing heard is false). */
 export const RUMOUR_PRICES: Readonly<Record<Tier, number>> = {
   critFail: 0,
