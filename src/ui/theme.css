@@ -3069,8 +3069,8 @@ h2[tabindex='-1']:focus {
 .pip.on {
   background: var(--bad);
 }
-/* A gap after the pip that staggers; the last pip stuns. */
-.pip.stagger {
+/* A gap after the pips that stifle and stagger; the last pip stuns. */
+.pip.step {
   margin-right: 4px;
 }
 .move-here {
@@ -3167,6 +3167,27 @@ h2[tabindex='-1']:focus {
 .combat-end h3 {
   font-size: 1.1rem;
 }
+.intent-drops {
+  display: block;
+}
+.wipe-choices {
+  display: grid;
+  gap: 0.6rem;
+  text-align: left;
+}
+.wipe-choices p {
+  margin: 0.2rem 0 0;
+}
+.wipe-option {
+  padding: 0.5rem;
+  border: 1px solid var(--bad);
+  border-radius: 4px;
+}
+.wipe-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
 .combat-log-panel {
   margin-top: 0.75rem;
 }
@@ -3231,7 +3252,7 @@ h2[tabindex='-1']:focus {
     width: 0.4rem;
     height: 0.4rem;
   }
-  .pip.stagger {
+  .pip.step {
     margin-right: 2px;
   }
   .move-here {

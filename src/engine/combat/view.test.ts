@@ -22,7 +22,8 @@ test('the view stacks each tile top to bottom and lists the downed apart', () =>
   expect(view.out.map((u) => u.id)).toEqual(['lyra'])
   const e1 = view.tiles[2].units[0]
   expect(e1.bloodied).toBe(true)
-  expect(e1.pips).toEqual({ hits: 2, stagger: 3, stun: 4 })
+  expect(e1.pips).toEqual({ hits: 2, stifle: 2, stagger: 3, stun: 4 })
+  expect(e1.step).toBe('stifled')
   // Brom can strike either foe on the next tile, or step back.
   const targets = targetsOf(view.options.brom)
   expect(targets.filter((t) => t.kind === 'attack').map((t) => t.tile)).toEqual([2, 2])

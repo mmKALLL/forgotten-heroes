@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import type { AttackSpec } from '../../engine/combat/attack'
+import type { DownedRisk, WipeOptions } from '../../engine/combat/defeat'
 import {
   combatView,
+  couldDrop,
   targetsOf,
   type CombatView as View,
   type IntentView,
@@ -192,13 +194,17 @@ export function CombatView({
         <div className="combat-end" role="status">
           <h3>{t(`combat.result.${view.result!}`)}</h3>
           <OutList units={view.out} i18n={i18n} />
-          <button
-            className="primary"
-            ref={closeRef}
-            onClick={() => onAction({ type: 'closeCombat' })}
-          >
-            {t('combat.close')}
-          </button>
+          {view.wipe ? (
+            <WipeChoices wipe={view.wipe} state={state} i18n={i18n} onAction={onAction} />
+          ) : (
+            <button
+              className="primary"
+              ref={closeRef}
+              onClick={() => onAction({ type: 'closeCombat' })}
+            >
+              {t('combat.close')}
+            </button>
+          )}
         </div>
       ) : (
         <>
@@ -415,8 +421,7 @@ function UnitCard({
   const tags: string[] = []
   if (u.boss) tags.push(t('combat.boss'))
   if (u.bloodied) tags.push(t('combat.status.bloodied'))
-  if (u.stunned) tags.push(t('combat.status.stunned'))
-  else if (u.staggered) tags.push(t('combat.status.staggered'))
+  if (u.step) tags.push(t(`combat.status.${u.step}`))
   if (u.side === 'party')
     if (!u.ready) tags.push(t('combat.status.done'))
     else if (u.moved) tags.push(t('combat.status.moved'))
@@ -470,7 +475,7 @@ function UnitCard({
   return <div className={cls}>{body}</div>
 }
 
-/** Hits this party turn toward stagger and stun: one pip per hit up to the stun. */
+/** Hits this party turn up the ladder: one pip per hit up to the stun, a gap after each step. */
 function Pips({ pips, i18n }: { pips: NonNullable<UnitView['pips']>; i18n: I18n }) {
   const label = i18n.t('combat.pips', pips)
   return (
@@ -478,7 +483,9 @@ function Pips({ pips, i18n }: { pips: NonNullable<UnitView['pips']>; i18n: I18n 
       {Array.from({ length: pips.stun }, (_, i) => (
         <span
           key={i}
-          className={`pip${i < pips.hits ? ' on' : ''}${i === pips.stagger - 1 ? ' stagger' : ''}`}
+          className={`pip${i < pips.hits ? ' on' : ''}${
+            i === pips.stifle - 1 || i === pips.stagger - 1 ? ' step' : ''
+          }`}
         />
       ))}
     </span>
@@ -588,10 +595,31 @@ function SpecLines({ spec, i18n, second }: { spec: AttackSpec; i18n: I18n; secon
   )
 }
 
-function Swings({ swings, view, i18n }: { swings: AttackSpec[]; view: View; i18n: I18n }) {
+/** What going down would cost a member, for a blow that could drop them. */
+function dropText(risk: DownedRisk, name: string, { t }: I18n): string {
+  if (risk.fatal) return t('combat.dropsFatal', { name, n: risk.exhaustion })
+  const base = { name, n: risk.exhaustion, camaraderie: risk.camaraderie }
+  return risk.death > 0
+    ? t('combat.dropsDeath', { ...base, pct: formatPercent(risk.death) })
+    : t('combat.drops', { ...base, pct: formatPercent(risk.injury) })
+}
+
+function Swings({
+  swings,
+  view,
+  i18n,
+  mover,
+}: {
+  swings: AttackSpec[]
+  view: View
+  i18n: I18n
+  mover: UnitView
+}) {
   const { t } = i18n
   if (swings.length === 0) return <p className="muted small">{t('combat.noSwings')}</p>
   const name = (id: string) => view.tiles.flatMap((x) => x.units).find((u) => u.id === id)?.name
+  const risk = view.risks[mover.id]
+  const drops = risk !== undefined && swings.some((s) => couldDrop(s, mover.hp))
   return (
     <>
       <p className="tone-bad small">{t('combat.swings')}</p>
@@ -607,6 +635,7 @@ function Swings({ swings, view, i18n }: { swings: AttackSpec[]; view: View; i18n
           </li>
         ))}
       </ul>
+      {drops && <p className="tone-bad small">{dropText(risk, mover.name, i18n)}</p>}
     </>
   )
 }
@@ -635,7 +664,7 @@ function Preview({
       return (
         <>
           <h3>{t('combat.previewRetreat', { name: active.name })}</h3>
-          <Swings swings={swings} view={view} i18n={i18n} />
+          <Swings swings={swings} view={view} i18n={i18n} mover={active} />
         </>
       )
     }
@@ -643,7 +672,7 @@ function Preview({
       return (
         <>
           <h3>{t('combat.previewMove', { name: active.name, n: aim.tile + 1 })}</h3>
-          <Swings swings={aim.swings} view={view} i18n={i18n} />
+          <Swings swings={aim.swings} view={view} i18n={i18n} mover={active} />
         </>
       )
     const specs = full && aim.full ? aim.full : aim.attack
@@ -700,6 +729,17 @@ function Intents({ view, i18n }: { view: View; i18n: I18n }) {
                 {i.intent.twice && !i.stunned && (
                   <span className="tone-bad small"> {t('combat.intentTwice')}</span>
                 )}
+                {!i.stunned &&
+                  !i.broken &&
+                  i.attacks
+                    .filter(
+                      (a, n) => a.drops && i.attacks.findIndex((b) => b.target === a.target) === n
+                    )
+                    .map((a) => (
+                      <span key={a.target} className="tone-bad small intent-drops">
+                        {dropText(a.drops!, a.targetName, i18n)}
+                      </span>
+                    ))}
               </li>
             )
           })}
@@ -712,5 +752,87 @@ function Intents({ view, i18n }: { view: View; i18n: I18n }) {
         </p>
       )}
     </section>
+  )
+}
+
+// ---------------------------------------------------------------------------------------------
+// After a wipe: the player's choice
+// ---------------------------------------------------------------------------------------------
+
+function WipeChoices({
+  wipe,
+  state,
+  i18n,
+  onAction,
+}: {
+  wipe: WipeOptions
+  state: GameState
+  i18n: I18n
+  onAction: (a: Action) => void
+}) {
+  const { t } = i18n
+  const firstRef = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    firstRef.current?.focus()
+  }, [])
+  const name = (id: string) => state.party.find((c) => c.id === id)?.name ?? id
+  const s = wipe.surrender
+  const goods = Object.entries(s.goods)
+    .map(([g, n]) => `${n} ${g}`)
+    .join(', ')
+  const camaraderie = (n: number) => t('combat.wipe.camaraderie', { n })
+  return (
+    <div className="wipe-choices" role="group" aria-label={t('combat.wipe.heading')}>
+      <p>{t('combat.wipe.heading')}</p>
+      <div className="wipe-option">
+        <button
+          ref={firstRef}
+          onClick={() => onAction({ type: 'combatWipeChoice', choice: 'surrender' })}
+        >
+          {t('combat.wipe.surrender')}
+        </button>
+        <p className="small">
+          {t('combat.wipe.surrenderCost', {
+            gold: s.gold,
+            goods: goods || t('combat.wipe.noGoods'),
+          })}
+          {s.kept > 0 && ` ${t('combat.wipe.kept', { gold: s.kept })}`} {camaraderie(s.camaraderie)}
+        </p>
+      </div>
+      <div className="wipe-option">
+        <button onClick={() => onAction({ type: 'combatWipeChoice', choice: 'struggle' })}>
+          {t('combat.wipe.struggle')}
+        </button>
+        <p className="small">
+          {t('combat.wipe.struggleCost', {
+            wounds: wipe.struggle.injuries
+              .map((w) => `${name(w.member)} −2 ${w.ability.toUpperCase()}`)
+              .join(', '),
+          })}{' '}
+          {camaraderie(wipe.struggle.camaraderie)}
+        </p>
+      </div>
+      {wipe.sacrifice && (
+        <div className="wipe-option">
+          <div className="wipe-members">
+            {wipe.sacrifice.members.map((id) => (
+              <button
+                key={id}
+                onClick={() =>
+                  onAction({ type: 'combatWipeChoice', choice: 'sacrifice', member: id })
+                }
+              >
+                {t('combat.wipe.sacrifice', { name: name(id) })}
+              </button>
+            ))}
+          </div>
+          <p className="small">
+            {t('combat.wipe.sacrificeCost', { death: wipe.sacrifice.death })}{' '}
+            {camaraderie(wipe.sacrifice.camaraderie)}
+          </p>
+        </div>
+      )}
+      <p className="muted small">{t('combat.wipe.after')}</p>
+    </div>
   )
 }

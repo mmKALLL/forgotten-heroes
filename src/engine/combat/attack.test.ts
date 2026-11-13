@@ -7,7 +7,7 @@ import { combatPreview } from './preview'
 import { step } from '../state'
 import { combatFixtureContent } from '../test-fixtures'
 import { STACK_CAP } from '../constants'
-import { canEnter, isStaggered, isStunned } from './line'
+import { canEnter, stepOf } from './line'
 
 const content = combatFixtureContent()
 
@@ -71,7 +71,7 @@ describe('to hit', () => {
     expect(odds('exposed')).toBeLessThan(odds('normal'))
   })
 
-  test('a staggered or bloodied enemy hits less often, and a staggered one for half', () => {
+  test('a stifled, staggered or bloodied enemy hits less often; only a staggered one for half', () => {
     const brom = unitOf({ id: 'brom', side: 'party', tile: 1 })
     const e1 = unitOf({ id: 'e1', side: 'enemy', tile: 2, damage: { count: 2, die: 6, bonus: 4 } })
     const spec = (u: typeof e1) => {
@@ -79,8 +79,11 @@ describe('to hit', () => {
       return attackSpec(c, c.units[1], c.units[0])
     }
     const fresh = spec(e1)
-    const staggered = spec({ ...e1, staggered: true })
-    expect(staggered.hit).toBeLessThan(fresh.hit)
+    const stifled = spec({ ...e1, hits: 2 })
+    expect(stifled.hit).toBeLessThan(fresh.hit)
+    expect(stifled.damage).toEqual(fresh.damage)
+    const staggered = spec({ ...e1, hits: 3 })
+    expect(staggered.hit).toBe(stifled.hit)
     expect(staggered.damage[1]).toBeLessThan(fresh.damage[1])
     expect(spec({ ...e1, hp: 4 }).hit).toBeLessThan(fresh.hit)
     // A bloodied boss doesn't lose its aim (it grows desperate instead).
@@ -117,19 +120,30 @@ describe('the line', () => {
     expect(canEnter(combat, brom, 2)).toBe(true)
   })
 
-  test('stagger and stun come at 3/4 hits for most, 1/2 for casters and archers, 5/6 for bosses', () => {
-    const at = (hits: number, o: Partial<CombatUnit>) => {
-      const u = unitOf({ id: 'e1', side: 'enemy', tile: 3, hits, ...o })
-      return [isStaggered(u), isStunned(u)]
+  test('the hit ladder: stifled, staggered, stunned at 2/3/4 hits, 1/2/3 for casters and archers, 4/5/6 for bosses', () => {
+    const at = (o: Partial<CombatUnit>, ...hits: number[]) =>
+      hits.map((n) => stepOf(unitOf({ id: 'e1', side: 'enemy', tile: 3, hits: n, ...o })))
+    const ladder = [null, 'stifled', 'staggered', 'stunned']
+    expect(at({}, 1, 2, 3, 4)).toEqual(ladder)
+    expect(at({ role: 'archer' }, 0, 1, 2, 3)).toEqual(ladder)
+    expect(at({ role: 'caster' }, 0, 1, 2, 3)).toEqual(ladder)
+    expect(at({ boss: true }, 3, 4, 5, 6)).toEqual(ladder)
+  })
+
+  test("the preview names the step one more hit reaches; a mace's hit counts two", () => {
+    const blade = unitOf({ id: 'brom', side: 'party', tile: 1 })
+    const mace = { ...blade, family: 'maces' as const }
+    const onHit = (attacker: CombatUnit, hits: number) => {
+      const e1 = unitOf({ id: 'e1', side: 'enemy', tile: 2, hits })
+      const c = withFight([attacker, e1]).combat!
+      return attackSpec(c, c.units[0], c.units[1]).onHit
     }
-    expect(at(2, {})).toEqual([false, false])
-    expect(at(3, {})).toEqual([true, false])
-    expect(at(4, {})).toEqual([true, true])
-    expect(at(1, { role: 'archer' })).toEqual([true, false])
-    expect(at(2, { role: 'caster' })).toEqual([true, true])
-    expect(at(4, { boss: true })).toEqual([false, false])
-    expect(at(5, { boss: true })).toEqual([true, false])
-    expect(at(6, { boss: true })).toEqual([true, true])
+    expect(onHit(blade, 0)).toBeNull()
+    expect(onHit(blade, 1)).toBe('stifled')
+    expect(onHit(blade, 2)).toBe('staggered')
+    expect(onHit(mace, 0)).toBe('stifled')
+    expect(onHit(mace, 1)).toBe('staggered')
+    expect(onHit(mace, 2)).toBe('stunned')
   })
 })
 

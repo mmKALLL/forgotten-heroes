@@ -125,3 +125,31 @@ test('a decided fight shows its ending, and Close clears it', async () => {
   await userEvent.click(screen.getByRole('button', { name: 'Close' }))
   expect(screen.getByText('closed')).toBeTruthy()
 })
+
+test('a wipe offers surrender, struggle and sacrifice with their costs; a choice closes the fight', async () => {
+  const doomed = (id: string, name: string) =>
+    unitOf({ id, side: 'party', tile: 1, hp: 1, ac: 1, name })
+  const killer = (id: string) =>
+    unitOf({
+      id,
+      side: 'enemy',
+      tile: 2,
+      toHit: 30,
+      intent: { kind: 'attack', from: 2, tile: 1, twice: false },
+    })
+  const start = withFight([
+    doomed('brom', 'Brom'),
+    doomed('lyra', 'Lyra'),
+    killer('e1'),
+    killer('e2'),
+  ])
+  const lost = step({ ...start, gold: 30 }, { type: 'combatEndTurn' }, content)
+  render(<Harness initial={lost} />)
+  expect(screen.getByRole('heading', { name: 'The party falls' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'Close' })).toBeNull()
+  expect(screen.getByText(/give up 30 gp/)).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Struggle' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Leave Brom behind' })).toBeTruthy()
+  await userEvent.click(screen.getByRole('button', { name: 'Surrender' }))
+  expect(screen.getByText('closed')).toBeTruthy()
+})

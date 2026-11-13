@@ -864,7 +864,7 @@ export const ASSIST_PER_POINT = 2
 export const REACH_PENALTY = 4
 /** A bow or thrown weapon used while an enemy is on an adjacent tile. */
 export const ENGAGED_RANGED_PENALTY = 4
-/** A staggered enemy's to-hit penalty (its weakened intent also does half damage). */
+/** A stifled or staggered enemy's to-hit penalty (a staggered one also does half damage). */
 export const STAGGER_PENALTY = 2
 /** A bloodied enemy (at or below this share of its HP) has BLOODIED_PENALTY to hit; a boss grows desperate. */
 export const BLOODIED_SHARE = 0.5
@@ -987,14 +987,20 @@ export const CASTING_ABILITY: Readonly<Record<string, Ability>> = {
 
 // Combat: stagger, stun and morale (combat/turns.ts, combat/morale.ts)
 
-/** Hits within one party turn that stagger and stun an enemy, by kind of enemy. */
+/**
+ * Hits within one party turn that stifle (−STAGGER_PENALTY to hit), stagger (that and half
+ * damage) and stun (it loses its action) an enemy, by kind of enemy (casters and archers are
+ * "ranged"; designer call 2026-11-14).
+ */
 export const STAGGER_HITS: Readonly<
-  Record<'normal' | 'ranged' | 'boss', { stagger: number; stun: number }>
+  Record<'normal' | 'ranged' | 'boss', { stifle: number; stagger: number; stun: number }>
 > = {
-  normal: { stagger: 3, stun: 4 },
-  ranged: { stagger: 1, stun: 2 },
-  boss: { stagger: 5, stun: 6 },
+  normal: { stifle: 2, stagger: 3, stun: 4 },
+  ranged: { stifle: 1, stagger: 2, stun: 3 },
+  boss: { stifle: 4, stagger: 5, stun: 6 },
 }
+/** A hit by a weapon with the stagger trait (maces) counts this many hits toward the ladder. */
+export const MACE_HIT_WEIGHT = 2
 /**
  * Morale breaks only near the end: [smallest group, enemies left] — a group of 3–4 tests at 1
  * left, 5–8 at 2, 9 or more at 3. Smaller groups never test.
@@ -1018,8 +1024,18 @@ export const INJURY_PER_OVERKILL = 0.01
 /** A member who already has this many injuries (old wounds count) dies instead on DEATH_CHANCE. */
 export const INJURY_DEATH_AFTER = 2
 export const DEATH_CHANCE = 0.5
-/** A wipe by robbers (any humanoid foe) takes all the gold and this share of each good. */
+/** Surrendering after a wipe gives up this share of each good but essentials (rounded down). */
 export const WIPE_GOODS_TAKEN = 0.5
+
+// Combat: a wipe's choice (combat/defeat.ts; designer call 2026-11-14)
+
+/** Camaraderie lost for a wipe, whichever way the party gets out of it. */
+export const CAMARADERIE_WIPE = 20
+/** Struggling after a wipe: this many lasting injuries, each on a random living member… */
+export const WIPE_STRUGGLE_INJURIES = 3
+/** …or this many for a party of WIPE_SMALL_PARTY or fewer living members. */
+export const WIPE_STRUGGLE_INJURIES_SMALL = 2
+export const WIPE_SMALL_PARTY = 2
 
 // Combat: starting gear (party.ts; save v22)
 
