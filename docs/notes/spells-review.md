@@ -266,7 +266,7 @@
 6. **Banished units:** what happens when one returns to a tile the party now holds? *Claude's default:*
    - A banished unit leaves the line and blocks nothing.
    - It returns to its old tile if there's room, or else to the nearest tile toward its own side that has room.
-   - *To confirm.*
+   - *Confirmed by the designer (2026-11-14).*
 7. **Boss immunity:** bosses get +4 to all saves, as above.
 8. **New arcane spells:** single-foe touch spells that hit automatically (no save), at range 1:
    - **Shocking Grasp** at level 1, about half a Lightning Bolt;
