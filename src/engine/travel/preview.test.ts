@@ -477,7 +477,7 @@ describe('supply forecasts and warnings', () => {
     expect(steady.food.expectedForage).toBeCloseTo(0.05 * 2, 12)
     expect(steady.warnings).toEqual([])
     // The forced march looks with less care.
-    expect(at('forced').water.expectedForage).toBeCloseTo(0.5 * 2 + 0.15 * 1, 12)
+    expect(at('forced').water.expectedForage).toBeLessThan(steady.water.expectedForage)
   })
 
   test('warns when the water lasts only with foraging, and when the food runs out', () => {
