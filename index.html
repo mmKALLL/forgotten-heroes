@@ -4,6 +4,15 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Forgotten Heroes</title>
+    <!-- Paint the page background before any script or stylesheet loads, so a reload or hot
+         reload never flashes white (the same colours as --bg in src/ui/theme.css). -->
+    <meta name="color-scheme" content="light dark" />
+    <style>
+      html { background: #efe6d2; }
+      @media (prefers-color-scheme: dark) {
+        html { background: #1d1914; color-scheme: dark; }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
