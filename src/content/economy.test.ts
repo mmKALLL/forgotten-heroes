@@ -90,10 +90,12 @@ describe('the economy data', () => {
     expect(Object.keys(content.personRoles).length).toBeLessThanOrEqual(15)
   })
 
-  test('precious goods are light and materials heavy (kg per unit)', () => {
+  test('precious goods are light for their value and materials heavy (kg per unit)', () => {
     for (const good of GOODS) {
-      const { weight } = content.goods[good]
-      if (GOOD_CATEGORY[good] === 'precious') expect(weight, good).toBeLessThanOrEqual(2)
+      const { weight, price } = content.goods[good]
+      // At least 10 gp a kg (relics are 3 kg but dear: designer call 2026-11-14).
+      if (GOOD_CATEGORY[good] === 'precious')
+        expect(price / weight, good).toBeGreaterThanOrEqual(10)
       if (GOOD_CATEGORY[good] === 'materials') expect(weight, good).toBeGreaterThanOrEqual(10)
     }
   })

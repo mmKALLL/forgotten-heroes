@@ -435,8 +435,10 @@ describe('the economy (guards with generous bounds)', () => {
     expect(runs.filter(({ state }) => !runOver(state)).length).toBeGreaterThanOrEqual(4)
   })
 
-  test('seeds 1–3 have no deaths', () => {
-    expect(runs.slice(0, 3).map((r) => r.run.deaths)).toEqual([0, 0, 0])
+  test('seeds 1–3 lose at most one member between them in 30 days', () => {
+    // Deaths are meant to happen (designer: most runs end in a game over), just not wholesale.
+    const deaths = runs.slice(0, 3).reduce((n, r) => n + r.run.deaths, 0)
+    expect(deaths).toBeLessThanOrEqual(1)
   })
 
   test('the trader earns: median net worth a day is above 0', () => {

@@ -2,13 +2,13 @@
   "$schema": "../_schema/goods.schema.json",
   "kind": "goods",
   "source": "claude",
-  "notes": "The 15 goods of design §4 (Plan 4, B1). Weights are kg per unit against a carrying capacity of 20 kg per member at STR 10: a day's food is 1 kg and a day's water 2 kg, so a member with the usual 5 days of food and 4 of water has about 7 kg left for cargo. Precious goods are light (gems 0.05 kg), consumables and arcana carry well, equipment is middling, and materials are heavy and cheap: hauling them pays only with a mule or a cart, but it needs little coin. Prices are gp per unit before supply and demand (×1.25 per level, A2). depth scales how many units a market absorbs before bulk trades move the price: deep for food, fuel and materials, shallow for arcana and precious goods. Tuned in Plan 4 I1 (docs/notes/economy-report.md): food is 0.5 gp a ration (5e's price), so a party of two eats about 1 gp a day. Nothing spoils (designer call 2026-11-13: food's buy and sell prices are about 1:1, so spoilage added tedium, not decisions; it was spoilPerDay 0.02, then shelfDays 14).",
+  "notes": "Designer tuning 2026-11-14: food 0.5 kg, water 1 kg, fuel 2 kg, arcana 30 gp, gems 0.2 kg, relics 3 kg and 70 gp, stone 4 gp, timber 10 kg, metal 15 kg, arms 20 gp. The 15 goods of design §4 (Plan 4, B1). Weights are kg per unit against a carrying capacity of 20 kg per member at STR 10: a day's food is 0.5 kg and a day's water 1 kg, so a member with the usual 5 days of food and 4 of water has about 13.5 kg left for cargo. Precious goods are light for their value (gems 0.2 kg), consumables and arcana carry well, equipment is middling, and materials are heavy and cheap: hauling them pays only with a mule or a cart, but it needs little coin. Prices are gp per unit before supply and demand (×1.25 per level, A2). depth scales how many units a market absorbs before bulk trades move the price: deep for food, fuel and materials, shallow for arcana and precious goods. Tuned in Plan 4 I1 (docs/notes/economy-report.md): food is 0.5 gp a ration (5e's price), so a party of two eats about 1 gp a day. Nothing spoils (designer call 2026-11-13: food's buy and sell prices are about 1:1, so spoilage added tedium, not decisions; it was spoilPerDay 0.02, then shelfDays 14).",
   "entries": [
     {
       "id": "food",
       "name": "Food",
       "unit": "ration",
-      "weight": 1,
+      "weight": 0.5,
       "price": 0.5,
       "depth": 3,
       "uses": "Eaten every day on the road, one ration per member."
@@ -17,7 +17,7 @@
       "id": "water",
       "name": "Water",
       "unit": "day's water",
-      "weight": 2,
+      "weight": 1,
       "price": 0,
       "depth": 1,
       "uses": "Drunk every day on the road, twice as much in the desert. Refilled free in any settlement, so it costs only weight."
@@ -26,7 +26,7 @@
       "id": "fuel",
       "name": "Fuel",
       "unit": "bundle",
-      "weight": 3,
+      "weight": 2,
       "price": 5,
       "depth": 3,
       "uses": "Firewood, charcoal and lamp oil. Smiths and treeless towns pay for it; cold country will need it later."
@@ -54,7 +54,7 @@
       "name": "Arcana",
       "unit": "pouch",
       "weight": 0.25,
-      "price": 25,
+      "price": 30,
       "depth": 0.5,
       "uses": "Spell components, chalk, inks and scrolls, spent in encounters to read wards, bind spirits or work a ritual."
     },
@@ -63,7 +63,7 @@
       "name": "Arms",
       "unit": "bundle",
       "weight": 5,
-      "price": 15,
+      "price": 20,
       "depth": 1,
       "uses": "Blades, spears, bows and arrows by the bundle. Sought after wherever war or raiders threaten; spent to arm guards or bribe a warband."
     },
@@ -89,7 +89,7 @@
       "id": "timber",
       "name": "Timber",
       "unit": "load",
-      "weight": 20,
+      "weight": 10,
       "price": 2,
       "depth": 3,
       "uses": "Cut beams and planks. Cheap where forests stand, wanted by shipwrights, treeless towns and anywhere rebuilding."
@@ -99,7 +99,7 @@
       "name": "Stone",
       "unit": "load",
       "weight": 25,
-      "price": 2,
+      "price": 4,
       "depth": 3,
       "uses": "Dressed blocks and lime. Cheap at the quarries, wanted in growing cities and anywhere rebuilding."
     },
@@ -107,7 +107,7 @@
       "id": "metal",
       "name": "Metal",
       "unit": "bar",
-      "weight": 10,
+      "weight": 15,
       "price": 8,
       "depth": 2,
       "uses": "Iron, copper and tin in bars. Mined in the hills and mountains, worked by smiths and armourers everywhere."
@@ -116,7 +116,7 @@
       "id": "gems",
       "name": "Gems",
       "unit": "gem",
-      "weight": 0.05,
+      "weight": 0.2,
       "price": 50,
       "depth": 0.5,
       "uses": "Cut and rough stones. A fortune in a pouch, for jewellers and the rich, and the first thing thieves look for."
@@ -125,8 +125,8 @@
       "id": "relics",
       "name": "Relics",
       "unit": "relic",
-      "weight": 1,
-      "price": 60,
+      "weight": 3,
+      "price": 70,
       "depth": 0.5,
       "uses": "Old coins, idols, bones of saints and things from the deep places. Mostly found in dungeons and ruins; temples, scholars and collectors pay for them."
     },
