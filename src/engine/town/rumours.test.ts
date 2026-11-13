@@ -78,10 +78,10 @@ describe('rumourOption', () => {
 })
 
 describe('rumourPrice', () => {
-  test('a round costs the same for any party, and dearer as the years pass', () => {
-    expect(rumourPrice(1)).toBe(rumourPrice(100))
-    expect(rumourPrice(101)).toBeGreaterThan(rumourPrice(100))
-    expect(rumourPrice(201)).toBeGreaterThan(rumourPrice(101))
+  test('a round grows dearer steadily over time, in whole gold', () => {
+    const prices = [1, 30, 60, 100, 150, 200, 300].map(rumourPrice)
+    for (let i = 1; i < prices.length; i++) expect(prices[i]).toBeGreaterThan(prices[i - 1])
+    for (const p of prices) expect(Number.isInteger(p)).toBe(true)
   })
 })
 

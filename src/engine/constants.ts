@@ -316,7 +316,7 @@ export const TRADE_REP_MAX = 3
 export const RUMOUR_DC = 12
 /** A round for the table, whatever the party's size: dear enough to weigh against exploring's days. */
 export const RUMOUR_PRICE = 5
-/** ...plus this much more for every full RUMOUR_PRICE_DAYS days passed (5 gp to day 100, 10 to 200). */
+/** ...plus this much more per RUMOUR_PRICE_DAYS days passed, rising linearly (5 gp on day 1, 10 on day 101). */
 export const RUMOUR_PRICE_STEP = 5
 export const RUMOUR_PRICE_DAYS = 100
 /** Nearby towns whose prices each tier brings (a partial is idle gossip; nothing heard is false). */

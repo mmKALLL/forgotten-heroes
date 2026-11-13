@@ -59,9 +59,9 @@ export const RUMOUR_OUTCOMES: Readonly<Record<Tier, string>> = {
 /** One outcome row of the preview; `text` is null for a critical tier (a surprise). */
 export type RumourOutcome = { tier: Tier; text: string | null; hidden: boolean }
 
-/** A round for the table: RUMOUR_PRICE, plus RUMOUR_PRICE_STEP for every full RUMOUR_PRICE_DAYS. */
+/** A round for the table: RUMOUR_PRICE, rising linearly by RUMOUR_PRICE_STEP per RUMOUR_PRICE_DAYS, to the nearest gp. */
 export const rumourPrice = (day: number): number =>
-  RUMOUR_PRICE + RUMOUR_PRICE_STEP * Math.floor(Math.max(0, day - 1) / RUMOUR_PRICE_DAYS)
+  Math.round(RUMOUR_PRICE + (RUMOUR_PRICE_STEP * Math.max(0, day - 1)) / RUMOUR_PRICE_DAYS)
 
 /** Listening for rumours here: who listens, with what, the DC, the round's cost and the odds. */
 export type RumourOption = {
