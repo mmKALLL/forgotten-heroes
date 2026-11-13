@@ -113,3 +113,15 @@ test('Space acts on the aimed target; ←/→ aim from the keyboard', async () =
     expect.objectContaining({ type: 'combatMove', unit: 'lyra' })
   )
 })
+
+test('a decided fight shows its ending, and Close clears it', async () => {
+  const won = fight()
+  const units = won.combat!.units.map((u) =>
+    u.side === 'enemy' ? { ...u, status: 'dead' as const } : u
+  )
+  render(<Harness initial={{ ...won, combat: { ...won.combat!, result: 'victory', units } }} />)
+  expect(screen.getByRole('heading', { name: 'Victory' })).toBeTruthy()
+  expect(screen.queryByRole('button', { name: 'End turn' })).toBeNull()
+  await userEvent.click(screen.getByRole('button', { name: 'Close' }))
+  expect(screen.getByText('closed')).toBeTruthy()
+})
