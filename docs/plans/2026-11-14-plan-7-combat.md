@@ -84,6 +84,11 @@
   - wipe and retreat;
   - the migration.
 
+### As built (Tracks T and E)
+- Built on branch `plan7-core`; the details, and the calls made while building, are in the combat design's §11 ("As built"). Save v22 there is v21 → v22 on this base (the merger renumbers after the reputation save).
+- Track I's entry points: `startCombat(state, content, fight, { footing })` or the `startCombat` action (the open encounter's `fight`, at its footing), and the fight's `win`, `flee` and `lose` branches.
+- Not yet: abilities and spells (the data shapes exist), class proficiencies (`proficient` is true for everyone), dark rooms, the CR budget.
+
 ### Track U: the combat UI (after E)
 - **The line:** tiles left to right, with each tile's units stacked top to bottom.
 - **Units:** party and enemy cards with HP, intents (an arrow onto a tile, with odds) and hit pips toward the stagger and stun thresholds.
