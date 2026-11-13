@@ -29,8 +29,8 @@ test('cards are compact by default: name, class, HP, best three skills', () => {
   expect(b.queryByRole('heading', { name: 'STR' })).toBeNull() // hidden from the accessibility tree
   // The six ability scores show while closed, without modifiers.
   const scores = b.getByRole('group', { name: 'Abilities' }).textContent!
-  expect(scores).toContain(`STR ${brom.abilities.str}`)
-  expect(scores).toContain(`CHA ${brom.abilities.cha}`)
+  expect(scores).toContain(`STR${brom.abilities.str}`)
+  expect(scores).toContain(`CHA${brom.abilities.cha}`)
   expect(scores).not.toMatch(/[+−-]\d/)
 })
 

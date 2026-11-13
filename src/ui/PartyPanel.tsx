@@ -139,14 +139,14 @@ function CharacterCard({
       <XpBar character={c} />
       {/* The six abilities at a glance; open, the sheet shows them with their modifiers instead. */}
       {!expanded && (
-        <p className="abilities-line small" role="group" aria-label={t('party.abilities')}>
-          {ABILITIES.map((a, i) => (
-            <span key={a}>
-              {i > 0 && ' · '}
-              <span className="muted">{stat(a)}</span> {c.abilities[a]}
-            </span>
+        <dl className="abilities glance" role="group" aria-label={t('party.abilities')}>
+          {ABILITIES.map((a) => (
+            <div key={a}>
+              <dt>{stat(a)}</dt>
+              <dd>{c.abilities[a]}</dd>
+            </div>
           ))}
-        </p>
+        </dl>
       )}
       {/* Open, the sheet shows strain by each skill: the card's badges would say it twice. */}
       {(c.exhaustion > 0 || (strained.length > 0 && !expanded)) && (

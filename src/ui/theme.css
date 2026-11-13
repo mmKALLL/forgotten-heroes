@@ -2534,8 +2534,9 @@ h2[tabindex='-1']:focus {
 }
 .card.member:last-of-type {
   border-bottom: none;
+  margin-bottom: 0;
 }
-.abilities-line {
-  margin: 0.15rem 0 0;
-  font-variant-numeric: tabular-nums;
+/* The closed card's ability scores: no space under them. */
+.abilities.glance {
+  margin-bottom: 0;
 }
